@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="CantAssignTo">
         <source>Can't assign '{0}' to '{1}'.</source>
-        <target state="translated">No se puede asignar '{0}' a '{1}'.</target>
+        <target state="translated">No se puede asignar "{0}" a "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ExpectedAnAssemblyReference">
@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="GlobalsNotAssignable">
         <source>The globals of type '{0}' is not assignable to '{1}'</source>
-        <target state="translated">Las variables globales de tipo '{0}' no se pueden asignar a '{1}'</target>
+        <target state="translated">Las variables globales de tipo "{0}" no se pueden asignar a "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="StartingStateIncompatible">

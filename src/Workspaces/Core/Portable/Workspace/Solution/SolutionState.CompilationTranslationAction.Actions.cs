@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis
                     return UpdateDocumentInCompilationAsync(oldCompilation, _oldState, _newState, cancellationToken);
                 }
 
-                public DocumentId DocumentId => _newState.Info.Id;
+                public DocumentId DocumentId => _newState.Attributes.Id;
             }
 
             private class RemoveAllDocumentsAction : CompilationTranslationAction
@@ -48,14 +50,24 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private class AddDocumentAction : SimpleCompilationTranslationAction<DocumentState>
+            private class AddDocumentsAction : CompilationTranslationAction
             {
-                private static readonly Func<Compilation, DocumentState, CancellationToken, Task<Compilation>> s_action =
-                    async (o, d, c) => o.AddSyntaxTrees(await d.GetSyntaxTreeAsync(c).ConfigureAwait(false));
+                private readonly ImmutableArray<DocumentState> _documents;
 
-                public AddDocumentAction(DocumentState document)
-                    : base(document, s_action)
+                public AddDocumentsAction(ImmutableArray<DocumentState> documents)
                 {
+                    _documents = documents;
+                }
+
+                public override async Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                {
+                    var syntaxTrees = new List<SyntaxTree>();
+                    foreach (var document in _documents)
+                    {
+                        syntaxTrees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                    }
+
+                    return oldCompilation.AddSyntaxTrees(syntaxTrees);
                 }
             }
 

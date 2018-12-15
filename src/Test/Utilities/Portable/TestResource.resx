@@ -183,6 +183,7 @@ namespace My
         static A() 
         {
             int x = default;
+            string y = null!;
         }
 
         [method: Obsolete]
@@ -212,6 +213,8 @@ namespace My
             var local3 = 0, local4 = 1;
             local3 = local4 = 1;
             var local5 = null as Action ?? null;
+            local5 ??= null;
+            local5 = (local5 ??= null);
             var local6 = local5 is Action;
 
             var u = 1u;
@@ -809,6 +812,8 @@ namespace Comments.XmlComments.UndocumentedKeywords
             i &lt;&lt;= i;/*&lt;&lt;=*/
             i &gt;&gt;= i;/*&gt;&gt;=*/
             object s = x =&gt; x + 1;/*=&gt;*/
+            var index = ^1;
+            var range = 1..2;
             Point point;
             unsafe
             {

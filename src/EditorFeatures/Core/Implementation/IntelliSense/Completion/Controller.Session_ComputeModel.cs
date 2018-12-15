@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     CompletionTrigger trigger,
                     ImmutableHashSet<string> roles,
                     OptionSet options)
+                    : base(session.ThreadingContext)
                 {
                     _session = session;
                     _completionService = completionService;
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             _documentOpt, _subjectBufferCaretPosition, _trigger, _roles, _options, cancellationToken).ConfigureAwait(false);
                         if (completionList == null)
                         {
-                            Logger.Log(FunctionId.Completion_ModelComputer_DoInBackground, 
+                            Logger.Log(FunctionId.Completion_ModelComputer_DoInBackground,
                                 d => $"No completionList, document: {d != null}, document open: {d?.IsOpen()}", _documentOpt);
 
                             return null;

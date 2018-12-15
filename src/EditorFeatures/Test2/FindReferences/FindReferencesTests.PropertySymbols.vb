@@ -893,5 +893,22 @@ End Class
 </Workspace>
             Await TestAPIAndFeature(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpProperty_Cref() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface IC
+{
+    /// &lt;see cref="[|Prop|]"/&gt;
+    int {|Definition:$$Prop|} { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input)
+        End Function
     End Class
 End Namespace

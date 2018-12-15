@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var symbol = symbolAndProjectId.Symbol;
                         var finder = symbolAndFinder.finder;
 
-                        var documents = await finder.DetermineDocumentsToSearchAsync(symbol, project, _documents, _cancellationToken).ConfigureAwait(false);
+                        var documents = await finder.DetermineDocumentsToSearchAsync(
+                            symbol, project, _documents, _options, _cancellationToken).ConfigureAwait(false);
                         foreach (var document in documents.Distinct().WhereNotNull())
                         {
                             if (_documents == null || _documents.Contains(document))
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                List<Task> finderTasks = new List<Task>();
+                var finderTasks = new List<Task>();
                 foreach (var f in _finders)
                 {
                     finderTasks.Add(Task.Run(async () =>
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var symbolTasks = new List<Task>();
 
                         var symbols = await f.DetermineCascadedSymbolsAsync(
-                            searchSymbolAndProjectId, _solution, projects, _cancellationToken).ConfigureAwait(false);
+                            searchSymbolAndProjectId, _solution, projects, _options, _cancellationToken).ConfigureAwait(false);
                         AddSymbolTasks(result, symbols, symbolTasks);
 
                         // Defer to the language to see if it wants to cascade here in some special way.

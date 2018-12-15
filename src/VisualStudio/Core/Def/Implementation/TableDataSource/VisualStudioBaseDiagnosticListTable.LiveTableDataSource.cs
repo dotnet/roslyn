@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -190,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 if (diagnostic == null)
                 {
                     // guard us from wrong provider that gives null diagnostic
-                    Contract.Requires(false, "Let's see who does this");
+                    Debug.Assert(false, "Let's see who does this");
                     return false;
                 }
 
@@ -390,8 +391,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     switch (value)
                     {
                         case WellKnownDiagnosticTags.Build:
-                            // any error from build is highest priority
-                            return ErrorRank.Lexical;
+                            // any error from build gets lowest priority
+                            // see https://github.com/dotnet/roslyn/issues/28807
+                            //
+                            // this is only used when intellisense (live) errors are involved.
+                            // with "build only" filter on, we use order of errors came in from build for ordering
+                            // and doesn't use ErrorRank for ordering (by giving same rank for all errors)
+                            //
+                            // when live errors are involved, by default, error list will use the following to sort errors
+                            // error rank > project rank > project name > file name > line > column
+                            // which will basically make syntax errors show up before declaration error and method body semantic errors
+                            // among same type of errors, leaf project's error will show up first and then projects that depends on the leaf projects
+                            //
+                            // any build errors mixed with live errors will show up at the end. when live errors are on, some of errors
+                            // still left as build errors such as errors produced after CompilationStages.Compile or ones listed here
+                            // http://source.roslyn.io/#Microsoft.CodeAnalysis.CSharp/Compilation/CSharpCompilerDiagnosticAnalyzer.cs,23 or similar ones for VB
+                            // and etc.
+                            return ErrorRank.PostBuild;
                         case nameof(ErrorRank.Lexical):
                             return ErrorRank.Lexical;
                         case nameof(ErrorRank.Syntactic):

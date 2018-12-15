@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public override Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; }
 
             public TestableCompilerServerHost(
-                IAnalyzerAssemblyLoader loader = null, 
-                Func<string, MetadataReferenceProperties, PortableExecutableReference> assemblyReferenceProvider = null) : 
+                IAnalyzerAssemblyLoader loader = null,
+                Func<string, MetadataReferenceProperties, PortableExecutableReference> assemblyReferenceProvider = null) :
                 base(ServerUtil.DefaultClientDirectory, ServerUtil.DefaultSdkDirectory)
             {
                 AnalyzerAssemblyLoader = loader;

@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 return;
             }
 
-            if (syntaxFacts.IsConditionalMemberAccessExpression(expression))
+            if (syntaxFacts.IsConditionalAccessExpression(expression))
             {
                 var beforeDotExpression = syntaxFacts.GetExpressionOfConditionalAccessExpression(expression);
 
@@ -163,8 +163,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember
         private static void DetermineTypeToGenerateInWorker(
             SemanticModel semanticModel,
             SyntaxNode expression,
-            out INamedTypeSymbol typeToGenerateIn, 
-            out bool isStatic, 
+            out INamedTypeSymbol typeToGenerateIn,
+            out bool isStatic,
             CancellationToken cancellationToken)
         {
             var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);

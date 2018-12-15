@@ -624,8 +624,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, 
-            Document document, 
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
+            Document document,
             CancellationToken cancellationToken)
         {
             var symbol = symbolAndProjectId.Symbol;
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                             if (convertedType != null)
                             {
-                                convertedType = SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult(cancellationToken) ?? convertedType;
+                                convertedType = SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken) ?? convertedType;
                             }
 
                             return convertedType == symbol.ContainingType;

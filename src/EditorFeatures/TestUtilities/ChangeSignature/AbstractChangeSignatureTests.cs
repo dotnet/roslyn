@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     await TestActionAsync(workspace, expectedCode, refactoring.Actions[index],
                         conflictSpans: ImmutableArray<TextSpan>.Empty,
                         renameSpans: ImmutableArray<TextSpan>.Empty,
-                        warningSpans: ImmutableArray<TextSpan>.Empty, 
+                        warningSpans: ImmutableArray<TextSpan>.Empty,
                         navigationSpans: ImmutableArray<TextSpan>.Empty,
                         parameters: default);
                 }

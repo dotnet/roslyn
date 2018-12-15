@@ -8,6 +8,18 @@
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <RootNamespace></RootNamespace>
+
+    <!--
+      Disable running the tests on .NET Core while we investigate the core dump issue
+      https://github.com/dotnet/roslyn/issues/29660
+    -->
+    <SkipTests Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and '$(OS)' != 'Windows_NT'">true</SkipTests>
+
+    <!--
+      Skipped because we appear to be missing things necessary to compile vb.net.
+      See https://github.com/mono/mono/issues/10679 
+    -->
+    <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
@@ -21,10 +33,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
-    <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" Condition="$(TargetFramework) == 'netcoreapp2.0'" />
+    <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" Condition="$(TargetFramework) == 'netcoreapp2.1'" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

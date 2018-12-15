@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public sealed class ClosureEnvironment
             {
                 public readonly SetWithInsertionOrder<Symbol> CapturedVariables;
-                
+
                 /// <summary>
                 /// True if this environment captures a reference to a class environment
                 /// declared in a higher scope. Assigned by
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _currentScope = CreateOrReuseScope(node, node.Locals);
                     var result = base.VisitBlock(node);
                     _currentScope = oldScope;
-                    return result; 
+                    return result;
                 }
 
                 public override BoundNode VisitCatchBlock(BoundCatchBlock node)
@@ -559,10 +559,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (capturedVariable.Kind)
                     {
                         case SymbolKind.Local:
-                            type = ((LocalSymbol)capturedVariable).Type;
+                            type = ((LocalSymbol)capturedVariable).Type.TypeSymbol;
                             break;
                         case SymbolKind.Parameter:
-                            type = ((ParameterSymbol)capturedVariable).Type;
+                            type = ((ParameterSymbol)capturedVariable).Type.TypeSymbol;
                             break;
                         default:
                             // This should only be called for captured variables, and captured

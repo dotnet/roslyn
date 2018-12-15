@@ -2,10 +2,25 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../CSharpFeaturesResources.resx">
     <body>
+      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
+        <source>Add await and ConfigureAwait(false)</source>
+        <target state="new">Add await and ConfigureAwait(false)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
         <target state="new">Add accessibility modifiers</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Add_await">
+        <source>Add await</source>
+        <target state="new">Add await</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_usings">
+        <source>Add missing usings</source>
+        <target state="new">Add missing usings</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_remove_braces_for_single_line_control_statements">
         <source>Add/remove braces for single-line control statements</source>
@@ -42,6 +57,16 @@
         <target state="new">Apply 'this.' qualification preferences</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_method">
+        <source>Convert to method</source>
+        <target state="new">Convert to method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declare_as_nullable">
+        <source>Declare as nullable</source>
+        <target state="new">Declare as nullable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
         <target state="translated">Variável temporária embutida</target>
@@ -51,6 +76,11 @@
         <source>Conflict(s) detected.</source>
         <target state="translated">Conflito(s) detectado(s).</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Introduce_using_statement">
+        <source>Introduce 'using' statement</source>
+        <target state="new">Introduce 'using' statement</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
@@ -85,6 +115,11 @@
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="new">Sort accessibility modifiers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use '{0}'</source>
+        <target state="new">Use '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">

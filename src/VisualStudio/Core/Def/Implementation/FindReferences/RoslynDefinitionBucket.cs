@@ -48,21 +48,21 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 switch (key)
                 {
-                case StandardTableKeyNames.Text:
-                case StandardTableKeyNames.FullText:
-                    return DefinitionItem.DisplayParts.JoinText();
+                    case StandardTableKeyNames.Text:
+                    case StandardTableKeyNames.FullText:
+                        return DefinitionItem.DisplayParts.JoinText();
 
-                case StandardTableKeyNames2.TextInlines:
-                    var inlines = new List<Inline> { new Run(" ") };
-                    inlines.AddRange(DefinitionItem.DisplayParts.ToInlines(_presenter.ClassificationFormatMap, _presenter.TypeMap));
-                    foreach (var inline in inlines)
-                    {
-                        inline.SetValue(TextElement.FontWeightProperty, FontWeights.Bold);
-                    }
-                    return inlines;
+                    case StandardTableKeyNames2.TextInlines:
+                        var inlines = new List<Inline> { new Run(" ") };
+                        inlines.AddRange(DefinitionItem.DisplayParts.ToInlines(_presenter.ClassificationFormatMap, _presenter.TypeMap));
+                        foreach (var inline in inlines)
+                        {
+                            inline.SetValue(TextElement.FontWeightProperty, FontWeights.Bold);
+                        }
+                        return inlines;
 
-                case StandardTableKeyNames2.DefinitionIcon:
-                    return DefinitionItem.Tags.GetGlyph().GetImageMoniker();
+                    case StandardTableKeyNames2.DefinitionIcon:
+                        return DefinitionItem.Tags.GetFirstGlyph().GetImageMoniker();
                 }
 
                 return null;

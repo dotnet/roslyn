@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 namespace BuildBoss
 {
     /// <summary>
-    /// Verifies the contents of our compiler toolset NuPkg, and related, files are correct. 
+    /// Verifies the contents of our toolset NuPkg and SWR files are correct.
     /// 
     /// The compiler toolset is a particularly difficult package to get correct. In essense it is 
     /// merging the output of three different exes into a single directory. That causes a number 
@@ -20,23 +20,24 @@ namespace BuildBoss
     ///     - The dependencies can change based on subtle changes to the code
     ///     - There is no project which is guaranteed to have a superset of dependencies 
     ///     - There is no syntax for using the union of DLLs in a NuSpec file
-    ///     - There is no way to use a NuSpec file as input to a SWR file
     ///
     /// The least crazy solution that could be decided on was to manage the list of dependencies 
     /// by hand in the NuSpec file and then rigorously verify the solution here.
     /// </summary>
-    internal sealed class CompilerNuGetCheckerUtil : ICheckerUtil
+    internal sealed class PackageContentsChecker : ICheckerUtil
     {
         internal static StringComparer PathComparer { get; } = StringComparer.OrdinalIgnoreCase;
         internal static StringComparison PathComparison { get; } = StringComparison.OrdinalIgnoreCase;
 
-        internal string ConfigDirectory { get; }
+        internal string ArtifactsDirectory { get; }
+        internal string Configuration { get; }
         internal string RepositoryDirectory { get; }
 
-        internal CompilerNuGetCheckerUtil(string repositoryDirectory, string configDirectory)
+        internal PackageContentsChecker(string repositoryDirectory, string artifactsDirectory, string configuration)
         {
             RepositoryDirectory = repositoryDirectory;
-            ConfigDirectory = configDirectory;
+            ArtifactsDirectory = artifactsDirectory;
+            Configuration = configuration;
         }
 
         public bool Check(TextWriter textWriter)
@@ -61,11 +62,12 @@ namespace BuildBoss
         {
             var (allGood, dllRelativeNames) = GetDllRelativeNames(
                 textWriter,
-                @"Exes\Csc\net46",
-                @"Exes\Vbc\net46",
-                @"Exes\Csi\net46",
-                @"Exes\VBCSCompiler\net46",
-                @"Dlls\Microsoft.Build.Tasks.CodeAnalysis\net46");
+                $@"csc\{Configuration}\net472",
+                $@"vbc\{Configuration}\net472",
+                $@"csi\{Configuration}\net472",
+                $@"VBCSCompiler\{Configuration}\net472",
+                $@"Microsoft.Build.Tasks.CodeAnalysis\{Configuration}\net472");
+
             if (!allGood)
             {
                 return false;
@@ -75,28 +77,22 @@ namespace BuildBoss
             // inside of desktop MSBuild. Even though they are in our output directories they should
             // not be a part of our deployment
             // need to be 
-            var unneededDllFileNames = new[]
-            {
+            dllRelativeNames = FilterRelativeFileNames(
+                dllRelativeNames,
                 "Microsoft.Build.dll",
                 "Microsoft.Build.Framework.dll",
                 "Microsoft.Build.Tasks.Core.dll",
-                "Microsoft.Build.Utilities.Core.dll",
-            };
-            dllRelativeNames = dllRelativeNames
-                .Where(x => !unneededDllFileNames.Contains(x, PathComparer))
-                .ToList();
-
-            allGood &= VerifySwrFile(textWriter, dllRelativeNames);
+                "Microsoft.Build.Utilities.Core.dll").ToList();
 
             allGood &= VerifyNuPackage(
                         textWriter,
-                        FindNuGetPackage(@"NuGet\PreRelease", "Microsoft.Net.Compilers"),
+                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers"),
                         @"tools",
                         dllRelativeNames);
 
             allGood &= VerifyNuPackage(
                         textWriter,
-                        FindNuGetPackage(@"DevDivPackages\Roslyn", "VS.Tools.Roslyn"),
+                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.Tools.Roslyn"),
                         string.Empty,
                         dllRelativeNames);
             return allGood;
@@ -109,27 +105,24 @@ namespace BuildBoss
         {
             var (allGood, dllRelativeNames) = GetDllRelativeNames(
                 textWriter,
-                @"Exes\Csc\netcoreapp2.0\publish",
-                @"Exes\Vbc\netcoreapp2.0\publish",
-                @"Exes\VBCSCompiler\netcoreapp2.0\publish");
+                $@"csc\{Configuration}\netcoreapp2.1\publish",
+                $@"vbc\{Configuration}\netcoreapp2.1\publish",
+                $@"VBCSCompiler\{Configuration}\netcoreapp2.1\publish");
             if (!allGood)
             {
                 return false;
             }
 
-            // TODO: waiting to hear back from CLI about why this is done. 
-            var unneededDllFileNames = new[]
-            {
+            // The native DLLs ship inside the runtime specific directories but build deploys it at the 
+            // root as well. That copy is unnecessary.
+            dllRelativeNames = FilterRelativeFileNames(
+                dllRelativeNames,
                 "Microsoft.DiaSymReader.Native.amd64.dll",
-                "Microsoft.DiaSymReader.Native.x86.dll",
-            };
-            dllRelativeNames = dllRelativeNames
-                .Where(x => !unneededDllFileNames.Contains(x, PathComparer))
-                .ToList();
+                "Microsoft.DiaSymReader.Native.x86.dll").ToList();
 
             return VerifyNuPackage(
                         textWriter,
-                        FindNuGetPackage(@"NuGet\PreRelease", "Microsoft.NETCore.Compilers"),
+                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.NETCore.Compilers"),
                         @"tools\bincore",
                         dllRelativeNames);
         }
@@ -208,7 +201,7 @@ namespace BuildBoss
             {
                 foreach (var directory in directoryPaths)
                 {
-                    recordDependencies(md5, Path.Combine(ConfigDirectory, directory));
+                    recordDependencies(md5, Path.Combine(ArtifactsDirectory, "bin", directory));
                 }
             }
 
@@ -216,10 +209,31 @@ namespace BuildBoss
             return (allGood, dllFileNames);
         }
 
+        private IEnumerable<string> FilterRelativeFileNames(IEnumerable<string> relativeFileNames, params string[] excludeNames)
+        {
+            foreach (var relativeFileName in relativeFileNames)
+            {
+                var keep = true;
+                foreach (var excludeName in excludeNames)
+                {
+                    if (PathComparer.Equals(excludeName, relativeFileName))
+                    {
+                        keep = false;
+                        break;
+                    }
+                }
+
+                if (keep)
+                {
+                    yield return relativeFileName;
+                }
+            }
+        }
+
         private static bool VerifyNuPackage(
-            TextWriter textWriter, 
-            string nupkgFilePath, 
-            string folderRelativePath, 
+            TextWriter textWriter,
+            string nupkgFilePath,
+            string folderRelativePath,
             IEnumerable<string> dllFileNames)
         {
             Debug.Assert(string.IsNullOrEmpty(folderRelativePath) || folderRelativePath[0] != '\\');
@@ -295,84 +309,10 @@ namespace BuildBoss
             return allGood;
         }
 
-        /// <summary>
-        /// The Microsoft.CodeAnalysis.Compilers.swr file is used in part to ensure NGEN is run on the set of 
-        /// facades / implementation DLLs the compiler depends on. This set of DLLs is the same as what is 
-        /// included in our NuGet package. Need to make sure all the necessary managed DLLs are included here.
-        /// </summary>
-        private bool VerifySwrFile(TextWriter textWriter, List<string> dllFileNames)
-        {
-            var excludedDlls = new[]
-            {
-                "Microsoft.DiaSymReader.Native.amd64.dll",      // native
-                "Microsoft.DiaSymReader.Native.x86.dll",        // native
-            };
-
-            var map = dllFileNames
-                .Where(x => !excludedDlls.Contains(x, PathComparer))
-                .ToDictionary(
-                    keySelector: x => x,
-                    elementSelector: _ => false,
-                    comparer: PathComparer);
-            var swrRelativeFilePath = @"src\Setup\DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.swr";
-            var swrFilePath = Path.Combine(RepositoryDirectory, swrRelativeFilePath);
-
-            textWriter.WriteLine($"Verifying {Path.GetFileName(swrRelativeFilePath)}");
-            string[] allLines;
-            try
-            {
-                allLines = File.ReadAllLines(swrFilePath);
-            }
-            catch (Exception ex)
-            {
-                textWriter.WriteLine($"\tUnable to read the SWR file: {ex.Message}");
-                return false;
-            }
-
-            var allGood = true;
-            var regex = new Regex(@"^\s*file source=([^ ]*).*$", RegexOptions.IgnoreCase);
-            foreach (var line in allLines)
-            {
-                var match = regex.Match(line);
-                if (match.Success)
-                {
-                    var filePath = match.Groups[1].Value.Replace('$', '_').Replace('(', '_').Replace(')', '_');
-                    var fileName = Path.GetFileName(filePath);
-                    if (map.ContainsKey(fileName))
-                    {
-                        map[fileName] = true;
-                    }
-                    else if (fileName.EndsWith(".dll", PathComparison))
-                    {
-                        textWriter.WriteLine($"Unexpected dll {fileName}");
-                        allGood = false;
-                    }
-                }
-            }
-
-            foreach (var pair in map.OrderBy(x => x.Key))
-            {
-                if (!pair.Value)
-                {
-                    textWriter.WriteLine($"\tDll {pair.Key} is missing");
-                    allGood = false;
-                }
-            }
-
-            return allGood;
-        }
-
         private string FindNuGetPackage(string directory, string partialName)
         {
-            var file = Directory
-                .EnumerateFiles(Path.Combine(ConfigDirectory, directory), partialName + "*.nupkg")
-                .SingleOrDefault();
-            if (file == null)
-            {
-                throw new Exception($"Unable to find NuPgk {partialName} in {directory}");
-            }
-
-            return file;
+            var file = Directory.EnumerateFiles(directory, partialName + "*.nupkg").SingleOrDefault();
+            return file ?? throw new Exception($"Unable to find '{partialName}*.nupkg' in '{directory}'");
         }
     }
 }

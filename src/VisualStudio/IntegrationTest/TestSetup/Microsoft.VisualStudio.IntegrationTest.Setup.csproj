@@ -6,18 +6,16 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Setup</RootNamespace>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <RoslynProjectType>Vsix</RoslynProjectType>
-    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <IsShipping>false</IsShipping>
+
+    <!-- VSIX -->
     <UseCodebase>true</UseCodebase>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
-    <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
-    <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <IsShipping>false</IsShipping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -58,6 +56,8 @@
      -->
     <PackageReference Include="Microsoft.Tpl.Dataflow" Version="$(MicrosoftTplDataflowVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Test\Diagnostics\Roslyn.Hosting.Diagnostics.csproj">

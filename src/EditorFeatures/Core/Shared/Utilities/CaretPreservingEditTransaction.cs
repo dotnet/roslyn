@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        public static CaretPreservingEditTransaction TryCreate(string description, 
+        public static CaretPreservingEditTransaction TryCreate(string description,
             ITextView textView,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)

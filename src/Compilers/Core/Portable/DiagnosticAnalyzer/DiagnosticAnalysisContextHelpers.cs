@@ -31,6 +31,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifySyntaxKinds(syntaxKinds);
         }
 
+        internal static void VerifyArguments<TContext>(Action<TContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            VerifyAction(action);
+            VerifyOperationKinds(operationKinds);
+        }
+
         internal static void VerifyArguments(Diagnostic diagnostic, Compilation compilationOpt, Func<Diagnostic, bool> isSupportedDiagnostic)
         {
             if (diagnostic is DiagnosticWithInfo)
@@ -134,6 +140,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (syntaxKinds.IsEmpty)
             {
                 throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(syntaxKinds));
+            }
+        }
+
+        private static void VerifyOperationKinds(ImmutableArray<OperationKind> operationKinds)
+        {
+            if (operationKinds.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(operationKinds));
+            }
+
+            if (operationKinds.IsEmpty)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(operationKinds));
             }
         }
 

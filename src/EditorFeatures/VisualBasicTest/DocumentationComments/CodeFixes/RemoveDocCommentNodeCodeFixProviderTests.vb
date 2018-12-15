@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
             Dim parseOptions = TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose)
             Await TestAsync(initial, expected, parseOptions:=parseOptions)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag() As Task
             Dim initial =
@@ -39,7 +39,7 @@ End Class"
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -59,7 +59,7 @@ End Class"
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -83,7 +83,7 @@ End Class"
         Return 0
     End Function
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -108,7 +108,7 @@ End Class"
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -212,10 +212,10 @@ End Class"
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesParamTagWithNoMatchingParam() As Task
             Dim initial =
@@ -238,10 +238,10 @@ End Class"
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
-        
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         Public Async Function RemovesDuplicateParamTag_RawTextBeforeAndAfterNode() As Task
             Dim initial =
@@ -264,7 +264,7 @@ End Class"
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -294,7 +294,7 @@ End Class"
     Sub Fizz(Of T, U)(ByVal value As Integer)
     End Sub
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -324,7 +324,7 @@ End Class"
     Sub Fizz(Of T, U)(ByVal value As Integer)
     End Sub
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -350,7 +350,7 @@ End Class"
     Public Sub Fizz(ByVal value As Integer)
     End Sub
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -376,7 +376,7 @@ End Class"
         Return 0
     End Function
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -404,7 +404,7 @@ End Class"
         End Set
     End Property
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -426,7 +426,7 @@ End Class"
     ''' </summary>
     Declare Sub Goo Lib ""User"" ()
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -450,7 +450,7 @@ End Class"
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -476,7 +476,7 @@ End Class"
     Sub Fizz(ByVal value As Integer)
     End Sub
 End Class"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -597,7 +597,7 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -720,7 +720,7 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -829,7 +829,7 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -837,7 +837,7 @@ End Class]]>
         <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInProject() As Task
-            Dim initial = 
+            Dim initial =
 "<Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"" DocumentationMode=""Diagnose"">
         <Document><![CDATA[
@@ -918,7 +918,7 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>"
-            
+
             Await TestAsync(initial, expected)
         End Function
 
@@ -1006,7 +1006,7 @@ End Class]]>
         </Document>
     </Project>
 </Workspace>"
-            
+
             Await TestAsync(initial, expected)
         End Function
     End Class

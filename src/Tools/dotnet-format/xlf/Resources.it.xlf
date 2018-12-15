@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="it" original="../Resources.resx">
+    <body>
+      <trans-unit id="Both_a_MSBuild_project_file_and_solution_file_found_in_0_Specify_which_to_use_with_the_workspace_option">
+        <source>Both a MSBuild project file and solution file found in '{0}'. Specify which to use with the --workspace option.</source>
+        <target state="new">Both a MSBuild project file and solution file found in '{0}'. Specify which to use with the --workspace option.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_a_MSBuild_project_or_solution_file_in_0_Specify_which_to_use_with_the_workspace_option">
+        <source>Could not find a MSBuild project file or solution file in '{0}'. Specify which to use with the --workspace option.</source>
+        <target state="new">Could not find a MSBuild project file or solution file in '{0}'. Specify which to use with the --workspace option.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_format_0_Format_currently_supports_only_CSharp_and_Visual_Basic_projects">
+        <source>Could not format '{0}'. Format currently supports only C# and Visual Basic projects.</source>
+        <target state="new">Could not format '{0}'. Format currently supports only C# and Visual Basic projects.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_save_formatting_changes">
+        <source>Failed to save formatting changes.</source>
+        <target state="new">Failed to save formatting changes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_complete">
+        <source>Format complete.</source>
+        <target state="new">Format complete.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_complete_in_0_ms">
+        <source>Format complete in {0}ms.</source>
+        <target state="new">Format complete in {0}ms.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_code_file_0">
+        <source>Formatting code file '{0}'.</source>
+        <target state="new">Formatting code file '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_code_files_in_project_0">
+        <source>Formatting code files in project '{0}'.</source>
+        <target state="new">Formatting code files in project '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_code_files_in_workspace_0">
+        <source>Formatting code files in workspace '{0}'.</source>
+        <target state="new">Formatting code files in workspace '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loading_workspace">
+        <source>Loading workspace.</source>
+        <target state="new">Loading workspace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Maximum_number_of_workspace_warnings_to_log_has_been_reached_Set_the_verbosity_option_to_the_diagnostic_level_to_see_all_warnings">
+        <source>Maximum number of workspace warnings to log has been reached. Set the --verbosity option to the 'diagnostic' level to see all warnings.</source>
+        <target state="new">Maximum number of workspace warnings to log has been reached. Set the --verbosity option to the 'diagnostic' level to see all warnings.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_MSBuild_project_files_found_in_0_Specify_which_to_use_with_the_workspace_option">
+        <source>Multiple MSBuild project files found in '{0}'. Specify which to use with the --workspace option.</source>
+        <target state="new">Multiple MSBuild project files found in '{0}'. Specify which to use with the --workspace option.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_MSBuild_solution_files_found_in_0_Specify_which_to_use_with_the_workspace_option">
+        <source>Multiple MSBuild solution files found in '{0}'. Specify which to use with the --workspace option.</source>
+        <target state="new">Multiple MSBuild solution files found in '{0}'. Specify which to use with the --workspace option.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_the_verbosity_level_Allowed_values_are_quiet_minimal_normal_detailed_and_diagnostic">
+        <source>Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]</source>
+        <target state="new">Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Skipping_referenced_project_0">
+        <source>Skipping referenced project '{0}'.</source>
+        <target state="new">Skipping referenced project '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_file_0_does_not_appear_to_be_a_valid_project_or_solution_file">
+        <source>The file '{0}' does not appear to be a valid project or solution file.</source>
+        <target state="new">The file '{0}' does not appear to be a valid project or solution file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_project_file_0_does_not_exist">
+        <source>The project file '{0}' does not exist.</source>
+        <target state="new">The project file '{0}' does not exist.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_solution_file_0_does_not_exist">
+        <source>The solution file '{0}' does not exist.</source>
+        <target state="new">The solution file '{0}' does not exist.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_solution_or_project_file_to_operate_on_If_a_file_is_not_specified_the_command_will_search_the_current_directory_for_one">
+        <source>The solution or project file to operate on. If a file is not specified, the command will search the current directory for one.</source>
+        <target state="new">The solution or project file to operate on. If a file is not specified, the command will search the current directory for one.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_load_workspace">
+        <source>Unable to load workspace.</source>
+        <target state="new">Unable to load workspace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Workspace_loaded_in_0_ms">
+        <source>Workspace loaded in {0}ms.</source>
+        <target state="new">Workspace loaded in {0}ms.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

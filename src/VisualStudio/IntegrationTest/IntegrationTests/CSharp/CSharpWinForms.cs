@@ -64,7 +64,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             //  Replace text property with something else
             VisualStudio.Editor.SelectTextInCurrentDocument(@"this.SomeButton.Text = ""ButtonTextGoesHere"";");
             VisualStudio.Editor.SendKeys(@"this.SomeButton.Text = ""GibberishText"";");
-            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.Designer.cs",  saveFile: true);
+            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.Designer.cs", saveFile: true);
             //  Verify that the control text has changed in the designer
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.cs");
             expectedPropertyValue = "GibberishText";

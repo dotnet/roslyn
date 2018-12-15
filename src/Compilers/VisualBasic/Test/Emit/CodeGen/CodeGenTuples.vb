@@ -110,6 +110,31 @@ End Namespace
 "
 
         <Fact>
+        Public Sub TupleNamesInArrayInAttribute()
+
+            Dim comp = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+<My(New (String, bob As String)() { })>
+Public Class MyAttribute
+    Inherits System.Attribute
+
+    Public Sub New(x As (alice As String, String)())
+    End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30045: Attribute constructor has a parameter of type '(alice As String, String)()', which is not an integral, floating-point or Enum type or one of Object, Char, String, Boolean, System.Type or 1-dimensional array of these types.
+<My(New (String, bob As String)() { })>
+ ~~
+                                        ]]></errors>)
+
+        End Sub
+
+        <Fact>
         Public Sub TupleTypeBinding()
 
             Dim verifier = CompileAndVerify(
@@ -4594,7 +4619,7 @@ BC30311: Value of type '(Integer, Object, Integer)' cannot be converted to '(Int
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub LongTupleTypeMismatch()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -5638,7 +5663,7 @@ End Class
 
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         Public Sub HugeTupleCreationParses()
 
             Dim b = New StringBuilder()
@@ -5664,7 +5689,7 @@ End Class
 
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         Public Sub HugeTupleDeclarationParses()
 
             Dim b = New StringBuilder()
@@ -9085,6 +9110,10 @@ End Module
             Assert.Equal("I1#I2#I3#I5#I6#I7#Item1#Item2#Item3#Item4#Item5#Item6#Item7#Item8#Item9#Rest", fields.Join("#"))
         End Sub
 
+        ' The NonNullTypes context for nested tuple types is using a dummy rather than actual context from surrounding code.
+        ' This does not affect `IsNullable`, but it affects `IsAnnotatedWithNonNullTypesContext`, which is used in comparisons.
+        ' So when we copy modifiers (re-applying nullability information, including actual NonNullTypes context), we make the comparison fail.
+        ' I think the solution is to never use a dummy context, even for value types.
         <Fact>
         Public Sub TupleNamesFromCS001()
 
@@ -18694,7 +18723,7 @@ BC30652: Reference required to assembly '5a03232e-1a0f-4d1b-99ba-5d7b40ea931e, V
 </errors>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub ValueTupleBase_AssemblyUnification()
             Dim signedDllOptions = TestOptions.ReleaseDll.
                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).

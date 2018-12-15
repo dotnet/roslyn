@@ -229,7 +229,7 @@ class C
             ModuleSymbol peModule = null;
             CompileAndVerifyWithMscorlib40(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
-                references: s_attributeRefs, 
+                references: s_attributeRefs,
                 verify: Verification.Passes,
                 sourceSymbolValidator: m => sourceModule = m,
                 symbolValidator: m => peModule = m);
@@ -268,21 +268,24 @@ class C
             {
                 case SymbolKind.Method:
                     var methodSymbol = (MethodSymbol)symbol;
-                    typeSymbols.Add(methodSymbol.ReturnType);
-                    typeSymbols.AddRange(methodSymbol.ParameterTypes);
+                    typeSymbols.Add(methodSymbol.ReturnType.TypeSymbol);
+                    foreach (var parameterType in methodSymbol.ParameterTypes)
+                    {
+                        typeSymbols.Add(parameterType.TypeSymbol);
+                    }
                     break;
                 case SymbolKind.NamedType:
                     var namedType = (NamedTypeSymbol)symbol;
                     typeSymbols.Add(namedType.BaseType() ?? namedType);
                     break;
                 case SymbolKind.Field:
-                    typeSymbols.Add(((FieldSymbol)symbol).Type);
+                    typeSymbols.Add(((FieldSymbol)symbol).Type.TypeSymbol);
                     break;
                 case SymbolKind.Property:
-                    typeSymbols.Add(((PropertySymbol)symbol).Type);
+                    typeSymbols.Add(((PropertySymbol)symbol).Type.TypeSymbol);
                     break;
                 case SymbolKind.Event:
-                    typeSymbols.Add(((EventSymbol)symbol).Type);
+                    typeSymbols.Add(((EventSymbol)symbol).Type.TypeSymbol);
                     break;
             }
             var symbolString = string.Join(" | ", typeSymbols
@@ -465,20 +468,20 @@ class C
                     {
                         false, false, false, true,
                         false, true, false, false,
-                        true, true 
+                        true, true
                     });
 
                 // public static Base1<(int, ValueTuple<int, ValueTuple>)> Field6;
                 var field6 = _derivedClass.GetMember<FieldSymbol>("Field6");
                 ValidateTupleNameAttribute(field6.GetAttributes(), expectedTupleNamesAttribute: false);
-                var field6Type = Assert.IsType<ConstructedNamedTypeSymbol>(field6.Type);
+                var field6Type = Assert.IsType<ConstructedNamedTypeSymbol>(field6.Type.TypeSymbol);
                 Assert.Equal("Base1", field6Type.Name);
                 Assert.Equal(1, field6Type.TypeParameters.Length);
                 var firstTuple = field6Type.TypeArguments().Single();
                 Assert.True(firstTuple.IsTupleType);
                 Assert.True(firstTuple.TupleElementNames.IsDefault);
                 Assert.Equal(2, firstTuple.TupleElementTypes.Length);
-                var secondTuple = firstTuple.TupleElementTypes[1];
+                var secondTuple = firstTuple.TupleElementTypes[1].TypeSymbol;
                 Assert.True(secondTuple.IsTupleType);
                 Assert.True(secondTuple.TupleElementNames.IsDefault);
                 Assert.Equal(2, secondTuple.TupleElementTypes.Length);
@@ -486,7 +489,7 @@ class C
                 // public static ValueTuple Field7;
                 var field7 = _derivedClass.GetMember<FieldSymbol>("Field7");
                 ValidateTupleNameAttribute(field7.GetAttributes(), expectedTupleNamesAttribute: false);
-                Assert.False(field7.Type.IsTupleType);
+                Assert.False(field7.Type.TypeSymbol.IsTupleType);
 
                 // public static (int e1, int e2, int e3, int e4, int e5, int e6, int e7, int e8, int e9) Field8;
                 var field8 = _derivedClass.GetMember<FieldSymbol>("Field8");
@@ -906,7 +909,7 @@ public interface I3<T>
             {
                 foreach (var t in m.GlobalNamespace.GetTypeMembers())
                 {
-                    switch(t.Name)
+                    switch (t.Name)
                     {
                         case "I1":
                         case "<Module>":

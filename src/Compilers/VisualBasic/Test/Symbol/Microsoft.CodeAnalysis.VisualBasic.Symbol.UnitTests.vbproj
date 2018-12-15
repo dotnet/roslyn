@@ -8,6 +8,9 @@
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <RootNamespace></RootNamespace>
+
+    <!-- A zillion test failures + crash. See https://github.com/mono/mono/issues/10756. -->
+    <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
@@ -20,11 +23,6 @@
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <ItemGroup>
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
-  </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
   </ItemGroup>

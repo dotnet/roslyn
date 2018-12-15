@@ -17,7 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
             private readonly IVsActivityLog _activityLog;
 
-            public LogService(IVsActivityLog activityLog)
+            public LogService(IThreadingContext threadingContext, IVsActivityLog activityLog)
+                : base(threadingContext)
             {
                 _activityLog = activityLog;
             }
@@ -42,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             {
                 if (!this.IsForeground())
                 {
-                    this.InvokeBelowInputPriority(() => Log(text, type));
+                    this.InvokeBelowInputPriorityAsync(() => Log(text, type));
                     return;
                 }
 

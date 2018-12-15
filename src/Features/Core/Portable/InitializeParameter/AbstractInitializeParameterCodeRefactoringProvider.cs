@@ -39,24 +39,30 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            // Only offered when there isn't a selection.
-            if (context.Span.Length > 0)
-            {
-                return;
-            }
-
             var position = context.Span.Start;
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
 
+            var token = root.FindToken(position);
             var parameterNode = GetParameterNode(token, position);
             if (parameterNode == null)
             {
                 return;
+            }
+
+            // Only offered when there isn't a selection, or the selection exactly selects
+            // a parameter name.
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            if (!context.Span.IsEmpty)
+            {
+                var parameterName = syntaxFacts.GetNameOfParameter(parameterNode);
+                if (parameterName == null || parameterName.Value.Span != context.Span)
+                {
+                    return;
+                }
             }
 
             var functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
@@ -65,7 +71,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var parameterDefault = syntaxFacts.GetDefaultOfParameter(parameterNode);
 
             // Don't offer inside the "=initializer" of a parameter
@@ -97,7 +102,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // body. This is useful for when the user is typing a new constructor and hasn't written
             // the body yet.
             var blockStatementOpt = GetBlockOperation(functionDeclaration, semanticModel, cancellationToken);
-          
+
             // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
             // actually determine if there are any viable refactorings here.
             context.RegisterRefactorings(await GetRefactoringsAsync(
@@ -153,7 +158,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             => IsFieldOrPropertyAssignment(statement, containingType, out assignmentExpression, out var fieldOrProperty);
 
         protected static bool IsFieldOrPropertyAssignment(
-            IOperation statement, INamedTypeSymbol containingType, 
+            IOperation statement, INamedTypeSymbol containingType,
             out IAssignmentOperation assignmentExpression, out ISymbol fieldOrProperty)
         {
             if (statement is IExpressionStatementOperation expressionStatement)

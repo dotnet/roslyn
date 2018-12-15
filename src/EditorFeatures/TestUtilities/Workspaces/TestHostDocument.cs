@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly SourceCodeKind _sourceCodeKind;
         private readonly string _filePath;
         private readonly IReadOnlyList<string> _folders;
+        private readonly IDocumentServiceProvider _documentServiceProvider;
 
         public DocumentId Id
         {
@@ -101,7 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             IDictionary<string, ImmutableArray<TextSpan>> spans,
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             IReadOnlyList<string> folders = null,
-            bool isLinkFile = false)
+            bool isLinkFile = false,
+            IDocumentServiceProvider documentServiceProvider = null)
         {
             Contract.ThrowIfNull(textBuffer);
             Contract.ThrowIfNull(filePath);
@@ -117,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.CursorPosition = cursorPosition;
             _sourceCodeKind = sourceCodeKind;
             this.IsLinkFile = isLinkFile;
+            _documentServiceProvider = documentServiceProvider;
 
             this.SelectedSpans = new List<TextSpan>();
             if (spans.ContainsKey(string.Empty))
@@ -198,8 +201,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             if (_textView == null)
             {
-                TestWorkspace.ResetThreadAffinity();
-
                 WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} through {nameof(TestHostDocument)}.{nameof(GetTextView)}");
 
                 var factory = _exportProvider.GetExportedValue<ITextEditorFactoryService>();
@@ -283,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public DocumentInfo ToDocumentInfo()
         {
-            return DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: this.IsGenerated);
+            return DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: this.IsGenerated, _documentServiceProvider);
         }
     }
 }

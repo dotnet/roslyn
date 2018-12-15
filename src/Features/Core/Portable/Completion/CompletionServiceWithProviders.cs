@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // Note: we keep any context with items *or* with a suggested item.  
             var triggeredCompletionContexts = await ComputeNonEmptyCompletionContextsAsync(
                 document, caretPosition, trigger, options,
-                defaultItemSpan, triggeredProviders, 
+                defaultItemSpan, triggeredProviders,
                 cancellationToken).ConfigureAwait(false);
 
             // If we didn't even get any back with items, then there's nothing to do.
@@ -336,11 +336,11 @@ namespace Microsoft.CodeAnalysis.Completion
 
             foreach (var context in completionContexts)
             {
-                Contract.Assert(context != null);
+                Debug.Assert(context != null);
 
                 foreach (var item in context.Items)
                 {
-                    Contract.Assert(item != null);
+                    Debug.Assert(item != null);
                     AddToDisplayMap(item, displayNameToItemsMap);
                 }
 
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItem item,
             Dictionary<string, List<CompletionItem>> displayNameToItemsMap)
         {
-            var sameNamedItems = displayNameToItemsMap.GetOrAdd(item.DisplayText, s_createList);
+            var sameNamedItems = displayNameToItemsMap.GetOrAdd(item.GetEntireDisplayText(), s_createList);
 
             // If two items have the same display text choose which one to keep.
             // If they don't actually match keep both.
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 var existingItem = sameNamedItems[i];
 
-                Contract.Assert(item.DisplayText == existingItem.DisplayText);
+                Debug.Assert(item.GetEntireDisplayText() == existingItem.GetEntireDisplayText());
 
                 if (ItemsMatch(item, existingItem))
                 {

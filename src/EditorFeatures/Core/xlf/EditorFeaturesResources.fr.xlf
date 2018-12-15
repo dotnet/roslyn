@@ -4,32 +4,57 @@
     <body>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
-        <target state="new">Applying changes</target>
+        <target state="translated">Application des changements</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
-        <target state="new">Change configuration</target>
+        <target state="translated">Changer la configuration</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
         <source>Code cleanup is not configured</source>
-        <target state="new">Code cleanup is not configured</target>
+        <target state="translated">Le nettoyage du code n'est pas configuré</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_it_now">
         <source>Configure it now</source>
-        <target state="new">Configure it now</target>
+        <target state="translated">Le configurer maintenant</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
         <source>Do not show this message again</source>
-        <target state="new">Do not show this message again</target>
+        <target state="translated">Ne plus afficher ce message</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
+        <source>Do you still want to proceed? This may produce broken code.</source>
+        <target state="new">Do you still want to proceed? This may produce broken code.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_encountered_the_following_issues">
+        <source>Extract method encountered the following issues:</source>
+        <target state="new">Extract method encountered the following issues:</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
-        <target state="new">Format Document performed additional cleanup</target>
+        <target state="translated">Nettoyage supplémentaire effectué avec Mettre le document en forme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="new">Invalid assembly name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="new">Invalid characters in assembly name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_Tracking">
+        <source>Paste Tracking</source>
+        <target state="new">Paste Tracking</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -40,6 +65,11 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">Ponctuation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="String_Escape_Character">
+        <source>String - Escape Character</source>
+        <target state="new">String - Escape Character</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">
@@ -877,20 +907,10 @@
         <target state="translated">Mise en forme automatique</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_failed_with_following_reasons_colon">
-        <source>Extract method failed with following reasons :</source>
-        <target state="translated">Échec de la méthode d'extraction pour les raisons suivantes :</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_you_still_want_to_proceed_it_will_generate_broken_code">
-        <source>Do you still want to proceed? it will generate broken code.</source>
-        <target state="translated">Voulez-vous quand même continuer ? Le code généré sera interrompu.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="needs-review-translation">Nous pouvons corriger l'erreur en ne créant pas de paramètre(s) "out/ref" dans le struct. 
+        <target state="translated">Nous pouvons corriger l'erreur en ne créant pas de paramètre(s) "out/ref" dans le struct.
 Voulez-vous continuer ?</target>
         <note />
       </trans-unit>
@@ -1149,6 +1169,11 @@ Voulez-vous continuer ?</target>
         <target state="translated">Interactif</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">Coller en mode interactif</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_To_Highlight_Reference">
         <source>Navigate To Highlighted Reference</source>
         <target state="translated">Naviguer vers la référence en surbrillance</target>
@@ -1172,11 +1197,6 @@ Voulez-vous continuer ?</target>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">Formateur de jeton intelligent</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Paste_in_Interactive">
-        <source>Paste in Interactive</source>
-        <target state="translated">Coller en mode interactif</target>
         <note />
       </trans-unit>
     </body>

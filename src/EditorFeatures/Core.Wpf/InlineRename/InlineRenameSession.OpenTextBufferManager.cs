@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 Workspace workspace,
                 IEnumerable<Document> documents,
                 ITextBufferFactoryService textBufferFactoryService)
+                : base(session.ThreadingContext)
             {
                 _session = session;
                 _subjectBuffer = subjectBuffer;
@@ -242,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     // additions of "one" and "three").
                     var boundingIntersectionSpan = Span.FromBounds(intersectionSpans.First().Start, intersectionSpans.Last().End);
                     var trackingSpansTouched = GetEditableSpansForSnapshot(args.After).Where(ss => ss.IntersectsWith(boundingIntersectionSpan));
-                    Contract.Assert(trackingSpansTouched.Count() == 1);
+                    Debug.Assert(trackingSpansTouched.Count() == 1);
 
                     var singleTrackingSpanTouched = trackingSpansTouched.Single();
                     _activeSpan = _referenceSpanToLinkedRenameSpanMap.Where(kvp => kvp.Value.TrackingSpan.GetSpan(args.After).Contains(boundingIntersectionSpan)).Single().Key;
@@ -487,7 +489,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             if (_referenceSpanToLinkedRenameSpanMap.ContainsKey(replacement.OriginalSpan) && kind != RenameSpanKind.Complexified)
                             {
                                 var linkedRenameSpan = _session._renameInfo.GetConflictEditSpan(
-                                    new InlineRenameLocation(newDocument, replacement.NewSpan), _session.ReplacementText, cancellationToken);
+                                    new InlineRenameLocation(newDocument, replacement.NewSpan), GetWithoutAttributeSuffix(_session.ReplacementText, document.GetLanguageService<LanguageServices.ISyntaxFactsService>().IsCaseSensitive), cancellationToken);
                                 if (linkedRenameSpan.HasValue)
                                 {
                                     if (!mergeConflictComments.Any(s => replacement.NewSpan.IntersectsWith(s)))
@@ -536,6 +538,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     this.ApplyReplacementText(updateSelection: false);
                     RaiseSpansChanged();
                 }
+            }
+
+            private static string GetWithoutAttributeSuffix(string text, bool isCaseSensitive)
+            {
+                if (!text.TryGetWithoutAttributeSuffix(isCaseSensitive, out string replaceText))
+                {
+                    replaceText = text;
+                }
+
+                return replaceText;
             }
 
             private static async Task<IEnumerable<TextChange>> GetTextChangesFromTextDifferencingServiceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken = default)
@@ -616,7 +628,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 foreach (var replacement in relevantReplacements)
                 {
-                    var buffer = snapshotSpanToClone.HasValue ? textBufferCloneService.Clone(snapshotSpanToClone.Value) : _textBufferFactoryService.CreateTextBuffer(preMergeDocumentTextString, contentType);
+                    var buffer = snapshotSpanToClone.HasValue ? textBufferCloneService.CloneWithUnknownContentType(snapshotSpanToClone.Value) : _textBufferFactoryService.CreateTextBuffer(preMergeDocumentTextString, contentType);
                     var trackingSpan = buffer.CurrentSnapshot.CreateTrackingSpan(replacement.NewSpan.ToSpan(), SpanTrackingMode.EdgeExclusive, TrackingFidelityMode.Forward);
 
                     using (var edit = _subjectBuffer.CreateEdit(EditOptions.None, null, s_calculateMergedSpansEditTag))

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (catchBlocks.IsDefaultOrEmpty && finallyBlockOpt == null)
                 ? (BoundNode)tryBlock
-                : (BoundNode)node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.PreferFaultHandler);
+                : (BoundNode)node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler);
         }
 
         /// <summary>

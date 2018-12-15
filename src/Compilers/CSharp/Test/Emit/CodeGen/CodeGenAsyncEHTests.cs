@@ -569,7 +569,7 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 }
 ");
         }
-        
+
         [Fact, WorkItem(855080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855080")]
         public void GenericCatchVariableInAsyncMethod()
         {
@@ -839,7 +839,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void AsyncInFinally002()
         {
             var source = @"
@@ -897,7 +897,7 @@ class Test
         }
 
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AsyncInFinally003()
         {
             var source = @"

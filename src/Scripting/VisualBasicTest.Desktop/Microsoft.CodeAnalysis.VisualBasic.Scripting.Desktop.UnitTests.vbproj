@@ -7,8 +7,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
+    <TargetFramework>net472</TargetFramework>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
@@ -32,10 +31,6 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

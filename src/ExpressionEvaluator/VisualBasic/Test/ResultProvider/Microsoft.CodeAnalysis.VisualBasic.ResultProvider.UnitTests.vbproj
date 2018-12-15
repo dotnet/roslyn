@@ -6,8 +6,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.UnitTests</AssemblyName>
-    <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
+    <TargetFramework>net472</TargetFramework>
     <VBRuntime>Default</VBRuntime>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>
@@ -31,9 +30,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\..\Compilers\VisualBasic\Portable\SymbolDisplay\ObjectDisplay.vb">

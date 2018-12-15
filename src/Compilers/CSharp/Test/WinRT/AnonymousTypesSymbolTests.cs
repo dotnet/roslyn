@@ -230,7 +230,7 @@ class Program
 
         private void TestAnonymousTypeFieldSymbols_InQuery(ImmutableArray<byte> image)
         {
-            Assembly refAsm = CorLightup.Desktop.LoadAssembly(image.ToArray());
+            Assembly refAsm = Assembly.Load(image.ToArray());
             Type type = refAsm.GetType("<>f__AnonymousType0`2");
             Assert.NotNull(type);
             Assert.Equal(2, type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Count());
@@ -1118,7 +1118,7 @@ class Query
         {
             PropertySymbol property = this.GetMemberByName<PropertySymbol>(type, name);
             Assert.NotNull(property);
-            Assert.Equal(propType, property.Type);
+            Assert.Equal(propType, property.Type.TypeSymbol);
             Assert.Equal(Accessibility.Public, property.DeclaredAccessibility);
             Assert.False(property.IsAbstract);
             Assert.False(property.IsIndexer);
@@ -1714,8 +1714,8 @@ class Program
             var statement4 = mainBlock.Statements[3] as LocalDeclarationStatementSyntax;
             var localA3 = model.GetDeclaredSymbol(statement3.Declaration.Variables[0]) as LocalSymbol;
             var localA4 = model.GetDeclaredSymbol(statement4.Declaration.Variables[0]) as LocalSymbol;
-            var typeA3 = localA3.Type;
-            var typeA4 = localA4.Type;
+            var typeA3 = localA3.Type.TypeSymbol;
+            var typeA4 = localA4.Type.TypeSymbol;
 
             // A3 and A4 should have different type objects, that compare equal. They should have 
             // different locations.
@@ -1870,9 +1870,11 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                // (12,24): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var x1 = new { local?.M() };
                 Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "local?.M()").WithLocation(12, 24),
-                // error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                // (13,24): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var x2 = new { array?[0] };
                 Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "array?[0]").WithLocation(13, 24));
         }
 

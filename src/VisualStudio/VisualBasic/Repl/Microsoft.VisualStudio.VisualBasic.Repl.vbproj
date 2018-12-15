@@ -5,11 +5,10 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
-    <!-- This project includes the VS SDK targets so we can produce a .pkgdef, but should not produce a .vsix or anything related to it -->
     <CreateVsixContainer>false</CreateVsixContainer>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <DeployExtension>false</DeployExtension>
-    <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -41,6 +40,11 @@
     <Reference Include="WindowsBase" />
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
+
+    <!-- Need VSSDK to generate pkgdef -->
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="$(MicrosoftVSSDKBuildToolsVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\ScriptFile.ico" />

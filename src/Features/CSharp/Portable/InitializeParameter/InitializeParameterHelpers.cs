@@ -154,8 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     return arrowClause.TryConvertToStatement(semicolonToken, createReturnStatementForExpression, out statement);
                 case ExpressionSyntax expression:
                     // must be an expression lambda
-                    statement = ArrowExpressionClauseSyntaxExtensions.ConvertToStatement(expression, semicolonToken, createReturnStatementForExpression);
-                    return true;
+                    return expression.TryConvertToStatement(semicolonToken, createReturnStatementForExpression, out statement);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(body);
             }

@@ -513,7 +513,7 @@ IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreat
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '{x = 1}')
                           IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid, IsImplicit) (Syntax: '{x = 1}')
                             Element Values(1):
-                                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'x = 1')
+                                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'x = 1')
                                   Left: 
                                     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x')
                                       Children(0)

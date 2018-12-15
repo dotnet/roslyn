@@ -94,6 +94,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Add Await.
+        '''</summary>
+        Friend ReadOnly Property Add_Await() As String
+            Get
+                Return ResourceManager.GetString("Add_Await", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Add Await and &apos;ConfigureAwait(false)&apos;.
+        '''</summary>
+        Friend ReadOnly Property Add_Await_and_ConfigureAwaitFalse() As String
+            Get
+                Return ResourceManager.GetString("Add_Await_and_ConfigureAwaitFalse", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Add &apos;Me.&apos;.
         '''</summary>
         Friend ReadOnly Property Add_Me() As String
@@ -103,11 +121,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Add Overloads.
+        '''  Looks up a localized string similar to Add missing Imports.
+        '''</summary>
+        Friend ReadOnly Property Add_missing_Imports() As String
+            Get
+                Return ResourceManager.GetString("Add_missing_Imports", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Add &apos;Overloads&apos;.
         '''</summary>
         Friend ReadOnly Property Add_Overloads() As String
             Get
                 Return ResourceManager.GetString("Add_Overloads", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Add &apos;Shadows&apos;.
+        '''</summary>
+        Friend ReadOnly Property Add_Shadows() As String
+            Get
+                Return ResourceManager.GetString("Add_Shadows", resourceCulture)
             End Get
         End Property
         
@@ -1356,6 +1392,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Introduce &apos;Using&apos; statement.
+        '''</summary>
+        Friend ReadOnly Property Introduce_Using_statement() As String
+            Get
+                Return ResourceManager.GetString("Introduce_Using_statement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Introduces a clause that identifies the external file (DLL or code resource) containing an external procedure..
         '''</summary>
         Friend ReadOnly Property Introduces_a_clause_that_identifies_the_external_file_DLL_or_code_resource_containing_an_external_procedure() As String
@@ -1598,6 +1643,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property Move_the_0_statement_to_line_1() As String
             Get
                 Return ResourceManager.GetString("Move_the_0_statement_to_line_1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &lt;Multiple Types&gt;.
+        '''</summary>
+        Friend ReadOnly Property Multiple_Types() As String
+            Get
+                Return ResourceManager.GetString("Multiple_Types", resourceCulture)
             End Get
         End Property
         

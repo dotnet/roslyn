@@ -57,7 +57,7 @@ namespace BuildBoss
                     allGood &= CheckForProperty(textWriter, "ProjectTypeGuids");
                     allGood &= CheckForProperty(textWriter, "TargetFrameworkProfile");
                 }
-                
+
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
                 allGood &= CheckPackageReferences(textWriter);
@@ -110,8 +110,9 @@ namespace BuildBoss
             }
             catch (Exception ex)
             {
-                data = default(RoslynProjectData);
+                textWriter.WriteLine("Unable to parse Roslyn project properties");
                 textWriter.WriteLine(ex.Message);
+                data = default;
                 return false;
             }
         }
@@ -438,21 +439,33 @@ namespace BuildBoss
             var allGood = true;
             foreach (var targetFramework in _projectUtil.GetAllTargetFrameworks())
             {
-                switch (targetFramework)
+                // TODO: Code Style projects need to be moved over to 4.7.2 and netstandard2.0
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/712825 
+                if (ProjectFilePath.Contains("CodeStyle"))
                 {
-                    case "net20":
-                    case "net46":
-                    case "netstandard1.3":
-                    case "netcoreapp1.1":
-                    case "netcoreapp2.0":
-                    case "$(RoslynPortableTargetFrameworks)":
-                        break;
-                    default:
-                        textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");
-                        allGood = false;
-                        break;
+
+                    switch (targetFramework)
+                    {
+                        case "net46":
+                        case "netstandard1.3":
+                            continue;
+                    }
+                }
+                else
+                {
+                    switch (targetFramework)
+                    {
+                        case "net20":
+                        case "net472":
+                        case "netcoreapp1.1":
+                        case "netcoreapp2.1":
+                        case "$(RoslynPortableTargetFrameworks)":
+                            continue;
+                    }
                 }
 
+                textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");
+                allGood = false;
             }
 
             return allGood;

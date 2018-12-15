@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis
             {
                 bool hasValue;
                 string value;
-                if (IsClientArgsOption(arg, "/keepalive", out hasValue, out value))
+                if (isClientArgsOption(arg, "keepalive", out hasValue, out value))
                 {
                     if (string.IsNullOrEmpty(value))
                     {
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                if (IsClientArgsOption(arg, "/shared", out hasValue, out value))
+                if (isClientArgsOption(arg, "shared", out hasValue, out value))
                 {
                     if (hasValue)
                     {
@@ -485,30 +485,36 @@ namespace Microsoft.CodeAnalysis
                 parsedArgs = newArgs;
                 return true;
             }
-        }
 
-        internal static bool IsClientArgsOption(string arg, string optionName, out bool hasValue, out string optionValue)
-        {
-            hasValue = false;
-            optionValue = null;
-
-            if (!arg.StartsWith(optionName, StringComparison.OrdinalIgnoreCase))
+            bool isClientArgsOption(string arg, string optionName, out bool hasValue, out string optionValue)
             {
-                return false;
-            }
+                hasValue = false;
+                optionValue = null;
 
-            if (arg.Length > optionName.Length && !(arg[optionName.Length] == ':' || arg[optionName.Length] == '='))
-            {
-                return false;
-            }
+                if (arg.Length == 0 || !(arg[0] == '/' || arg[0] == '-'))
+                {
+                    return false;
+                }
 
-            if (arg.Length > optionName.Length)
-            {
-                hasValue = true;
-                optionValue = arg.Substring(optionName.Length + 1).Trim('"');
-            }
+                arg = arg.Substring(1);
+                if (!arg.StartsWith(optionName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
 
-            return true;
+                if (arg.Length > optionName.Length)
+                {
+                    if (!(arg[optionName.Length] == ':' || arg[optionName.Length] == '='))
+                    {
+                        return false;
+                    }
+
+                    hasValue = true;
+                    optionValue = arg.Substring(optionName.Length + 1).Trim('"');
+                }
+
+                return true;
+            }
         }
 
         internal static string MismatchedVersionErrorText => CodeAnalysisResources.MismatchedVersion;

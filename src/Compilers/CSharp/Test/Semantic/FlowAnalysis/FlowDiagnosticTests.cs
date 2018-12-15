@@ -2531,5 +2531,76 @@ class Derived2 : Base
             comp.VerifyDiagnostics(
                 );
         }
+
+        [Fact]
+        public void RangeDefiniteAssignmentOrder()
+        {
+            CreateCompilationWithIndexAndRange(@"
+class C
+{
+    void M()
+    {
+        int x;
+        var r = (x=0)..(x+1);
+        int y;
+        r = (y+1)..(y=0);
+    }
+}").VerifyDiagnostics(
+                // (9,14): error CS0165: Use of unassigned local variable 'y'
+                //         r = (y+1)..(y=0);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(9, 14));
+        }
+
+        [Fact]
+        public void FieldAssignedInLambdaOnly()
+        {
+            var source =
+@"using System;
+struct S
+{
+    private object F;
+    private object G;
+    public S(object x, object y)
+    {
+        Action a = () => { F = x; };
+        G = y;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,12): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
+                //     public S(object x, object y)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(6, 12),
+                // (8,28): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //         Action a = () => { F = x; };
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "F").WithLocation(8, 28));
+        }
+
+        [Fact]
+        public void FieldAssignedInLocalFunctionOnly()
+        {
+            var source =
+@"struct S
+{
+    private object F;
+    private object G;
+    public S(object x, object y)
+    {
+        void f() { F = x; }
+        G = y;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,12): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
+                //     public S(object x, object y)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(5, 12),
+                // (7,14): warning CS8321: The local function 'f' is declared but never used
+                //         void f() { F = x; }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(7, 14),
+                // (7,20): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //         void f() { F = x; }
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "F").WithLocation(7, 20));
+        }
     }
 }

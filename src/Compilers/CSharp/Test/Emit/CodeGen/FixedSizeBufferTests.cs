@@ -570,7 +570,7 @@ class Program
 
             var f = (FieldSymbol)comp2.GlobalNamespace.GetTypeMembers("S")[0].GetMembers("x")[0];
             Assert.Equal("x", f.Name);
-            Assert.True(f.IsFixed);
+            Assert.True(f.IsFixedSizeBuffer);
             Assert.Equal("int*", f.Type.ToString());
             Assert.Equal(10, f.FixedSize);
         }
@@ -970,7 +970,7 @@ public unsafe struct Test
     " + (layout == LayoutKind.Explicit ? "[FieldOffset(0)]" : "") + @"public fixed UInt32 Field[ 16 ];
 }
 ";
-                    CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes, 
+                    CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes,
                         symbolValidator: (m) =>
                         {
                             var test = m.GlobalNamespace.GetTypeMember("Test");

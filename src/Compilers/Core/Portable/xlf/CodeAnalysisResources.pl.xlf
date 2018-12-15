@@ -5,23 +5,38 @@
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="new">Analyzer '{0}' threw the following exception:
-'{1}'.</target>
+        <target state="translated">Analizator „{0}” zgłosił następujący wyjątek:
+„{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
-        <target state="new">Given operation block does not belong to the current analysis context.</target>
+        <target state="translated">Dany blok operacji nie należy do bieżącego kontekstu analizy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
-        <target state="new">Given operation has a non-null parent.</target>
+        <target state="translated">Dana operacja ma element nadrzędny inny niż null.</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
-        <target state="new">Given operation has a null semantic model.</target>
+        <target state="translated">Dana operacja ma model semantyczny o wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -42,6 +57,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Nie można użyć kopii modułu do utworzenia metadanych zestawu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -321,12 +341,12 @@
       </trans-unit>
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
-        <target state="translated">'Element „start” nie może być wartością ujemną</target>
+        <target state="translated">Element „start” nie może być wartością ujemną</target>
         <note />
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'</source>
-        <target state="translated">'Element „end” nie może mieć mniejszej wartości niż element „start”</target>
+        <target state="translated">Element „end” nie może mieć mniejszej wartości niż element „start”</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">
@@ -361,17 +381,17 @@
       </trans-unit>
       <trans-unit id="StreamMustSupportRead">
         <source>Stream must be readable.</source>
-        <target state="translated">Strumień musi być możliwy do odczytania.</target>
+        <target state="translated">Strumień musi być możliwy do odczytu.</target>
         <note />
       </trans-unit>
       <trans-unit id="StreamMustSupportWrite">
         <source>Stream must be writable.</source>
-        <target state="translated">Strumień musi być zapisywalny.</target>
+        <target state="translated">Strumień musi być możliwy do zapisu.</target>
         <note />
       </trans-unit>
       <trans-unit id="PdbStreamUnexpectedWhenEmbedding">
         <source>PDB stream should not be given when embedding PDB into the PE stream.</source>
-        <target state="translated">Nie należy podawać strumienia PDB podczas wbudowywania pliku PDB w strumieniu PE.</target>
+        <target state="translated">Nie należy podawać strumienia PDB podczas osadzania pliku PDB w strumieniu PE.</target>
         <note />
       </trans-unit>
       <trans-unit id="PdbStreamUnexpectedWhenEmittingMetadataOnly">
@@ -436,7 +456,7 @@
       </trans-unit>
       <trans-unit id="CoffResourceMissingSection">
         <source>Win32 resources, assumed to be in COFF object format, are missing one or both of sections '.rsrc$01' and '.rsrc$02'</source>
-        <target state="translated">Zasoby Win32, w przypadku których zakłada się, że format obiektu to COFF, nie zawierają jednej sekcji „rsrc$01” lub „rsrc$02” albo obu tych sekcji.</target>
+        <target state="translated">Zasoby Win32, w przypadku których zakłada się, że format obiektu to COFF, nie zawierają sekcji „rsrc$01” lub „rsrc$02” albo obu tych sekcji.</target>
         <note />
       </trans-unit>
       <trans-unit id="IconStreamUnexpectedFormat">
@@ -513,7 +533,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">Zmiany muszą być uporządkowane i nie mogą nakładać się na siebie.</target>
+        <target state="translated">Zmiany nie mogą się nakładać.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -658,7 +678,7 @@
       </trans-unit>
       <trans-unit id="KeepAliveWithoutShared">
         <source>'/keepalive' option is only valid with '/shared' option.</source>
-        <target state="translated">'Opcja „/keepalive” jest prawidłowa tylko z opcją „/shared”.</target>
+        <target state="translated">Opcja „/keepalive” jest prawidłowa tylko z opcją „/shared”.</target>
         <note />
       </trans-unit>
       <trans-unit id="MismatchedVersion">
@@ -673,7 +693,7 @@
       </trans-unit>
       <trans-unit id="AnalyzerTotalExecutionTime">
         <source>Total analyzer execution time: {0} seconds.</source>
-        <target state="translated">Łączny czas wykonywania analizatora: {0} sek.</target>
+        <target state="translated">Łączny czas wykonywania analizatora: {0} s</target>
         <note />
       </trans-unit>
       <trans-unit id="MultithreadedAnalyzerExecutionNote">
@@ -810,7 +830,7 @@
       </trans-unit>
       <trans-unit id="ElementIsExpected">
         <source>element is expected</source>
-        <target state="translated">element jest oczekiwany</target>
+        <target state="translated">oczekiwano elementu</target>
         <note />
       </trans-unit>
       <trans-unit id="SeparatorIsExpected">
@@ -841,11 +861,6 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">Ostrzeżenie: Nie można włączyć wielordzeniowego kompilowania JIT z powodu wyjątku: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
         <note />
       </trans-unit>
     </body>

@@ -6,8 +6,15 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Remote</RootNamespace>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      A shared package used by the .NET Compiler Platform ("Roslyn") including support for coordinating analysis of projects and solutions using a separate server process.
+      Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+    </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\EditorConfigDocumentOptionsProvider.cs" Link="Services\Options\EditorConfigDocumentOptionsProvider.cs" />
@@ -20,7 +27,6 @@
     <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
     <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
     <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
-    <ProjectReference Include="..\..\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -37,6 +43,7 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />

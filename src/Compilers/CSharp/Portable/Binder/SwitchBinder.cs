@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             throw ExceptionUtilities.Unreachable;
         }
-        
+
         internal override SyntaxNode ScopeDesignator
         {
             get
@@ -396,8 +396,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Bind switch section
             ImmutableArray<BoundSwitchSection> boundSwitchSections = BindSwitchSections(node.Sections, originalBinder, diagnostics);
 
-            return new BoundSwitchStatement(node, null, boundSwitchExpression, constantTargetOpt, 
-                                            GetDeclaredLocalsForScope(node), 
+            return new BoundSwitchStatement(node, null, boundSwitchExpression, constantTargetOpt,
+                                            GetDeclaredLocalsForScope(node),
                                             GetDeclaredLocalFunctionsForScope(node), boundSwitchSections, this.BreakLabel, null);
         }
 
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(conversion.Method.IsUserDefinedConversion());
                         Debug.Assert(conversion.UserDefinedToConversion.IsIdentity);
                         Debug.Assert(resultantGoverningType.IsValidV6SwitchGoverningType(isTargetTypeOfUserDefinedOp: true));
-                        return binder.CreateConversion(node, switchExpression, conversion, false, resultantGoverningType, diagnostics);
+                        return binder.CreateConversion(node, switchExpression, conversion, isCast: false, conversionGroupOpt: null, resultantGoverningType, diagnostics);
                     }
                     else if (switchGoverningType.SpecialType != SpecialType.System_Void)
                     {

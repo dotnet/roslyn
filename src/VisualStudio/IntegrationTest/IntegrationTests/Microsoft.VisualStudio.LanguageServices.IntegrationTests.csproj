@@ -6,7 +6,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.IntegrationTests</RootNamespace>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -37,7 +37,6 @@
     <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CoreTestUtilities\Roslyn.Services.UnitTests.Utilities.csproj" />
-    <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
@@ -57,9 +56,6 @@
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
     <!-- 
       Required to avoid double write of System.Threading.Tasks.Dataflow.dll caused by both 
       Microsoft.VisualStudio.ProjectSystem and Microsoft.VisualStudio.Composition containing it.

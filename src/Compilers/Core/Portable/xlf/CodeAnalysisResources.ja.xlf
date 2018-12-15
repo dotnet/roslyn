@@ -5,23 +5,38 @@
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="new">Analyzer '{0}' threw the following exception:
-'{1}'.</target>
+        <target state="translated">アナライザー '{0}'が、次の例をスローしました:
+'{1}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
-        <target state="new">Given operation block does not belong to the current analysis context.</target>
+        <target state="translated">指定した操作ブロックが現在の分析コンテストに属していません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
-        <target state="new">Given operation has a non-null parent.</target>
+        <target state="translated">指定した操作の親が null 以外です。</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
-        <target state="new">Given operation has a null semantic model.</target>
+        <target state="translated">指定した操作のセマンティック モデルが null です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -42,6 +57,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">モジュールのコピーは、アセンブリ メタデータの作成には使用できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -181,7 +201,7 @@
       </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">複数の次元を持つ配列はシリアル化できません。</target>
+        <target state="translated">複数のディメンションを持つ配列はシリアル化できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAssemblyName">
@@ -311,7 +331,7 @@
       </trans-unit>
       <trans-unit id="SpanDoesNotIncludeStartOfLine">
         <source>The span does not include the start of a line.</source>
-        <target state="translated">範囲には、行の先頭が含まれません。</target>
+        <target state="translated">範囲に、行の先頭が含まれません。</target>
         <note />
       </trans-unit>
       <trans-unit id="SpanDoesNotIncludeEndOfLine">
@@ -421,7 +441,7 @@
       </trans-unit>
       <trans-unit id="CoffResourceInvalidRelocation">
         <source>Win32 resources, assumed to be in COFF object format, have one or more invalid relocation header values.</source>
-        <target state="translated">Win32 リソースは、COFF オブジェクト形式であると見なされますが、1 つ以上の再配置ヘッダー値が無効です。</target>
+        <target state="translated">COFF オブジェクト形式であると見なされている Win32 リソースの 1 つ以上の再配置ヘッダー値が無効です。</target>
         <note />
       </trans-unit>
       <trans-unit id="CoffResourceInvalidSectionSize">
@@ -508,22 +528,22 @@
       </trans-unit>
       <trans-unit id="PEImageDoesntContainManagedMetadata">
         <source>PE image doesn't contain managed metadata.</source>
-        <target state="translated">PE イメージには、管理されたメタデータが含まれていません。</target>
+        <target state="translated">PE イメージには、マネージド メタデータが含まれていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">変更は順序付けする必要があり、重複は許可されません。</target>
+        <target state="translated">変更が重なっていてはなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
         <source>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
-        <target state="translated">DiagnosticDescriptor の ID は、null、空の文字列、または空白のみの文字列でもない必要があります。</target>
+        <target state="translated">DiagnosticDescriptor の ID は、null、空の文字列、または空白のみの文字列であってはなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="RuleSetHasDuplicateRules">
         <source>The rule set file has duplicate rules for '{0}' with differing actions '{1}' and '{2}'.</source>
-        <target state="translated">規則セット ファイルは、異なるアクション '{1}' と '{2}' を持つ '{0}' の規則が重複しています。</target>
+        <target state="translated">規則セット ファイルの '{0}' の規則が重複しており、異なるアクション '{1}' と '{2}' を含んでいます。</target>
         <note />
       </trans-unit>
       <trans-unit id="CantCreateModuleReferenceToAssembly">
@@ -588,7 +608,7 @@
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
         <source>Node to track is not a descendant of the root.</source>
-        <target state="translated">追跡するノードは、ルートの子孫ではありません。</target>
+        <target state="translated">追跡するノードはそのルートの子孫ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="NodeOrTokenOutOfSequence">
@@ -663,7 +683,7 @@
       </trans-unit>
       <trans-unit id="MismatchedVersion">
         <source>Roslyn compiler server reports different protocol version than build task.</source>
-        <target state="translated">Roslyn コンパイル サーバーは、ビルド タスクとは異なるバージョンのプロトコルを報告しています。</target>
+        <target state="translated">Roslyn コンパイラ サーバーは、ビルド タスクとは異なるバージョンのプロトコルを報告しています。</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingKeepAlive">
@@ -673,7 +693,7 @@
       </trans-unit>
       <trans-unit id="AnalyzerTotalExecutionTime">
         <source>Total analyzer execution time: {0} seconds.</source>
-        <target state="translated">アナライザー実行の合計時間: {0} 秒。</target>
+        <target state="translated">アナライザーの合計実行時間: {0} 秒。</target>
         <note />
       </trans-unit>
       <trans-unit id="MultithreadedAnalyzerExecutionNote">
@@ -755,7 +775,7 @@
       </trans-unit>
       <trans-unit id="TupleElementNameCountMismatch">
         <source>If tuple element names are specified, the number of element names must match the cardinality of the tuple.</source>
-        <target state="translated">タプル要素名を指定する場合、要素名の数は、タプルの基数と一致する必要があります。</target>
+        <target state="translated">タプル要素名を指定する場合、要素名の数は、タプルのカーディナリティと一致する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNameEmpty">
@@ -765,7 +785,7 @@
       </trans-unit>
       <trans-unit id="TupleElementLocationCountMismatch">
         <source>If tuple element locations are specified, the number of locations must match the cardinality of the tuple.</source>
-        <target state="translated">タプル要素の場所を指定する場合、場所の数はタプルの基数と一致する必要があります。</target>
+        <target state="translated">タプル要素の場所を指定する場合、場所の数はタプルのカーディナリティと一致する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="TuplesNeedAtLeastTwoElements">
@@ -841,11 +861,6 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">警告: 次の例外によりマルチコア JIT を有効にできませんでした: {0}。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
         <note />
       </trans-unit>
     </body>

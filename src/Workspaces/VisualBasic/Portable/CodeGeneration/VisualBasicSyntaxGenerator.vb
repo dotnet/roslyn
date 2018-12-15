@@ -5,6 +5,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -21,8 +22,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides ReadOnly Property RequiresExplicitImplementationForInterfaceMembers As Boolean = True
 
+        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFactsService = VisualBasicSyntaxFactsService.Instance
+
         Friend Overrides Function EndOfLine(text As String) As SyntaxTrivia
             Return SyntaxFactory.EndOfLine(text)
+        End Function
+
+        Friend Overrides Function Whitespace(text As String) As SyntaxTrivia
+            Return SyntaxFactory.Whitespace(text)
         End Function
 
         Friend Overrides Function SeparatedList(Of TElement As SyntaxNode)(list As SyntaxNodeOrTokenList) As SeparatedSyntaxList(Of TElement)
@@ -49,6 +56,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function TupleExpression(arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AddressOf AsSimpleArgument)))
+        End Function
+
+        Friend Overrides Function AddParentheses(expression As SyntaxNode) As SyntaxNode
+            Return Parenthesize(expression)
         End Function
 
         Private Function Parenthesize(expression As SyntaxNode) As ParenthesizedExpressionSyntax
@@ -1758,12 +1769,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.FunctionBlock,
                      SyntaxKind.SubBlock,
                      SyntaxKind.ConstructorBlock
-                    Return DirectCast(node, MethodBlockSyntax).BlockStatement.AttributeLists
+                    Return DirectCast(node, MethodBlockBaseSyntax).BlockStatement.AttributeLists
                 Case SyntaxKind.FunctionStatement,
                      SyntaxKind.SubStatement
                     Return DirectCast(node, MethodStatementSyntax).AttributeLists
-                Case SyntaxKind.ConstructorBlock
-                    Return DirectCast(node, ConstructorBlockSyntax).BlockStatement.AttributeLists
                 Case SyntaxKind.SubNewStatement
                     Return DirectCast(node, SubNewStatementSyntax).AttributeLists
                 Case SyntaxKind.Parameter
@@ -3078,11 +3087,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function GetParameters(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
             Dim list = GetParameterList(declaration)
-            If list IsNot Nothing Then
-                Return list.Parameters
-            Else
-                Return SpecializedCollections.EmptyReadOnlyList(Of SyntaxNode)
-            End If
+            Return If(list IsNot Nothing,
+                      list.Parameters,
+                      SpecializedCollections.EmptyReadOnlyList(Of SyntaxNode))
         End Function
 
         Public Overrides Function InsertParameters(declaration As SyntaxNode, index As Integer, parameters As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -3112,6 +3119,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Return statement.WithCaseBlocks(
                 statement.CaseBlocks.InsertRange(index, switchSections.Cast(Of CaseBlockSyntax)))
+        End Function
+
+        Friend Overrides Function GetParameterListNode(declaration As SyntaxNode) As SyntaxNode
+            Return GetParameterList(declaration)
         End Function
 
         Friend Shared Function GetParameterList(declaration As SyntaxNode) As ParameterListSyntax
@@ -3845,10 +3856,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Dim fullDecl = Me.GetFullDeclaration(declaration)
 
                 ' special handling for replacing at location of a sub-declaration
-                If fullDecl IsNot declaration Then
+                If fullDecl IsNot declaration AndAlso fullDecl.IsKind(newFullDecl.Kind) Then
 
                     ' try to replace inline if possible
-                    If fullDecl.IsKind(newFullDecl.Kind) AndAlso GetDeclarationCount(newFullDecl) = 1 Then
+                    If GetDeclarationCount(newFullDecl) = 1 Then
                         Dim newSubDecl = Me.GetSubDeclarations(newFullDecl)(0)
                         If AreInlineReplaceableSubDeclarations(declaration, newSubDecl) Then
                             Return MyBase.ReplaceNode(root, declaration, newSubDecl)

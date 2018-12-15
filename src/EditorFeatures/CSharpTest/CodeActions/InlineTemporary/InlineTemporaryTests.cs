@@ -3459,7 +3459,7 @@ class A
         var [|x|] = args[0];
         return x?.Length == 0;
     }
-}", 
+}",
 @"class A
 {
     bool M(string[] args)
@@ -3480,7 +3480,7 @@ class A
         var [|x|] = args.Length.ToString();
         var y = x?.ToString();
     }
-}", 
+}",
 @"class A
 {
     void M(string[] args)
@@ -3501,7 +3501,7 @@ class A
         var [|x|] = args[0]?.Length ?? 10;
         var y = x == 10 ? 10 : 4;
     }
-}", 
+}",
 @"class A
 {
     void M(string[] args)
@@ -3540,7 +3540,7 @@ class C
 
         return null;
     }
-}", 
+}",
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3601,7 +3601,7 @@ class C
 
         return null;
     }
-}", 
+}",
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3644,7 +3644,7 @@ class C
         var [|g|] = global::System.Guid.Empty;
         var s = $""{g}"";
     }
-}", 
+}",
 @"class A
 {
     void M()
@@ -3665,7 +3665,7 @@ class C
         var [|x|] = b ? 19 : 23;
         var s = $""{x}"";
     }
-}", 
+}",
 @"class A
 {
     bool M(bool b)
@@ -3686,7 +3686,7 @@ class C
         var [|x|] = b ? 19 : 23;
         var s = $""{x:x}"";
     }
-}", 
+}",
 @"class A
 {
     bool M(bool b)
@@ -3707,7 +3707,7 @@ class C
         var [|x|] = s.ToUpper();
         var y = $""{x}"";
     }
-}", 
+}",
 @"class A
 {
     public static void M(string s)
@@ -3715,6 +3715,28 @@ class C
         var y = $""{s.ToUpper()}"";
     }
 }");
+        }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontParenthesizeInterpolatedStringWithNoInterpolation_CSharp7()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public void M()
+    {
+        var [|s1|] = $""hello"";
+        var s2 = string.Replace(s1, ""world"");
+    }
+}",
+@"class C
+{
+    public void M()
+    {
+        var s2 = string.Replace($""hello"", ""world"");
+    }
+}", parseOptions: TestOptions.Regular7);
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
@@ -3729,7 +3751,7 @@ class C
         var [|s1|] = $""hello"";
         var s2 = string.Replace(s1, ""world"");
     }
-}", 
+}",
 @"class C
 {
     public void M()
@@ -3737,6 +3759,28 @@ class C
         var s2 = string.Replace($""hello"", ""world"");
     }
 }");
+        }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontParenthesizeInterpolatedStringWithInterpolation_CSharp7()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public void M(int x)
+    {
+        var [|s1|] = $""hello {x}"";
+        var s2 = string.Replace(s1, ""world"");
+    }
+}",
+@"class C
+{
+    public void M(int x)
+    {
+        var s2 = string.Replace($""hello {x}"", ""world"");
+    }
+}", parseOptions: TestOptions.Regular7);
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
@@ -3751,7 +3795,7 @@ class C
         var [|s1|] = $""hello {x}"";
         var s2 = string.Replace(s1, ""world"");
     }
-}", 
+}",
 @"class C
 {
     public void M(int x)

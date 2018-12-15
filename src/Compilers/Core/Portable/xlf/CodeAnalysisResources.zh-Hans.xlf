@@ -5,23 +5,38 @@
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="new">Analyzer '{0}' threw the following exception:
-'{1}'.</target>
+        <target state="translated">分析器“{0}”引发了以下异常:
+“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
-        <target state="new">Given operation block does not belong to the current analysis context.</target>
+        <target state="translated">给定操作块不属于当前的分析上下文。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
-        <target state="new">Given operation has a non-null parent.</target>
+        <target state="translated">给定操作具有一个非 null 父级。</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
-        <target state="new">Given operation has a null semantic model.</target>
+        <target state="translated">给定操作具有一个 null 语义模型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -42,6 +57,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">模块复制不能用于创建程序集元数据。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -371,7 +391,7 @@
       </trans-unit>
       <trans-unit id="PdbStreamUnexpectedWhenEmbedding">
         <source>PDB stream should not be given when embedding PDB into the PE stream.</source>
-        <target state="translated">将 PE 流嵌入 PDB 时，无法提供 PDB 流。</target>
+        <target state="translated">将 PDB 嵌入 PE 流时，不应提供 PDB 流。</target>
         <note />
       </trans-unit>
       <trans-unit id="PdbStreamUnexpectedWhenEmittingMetadataOnly">
@@ -513,7 +533,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">更改必须有序且不重叠。</target>
+        <target state="translated">这些更改不得重叠。</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -841,11 +861,6 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">警告: 无法启用 multicore JIT，因为存在异常: {0}。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
         <note />
       </trans-unit>
     </body>

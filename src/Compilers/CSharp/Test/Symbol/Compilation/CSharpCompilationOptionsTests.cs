@@ -364,13 +364,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "Language",
                 "AllowUnsafe",
                 "Usings",
-                "TopLevelBinderFlags");
+                "TopLevelBinderFlags",
+                "Nullable");
         }
 
         [Fact]
         public void TestEqualitySemantics()
         {
-            Assert.Equal(CreateCSharpCompilationOptions(), CreateCSharpCompilationOptions());
+            CSharpCompilationOptions first = CreateCSharpCompilationOptions();
+            CSharpCompilationOptions second = CreateCSharpCompilationOptions();
+            Assert.Equal(first, second);
+            Assert.Equal(first.GetHashCode(), second.GetHashCode());
         }
 
         private static CSharpCompilationOptions CreateCSharpCompilationOptions()
@@ -404,12 +408,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool reportSuppressedDiagnostics = false;
             var topLevelBinderFlags = BinderFlags.None;
             var publicSign = false;
+            bool nullable = false;
 
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
                 concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
-                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags);
+                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags, nullable);
         }
 
         private sealed class MetadataReferenceResolverWithEquality : MetadataReferenceResolver
@@ -433,6 +438,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Same(options, options.WithCryptoPublicKey(default(ImmutableArray<byte>)));
             Assert.Same(options, options.WithCryptoPublicKey(ImmutableArray<byte>.Empty));
+        }
+
+        [Fact]
+        public void WithNullable()
+        {
+            CSharpCompilationOptions a = CreateCSharpCompilationOptions();
+
+            Assert.False(a.Nullable);
+            Assert.Equal(a, a);
+            Assert.Equal(a.GetHashCode(), a.GetHashCode());
+            Assert.Same(a, a.WithNullable(false));
+
+            CSharpCompilationOptions b = a.WithNullable(true);
+            Assert.True(b.Nullable);
+            Assert.NotEqual(a, b);
+            Assert.Equal(b, b);
+            Assert.Equal(b.GetHashCode(), b.GetHashCode());
+            Assert.Same(b, b.WithNullable(true));
+
+            CSharpCompilationOptions c = a.WithNullable(true);
+            Assert.True(c.Nullable);
+            Assert.NotEqual(a, c);
+            Assert.NotSame(b, c);
+            Assert.Equal(b, c);
+            Assert.Equal(b.GetHashCode(), c.GetHashCode());
+
+            CSharpCompilationOptions e = b.WithNullable(false);
+            Assert.False(e.Nullable);
+            Assert.NotSame(a, e);
+            Assert.Equal(a, e);
+            Assert.Equal(a.GetHashCode(), e.GetHashCode());
+            Assert.NotEqual(b, e);
+            Assert.NotEqual(c, e);
+
+            var i = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+            Assert.False(i.Nullable);
+
+            var j = new CSharpCompilationOptions(OutputKind.ConsoleApplication, nullable: true);
+            Assert.True(j.Nullable);
+
+            var k = new CSharpCompilationOptions(OutputKind.ConsoleApplication, nullable: false);
+            Assert.False(k.Nullable);
         }
     }
 }

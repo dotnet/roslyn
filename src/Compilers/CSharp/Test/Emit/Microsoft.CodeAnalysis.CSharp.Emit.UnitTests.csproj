@@ -35,11 +35,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkVersion)" />
-    <PackageReference Include="System.Reflection.TypeExtensions" Version="$(SystemReflectionTypeExtensionsVersion)" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Resources.resx">

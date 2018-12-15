@@ -5,23 +5,38 @@
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="new">Analyzer '{0}' threw the following exception:
-'{1}'.</target>
+        <target state="translated">El analizador "{0}" inició la siguiente excepción:
+"{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
-        <target state="new">Given operation block does not belong to the current analysis context.</target>
+        <target state="translated">El bloque de operaciones dado no pertenece al contexto de análisis actual.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
-        <target state="new">Given operation has a non-null parent.</target>
+        <target state="translated">La operación dada tiene un elemento primario no nulo.</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
-        <target state="new">Given operation has a null semantic model.</target>
+        <target state="translated">La operación dada tiene un modelo semántico nulo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -31,7 +46,7 @@
       </trans-unit>
       <trans-unit id="PathReturnedByResolveMetadataFileMustBeAbsolute">
         <source>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</source>
-        <target state="translated">La ruta de acceso devuelta por {0}.ResolveMetadataFile debe ser absoluta: '{1}'</target>
+        <target state="translated">La ruta de acceso devuelta por {0}.ResolveMetadataFile debe ser absoluta: "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="AssemblyMustHaveAtLeastOneModule">
@@ -42,6 +57,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">No se puede usar una copia de módulo para crear metadatos de ensamblado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -111,7 +131,7 @@
       </trans-unit>
       <trans-unit id="Property">
         <source>property, indexer</source>
-        <target state="translated">propiedad, indizador</target>
+        <target state="translated">propiedad, indexador</target>
         <note />
       </trans-unit>
       <trans-unit id="Return1">
@@ -176,7 +196,7 @@
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">Valor demasiado largo para representarse como entero sin signo de 30 bits.</target>
+        <target state="translated">Valor demasiado grande para representarse como entero sin signo de 30 bits.</target>
         <note />
       </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
@@ -186,7 +206,7 @@
       </trans-unit>
       <trans-unit id="InvalidAssemblyName">
         <source>Invalid assembly name: '{0}'</source>
-        <target state="translated">Nombre de ensamblado no válido: '{0}'</target>
+        <target state="translated">Nombre de ensamblado no válido: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="AbsolutePathExpected">
@@ -231,7 +251,7 @@
       </trans-unit>
       <trans-unit id="InvalidOutputKindForSubmission">
         <source>Invalid output kind for submission. DynamicallyLinkedLibrary expected.</source>
-        <target state="translated">Tipo de salida no válida para el envío. DynamicallyLinkedLibrary esperado.</target>
+        <target state="translated">Tipo de salida no válido para el envío. DynamicallyLinkedLibrary esperado.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidCompilationOptions">
@@ -271,7 +291,7 @@
       </trans-unit>
       <trans-unit id="PathReturnedByResolveStrongNameKeyFileMustBeAbsolute">
         <source>Path returned by {0}.ResolveStrongNameKeyFile must be absolute: '{1}'</source>
-        <target state="translated">La ruta de acceso devuelta por {0}.ResolveStrongNameKeyFile debe ser absoluta: '{1}'</target>
+        <target state="translated">La ruta de acceso devuelta por {0}.ResolveStrongNameKeyFile debe ser absoluta: "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeMustBeASubclassOfSyntaxAnnotation">
@@ -281,7 +301,7 @@
       </trans-unit>
       <trans-unit id="InvalidModuleName">
         <source>Invalid module name specified in metadata module '{0}': '{1}'</source>
-        <target state="translated">Nombre de módulo no válido especificado en el módulo de metadatos '{0}': '{1}'</target>
+        <target state="translated">Nombre de módulo no válido especificado en el módulo de metadatos "{0}": "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="FileSizeExceedsMaximumAllowed">
@@ -321,12 +341,12 @@
       </trans-unit>
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
-        <target state="translated">'inicio' no puede ser negativo</target>
+        <target state="translated">"inicio" no puede ser negativo</target>
         <note />
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'</source>
-        <target state="translated">'fin' no debe ser menor que 'inicio'</target>
+        <target state="translated">"fin" no debe ser menor que "inicio"</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">
@@ -401,7 +421,7 @@
       </trans-unit>
       <trans-unit id="CannotTargetNetModuleWhenEmittingRefAssembly">
         <source>Cannot target net module when emitting ref assembly.</source>
-        <target state="translated">El destino no puede ser el módulo al emitir el ensamblado de referencia.</target>
+        <target state="translated">El destino no puede ser el módulo neto al emitir el ensamblado de referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidHash">
@@ -436,7 +456,7 @@
       </trans-unit>
       <trans-unit id="CoffResourceMissingSection">
         <source>Win32 resources, assumed to be in COFF object format, are missing one or both of sections '.rsrc$01' and '.rsrc$02'</source>
-        <target state="translated">Los recursos de Win32, que se presupone que están en el formato de objeto COFF, carecen de una o las dos secciones '.rsrc$01' y '.rsrc$02'</target>
+        <target state="translated">Los recursos de Win32, que se presupone que están en el formato de objeto COFF, carecen de una o las dos secciones ".rsrc$01" y ".rsrc$02"</target>
         <note />
       </trans-unit>
       <trans-unit id="IconStreamUnexpectedFormat">
@@ -446,7 +466,7 @@
       </trans-unit>
       <trans-unit id="InvalidCultureName">
         <source>Invalid culture name: '{0}'</source>
-        <target state="translated">Nombre de referencia cultural no válido: '{0}'</target>
+        <target state="translated">Nombre de referencia cultural no válido: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
@@ -471,12 +491,12 @@
       </trans-unit>
       <trans-unit id="FailedToResolveRuleSetName">
         <source>Could not locate the rule set file '{0}'.</source>
-        <target state="translated">No se encontró el archivo de conjunto de reglas '{0}'.</target>
+        <target state="translated">No se encontró el archivo de conjunto de reglas "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidRuleSetInclude">
         <source>An error occurred while loading the included rule set file {0} - {1}</source>
-        <target state="translated">Se produjo un error al cargar el archivo de conjuntos de reglas incluido {0} - {1}</target>
+        <target state="translated">Se produjo un error al cargar el archivo de conjunto de reglas incluido {0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
@@ -486,7 +506,7 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
-        <target state="translated">El analizador '{0}' produjo una excepción de tipo '{1}' con el mensaje '{2}'.</target>
+        <target state="translated">El analizador "{0}" produjo una excepción de tipo "{1}" con el mensaje "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
@@ -496,14 +516,14 @@
       </trans-unit>
       <trans-unit id="AnalyzerDriverThrows">
         <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.</source>
-        <target state="translated">El controlador del analizador produjo una excepción de tipo '{0}' con el mensaje '{1}'.</target>
+        <target state="translated">El controlador del analizador produjo una excepción de tipo "{0}" con el mensaje "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverThrowsDescription">
         <source>Analyzer driver threw the following exception:
 '{0}'.</source>
         <target state="translated">El controlador del analizador produjo la siguiente excepción:
-'{0}'.</target>
+"{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="PEImageDoesntContainManagedMetadata">
@@ -513,17 +533,17 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">Los cambios deben estar ordenados y no superponerse.</target>
+        <target state="translated">Los cambios no deben superponerse.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
         <source>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
-        <target state="translated">Un DiagnosticDescriptor debe tener un identificador que no sea nulo, que no sea una cadena vacía y que no sea una cadena que solo contenga espacio en blanco.</target>
+        <target state="translated">Un DiagnosticDescriptor debe tener un identificador que no sea nulo, que no sea una cadena vacía y que no sea una cadena que solo contenga espacios en blanco.</target>
         <note />
       </trans-unit>
       <trans-unit id="RuleSetHasDuplicateRules">
         <source>The rule set file has duplicate rules for '{0}' with differing actions '{1}' and '{2}'.</source>
-        <target state="translated">El archivo de conjuntos de reglas tiene reglas duplicadas para '{0}' con las acciones distintas '{1}' y '{2}'.</target>
+        <target state="translated">El archivo de conjunto de reglas tiene reglas duplicadas para "{0}" con las acciones distintas "{1}" y "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="CantCreateModuleReferenceToAssembly">
@@ -553,17 +573,17 @@
       </trans-unit>
       <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
         <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">El analizador intentó registrar una acción 'async', que no se admite.</target>
+        <target state="translated">El analizador intentó registrar una acción "async", que no se admite.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">
         <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
-        <target state="translated">El analizador no admite el diagnóstico notificado con identificador '{0}'.</target>
+        <target state="translated">El analizador no admite el diagnóstico notificado con identificador "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticIdReported">
         <source>Reported diagnostic has an ID '{0}', which is not a valid identifier.</source>
-        <target state="translated">El diagnóstico informado tiene un identificador '{0}', que no es válido.</target>
+        <target state="translated">El diagnóstico informado tiene un identificador "{0}", que no es válido.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticLocationReported">
@@ -593,7 +613,7 @@
       </trans-unit>
       <trans-unit id="NodeOrTokenOutOfSequence">
         <source>A node or token is out of sequence.</source>
-        <target state="translated">Un nodo o token están fuera de la secuencia.</target>
+        <target state="translated">Un nodo o token está fuera de la secuencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedTypeOfNodeInList">
@@ -658,7 +678,7 @@
       </trans-unit>
       <trans-unit id="KeepAliveWithoutShared">
         <source>'/keepalive' option is only valid with '/shared' option.</source>
-        <target state="translated">'La opción "/keepalive" solo es válida con la opción "/shared".</target>
+        <target state="translated">"La opción "/keepalive" solo es válida con la opción "/shared".</target>
         <note />
       </trans-unit>
       <trans-unit id="MismatchedVersion">
@@ -678,7 +698,7 @@
       </trans-unit>
       <trans-unit id="MultithreadedAnalyzerExecutionNote">
         <source>NOTE: Elapsed time may be less than analyzer execution time because analyzers can run concurrently.</source>
-        <target state="translated">NOTA: el tiempo transcurrido puede ser inferior al tiempo de ejecución del analizador, dado que los analizadores pueden ejecutarse simultáneamente.</target>
+        <target state="translated">NOTA: El tiempo transcurrido puede ser inferior al tiempo de ejecución del analizador, dado que los analizadores pueden ejecutarse simultáneamente.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerExecutionTimeColumnHeader">
@@ -703,12 +723,12 @@
       </trans-unit>
       <trans-unit id="UnsupportedAnalyzerInstance">
         <source>Argument contains an analyzer instance that does not belong to the 'Analyzers' for this CompilationWithAnalyzers instance.</source>
-        <target state="translated">El argumento contiene una instancia de analizador que no pertenece a los 'Analizadores' de esta instancia de CompilationWithAnalyzers.</target>
+        <target state="translated">El argumento contiene una instancia de analizador que no pertenece a los "Analizadores" de esta instancia de CompilationWithAnalyzers.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidTree">
         <source>Syntax tree doesn't belong to the underlying 'Compilation'.</source>
-        <target state="translated">El árbol de sintaxis no pertenece a la 'Compilación' subyacente.</target>
+        <target state="translated">El árbol de sintaxis no pertenece a la "Compilación" subyacente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ResourceStreamEndedUnexpectedly">
@@ -718,7 +738,7 @@
       </trans-unit>
       <trans-unit id="SharedArgumentMissing">
         <source>Value for argument '/shared:' must not be empty</source>
-        <target state="translated">El valor para el argumento '/shared:' no debe estar vacío</target>
+        <target state="translated">El valor para el argumento "/shared:" no debe estar vacío</target>
         <note />
       </trans-unit>
       <trans-unit id="ExceptionContext">
@@ -745,12 +765,12 @@
       </trans-unit>
       <trans-unit id="ReferenceOfTypeIsInvalid1">
         <source>Reference of type '{0}' is not valid for this compilation.</source>
-        <target state="translated">La referencia del tipo '{0}' no es válida para esta compilación.</target>
+        <target state="translated">La referencia del tipo "{0}" no es válida para esta compilación.</target>
         <note />
       </trans-unit>
       <trans-unit id="MetadataRefNotFoundToRemove1">
         <source>MetadataReference '{0}' not found to remove.</source>
-        <target state="translated">No se encontró MetadataReference '{0}' para quitarse.</target>
+        <target state="translated">No se encontró MetadataReference "{0}" para quitarlo.</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNameCountMismatch">
@@ -805,7 +825,7 @@
       </trans-unit>
       <trans-unit id="TheStreamCannotBeWrittenTo">
         <source>The stream cannot be written to.</source>
-        <target state="translated">No se puede escribir en la sección.</target>
+        <target state="translated">No se puede escribir en la secuencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ElementIsExpected">
@@ -841,11 +861,6 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">Advertencia: No se puede habilitar el JIT de varios núcleos debido a una excepción: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
         <note />
       </trans-unit>
     </body>

@@ -219,7 +219,7 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, Type: ?, IsInvalid) (Syntax: '+x')
+IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.Unary, Type: ?, IsInvalid) (Syntax: '+x')
   Operand: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
 ]]>.Value
@@ -250,13 +250,13 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'x + (y * args.Length)')
+IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'x + (y * args.Length)')
   Left: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program) (Syntax: 'x')
   Right: 
     IParenthesizedOperation (OperationKind.Parenthesized, Type: ?, IsInvalid) (Syntax: '(y * args.Length)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'y * args.Length')
+        IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'y * args.Length')
           Left: 
             IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'y')
               Children(0)
@@ -396,12 +396,12 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: X(), IsInvalid) (Syntax: 'New X(Program - 1) {{1}}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program - 1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program - 1')
         Left: 
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program - 1')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'Program - 1')
+              IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'Program - 1')
                 Left: 
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
                 Right: 

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -504,7 +505,7 @@ class C
                     out error,
                     testData);
 
-                Assert.Equal(testData.Methods.Count, 1);
+                Assert.Equal(testData.GetExplicitlyDeclaredMethods().Length, 1);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
   // Code size       78 (0x4e)
@@ -2168,7 +2169,7 @@ class C
                 string error;
                 CompileDeclaration(context, "var x = 1;", out flags, out testData, out error);
                 Assert.Equal("error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
-            });     
+            });
         }
 
         [Fact]

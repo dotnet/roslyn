@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 if (_searchCurrentDocument)
                 {
                     var documentService = _solution.Workspace.Services.GetService<IDocumentTrackingService>();
-                    var activeId = documentService.GetActiveDocument();
+                    var activeId = documentService.TryGetActiveDocument();
                     _currentDocument = activeId != null ? _solution.GetDocument(activeId) : null;
                 }
             }
 
-            internal async void Search()
+            internal async Task SearchAsync()
             {
                 try
                 {
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
 
-                var patternMatch = new PatternMatch(GetPatternMatchKind(result.MatchKind), 
+                var patternMatch = new PatternMatch(GetPatternMatchKind(result.MatchKind),
                     punctuationStripped: true, result.IsCaseSensitive, matchedSpans);
 
                 var navigateToItem = new NavigateToItem(

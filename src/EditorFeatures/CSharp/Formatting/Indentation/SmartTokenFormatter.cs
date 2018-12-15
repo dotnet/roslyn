@@ -111,9 +111,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 }
             }
 
-            return await Formatter.GetFormattedTextChangesAsync(_root,
+            return Formatter.GetFormattedTextChanges(_root,
                 new TextSpan[] { TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition) },
-                workspace, _optionSet, smartTokenformattingRules, cancellationToken).ConfigureAwait(false);
+                workspace, _optionSet, smartTokenformattingRules, cancellationToken);
         }
 
         private class NoLineChangeFormattingRule : AbstractFormattingRule

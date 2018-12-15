@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
                                     {
                                         declaredLocals = ImmutableArray<LocalSymbol>.Empty;
-                                        var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
+                                        var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type.TypeSymbol);
                                         properties = default(ResultProperties);
                                         return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                                     });
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             localsDictionary.Add(local.Name, (local, localIndex));
                             localIndex++;
                         }
-                        
+
                         foreach (var argumentName in _sourceMethodParametersInOrder)
                         {
                             (LocalSymbol local, int localIndex) localSymbolAndIndex;
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var local = method.LocalsForBinding[localIndex];
-                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type);
+                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type.TypeSymbol);
                 properties = default(ResultProperties);
                 return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
@@ -1305,7 +1305,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var name = local.Name;
                 if ((name != null) && (GeneratedNames.GetKind(name) == GeneratedNameKind.DisplayClassLocalOrField))
                 {
-                    if (displayClassTypes.Add(local.Type))
+                    var localType = local.Type.TypeSymbol;
+                    if ((object)localType != null && displayClassTypes.Add(localType))
                     {
                         var instance = new DisplayClassInstanceFromLocal((EELocalSymbol)local);
                         displayClassInstances.Add(new DisplayClassInstanceAndFields(instance));
@@ -1378,7 +1379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
 
                 var field = (FieldSymbol)member;
-                var fieldType = field.Type;
+                var fieldType = field.Type.TypeSymbol;
                 var fieldName = field.Name;
                 TryParseGeneratedName(fieldName, out var fieldKind, out var part);
 
@@ -1407,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 Debug.Assert(!field.IsStatic);
 
                 // A hoisted local that is itself a display class instance.
-                if (displayClassTypes.Add(field.Type))
+                if (displayClassTypes.Add(fieldType))
                 {
                     var other = instance.FromField(field);
                     displayClassInstances.Add(other);
@@ -1421,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// </summary>
         private static bool IsDisplayClassParameter(ParameterSymbol parameter)
         {
-            var type = parameter.Type;
+            var type = parameter.Type.TypeSymbol;
             var result = type.Kind == SymbolKind.NamedType && IsDisplayClassType((NamedTypeSymbol)type);
             Debug.Assert(!result || parameter.MetadataName == "");
             return result;
@@ -1445,7 +1446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var field = (FieldSymbol)member;
                 var fieldName = field.Name;
 
-            REPARSE:
+REPARSE:
 
                 DisplayClassVariableKind variableKind;
                 string variableName;
@@ -1710,7 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             internal TypeSymbol Type
             {
-                get { return this.Fields.Any() ? this.Fields.Head.Type : this.Instance.Type; }
+                get { return this.Fields.Any() ? this.Fields.Head.Type.TypeSymbol : this.Instance.Type; }
             }
 
             internal int Depth
@@ -1720,8 +1721,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             internal DisplayClassInstanceAndFields FromField(FieldSymbol field)
             {
-                Debug.Assert(IsDisplayClassType(field.Type) ||
-                    GeneratedNames.GetKind(field.Type.Name) == GeneratedNameKind.AnonymousType);
+                Debug.Assert(IsDisplayClassType(field.Type.TypeSymbol) ||
+                    GeneratedNames.GetKind(field.Type.TypeSymbol.Name) == GeneratedNameKind.AnonymousType);
                 return new DisplayClassInstanceAndFields(this.Instance, this.Fields.Prepend(field));
             }
 

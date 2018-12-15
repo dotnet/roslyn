@@ -75,6 +75,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     Path.Combine(logDir, $"{baseFileName}.log"),
                     $"{exception}.GetType().Name{Environment.NewLine}{exception.StackTrace}");
 
+                EventLogCollector.TryWriteDotNetEntriesToFile(Path.Combine(logDir, $"{baseFileName}.DotNet.log"));
+                EventLogCollector.TryWriteWatsonEntriesToFile(Path.Combine(logDir, $"{baseFileName}.Watson.log"));
             }
             finally
             {
@@ -242,7 +244,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 Debug.WriteLine($"An environment variable named 'VSInstallDir' (or equivalent) was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
             }
 
-            var instances = EnumerateVisualStudioInstances().Where((instance) => {
+            var instances = EnumerateVisualStudioInstances().Where((instance) =>
+            {
                 var isMatch = true;
                 {
                     isMatch &= instance.GetInstallationVersion().StartsWith(VsProductVersion);

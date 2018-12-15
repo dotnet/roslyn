@@ -5,23 +5,38 @@
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="new">Analyzer '{0}' threw the following exception:
+        <target state="translated">O analisador '{0}' gerou a seguinte exceção:
 '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
-        <target state="new">Given operation block does not belong to the current analysis context.</target>
+        <target state="translated">O bloqueio de operação fornecido não pertence ao contexto de análise atual.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
-        <target state="new">Given operation has a non-null parent.</target>
+        <target state="translated">A operação fornecida tem um elemento primário não nulo.</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
-        <target state="new">Given operation has a null semantic model.</target>
+        <target state="translated">A operação fornecida tem um modelo não semântico.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -42,6 +57,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Cópia de módulo não pode ser usada para criar metadados do assembly.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -66,7 +86,7 @@
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
-        <target state="translated">delegate</target>
+        <target state="translated">representante</target>
         <note />
       </trans-unit>
       <trans-unit id="Enum1">
@@ -246,7 +266,7 @@
       </trans-unit>
       <trans-unit id="ReferenceResolverShouldReturnReadableNonNullStream">
         <source>Reference resolver should return readable non-null stream.</source>
-        <target state="translated">Solucionador de referência deve o fluxo não nulo legível.</target>
+        <target state="translated">Solucionador de referência deve retornar o fluxo não nulo legível.</target>
         <note />
       </trans-unit>
       <trans-unit id="EmptyOrInvalidResourceName">
@@ -401,7 +421,7 @@
       </trans-unit>
       <trans-unit id="CannotTargetNetModuleWhenEmittingRefAssembly">
         <source>Cannot target net module when emitting ref assembly.</source>
-        <target state="translated">Não é possível destinar o módulo de rede ao emitir o assembly de referência.</target>
+        <target state="translated">Não é possível ter o módulo de rede como destino ao emitir o assembly de referência.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidHash">
@@ -421,22 +441,22 @@
       </trans-unit>
       <trans-unit id="CoffResourceInvalidRelocation">
         <source>Win32 resources, assumed to be in COFF object format, have one or more invalid relocation header values.</source>
-        <target state="translated">Recursos do Win32, supostos como estando no formato de objeto COFF, têm um ou mais valores de cabeçalho de realocação inválidos.</target>
+        <target state="translated">Os recursos do Win32, presumindo que estejam no formato de objeto COFF, têm um ou mais valores de cabeçalho de realocação inválidos.</target>
         <note />
       </trans-unit>
       <trans-unit id="CoffResourceInvalidSectionSize">
         <source>Win32 resources, assumed to be in COFF object format, have an invalid section size.</source>
-        <target state="translated">Recursos do Win32, supostos como estando no formato de objeto COFF, têm um tamanho de seção inválido.</target>
+        <target state="translated">Recursos do Win32, presumindo que estejam no formato de objeto COFF, têm um tamanho de seção inválido.</target>
         <note />
       </trans-unit>
       <trans-unit id="CoffResourceInvalidSymbol">
         <source>Win32 resources, assumed to be in COFF object format, have one or more invalid symbol values.</source>
-        <target state="translated">Recursos do Win32, supostos como estando no formato de objeto COFF, têm um ou mais valores de símbolo inválidos.</target>
+        <target state="translated">Recursos do Win32, presumindo que estejam no formato de objeto COFF, têm um ou mais valores de símbolo inválidos.</target>
         <note />
       </trans-unit>
       <trans-unit id="CoffResourceMissingSection">
         <source>Win32 resources, assumed to be in COFF object format, are missing one or both of sections '.rsrc$01' and '.rsrc$02'</source>
-        <target state="translated">Recursos do Win32, supostos como estando no formato de objeto COFF, estão sem uma ou ambas as seções '.rsrc$ 01' e '.rsrc$ 02'</target>
+        <target state="translated">Recursos do Win32, presumindo que estejam no formato de objeto COFF, estão sem uma ou ambas as seções '.rsrc$ 01' e '.rsrc$ 02'</target>
         <note />
       </trans-unit>
       <trans-unit id="IconStreamUnexpectedFormat">
@@ -466,7 +486,7 @@
       </trans-unit>
       <trans-unit id="XmlReferencesNotSupported">
         <source>References to XML documents are not supported.</source>
-        <target state="translated">Não há suporte a referências a documentos XML.</target>
+        <target state="translated">Não há suporte para referências a documentos XML.</target>
         <note />
       </trans-unit>
       <trans-unit id="FailedToResolveRuleSetName">
@@ -513,7 +533,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">As alterações devem ser ordenadas e não sobrepostas.</target>
+        <target state="translated">As alterações não podem se sobrepor.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -765,7 +785,7 @@
       </trans-unit>
       <trans-unit id="TupleElementLocationCountMismatch">
         <source>If tuple element locations are specified, the number of locations must match the cardinality of the tuple.</source>
-        <target state="translated">Se as localizações dos elementos de tupla forem especificadas, o número de localizações deverá corresponder à cardinalidade da tupla.</target>
+        <target state="translated">Se os locais dos elementos de tupla forem especificados, o número de locais deverá corresponder à cardinalidade da tupla.</target>
         <note />
       </trans-unit>
       <trans-unit id="TuplesNeedAtLeastTwoElements">
@@ -841,11 +861,6 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">Aviso: não foi possível habilitar o JIT multicore devido à exceção: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
         <note />
       </trans-unit>
     </body>

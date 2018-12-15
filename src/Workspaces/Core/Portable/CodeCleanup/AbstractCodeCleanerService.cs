@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 }
 
                 var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-                Contract.Requires(syntaxFactsService != null);
+                Debug.Assert(syntaxFactsService != null);
 
                 // We need to track spans between cleaners. Annotate the tree with the provided spans.
                 var newNodeAndAnnotations = AnnotateNodeForTextSpans(syntaxFactsService, root, normalizedSpan, cancellationToken);
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 }
 
                 var syntaxFactsService = workspace.Services.GetLanguageServices(root.Language).GetService<ISyntaxFactsService>();
-                Contract.Requires(syntaxFactsService != null);
+                Debug.Assert(syntaxFactsService != null);
 
                 // We need to track spans between cleaners. Annotate the tree with the provided spans.
                 var newNodeAndAnnotations = AnnotateNodeForTextSpans(syntaxFactsService, root, normalizedSpan, cancellationToken);
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 // Run the actual cleanup.
                 return await IterateAllCodeCleanupProvidersAsync(
-                    root, annotatedRoot, 
+                    root, annotatedRoot,
                     r => GetTextSpansFromAnnotation(r, newNodeAndAnnotations.annotations, cancellationToken),
                     workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
             }
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 var previousTokens = node.GetAnnotatedNodesAndTokens(previousMarkerAnnotation).Where(n => n.IsToken).Select(n => n.AsToken());
                 var nextTokens = node.GetAnnotatedNodesAndTokens(nextMarkerAnnotation).Where(n => n.IsToken).Select(n => n.AsToken());
-                
+
                 // Check whether we can use the tokens we got back from the node.
                 if (TryGetTextSpanFromAnnotation(previousTokenMarker, nextTokenMarker, node, previousTokens, nextTokens,
                         out var span))
@@ -282,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                GetTokensAroundSpan(root, span, 
+                GetTokensAroundSpan(root, span,
                     out var previousToken, out var startToken, out var endToken, out var nextToken);
 
                 // Create marker to insert
@@ -482,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                         // Document was changed by the previous code cleaner, compute new spans.
                         var root = await currentDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                         previousDocument = currentDocument;
-                        spans = GetSpans(root, spanGetter);;
+                        spans = GetSpans(root, spanGetter); ;
                     }
 
                     // If we are at the end and there were no changes to the document, use the original document for the cleanup.

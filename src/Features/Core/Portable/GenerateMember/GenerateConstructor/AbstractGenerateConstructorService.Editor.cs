@@ -141,12 +141,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var arguments = _state.Arguments.Take(argumentCount).ToList();
                 var remainingArguments = _state.Arguments.Skip(argumentCount).ToImmutableArray();
-                var remainingAttributeArguments = _state.AttributeArguments != null 
-                    ? _state.AttributeArguments.Skip(argumentCount).ToImmutableArray() 
+                var remainingAttributeArguments = _state.AttributeArguments != null
+                    ? _state.AttributeArguments.Skip(argumentCount).ToImmutableArray()
                     : (ImmutableArray<TAttributeArgumentSyntax>?)null;
                 var remainingParameterTypes = _state.ParameterTypes.Skip(argumentCount).ToImmutableArray();
 
-                var instanceConstructors = namedType.InstanceConstructors.Where(IsSymbolAccessible).ToSet();
+                var instanceConstructors = namedType.InstanceConstructors.Where(IsSymbolAccessibleToDocument).ToSet();
                 if (instanceConstructors.IsEmpty())
                 {
                     return default;
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     ? syntaxFactory.CreateFieldsForParameters(remainingParameters, parameterToNewFieldMap)
                     : ImmutableArray<IFieldSymbol>.Empty;
                 var assignStatements = syntaxFactory.CreateAssignmentStatements(
-                    _document.SemanticModel.Compilation, remainingParameters, 
+                    _document.SemanticModel.Compilation, remainingParameters,
                     parameterToExistingFieldMap, parameterToNewFieldMap,
                     addNullChecks: false, preferThrowExpression: false);
 
@@ -241,11 +241,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var syntaxTree = _document.SyntaxTree;
                 var (fields, constructor) = syntaxFactory.CreateFieldDelegatingConstructor(
-                    _document.SemanticModel.Compilation, 
-                    _state.TypeToGenerateIn.Name, 
+                    _document.SemanticModel.Compilation,
+                    _state.TypeToGenerateIn.Name,
                     _state.TypeToGenerateIn, parameters,
-                    parameterToExistingFieldMap, parameterToNewFieldMap, 
-                    addNullChecks: false, preferThrowExpression: false, 
+                    parameterToExistingFieldMap, parameterToNewFieldMap,
+                    addNullChecks: false, preferThrowExpression: false,
                     cancellationToken: _cancellationToken);
 
                 var result = await codeGenerationService.AddMembersAsync(
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                     if (symbol != null)
                     {
-                        if (ignoreAccessibility || IsSymbolAccessible(symbol))
+                        if (ignoreAccessibility || IsSymbolAccessibleToDocument(symbol))
                         {
                             if (IsViableFieldOrProperty(parameterType, symbol))
                             {
@@ -424,41 +424,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return false;
             }
 
-            private bool IsSymbolAccessible(
-                ISymbol symbol)
-            {
-                if (symbol == null)
-                {
-                    return false;
-                }
-
-                if (symbol.Kind == SymbolKind.Property)
-                {
-                    if (!IsSymbolAccessible(((IPropertySymbol)symbol).SetMethod))
-                    {
-                        return false;
-                    }
-                }
-
-                // Public and protected constructors are accessible.  Internal constructors are
-                // accessible if we have friend access.  We can't call the normal accessibility
-                // checkers since they will think that a protected constructor isn't accessible
-                // (since we don't have the destination type that would have access to them yet).
-                switch (symbol.DeclaredAccessibility)
-                {
-                    case Accessibility.ProtectedOrInternal:
-                    case Accessibility.Protected:
-                    case Accessibility.Public:
-                        return true;
-                    case Accessibility.ProtectedAndInternal:
-                    case Accessibility.Internal:
-                        return _document.SemanticModel.Compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(
-                            symbol.ContainingAssembly);
-
-                    default:
-                        return false;
-                }
-            }
+            private bool IsSymbolAccessibleToDocument(ISymbol symbol) => IsSymbolAccessible(symbol, _document);
         }
     }
 }

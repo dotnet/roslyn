@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -245,6 +246,7 @@ class X
                         case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                         case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                         case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
+                        case ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -257,13 +259,45 @@ class X
                         case ErrorCode.WRN_UnreferencedLocalFunction:
                             Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
                             break;
+                        case ErrorCode.WRN_ConvertingNullableToNonNullable:
+                        case ErrorCode.WRN_NullReferenceAssignment:
+                        case ErrorCode.WRN_NullReferenceReceiver:
+                        case ErrorCode.WRN_NullReferenceReturn:
+                        case ErrorCode.WRN_NullReferenceArgument:
+                        case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
+                        case ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation:
+                        case ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation:
+                        case ErrorCode.WRN_UninitializedNonNullableField:
+                        case ErrorCode.WRN_NullabilityMismatchInAssignment:
+                        case ErrorCode.WRN_NullabilityMismatchInArgument:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
+                        case ErrorCode.WRN_SuppressionOperatorNotReferenceType:
+                        case ErrorCode.WRN_NullAsNonNullable:
+                        case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
+                        case ErrorCode.WRN_NullableValueTypeMayBeNull:
+                        case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
+                        case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
+                        case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
+                        case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
+                        case ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs:
+                        case ErrorCode.WRN_NoBestNullabilityArrayElements:
+                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
                         case ErrorCode.WRN_InvalidVersionFormat:
                             Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail
                             // and whoever is adding the new warning will have to update it with the expected error level.
-                            Assert.True(false, "Please update this test case with a proper warning level for '" + errorCodeName + "'");
+                            Assert.True(false, $"Please update this test case with a proper warning level ({ErrorFacts.GetWarningLevel(errorCode)}) for '{errorCodeName}'");
                             break;
                     }
                 }
@@ -2003,15 +2037,15 @@ public class C
     }
 }";
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "goo.cs");
-            Assert.Equal(ReportDiagnostic.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "public class").Start));
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "public static").Start));
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "public static").Start));
-            Assert.Equal(ReportDiagnostic.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "int x").Start));
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "int x").Start));
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "int y").Start));
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "int y").Start));
-            Assert.Equal(ReportDiagnostic.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "int z").Start));
-            Assert.Equal(ReportDiagnostic.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "int z").Start));
+            Assert.Equal(PragmaWarningState.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "public class").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "public static").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "public static").Start));
+            Assert.Equal(PragmaWarningState.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "int x").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "int x").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "int y").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "int y").Start));
+            Assert.Equal(PragmaWarningState.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "int z").Start));
+            Assert.Equal(PragmaWarningState.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "int z").Start));
         }
 
         [Fact]
@@ -2032,9 +2066,9 @@ class Program
     }
 }";
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "goo.cs");
-            Assert.Equal(ReportDiagnostic.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "static void").Start));
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "var x").Start));
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "var y").Start));
+            Assert.Equal(PragmaWarningState.Default, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "static void").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "var x").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(219), GetSpanIn(syntaxTree, "var y").Start));
         }
 
         [WorkItem(545407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545407")]
@@ -2050,7 +2084,7 @@ class Program
     }
 }";
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, path: "goo.cs");
-            Assert.Equal(ReportDiagnostic.Suppress, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "static void").Start));
+            Assert.Equal(PragmaWarningState.Disabled, syntaxTree.GetPragmaDirectiveWarningState(MessageProvider.Instance.GetIdForErrorCode(168), GetSpanIn(syntaxTree, "static void").Start));
         }
 
         private TextSpan GetSpanIn(SyntaxTree syntaxTree, string textToFind)

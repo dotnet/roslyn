@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the type of this field.
         /// </summary>
-        public TypeSymbol Type
+        public TypeSymbolWithAnnotations Type
         {
             get
             {
@@ -56,12 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal abstract TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
-
-        /// <summary>
-        /// Gets the list of custom modifiers, if any, associated with the field.
-        /// </summary>
-        public abstract ImmutableArray<CustomModifier> CustomModifiers { get; }
+        internal abstract TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
 
         /// <summary>
         /// If this field serves as a backing variable for an automatically generated
@@ -87,18 +82,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Note that for a fixed-size buffer declaration, this.Type will be a pointer type, of which
         /// the pointed-to type will be the declared element type of the fixed-size buffer.
         /// </summary>
-        public virtual bool IsFixed { get { return false; } }
+        public virtual bool IsFixedSizeBuffer { get { return false; } }
 
         /// <summary>
-        /// If IsFixed is true, the value between brackets in the fixed-size-buffer declaration.
-        /// If IsFixed is false FixedSize is 0.
+        /// If IsFixedSizeBuffer is true, the value between brackets in the fixed-size-buffer declaration.
+        /// If IsFixedSizeBuffer is false FixedSize is 0.
         /// Note that for fixed-a size buffer declaration, this.Type will be a pointer type, of which
         /// the pointed-to type will be the declared element type of the fixed-size buffer.
         /// </summary>
         public virtual int FixedSize { get { return 0; } }
 
         /// <summary>
-        /// If this.IsFixed is true, returns the underlying implementation type for the
+        /// If this.IsFixedSizeBuffer is true, returns the underlying implementation type for the
         /// fixed-size buffer when emitted.  Otherwise returns null.
         /// </summary>
         internal virtual NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
@@ -310,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
-            return (newOwner == this.ContainingSymbol) ? this : new SubstitutedFieldSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
+            return newOwner.IsDefinition ? this : new SubstitutedFieldSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
         }
 
         #region Use-Site Diagnostics
@@ -330,8 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(IsDefinition);
 
             // Check type, custom modifiers
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.Type) ||
-                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.CustomModifiers))
+            if (DeriveUseSiteDiagnosticFromType(ref result, this.Type))
             {
                 return true;
             }
@@ -341,8 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ContainingModule.HasUnifiedReferences)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
-                if (this.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.CustomModifiers, this, ref unificationCheckedTypes))
+                if (this.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes))
                 {
                     return true;
                 }
@@ -458,13 +451,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.Type;
+                return this.Type.TypeSymbol;
             }
         }
 
         ImmutableArray<CustomModifier> IFieldSymbol.CustomModifiers
         {
-            get { return this.CustomModifiers; }
+            get { return this.Type.CustomModifiers; }
         }
 
         IFieldSymbol IFieldSymbol.OriginalDefinition

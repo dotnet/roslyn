@@ -5,23 +5,38 @@
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="new">Analyzer '{0}' threw the following exception:
+        <target state="translated">{0}' çözümleyicisi şu özel durumu oluşturdu:
 '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
-        <target state="new">Given operation block does not belong to the current analysis context.</target>
+        <target state="translated">Belirtilen işlem bloğu geçerli analiz bağlamına ait değil.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
-        <target state="new">Given operation has a non-null parent.</target>
+        <target state="translated">Belirtilen işlemin null olmayan bir üst öğesi var.</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
-        <target state="new">Given operation has a null semantic model.</target>
+        <target state="translated">Belirtilen işlemin null bir anlam modeli var.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -42,6 +57,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Derleme meta verileri oluşturmak için modül kopyası kullanılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -136,12 +156,12 @@
       </trans-unit>
       <trans-unit id="InMemoryAssembly">
         <source>&lt;in-memory assembly&gt;</source>
-        <target state="translated">&lt;in-memory assembly&gt;</target>
+        <target state="translated">&lt;bellek içi bütünleştirilmiş kod&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="InMemoryModule">
         <source>&lt;in-memory module&gt;</source>
-        <target state="translated">&lt;in-memory module&gt;</target>
+        <target state="translated">&lt;bellek içi modül&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="SizeHasToBePositive">
@@ -156,7 +176,7 @@
       </trans-unit>
       <trans-unit id="CannotEmbedInteropTypesFromModule">
         <source>Can't embed interop types from module.</source>
-        <target state="translated">Birlikte çalışma türleri modülden katıştırılamıyor.</target>
+        <target state="translated">Birlikte çalışma türleri modülden eklenemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotAliasModule">
@@ -196,7 +216,7 @@
       </trans-unit>
       <trans-unit id="EmptyKeyInPathMap">
         <source>A key in the pathMap is empty.</source>
-        <target state="translated">pathMap öğesinde bir anahtar boş.</target>
+        <target state="translated">pathMap'te bir anahtar boş.</target>
         <note />
       </trans-unit>
       <trans-unit id="NullValueInPathMap">
@@ -211,7 +231,7 @@
       </trans-unit>
       <trans-unit id="ReturnTypeCannotBeValuePointerbyRefOrOpen">
         <source>Return type can't be a value type, pointer, by-ref or open generic type</source>
-        <target state="translated">Dönüş türü bir değer türü, işaretçi, başvuru tarafından veya açık genel tür olamaz</target>
+        <target state="translated">Dönüş türü bir değer türü, işaretçi, başvurulan veya açık genel tür olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ReturnTypeCannotBeVoidByRefOrOpen">
@@ -241,7 +261,7 @@
       </trans-unit>
       <trans-unit id="ResourceStreamProviderShouldReturnNonNullStream">
         <source>Resource stream provider should return non-null stream.</source>
-        <target state="translated">Kaynak akış sağlayıcısı boş olmayan akış döndürmelidir.</target>
+        <target state="translated">Kaynak akış sağlayıcısı null olmayan akış döndürmelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ReferenceResolverShouldReturnReadableNonNullStream">
@@ -311,7 +331,7 @@
       </trans-unit>
       <trans-unit id="SpanDoesNotIncludeStartOfLine">
         <source>The span does not include the start of a line.</source>
-        <target state="translated">Yayılım bir satırın başlangıcını içermez.</target>
+        <target state="translated">Yayılma, bir satırın başlangıcını içermiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="SpanDoesNotIncludeEndOfLine">
@@ -513,12 +533,12 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">Değişiklikler sıralanmalı ve çakışmamalıdır.</target>
+        <target state="translated">Değişiklikler çakışmamalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
         <source>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
-        <target state="translated">DiagnosticDescriptor türünün null veya boş dize ya da yalnızca boşluk içeren dize olmayan bir kimliğinin olması gerekir.</target>
+        <target state="translated">DiagnosticDescriptor türünün kimliği, null veya boş dize ya da yalnızca boşluk içeren bir dize olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="RuleSetHasDuplicateRules">
@@ -528,12 +548,12 @@
       </trans-unit>
       <trans-unit id="CantCreateModuleReferenceToAssembly">
         <source>Can't create a module reference to an assembly.</source>
-        <target state="translated">Bir derleme dosyasına bir modül başvurusu oluşturulamaz.</target>
+        <target state="translated">Bir bütünleştirilmiş koda modül başvurusu oluşturulamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="CantCreateReferenceToDynamicAssembly">
         <source>Can't create a metadata reference to a dynamic assembly.</source>
-        <target state="translated">Dinamik bir derleme dosyasına bir meta veri başvurusu oluşturulamaz.</target>
+        <target state="translated">Dinamik bir bütünleştirilmiş koda meta veri başvurusu oluşturulamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="CantCreateReferenceToAssemblyWithoutLocation">
@@ -563,7 +583,7 @@
       </trans-unit>
       <trans-unit id="InvalidDiagnosticIdReported">
         <source>Reported diagnostic has an ID '{0}', which is not a valid identifier.</source>
-        <target state="translated">Bildirilen tanılama, geçerli bir tanıtıcı olmayan '{0}' kimliğine sahip.</target>
+        <target state="translated">Bildirilen tanılama, geçerli bir tanımlayıcı olmayan '{0}' kimliğine sahip.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticLocationReported">
@@ -608,7 +628,7 @@
       </trans-unit>
       <trans-unit id="InvalidPublicKey">
         <source>Invalid public key.</source>
-        <target state="translated">Geçersiz genel anahtar.</target>
+        <target state="translated">Geçersiz ortak anahtar.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidPublicKeyToken">
@@ -800,7 +820,7 @@
       </trans-unit>
       <trans-unit id="EmbeddedTextsRequirePdb">
         <source>Embedded texts are only supported when emitting a PDB.</source>
-        <target state="translated">Ekli metinler yalnızca PDB gösterilirken desteklenir.</target>
+        <target state="translated">Ekli metinler yalnızca PDB yayınlanırken desteklenir.</target>
         <note />
       </trans-unit>
       <trans-unit id="TheStreamCannotBeWrittenTo">
@@ -841,11 +861,6 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">Uyarı: Çok çekirdekli JIT, özel durum nedeniyle etkinleştirilemedi: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
         <note />
       </trans-unit>
     </body>

@@ -4526,7 +4526,7 @@ class innerClass
         [Fact]
         [WorkItem(543112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543112")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatArbitaryNode()
+        public void FormatArbitaryNode()
         {
             var expected = @"public int Prop
 {
@@ -4561,7 +4561,7 @@ class innerClass
 
             Assert.NotNull(property);
 
-            var newProperty = await Formatter.FormatAsync(property, new AdhocWorkspace());
+            var newProperty = Formatter.Format(property, new AdhocWorkspace());
 
             Assert.Equal(expected, newProperty.ToFullString());
         }
@@ -4894,6 +4894,36 @@ void bar()
     void bar()
     {
         (int x1, var (x2, x3)) = (1, (2, 3));
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInSuppressNullableWarningExpression()
+        {
+            var code =
+@"class C
+{
+    static object F()
+    {
+        object? o[] = null;
+        object? x = null;
+        object? y = null;
+        return x ! ?? (y) ! ?? o[0] !;
+    }
+}";
+            var expectedCode =
+@"class C
+{
+    static object F()
+    {
+        object? o[] = null;
+        object? x = null;
+        object? y = null;
+        return x! ?? (y)! ?? o[0]!;
     }
 }";
 
@@ -7032,10 +7062,10 @@ class Program
 
         [WorkItem(1118, "https://github.com/dotnet/roslyn/issues/1118")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task DontAssumeCertainNodeAreAlwaysParented()
+        public void DontAssumeCertainNodeAreAlwaysParented()
         {
             var block = SyntaxFactory.Block();
-            await Formatter.FormatAsync(block, new AdhocWorkspace());
+            Formatter.Format(block, new AdhocWorkspace());
         }
 
         [WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
@@ -7897,6 +7927,33 @@ switch (o)
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(23703, "https://github.com/dotnet/roslyn/issues/23703")]
+        public async Task FormatNullableArray()
+        {
+            var code = @"
+class C
+{
+    object[]? F = null;
+}";
+            await AssertFormatAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(23703, "https://github.com/dotnet/roslyn/issues/23703")]
+        public async Task FormatConditionalWithArrayAccess()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = array[1] ? 2 : 3;
+    }
+}";
+            await AssertFormatAsync(code, code);
+        }
+
         private Task AssertFormatBodyAsync(string expected, string input)
         {
             string transform(string s)
@@ -8069,9 +8126,119 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(25098, "https://github.com/dotnet/roslyn/issues/25098")]
-        public async Task FormatSingleStructDeclaration()
+        public void FormatSingleStructDeclaration()
         {
-            await Formatter.FormatAsync(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
+            Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatIndexExpression()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    void M()
+    {
+        object x = ^1;
+        object y = ^1
+    }
+}", @"
+class C
+{
+    void M()
+    {
+        object x = ^1;
+        object y = ^1
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRangeExpression_NoOperands()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    void M()
+    {
+        object x = ..;
+        object y = ..
+    }
+}", @"
+class C
+{
+    void M()
+    {
+        object x = ..;
+        object y = ..
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRangeExpression_RightOperand()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    void M()
+    {
+        object x = ..1;
+        object y = ..1
+    }
+}", @"
+class C
+{
+    void M()
+    {
+        object x = ..1;
+        object y = ..1
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRangeExpression_LeftOperand()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    void M()
+    {
+        object x = 1..;
+        object y = 1..
+    }
+}", @"
+class C
+{
+    void M()
+    {
+        object x = 1..;
+        object y = 1..
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRangeExpression_BothOperands()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    void M()
+    {
+        object x = 1..2;
+        object y = 1..2
+    }
+}", @"
+class C
+{
+    void M()
+    {
+        object x = 1..2;
+        object y = 1..2
+    }
+}");
         }
     }
 }

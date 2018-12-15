@@ -28,13 +28,14 @@ namespace Microsoft.CodeAnalysis
         private DocumentState(
             HostLanguageServices languageServices,
             SolutionServices solutionServices,
-            DocumentInfo info,
+            IDocumentServiceProvider documentServiceProvider,
+            DocumentInfo.DocumentAttributes attributes,
             ParseOptions options,
             SourceText sourceTextOpt,
             ValueSource<TextAndVersion> textSource,
             ValueSource<TreeAndVersion> treeSource,
             ValueSource<DocumentStateChecksums> lazyChecksums)
-            : base(solutionServices, info, sourceTextOpt, textSource, lazyChecksums)
+            : base(solutionServices, documentServiceProvider, attributes, sourceTextOpt, textSource, lazyChecksums)
         {
             _languageServices = languageServices;
             _options = options;
@@ -68,21 +69,16 @@ namespace Microsoft.CodeAnalysis
             var treeSource = CreateLazyFullyParsedTree(
                 textSource,
                 info.Id.ProjectId,
-                GetSyntaxTreeFilePath(info),
+                GetSyntaxTreeFilePath(info.Attributes),
                 options,
                 language,
                 services);
 
-            // ownership of TextLoader information has moved to document state. clear out textloader the info is
-            // holding on. otherwise, these information will be held onto unnecesarily by documentInfo even after
-            // the info has changed by DocumentState.
-            // we hold onto the info so that we don't need to duplicate all information info already has in the state
-            info = info.WithTextLoader(null);
-
             return new DocumentState(
                 languageServices: language,
+                documentServiceProvider: info.DocumentServiceProvider,
                 solutionServices: services,
-                info: info,
+                attributes: info.Attributes,
                 options: options,
                 sourceTextOpt: null,
                 textSource: textSource,
@@ -93,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         // This is the string used to represent the FilePath property on a SyntaxTree object.
         // if the document does not yet have a file path, use the document's name instead in regular code
         // or an empty string in script code.
-        private static string GetSyntaxTreeFilePath(DocumentInfo info)
+        private static string GetSyntaxTreeFilePath(DocumentInfo.DocumentAttributes info)
         {
             if (info.FilePath != null)
             {
@@ -330,7 +326,7 @@ namespace Microsoft.CodeAnalysis
             var newTreeSource = CreateLazyFullyParsedTree(
                 this.textAndVersionSource,
                 this.Id.ProjectId,
-                GetSyntaxTreeFilePath(this.info),
+                GetSyntaxTreeFilePath(this.Attributes),
                 options,
                 _languageServices,
                 this.solutionServices);
@@ -338,7 +334,8 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 this.LanguageServices,
                 this.solutionServices,
-                this.info,
+                this.Services,
+                this.Attributes.With(sourceCodeKind: options.Kind),
                 options,
                 this.sourceTextOpt,
                 this.textAndVersionSource,
@@ -361,7 +358,8 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 _languageServices,
                 this.solutionServices,
-                this.info.WithName(name),
+                this.Services,
+                this.Attributes.With(name: name),
                 _options,
                 this.sourceTextOpt,
                 this.textAndVersionSource,
@@ -374,7 +372,8 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 _languageServices,
                 this.solutionServices,
-                this.info.WithFolders(folders),
+                this.Services,
+                this.Attributes.With(folders: folders),
                 _options,
                 this.sourceTextOpt,
                 this.textAndVersionSource,
@@ -387,7 +386,8 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 _languageServices,
                 this.solutionServices,
-                this.info.WithFilePath(filePath),
+                this.Services,
+                this.Attributes.With(filePath: filePath),
                 _options,
                 this.sourceTextOpt,
                 this.textAndVersionSource,
@@ -434,7 +434,8 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 this.LanguageServices,
                 this.solutionServices,
-                this.info,
+                this.Services,
+                this.Attributes,
                 _options,
                 sourceTextOpt: null,
                 textSource: newTextSource,
@@ -466,7 +467,7 @@ namespace Microsoft.CodeAnalysis
                 : CreateLazyFullyParsedTree(
                     newTextSource,
                     this.Id.ProjectId,
-                    GetSyntaxTreeFilePath(this.info),
+                    GetSyntaxTreeFilePath(this.Attributes),
                     _options,
                     _languageServices,
                     this.solutionServices,
@@ -475,7 +476,8 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 this.LanguageServices,
                 this.solutionServices,
-                this.info,
+                this.Services,
+                this.Attributes,
                 _options,
                 sourceTextOpt: textOpt,
                 textSource: newTextSource,
@@ -512,12 +514,13 @@ namespace Microsoft.CodeAnalysis
 
             var syntaxTreeFactory = _languageServices.GetService<ISyntaxTreeFactoryService>();
 
-            var result = CreateRecoverableTextAndTree(newRoot, newTextVersion, newTreeVersion, encoding, this.info, _options, syntaxTreeFactory, mode, this.solutionServices);
+            var result = CreateRecoverableTextAndTree(newRoot, newTextVersion, newTreeVersion, encoding, this.Attributes, _options, syntaxTreeFactory, mode, this.solutionServices);
 
             return new DocumentState(
                 this.LanguageServices,
                 this.solutionServices,
-                this.info,
+                this.Services,
+                this.Attributes,
                 _options,
                 sourceTextOpt: null,
                 textSource: result.Item1,
@@ -543,9 +546,9 @@ namespace Microsoft.CodeAnalysis
         // use static method so we don't capture references to this
         private static Tuple<ValueSource<TextAndVersion>, TreeAndVersion> CreateRecoverableTextAndTree(
             SyntaxNode newRoot, VersionStamp textVersion, VersionStamp treeVersion, Encoding encoding,
-            DocumentInfo info, ParseOptions options, ISyntaxTreeFactoryService factory, PreservationMode mode, SolutionServices solutionServices)
+            DocumentInfo.DocumentAttributes attributes, ParseOptions options, ISyntaxTreeFactoryService factory, PreservationMode mode, SolutionServices solutionServices)
         {
-            string filePath = info.FilePath;
+            string filePath = attributes.FilePath;
             SyntaxTree tree = null;
             ValueSource<TextAndVersion> lazyTextAndVersion = null;
 
@@ -560,7 +563,7 @@ namespace Microsoft.CodeAnalysis
                     textVersion,
                     filePath);
 
-                tree = factory.CreateSyntaxTree(GetSyntaxTreeFilePath(info), options, encoding, newRoot);
+                tree = factory.CreateSyntaxTree(GetSyntaxTreeFilePath(attributes), options, encoding, newRoot);
             }
             else
             {
@@ -575,7 +578,7 @@ namespace Microsoft.CodeAnalysis
                     textVersion,
                     filePath);
 
-                tree = factory.CreateRecoverableTree(info.Id.ProjectId, GetSyntaxTreeFilePath(info), options, lazyTextAndVersion, encoding, newRoot);
+                tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, GetSyntaxTreeFilePath(attributes), options, lazyTextAndVersion, encoding, newRoot);
             }
 
             return Tuple.Create(lazyTextAndVersion, TreeAndVersion.Create(tree, treeVersion));

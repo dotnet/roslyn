@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,8 +8,6 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = QueryExpressionFormattingRule.Name)]
     internal class TokenBasedFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Token Based Formatting Rule";
@@ -343,6 +340,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // nullable
             if (currentToken.Kind() == SyntaxKind.QuestionToken &&
                 currentToken.Parent.Kind() == SyntaxKind.NullableType)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
+            // No space between an array type and ?
+            if (currentToken.IsKind(SyntaxKind.QuestionToken) &&
+                previousToken.Parent?.IsParentKind(SyntaxKind.ArrayType) == true)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+            }
+
+            // suppress warning operator: null! or x! or x++! or x[i]! or (x)! or ...
+            if (currentToken.Kind() == SyntaxKind.ExclamationToken &&
+                currentToken.Parent.Kind() == SyntaxKindEx.SuppressNullableWarningExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

@@ -558,11 +558,26 @@ namespace System
                         continue;
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
+                    case WellKnownType.System_Runtime_CompilerServices_NullableAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
                     case WellKnownType.System_Span_T:
                     case WellKnownType.System_ReadOnlySpan_T:
                     case WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute:
+                    case WellKnownType.System_Index:
+                    case WellKnownType.System_Range:
+                    case WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute:
+                    case WellKnownType.System_IAsyncDisposable:
+                    case WellKnownType.System_Collections_Generic_IAsyncEnumerable_T:
+                    case WellKnownType.System_Collections_Generic_IAsyncEnumerator_T:
+                    case WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T:
+                    case WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceStatus:
+                    case WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags:
+                    case WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T:
+                    case WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource:
+                    case WellKnownType.System_Threading_Tasks_ValueTask_T:
+                    case WellKnownType.System_Threading_Tasks_ValueTask:
+                    case WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder:
                     // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
@@ -592,7 +607,7 @@ namespace System
 
                 var symbol = comp.GetWellKnownType(wkt);
                 Assert.NotNull(symbol);
-                Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
+                Assert.True(symbol.Kind != SymbolKind.ErrorType, $"{wkt} should not be an error type");
             }
         }
 
@@ -861,12 +876,49 @@ namespace System
                         // C# can't embed VB core.
                         continue;
                     case WellKnownMember.System_Array__Empty:
+                    case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte:
+                    case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags:
                     case WellKnownMember.System_Span_T__ctor:
                     case WellKnownMember.System_Span_T__get_Item:
                     case WellKnownMember.System_Span_T__get_Length:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
+                    case WellKnownMember.System_Index__ctor:
+                    case WellKnownMember.System_Index__FromEnd:
+                    case WellKnownMember.System_Index__Value:
+                    case WellKnownMember.System_Range__Start:
+                    case WellKnownMember.System_Range__End:
+                    case WellKnownMember.System_Range__All:
+                    case WellKnownMember.System_Range__Create:
+                    case WellKnownMember.System_Range__FromStart:
+                    case WellKnownMember.System_Range__ToEnd:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor:
+                    case WellKnownMember.System_IAsyncDisposable__DisposeAsync:
+                    case WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator:
+                    case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync:
+                    case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current:
+                    case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__get_Version:
+                    case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetResult:
+                    case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetStatus:
+                    case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__OnCompleted:
+                    case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__Reset:
+                    case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetResult:
+                    case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetResult:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetStatus:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__OnCompleted:
+                    case WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor:
+                    case WellKnownMember.System_Threading_Tasks_ValueTask__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T:
+                    case WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
@@ -880,7 +932,7 @@ namespace System
                 if (wkm == WellKnownMember.Count) continue; // Not a real value.
 
                 var symbol = comp.GetWellKnownTypeMember(wkm);
-                Assert.NotNull(symbol);
+                Assert.True((object)symbol != null, $"Unexpected null for {wkm}");
             }
         }
 

@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBTupleTests
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Local()
             Dim source = "
 Class C
@@ -21,7 +21,7 @@ End Class
             comp.VerifyPdb("C.F",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="F">
@@ -47,7 +47,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")>
+        <WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub VariablesAndConstantsInUnreachableCode()
             Dim source = "
 Imports System
@@ -95,7 +96,7 @@ End Class
             c.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C`1" name="F">

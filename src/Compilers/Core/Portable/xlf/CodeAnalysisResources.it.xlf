@@ -5,23 +5,38 @@
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="new">Analyzer '{0}' threw the following exception:
+        <target state="translated">L'analizzatore '{0}' ha generato l'eccezione seguente:
 '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
-        <target state="new">Given operation block does not belong to the current analysis context.</target>
+        <target state="translated">Il blocco operazioni specificato non appartiene al contesto di analisi corrente.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
-        <target state="new">Given operation has a non-null parent.</target>
+        <target state="translated">L'operazione specificata contiene un elemento padre non Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
-        <target state="new">Given operation has a null semantic model.</target>
+        <target state="translated">L'operazione specificata contiene un modello semantico Null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -42,6 +57,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Non è possibile usare la copia del modulo per creare i metadati di un assembly.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -181,7 +201,7 @@
       </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">Non è possibile serializzare le matrice con più di una dimensione.</target>
+        <target state="translated">Non è possibile serializzare le matrici con più di una dimensione.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAssemblyName">
@@ -326,7 +346,7 @@
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'</source>
-        <target state="translated">'il valore di 'end' deve essere minore di quello di 'start'</target>
+        <target state="translated">il valore di 'end' non deve essere minore di quello di 'start'</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">
@@ -341,7 +361,7 @@
       </trans-unit>
       <trans-unit id="InvalidSizeOfPublicKeyToken">
         <source>Invalid size of public key token.</source>
-        <target state="translated">La dimensione del token di chiave pubblica non è valida.</target>
+        <target state="translated">Le dimensioni del token di chiave pubblica non sono valide.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidCharactersInAssemblyName">
@@ -401,7 +421,7 @@
       </trans-unit>
       <trans-unit id="CannotTargetNetModuleWhenEmittingRefAssembly">
         <source>Cannot target net module when emitting ref assembly.</source>
-        <target state="translated">Non è possibile impostare come destinazione il modulo quando si crea l'assembly di riferimento.</target>
+        <target state="translated">Non è possibile impostare come destinazione il modulo .NET quando si crea l'assembly di riferimento.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidHash">
@@ -426,7 +446,7 @@
       </trans-unit>
       <trans-unit id="CoffResourceInvalidSectionSize">
         <source>Win32 resources, assumed to be in COFF object format, have an invalid section size.</source>
-        <target state="translated">Le risorse Win32, che dovrebbero essere nel formato oggetto COFF, hanno una dimensione di sezione non valida.</target>
+        <target state="translated">Le risorse Win32, che dovrebbero essere nel formato oggetto COFF, hanno dimensioni di sezione non valide.</target>
         <note />
       </trans-unit>
       <trans-unit id="CoffResourceInvalidSymbol">
@@ -513,7 +533,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">Le modifiche devono essere ordinate e non sovrapposte.</target>
+        <target state="translated">Le modifiche non devono sovrapporsi.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -588,7 +608,7 @@
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
         <source>Node to track is not a descendant of the root.</source>
-        <target state="translated">Il nodo da tracciare non è un discendente della radice.</target>
+        <target state="translated">Il nodo di cui tenere traccia non è un discendente della radice.</target>
         <note />
       </trans-unit>
       <trans-unit id="NodeOrTokenOutOfSequence">
@@ -678,7 +698,7 @@
       </trans-unit>
       <trans-unit id="MultithreadedAnalyzerExecutionNote">
         <source>NOTE: Elapsed time may be less than analyzer execution time because analyzers can run concurrently.</source>
-        <target state="translated">NOTE: il tempo trascorso può essere inferiore al tempo di esecuzione dell'analizzatore perché non è possibile eseguire gli analizzatori simultaneamente.</target>
+        <target state="translated">NOTA: il tempo trascorso può essere inferiore al tempo di esecuzione dell'analizzatore perché è possibile eseguire gli analizzatori simultaneamente.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerExecutionTimeColumnHeader">
@@ -841,11 +861,6 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">Avviso: non è stato possibile abilitare JIT multicore a causa dell'eccezione {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
         <note />
       </trans-unit>
     </body>

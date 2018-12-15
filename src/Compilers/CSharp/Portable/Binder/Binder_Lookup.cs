@@ -1035,7 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     hidingSymbols.Add(sym); // not hidden
-                symIsHidden:;
+symIsHidden:;
                 }
             }
             else
@@ -1153,24 +1153,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         ref useSiteDiagnostics,
                                         basesBeingResolved))
             {
-                 if (!diagnose)
-                 {
-                     diagInfo = null;
-                 }
-                 else if (inaccessibleViaQualifier)
-                 {
-                     diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType);
-                 }
-                 else if (IsBadIvtSpecification())
-                 {
-                     diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), AssemblyIdentity.PublicKeyToString(this.Compilation.Assembly.PublicKey));
-                 }
-                 else
-                 {
-                     diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, ImmutableArray.Create<Symbol>(unwrappedSymbol), additionalLocations: ImmutableArray<Location>.Empty);
-                 }
-                 
-                 return LookupResult.Inaccessible(symbol, diagInfo);
+                if (!diagnose)
+                {
+                    diagInfo = null;
+                }
+                else if (inaccessibleViaQualifier)
+                {
+                    diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType);
+                }
+                else if (IsBadIvtSpecification())
+                {
+                    diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), AssemblyIdentity.PublicKeyToString(this.Compilation.Assembly.PublicKey));
+                }
+                else
+                {
+                    diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, ImmutableArray.Create<Symbol>(unwrappedSymbol), additionalLocations: ImmutableArray<Location>.Empty);
+                }
+
+                return LookupResult.Inaccessible(symbol, diagInfo);
             }
             else if (!InCref && unwrappedSymbol.MustCallMethodsDirectly())
             {
@@ -1211,7 +1211,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     unwrappedSymbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal)
                     && !options.IsAttributeTypeLookup())
                 {
-                    var keys = unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.Compilation.AssemblyName);
+                    var assemblyName = this.Compilation.AssemblyName;
+                    if (assemblyName == null)
+                    {
+                        return false;
+                    }
+                    var keys = unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(assemblyName);
                     if (!keys.Any())
                     {
                         return false;
@@ -1228,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
         }
- 
+
         private CSDiagnosticInfo MakeCallMethodsDirectlyDiagnostic(Symbol symbol)
         {
             Debug.Assert(symbol.MustCallMethodsDirectly());
@@ -1423,11 +1428,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case SymbolKind.Field:
-                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound);
+                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound).TypeSymbol;
                     break;
 
                 case SymbolKind.Property:
-                    type = ((PropertySymbol)symbol).Type;
+                    type = ((PropertySymbol)symbol).Type.TypeSymbol;
                     break;
             }
 

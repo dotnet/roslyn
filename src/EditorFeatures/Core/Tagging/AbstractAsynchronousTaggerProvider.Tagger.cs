@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
             public Tagger(
+                IThreadingContext threadingContext,
                 IAsynchronousOperationListener listener,
                 IForegroundNotificationService notificationService,
                 TagSource tagSource,
@@ -59,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _cancellationTokenSource = new CancellationTokenSource();
 
                 _batchChangeNotifier = new BatchChangeNotifier(
+                    threadingContext,
                     subjectBuffer, listener, notificationService, NotifyEditorNow, _cancellationTokenSource.Token);
 
                 _tagSource = tagSource;

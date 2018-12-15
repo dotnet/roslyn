@@ -430,6 +430,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Determines if the specified node is a descendant of this node.
+        /// Returns true for current node.
         /// </summary>
         public bool Contains(SyntaxNode node)
         {
@@ -954,7 +955,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static SyntaxTrivia FindTriviaByOffset(SyntaxNode node, int textOffset, Func<SyntaxTrivia, bool> stepInto = null)
         {
-            recurse:
+recurse:
             if (textOffset >= 0)
             {
                 foreach (var element in node.ChildNodesAndTokens())

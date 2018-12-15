@@ -1,0 +1,108 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RoslynProjectType>Custom</RoslynProjectType>
+    <ApplyPartialNgenOptimization>true</ApplyPartialNgenOptimization>
+
+    <!-- VS Insertion -->
+    <TargetVsixContainerName>Microsoft.CodeAnalysis.Compilers.vsix</TargetVsixContainerName>
+    <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.Compilers</VisualStudioInsertionComponent>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\CSharp\csc\csc.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\VisualBasic\vbc\vbc.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" PrivateAssets="All"/>
+  </ItemGroup>
+
+  <Target Name="_SetSwrFilePath">
+    <PropertyGroup>
+      <_SwrFilePath>$(IntermediateOutputPath)Microsoft.CodeAnalysis.Compilers.swr</_SwrFilePath>
+    </PropertyGroup>
+  </Target>
+
+  <!-- 
+    Calculates which external dependencies included in the target VSIX need to be updated with optimization data.
+  -->
+  <Target Name="_CalculateCompilerArtifactsToOptimize"
+          DependsOnTargets="InitializeCompilerArtifacts">
+
+    <ItemGroup>
+      <CompilerArtifact Condition="'%(CompilerArtifact.OverwriteNgenOptimizationData)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'">
+        <_PreviousOptimizedFile>$([System.IO.Path]::Combine($(IbcOptimizationDataDir), '$([System.IO.Path]::GetFileNameWithoutExtension(%(CompilerArtifact.Identity))).pgo'))</_PreviousOptimizedFile>
+        <_OptimizeAssembly>$(IntermediateOutputPath)optimized\$([System.IO.Path]::GetFileName(%(CompilerArtifact.Identity)))</_OptimizeAssembly>
+      </CompilerArtifact>
+
+      <OptimizeAssembly Include="@(CompilerArtifact->'%(_OptimizeAssembly)')"
+                        PreviousOptimizedFile="%(CompilerArtifact._PreviousOptimizedFile)"
+                        Condition="'%(CompilerArtifact._OptimizeAssembly)' != ''" />
+    </ItemGroup>
+  </Target>
+
+  <!-- 
+    Copies the artifacts that need optimization data to an intermediate output dir.
+  -->
+  <Target Name="_PrepareCompilerArtifactsForOptimization"
+          DependsOnTargets="_CalculateCompilerArtifactsToOptimize"
+          Inputs="@(CompilerArtifact)"
+          Outputs="@(CompilerArtifact->'%(_OptimizeAssembly)')"
+          Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'">
+
+    <Copy SourceFiles="%(CompilerArtifact.Identity)" DestinationFiles="%(CompilerArtifact._OptimizeAssembly)" Condition="'%(CompilerArtifact._OptimizeAssembly)' != ''">
+      <Output TaskParameter="CopiedFiles" ItemName="FileWrites"/>
+    </Copy>
+  </Target>
+  
+  <Target Name="_GenerateSwrFile" 
+          AfterTargets="Build"
+          BeforeTargets="SwixBuild"
+          DependsOnTargets="_SetSwrFilePath;InitializeCompilerArtifacts;_PrepareCompilerArtifactsForOptimization;ApplyOptimizations"
+          Outputs="$(_SwrFilePath)">
+
+    <ItemGroup>
+      <_File Include="@(CompilerArtifact)">
+        <Path Condition="'%(CompilerArtifact._OptimizeAssembly)' == ''">%(CompilerArtifact.Identity)</Path>
+        <Path Condition="'%(CompilerArtifact._OptimizeAssembly)' != ''">%(CompilerArtifact._OptimizeAssembly)</Path>
+        <NGenArchitectureString Condition="'%(CompilerArtifact.NgenArchitecture)' != ''"> vs.file.ngenArchitecture=%(CompilerArtifact.NgenArchitecture)</NGenArchitectureString>
+        <NGenPriorityString Condition="'%(CompilerArtifact.NGenPriority)' != ''"> vs.file.ngenPriority=%(CompilerArtifact.NGenPriority)</NGenPriorityString>
+        <NGenApplicationString Condition="'%(CompilerArtifact.NGenApplication)' != ''"> vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\%(CompilerArtifact.NGenApplication)"</NGenApplicationString>
+      </_File>
+      
+      <_FileEntries Include='file source="%(_File.Path)"%(_File.NGenArchitectureString)%(_File.NGenPriorityString)%(_File.NGenApplicationString)'/>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_Lines>
+        <![CDATA[use vs
+
+package name=$(VisualStudioInsertionComponent)
+        version=$(VsixVersion)
+
+vs.dependencies
+  vs.dependency id=Microsoft.Net.PackageGroup.4.7.2.Redist
+
+vs.nonCriticalProcesses
+  vs.nonCriticalProcess name="VBCSCompiler"
+
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn
+  @(_FileEntries, '%0d%0a  ')
+
+folder InstallDir:\Common7\Tools\vsdevcmd\ext
+  file source="$(MSBuildProjectDirectory)\roslyn.bat"
+]]>
+      </_Lines>
+    </PropertyGroup>
+    
+    <WriteLinesToFile File="$(_SwrFilePath)" Lines="$(_Lines)" Overwrite="true"/>
+
+    <ItemGroup>
+      <FileWrites Include="$(_SwrFilePath)"/>
+      <SwrFile Include="$(_SwrFilePath)"/>
+    </ItemGroup>
+  </Target>
+  
+  <Import Project="..\..\..\NuGet\Microsoft.Net.Compilers\CompilerArtifacts.targets"/>
+</Project>

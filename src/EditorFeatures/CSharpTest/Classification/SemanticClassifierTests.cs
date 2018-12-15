@@ -2185,6 +2185,7 @@ struct Type<T>
                     var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
                     var provider = new SemanticClassificationViewTaggerProvider(
+                        workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                         workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                         workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                         workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
@@ -2216,6 +2217,7 @@ struct Type<T>
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
                 var provider = new SemanticClassificationBufferTaggerProvider(
+                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                     workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                     workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                     workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
@@ -2506,6 +2508,449 @@ delegate void D<T>() where T : unmanaged;",
                 Keyword("unmanaged"));
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex1()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+
+    void Goo()
+    {
+        var r = new Regex(@""$(\a\t\u0020)|[^\p{Lu}-a\w\sa-z-[m-p]]+?(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"");
+    }
+}",
+Keyword("var"),
+Class("Regex"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("t"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("u"),
+Regex.OtherEscape("0020"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.CharacterClass("["),
+Regex.CharacterClass("^"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("p"),
+Regex.CharacterClass("{"),
+Regex.CharacterClass("Lu"),
+Regex.CharacterClass("}"),
+Regex.Text("-a"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("w"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("s"),
+Regex.Text("a"),
+Regex.CharacterClass("-"),
+Regex.Text("z"),
+Regex.CharacterClass("-"),
+Regex.CharacterClass("["),
+Regex.Text("m"),
+Regex.CharacterClass("-"),
+Regex.Text("p"),
+Regex.CharacterClass("]"),
+Regex.CharacterClass("]"),
+Regex.Quantifier("+"),
+Regex.Quantifier("?"),
+Regex.Comment("(?#comment)"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Anchor("\\"),
+Regex.Anchor("b"),
+Regex.Anchor("\\"),
+Regex.Anchor("G"),
+Regex.Anchor("\\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Grouping("?"),
+Regex.Grouping("<"),
+Regex.Grouping("name"),
+Regex.Grouping(">"),
+Regex.Text("sub"),
+Regex.Grouping(")"),
+Regex.Quantifier("{"),
+Regex.Quantifier("0"),
+Regex.Quantifier(","),
+Regex.Quantifier("5"),
+Regex.Quantifier("}"),
+Regex.Quantifier("?"),
+Regex.Anchor("^"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex2()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+
+    void Goo()
+    {
+        // language=regex
+        var r = @""$(\a\t\u0020)|[^\p{Lu}-a\w\sa-z-[m-p]]+?(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"";
+    }
+}",
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("t"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("u"),
+Regex.OtherEscape("0020"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.CharacterClass("["),
+Regex.CharacterClass("^"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("p"),
+Regex.CharacterClass("{"),
+Regex.CharacterClass("Lu"),
+Regex.CharacterClass("}"),
+Regex.Text("-a"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("w"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("s"),
+Regex.Text("a"),
+Regex.CharacterClass("-"),
+Regex.Text("z"),
+Regex.CharacterClass("-"),
+Regex.CharacterClass("["),
+Regex.Text("m"),
+Regex.CharacterClass("-"),
+Regex.Text("p"),
+Regex.CharacterClass("]"),
+Regex.CharacterClass("]"),
+Regex.Quantifier("+"),
+Regex.Quantifier("?"),
+Regex.Comment("(?#comment)"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Anchor("\\"),
+Regex.Anchor("b"),
+Regex.Anchor("\\"),
+Regex.Anchor("G"),
+Regex.Anchor("\\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Grouping("?"),
+Regex.Grouping("<"),
+Regex.Grouping("name"),
+Regex.Grouping(">"),
+Regex.Text("sub"),
+Regex.Grouping(")"),
+Regex.Quantifier("{"),
+Regex.Quantifier("0"),
+Regex.Quantifier(","),
+Regex.Quantifier("5"),
+Regex.Quantifier("}"),
+Regex.Quantifier("?"),
+Regex.Anchor("^"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex3()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* language=regex */@""$(\a\t\u0020\\)|[^\p{Lu}-a\w\sa-z-[m-p]]+?(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"";
+    }
+}",
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("t"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("u"),
+Regex.OtherEscape("0020"),
+Regex.SelfEscapedCharacter("\\"),
+Regex.SelfEscapedCharacter("\\"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.CharacterClass("["),
+Regex.CharacterClass("^"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("p"),
+Regex.CharacterClass("{"),
+Regex.CharacterClass("Lu"),
+Regex.CharacterClass("}"),
+Regex.Text("-a"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("w"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("s"),
+Regex.Text("a"),
+Regex.CharacterClass("-"),
+Regex.Text("z"),
+Regex.CharacterClass("-"),
+Regex.CharacterClass("["),
+Regex.Text("m"),
+Regex.CharacterClass("-"),
+Regex.Text("p"),
+Regex.CharacterClass("]"),
+Regex.CharacterClass("]"),
+Regex.Quantifier("+"),
+Regex.Quantifier("?"),
+Regex.Comment("(?#comment)"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Anchor("\\"),
+Regex.Anchor("b"),
+Regex.Anchor("\\"),
+Regex.Anchor("G"),
+Regex.Anchor("\\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Grouping("?"),
+Regex.Grouping("<"),
+Regex.Grouping("name"),
+Regex.Grouping(">"),
+Regex.Text("sub"),
+Regex.Grouping(")"),
+Regex.Quantifier("{"),
+Regex.Quantifier("0"),
+Regex.Quantifier(","),
+Regex.Quantifier("5"),
+Regex.Quantifier("}"),
+Regex.Quantifier("?"),
+Regex.Anchor("^"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex4()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */@""$\a(?#comment)"";
+    }
+}",
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex5()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regexp */@""$\a(?#comment)"";
+    }
+}",
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex6()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regexp */@""$\a(?#comment) # not end of line comment"";
+    }
+}",
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Text(" # not end of line comment"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex7()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regexp,ignorepatternwhitespace */@""$\a(?#comment) # is end of line comment"";
+    }
+}",
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Comment("# is end of line comment"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex8()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang = regexp , ignorepatternwhitespace */@""$\a(?#comment) # is end of line comment"";
+    }
+}",
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Comment("# is end of line comment"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex9()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = new Regex(@""$\a(?#comment) # is end of line comment"", RegexOptions.IgnorePatternWhitespace);
+    }
+}",
+Keyword("var"),
+Class("Regex"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Comment("# is end of line comment"),
+Enum("RegexOptions"),
+EnumMember("IgnorePatternWhitespace"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex10()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = new Regex(@""$\a(?#comment) # is not end of line comment"");
+    }
+}",
+Keyword("var"),
+Class("Regex"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Text(" # is not end of line comment"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex11()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    // language=regex
+    private static string myRegex = @""$(\a\t\u0020)"";
+}",
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("t"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("u"),
+Regex.OtherEscape("0020"),
+Regex.Grouping(")"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestIncompleteRegexLeadingToStringInsideSkippedTokensInsideADirective()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void M()
+    {
+        // not terminating this string caused us to eat up to the quote on the next line.
+        // we then treated #comment as a directive with a lot of skipped tokens on it, including
+        // a skipped token for "";
+        //
+        // Because it's a comment on a directive, special lexing rules apply (i.e. no escape
+        // characters are supposed, and we want our system to bail there and not try to validate
+        // it.
+        var r = new Regex(@""$;
+        var s = /* language=regex */ @""(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"";
+    }
+}",
+Keyword("var"),
+Class("Regex"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestUnmanagedConstraint_LocalFunction_Keyword()
         {
@@ -2554,6 +2999,95 @@ class X
 }",
                 TypeParameter("T"),
                 Keyword("unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape1()
+        {
+            await TestInMethodAsync(@"var goo = ""goo\r\nbar"";",
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"\n"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape2()
+        {
+            await TestInMethodAsync(@"var goo = @""goo\r\nbar"";",
+                Keyword("var"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape3()
+        {
+            await TestInMethodAsync(@"var goo = $""goo{{1}}bar"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape4()
+        {
+            await TestInMethodAsync(@"var goo = $@""goo{{1}}bar"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape5()
+        {
+            await TestInMethodAsync(@"var goo = $""goo\r{{1}}\nbar"";",
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"{{"),
+                Escape(@"}}"),
+                Escape(@"\n"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape6()
+        {
+            await TestInMethodAsync(@"var goo = $@""goo\r{{1}}\nbar"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape7()
+        {
+            await TestInMethodAsync(@"var goo = $""goo\r{1}\nbar"";",
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"\n"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape8()
+        {
+            await TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestDirectiveStringLiteral()
+        {
+            await TestInMethodAsync(@"#line 1 ""a\b""");
+        }
+
+        [WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestFormatSpecifierInInterpolation()
+        {
+            await TestInMethodAsync(@"var goo = $""goo{{1:0000}}bar"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
         }
     }
 }

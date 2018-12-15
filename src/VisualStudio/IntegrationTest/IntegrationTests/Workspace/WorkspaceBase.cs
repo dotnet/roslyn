@@ -97,12 +97,12 @@ End Module");
             Assert.Equal("Sub‎ Program.M‎(p‎ As‎ Object‎)‎ ‎(‎+‎ 1‎ overload‎)", VisualStudio.Editor.GetQuickInfo());
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30599")]
         public void RenamingOpenFiles()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, "BeforeRename.cs", open: true);
-            
+
             // Verify we are connected to the project before...
             Assert.Contains(ProjectName, VisualStudio.Editor.GetProjectNavBarItems());
 

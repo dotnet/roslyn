@@ -335,7 +335,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options:PreferIntrinsicTypeEverywhere);
+            await TestInRegularAndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere);
         }
 
         [Fact]

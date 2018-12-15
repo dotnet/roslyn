@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -49,11 +50,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         [ImportingConstructor]
         public CodeFixService(
+            IThreadingContext threadingContext,
             IDiagnosticAnalyzerService service,
             [ImportMany]IEnumerable<Lazy<IErrorLoggerService>> loggers,
             [ImportMany]IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
             [ImportMany]IEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>> suppressionProviders)
-            : base(assertIsForeground: false)
+            : base(threadingContext, assertIsForeground: false)
         {
             _errorLoggers = loggers;
             _diagnosticService = service;
@@ -171,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var spanAndDiagnostic in aggregatedDiagnostics)
             {
                 await AppendFixesAsync(
-                    document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, fixAllForInSpan:false,
+                    document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, fixAllForInSpan: false,
                     result, cancellationToken).ConfigureAwait(false);
             }
 
@@ -222,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var result = ArrayBuilder<CodeFixCollection>.GetInstance();
-            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan:true, result, cancellationToken).ConfigureAwait(false);
+            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan: true, result, cancellationToken).ConfigureAwait(false);
 
             // TODO: Just get the first fix for now until we have a way to config user's preferred fix
             // https://github.com/dotnet/roslyn/issues/27066
@@ -337,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             await AppendFixesOrSuppressionsAsync(
-                document, span, diagnostics, fixAllForInSpan: false, result, lazySuppressionProvider.Value, 
+                document, span, diagnostics, fixAllForInSpan: false, result, lazySuppressionProvider.Value,
                 hasFix: d => lazySuppressionProvider.Value.CanBeSuppressedOrUnsuppressed(d),
                 getFixes: dxs => lazySuppressionProvider.Value.GetSuppressionsAsync(
                     document, span, dxs, cancellationToken),
@@ -409,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 supportedScopes, diagnostics.First());
             result.Add(codeFix);
         }
-  
+
         public CodeFixProvider GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds)
         {
             if (!_suppressionProvidersMap.TryGetValue(language, out var lazySuppressionProvider) || lazySuppressionProvider.Value == null)
@@ -519,13 +521,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     // Have to see if this fix is still applicable.  Jump to the foreground thread
                     // to make that check.
-                    var applicable = await Task.Factory.StartNew(() =>
-                        {
-                            this.AssertIsForeground();
-                            return fix.Action.IsApplicable(document.Project.Solution.Workspace);
-                        },
-                        cancellationToken, TaskCreationOptions.None, ForegroundTaskScheduler).ConfigureAwait(false);
-                    this.AssertIsBackground();
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+
+                    var applicable = fix.Action.IsApplicable(document.Project.Solution.Workspace);
+
+                    await TaskScheduler.Default;
 
                     if (applicable)
                     {
