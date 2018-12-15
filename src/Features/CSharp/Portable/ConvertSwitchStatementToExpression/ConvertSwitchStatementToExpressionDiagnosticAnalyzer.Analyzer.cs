@@ -15,12 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             {
             }
 
-            public static AnalysisResult Analyze(ISwitchOperation operation)
+            public static bool CanConvertToSwitchExpression(ISwitchOperation operation)
             {
-                return new Analyzer().VisitSwitch(operation, argument: null);
+                var analysisResult = new Analyzer().VisitSwitch(operation, unused: null);
+                return !analysisResult.IsNeutral && !analysisResult.IsFailure;
             }
 
-            public override AnalysisResult VisitSwitch(ISwitchOperation operation, object argument)
+            public override AnalysisResult VisitSwitch(ISwitchOperation operation, object unused)
             {
                 if (operation.Cases.Length == 0 || operation.Cases.Any(@case => @case.Clauses.Length != 1))
                 {
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             private AnalysisResult VisitList(ImmutableArray<IOperation> operations)
             {
-                return Aggregate(operations, (result, operation) => AnalysisResult.Combine(result, Visit(operation, argument: null)));
+                return Aggregate(operations, (result, operation) => AnalysisResult.Combine(result, Visit(operation, /*unused*/argument: null)));
             }
 
             private static AnalysisResult Aggregate<T>(ImmutableArray<T> operations, Func<AnalysisResult, T, AnalysisResult> func)
@@ -50,47 +51,47 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return result;
             }
 
-            public override AnalysisResult VisitReturn(IReturnOperation operation, object argument)
+            public override AnalysisResult VisitReturn(IReturnOperation operation, object unused)
             {
                 return AnalysisResult.Return;
             }
 
-            public override AnalysisResult VisitSimpleAssignment(ISimpleAssignmentOperation operation, object argument)
+            public override AnalysisResult VisitSimpleAssignment(ISimpleAssignmentOperation operation, object unused)
             {
                 return Visit(operation.Target, argument: null);
             }
 
-            public override AnalysisResult VisitLocalReference(ILocalReferenceOperation operation, object argument)
+            public override AnalysisResult VisitLocalReference(ILocalReferenceOperation operation, object unused)
             {
                 return AnalysisResult.Assignment(operation.Local);
             }
 
-            public override AnalysisResult VisitFieldReference(IFieldReferenceOperation operation, object argument)
+            public override AnalysisResult VisitFieldReference(IFieldReferenceOperation operation, object unused)
             {
                 return AnalysisResult.Assignment(operation.Field);
             }
 
-            public override AnalysisResult VisitBlock(IBlockOperation operation, object argument)
+            public override AnalysisResult VisitBlock(IBlockOperation operation, object unused)
             {
                 return VisitList(operation.Operations);
             }
 
-            public override AnalysisResult VisitBranch(IBranchOperation operation, object argument)
+            public override AnalysisResult VisitBranch(IBranchOperation operation, object unused)
             {
                 return operation.BranchKind == BranchKind.Break ? AnalysisResult.Neutral : AnalysisResult.Failure;
             }
 
-            public override AnalysisResult VisitExpressionStatement(IExpressionStatementOperation operation, object argument)
+            public override AnalysisResult VisitExpressionStatement(IExpressionStatementOperation operation, object unused)
             {
                 return Visit(operation.Operation, argument: null);
             }
 
-            public override AnalysisResult VisitThrow(IThrowOperation operation, object argument)
+            public override AnalysisResult VisitThrow(IThrowOperation operation, object unused)
             {
                 return AnalysisResult.Neutral;
             }
 
-            public override AnalysisResult DefaultVisit(IOperation operation, object argument)
+            public override AnalysisResult DefaultVisit(IOperation operation, object unused)
             {
                 return AnalysisResult.Failure;
             }

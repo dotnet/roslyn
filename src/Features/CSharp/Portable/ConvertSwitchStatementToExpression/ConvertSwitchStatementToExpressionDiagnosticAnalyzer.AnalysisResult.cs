@@ -7,16 +7,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
     internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyzer
     {
+        private enum AnalysisResultKind
+        {
+            Neutral,
+            Failure,
+            Return,
+            Assignment,
+        }
+
         private readonly struct AnalysisResult
         {
-            private enum AnalysisResultKind
-            {
-                Neutral,
-                Failure,
-                Return,
-                Assignment,
-            }
-
             private readonly AnalysisResultKind _kind;
             private readonly ImmutableArray<ISymbol> _assignmentTargets;
 

@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             var root = editor.OriginalRoot;
             foreach (var diagnostic in diagnostics)
             {
-                var switchStatement0 = (SwitchStatementSyntax)root.FindNode(diagnostic.Location.SourceSpan);
-                editor.ReplaceNode(switchStatement0, (currentStatement, _) =>
+                var node = root.FindNode(diagnostic.Location.SourceSpan);
+                editor.ReplaceNode(node, (currentStatement, _) =>
                 {
                     var switchStatement = (SwitchStatementSyntax)currentStatement;
                     var switchSections = switchStatement.Sections;
