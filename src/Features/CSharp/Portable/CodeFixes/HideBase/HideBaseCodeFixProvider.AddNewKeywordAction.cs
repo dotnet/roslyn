@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
             {
                 var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var newNode = await GetNewNode(_node, cancellationToken).ConfigureAwait(false);
+                var newNode = await GetNewNodeAsync(_node, cancellationToken).ConfigureAwait(false);
                 var newRoot = root.ReplaceNode(_node, newNode);
 
                 return _document.WithSyntaxRoot(newRoot);
             }
 
-            private async Task<SyntaxNode> GetNewNode(SyntaxNode node, CancellationToken cancellationToken)
+            private async Task<SyntaxNode> GetNewNodeAsync(SyntaxNode node, CancellationToken cancellationToken)
             {
                 var generator = SyntaxGenerator.GetGenerator(_document);
                 var newNode = generator.WithModifiers(node, generator.GetModifiers(node).WithIsNew(true));
