@@ -671,6 +671,26 @@ class C
         }
 
         [Fact]
+        public void TestTargetType_AnonymousType()
+        {
+            // PROTOTYPE(target-typed-new): should this be an error?
+            var source = @"
+class C
+{
+    void M()
+    {
+        var x0 = new { };
+        x0 = new();
+        var x1 = new { X = 1 };
+        x1 = new(2);
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void TestAmbigCall()
         {
             var source = @"
