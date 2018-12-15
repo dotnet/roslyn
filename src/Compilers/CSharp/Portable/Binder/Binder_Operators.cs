@@ -672,6 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // PROTOTYPE(target-typed-new): Should check for null on operand type
             if ((leftDefault || left.IsTypelessNew()) &&
                 (rightDefault || right.IsTypelessNew()))
             {
@@ -1139,6 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The default literal is only allowed with equality operators
             // and both operands cannot be typeless at the same time.
 
+            // PROTOTYPE(target-typed-new): Should check for null type instead
             if (left.IsTypelessNew())
             {
                 return !right.IsTypelessNew() && !right.IsLiteralDefault();
@@ -2287,6 +2289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
+            // PROTOTYPE(target-typed-new): Should check for `operand.Type is null` instead
             bool isOperandTypeNull = operand.IsLiteralNull() || operand.IsLiteralDefault() || operand.IsTypelessNew();
             if (isOperandTypeNull)
             {
@@ -3373,6 +3376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.NoConversion, CreateErrorType(), hasErrors: true);
             }
 
+            // PROTOTYPE(target-typed-new): Should check for `leftOperand.Type is null` (but allowing the null literal)
             if (leftOperand.IsLiteralDefault() || leftOperand.IsTypelessNew())
             {
                 Error(diagnostics, ErrorCode.ERR_BadOpOnTypelessExpression, node, node.OperatorToken.Text, leftOperand.Display);
