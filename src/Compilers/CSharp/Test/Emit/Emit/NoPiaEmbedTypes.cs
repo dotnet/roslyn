@@ -1,4 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+#if !NET472
+#pragma warning disable IDE0055 // Fix formatting
+#endif
+
 #if NET472
 
 using Microsoft.Cci;

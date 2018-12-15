@@ -18,17 +18,14 @@
       NU5125 should be removed. See https://github.com/dotnet/roslyn/issues/31589 for details
     -->
     <NoWarn>$(NoWarn);NU5125</NoWarn>
-  </PropertyGroup>
 
-  <Import Project="RepoToolset\Settings.props" />
-
-  <PropertyGroup>
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
 
     <RoslynPortableTargetFrameworks>net472;netcoreapp2.1</RoslynPortableTargetFrameworks>
     <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
+    <RoslynEnforceCodeStyle Condition="'$(ContinuousIntegrationBuild)' != 'true'">true</RoslynEnforceCodeStyle>
     <UseSharedCompilation>true</UseSharedCompilation>
 
     <Features>strict, IOperation</Features>
@@ -56,6 +53,17 @@
     <WindowsAppContainer>false</WindowsAppContainer>
 
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+  </PropertyGroup>
+
+  <!-- 
+    Disable Source Link and Xliff in WPF temp projects to avoid generating non-deterministic file names to obj dir.
+    The project name is non-deterministic and is included in the Source Link json file name and xlf directory names.
+    It's also not necessary to generate these assets.
+  -->
+  <PropertyGroup Condition="'$(IsWpfTempProject)' == 'true'">
+    <EnableSourceLink>false</EnableSourceLink>
+    <DeterministicSourcePaths>false</DeterministicSourcePaths>
+    <EnableXlfLocalization>false</EnableXlfLocalization>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'" >
@@ -137,6 +145,26 @@
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" PrivateAssets="all" />
   </ItemGroup>
+
+  <!-- Language-specific analyzer packages -->
+  <Choose>
+    <When Condition="'$(Language)' == 'VB' and '$(RoslynEnforceCodeStyle)' == 'true'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(MicrosoftCodeAnalysisVisualBasicCodeStyleVersion)" PrivateAssets="all" />
+      </ItemGroup>
+    </When>
+
+    <When Condition="'$(Language)' == 'C#' and '$(RoslynEnforceCodeStyle)' == 'true'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(MicrosoftCodeAnalysisCSharpCodeStyleVersion)" PrivateAssets="all" />
+      </ItemGroup>
+    </When>
+  </Choose>
+
+  <PropertyGroup>
+    <!-- Don't treat FormattingAnalyzer as an error, even when TreatWarningsAsErrors is specified. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);IDE0055</WarningsNotAsErrors>
+  </PropertyGroup>
 
   <!--
     Language specifc settings
