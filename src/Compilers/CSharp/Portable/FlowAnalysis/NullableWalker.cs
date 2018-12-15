@@ -3412,7 +3412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (isLiftedConversion)
                         {
                             operandType = TypeSymbolWithAnnotations.Create(
-                                methodReturnType.IsValueType && !methodReturnType.IsNullableType()  ?
+                                methodReturnType.IsValueType && !methodReturnType.IsNullableType() ?
                                     compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(methodReturnType)) :
                                     methodReturnType.TypeSymbol,
                                 methodReturnType.NullableAnnotation.IsAnyNullable() || operandAnnotation.IsAnyNullable() ?

@@ -99,12 +99,12 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         public override async Task<Solution> ChangeNamespaceAsync(
             Document document,
             SyntaxNode container,
-            string targetNamespace, 
+            string targetNamespace,
             CancellationToken cancellationToken)
         {
             // Make sure given namespace name is valid, "" means global namespace.
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (targetNamespace == null 
+            if (targetNamespace == null
                 || (targetNamespace.Length > 0 && !targetNamespace.Split(s_dotSeparator).All(syntaxFacts.IsValidIdentifier)))
             {
                 throw new ArgumentException(nameof(targetNamespace));
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             }
 
             return import;
-        }        
+        }
 
         /// <summary>
         /// Try to change the namespace declaration in the document (specified by <paramref name="id"/> in <paramref name="solution"/>).
@@ -365,10 +365,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// the types declared in the changed namespace (not include the document contains the declaration itself).
         /// </summary>
         private async Task<(Solution, ImmutableArray<DocumentId>)> ChangeNamespaceInSingleDocumentAsync(
-            Solution solution, 
-            DocumentId id, 
-            string oldNamespace, 
-            string newNamespace, 
+            Solution solution,
+            DocumentId id,
+            string oldNamespace,
+            string newNamespace,
             CancellationToken cancellationToken)
         {
             var document = solution.GetDocument(id);

@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
         }
 
         protected override Task<Solution> UpdateMembersWithExplicitImplementationsAsync(
-            Solution unformattedSolution, IReadOnlyList<DocumentId> documentIds, 
-            INamedTypeSymbol extractedInterface, INamedTypeSymbol typeToExtractFrom, 
-            IEnumerable<ISymbol> includedMembers, Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationMap, 
+            Solution unformattedSolution, IReadOnlyList<DocumentId> documentIds,
+            INamedTypeSymbol extractedInterface, INamedTypeSymbol typeToExtractFrom,
+            IEnumerable<ISymbol> includedMembers, Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationMap,
             CancellationToken cancellationToken)
         {
             // In C#, member implementations do not always need
