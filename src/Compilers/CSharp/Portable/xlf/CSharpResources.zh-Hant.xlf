@@ -22,7 +22,7 @@
         <target state="new">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IllegalTargetType">
+      <trans-unit id="ERR_IllegalTargetTypeForNew">
         <source>The type '{0}' may not be used as the target-type of 'new(...)'</source>
         <target state="new">The type '{0}' may not be used as the target-type of 'new(...)'</target>
         <note />
