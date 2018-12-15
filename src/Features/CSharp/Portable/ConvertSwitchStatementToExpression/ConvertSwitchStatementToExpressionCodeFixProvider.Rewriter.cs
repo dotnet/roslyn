@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 Debug.Assert(node.Labels.Count == 1);
                 var switchLabel = node.Labels[0];
                 return SwitchExpressionArm(
-                    pattern: (PatternSyntax)base.Visit(switchLabel),
+                    pattern: (PatternSyntax)Visit(switchLabel),
                     whenClause: switchLabel.IsKind(SyntaxKind.CasePatternSwitchLabel, out CasePatternSwitchLabelSyntax patternSwitchLabel)
                         ? patternSwitchLabel.WhenClause
                         : null,
