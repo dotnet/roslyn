@@ -32,6 +32,11 @@
         <target state="new">An out variable cannot be declared as a ref local</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TypelessNewInAs">
+        <source>The first operand of an 'as' operator may not be a target-typed 'new' expression</source>
+        <target state="new">The first operand of an 'as' operator may not be a target-typed 'new' expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TypelessNewNotValid">
         <source>Use of 'new(...)' is not valid in this context</source>
         <target state="new">Use of 'new(...)' is not valid in this context</target>

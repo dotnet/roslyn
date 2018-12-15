@@ -5342,6 +5342,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OutVariableCannotBeByRef" xml:space="preserve">
     <value>An out variable cannot be declared as a ref local</value>
   </data>
+  <data name="ERR_TypelessNewInAs" xml:space="preserve">
+    <value>The first operand of an 'as' operator may not be a target-typed 'new' expression</value>
+  </data>
   <data name="ERR_IllegalTargetTypeForNew" xml:space="preserve">
     <value>The type '{0}' may not be used as the target-type of 'new(...)'</value>
   </data>
