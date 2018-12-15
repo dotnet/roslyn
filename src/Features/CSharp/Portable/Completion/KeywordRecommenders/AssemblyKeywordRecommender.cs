@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 switch (parentSyntax)
                 {
                     case CompilationUnitSyntax _:
-                    // There are some case the parente of attributeList is (Class/Interface/Enum/Struct)DeclarationSyntax, like:
+                    // The case where the parent of attributeList is (Class/Interface/Enum/Struct)DeclarationSyntax, like:
                     // [$$
                     // class Goo {
                     // for these cases is necessary check if they Parent is CompilationUnitSyntax
                     case BaseTypeDeclarationSyntax baseType when baseType.Parent is CompilationUnitSyntax:
-                    // There is some case the parente of attributeList is IncompleteMemberSyntax(See test: TestInOuterAttribute), like:
+                    // The case where the parent of attributeList is IncompleteMemberSyntax(See test: ), like:
                     // [$$
                     // for that case is necessary check if they Parent is CompilationUnitSyntax
                     case IncompleteMemberSyntax incompleteMember when incompleteMember.Parent is CompilationUnitSyntax:
