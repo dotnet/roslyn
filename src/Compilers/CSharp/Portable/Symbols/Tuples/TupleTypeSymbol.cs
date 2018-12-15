@@ -1083,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Symbol underlyingMemberDefinition = underlyingMemberOpt.OriginalDefinition;
-            if (underlyingMemberDefinition.ContainingType == _underlyingType.OriginalDefinition)
+            if (TypeSymbol.Equals(underlyingMemberDefinition.ContainingType, _underlyingType.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 Symbol result;
                 if (UnderlyingDefinitionToMemberMap.TryGetValue(underlyingMemberDefinition, out result))

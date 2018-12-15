@@ -902,7 +902,7 @@ class C1<T>
                 case SymbolKind.NamedType:
                     {
                         var retargeting = symbol as RetargetingNamedTypeSymbol;
-                        return (retargeting != null) ? retargeting.UnderlyingNamedType : symbol;
+                        return (!TypeSymbol.Equals(retargeting, null, TypeCompareKind.ConsiderEverything2)) ? retargeting.UnderlyingNamedType : symbol;
                     }
                 case SymbolKind.Field:
                     return ((RetargetingFieldSymbol)symbol).UnderlyingField;

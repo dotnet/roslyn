@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract partial class TypeSymbol : NamespaceOrTypeSymbol, ITypeSymbol
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
         // Do not make any changes to the public interface without making the corresponding change
         // to the VB version.
@@ -1030,7 +1031,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // then it's not a valid match.
                 implicitImpl = null;
             }
-            else if ((object)correspondingImplementingAccessor != null && ((object)implicitImpl == null || correspondingImplementingAccessor.ContainingType == implicitImpl.ContainingType))
+            else if ((object)correspondingImplementingAccessor != null && ((object)implicitImpl == null || TypeSymbol.Equals(correspondingImplementingAccessor.ContainingType, implicitImpl.ContainingType, TypeCompareKind.ConsiderEverything2)))
             {
                 // Suppose the interface accessor and the implementing accessor have different names.
                 // In Dev10, as long as the corresponding properties have an implementation relationship,
@@ -1315,7 +1316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static Location GetImplicitImplementationDiagnosticLocation(Symbol interfaceMember, TypeSymbol implementingType, Symbol member)
         {
-            if (member.ContainingType == implementingType)
+            if (TypeSymbol.Equals(member.ContainingType, implementingType, TypeCompareKind.ConsiderEverything2))
             {
                 return member.Locations[0];
             }
@@ -1546,6 +1547,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool Equals(TypeSymbolWithAnnotations other)
         {
             throw ExceptionUtilities.Unreachable;
+        }
+
+        public static bool Equals(TypeSymbol left, TypeSymbol right, TypeCompareKind comparison)
+        {
+            if (comparison == TypeCompareKind.ConsiderEverything && ((object)right == null))
+            {
+                return (object)left == (object)null;
+            }
+
+            return (comparison == TypeCompareKind.ConsiderEverything && (object)left == (object)right)
+                || right.Equals(left, comparison);
         }
     }
 }

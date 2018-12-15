@@ -855,15 +855,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return iFaceSpecial == SpecialType.System_Collections_Generic_IEnumerable_T ||
                    iFaceSpecial == SpecialType.System_Collections_Generic_IList_T ||
                    iFaceSpecial == SpecialType.System_Collections_Generic_ICollection_T ||
-                   iFaceOriginal == idictSymbol ||
+                   TypeSymbol.Equals(iFaceOriginal, idictSymbol, TypeCompareKind.ConsiderEverything2) ||
                    iFaceSpecial == SpecialType.System_Collections_Generic_IReadOnlyList_T ||
                    iFaceSpecial == SpecialType.System_Collections_Generic_IReadOnlyCollection_T ||
-                   iFaceOriginal == iroDictSymbol ||
+                   TypeSymbol.Equals(iFaceOriginal, iroDictSymbol, TypeCompareKind.ConsiderEverything2) ||
                    iFaceSpecial == SpecialType.System_Collections_IEnumerable ||
-                   iFaceOriginal == iListSymbol ||
-                   iFaceOriginal == iCollectionSymbol ||
-                   iFaceOriginal == inccSymbol ||
-                   iFaceOriginal == inpcSymbol;
+                   TypeSymbol.Equals(iFaceOriginal, iListSymbol, TypeCompareKind.ConsiderEverything2) ||
+                   TypeSymbol.Equals(iFaceOriginal, iCollectionSymbol, TypeCompareKind.ConsiderEverything2) ||
+                   TypeSymbol.Equals(iFaceOriginal, inccSymbol, TypeCompareKind.ConsiderEverything2) ||
+                   TypeSymbol.Equals(iFaceOriginal, inpcSymbol, TypeCompareKind.ConsiderEverything2);
         }
 
 
@@ -977,10 +977,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsDerivedType(NamedTypeSymbol baseType, NamedTypeSymbol derivedType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(baseType != derivedType);
+            Debug.Assert(!TypeSymbol.Equals(baseType, derivedType, TypeCompareKind.ConsiderEverything2));
             for (NamedTypeSymbol b = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics); (object)b != null; b = b.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
-                if (b == baseType) return true;
+                if (TypeSymbol.Equals(b, baseType, TypeCompareKind.ConsiderEverything2)) return true;
             }
             return baseType.IsInterface && derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics).Contains(baseType);
         }
