@@ -18,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             ImmutableHashSet<SinkInfo>.Builder sinkInfosBuilder = ImmutableHashSet.CreateBuilder<SinkInfo>();
 
-            sinkInfosBuilder.AddSink(
+            sinkInfosBuilder.AddSinkInfo(
                 WellKnownTypes.SystemDataIDbCommand,
                 SinkKind.Sql,
                 isInterface: true,
@@ -28,7 +28,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
 
-            sinkInfosBuilder.AddSink(
+            sinkInfosBuilder.AddSinkInfo(
                 WellKnownTypes.SystemDataIDataAdapter,
                 SinkKind.Sql,
                 isInterface: true,
@@ -36,7 +36,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: null,
                 sinkMethodParameters: null);
 
-            sinkInfosBuilder.AddSink(
+            sinkInfosBuilder.AddSinkInfo(
                 WellKnownTypes.SystemWebUIWebControlsSqlDataSource,
                 SinkKind.Sql,
                 isInterface: false,

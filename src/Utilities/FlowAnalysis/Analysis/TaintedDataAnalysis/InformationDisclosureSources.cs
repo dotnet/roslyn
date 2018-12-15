@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
 using Analyzer.Utilities.Extensions;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
@@ -15,9 +17,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         static InformationDisclosureSources()
         {
-            ImmutableHashSet<SourceInfo>.Builder sourceInfosBuilder = ImmutableHashSet.CreateBuilder<SourceInfo>();
+            ImmutableHashSet<SourceInfo>.Builder builder = ImmutableHashSet.CreateBuilder<SourceInfo>();
 
-            sourceInfosBuilder.AddSource(
+            builder.AddSourceInfo(
                 WellKnownTypes.SystemException,
                 isInterface: false,
                 taintedProperties: new[] {
@@ -28,7 +30,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "ToString",
                 });
 
-            SourceInfos = sourceInfosBuilder.ToImmutable();
+            SourceInfos = builder.ToImmutable();
         }
     }
 }

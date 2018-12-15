@@ -11,7 +11,7 @@ namespace Analyzer.Utilities.Extensions
     internal static class ImmutableHashSetBuilderExtensions
     {
         // Just to make hardcoding SinkInfos more convenient.
-        public static void AddSink(
+        public static void AddSinkInfo(
             this ImmutableHashSet<SinkInfo>.Builder builder,
             string fullTypeName,
             SinkKind sinkKind,
@@ -20,9 +20,28 @@ namespace Analyzer.Utilities.Extensions
             IEnumerable<string> sinkProperties,
             IEnumerable<(string Method, string[] Parameters)> sinkMethodParameters)
         {
+            builder.AddSinkInfo(
+                fullTypeName,
+                new[] { sinkKind },
+                isInterface, 
+                isAnyStringParameterInConstructorASink,
+                sinkProperties,
+                sinkMethodParameters);
+        }
+
+        // Just to make hardcoding SinkInfos more convenient.
+        public static void AddSinkInfo(
+            this ImmutableHashSet<SinkInfo>.Builder builder,
+            string fullTypeName,
+            IEnumerable<SinkKind> sinkKinds,
+            bool isInterface,
+            bool isAnyStringParameterInConstructorASink,
+            IEnumerable<string> sinkProperties,
+            IEnumerable<(string Method, string[] Parameters)> sinkMethodParameters)
+        {
             SinkInfo sinkInfo = new SinkInfo(
                 fullTypeName,
-                sinkKind,
+                sinkKinds.ToImmutableHashSet(),
                 isInterface,
                 isAnyStringParameterInConstructorASink,
                 sinkProperties:
@@ -39,7 +58,7 @@ namespace Analyzer.Utilities.Extensions
         }
 
         // Just to make hardcoding SourceInfos more convenient.
-        public static void AddSource(
+        public static void AddSourceInfo(
             this ImmutableHashSet<SourceInfo>.Builder builder,
             string fullTypeName,
             bool isInterface,

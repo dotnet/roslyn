@@ -124,7 +124,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 Lazy<TaintedDataSymbolMap<SinkInfo>> lazySinkSymbolMap = new Lazy<TaintedDataSymbolMap<SinkInfo>>(
                     () => { return new TaintedDataSymbolMap<SinkInfo>(this.WellKnownTypeProvider, sinks); },
                     LazyThreadSafetyMode.ExecutionAndPublication);
-                foreach (SinkKind sinkKind in sinks.Select(s => s.SinkKind).Distinct())
+                foreach (SinkKind sinkKind in sinks.SelectMany(s => s.SinkKinds).Distinct())
                 {
                     this.SinkSymbolMap.Add(sinkKind, lazySinkSymbolMap);
                 }
@@ -170,7 +170,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 case SinkKind.InformationDisclosure:
                     return InformationDisclosureSources.SourceInfos;
-                    
+
+                case SinkKind.XSS:  // TODO: Implement as part of CA3002
+                    return ImmutableHashSet<SourceInfo>.Empty;
+
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
                     return ImmutableHashSet<SourceInfo>.Empty;
@@ -186,6 +189,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 case SinkKind.Dll:
                 case SinkKind.InformationDisclosure:
+                case SinkKind.XSS:  // TODO: Implement as part of CA3002
                     return ImmutableHashSet<SanitizerInfo>.Empty;
 
                 default:
@@ -203,6 +207,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 case SinkKind.Dll:
                     return DllSinks.SinkInfos;
+
+                case SinkKind.InformationDisclosure:
+                    return WebOutputSinks.SinkInfos;
+
+                case SinkKind.XSS:  // TODO: Implement as part of CA3002
+                    return ImmutableHashSet<SinkInfo>.Empty;
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
