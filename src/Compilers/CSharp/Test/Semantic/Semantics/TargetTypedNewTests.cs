@@ -643,6 +643,12 @@ class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (6,9): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
+                //         Missing x0 = new();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(6, 9),
+                // (7,19): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
+                //         var x1 = (Missing)new();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(7, 19)
                 );
         }
 
