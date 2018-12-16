@@ -119,11 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         private static bool IsIterator(IMethodSymbol x)
         {
-            return x.Locations
-                .Any(l => ContainsYield(l));
+            return x.Locations.Any(l => ContainsYield(l.FindNode(cancellationToken: default)));
 
-            bool ContainsYield(Location l)
-                => l.FindNode(default).DescendantNodes().Any(n => IsYield(n));
+            bool ContainsYield(SyntaxNode node)
+                => node.DescendantNodes(n => n == node || !n.IsKind(SyntaxKind.LocalFunctionStatement)).Any(n => IsYield(n));
 
             bool IsYield(SyntaxNode node)
                 => node.IsKind(SyntaxKind.YieldBreakStatement, SyntaxKind.YieldReturnStatement);

@@ -553,6 +553,45 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        public async Task BadAwaitInEnumerableMethodWithYieldInsideLocalFunction()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+using System.Collections.Generic;
+class Program
+{
+    IEnumerable<int> Test()
+    {
+        [|await Task.Delay(1);|]
+        return local();
+
+        IEnumerable<int> local()
+        {
+            yield return 1;
+        }
+    }
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+using System.Collections.Generic;
+class Program
+{
+    async Task<IEnumerable<int>> TestAsync()
+    {
+        await Task.Delay(1);
+        return local();
+
+        IEnumerable<int> local()
+        {
+            yield return 1;
+        }
+    }
+}";
+            await TestInRegularAndScriptAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task BadAwaitInEnumeratorMethodWithReturn()
         {
             var initial =
