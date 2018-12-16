@@ -385,6 +385,105 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task ReadInLambda_LambdaPassedAsArgument()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private static void M(object [|p|])
+    {
+        M2(() => { M3(p); });
+    }
+
+    private static void M2(Action a) { }
+
+    private static void M3(object o) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task OnlyWrittenInLambda_LambdaPassedAsArgument()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private static void M(object [|p|])
+    {
+        M2(() => { M3(out p); });
+    }
+
+    private static void M2(Action a) { }
+
+    private static void M3(out object o) { o = null; }
+}");
+        }
+
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task UnusedInExpressionTree_PassedAsArgument()
+        {
+            await TestDiagnosticsAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1(object [|p|])
+    {
+        M2(x => x.M3());
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3() { return 0; }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task ReadInExpressionTree_PassedAsArgument()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1(object [|p|])
+    {
+        M2(x => x.M3(p));
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3(object o) { return 0; }
+}");
+        }
+
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task OnlyWrittenInExpressionTree_PassedAsArgument()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1(object [|p|])
+    {
+        M2(x => x.M3(out p));
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3(out object o) { o = null; return 0; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task UsedInLambda_AssignedToField()
         {
             // Currently we bail out from analysis if we have a delegate creation that is not assigned
@@ -839,6 +938,27 @@ $@"class C
 {{
     {attribute}
     void M(int [|p|])
+    {{
+    }}
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        [InlineData("System.Composition", "ImportingConstructorAttribute")]
+        [InlineData("System.ComponentModel.Composition", "ImportingConstructorAttribute")]
+        public async Task Parameter_ConstructorsWithSpecialAttributes(string attributeNamespace, string attributeName)
+        {
+            await TestDiagnosticMissingAsync(
+$@"
+namespace {attributeNamespace}
+{{
+    public class {attributeName} : System.Attribute {{ }}
+}}
+
+class C
+{{
+    [{attributeNamespace}.{attributeName}()]
+    public C(int [|p|])
     {{
     }}
 }}");

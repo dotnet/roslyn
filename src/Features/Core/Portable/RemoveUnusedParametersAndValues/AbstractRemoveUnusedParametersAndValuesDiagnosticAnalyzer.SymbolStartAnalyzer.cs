@@ -166,6 +166,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 // Don't flag obsolete methods.
                 yield return compilation.ObsoleteAttribute();
+
+                // Don't flag MEF import constructors with ImportingConstructor attribute.
+                yield return compilation.SystemCompositionImportingConstructorAttribute();
+                yield return compilation.SystemComponentModelCompositionImportingConstructorAttribute();
             }
 
             private bool IsUnusedParameterCandidate(IParameterSymbol parameter)
@@ -186,7 +190,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     method.IsOverride ||
                     !method.ExplicitOrImplicitInterfaceImplementations().IsEmpty ||
                     method.IsAccessor() ||
-                    method.IsAnonymousFunction())
+                    method.IsAnonymousFunction() ||
+                    _compilationAnalyzer.MethodHasHandlesClause(method))
                 {
                     return false;
                 }

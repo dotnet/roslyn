@@ -30,6 +30,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 private bool _hasDelegateCreationOrAnonymousFunction;
 
                 /// <summary>
+                /// Indicates if the operation block has an <see cref="IArgumentOperation"/> with a delegate type argument.
+                /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol)"/> to determine whether to bail from analysis or not.
+                /// </summary>
+                private bool _hasDelegateTypeArgument;
+
+                /// <summary>
                 /// Indicates if a delegate instance escaped this operation block, via an assignment to a field or a property symbol.
                 /// that can be accessed outside this executable code block.
                 /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol)"/> to determine whether to bail from analysis or not.
@@ -37,11 +43,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 private bool _delegateAssignedToFieldOrProperty;
 
                 /// <summary>
-                /// Indicates if the operation block has an <see cref="IConversionOperation"/> with a delegate type as it's source type
-                /// and a non-delegate type as it's target.
+                /// Indicates if the operation block has an <see cref="IConversionOperation"/> with a delegate type or an anonymous function
+                /// as it's source and a non-delegate type as it's target.
                 /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol)"/> to determine whether to bail from analysis or not.
                 /// </summary>
-                private bool _hasConversionFromDelegateTypeToNonDelegateType;
+                private bool _hasConversionFromDelegateTypeOrAnonymousFunctionToNonDelegateType;
 
                 /// <summary>
                 /// Parameters which have at least one read/write reference.
@@ -76,6 +82,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     var blockAnalyzer = new BlockAnalyzer(symbolStartAnalyzer, options);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeExpressionStatement, OperationKind.ExpressionStatement);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeDelegateCreationOrAnonymousFunction, OperationKind.DelegateCreation, OperationKind.AnonymousFunction);
+                    context.RegisterOperationAction(blockAnalyzer.AnalyzeArgument, OperationKind.Argument);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeConversion, OperationKind.Conversion);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeFieldOrPropertyReference, OperationKind.FieldReference, OperationKind.PropertyReference);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeParameterReference, OperationKind.ParameterReference);
@@ -153,14 +160,24 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 private void AnalyzeDelegateCreationOrAnonymousFunction(OperationAnalysisContext operationAnalysisContext)
                     => _hasDelegateCreationOrAnonymousFunction = true;
 
+                private void AnalyzeArgument(OperationAnalysisContext operationAnalysisContext)
+                {
+                    var argument = (IArgumentOperation)operationAnalysisContext.Operation;
+                    if (!_hasDelegateTypeArgument &&
+                        argument.Value.Type.IsDelegateType())
+                    {
+                        _hasDelegateTypeArgument = true;
+                    }
+                }
+
                 private void AnalyzeConversion(OperationAnalysisContext operationAnalysisContext)
                 {
                     var conversion = (IConversionOperation)operationAnalysisContext.Operation;
-                    if (!_hasConversionFromDelegateTypeToNonDelegateType &&
-                        conversion.Operand.Type.IsDelegateType() &&
+                    if (!_hasConversionFromDelegateTypeOrAnonymousFunctionToNonDelegateType &&
+                        (conversion.Operand.Type.IsDelegateType() || conversion.Operand.Kind == OperationKind.AnonymousFunction) &&
                         !conversion.Type.IsDelegateType())
                     {
-                        _hasConversionFromDelegateTypeToNonDelegateType = true;
+                        _hasConversionFromDelegateTypeOrAnonymousFunctionToNonDelegateType = true;
                     }
                 }
 
@@ -222,14 +239,21 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return false;
                     }
 
-                    //  3. Bail out if we have a conversion from a delegate type to a non-delegate type.
+                    //  3. Bail out if we have a conversion from a delegate or an anonymous function to a non-delegate type.
                     //     We can analyze this correctly when we do points-to-analysis.
-                    if (_hasConversionFromDelegateTypeToNonDelegateType)
+                    if (_hasConversionFromDelegateTypeOrAnonymousFunctionToNonDelegateType)
                     {
                         return false;
                     }
 
-                    //  4. Bail out for method returning delegates or ref/out parameters of delegate type.
+                    //  4. Bail out if we pass a delegate type as an argument to a method.
+                    //     We can analyze this correctly when we do points-to-analysis.
+                    if (_hasDelegateTypeArgument)
+                    {
+                        return false;
+                    }
+
+                    //  5. Bail out for method returning delegates or ref/out parameters of delegate type.
                     //     We can analyze this correctly when we do points-to-analysis.
                     if (owningSymbol is IMethodSymbol method &&
                         (method.ReturnType.IsDelegateType() ||
@@ -238,7 +262,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return false;
                     }
 
-                    //  5. Otherwise, we execute analysis by walking the reaching symbol write chain to attempt to
+                    //  6. Otherwise, we execute analysis by walking the reaching symbol write chain to attempt to
                     //     find the target method being invoked.
                     //     This works for most common and simple cases where a local is assigned a lambda and invoked later.
                     //     If we are unable to find a target, we will conservatively mark all current symbol writes as read.
@@ -366,8 +390,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         out ImmutableDictionary<string, string> properties)
                     {
                         properties = null;
+
+                        // Bail out in following cases:
+                        //   1. End user has configured the diagnostic to be suppressed.
+                        //   2. Symbol has error type, hence the diagnostic could be noised
+                        //   3. Static local symbols. Assignment to static locals
+                        //      is not unnecessary as the assigned value can be used on the next invocation.
                         if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress ||
-                            symbol.GetSymbolType().IsErrorType())
+                            symbol.GetSymbolType().IsErrorType() ||
+                            symbol.IsStatic && symbol.Kind == SymbolKind.Local)
                         {
                             return false;
                         }
