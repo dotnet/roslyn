@@ -341,5 +341,21 @@ Class C
     End Sub
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        Public Async Function StaticLocals() As Task
+            Await TestMissingInRegularAndScriptAsync(
+$"Class C
+    Function Increment() As Boolean
+        Static count As Integer = 0
+        If count > 10 Then
+            Return True
+        End If
+
+        [|count|] = count + 1
+        Return False
+    End Function
+End Class")
+        End Function
     End Class
 End Namespace
