@@ -35,7 +35,7 @@ class App : Application
 
 class App : Application
 {
-    public new static App Current { get; set; }
+    public static new App Current { get; set; }
 }");
         }
 
@@ -65,7 +65,7 @@ class App : Application
 
 class App : Application
 {
-    public new static void Method()
+    public static new void Method()
     {
     }
 }");
