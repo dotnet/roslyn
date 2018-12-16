@@ -97,6 +97,7 @@
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
+      <_Dependency Remove="VSLangProj80"/>
     </ItemGroup>
 
     <!-- Calculate metadata we need -->
