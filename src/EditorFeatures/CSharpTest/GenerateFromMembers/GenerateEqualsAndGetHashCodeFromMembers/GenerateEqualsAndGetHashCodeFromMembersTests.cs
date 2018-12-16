@@ -1171,7 +1171,7 @@ struct Program
 
     public static bool operator ==(Program left, Program right)
     {
-        return program1.Equals(right);
+        return left.Equals(right);
     }
 
     public static bool operator !=(Program left, Program right)
