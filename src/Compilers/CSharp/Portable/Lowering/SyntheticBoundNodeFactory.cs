@@ -268,6 +268,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundFieldAccess(Syntax, receiver, f, ConstantValue.NotAvailable, LookupResultKind.Viable, f.Type.TypeSymbol) { WasCompilerGenerated = true };
         }
 
+        public BoundFieldAccess InstanceField(FieldSymbol f)
+        {
+            return this.Field(this.This(), f);
+        }
+
         public BoundExpression Property(WellKnownMember member)
         {
             return Property(null, member);
@@ -424,6 +429,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(Syntax, locals, localFunctions, statements) { WasCompilerGenerated = true };
         }
 
+        public BoundExtractedFinallyBlock ExtractedFinallyBlock(BoundBlock finallyBlock)
+        {
+            return new BoundExtractedFinallyBlock(Syntax, finallyBlock) { WasCompilerGenerated = true };
+        }
+
         public BoundStatementList StatementList()
         {
             return StatementList(ImmutableArray<BoundStatement>.Empty);
@@ -497,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBinaryOperator Binary(BinaryOperatorKind kind, TypeSymbol type, BoundExpression left, BoundExpression right)
         {
-            return new BoundBinaryOperator(this.Syntax, kind, left, right, ConstantValue.NotAvailable, null, LookupResultKind.Viable, type) { WasCompilerGenerated = true };
+            return new BoundBinaryOperator(this.Syntax, kind, ConstantValue.NotAvailable, null, LookupResultKind.Viable, left, right, type) { WasCompilerGenerated = true };
         }
 
         public BoundAsOperator As(BoundExpression operand, TypeSymbol type)
@@ -1219,9 +1229,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundStatement Try(
             BoundBlock tryBlock,
             ImmutableArray<BoundCatchBlock> catchBlocks,
-            BoundBlock finallyBlock = null)
+            BoundBlock finallyBlock = null,
+            LabelSymbol finallyLabel = null)
         {
-            return new BoundTryStatement(Syntax, tryBlock, catchBlocks, finallyBlock) { WasCompilerGenerated = true };
+            return new BoundTryStatement(Syntax, tryBlock, catchBlocks, finallyBlock, finallyLabel) { WasCompilerGenerated = true };
         }
 
         internal ImmutableArray<BoundCatchBlock> CatchBlocks(
@@ -1247,7 +1258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundTryStatement Fault(BoundBlock tryBlock, BoundBlock faultBlock)
         {
-            return new BoundTryStatement(Syntax, tryBlock, ImmutableArray<BoundCatchBlock>.Empty, faultBlock, preferFaultHandler: true);
+            return new BoundTryStatement(Syntax, tryBlock, ImmutableArray<BoundCatchBlock>.Empty, faultBlock, finallyLabelOpt: null, preferFaultHandler: true);
         }
 
         internal BoundExpression NullOrDefault(TypeSymbol typeSymbol)

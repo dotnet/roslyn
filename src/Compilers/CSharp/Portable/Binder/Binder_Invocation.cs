@@ -347,11 +347,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundDynamicInvocation(
                 node,
-                expression,
-                argArray,
                 arguments.GetNames(),
                 refKindsArray,
                 applicableMethods,
+                expression,
+                argArray,
                 type: Compilation.DynamicType,
                 hasErrors: hasErrors);
         }
@@ -657,8 +657,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
                             // that are not performed at compile-time.
                             // Only if the set of final applicable candidates is empty we know for sure the call will fail at runtime.
-                            var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult, 
-                                                                                                methodGroup.ReceiverOpt, 
+                            var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult,
+                                                                                                methodGroup.ReceiverOpt,
                                                                                                 methodGroup.TypeArgumentsOpt,
                                                                                                 diagnostics);
                             if (finalApplicableCandidates.Length > 0)
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private ImmutableArray<TMethodOrPropertySymbol> GetCandidatesPassingFinalValidation<TMethodOrPropertySymbol>(
-            SyntaxNode syntax, 
+            SyntaxNode syntax,
             OverloadResolutionResult<TMethodOrPropertySymbol> overloadResolutionResult,
             BoundExpression receiverOpt,
             ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt,

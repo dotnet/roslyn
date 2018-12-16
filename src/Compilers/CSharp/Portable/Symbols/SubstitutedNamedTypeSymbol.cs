@@ -361,7 +361,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             throw ExceptionUtilities.Unreachable;
         }
-
-        public sealed override bool? NonNullTypes => false;
     }
 }

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         IChainedCommandHandler<DownKeyCommandArgs>
     {
         private readonly CompletionCommandHandler _completionCommandHandler;
-        private readonly SignatureHelpCommandHandler _signatureHelpCommandHandler;        
+        private readonly SignatureHelpCommandHandler _signatureHelpCommandHandler;
 
         public string DisplayName => EditorFeaturesResources.IntelliSense;
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             SignatureHelpCommandHandler signatureHelpCommandHandler)
         {
             _completionCommandHandler = completionCommandHandler;
-            _signatureHelpCommandHandler = signatureHelpCommandHandler;            
+            _signatureHelpCommandHandler = signatureHelpCommandHandler;
         }
 
         public VSCommanding.CommandState GetCommandState(EscapeKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)

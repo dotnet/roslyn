@@ -3670,7 +3670,7 @@ public class C
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
- 
+
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
@@ -3858,7 +3858,7 @@ public class C
   IL_0001:  ldfld      ""int C.x""
   IL_0006:  ret
 }");
-            
+
             diff1.VerifyIL("C.<F>g__L|1_0()", @"
 {
   // Code size        9 (0x9)

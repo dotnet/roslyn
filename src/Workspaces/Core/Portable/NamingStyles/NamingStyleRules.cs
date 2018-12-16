@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             foreach (var implementedInterface in implementedInterfaces)
             {
                 var implementedInterfaceMembersWithSameName = implementedInterface.GetMembers(symbol.Name);
-                foreach(var implementedInterfaceMember in implementedInterfaceMembersWithSameName)
+                foreach (var implementedInterfaceMember in implementedInterfaceMembersWithSameName)
                 {
                     if (symbol.Equals(containingType.FindImplementationForInterfaceMember(implementedInterfaceMember)))
                     {

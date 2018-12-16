@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semanticModel = semanticModelOpt;
                 position = positionOpt;
             }
- 
+
             var token = semanticModel.SyntaxTree.GetRoot().FindToken(position);
             var startNode = token.Parent;
 

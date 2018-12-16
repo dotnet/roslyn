@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // to be able to detect exiting conditions in one "state >= Done" test.
             // And we are also relying on this to be the last item in the enum.
             Done,
-            Bad = Done + 1    
+            Bad = Done + 1
         }
 
         private enum CharFlags : byte
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             state = QuickScanState.Bad; // ran out of characters in window
-        exitWhile:
+exitWhile:
 
             TextWindow.AdvanceChar(i - TextWindow.Offset);
             Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done, "can only exit with Bad or Done");

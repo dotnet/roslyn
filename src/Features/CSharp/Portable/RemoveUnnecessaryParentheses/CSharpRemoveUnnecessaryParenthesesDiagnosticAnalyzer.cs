@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
             out PrecedenceKind precedence, out bool clarifiesPrecedence)
         {
             return CanRemoveParenthesesHelper(
-                parenthesizedExpression, semanticModel, 
+                parenthesizedExpression, semanticModel,
                 out precedence, out clarifiesPrecedence);
         }
 

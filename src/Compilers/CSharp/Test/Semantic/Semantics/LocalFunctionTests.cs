@@ -3183,7 +3183,7 @@ unsafe class D
         }
     }
 }", options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(                
+            comp.VerifyDiagnostics(
                 // (11,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //             return (IntPtr)(void*)null;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(11, 29),
@@ -3569,7 +3569,7 @@ class Program
 }";
 
             var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: 
+            CompileAndVerify(comp, expectedOutput:
 @"a
 5");
         }

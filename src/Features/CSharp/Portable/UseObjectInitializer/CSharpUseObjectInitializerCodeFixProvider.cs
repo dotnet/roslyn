@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             VariableDeclaratorSyntax>
     {
         protected override StatementSyntax GetNewStatement(
-            StatementSyntax statement, ObjectCreationExpressionSyntax objectCreation, 
+            StatementSyntax statement, ObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
         {
             return statement.ReplaceNode(

@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (synthesizedImplementation.IsVararg)
                         {
                             diagnostics.Add(
-                                ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, 
+                                ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic,
                                 GetImplicitImplementationDiagnosticLocation(interfaceMember, this, implementingMember), implementingMember, interfaceMember, this);
                         }
                         else
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMemberType.Equals(overriddenProperty.Type,
-                                                             TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                                                             TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)))
                             {
                                 diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, overridingMemberLocation);
                             }
@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMemberType.Equals(overriddenEvent.Type,
-                                                             TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                                                             TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)))
                             {
                                 diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, overridingMemberLocation);
                             }
@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 !overridingMember.IsImplicitlyDeclared && !overridingMember.IsAccessor() &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMethod.ReturnType.Equals(overriddenMethod.ReturnType,
-                                                                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                                                                    TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)))
                             {
                                 diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, overridingMemberLocation);
                             }
@@ -835,9 +835,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             for (int i = 0; i < overridingParameters.Length; i++)
                             {
                                 var overridenParameterType = overriddenParameters[i].Type;
-                                if (!overridingParameters[i].Type.Equals(overridenParameterType,
-                                                                         TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) &&
-                                    overridingParameters[i].Type.Equals(overridenParameterType, TypeCompareKind.AllIgnoreOptions))
+                                var overridingParameterType = overridingParameters[i].Type;
+                                if (!overridingParameterType.Equals(overridenParameterType,
+                                                                         TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)) &&
+                                    overridingParameterType.Equals(overridenParameterType, TypeCompareKind.AllIgnoreOptions))
                                 {
                                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, overridingMemberLocation, new FormattedSymbol(overridingParameters[i], SymbolDisplayFormat.ShortFormat));
                                 }

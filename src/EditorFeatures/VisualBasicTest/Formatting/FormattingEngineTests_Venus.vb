@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     Public Class FormattingEngineTests_Venus
-        Inherits FormattingTestBase
+        Inherits VisualBasicFormatterTestBase
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function SimpleOneLineNugget() As Threading.Tasks.Task

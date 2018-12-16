@@ -142,5 +142,146 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     void M2();
 }");
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public void CheckSameFile()
+        {
+            SetUpEditor(@"class C$$
+{
+    public void M() { }
+}
+");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            ExtractInterfaceDialog.VerifyOpen();
+
+            ExtractInterfaceDialog.SelectSameFile();
+
+            ExtractInterfaceDialog.ClickOK();
+            ExtractInterfaceDialog.VerifyClosed();
+
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.Editor.Verify.TextContains(@"interface IC
+{
+    void M();
+}
+
+class C : IC
+{
+    public void M() { }
+}
+");
+
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public void CheckSameFileOnlySelectedItems()
+        {
+            SetUpEditor(@"class C$$
+{
+    public void M1() { }
+    public void M2() { }
+}
+");
+
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            ExtractInterfaceDialog.VerifyOpen();
+            ExtractInterfaceDialog.ClickDeselectAll();
+            ExtractInterfaceDialog.ToggleItem("M2()");
+            ExtractInterfaceDialog.SelectSameFile();
+            ExtractInterfaceDialog.ClickOK();
+            ExtractInterfaceDialog.VerifyClosed();
+
+            VisualStudio.Editor.Verify.TextContains(@"interface IC
+{
+    void M2();
+}
+
+class C : IC
+{
+    public void M1() { }
+    public void M2() { }
+}
+");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public void CheckSameFileNamespace()
+        {
+            SetUpEditor(@"namespace A
+{
+    class C$$
+    {
+        public void M() { }
+    }
+}
+");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            ExtractInterfaceDialog.VerifyOpen();
+
+            ExtractInterfaceDialog.SelectSameFile();
+
+            ExtractInterfaceDialog.ClickOK();
+            ExtractInterfaceDialog.VerifyClosed();
+
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.Editor.Verify.TextContains(@"namespace A
+{
+    interface IC
+    {
+        void M();
+    }
+
+    class C : IC
+    {
+        public void M() { }
+    }
+}
+");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public void CheckSameWithTypes()
+        {
+            SetUpEditor(@"class C$$
+{
+    public bool M() => false;
+}
+");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            ExtractInterfaceDialog.VerifyOpen();
+
+            ExtractInterfaceDialog.SelectSameFile();
+
+            ExtractInterfaceDialog.ClickOK();
+            ExtractInterfaceDialog.VerifyClosed();
+
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.Editor.Verify.TextContains(@"interface IC
+{
+    bool M();
+}
+
+class C : IC
+{
+    public bool M() => false;
+}
+");
+        }
     }
 }

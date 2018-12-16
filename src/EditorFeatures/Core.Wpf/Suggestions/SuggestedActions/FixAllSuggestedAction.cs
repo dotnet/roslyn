@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -52,33 +51,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // We get the telemetry id for the original code action we are fixing,
             // not the special 'FixAllCodeAction'.  that is the .CodeAction this
             // SuggestedAction is pointing at.
-            var prefix = GetTelemetryPrefix(_originalCodeAction);
-            var scope = GetTelemetryScope();
-            telemetryId = new Guid(prefix, scope, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            telemetryId = _originalCodeAction.GetType().GetTelemetryId(_fixAllState.Scope.GetScopeIdForTelemetry());
             return true;
-        }
-
-        private short GetTelemetryScope()
-        {
-            switch (_fixAllState.Scope)
-            {
-                case FixAllScope.Document: return 1;
-                case FixAllScope.Project: return 2;
-                case FixAllScope.Solution: return 3;
-                default: return 4;
-            }
         }
 
         public string GetDiagnosticID()
         {
-            // we log diagnostic id as it is if it is from us
-            if (_fixedDiagnostic.Descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry))
-            {
-                return _fixedDiagnostic.Id;
-            }
-
-            // if it is from third party, we use hashcode
-            return _fixedDiagnostic.GetHashCode().ToString(CultureInfo.InvariantCulture);
+            return _fixedDiagnostic.GetTelemetryDiagnosticID();
         }
 
         protected override void InnerInvoke(
