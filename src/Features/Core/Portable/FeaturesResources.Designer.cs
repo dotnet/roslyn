@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.FeaturesResources", typeof(FeaturesResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.FeaturesResources", typeof(FeaturesResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -2239,6 +2238,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Make_method_synchronous {
             get {
                 return ResourceManager.GetString("Make_method_synchronous", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make readonly fields writable.
+        /// </summary>
+        internal static string Make_readonly_fields_writable {
+            get {
+                return ResourceManager.GetString("Make_readonly_fields_writable", resourceCulture);
             }
         }
         

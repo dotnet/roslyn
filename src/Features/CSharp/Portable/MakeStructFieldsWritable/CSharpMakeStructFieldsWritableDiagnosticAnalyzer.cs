@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
     {
         private static readonly DiagnosticDescriptor s_diagnosticDescriptor = CreateDescriptor(
             IDEDiagnosticIds.MakeStructFieldsWritable,
-            new LocalizableResourceString("test", FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            new LocalizableResourceString("test", FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Make_readonly_fields_writable), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Make_readonly_fields_writable), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnneccessary: true);
 
         public CSharpMakeStructFieldsWritableDiagnosticAnalyzer()
@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             {
                 context.RegisterSymbolStartAction(symbolStartContext =>
                 {
+                    // We are only interested in struct declarations
                     var namedTypeSymbol = (INamedTypeSymbol)symbolStartContext.Symbol;
                     if (namedTypeSymbol.TypeKind != TypeKind.Struct) return;
 

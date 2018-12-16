@@ -167,5 +167,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 }",
     expected: Diagnostic(IDEDiagnosticIds.MakeStructFieldsWritable));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        public async Task SingleReadonlyField_InClass()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass
+{
+    public readonly int Value;
+
+    public MyClass(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        [|this = new MyClass(5)|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        public async Task StructWithoutField()
+        {
+            await TestDiagnosticMissingAsync(
+@"struct MyStruct
+{
+    public void Test()
+    {
+        [|this = new MyStruct()|];
+    }
+}");
+        }
     }
 }

@@ -1481,4 +1481,7 @@ This version used in: {2}</value>
   <data name="_0_can_be_simplified" xml:space="preserve">
     <value>{0} can be simplified</value>
   </data>
+  <data name="Make_readonly_fields_writable" xml:space="preserve">
+    <value>Make readonly fields writable</value>
+  </data>
 </root>

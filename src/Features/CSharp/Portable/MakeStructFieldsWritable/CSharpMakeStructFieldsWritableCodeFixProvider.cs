@@ -51,10 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                 {
                     var readonlySyntaxToken = fieldDeclaration.ChildTokens()
                         .FirstOrDefault(token => token.IsKind(SyntaxKind.ReadOnlyKeyword));
+
                     if (readonlySyntaxToken != default)
                     {
-                        var newFieldDeclaration = fieldDeclaration.ReplaceToken(readonlySyntaxToken, emptyToken);
-                        editor.ReplaceNode(fieldDeclaration, newFieldDeclaration);
+                        var fieldWithoutReadonly = fieldDeclaration.ReplaceToken(readonlySyntaxToken, emptyToken);
+                        editor.ReplaceNode(fieldDeclaration, fieldWithoutReadonly);
                     }
                 }
             }
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Make_field_readonly, createChangedDocument)
+                base(FeaturesResources.Make_readonly_fields_writable, createChangedDocument)
             {
             }
         }
