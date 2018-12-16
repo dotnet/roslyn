@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -86,11 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             else
             {
                 var returnType = methodSymbol.ReturnType;
-                if (IsIEnumerable(returnType, knownTypes))
+                if (IsIEnumerable(returnType, knownTypes) && IsIterator(methodSymbol))
                 {
                     newReturnType = MakeGenericType("IAsyncEnumerable", methodSymbol.ReturnType);
                 }
-                else if (IsIEnumerator(returnType, knownTypes))
+                else if (IsIEnumerator(returnType, knownTypes) && IsIterator(methodSymbol))
                 {
                     newReturnType = MakeGenericType("IAsyncEnumerator", methodSymbol.ReturnType);
                 }
@@ -114,6 +115,18 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                     SyntaxFactory.Identifier(type),
                     SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(new[] { typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax() })));
             }
+        }
+
+        private static bool IsIterator(IMethodSymbol x)
+        {
+            return x.Locations
+                .Any(l => ContainsYield(l));
+
+            bool ContainsYield(Location l)
+                => l.FindNode(default).DescendantNodes().Any(n => IsYield(n));
+
+            bool IsYield(SyntaxNode node)
+                => node.IsKind(SyntaxKind.YieldBreakStatement, SyntaxKind.YieldReturnStatement);
         }
 
         private static bool IsIAsyncEnumerableOrEnumerator(ITypeSymbol returnType, KnownTypes knownTypes)

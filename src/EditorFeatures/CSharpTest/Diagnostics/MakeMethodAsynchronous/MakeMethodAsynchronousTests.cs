@@ -524,7 +524,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
-        public async Task BadAwaitInEnumeratorMethodWithReturn()
+        public async Task BadAwaitInEnumerableMethodWithReturn()
         {
             var initial =
 @"using System.Threading.Tasks;
@@ -543,15 +543,41 @@ class Program
 using System.Collections.Generic;
 class Program
 {
-    async IAsyncEnumerable<int> TestAsync()
+    async Task<IEnumerable<int>> TestAsync()
     {
         await Task.Delay(1);
         return null;
     }
 }";
-            // We could detect that the method was not an iterator, to produce a `Task<IEnumerable<int>>` return type instead.
-            // But we currently don't.
-            // The compiler does not expose its IsIterator property.
+            await TestInRegularAndScriptAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        public async Task BadAwaitInEnumeratorMethodWithReturn()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+using System.Collections.Generic;
+class Program
+{
+    IEnumerator<int> Test()
+    {
+        [|await Task.Delay(1);|]
+        return null;
+    }
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+using System.Collections.Generic;
+class Program
+{
+    async Task<IEnumerator<int>> TestAsync()
+    {
+        await Task.Delay(1);
+        return null;
+    }
+}";
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
