@@ -100,8 +100,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            var symbolInfo = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken);
-            var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo);
+            var currentSymbol = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken).Symbol;
+
+            // if the symbol could not be bound, we could be dealing with a partial invocation, we'll try to find a possible overload
+            if (currentSymbol is null)
+            {
+                currentSymbol = GuessCurrentSymbol(constructorInitializer.ArgumentList.Arguments, accessibleConstructors,
+                    semanticModel, document.GetLanguageService<ISemanticFactsService>(), cancellationToken);
+            }
+
+            var selectedItem = TryGetSelectedIndex(accessibleConstructors, currentSymbol);
 
             return CreateSignatureHelpItems(accessibleConstructors.SelectAsArray(c =>
                 Convert(c, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),

@@ -323,5 +323,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsInsideNameOfExpression(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInsideNameOfExpression
             Return node.FirstAncestorOrSelf(Of NameOfExpressionSyntax) IsNot Nothing
         End Function
+
+        Public Function CanConvert(semanticModel As SemanticModel, node As SyntaxNode, type As ITypeSymbol) As Boolean Implements ISemanticFactsService.CanConvert
+            Dim conversion = semanticModel.ClassifyConversion(DirectCast(node, ExpressionSyntax), type)
+            Return conversion.Exists
+        End Function
     End Class
 End Namespace

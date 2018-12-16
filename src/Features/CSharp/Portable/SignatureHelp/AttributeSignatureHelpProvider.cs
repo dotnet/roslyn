@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(attribute.ArgumentList);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            var symbolInfo = semanticModel.GetSymbolInfo(attribute, cancellationToken);
-            var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo);
+            var currentSymbol = semanticModel.GetSymbolInfo(attribute, cancellationToken).Symbol;
+            var selectedItem = TryGetSelectedIndex(accessibleConstructors, currentSymbol);
 
             return CreateSignatureHelpItems(accessibleConstructors.Select(c =>
                 Convert(c, within, attribute, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormatter, cancellationToken)).ToList(),

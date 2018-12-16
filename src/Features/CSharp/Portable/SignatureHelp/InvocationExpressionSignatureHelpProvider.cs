@@ -74,10 +74,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                                            .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation);
 
             // try to bind to the actual method
-            var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
+            var currentSymbol = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol;
+
+            // if the symbol could not be bound, we could be dealing with a partial invocation, we'll try to find a possible overload
+            if (currentSymbol is null)
+            {
+                currentSymbol = GuessCurrentSymbol(invocationExpression.ArgumentList.Arguments, methodGroup,
+                    semanticModel, document.GetLanguageService<ISemanticFactsService>(), cancellationToken);
+            }
 
             // if the symbol could be bound, replace that item in the symbol list
-            if (symbolInfo.Symbol is IMethodSymbol matchedMethodSymbol && matchedMethodSymbol.IsGenericMethod)
+            if (currentSymbol is IMethodSymbol matchedMethodSymbol && matchedMethodSymbol.IsGenericMethod)
             {
                 methodGroup = methodGroup.SelectAsArray(m => matchedMethodSymbol.OriginalDefinition == m ? matchedMethodSymbol : m);
             }
@@ -96,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (methodGroup.Any())
             {
                 var (items, selectedItem) =
-                    GetMethodGroupItemsAndSelection(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, methodGroup, symbolInfo, cancellationToken);
+                    GetMethodGroupItemsAndSelection(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, methodGroup, currentSymbol, cancellationToken);
 
                 return CreateSignatureHelpItems(
                     items,

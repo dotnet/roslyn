@@ -116,5 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
 
         bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+
+        bool CanConvert(SemanticModel semanticModel, SyntaxNode node, ITypeSymbol type);
     }
 }

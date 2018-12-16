@@ -31,8 +31,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                                                    .WhereAsArray(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
                                                    .Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart);
 
-            var symbolInfo = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken);
-            var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo);
+            var currentSymbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol;
+
+            // if the symbol could not be bound, we could be dealing with a partial invocation, we'll try to find a possible overload
+            if (currentSymbol is null)
+            {
+                currentSymbol = GuessCurrentSymbol(objectCreationExpression.ArgumentList.Arguments, accessibleConstructors,
+                    semanticModel, document.GetLanguageService<ISemanticFactsService>(), cancellationToken);
+            }
+
+            var selectedItem = TryGetSelectedIndex(accessibleConstructors, currentSymbol);
 
             var items = accessibleConstructors.SelectAsArray(c =>
                 ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken));

@@ -1,8 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Roslyn.Utilities;
@@ -71,6 +76,53 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             return SpecializedCollections.EmptyList<TaggedText>();
+        }
+
+        protected ISymbol GuessCurrentSymbol(SeparatedSyntaxList<ArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodGroup,
+            SemanticModel semanticModel, ISemanticFactsService semanticFactsService, CancellationToken cancellationToken)
+        {
+            return methodGroup.FirstOrDefault(m => isAcceptable(m));
+
+            bool isAcceptable(IMethodSymbol method)
+            {
+                if (arguments.Count == 0)
+                {
+                    return false;
+                }
+
+                int parameterCount = method.Parameters.Length;
+                for (int i = 0; i < arguments.Count; i++)
+                {
+                    if (i >= parameterCount)
+                    {
+                        return false;
+                    }
+                    var parameter = method.Parameters[i];
+                    var parameterRefKind = parameter.RefKind;
+                    var argument = arguments[i];
+                    if (parameterRefKind == RefKind.None)
+                    {
+                        if (!semanticFactsService.CanConvert(semanticModel, argument.Expression, parameter.Type))
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        // We don't have an API to check conversion between type symbols, so we just check ref kind
+                        var argumentRefKind = argument.GetRefKind();
+                        if (parameterRefKind == RefKind.In && argumentRefKind == RefKind.None)
+                        {
+                            return true;
+                        }
+                        if (parameterRefKind == argumentRefKind)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return true;
+            }
         }
     }
 }

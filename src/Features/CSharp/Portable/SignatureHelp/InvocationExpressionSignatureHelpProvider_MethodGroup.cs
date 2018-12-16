@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IDocumentationCommentFormattingService documentationCommentFormattingService,
             ISymbol within,
             IEnumerable<IMethodSymbol> methodGroup,
-            SymbolInfo currentSymbol,
+            ISymbol currentSymbol,
             CancellationToken cancellationToken)
         {
             ITypeSymbol throughType = null;

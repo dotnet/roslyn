@@ -371,5 +371,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsInsideNameOfExpression(semanticModel, cancellationToken);
+
+        public bool CanConvert(SemanticModel semanticModel, SyntaxNode node, ITypeSymbol type)
+        {
+            var conversion = semanticModel.ClassifyConversion((ExpressionSyntax)node, type) ;
+            return conversion.Exists && conversion.IsImplicit;
+        }
     }
 }
