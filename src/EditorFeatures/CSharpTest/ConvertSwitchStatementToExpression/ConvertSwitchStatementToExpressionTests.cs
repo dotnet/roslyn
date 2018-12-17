@@ -52,51 +52,109 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestNested()
+        public async Task TestMissingOnDefalutBreak_01()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"class Program
 {
-    int M(int i, int j)
+    void M(int i)
+    {
+        [||]switch (i)
+        {
+            default:
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingOnDefalutBreak_02()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    void M(int i)
+    {
+        [||]switch (i)
+        {
+            case _:
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingOnDefalutBreak_03()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    void M(int i)
+    {
+        [||]switch (i)
+        {
+            case var _:
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingOnDefalutBreak_04()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    void M(int i)
+    {
+        [||]switch (i)
+        {
+            case var x:
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingOnAllBreak()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    void M(int i)
     {
         [||]switch (i)
         {
             case 1:
-                switch (j)
-                {
-                    case 7:
-                        return 10;
-                    case 8:
-                        return 11;
-                    case 9:
-                        return 12;
-                }
                 break;
             case 2:
-                return 5;
+                break;
             case 3:
-                return 6;
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingOnAllThrow()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    void M(int i)
+    {
+        [||]switch (i)
+        {
+            case 1:
+                throw null;
             default:
                 throw null;
         }
-    }
-}",
-@"class Program
-{
-    int M(int i, int j)
-    {
-        return i switch
-        {
-            1 => j switch
-            {
-                7 => 10,
-                8 => 11,
-                9 => 12
-            },
-            2 => 5,
-            3 => 6,
-            _ => throw null
-        };
     }
 }");
         }
@@ -122,18 +180,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 j = 6;
                 break;
         }
+        throw null;
     }
 }",
 @"class Program
 {
     void M(int i)
     {
-        int j;
-        j = i switch
+        var j = i switch
         {
             1 => 4,
             2 => 5,
-            3 => 6
+            3 => 6,
+            _ => throw null
         };
     }
 }");
@@ -163,18 +222,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 k = 9;
                 break;
         }
+        throw null;
     }
 }",
 @"class Program
 {
     void M(int i)
     {
-        int j, k;
-        (j, k) = i switch
+        var (j, k) = i switch
         {
             1 => (4, 5),
             2 => (6, 7),
-            3 => (8, 9)
+            3 => (8, 9),
+            _ => throw null
         };
     }
 }");
