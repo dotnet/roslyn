@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider;
 
 namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 {
@@ -251,28 +252,6 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             public MyCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution)
                 : base(FeaturesResources.Make_method_synchronous, createChangedSolution, AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey)
             {
-            }
-        }
-
-        protected struct KnownTypes
-        {
-            public ITypeSymbol _taskType;
-            public ITypeSymbol _taskOfTType;
-
-            public INamedTypeSymbol _iEnumerableOfTType;
-            public INamedTypeSymbol _iEnumeratorOfTType;
-
-            public ITypeSymbol _iAsyncEnumerableOfTType;
-            public ITypeSymbol _iAsyncEnumeratorOfTType;
-
-            internal KnownTypes(Compilation compilation)
-            {
-                _taskType = compilation.TaskType();
-                _taskOfTType = compilation.TaskOfTType();
-                _iEnumerableOfTType = compilation.IEnumerableOfTType();
-                _iEnumeratorOfTType = compilation.IEnumeratorOfTType();
-                _iAsyncEnumerableOfTType = compilation.IAsyncEnumerableOfTType();
-                _iAsyncEnumeratorOfTType = compilation.IAsyncEnumeratorOfTType();
             }
         }
     }

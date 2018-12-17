@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.MakeMethodAsynchronous;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 {
@@ -111,9 +112,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
             TypeSyntax MakeGenericType(string type, ITypeSymbol typeArgumentFrom)
             {
-                return SyntaxFactory.GenericName(
-                    SyntaxFactory.Identifier(type),
-                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(new[] { typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax() })));
+                var @namespace = SyntaxFactory.QualifiedName(SyntaxFactory.QualifiedName(
+                    SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Collections")), SyntaxFactory.IdentifierName("Generic"));
+
+                var result = SyntaxFactory.QualifiedName(@namespace,
+                    SyntaxFactory.GenericName(SyntaxFactory.Identifier(type),
+                        SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax()))));
+
+                return result.WithAdditionalAnnotations(Simplifier.Annotation);
             }
         }
 
@@ -122,27 +128,21 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             return x.Locations.Any(l => ContainsYield(l.FindNode(cancellationToken: default)));
 
             bool ContainsYield(SyntaxNode node)
-                => node.DescendantNodes(n => n == node || !n.IsKind(SyntaxKind.LocalFunctionStatement)).Any(n => IsYield(n));
+                => node.DescendantNodes(n => n == node || !n.IsReturnableConstruct()).Any(n => IsYield(n));
 
             bool IsYield(SyntaxNode node)
                 => node.IsKind(SyntaxKind.YieldBreakStatement, SyntaxKind.YieldReturnStatement);
         }
 
         private static bool IsIAsyncEnumerableOrEnumerator(ITypeSymbol returnType, KnownTypes knownTypes)
-        {
-            return returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTType) ||
+            => returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTType) ||
                 returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumeratorOfTType);
-        }
 
         private static bool IsIEnumerable(ITypeSymbol returnType, KnownTypes knownTypes)
-        {
-            return returnType.OriginalDefinition.Equals(knownTypes._iEnumerableOfTType);
-        }
+            => returnType.OriginalDefinition.Equals(knownTypes._iEnumerableOfTType);
 
         private static bool IsIEnumerator(ITypeSymbol returnType, KnownTypes knownTypes)
-        {
-            return returnType.OriginalDefinition.Equals(knownTypes._iEnumeratorOfTType);
-        }
+            => returnType.OriginalDefinition.Equals(knownTypes._iEnumeratorOfTType);
 
         private static SyntaxTokenList AddAsyncModifierWithCorrectedTrivia(SyntaxTokenList modifiers, ref TypeSyntax newReturnType)
         {

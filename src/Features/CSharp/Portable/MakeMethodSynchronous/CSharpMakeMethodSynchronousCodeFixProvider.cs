@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MakeMethodSynchronous;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using static Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
 {

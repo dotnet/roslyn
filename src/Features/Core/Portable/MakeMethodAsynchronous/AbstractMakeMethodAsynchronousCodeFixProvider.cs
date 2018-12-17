@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 {
-    internal abstract class AbstractMakeMethodAsynchronousCodeFixProvider : CodeFixProvider
+    internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : CodeFixProvider
     {
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
 
@@ -186,32 +186,6 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
                 : base(title, createChangedSolution, equivalenceKey: title)
             {
-            }
-        }
-
-        protected struct KnownTypes
-        {
-            public INamedTypeSymbol _taskType;
-            public INamedTypeSymbol _taskOfTType;
-            public INamedTypeSymbol _valueTaskOfTTypeOpt;
-
-            public INamedTypeSymbol _iEnumerableOfTType;
-            public INamedTypeSymbol _iEnumeratorOfTType;
-
-            public INamedTypeSymbol _iAsyncEnumerableOfTType;
-            public INamedTypeSymbol _iAsyncEnumeratorOfTType;
-
-            internal KnownTypes(Compilation compilation)
-            {
-                _taskType = compilation.TaskType();
-                _taskOfTType = compilation.TaskOfTType();
-                _valueTaskOfTTypeOpt = compilation.ValueTaskOfTType();
-
-                _iEnumerableOfTType = compilation.IEnumerableOfTType();
-                _iEnumeratorOfTType = compilation.IEnumeratorOfTType();
-
-                _iAsyncEnumerableOfTType = compilation.IAsyncEnumerableOfTType();
-                _iAsyncEnumeratorOfTType = compilation.IAsyncEnumeratorOfTType();
             }
         }
     }

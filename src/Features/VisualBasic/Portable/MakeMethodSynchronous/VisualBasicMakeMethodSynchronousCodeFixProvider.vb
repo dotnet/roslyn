@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider
 Imports Microsoft.CodeAnalysis.MakeMethodSynchronous
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 

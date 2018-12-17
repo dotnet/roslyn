@@ -507,7 +507,7 @@ class Program
         yield return 1;
         [|await Task.Delay(1);|]
     }
-}";
+}" + IAsyncEnumerable;
 
             var expected =
 @"using System.Threading.Tasks;
@@ -519,7 +519,7 @@ class Program
         yield return 1;
         await Task.Delay(1);
     }
-}";
+}" + IAsyncEnumerable;
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
@@ -633,7 +633,7 @@ class Program
         yield return 1;
         [|await Task.Delay(1);|]
     }
-}";
+}" + IAsyncEnumerable;
 
             var expected =
 @"using System.Threading.Tasks;
@@ -645,7 +645,7 @@ class Program
         yield return 1;
         await Task.Delay(1);
     }
-}";
+}" + IAsyncEnumerable;
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
@@ -665,7 +665,7 @@ class Program
             [|await Task.Delay(1);|]
         }
     }
-}";
+}" + IAsyncEnumerable;
 
             var expected =
 @"using System.Threading.Tasks;
@@ -680,7 +680,7 @@ class Program
             await Task.Delay(1);
         }
     }
-}";
+}" + IAsyncEnumerable;
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
