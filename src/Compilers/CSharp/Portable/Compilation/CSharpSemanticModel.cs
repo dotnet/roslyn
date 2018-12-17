@@ -2484,7 +2484,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Conversion object with a false "Exists" property is returned.</returns>
         /// <remarks>To determine the conversion between two types (instead of an expression and a
         /// type), use Compilation.ClassifyConversion.</remarks>
+        public override CommonConversion ClassifyCommonConversion(SyntaxNode expression, ITypeSymbol destination, bool isExplicitInSource = false)
+            => ClassifyConversion((ExpressionSyntax)expression, destination, isExplicitInSource).ToCommonConversion();
+
+        /// <summary>
+        /// Determines what type of conversion, if any, would be used if a given expression was
+        /// converted to a given type.  If isExplicitInSource is true, the conversion produced is
+        /// that which would be used if the conversion were done for a cast expression.
+        /// </summary>
+        /// <param name="expression">An expression which much occur within the syntax tree
+        /// associated with this object.</param>
+        /// <param name="destination">The type to attempt conversion to.</param>
+        /// <param name="isExplicitInSource">True if the conversion should be determined as for a cast expression.</param>
+        /// <returns>Returns a Conversion object that summarizes whether the conversion was
+        /// possible, and if so, what kind of conversion it was. If no conversion was possible, a
+        /// Conversion object with a false "Exists" property is returned.</returns>
+        /// <remarks>To determine the conversion between two types (instead of an expression and a
+        /// type), use Compilation.ClassifyConversion.</remarks>
         public abstract Conversion ClassifyConversion(ExpressionSyntax expression, ITypeSymbol destination, bool isExplicitInSource = false);
+
+        /// <summary>
+        /// Determines what type of conversion, if any, would be used if a given expression was
+        /// converted to a given type.  If isExplicitInSource is true, the conversion produced is
+        /// that which would be used if the conversion were done for a cast expression.
+        /// </summary>
+        /// <param name="position">The character position for determining the enclosing declaration
+        /// scope and accessibility.</param>
+        /// <param name="expression">The expression to classify. This expression does not need to be
+        /// present in the syntax tree associated with this object.</param>
+        /// <param name="destination">The type to attempt conversion to.</param>
+        /// <param name="isExplicitInSource">True if the conversion should be determined as for a cast expression.</param>
+        /// <returns>Returns a Conversion object that summarizes whether the conversion was
+        /// possible, and if so, what kind of conversion it was. If no conversion was possible, a
+        /// Conversion object with a false "Exists" property is returned.</returns>
+        /// <remarks>To determine the conversion between two types (instead of an expression and a
+        /// type), use Compilation.ClassifyConversion.</remarks>
+        public override CommonConversion ClassifyCommonConversion(int position, SyntaxNode expression, ITypeSymbol destination, bool isExplicitInSource = false)
+            => ClassifyConversion(position, (ExpressionSyntax)expression, destination, isExplicitInSource).ToCommonConversion();
 
         /// <summary>
         /// Determines what type of conversion, if any, would be used if a given expression was

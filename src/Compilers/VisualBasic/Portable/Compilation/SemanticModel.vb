@@ -2306,12 +2306,46 @@ _Default:
         ''' <param name="expression">An expression which must occur within the syntax tree
         ''' associated with this object.</param>
         ''' <param name="destination">The type to attempt conversion to.</param>
+        ''' <param name="isExplicitInSource">Unused.</param>
+        ''' <returns>Returns a Conversion object that summarizes whether the conversion was
+        ''' possible, and if so, what kind of conversion it was. If no conversion was possible, a
+        ''' Conversion object with a false "Exists " property is returned.</returns>
+        ''' <remarks>To determine the conversion between two types (instead of an expression and a
+        ''' type), use Compilation.ClassifyConversion.</remarks>
+        Public Overrides Function ClassifyCommonConversion(expression As SyntaxNode, destination As ITypeSymbol, Optional isExplicitInSource As Boolean = False) As CommonConversion
+            Return ClassifyConversion(DirectCast(expression, ExpressionSyntax), destination).ToCommonConversion()
+        End Function
+
+        ''' <summary>
+        ''' Determines what type of conversion, if any, would be used if a given expression was
+        ''' converted to a given type.
+        ''' </summary>
+        ''' <param name="expression">An expression which must occur within the syntax tree
+        ''' associated with this object.</param>
+        ''' <param name="destination">The type to attempt conversion to.</param>
         ''' <returns>Returns a Conversion object that summarizes whether the conversion was
         ''' possible, and if so, what kind of conversion it was. If no conversion was possible, a
         ''' Conversion object with a false "Exists " property is returned.</returns>
         ''' <remarks>To determine the conversion between two types (instead of an expression and a
         ''' type), use Compilation.ClassifyConversion.</remarks>
         Public MustOverride Shadows Function ClassifyConversion(expression As ExpressionSyntax, destination As ITypeSymbol) As Conversion
+
+        ''' <summary>
+        ''' Determines what type of conversion, if any, would be used if a given expression was
+        ''' converted to a given type.
+        ''' </summary>
+        ''' <param name="position">The character position for determining the enclosing declaration scope and accessibility.</param>
+        ''' <param name="expression">An expression to classify. This expression does not need to be
+        ''' present in the syntax tree associated with this object.</param>
+        ''' <param name="destination">The type to attempt conversion to.</param>
+        ''' <returns>Returns a Conversion object that summarizes whether the conversion was
+        ''' possible, and if so, what kind of conversion it was. If no conversion was possible, a
+        ''' Conversion object with a false "Exists " property is returned.</returns>
+        ''' <remarks>To determine the conversion between two types (instead of an expression and a
+        ''' type), use Compilation.ClassifyConversion.</remarks>
+        Public Overrides Function ClassifyCommonConversion(position As Integer, expression As SyntaxNode, destination As ITypeSymbol, Optional isExplicitInSource As Boolean = False) As CommonConversion
+            Return ClassifyConversion(position, DirectCast(expression, ExpressionSyntax), destination).ToCommonConversion()
+        End Function
 
         ''' <summary>
         ''' Determines what type of conversion, if any, would be used if a given expression was
