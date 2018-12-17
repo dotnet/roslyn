@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return SpecializedCollections.EmptyList<TaggedText>();
         }
 
-        protected ISymbol GuessCurrentSymbol(SeparatedSyntaxList<ArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodGroup,
+        protected static ISymbol GuessCurrentSymbol(SeparatedSyntaxList<ArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodGroup,
             SemanticModel semanticModel, ISemanticFactsService semanticFactsService, CancellationToken cancellationToken)
         {
             if (arguments.Count == 0)
