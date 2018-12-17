@@ -33,21 +33,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
             var spans = ArrayBuilder<TextSpan>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan);
                 if (spans.Any((span, nodeSpan) => span.Contains(nodeSpan), node.Span))
                 {
+                    // Skip nested switch expressions in case of a fix-all operation.
                     continue;
                 }
 
                 spans.Add(node.Span);
-                editor.ReplaceNode(node, (@switch, _) => Rewriter.Rewrite(@switch).WithAdditionalAnnotations(Formatter.Annotation));
 
-                var nextStatement = ((SwitchStatementSyntax)node).GetNextStatement();
+                var switchStatement = (SwitchStatementSyntax)node;
+                editor.ReplaceNode(switchStatement,
+                    Rewriter.Rewrite(switchStatement, semanticModel, editor).WithAdditionalAnnotations(Formatter.Annotation));
+
+                var nextStatement = switchStatement.GetNextStatement();
                 if (nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement) &&
                     // e.g. not unreachable which means we had a non-exhastive switch
                     !nextStatement.ContainsDiagnostics)
@@ -58,7 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             }
 
             spans.Free();
-            return Task.CompletedTask;
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction

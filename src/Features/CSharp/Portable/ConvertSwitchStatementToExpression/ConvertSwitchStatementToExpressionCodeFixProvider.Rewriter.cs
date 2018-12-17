@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -27,26 +29,80 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 _assignmentTargets.Free();
             }
 
-            public static StatementSyntax Rewrite(SyntaxNode node)
+            public static StatementSyntax Rewrite(SwitchStatementSyntax node, SemanticModel semanticModel, SyntaxEditor editor)
             {
                 var rewriter = new Rewriter();
-                var finalStatement = rewriter.GetFinalStatement(rewriter.Visit(node));
+                var switchExpression = rewriter.VisitSwitchStatement(node);
+                var generateDeclaration = rewriter.TryRemoveVariableDeclarators(node, semanticModel, editor);
+                var finalStatement = rewriter.GetFinalStatement(switchExpression, generateDeclaration);
                 rewriter.Free();
                 return finalStatement;
             }
 
-            private StatementSyntax GetFinalStatement(ExpressionSyntax switchExpression)
+            private bool TryRemoveVariableDeclarators(SwitchStatementSyntax node, SemanticModel semanticModel, SyntaxEditor editor)
+            {
+                var dataFlow = semanticModel.AnalyzeDataFlow(node);
+                if (!dataFlow.Succeeded)
+                {
+                    return false;
+                }
+
+                var symbols = _assignmentTargets.Select(target => semanticModel.GetSymbolInfo(target).Symbol).ToImmutableArray();
+                // If all variables are local and data does not flows in for any of them, 
+                // we can assign the switch expression directly to a variable declaration.
+                if (!symbols.All(symbol => symbol.Kind == SymbolKind.Local && !dataFlow.DataFlowsIn.Contains(symbol)))
+                {
+                    return false;
+                }
+
+                foreach (var symbol in symbols)
+                {
+                    editor.RemoveNode(symbol.DeclaringSyntaxReferences[0].GetSyntax());
+                }
+
+                return true;
+            }
+
+            private StatementSyntax GetFinalStatement(ExpressionSyntax switchExpression, bool generateDeclaration)
             {
                 if (_assignmentTargets.Count == 0)
                 {
                     return ReturnStatement(switchExpression);
                 }
 
+                if (generateDeclaration)
+                {
+                    return GenerateVariableDeclaration(switchExpression);
+                }
+
+                return GenerateSimpleAssignment(switchExpression);
+            }
+
+            private ExpressionStatementSyntax GenerateSimpleAssignment(ExpressionSyntax switchExpression)
+            {
+                var assignmentLeft = _assignmentTargets.Count == 1
+                    ? _assignmentTargets[0]
+                    : TupleExpression(SeparatedList(_assignmentTargets.Select(Argument)));
+
                 return ExpressionStatement(
                     AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
-                        left: _assignmentTargets.Count == 1
-                            ? _assignmentTargets[0]
-                            : TupleExpression(SeparatedList(_assignmentTargets.Select(Argument))),
+                        left: assignmentLeft,
+                        right: switchExpression));
+            }
+
+            private ExpressionStatementSyntax GenerateVariableDeclaration(ExpressionSyntax switchExpression)
+            {
+                var designations = _assignmentTargets
+                    .Select(id => (VariableDesignationSyntax)SingleVariableDesignation(((IdentifierNameSyntax)id).Identifier))
+                    .ToArray();
+
+                var designation = designations.Length == 1
+                    ? designations[0]
+                    : ParenthesizedVariableDesignation(SeparatedList(designations));
+
+                return ExpressionStatement(
+                    AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+                        left: DeclarationExpression(IdentifierName("var"), designation),
                         right: switchExpression));
             }
 
