@@ -360,6 +360,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("/nullable:safeonly /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
 
+        [Fact]
+        public void NullableReferenceTypes_Default_01()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.NullableContextOptions = null;
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_Default_02()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
         [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
         public void DisableSdkPath()
         {
