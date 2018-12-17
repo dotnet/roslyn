@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -552,6 +553,111 @@ RoOt = TruE");
             Assert.False(matcher.IsMatch("/vbcd"));
         }
 
+        private static IEnumerable<(string, string)> RangeAndInverse(string s1, string s2)
+        {
+            yield return (s1, s2);
+            yield return (s2, s1);
+        }
+
+        [Fact]
+        public void NumberMatch()
+        {
+            foreach (var (i1, i2) in RangeAndInverse("0", "10"))
+            {
+                var matcher = TryCreateSectionNameMatcher($"{{{i1}..{i2}}}").Value;
+
+                Assert.True(matcher.IsMatch("/0"));
+                Assert.True(matcher.IsMatch("/10"));
+                Assert.True(matcher.IsMatch("/5"));
+                Assert.True(matcher.IsMatch("/000005"));
+                Assert.False(matcher.IsMatch("/-1"));
+                Assert.False(matcher.IsMatch("/-00000001"));
+                Assert.False(matcher.IsMatch("/11"));
+            }
+        }
+
+        [Fact]
+        public void NumberMatchNegativeRange()
+        {
+            foreach (var (i1, i2) in RangeAndInverse("-10", "0"))
+            {
+                var matcher = TryCreateSectionNameMatcher($"{{{i1}..{i2}}}").Value;
+
+                Assert.True(matcher.IsMatch("/0"));
+                Assert.True(matcher.IsMatch("/-10"));
+                Assert.True(matcher.IsMatch("/-5"));
+                Assert.False(matcher.IsMatch("/1"));
+                Assert.False(matcher.IsMatch("/-11"));
+                Assert.False(matcher.IsMatch("/--0"));
+            }
+        }
+
+        [Fact]
+        public void NumberMatchNegToPos()
+        {
+            foreach (var (i1, i2) in RangeAndInverse("-10", "10"))
+            {
+                var matcher = TryCreateSectionNameMatcher($"{{{i1}..{i2}}}").Value;
+
+                Assert.True(matcher.IsMatch("/0"));
+                Assert.True(matcher.IsMatch("/-5"));
+                Assert.True(matcher.IsMatch("/5"));
+                Assert.True(matcher.IsMatch("/-10"));
+                Assert.True(matcher.IsMatch("/10"));
+                Assert.False(matcher.IsMatch("/-11"));
+                Assert.False(matcher.IsMatch("/11"));
+                Assert.False(matcher.IsMatch("/--0"));
+            }
+        }
+
+        [Fact]
+        public void MultipleNumberRanges()
+        {
+            foreach (var matchString in new[] { "a{-10..0}b{0..10}", "a{0..-10}b{10..0}"})
+            {
+                var matcher = TryCreateSectionNameMatcher(matchString).Value;
+
+                Assert.True(matcher.IsMatch("/a0b0"));
+                Assert.True(matcher.IsMatch("/a-5b0"));
+                Assert.True(matcher.IsMatch("/a-5b5"));
+                Assert.True(matcher.IsMatch("/a-5b10"));
+                Assert.True(matcher.IsMatch("/a-10b10"));
+                Assert.True(matcher.IsMatch("/a-10b0"));
+                Assert.True(matcher.IsMatch("/a-0b0"));
+                Assert.True(matcher.IsMatch("/a-0b-0"));
+
+                Assert.False(matcher.IsMatch("/a-11b10"));
+                Assert.False(matcher.IsMatch("/a-11b10"));
+                Assert.False(matcher.IsMatch("/a-10b11"));
+            }
+        }
+
+        [Fact]
+        public void BadNumberRanges()
+        {
+            var matcherOpt = TryCreateSectionNameMatcher("{0..");
+
+            Assert.Null(matcherOpt);
+
+            var matcher = TryCreateSectionNameMatcher("{0..}").Value;
+
+            Assert.True(matcher.IsMatch("/0.."));
+            Assert.False(matcher.IsMatch("/0"));
+            Assert.False(matcher.IsMatch("/0."));
+            Assert.False(matcher.IsMatch("/0abc"));
+
+            matcher = TryCreateSectionNameMatcher("{0..A}").Value;
+            Assert.True(matcher.IsMatch("/0..A"));
+            Assert.False(matcher.IsMatch("/0"));
+            Assert.False(matcher.IsMatch("/0abc"));
+
+            // The reference implementation uses atoi here so we can presume
+            // numbers out of range of Int32 are not well supported
+            matcherOpt = TryCreateSectionNameMatcher($"{{0..{UInt32.MaxValue}}}");
+
+            Assert.Null(matcherOpt);
+        }
+
         [Fact]
         public void EditorConfigToDiagnostics()
         {
@@ -935,6 +1041,29 @@ dotnet_diagnostic.some_key = some_val", "/.editorconfig"));
                     }
                 },
                 options);
+        }
+
+        [Fact]
+        public void E2ENumberRange()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[a{-10..0}b{0..10}.cs]
+dotnet_diagnostic.cs000.severity = warn", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/a0b0.cs", "/test/a-5b5.cs", "/a0b0.vb" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Warn)),
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Warn)),
+                null
+            }, options.TreeOptions);
         }
     }
 }

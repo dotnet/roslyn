@@ -1,7 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -10,14 +14,40 @@ namespace Microsoft.CodeAnalysis
     {
         public readonly struct SectionNameMatcher
         {
+            private readonly ImmutableArray<(int minValue, int maxValue)> _numberRangePairs;
+            // internal for testing
             internal Regex Regex { get; }
 
-            internal SectionNameMatcher(Regex regex)
+            internal SectionNameMatcher(
+                Regex regex,
+                ImmutableArray<(int minValue, int maxValue)> numberRangePairs)
             {
+                Debug.Assert(regex.GetGroupNumbers().Length - 1 == numberRangePairs.Length);
                 Regex = regex;
+                _numberRangePairs = numberRangePairs;
             }
 
-            public bool IsMatch(string s) => Regex.IsMatch(s);
+            public bool IsMatch(string s)
+            {
+                var match = Regex.Match(s);
+                if (!match.Success)
+                {
+                    return false;
+                }
+                Debug.Assert(match.Groups.Count - 1 == _numberRangePairs.Length);
+                for (int i = 0; i < _numberRangePairs.Length; i++)
+                {
+                    var (minValue, maxValue) = _numberRangePairs[i];
+                    // Index 0 is the whole regex
+                    if (!int.TryParse(match.Groups[i + 1].Value, out int matchedNum) ||
+                        matchedNum < minValue ||
+                        matchedNum > maxValue)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
         }
 
         /// <summary>
@@ -36,9 +66,6 @@ namespace Microsoft.CodeAnalysis
             // <char> ::= any unicode character
             // <choice> ::= "{" <choice-list> "}"
             // <choice-list> ::= <path-list> | <path-list> "," <choice-list>
-            //
-            // PROTOTYPE(editorconfig): Below remains unimplemented
-            //
             // <range> ::= "{" <integer> ".." <integer> "}"
             // <integer> ::= "-" <digit-list> | <digit-list>
             // <digit-list> ::= <digit> | <digit> <digit-list>
@@ -67,12 +94,16 @@ namespace Microsoft.CodeAnalysis
             }
 
             var lexer = new SectionNameLexer(sectionName);
-            if (!TryCompilePathList(ref lexer, sb))
+            var numberRangePairs = ArrayBuilder<(int minValue, int maxValue)>.GetInstance();
+            if (!TryCompilePathList(ref lexer, sb, parsingChoice: false, numberRangePairs))
             {
+                numberRangePairs.Free();
                 return null;
             }
             sb.Append('$');
-            return new SectionNameMatcher(new Regex(sb.ToString(), RegexOptions.Compiled));
+            return new SectionNameMatcher(
+                new Regex(sb.ToString(), RegexOptions.Compiled),
+                numberRangePairs.ToImmutableAndFree());
         }
 
         /// <summary>
@@ -87,7 +118,8 @@ namespace Microsoft.CodeAnalysis
         private static bool TryCompilePathList(
             ref SectionNameLexer lexer,
             StringBuilder sb,
-            bool parsingChoice = false)
+            bool parsingChoice,
+            ArrayBuilder<(int minValue, int maxValue)> numberRangePairs)
         {
             while (!lexer.IsDone)
             {
@@ -120,11 +152,11 @@ namespace Microsoft.CodeAnalysis
                         // This is ambiguous between {num..num} and {item1,item2}
                         // We need to look ahead to disambiguate. Looking for {num..num}
                         // is easier because it can't be recursive.
-                        var range = TryParseNumberRange(ref lexer);
-                        if (range is null)
+                        (string numStart, string numEnd)? rangeOpt = TryParseNumberRange(ref lexer);
+                        if (rangeOpt is null)
                         {
                             // Not a number range. Try a choice expression
-                            if (!TryCompileChoice(ref lexer, sb))
+                            if (!TryCompileChoice(ref lexer, sb, numberRangePairs))
                             {
                                 return false;
                             }
@@ -133,7 +165,16 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            // PROTOTYPE: Implement number range compilation
+                            (string numStart, string numEnd) = rangeOpt.GetValueOrDefault();
+                            if (int.TryParse(numStart, out var intStart) && int.TryParse(numEnd, out var intEnd))
+                            {
+                                var pair = intStart < intEnd ? (intStart, intEnd) : (intEnd, intStart);
+                                numberRangePairs.Add(pair);
+                                // Group allowing any digit sequence. The validity will be checked outside of the regex
+                                sb.Append("(-?[0-9]+)");
+                                // Keep looping
+                                break;
+                            }
                             return false;
                         }
                     case TokenKind.CloseCurly:
@@ -177,7 +218,10 @@ namespace Microsoft.CodeAnalysis
         /// <choice-list> ::= <path-list> | <path-list> "," <choice-list>
         /// ]]>
         /// </summary>
-        private static bool TryCompileChoice(ref SectionNameLexer lexer, StringBuilder sb)
+        private static bool TryCompileChoice(
+            ref SectionNameLexer lexer,
+            StringBuilder sb,
+            ArrayBuilder<(int, int)> numberRangePairs)
         {
             if (lexer.Lex() != TokenKind.OpenCurly)
             {
@@ -189,7 +233,7 @@ namespace Microsoft.CodeAnalysis
 
             // We start immediately after a '{'
             // Try to compile the nested <path-list>
-            while (TryCompilePathList(ref lexer, sb, parsingChoice: true))
+            while (TryCompilePathList(ref lexer, sb, parsingChoice: true, numberRangePairs))
             {
                 // If we've succesfully compiled a <path-list> the last token should
                 // have been a ',' or a '}'
@@ -359,6 +403,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            public char CurrentCharacter => _sectionName[Position];
+
             /// <summary>
             /// Call after getting <see cref="TokenKind.SimpleCharacter" /> from <see cref="Lex()" />
             /// </summary>
@@ -387,7 +433,6 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Returns the string representation of a decimal integer, or null if
             /// the current lexeme is not an integer.
-            /// PROTOTYPE: parsing numbers is not completed.
             /// </summary>
             public string TryLexNumber()
             {
@@ -396,13 +441,15 @@ namespace Microsoft.CodeAnalysis
 
                 while (!IsDone)
                 {
-                    char currentChar = EatCurrentCharacter();
+                    char currentChar = CurrentCharacter;
                     if (start && currentChar == '-')
                     {
+                        Position++;
                         sb.Append('-');
                     }
                     else if (char.IsDigit(currentChar))
                     {
+                        Position++;
                         sb.Append(currentChar);
                     }
                     else
