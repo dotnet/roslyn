@@ -161,5 +161,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol ObsoleteAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName);
+
+        public static INamedTypeSymbol SystemCompositionImportingConstructorAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(System.Composition.ImportingConstructorAttribute).FullName);
+
+        public static INamedTypeSymbol SystemComponentModelCompositionImportingConstructorAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportingConstructorAttribute");
     }
 }
