@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             {
                 selectedItem = null;
             }
+
             return (filteredList, selectedItem);
         }
 

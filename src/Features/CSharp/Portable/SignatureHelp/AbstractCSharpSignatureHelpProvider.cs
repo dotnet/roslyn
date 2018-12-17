@@ -81,22 +81,24 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         protected ISymbol GuessCurrentSymbol(SeparatedSyntaxList<ArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodGroup,
             SemanticModel semanticModel, ISemanticFactsService semanticFactsService, CancellationToken cancellationToken)
         {
-            return methodGroup.FirstOrDefault(m => isAcceptable(m));
-
-            bool isAcceptable(IMethodSymbol method)
+            if (arguments.Count == 0)
             {
-                if (arguments.Count == 0)
-                {
-                    return false;
-                }
+                // Providing no recommendation here allows the model to keep the last implicit choice
+                return null;
+            }
 
-                int parameterCount = method.Parameters.Length;
-                for (int i = 0; i < arguments.Count; i++)
+            return methodGroup.FirstOrDefault(m => IsAcceptable(m));
+
+            bool IsAcceptable(IMethodSymbol method)
+            {
+                var parameterCount = method.Parameters.Length;
+                for (var i = 0; i < arguments.Count; i++)
                 {
                     if (i >= parameterCount)
                     {
                         return false;
                     }
+
                     var parameter = method.Parameters[i];
                     var parameterRefKind = parameter.RefKind;
                     var argument = arguments[i];
@@ -115,12 +117,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                         {
                             return true;
                         }
+
                         if (parameterRefKind == argumentRefKind)
                         {
                             return true;
                         }
                     }
                 }
+
                 return true;
             }
         }

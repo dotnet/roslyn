@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool CanConvert(SemanticModel semanticModel, SyntaxNode node, ITypeSymbol type)
         {
-            var conversion = semanticModel.ClassifyConversion((ExpressionSyntax)node, type) ;
+            var conversion = semanticModel.ClassifyConversion((ExpressionSyntax)node, type);
             return conversion.Exists && conversion.IsImplicit;
         }
     }
