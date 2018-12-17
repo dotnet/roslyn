@@ -1,60 +1,104 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
     internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyzer
     {
-        private sealed class Analyzer : OperationVisitor<object, AnalysisResult>
+        private sealed class Analyzer : CSharpSyntaxVisitor<AnalysisResult>
         {
-            private Analyzer()
+            private readonly SemanticModel _semanticModel;
+
+            private Analyzer(SemanticModel semanticModel)
             {
+                _semanticModel = semanticModel;
             }
 
-            public static bool CanConvertToSwitchExpression(ISwitchOperation operation)
+            public static bool CanConvertToSwitchExpression(SyntaxNode node, SemanticModel semanticModel)
             {
-                // When results are combined, "Neutral" can be overridden, but "Failure" can't.
-                // The result might remain neutral at the end, e.g. when all cases are `break;` alone,
-                // in which case we cannot convert this to a switch expression.
-                var analysisResult = new Analyzer().VisitSwitch(operation, unused: null);
-                return !analysisResult.IsNeutral && !analysisResult.IsFailure;
+                return new Analyzer(semanticModel).Visit(node).Success;
             }
 
-            public override AnalysisResult VisitSwitch(ISwitchOperation operation, object unused)
+            private static bool IsDefaultSwitchLabel(SwitchLabelSyntax node)
             {
-                // Fail if the switch statement is empty or any of sections have more than one `case` label
+                // default:
+                if (node.IsKind(SyntaxKind.DefaultSwitchLabel))
+                {
+                    return true;
+                }
+
+                if (node.IsKind(SyntaxKind.CasePatternSwitchLabel, out CasePatternSwitchLabelSyntax @case))
+                {
+                    // case _:
+                    if (@case.Pattern.IsKind(SyntaxKind.DiscardPattern))
+                    {
+                        return true;
+                    }
+
+                    // case var _:
+                    // case var x:
+                    if (@case.Pattern.IsKind(SyntaxKind.VarPattern, out VarPatternSyntax varPattern) && 
+                        varPattern.Designation.IsKind(SyntaxKind.DiscardDesignation, SyntaxKind.SingleVariableDesignation))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            public override AnalysisResult VisitSwitchStatement(SwitchStatementSyntax node)
+            {
+                // Fail if the switch statement is empty or any of sections have more than one "case" label.
                 // Once we have "or" patterns, we can relax this to accept multi-case sections.
-                if (operation.Cases.Length == 0 || operation.Cases.Any(@case => @case.Clauses.Length != 1))
+                var sections = node.Sections;
+                if (sections.Count == 0 || sections.Any(section => section.Labels.Count != 1))
                 {
                     return AnalysisResult.Failure;
                 }
 
-                // Iterate over all sections and match section bodies to
-                // see if they are all well-formed for a switch expression
-                return Aggregate(operation.Cases, (result, @case) => AnalysisResult.Match(result, VisitList(@case.Body)));
+                return AnalysisResult.Match(
+                    // If there's no "default" case, we look at the next statement.
+                    // For instance, it could be a "return" statement which we'll use 
+                    // as the default case in the switch expression.
+                    sections.Any(section => IsDefaultSwitchLabel(section.Labels[0]))
+                        ? AnalysisResult.Neutral
+                        : AnalyzeNextStatement(node.GetNextStatement()),
+                    // Iterate over all sections and match section bodies to
+                    // see if they are all convertible to a switch arm's expression.
+                    Aggregate(sections, (result, section) => AnalysisResult.Match(result, AnalyzeSwitchSection(section))));
             }
 
-            private AnalysisResult VisitList(ImmutableArray<IOperation> operations)
+            private AnalysisResult AnalyzeNextStatement(StatementSyntax nextStatement)
             {
-                // This is eaither a block or switch section body. Here we "combine" the result, since there could be
-                // compatible statements like the ending `break;` or multiple simple assignments
-                return Aggregate(operations, (result, operation) => AnalysisResult.Combine(result, Visit(operation, /*unused*/argument: null)));
+                // Only the following "throw" and "return" can be moved into the switch expression.
+                return nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement)
+                    ? Visit(nextStatement)
+                    : AnalysisResult.Failure;
             }
 
-            private static AnalysisResult Aggregate<T>(ImmutableArray<T> operations, Func<AnalysisResult, T, AnalysisResult> func)
+            private AnalysisResult AnalyzeSwitchSection(SwitchSectionSyntax section)
+            {
+                // This is a switch section body. Here we "combine" the result, since there could be
+                // compatible statements like the ending `break;` with some other assignments.
+                return Aggregate(section.Statements, (result, node) => AnalysisResult.Combine(result, Visit(node)));
+            }
+
+            private static AnalysisResult Aggregate<T>(SyntaxList<T> nodes, Func<AnalysisResult, T, AnalysisResult> func)
+                where T : SyntaxNode
             {
                 var result = AnalysisResult.Neutral;
-                foreach (var operation in operations)
+                foreach (var node in nodes)
                 {
-                    result = func(result, operation);
+                    result = func(result, node);
                     if (result.IsFailure)
                     {
-                        // No point to continue if any operation is
-                        // not well-formed for a switch expression 
+                        // No point to continue if any node was not
+                        // convertible to a switch arm's expression
                         break;
                     }
                 }
@@ -62,46 +106,39 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return result;
             }
 
-            public override AnalysisResult VisitReturn(IReturnOperation operation, object unused)
+            public override AnalysisResult VisitAssignmentExpression(AssignmentExpressionSyntax node)
             {
-                return AnalysisResult.Return;
+                return node.IsKind(SyntaxKind.SimpleAssignmentExpression)
+                    ? AnalysisResult.Assignment(_semanticModel.GetSymbolInfo(node.Left).Symbol)
+                    : AnalysisResult.Failure;
             }
 
-            public override AnalysisResult VisitSimpleAssignment(ISimpleAssignmentOperation operation, object unused)
+            public override AnalysisResult VisitBreakStatement(BreakStatementSyntax node)
             {
-                // Visit the target which could a local or field reference,
-                // in which case we can assign the switch expression to it.
-                return Visit(operation.Target, /*unused*/argument: null);
+                // Only `break;` is allowed which could appear after some assignments.
+                return AnalysisResult.Break;
             }
 
-            public override AnalysisResult VisitLocalReference(ILocalReferenceOperation operation, object unused)
+            public override AnalysisResult VisitExpressionStatement(ExpressionStatementSyntax node)
             {
-                return AnalysisResult.Assignment(operation.Local);
+                return Visit(node.Expression);
             }
 
-            public override AnalysisResult VisitFieldReference(IFieldReferenceOperation operation, object unused)
+            public override AnalysisResult VisitReturnStatement(ReturnStatementSyntax node)
             {
-                return AnalysisResult.Assignment(operation.Field);
+                // A "return" statement's expression will be placed in the switch arm expression.
+                return node.Expression is null ? AnalysisResult.Failure : AnalysisResult.Return;
             }
 
-            public override AnalysisResult VisitBranch(IBranchOperation operation, object unused)
-            {
-                // Only `break` is allowed which gives Neutral result to be able to combine with other valid statements.
-                return operation.BranchKind == BranchKind.Break ? AnalysisResult.Neutral : AnalysisResult.Failure;
-            }
-
-            public override AnalysisResult VisitExpressionStatement(IExpressionStatementOperation operation, object unused)
-            {
-                return Visit(operation.Operation, /*unused*/argument: null);
-            }
-
-            public override AnalysisResult VisitThrow(IThrowOperation operation, object unused)
+            public override AnalysisResult VisitThrowStatement(ThrowStatementSyntax node)
             {
                 // A "throw" statement can be converted to a throw expression.
-                return operation.Exception is null ? AnalysisResult.Failure : AnalysisResult.Neutral;
+                // Gives Neutral result because it's valid for any kind of switch expression.
+                // Gives Failure if Expression is null because a throw expression needs one.
+                return node.Expression is null ? AnalysisResult.Failure : AnalysisResult.Neutral;
             }
 
-            public override AnalysisResult DefaultVisit(IOperation operation, object unused)
+            public override AnalysisResult DefaultVisit(SyntaxNode node)
             {
                 // In all other cases we return failure result.
                 return AnalysisResult.Failure;

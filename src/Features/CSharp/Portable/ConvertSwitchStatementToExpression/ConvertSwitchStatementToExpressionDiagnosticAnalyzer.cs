@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
@@ -17,29 +17,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         }
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.Switch);
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.SwitchStatement);
 
-        private void AnalyzeOperation(OperationAnalysisContext context)
+        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var switchOperation = (ISwitchOperation)context.Operation;
-            if (switchOperation.Syntax.ContainsDiagnostics)
+            var switchStatement = context.Node;
+            if (switchStatement.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
             {
                 return;
             }
 
-            if (!Analyzer.CanConvertToSwitchExpression(switchOperation))
+            if (!Analyzer.CanConvertToSwitchExpression(switchStatement, context.SemanticModel))
             {
                 return;
             }
 
             context.ReportDiagnostic(Diagnostic.Create(Descriptor,
-                switchOperation.Syntax.GetFirstToken().GetLocation()));
+                // Report the diagnostic on the "switch" keyword.
+                switchStatement.GetFirstToken().GetLocation()));
         }
 
         public override bool OpenFileOnly(Workspace workspace)
             => false;
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+            => DiagnosticAnalyzerCategory.SyntaxAnalysis;
     }
 }
