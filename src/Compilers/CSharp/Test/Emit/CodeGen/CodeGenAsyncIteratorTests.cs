@@ -2402,7 +2402,7 @@ public class C : System.Collections.Generic.IAsyncEnumerable<int>
     {
         return new C();
     }
-    public async System.Collections.Generic.IAsyncEnumerator<int> GetAsyncEnumerator()
+    public async System.Collections.Generic.IAsyncEnumerator<int> GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         yield return 1;
         await System.Threading.Tasks.Task.Delay(10);
