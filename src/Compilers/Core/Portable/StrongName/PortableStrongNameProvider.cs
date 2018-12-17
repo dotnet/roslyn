@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     internal sealed class PortableStrongNameProvider : StrongNameProvider
     {
         private readonly ImmutableArray<string> _keyFileSearchPaths;
-        internal StrongNameFileSystem FileSystem { get; }
+        internal override StrongNameFileSystem FileSystem { get; }
 
         public PortableStrongNameProvider(ImmutableArray<string> keySearchPaths, StrongNameFileSystem strongNameFileSystem)
         {
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
-                return CommonCreateKeys(FileSystem, keyFilePath, _keyFileSearchPaths, messageProvider);
+                return CommonCreateKeys(keyFilePath, _keyFileSearchPaths, messageProvider);
             }
 
             return new StrongNameKeys(keyPair, publicKey, null, container, keyFilePath);

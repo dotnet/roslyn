@@ -33,35 +33,35 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var subdirSearchPath = ImmutableArray.Create(subdir);
 
             // using base directory; base path ignored
-            var path = provider.FileSystem.ResolveStrongNameKeyFile(fileName, subdirSearchPath);
+            var path = provider.ResolveStrongNameKeyFile(fileName, subdirSearchPath);
             Assert.Equal(subFilePath, path, StringComparer.OrdinalIgnoreCase);
 
             // search paths
             var searchPathsSP = ImmutableArray.Create(@"C:\goo", dir, subdir);
 
-            path = provider.FileSystem.ResolveStrongNameKeyFile(fileName, searchPathsSP);
+            path = provider.ResolveStrongNameKeyFile(fileName, searchPathsSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // null base dir, no search paths
             var searchPathsEmpty = ImmutableArray<string>.Empty;
 
             // relative path
-            path = provider.FileSystem.ResolveStrongNameKeyFile(fileName, searchPathsEmpty);
+            path = provider.ResolveStrongNameKeyFile(fileName, searchPathsEmpty);
             Assert.Null(path);
 
             // full path
-            path = provider.FileSystem.ResolveStrongNameKeyFile(filePath, searchPathsEmpty);
+            path = provider.ResolveStrongNameKeyFile(filePath, searchPathsEmpty);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // null base dir
             var searchPathsNullBaseSP = ImmutableArray.Create(dir, subdir);
 
             // relative path
-            path = provider.FileSystem.ResolveStrongNameKeyFile(fileName, searchPathsNullBaseSP);
+            path = provider.ResolveStrongNameKeyFile(fileName, searchPathsNullBaseSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // full path
-            path = provider.FileSystem.ResolveStrongNameKeyFile(filePath, searchPathsNullBaseSP);
+            path = provider.ResolveStrongNameKeyFile(filePath, searchPathsNullBaseSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
         }
 

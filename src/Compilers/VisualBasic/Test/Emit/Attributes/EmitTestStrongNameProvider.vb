@@ -19,6 +19,7 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
         Public Property ThrownException As Exception
 
         Friend Overrides ReadOnly Property Capability As SigningCapability = SigningCapability.SignsStream
+        Friend Overrides ReadOnly Property FileSystem As StrongNameFileSystem = ThrowingStrongNameFileSystem.Instance
 
         Public Sub New(underlyingProvider As StrongNameProvider)
             _underlyingProvider = underlyingProvider

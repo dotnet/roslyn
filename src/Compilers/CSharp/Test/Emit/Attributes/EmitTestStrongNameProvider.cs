@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             public Exception ThrownException;
 
             internal override SigningCapability Capability => SigningCapability.SignsStream;
+            internal override StrongNameFileSystem FileSystem => ThrowingStrongNameFileSystem.Instance;
 
             public StrongNameProviderWithBadInputStream(StrongNameProvider underlyingProvider)
             {
@@ -71,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
             }
-
 
             internal delegate void ReadKeysFromContainerDelegate(
                 string keyContainer,

@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ImmutableArray<string> _keyFileSearchPaths;
         private readonly string _tempPath;
-        internal StrongNameFileSystem FileSystem { get; }
+        internal override StrongNameFileSystem FileSystem { get; }
 
         // for testing/mocking
         internal Func<IClrStrongName> TestStrongNameInterfaceFactory;
@@ -126,6 +126,7 @@ namespace Microsoft.CodeAnalysis
 
         public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths) : this(keyFileSearchPaths, null, null)
         {
+
         }
 
         /// <summary>
@@ -135,6 +136,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="keyFileSearchPaths">An ordered set of fully qualified paths which are searched when locating a cryptographic key file.</param>
         public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths = default(ImmutableArray<string>), string tempPath = null) : this(keyFileSearchPaths, tempPath, null)
         {
+
         }
 
         internal DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths, string tempPath, StrongNameFileSystem strongNameFileSystem)
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
-                return CommonCreateKeys(FileSystem, keyFilePath, _keyFileSearchPaths, messageProvider);
+                return CommonCreateKeys(keyFilePath, _keyFileSearchPaths, messageProvider);
             }
             else if (!string.IsNullOrEmpty(keyContainerName))
             {
