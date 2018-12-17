@@ -65747,5 +65747,66 @@ class Program
             var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
+
+        [WorkItem(31770, "https://github.com/dotnet/roslyn/issues/31770")]
+        [Fact]
+        public void UserDefinedConversion_NestedNullability_01()
+        {
+            var source =
+@"class A<T> { }
+class B
+{
+    public static implicit operator B(A<object> a) => throw null;
+}
+class Program
+{
+    static void F(B b) { }
+    static void Main()
+    {
+        A<object?> a = new A<object?>();
+        B b = a; // 1
+        F(a); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31798: Consider improving warning to reference user-defined operator.
+            comp.VerifyDiagnostics(
+                // (12,15): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'A<object>'.
+                //         B b = a; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a").WithArguments("A<object?>", "A<object>").WithLocation(12, 15),
+                // (13,11): warning CS8620: Nullability of reference types in argument of type 'A<object?>' doesn't match target type 'A<object>' for parameter 'b' in 'void Program.F(B b)'.
+                //         F(a); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "a").WithArguments("A<object?>", "A<object>", "b", "void Program.F(B b)").WithLocation(13, 11));
+        }
+
+        [Fact]
+        public void UserDefinedConversion_NestedNullability_02()
+        {
+            var source =
+@"class A<T> { }
+class B
+{
+    public static implicit operator A<object>(B b) => throw null;
+}
+class Program
+{
+    static void F(A<object?> a) { }
+    static void Main()
+    {
+        B b = new B();
+        A<object?> a = b; // 1
+        F(b); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31798: Consider improving warning to reference user-defined operator.
+            comp.VerifyDiagnostics(
+                // (12,24): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'A<object?>'.
+                //         A<object?> a = b; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("A<object>", "A<object?>").WithLocation(12, 24),
+                // (13,11): warning CS8620: Nullability of reference types in argument of type 'A<object>' doesn't match target type 'A<object?>' for parameter 'a' in 'void Program.F(A<object?> a)'.
+                //         F(b); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "b").WithArguments("A<object>", "A<object?>", "a", "void Program.F(A<object?> a)").WithLocation(13, 11));
+        }
     }
 }
