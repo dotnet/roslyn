@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
-    class C { int F = int.TryParse("whatever", out int parsed) ? parsed : -1; }
     internal static class ClassificationHelpers
     {
         private const string FromKeyword = "from";
@@ -30,9 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.ControlKeyword;
             }
-            // When classifying `_`, IsKeywordKind handles UnderscoreToken, but need to additional check for DiscardDesignation
             else if (SyntaxFacts.IsKeywordKind(token.Kind()) || token.IsKind(SyntaxKind.DiscardDesignation))
             {
+                // When classifying `_`, IsKeywordKind handles UnderscoreToken, but need to additional check for DiscardDesignation
                 return ClassificationTypeNames.Keyword;
             }
             else if (SyntaxFacts.IsPunctuation(token.Kind()))
