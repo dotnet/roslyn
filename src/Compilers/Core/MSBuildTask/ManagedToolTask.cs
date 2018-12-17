@@ -80,21 +80,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// as the implementation of IsManagedTool calls this property. See the comment in
         /// <see cref="ManagedCompiler.HasToolBeenOverridden"/>.
         /// </remarks>
-        protected sealed override string ToolName
-            => $"{ToolNameWithoutExtension}.{(CoreClrShim.IsRunningOnCoreClr ? "dll" : "exe")}";
+        protected sealed override string ToolName => $"{ToolNameWithoutExtension}.{ToolExtension}";
+
+        private static string ToolExtension =>
+#if NETCOREAPP2_1
+            "dll";
+#elif NET472
+            "exe";
+#else
+#error Unrecognized framework
+#endif
 
         private static bool IsCliHost(out string pathToDotnet)
         {
-            if (CoreClrShim.IsRunningOnCoreClr)
-            {
-                pathToDotnet = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH");
-                return !string.IsNullOrEmpty(pathToDotnet);
-            }
-            else
-            {
-                pathToDotnet = null;
-                return false;
-            }
+#if NETCOREAPP2_1
+            pathToDotnet = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH");
+            return !string.IsNullOrEmpty(pathToDotnet);
+#elif NET472
+            pathToDotnet = null;
+            return false;
+#else
+#error Unrecognized framework
+#endif
         }
 
         private static string PrependFileToArgs(string pathToTool, string commandLineArgs)

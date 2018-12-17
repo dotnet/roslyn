@@ -374,32 +374,30 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static bool TryCreateServerCore(string clientDir, string pipeName)
         {
-            bool isRunningOnCoreClr = CoreClrShim.IsRunningOnCoreClr;
             string expectedPath;
             string processArguments;
-            if (isRunningOnCoreClr)
-            {
-                // The server should be in the same directory as the client
-                var expectedCompilerPath = Path.Combine(clientDir, ServerNameCoreClr);
-                expectedPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
-                processArguments = $@"""{expectedCompilerPath}"" ""-pipename:{pipeName}""";
+#if NETCOREAPP2_1
+            // The server should be in the same directory as the client
+            var expectedCompilerPath = Path.Combine(clientDir, ServerNameCoreClr);
+            expectedPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
+            processArguments = $@"""{expectedCompilerPath}"" ""-pipename:{pipeName}""";
 
-                if (!File.Exists(expectedCompilerPath))
-                {
-                    return false;
-                }
-            }
-            else
+            if (!File.Exists(expectedCompilerPath))
             {
-                // The server should be in the same directory as the client
-                expectedPath = Path.Combine(clientDir, ServerNameDesktop);
-                processArguments = $@"""-pipename:{pipeName}""";
-
-                if (!File.Exists(expectedPath))
-                {
-                    return false;
-                }
+                return false;
             }
+#elif NET472
+            // The server should be in the same directory as the client
+            expectedPath = Path.Combine(clientDir, ServerNameDesktop);
+            processArguments = $@"""-pipename:{pipeName}""";
+
+            if (!File.Exists(expectedPath))
+            {
+                return false;
+            }
+#else
+#error Unrecognized configuration
+#endif
 
             if (PlatformInformation.IsWindows)
             {
