@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         [Conditional("DEBUG")]
         private static void AssertValidCopyAnalysisEntity(AnalysisEntity analysisEntity)
         {
-            Debug.Assert(!analysisEntity.HasUnknownInstanceLocationWithEmptyLocations, "Don't track entities if do not know about it's instance location");
+            Debug.Assert(!analysisEntity.HasUnknownInstanceLocation, "Don't track entities if do not know about it's instance location");
         }
     }
 }

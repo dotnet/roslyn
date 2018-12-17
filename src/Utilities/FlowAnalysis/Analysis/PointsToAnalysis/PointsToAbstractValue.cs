@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             Debug.Assert(locations.All(location => !location.IsNull) || nullState != NullAbstractValue.NotNull);
             Debug.Assert(nullState != NullAbstractValue.Undefined);
             Debug.Assert(nullState != NullAbstractValue.Invalid);
+            Debug.Assert(!locations.Any(l => l.IsAnalysisEntityDefaultLocation && l.AnalysisEntityOpt.HasUnknownInstanceLocation));
 
             Locations = locations;
             LValueCapturedOperations = ImmutableHashSet<IOperation>.Empty;

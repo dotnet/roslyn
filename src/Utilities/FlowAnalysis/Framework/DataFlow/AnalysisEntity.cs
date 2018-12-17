@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public AnalysisEntity ParentOpt { get; }
         public bool IsThisOrMeInstance { get; }
 
-        public bool HasUnknownInstanceLocationWithEmptyLocations => InstanceLocation.Kind == PointsToAbstractValueKind.Unknown;
+        public bool HasUnknownInstanceLocation => InstanceLocation.Kind == PointsToAbstractValueKind.Unknown;
 
         public bool EqualsIgnoringInstanceLocation(AnalysisEntity other)
         {

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 Debug.Assert(ReferenceEquals(sourceCopyAnalysisData, targetCopyAnalysisData) || fromPredicate);
 
                 // Don't track entities if do not know about it's instance location.
-                if (analysisEntity.HasUnknownInstanceLocationWithEmptyLocations)
+                if (analysisEntity.HasUnknownInstanceLocation)
                 {
                     return;
                 }
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                         value = fixedUpValue;
                     }
 
-                    var validEntities = value.AnalysisEntities.Where(entity => !entity.HasUnknownInstanceLocationWithEmptyLocations).ToImmutableHashSet();
+                    var validEntities = value.AnalysisEntities.Where(entity => !entity.HasUnknownInstanceLocation).ToImmutableHashSet();
                     if (validEntities.Count < value.AnalysisEntities.Count)
                     {
                         value = validEntities.Count > 0 ? new CopyAbstractValue(validEntities) : CopyAbstractValue.Unknown;
