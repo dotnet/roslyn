@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
@@ -33,12 +35,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
         protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            var spans = ArrayBuilder<TextSpan>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {
-                var node = (SwitchStatementSyntax)editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan);
+                var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan);
+                if (spans.Any((span, nodeSpan) => span.Contains(nodeSpan), node.Span))
+                {
+                    continue;
+                }
+
+                spans.Add(node.Span);
                 editor.ReplaceNode(node, (@switch, _) => Rewriter.Rewrite(@switch).WithAdditionalAnnotations(Formatter.Annotation));
 
-                var nextStatement = node.GetNextStatement();
+                var nextStatement = ((SwitchStatementSyntax)node).GetNextStatement();
                 if (nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement) &&
                     // e.g. not unreachable which means we had a non-exhastive switch
                     !nextStatement.ContainsDiagnostics)
@@ -48,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 }
             }
 
+            spans.Free();
             return Task.CompletedTask;
         }
 
