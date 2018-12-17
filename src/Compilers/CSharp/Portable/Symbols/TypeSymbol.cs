@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract partial class TypeSymbol : NamespaceOrTypeSymbol, ITypeSymbol
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
         // Do not make any changes to the public interface without making the corresponding change
         // to the VB version.
@@ -1559,5 +1558,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (comparison == TypeCompareKind.ConsiderEverything && (object)left == (object)right)
                 || right.Equals(left, comparison);
         }
+
+        [Obsolete("Use TypeSymbol.Equals method.", true)]
+        public static bool operator ==(TypeSymbol left, TypeSymbol right)
+            => throw ExceptionUtilities.Unreachable;
+
+        [Obsolete("Use TypeSymbol.Equals method.", true)]
+        public static bool operator !=(TypeSymbol left, TypeSymbol right)
+            => throw ExceptionUtilities.Unreachable;
     }
 }
