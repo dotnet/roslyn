@@ -97,6 +97,8 @@
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
+      <_Dependency Remove="VSLangProj"/>
+      <_Dependency Remove="VSLangProj2"/>
       <_Dependency Remove="VSLangProj80"/>
     </ItemGroup>
 
