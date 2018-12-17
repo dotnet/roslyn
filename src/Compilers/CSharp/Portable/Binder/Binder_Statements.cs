@@ -1167,6 +1167,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_ManagedAddr, initializerSyntax, elementType);
                 hasErrors = true;
             }
+            else if (elementType.GetArity() != 0)
+            {
+                var supported = MessageID.IDS_FeatureUnmanagedGenericStructs.RequiredVersion() >= Compilation.LanguageVersion;
+                if (!supported)
+                {
+                    // PROTOTYPE
+                    MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, initializerSyntax.Location);
+                    hasErrors = true;
+                }
+            }
 
             initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, fixedPatternMethod, hasErrors, diagnostics);
             return true;

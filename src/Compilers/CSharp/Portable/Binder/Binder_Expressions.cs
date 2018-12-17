@@ -1132,10 +1132,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool typeHasErrors = type.IsErrorType();
 
-            if (!typeHasErrors && type.IsManagedType)
+            if (!typeHasErrors)
             {
-                diagnostics.Add(ErrorCode.ERR_ManagedAddr, node.Location, type);
-                typeHasErrors = true;
+                if (type.IsManagedType)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ManagedAddr, typeSyntax.Location, type);
+                    typeHasErrors = true;
+                }
+                else if (type.GetArity() != 0)
+                {
+                    var unsupported = Compilation.LanguageVersion < MessageID.IDS_FeatureUnmanagedGenericStructs.RequiredVersion();
+                    if (unsupported)
+                    {
+                        // PROTOTYPE
+                        MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, typeSyntax.Location);
+                        typeHasErrors = true;
+                    }
+                }
             }
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, type, typeHasErrors);
@@ -2870,9 +2883,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bestType = CreateErrorType();
             }
 
-            if (!bestType.IsErrorType() && bestType.IsManagedType)
+            if (!bestType.IsErrorType())
             {
-                Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, bestType);
+                if (bestType.IsManagedType)
+                {
+                    Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, bestType);
+                }
+                else if (bestType.GetArity() != 0)
+                {
+                    MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, node.Location);
+                }
             }
 
             return BindStackAllocWithInitializer(
@@ -3223,10 +3243,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elementType = BindType(elementTypeSyntax, diagnostics);
 
             TypeSymbol type = GetStackAllocType(node, elementType, diagnostics, out bool hasErrors);
-            if (!elementType.IsErrorType() && elementType.IsManagedType)
+            if (!elementType.IsErrorType())
             {
-                Error(diagnostics, ErrorCode.ERR_ManagedAddr, elementTypeSyntax, elementType.TypeSymbol);
-                hasErrors = true;
+                if (elementType.IsManagedType)
+                {
+                    Error(diagnostics, ErrorCode.ERR_ManagedAddr, elementTypeSyntax, elementType.TypeSymbol);
+                    hasErrors = true;
+                }
+                else if (elementType.TypeSymbol.GetArity() != 0)
+                {
+                    var unsupported = Compilation.LanguageVersion < MessageID.IDS_FeatureUnmanagedGenericStructs.RequiredVersion();
+                    if (unsupported)
+                    {
+                        // PROTOTYPE
+                        MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, elementTypeSyntax.Location);
+                        hasErrors = true;
+                    }
+                }
             }
 
             SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers = arrayTypeSyntax.RankSpecifiers;

@@ -2131,10 +2131,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowManagedAddressOf);
             if (!allowManagedAddressOf)
             {
-                if (!hasErrors && isManagedType)
+                if (!hasErrors)
                 {
-                    hasErrors = true;
-                    Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, operandType);
+                    if (isManagedType)
+                    {
+                        hasErrors = true;
+                        Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, operandType);
+                    }
+                    else if (operandType.GetArity() != 0)
+                    {
+                        var supported = MessageID.IDS_FeatureUnmanagedGenericStructs.RequiredVersion() >= Compilation.LanguageVersion;
+                        if (!supported)
+                        {
+                            // PROTOTYPE
+                            MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, node.Location);
+                            hasErrors = true;
+                        }
+                    }
                 }
 
                 if (!hasErrors)
