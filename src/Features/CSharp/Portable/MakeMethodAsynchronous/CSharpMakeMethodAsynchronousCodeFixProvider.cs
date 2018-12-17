@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             {
                 if (!keepVoid)
                 {
-                    newReturnType = knownTypes.TaskType.GenerateTypeSyntax();
+                    newReturnType = knownTypes._taskType.GenerateTypeSyntax();
                 }
             }
             else
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                 {
                     // If it's not already Task-like, then wrap the existing return type
                     // in Task<>.
-                    newReturnType = knownTypes.TaskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax();
+                    newReturnType = knownTypes._taskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax();
                 }
             }
 
@@ -130,18 +130,18 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         private static bool IsIAsyncEnumerableOrEnumerator(ITypeSymbol returnType, KnownTypes knownTypes)
         {
-            return returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumerableOfTType) ||
-                returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumeratorOfTType);
+            return returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTType) ||
+                returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumeratorOfTType);
         }
 
         private static bool IsIEnumerable(ITypeSymbol returnType, KnownTypes knownTypes)
         {
-            return returnType.OriginalDefinition.Equals(knownTypes.IEnumerableOfTType);
+            return returnType.OriginalDefinition.Equals(knownTypes._iEnumerableOfTType);
         }
 
         private static bool IsIEnumerator(ITypeSymbol returnType, KnownTypes knownTypes)
         {
-            return returnType.OriginalDefinition.Equals(knownTypes.IEnumeratorOfTType);
+            return returnType.OriginalDefinition.Equals(knownTypes._iEnumeratorOfTType);
         }
 
         private static SyntaxTokenList AddAsyncModifierWithCorrectedTrivia(SyntaxTokenList modifiers, ref TypeSyntax newReturnType)

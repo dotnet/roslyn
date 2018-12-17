@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             // if our member is already Task-Like, and that functionality recognizes
             // ValueTask if it is available, but does not care if it is not.
             var knownTypes = new KnownTypes(compilation);
-            if (knownTypes.TaskType == null || knownTypes.TaskOfTType == null)
+            if (knownTypes._taskType == null || knownTypes._taskOfTType == null)
             {
                 return;
             }
@@ -157,17 +157,17 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
         protected static bool IsTaskLike(ITypeSymbol returnType, KnownTypes knownTypes)
         {
-            if (returnType.Equals(knownTypes.TaskType))
+            if (returnType.Equals(knownTypes._taskType))
             {
                 return true;
             }
 
-            if (returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType))
+            if (returnType.OriginalDefinition.Equals(knownTypes._taskOfTType))
             {
                 return true;
             }
 
-            if (returnType.OriginalDefinition.Equals(knownTypes.ValueTaskOfTTypeOpt))
+            if (returnType.OriginalDefinition.Equals(knownTypes._valueTaskOfTTypeOpt))
             {
                 return true;
             }
@@ -191,28 +191,28 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
         protected struct KnownTypes
         {
+            public INamedTypeSymbol _taskType;
+            public INamedTypeSymbol _taskOfTType;
+            public INamedTypeSymbol _valueTaskOfTTypeOpt;
+
+            public INamedTypeSymbol _iEnumerableOfTType;
+            public INamedTypeSymbol _iEnumeratorOfTType;
+
+            public INamedTypeSymbol _iAsyncEnumerableOfTType;
+            public INamedTypeSymbol _iAsyncEnumeratorOfTType;
+
             internal KnownTypes(Compilation compilation)
             {
-                TaskType = compilation.TaskType();
-                TaskOfTType = compilation.TaskOfTType();
-                ValueTaskOfTTypeOpt = compilation.ValueTaskOfTType();
+                _taskType = compilation.TaskType();
+                _taskOfTType = compilation.TaskOfTType();
+                _valueTaskOfTTypeOpt = compilation.ValueTaskOfTType();
 
-                IEnumerableOfTType = compilation.IEnumerableOfTType();
-                IEnumeratorOfTType = compilation.IEnumeratorOfTType();
+                _iEnumerableOfTType = compilation.IEnumerableOfTType();
+                _iEnumeratorOfTType = compilation.IEnumeratorOfTType();
 
-                IAsyncEnumerableOfTType = compilation.IAsyncEnumerableOfTType();
-                IAsyncEnumeratorOfTType = compilation.IAsyncEnumeratorOfTType();
+                _iAsyncEnumerableOfTType = compilation.IAsyncEnumerableOfTType();
+                _iAsyncEnumeratorOfTType = compilation.IAsyncEnumeratorOfTType();
             }
-
-            public INamedTypeSymbol TaskType;
-            public INamedTypeSymbol TaskOfTType;
-            public INamedTypeSymbol ValueTaskOfTTypeOpt;
-
-            public INamedTypeSymbol IEnumerableOfTType;
-            public INamedTypeSymbol IEnumeratorOfTType;
-
-            public INamedTypeSymbol IAsyncEnumerableOfTType;
-            public INamedTypeSymbol IAsyncEnumeratorOfTType;
         }
     }
 }

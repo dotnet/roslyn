@@ -697,7 +697,7 @@ class Program
         yield return 1;
         [|await Task.Delay(1);|]
     }
-}" + iAsyncEnumerable;
+}" + IAsyncEnumerable;
 
             var expected =
 @"using System.Threading.Tasks;
@@ -709,7 +709,7 @@ class Program
         yield return 1;
         await Task.Delay(1);
     }
-}" + iAsyncEnumerable;
+}" + IAsyncEnumerable;
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
@@ -726,7 +726,7 @@ class Program
         yield return 1;
         [|await Task.Delay(1);|]
     }
-}" + iAsyncEnumerable;
+}" + IAsyncEnumerable;
 
             var expected =
 @"using System.Threading.Tasks;
@@ -738,11 +738,11 @@ class Program
         yield return 1;
         await Task.Delay(1);
     }
-}" + iAsyncEnumerable;
+}" + IAsyncEnumerable;
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        const string iAsyncEnumerable = @"
+        const string IAsyncEnumerable = @"
 namespace System
 {
     public interface IAsyncDisposable

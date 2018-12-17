@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
         public static readonly string EquivalenceKey = FeaturesResources.Make_method_synchronous;
 
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
-        protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, ITypeSymbol taskType, ITypeSymbol taskOfTType);
+        protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -89,11 +89,10 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             Document document, IMethodSymbol methodSymbolOpt, SyntaxNode node, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var taskType = compilation.TaskType();
-            var taskOfTType = compilation.TaskOfTType();
+            var knownTypes = new KnownTypes(compilation);
 
             var annotation = new SyntaxAnnotation();
-            var newNode = RemoveAsyncTokenAndFixReturnType(methodSymbolOpt, node, taskType, taskOfTType)
+            var newNode = RemoveAsyncTokenAndFixReturnType(methodSymbolOpt, node, knownTypes)
                 .WithAdditionalAnnotations(Formatter.Annotation, annotation);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -252,6 +251,28 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             public MyCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution)
                 : base(FeaturesResources.Make_method_synchronous, createChangedSolution, AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey)
             {
+            }
+        }
+
+        protected struct KnownTypes
+        {
+            public ITypeSymbol _taskType;
+            public ITypeSymbol _taskOfTType;
+
+            public INamedTypeSymbol _iEnumerableOfTType;
+            public INamedTypeSymbol _iEnumeratorOfTType;
+
+            public ITypeSymbol _iAsyncEnumerableOfTType;
+            public ITypeSymbol _iAsyncEnumeratorOfTType;
+
+            internal KnownTypes(Compilation compilation)
+            {
+                _taskType = compilation.TaskType();
+                _taskOfTType = compilation.TaskOfTType();
+                _iEnumerableOfTType = compilation.IEnumerableOfTType();
+                _iEnumeratorOfTType = compilation.IEnumeratorOfTType();
+                _iAsyncEnumerableOfTType = compilation.IAsyncEnumerableOfTType();
+                _iAsyncEnumeratorOfTType = compilation.IAsyncEnumeratorOfTType();
             }
         }
     }
