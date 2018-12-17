@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Synthesize a no-argument call to a given method, possibly applying a conversion to the receiver.
+        /// Synthesize a call to a given method, possibly applying a conversion to the receiver.
         /// 
         /// If the receiver is of struct type and the method is an interface method, then skip the conversion
         /// and just call the interface method directly - the code generator will detect this and generate a 
