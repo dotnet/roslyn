@@ -77,6 +77,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 SetAbstractValue(CurrentAnalysisData, analysisEntity, value, TryGetAddressSharedCopyValue, fromPredicate: false);
             }
 
+            protected override void SetAbstractValueForAssignment(AnalysisEntity targetAnalysisEntity, IOperation assignedValueOperation, CopyAbstractValue assignedValue)
+            {
+                if (assignedValue.AnalysisEntities.Contains(targetAnalysisEntity))
+                {
+                    // Dead assignment (assigning the same value).
+                    return;
+                }
+
+                base.SetAbstractValueForAssignment(targetAnalysisEntity, assignedValueOperation, assignedValue);
+            }
+
             private static void SetAbstractValue(
                 CopyAnalysisData copyAnalysisData,
                 AnalysisEntity analysisEntity,
