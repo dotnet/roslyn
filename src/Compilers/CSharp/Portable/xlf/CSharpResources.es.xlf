@@ -312,6 +312,11 @@
         <target state="new">unconstrained type parameters in null coalescing operator</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnmanagedGenericStructs">
+        <source>unmanaged generic structs</source>
+        <target state="new">unmanaged generic structs</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
         <source>unmanaged generic type constraints</source>
         <target state="new">unmanaged generic type constraints</target>
