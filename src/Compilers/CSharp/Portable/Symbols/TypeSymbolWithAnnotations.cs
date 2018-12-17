@@ -32,14 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return annotation == NullableAnnotation.NotAnnotated || annotation == NullableAnnotation.NotNullable;
         }
 
-#if DEBUG
         public static bool IsSpeakable(this NullableAnnotation annotation)
         {
             return annotation == NullableAnnotation.Unknown ||
                 annotation == NullableAnnotation.NotAnnotated ||
                 annotation == NullableAnnotation.Annotated;
         }
-#endif
 
         /// <summary>
         /// Join nullable annotations from the set of lower bounds for fixing a type parameter.
