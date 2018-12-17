@@ -7,6 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -144,39 +147,68 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             newProject = newProject.AddProjectReferences(allAddedProjectReferences);
 
             // Only consider insertion changes to reduce the chance of producing a
-            // badly merged final document. Check the imports at each span location
-            // and rewrite to remove extra newlines. Order to give a more
-            // correct result. The user may still need to use organize imports afterwards.
+            // badly merged final document. Alphabetize the new imports, this will not
+            // change the insertion point but will give a more correct result. The user
+            // may still need to use organize imports afterwards.
             var orderedTextInserts = allTextChanges.Where(change => change.Span.IsEmpty)
+                .OrderBy(change => change.NewText);
+
+            // Capture each location where we are inserting imports as well as the total
+            // length of the text we are inserting so that we can format the span afterwards.
+            var insertSpans = allTextChanges
                 .GroupBy(change => change.Span)
-                .SelectMany(PrepareTextChangesForInsertion);
+                .Select(changes => new TextSpan(changes.Key.Start, changes.Sum(change => change.NewText.Length)));
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(orderedTextInserts);
             var newDocument = newProject.GetDocument(document.Id).WithText(newText);
 
+            // When imports are added to a code file that has no previous imports extra
+            // newlines are generated between each import because the fix is expecting to
+            // separate the imports from the rest of the code file. We need to format the
+            // imports to remove these extra newlines.
+            return await CleanUpNewLinesAsync(newDocument, insertSpans, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<Document> CleanUpNewLinesAsync(Document document, IEnumerable<TextSpan> insertSpans, CancellationToken cancellationToken)
+        {
+            var languageFormatter = document.GetLanguageService<ISyntaxFormattingService>();
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var newDocument = document;
+
+            // Since imports can be added at both the CompilationUnit and the Namespace level,
+            // format each span individually so that we can retain each newline that was intended
+            // separate the import section from the other content.
+            foreach (var insertSpan in insertSpans)
+            {
+                newDocument = await CleanUpNewLinesAsync(newDocument, insertSpan, languageFormatter, options, cancellationToken).ConfigureAwait(false);
+            }
+
             return newDocument;
         }
 
-        private IEnumerable<TextChange> PrepareTextChangesForInsertion(IGrouping<TextSpan, TextChange> changes)
+        private async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, ISyntaxFormattingService languageFormatter, OptionSet options, CancellationToken cancellationToken)
         {
-            var first = changes.First();
-            var newLine = first.NewText.EndsWith("\r\n") ? "\r\n" : "\n";
-            var doubleNewLine = newLine + newLine;
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!changes.All(change => change.NewText.EndsWith(doubleNewLine)))
+            var textChanges = languageFormatter.Format(root, new[] { insertSpan }, options, new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken).GetTextChanges();
+
+            // If there are no changes then, do less work.
+            if (textChanges.Count == 0)
             {
-                // Order to try and give a more correct result.
-                return changes.OrderBy(change => change.NewText);
+                return document;
             }
 
-            // This span location had no pre-existing import statements.
-            // We need to compensate for each fix trying to add an additional
-            // newline to separate the imports from the rest of the code.
-            return changes.Select(change =>
-                    new TextChange(changes.Key, change.NewText.TrimEnd('\r', '\n') + newLine)) // Rewrite each text change to only apply a single newline.
-                    .OrderBy(change => change.NewText)                                         // Order to try and give a more correct result.
-                    .Concat(new[] { new TextChange(changes.Key, newLine) });                   // Add the newline intended to separate imports from code.
+            // If there are changes then, this was a case where there were no
+            // previous imports statements. We need to retain the final extra
+            // newline because that separates the imports section from the rest
+            // of the code.
+            textChanges.RemoveAt(textChanges.Count - 1);
+
+            var newText = text.WithChanges(textChanges);
+            return document.WithText(newText);
         }
 
         private async Task<(ProjectChanges, IEnumerable<TextChange>)> GetChangesForCodeActionAsync(
@@ -196,6 +228,32 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var projectChanges = newDocument.Project.GetChanges(document.Project);
 
             return (projectChanges, textChanges);
+        }
+
+        class CleanUpNewLinesFormatter : AbstractFormattingRule
+        {
+            private SourceText _text;
+
+            public CleanUpNewLinesFormatter(SourceText text)
+            {
+                _text = text;
+            }
+
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+            {
+                // Since we know the general shape of these new import statements, we simply look for where
+                // tokens are not on the same line and force them to only be separated by a single newline.
+
+                _text.GetLineAndOffset(previousToken.Span.Start, out int previousLine, out _);
+                _text.GetLineAndOffset(currentToken.Span.Start, out int currentLine, out _);
+
+                if (previousLine != currentLine)
+                {
+                    return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
+                }
+
+                return null;
+            }
         }
     }
 }
