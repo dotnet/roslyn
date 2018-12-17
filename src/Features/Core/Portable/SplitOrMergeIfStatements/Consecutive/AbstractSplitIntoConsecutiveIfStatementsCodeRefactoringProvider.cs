@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 // This will typically look like a single return, break, continue or a throw statement.
 
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var controlFlow = semanticModel.AnalyzeControlFlow(insideStatements.First(), insideStatements.Last());
+                var controlFlow = semanticModel.AnalyzeControlFlow(insideStatements[0], insideStatements[insideStatements.Count - 1]);
 
                 return !controlFlow.EndPointIsReachable;
             }

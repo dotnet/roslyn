@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             if (syntaxFacts.IsStatementContainer(statement.Parent))
             {
                 var statements = syntaxFacts.GetStatementContainerStatements(statement.Parent);
-                if (statements.FirstOrDefault() == statement)
+                if (statements.Count > 0 && statements[0] == statement)
                 {
                     var rootStatements = WalkUpPureBlocks(syntaxFacts, statements);
                     if (rootStatements.Count > 0 && ifGenerator.IsIfLikeStatement(rootStatements[0].Parent))
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 }
 
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var controlFlow = semanticModel.AnalyzeControlFlow(statements.First(), statements.Last());
+                var controlFlow = semanticModel.AnalyzeControlFlow(statements[0], statements[statements.Count - 1]);
 
                 return !controlFlow.EndPointIsReachable;
             }
