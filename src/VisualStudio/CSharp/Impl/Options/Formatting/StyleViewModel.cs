@@ -1036,7 +1036,7 @@ class Customer
 
     public int GetAge()
     {
-        return int GetAgeLocal();
+        return GetAgeLocal();
         
         int GetAgeLocal()
         {
