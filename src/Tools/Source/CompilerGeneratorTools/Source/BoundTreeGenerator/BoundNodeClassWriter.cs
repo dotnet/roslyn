@@ -831,11 +831,7 @@ namespace BoundTreeGenerator
                     //WriteLine("return visitor.Visit{0}(this, arg);", StripBound(name));
                     //Unbrace();
 
-                    Blank();
-                    WriteLine("public override BoundNode Accept(BoundTreeVisitor visitor)");
-                    Brace();
-                    WriteLine("return visitor.Visit{0}(this);", StripBound(name));
-                    Unbrace();
+                    WriteLine("public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.Visit{0}(this);", StripBound(name));
                     break;
 
                 case TargetLanguage.VB:
@@ -1042,10 +1038,7 @@ namespace BoundTreeGenerator
                     Brace();
                     foreach (var node in _tree.Types.OfType<Node>())
                     {
-                        WriteLine("public virtual R Visit{0}({1} node, A arg)", StripBound(node.Name), node.Name);
-                        Brace();
-                        WriteLine("return this.DefaultVisit(node, arg);");
-                        Unbrace();
+                        WriteLine("public virtual R Visit{0}({1} node, A arg) => this.DefaultVisit(node, arg);", StripBound(node.Name), node.Name);
                     }
                     Unbrace();
 
@@ -1054,10 +1047,7 @@ namespace BoundTreeGenerator
                     Brace();
                     foreach (var node in _tree.Types.OfType<Node>())
                     {
-                        WriteLine("public virtual BoundNode Visit{0}({1} node)", StripBound(node.Name), node.Name);
-                        Brace();
-                        WriteLine("return this.DefaultVisit(node);");
-                        Unbrace();
+                        WriteLine("public virtual BoundNode Visit{0}({1} node) => this.DefaultVisit(node);", StripBound(node.Name), node.Name);
                     }
                     Unbrace();
                     break;
@@ -1163,14 +1153,22 @@ namespace BoundTreeGenerator
                     Brace();
                     foreach (var node in _tree.Types.OfType<Node>())
                     {
-                        WriteLine("public override BoundNode Visit{0}({1} node)", StripBound(node.Name), node.Name);
-                        Brace();
-                        foreach (Field field in AllFields(node).Where(f => IsDerivedOrListOfDerived("BoundNode", f.Type) && !SkipInVisitor(f)))
+                        var fields = AllFields(node).Where(f => IsDerivedOrListOfDerived("BoundNode", f.Type) && !SkipInVisitor(f));
+                        if (!fields.Any())
                         {
-                            WriteLine("this.Visit{1}(node.{0});", field.Name, IsNodeList(field.Type) ? "List" : "");
+                            WriteLine("public override BoundNode Visit{0}({1} node) => null;", StripBound(node.Name), node.Name);
                         }
-                        WriteLine("return null;");
-                        Unbrace();
+                        else
+                        {
+                            WriteLine("public override BoundNode Visit{0}({1} node)", StripBound(node.Name), node.Name);
+                            Brace();
+                            foreach (Field field in fields)
+                            {
+                                WriteLine("this.Visit{1}(node.{0});", field.Name, IsNodeList(field.Type) ? "List" : "");
+                            }
+                            WriteLine("return null;");
+                            Unbrace();
+                        }
                     }
                     Unbrace();
 
@@ -1218,15 +1216,10 @@ namespace BoundTreeGenerator
                     WriteLine("private BoundTreeDumperNodeProducer()");
                     Brace();
                     Unbrace();
-                    WriteLine("public static TreeDumperNode MakeTree(BoundNode node)");
-                    Brace();
-                    WriteLine("return (new BoundTreeDumperNodeProducer()).Visit(node, null);");
-                    Unbrace();
+                    WriteLine("public static TreeDumperNode MakeTree(BoundNode node) => (new BoundTreeDumperNodeProducer()).Visit(node, null);");
                     foreach (var node in _tree.Types.OfType<Node>())
                     {
-                        WriteLine("public override TreeDumperNode Visit{0}({1} node, object arg)", StripBound(node.Name), node.Name);
-                        Brace();
-                        Write("return new TreeDumperNode(\"{0}\", null, ", ToCamelCase(StripBound(node.Name)));
+                        WriteLine("public override TreeDumperNode Visit{0}({1} node, object arg) => new TreeDumperNode(\"{2}\", null, ", StripBound(node.Name), node.Name, ToCamelCase(StripBound(node.Name)));
                         var allFields = AllFields(node).ToArray();
                         if (allFields.Length > 0)
                         {
@@ -1263,7 +1256,6 @@ namespace BoundTreeGenerator
                             WriteLine("Array.Empty<TreeDumperNode>()");
                         }
                         WriteLine(");");
-                        Unbrace();
                     }
                     Unbrace();
                     break;
@@ -1340,6 +1332,11 @@ namespace BoundTreeGenerator
                         Brace();
                         foreach (var node in _tree.Types.OfType<Node>())
                         {
+                            if (!AllNodeOrNodeListFields(node).Any() && !AllTypeFields(node).Any())
+                            {
+                                WriteLine("public override BoundNode Visit{0}({1} node) => node;", StripBound(node.Name), node.Name);
+                                continue;
+                            }
                             WriteLine("public override BoundNode Visit{0}({1} node)", StripBound(node.Name), node.Name);
                             Brace();
                             bool hadField = false;
