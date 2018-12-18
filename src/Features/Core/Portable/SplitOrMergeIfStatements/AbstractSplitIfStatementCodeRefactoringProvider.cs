@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected abstract Task<SyntaxNode> GetChangedRootAsync(
             Document document,
             SyntaxNode root,
-            SyntaxNode ifLikeStatement,
+            SyntaxNode ifOrElseIf,
             SyntaxNode leftCondition,
             SyntaxNode rightCondition,
             CancellationToken cancellationToken);
@@ -61,11 +61,11 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
             Contract.ThrowIfFalse(IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(syntaxKinds), out var rootExpression));
-            Contract.ThrowIfFalse(ifGenerator.IsCondition(rootExpression, out var ifLikeStatement));
+            Contract.ThrowIfFalse(ifGenerator.IsCondition(rootExpression, out var ifOrElseIf));
 
             var (left, right) = SplitBinaryExpressionChain(token, rootExpression, syntaxFacts);
 
-            var newRoot = await GetChangedRootAsync(document, root, ifLikeStatement, left, right, cancellationToken).ConfigureAwait(false);
+            var newRoot = await GetChangedRootAsync(document, root, ifOrElseIf, left, right, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
         }
 

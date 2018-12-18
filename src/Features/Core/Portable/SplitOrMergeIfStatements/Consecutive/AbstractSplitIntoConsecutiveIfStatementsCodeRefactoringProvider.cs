@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected sealed override async Task<SyntaxNode> GetChangedRootAsync(
             Document document,
             SyntaxNode root,
-            SyntaxNode ifLikeStatement,
+            SyntaxNode ifOrElseIf,
             SyntaxNode leftCondition,
             SyntaxNode rightCondition,
             CancellationToken cancellationToken)
@@ -63,14 +63,14 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             // The syntax editor will be operating on ifLikeStatement. If we did this replacement
             // using the syntax editor, it wouldn't be able to do the subsequent modifications (insert an else clause).
             // We need to do this in a separate step and track the nodes for later use.
-            root = root.TrackNodes(ifLikeStatement);
+            root = root.TrackNodes(ifOrElseIf);
             root = root.ReplaceNode(
-                root.GetCurrentNode(ifLikeStatement),
-                ifGenerator.WithCondition(root.GetCurrentNode(ifLikeStatement), leftCondition));
+                root.GetCurrentNode(ifOrElseIf),
+                ifGenerator.WithCondition(root.GetCurrentNode(ifOrElseIf), leftCondition));
 
             var editor = new SyntaxEditor(root, generator);
 
-            if (await CanBeSeparateStatementsAsync(document, syntaxFacts, ifGenerator, ifLikeStatement, cancellationToken).ConfigureAwait(false))
+            if (await CanBeSeparateStatementsAsync(document, syntaxFacts, ifGenerator, ifOrElseIf, cancellationToken).ConfigureAwait(false))
             {
                 // Generate:
                 // if (a)
@@ -79,13 +79,13 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 //     return;
 
                 // At this point, ifLikeStatement must be a standalone if statement with no else clause.
-                Debug.Assert(syntaxFacts.IsExecutableStatement(ifLikeStatement));
-                Debug.Assert(ifGenerator.GetElseLikeClauses(ifLikeStatement).Length == 0);
+                Debug.Assert(syntaxFacts.IsExecutableStatement(ifOrElseIf));
+                Debug.Assert(ifGenerator.GetElseIfAndElseClauses(ifOrElseIf).Length == 0);
 
-                var secondIfStatement = ifGenerator.WithCondition(ifLikeStatement, rightCondition)
+                var secondIfStatement = ifGenerator.WithCondition(ifOrElseIf, rightCondition)
                     .WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed);
 
-                editor.InsertAfter(root.GetCurrentNode(ifLikeStatement), secondIfStatement);
+                editor.InsertAfter(root.GetCurrentNode(ifOrElseIf), secondIfStatement);
             }
             else
             {
@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 // If the if statement is not an else-if clause, we convert it to an else-if clause first (for VB).
                 // Then we insert it right after our current if statement or else-if clause.
 
-                var elseIfClause = ifGenerator.WithCondition(ifGenerator.ToElseIfClause(ifLikeStatement), rightCondition);
+                var elseIfClause = ifGenerator.WithCondition(ifGenerator.ToElseIfClause(ifOrElseIf), rightCondition);
 
-                ifGenerator.InsertElseIfClause(editor, root.GetCurrentNode(ifLikeStatement), elseIfClause);
+                ifGenerator.InsertElseIfClause(editor, root.GetCurrentNode(ifOrElseIf), elseIfClause);
             }
 
             return editor.GetChangedRoot();
@@ -110,24 +110,24 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
-            SyntaxNode ifLikeStatement,
+            SyntaxNode ifOrElseIf,
             CancellationToken cancellationToken)
         {
             // If the if-like statement is an else-if clause or we're not inside a block, we cannot introduce another statement.
-            if (!syntaxFacts.IsExecutableStatement(ifLikeStatement) ||
-                !syntaxFacts.IsExecutableBlock(ifLikeStatement.Parent))
+            if (!syntaxFacts.IsExecutableStatement(ifOrElseIf) ||
+                !syntaxFacts.IsExecutableBlock(ifOrElseIf.Parent))
             {
                 return false;
             }
 
             // If there is an else clause, we *could* in theory separate these and move the current else clause to the second
             // statement, but we won't. It would break the else-if chain in an odd way. We'll insert an else-if instead.
-            if (ifGenerator.GetElseLikeClauses(ifLikeStatement).Length > 0)
+            if (ifGenerator.GetElseIfAndElseClauses(ifOrElseIf).Length > 0)
             {
                 return false;
             }
 
-            var insideStatements = syntaxFacts.GetStatementContainerStatements(ifLikeStatement);
+            var insideStatements = syntaxFacts.GetStatementContainerStatements(ifOrElseIf);
             if (insideStatements.Count == 0)
             {
                 // Even though there are no statements inside, we still can't split this into separate statements

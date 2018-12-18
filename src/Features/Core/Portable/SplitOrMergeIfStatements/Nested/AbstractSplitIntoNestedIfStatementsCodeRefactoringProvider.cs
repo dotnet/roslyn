@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected sealed override Task<SyntaxNode> GetChangedRootAsync(
             Document document,
             SyntaxNode root,
-            SyntaxNode ifLikeStatement,
+            SyntaxNode ifOrElseIf,
             SyntaxNode leftCondition,
             SyntaxNode rightCondition,
             CancellationToken cancellationToken)
@@ -43,11 +43,11 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             // If we have an else-if clause, we first convert it to an if statement. If there are any
             // else-if or else clauses following the outer if statement, they will be copied and placed inside too.
 
-            var innerIfStatement = ifGenerator.WithCondition(ifGenerator.ToIfStatement(ifLikeStatement), rightCondition);
-            var outerIfLikeStatement = ifGenerator.WithCondition(ifGenerator.WithStatementInBlock(ifLikeStatement, innerIfStatement), leftCondition);
+            var innerIfStatement = ifGenerator.WithCondition(ifGenerator.ToIfStatement(ifOrElseIf), rightCondition);
+            var outerIfOrElseIf = ifGenerator.WithCondition(ifGenerator.WithStatementInBlock(ifOrElseIf, innerIfStatement), leftCondition);
 
             return Task.FromResult(
-                root.ReplaceNode(ifLikeStatement, outerIfLikeStatement.WithAdditionalAnnotations(Formatter.Annotation)));
+                root.ReplaceNode(ifOrElseIf, outerIfOrElseIf.WithAdditionalAnnotations(Formatter.Annotation)));
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction

@@ -13,41 +13,41 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     [ExportLanguageService(typeof(IIfLikeStatementGenerator), LanguageNames.CSharp), Shared]
     internal sealed class CSharpIfLikeStatementGenerator : IIfLikeStatementGenerator
     {
-        public bool IsIfLikeStatement(SyntaxNode node) => node is IfStatementSyntax;
+        public bool IsIfOrElseIf(SyntaxNode node) => node is IfStatementSyntax;
 
-        public bool IsCondition(SyntaxNode expression, out SyntaxNode ifLikeStatement)
+        public bool IsCondition(SyntaxNode expression, out SyntaxNode ifOrElseIf)
         {
             if (expression.Parent is IfStatementSyntax ifStatement && ifStatement.Condition == expression)
             {
-                ifLikeStatement = ifStatement;
+                ifOrElseIf = ifStatement;
                 return true;
             }
 
-            ifLikeStatement = null;
+            ifOrElseIf = null;
             return false;
         }
 
-        public bool IsElseIfClause(SyntaxNode node, out SyntaxNode parentIfLikeStatement)
+        public bool IsElseIfClause(SyntaxNode node, out SyntaxNode parentIfOrElseIf)
         {
             if (node is IfStatementSyntax && node.Parent is ElseClauseSyntax)
             {
-                parentIfLikeStatement = (IfStatementSyntax)node.Parent.Parent;
+                parentIfOrElseIf = (IfStatementSyntax)node.Parent.Parent;
                 return true;
             }
 
-            parentIfLikeStatement = null;
+            parentIfOrElseIf = null;
             return false;
         }
 
-        public SyntaxNode GetCondition(SyntaxNode ifLikeStatement)
+        public SyntaxNode GetCondition(SyntaxNode ifOrElseIf)
         {
-            var ifStatement = (IfStatementSyntax)ifLikeStatement;
+            var ifStatement = (IfStatementSyntax)ifOrElseIf;
             return ifStatement.Condition;
         }
 
-        public SyntaxNode GetRootIfStatement(SyntaxNode ifLikeStatement)
+        public SyntaxNode GetRootIfStatement(SyntaxNode ifOrElseIf)
         {
-            var ifStatement = (IfStatementSyntax)ifLikeStatement;
+            var ifStatement = (IfStatementSyntax)ifOrElseIf;
 
             while (ifStatement.Parent is ElseClauseSyntax elseClause)
             {
@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             return ifStatement;
         }
 
-        public ImmutableArray<SyntaxNode> GetElseLikeClauses(SyntaxNode ifLikeStatement)
+        public ImmutableArray<SyntaxNode> GetElseIfAndElseClauses(SyntaxNode ifOrElseIf)
         {
-            var ifStatement = (IfStatementSyntax)ifLikeStatement;
+            var ifStatement = (IfStatementSyntax)ifOrElseIf;
 
             var builder = ImmutableArray.CreateBuilder<SyntaxNode>();
 
@@ -77,39 +77,39 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             return builder.ToImmutable();
         }
 
-        public SyntaxNode WithCondition(SyntaxNode ifLikeStatement, SyntaxNode condition)
+        public SyntaxNode WithCondition(SyntaxNode ifOrElseIf, SyntaxNode condition)
         {
-            var ifStatement = (IfStatementSyntax)ifLikeStatement;
+            var ifStatement = (IfStatementSyntax)ifOrElseIf;
             return ifStatement.WithCondition((ExpressionSyntax)condition);
         }
 
-        public SyntaxNode WithStatementInBlock(SyntaxNode ifLikeStatement, SyntaxNode statement)
+        public SyntaxNode WithStatementInBlock(SyntaxNode ifOrElseIf, SyntaxNode statement)
         {
-            var ifStatement = (IfStatementSyntax)ifLikeStatement;
+            var ifStatement = (IfStatementSyntax)ifOrElseIf;
             return ifStatement.WithStatement(SyntaxFactory.Block((StatementSyntax)statement));
         }
 
-        public SyntaxNode WithStatementsOf(SyntaxNode ifLikeStatement, SyntaxNode otherIfLikeStatement)
+        public SyntaxNode WithStatementsOf(SyntaxNode ifOrElseIf, SyntaxNode otherIfOrElseIf)
         {
-            var ifStatement = (IfStatementSyntax)ifLikeStatement;
-            var otherIfStatement = (IfStatementSyntax)otherIfLikeStatement;
+            var ifStatement = (IfStatementSyntax)ifOrElseIf;
+            var otherIfStatement = (IfStatementSyntax)otherIfOrElseIf;
             return ifStatement.WithStatement(otherIfStatement.Statement);
         }
 
-        public SyntaxNode WithElseLikeClausesOf(SyntaxNode ifStatement, SyntaxNode otherIfStatement)
+        public SyntaxNode WithElseIfAndElseClausesOf(SyntaxNode ifStatement, SyntaxNode otherIfStatement)
         {
             return ((IfStatementSyntax)ifStatement).WithElse(((IfStatementSyntax)otherIfStatement).Else);
         }
 
-        public SyntaxNode ToIfStatement(SyntaxNode ifLikeStatement)
-            => ifLikeStatement;
+        public SyntaxNode ToIfStatement(SyntaxNode ifOrElseIf)
+            => ifOrElseIf;
 
-        public SyntaxNode ToElseIfClause(SyntaxNode ifLikeStatement)
-            => ((IfStatementSyntax)ifLikeStatement).WithElse(null);
+        public SyntaxNode ToElseIfClause(SyntaxNode ifOrElseIf)
+            => ((IfStatementSyntax)ifOrElseIf).WithElse(null);
 
-        public void InsertElseIfClause(SyntaxEditor editor, SyntaxNode afterIfLikeStatement, SyntaxNode elseIfClause)
+        public void InsertElseIfClause(SyntaxEditor editor, SyntaxNode afterIfOrElseIf, SyntaxNode elseIfClause)
         {
-            var ifStatement = (IfStatementSyntax)afterIfLikeStatement;
+            var ifStatement = (IfStatementSyntax)afterIfOrElseIf;
             var elseIfStatement = (IfStatementSyntax)elseIfClause;
 
             var newElseIfStatement = elseIfStatement.WithElse(ifStatement.Else);
