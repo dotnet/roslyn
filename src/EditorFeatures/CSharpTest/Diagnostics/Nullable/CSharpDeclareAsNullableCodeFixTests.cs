@@ -372,5 +372,55 @@ class Program
     }
 }", parameters: s_nullableFeature);
         }
+
+        [Fact]
+        public async Task FixReturnType_Iterator()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    static System.Collections.Generic.IEnumerable<string> M()
+    {
+        yield return [|null|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    static System.Collections.Generic.IEnumerable<string?> M()
+    {
+        yield return null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixReturnType_Iterator_LocalFunction()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        System.Collections.Generic.IEnumerable<string> local()
+        {
+            yield return [|null|];
+        }
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        System.Collections.Generic.IEnumerable<string?> local()
+        {
+            yield return null;
+        }
+    }
+}", parameters: s_nullableFeature);
+        }
     }
 }
