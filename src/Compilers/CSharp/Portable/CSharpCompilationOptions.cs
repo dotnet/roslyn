@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             StrongNameProvider strongNameProvider = null,
             bool publicSign = false,
             MetadataImportOptions metadataImportOptions = MetadataImportOptions.Public,
-            NullableContextOptions nullableContextOptions = NullableContextOptions.Disabled)
+            NullableContextOptions nullableContextOptions = NullableContextOptions.Disable)
             : this(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    usings, optimizationLevel, checkOverflow, allowUnsafe,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform,
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    strongNameProvider,
                    publicSign,
                    metadataImportOptions,
-                   nullableContextOptions: NullableContextOptions.Disabled)
+                   nullableContextOptions: NullableContextOptions.Disable)
         {
         }
 
@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: false,
                    topLevelBinderFlags: BinderFlags.None,
-                   nullableContextOptions: NullableContextOptions.Disabled)
+                   nullableContextOptions: NullableContextOptions.Disable)
         {
         }
     }

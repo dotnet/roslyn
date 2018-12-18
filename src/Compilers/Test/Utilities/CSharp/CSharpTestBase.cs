@@ -411,12 +411,12 @@ namespace System.Runtime.CompilerServices
 
         protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
         {
-            return WithNonNullTypes(options, NullableContextOptions.Enabled);
+            return WithNonNullTypes(options, NullableContextOptions.Enable);
         }
 
         protected static CSharpCompilationOptions WithNonNullTypesFalse(CSharpCompilationOptions options = null)
         {
-            return WithNonNullTypes(options, NullableContextOptions.Disabled);
+            return WithNonNullTypes(options, NullableContextOptions.Disable);
         }
 
         protected static CSharpCompilationOptions WithNonNullTypes(NullableContextOptions nullableContextOptions)

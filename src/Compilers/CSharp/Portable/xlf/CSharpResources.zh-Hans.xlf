@@ -38,8 +38,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
-        <source>Invalid option '{0}' for /nullable; must be 'disabled', 'enabled' or 'safeonly'</source>
-        <target state="new">Invalid option '{0}' for /nullable; must be 'disabled', 'enabled' or 'safeonly'</target>
+        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'safeonly'</source>
+        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'safeonly'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">

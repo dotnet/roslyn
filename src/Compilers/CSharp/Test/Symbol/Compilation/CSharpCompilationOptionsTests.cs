@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool reportSuppressedDiagnostics = false;
             var topLevelBinderFlags = BinderFlags.None;
             var publicSign = false;
-            NullableContextOptions nullableContextOptions = NullableContextOptions.Disabled;
+            NullableContextOptions nullableContextOptions = NullableContextOptions.Disable;
 
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
@@ -445,27 +445,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             CSharpCompilationOptions a = CreateCSharpCompilationOptions();
 
-            Assert.Equal(NullableContextOptions.Disabled, a.NullableContextOptions);
+            Assert.Equal(NullableContextOptions.Disable, a.NullableContextOptions);
             Assert.Equal(a, a);
             Assert.Equal(a.GetHashCode(), a.GetHashCode());
-            Assert.Same(a, a.WithNullableContextOptions(NullableContextOptions.Disabled));
+            Assert.Same(a, a.WithNullableContextOptions(NullableContextOptions.Disable));
 
-            CSharpCompilationOptions b = a.WithNullableContextOptions(NullableContextOptions.Enabled);
-            Assert.Equal(NullableContextOptions.Enabled, b.NullableContextOptions);
+            CSharpCompilationOptions b = a.WithNullableContextOptions(NullableContextOptions.Enable);
+            Assert.Equal(NullableContextOptions.Enable, b.NullableContextOptions);
             Assert.NotEqual(a, b);
             Assert.Equal(b, b);
             Assert.Equal(b.GetHashCode(), b.GetHashCode());
-            Assert.Same(b, b.WithNullableContextOptions(NullableContextOptions.Enabled));
+            Assert.Same(b, b.WithNullableContextOptions(NullableContextOptions.Enable));
 
-            CSharpCompilationOptions c = a.WithNullableContextOptions(NullableContextOptions.Enabled);
-            Assert.Equal(NullableContextOptions.Enabled, c.NullableContextOptions);
+            CSharpCompilationOptions c = a.WithNullableContextOptions(NullableContextOptions.Enable);
+            Assert.Equal(NullableContextOptions.Enable, c.NullableContextOptions);
             Assert.NotEqual(a, c);
             Assert.NotSame(b, c);
             Assert.Equal(b, c);
             Assert.Equal(b.GetHashCode(), c.GetHashCode());
 
-            CSharpCompilationOptions e = b.WithNullableContextOptions(NullableContextOptions.Disabled);
-            Assert.Equal(NullableContextOptions.Disabled, e.NullableContextOptions);
+            CSharpCompilationOptions e = b.WithNullableContextOptions(NullableContextOptions.Disable);
+            Assert.Equal(NullableContextOptions.Disable, e.NullableContextOptions);
             Assert.NotSame(a, e);
             Assert.Equal(a, e);
             Assert.Equal(a.GetHashCode(), e.GetHashCode());
@@ -490,16 +490,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(d, f);
             Assert.Equal(d.GetHashCode(), f.GetHashCode());
 
-            CSharpCompilationOptions g = d.WithNullableContextOptions(NullableContextOptions.Enabled);
-            Assert.Equal(NullableContextOptions.Enabled, g.NullableContextOptions);
+            CSharpCompilationOptions g = d.WithNullableContextOptions(NullableContextOptions.Enable);
+            Assert.Equal(NullableContextOptions.Enable, g.NullableContextOptions);
             Assert.NotEqual(a, g);
             Assert.NotSame(b, g);
             Assert.Equal(b, g);
             Assert.Equal(b.GetHashCode(), g.GetHashCode());
             Assert.NotEqual(d, g);
 
-            CSharpCompilationOptions h = d.WithNullableContextOptions(NullableContextOptions.Disabled);
-            Assert.Equal(NullableContextOptions.Disabled, h.NullableContextOptions);
+            CSharpCompilationOptions h = d.WithNullableContextOptions(NullableContextOptions.Disable);
+            Assert.Equal(NullableContextOptions.Disable, h.NullableContextOptions);
             Assert.Equal(a, h);
             Assert.Equal(a.GetHashCode(), h.GetHashCode());
             Assert.NotEqual(b, h);
@@ -507,13 +507,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(d, h);
 
             var i = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
-            Assert.Equal(NullableContextOptions.Disabled, i.NullableContextOptions);
+            Assert.Equal(NullableContextOptions.Disable, i.NullableContextOptions);
 
-            var j = new CSharpCompilationOptions(OutputKind.ConsoleApplication, nullableContextOptions: NullableContextOptions.Enabled);
-            Assert.Equal(NullableContextOptions.Enabled, j.NullableContextOptions);
+            var j = new CSharpCompilationOptions(OutputKind.ConsoleApplication, nullableContextOptions: NullableContextOptions.Enable);
+            Assert.Equal(NullableContextOptions.Enable, j.NullableContextOptions);
 
-            var k = new CSharpCompilationOptions(OutputKind.ConsoleApplication, nullableContextOptions: NullableContextOptions.Disabled);
-            Assert.Equal(NullableContextOptions.Disabled, k.NullableContextOptions);
+            var k = new CSharpCompilationOptions(OutputKind.ConsoleApplication, nullableContextOptions: NullableContextOptions.Disable);
+            Assert.Equal(NullableContextOptions.Disable, k.NullableContextOptions);
 
             var l = new CSharpCompilationOptions(OutputKind.ConsoleApplication, nullableContextOptions: NullableContextOptions.SafeOnly);
             Assert.Equal(NullableContextOptions.SafeOnly, l.NullableContextOptions);
