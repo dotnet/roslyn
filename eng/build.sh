@@ -262,8 +262,6 @@ function BuildSolution {
 
 InitializeDotNetCli $restore
 
-export PATH="$DOTNET_INSTALL_DIR:$PATH"
-
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then
   MakeBootstrapBuild
