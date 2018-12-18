@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         protected override bool MethodHasHandlesClause(IMethodSymbol method)
             => false;
 
+        protected override bool IsIfConditionalDirective(SyntaxNode node)
+            => node is IfDirectiveTriviaSyntax;
+
         // C# does not have an explicit "call" statement syntax for invocations with explicit value discard.
         protected override bool IsCallStatement(IExpressionStatementOperation expressionStatement)
             => false;

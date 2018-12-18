@@ -1538,5 +1538,29 @@ End Module",
 "Module C
 End Module")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function RedimStatement_NoPreserve() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Public Class C
+    Private [|intArray|](10, 10, 10) As Integer
+
+    Public Sub M()
+        ReDim intArray(10, 10, 20)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function RedimStatement_Preserve() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Public Class C
+    Private [|intArray|](10, 10, 10) As Integer
+
+    Public Sub M()
+        ReDim Preserve intArray(10, 10, 20)
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

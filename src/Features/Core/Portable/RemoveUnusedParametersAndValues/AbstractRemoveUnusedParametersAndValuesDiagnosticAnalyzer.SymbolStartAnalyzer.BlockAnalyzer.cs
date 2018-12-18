@@ -68,6 +68,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return;
                     }
 
+                    // Bail out in presence of conditional directives
+                    // This is a workaround for https://github.com/dotnet/roslyn/issues/31820
+                    // Issue https://github.com/dotnet/roslyn/issues/31821 tracks
+                    // reverting this workaround.
+                    if (HasConditionalDirectives())
+                    {
+                        return;
+                    }
+
                     // All operation blocks for a symbol belong to the same tree.
                     var firstBlock = context.OperationBlocks[0];
                     if (!symbolStartAnalyzer._compilationAnalyzer.TryGetOptions(firstBlock.Syntax.SyntaxTree,
@@ -96,6 +105,20 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         foreach (var operationBlock in context.OperationBlocks)
                         {
                             if (operationBlock.Syntax.GetDiagnostics().ToImmutableArrayOrEmpty().HasAnyErrors())
+                            {
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }
+
+                    bool HasConditionalDirectives()
+                    {
+                        foreach (var operationBlock in context.OperationBlocks)
+                        {
+                            if (operationBlock.Syntax.DescendantNodes(descendIntoTrivia: true)
+                                                     .Any(n => symbolStartAnalyzer._compilationAnalyzer.IsIfConditionalDirective(n)))
                             {
                                 return true;
                             }
