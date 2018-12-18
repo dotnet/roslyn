@@ -807,7 +807,13 @@ namespace System
         [Fact]
         public void MissingTypeAndMembers_ValueTaskT()
         {
-            VerifyMissingMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor,
+            VerifyMissingMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken,
+                // (5,64): error CS0656: Missing compiler required member 'System.Threading.Tasks.ValueTask`1..ctor'
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Threading.Tasks.ValueTask`1", ".ctor").WithLocation(5, 64)
+                );
+
+            VerifyMissingMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue,
                 // (5,64): error CS0656: Missing compiler required member 'System.Threading.Tasks.ValueTask`1..ctor'
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Threading.Tasks.ValueTask`1", ".ctor").WithLocation(5, 64)
@@ -817,6 +823,9 @@ namespace System
                 // (5,64): error CS0656: Missing compiler required member 'System.Collections.Generic.IAsyncEnumerator`1.MoveNextAsync'
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Collections.Generic.IAsyncEnumerator`1", "MoveNextAsync").WithLocation(5, 64),
+                // (5,64): error CS0656: Missing compiler required member 'System.Threading.Tasks.ValueTask`1..ctor'
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Threading.Tasks.ValueTask`1", ".ctor").WithLocation(5, 64),
                 // (5,64): error CS0656: Missing compiler required member 'System.Threading.Tasks.ValueTask`1..ctor'
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Threading.Tasks.ValueTask`1", ".ctor").WithLocation(5, 64)
@@ -1781,17 +1790,18 @@ class C
 }");
                 verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()", @"
 {
-  // Code size       64 (0x40)
+  // Code size       99 (0x63)
   .maxstack  2
   .locals init (C.<M>d__0 V_0,
-                System.Threading.Tasks.ValueTask<bool> V_1)
+                short V_1,
+                System.Threading.Tasks.ValueTask<bool> V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
   IL_0006:  ldc.i4.s   -2
   IL_0008:  bne.un.s   IL_0014
-  IL_000a:  ldloca.s   V_1
+  IL_000a:  ldloca.s   V_2
   IL_000c:  initobj    ""System.Threading.Tasks.ValueTask<bool>""
-  IL_0012:  ldloc.1
+  IL_0012:  ldloc.2
   IL_0013:  ret
   IL_0014:  ldarg.0
   IL_0015:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
@@ -1803,11 +1813,25 @@ class C
   IL_0027:  ldloca.s   V_0
   IL_0029:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.MoveNext<C.<M>d__0>(ref C.<M>d__0)""
   IL_002e:  ldarg.0
-  IL_002f:  ldarg.0
-  IL_0030:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_0035:  call       ""short System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.Version.get""
-  IL_003a:  newobj     ""System.Threading.Tasks.ValueTask<bool>..ctor(System.Threading.Tasks.Sources.IValueTaskSource<bool>, short)""
-  IL_003f:  ret
+  IL_002f:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0034:  call       ""short System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.Version.get""
+  IL_0039:  stloc.1
+  IL_003a:  ldarg.0
+  IL_003b:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0040:  ldloc.1
+  IL_0041:  call       ""System.Threading.Tasks.Sources.ValueTaskSourceStatus System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.GetStatus(short)""
+  IL_0046:  ldc.i4.1
+  IL_0047:  bne.un.s   IL_005b
+  IL_0049:  ldarg.0
+  IL_004a:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_004f:  ldloc.1
+  IL_0050:  call       ""bool System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.GetResult(short)""
+  IL_0055:  newobj     ""System.Threading.Tasks.ValueTask<bool>..ctor(bool)""
+  IL_005a:  ret
+  IL_005b:  ldarg.0
+  IL_005c:  ldloc.1
+  IL_005d:  newobj     ""System.Threading.Tasks.ValueTask<bool>..ctor(System.Threading.Tasks.Sources.IValueTaskSource<bool>, short)""
+  IL_0062:  ret
 }");
                 verifier.VerifyIL("C.<M>d__0.System.IAsyncDisposable.DisposeAsync()", @"
 {
@@ -4254,8 +4278,11 @@ class C
             verifyType(WellKnownType.System_Threading_Tasks_ValueTask,
                 "System.Threading.Tasks.ValueTask");
 
-            verifyMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor,
+            verifyMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken,
                 "System.Threading.Tasks.ValueTask<TResult>..ctor(System.Threading.Tasks.Sources.IValueTaskSource<TResult> source, System.Int16 token)");
+
+            verifyMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue,
+                "System.Threading.Tasks.ValueTask<TResult>..ctor(TResult result)");
 
             void verifyType(WellKnownType type, string expected)
             {

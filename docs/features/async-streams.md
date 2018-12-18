@@ -147,7 +147,12 @@ ValueTask<bool> MoveNextAsync()
     valueOrEndPromise.Reset();
     var inst = this;
     builder.Start(ref inst);
-    return new ValueTask<bool>(this, valueOrEndPromise.Version); // note this leverages the state machine's implementation of IValueTaskSource<bool>
+    var version = valueOrEndPromise.Version;
+    if (valueOrEndPromise.GetStatus(version) == ValueTaskSourceStatus.Succeeded)
+    {
+        return new ValueTask<bool>(valueOrEndPromise.GetResult(version));
+    }
+    return new ValueTask<bool>(this, version); // note this leverages the state machine's implementation of IValueTaskSource<bool>
 }
 ```
 
