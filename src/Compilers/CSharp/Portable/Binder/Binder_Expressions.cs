@@ -2188,7 +2188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindExplicitNullableCastFromNonNullable(ExpressionSyntax node, BoundExpression operand, TypeSymbolWithAnnotations targetType, DiagnosticBag diagnostics)
         {
             Debug.Assert(!targetType.IsNull && targetType.IsNullableType());
-            Debug.Assert(operand.Type != null && !operand.Type.IsNullableType());
+            Debug.Assert((object)operand.Type != null && !operand.Type.IsNullableType());
 
             // Section 6.2.3 of the spec only applies when the non-null version of the types involved have a
             // built in conversion.
@@ -7566,7 +7566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var receiverType = receiver.Type;
-            Debug.Assert(receiverType != null);
+            Debug.Assert((object)receiverType != null);
 
             // access cannot be a method group
             if (access.Kind == BoundKind.MethodGroup)

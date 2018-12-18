@@ -3,7 +3,7 @@
 
 
 <!-- 
- To re-generate source from this file, run build/scripts/generate-compiler-code.cmd
+ To re-generate source from this file, run eng/generate-compiler-code.cmd
 
  Important things to know about reference types, value types, and nulls.
 
