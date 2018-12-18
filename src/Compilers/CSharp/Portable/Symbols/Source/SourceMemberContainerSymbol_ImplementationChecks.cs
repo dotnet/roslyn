@@ -618,8 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else
                         {
-                            diagnostics.Add(ErrorCode.ERR_OverrideNotExpected, overridingMemberLocation,
-                                overridingMember);
+                            diagnostics.Add(ErrorCode.ERR_OverrideNotExpected, overridingMemberLocation, overridingMember);
                         }
                     }
                     else if (associatedPropertyOrEvent.Kind == SymbolKind.Property) //no specific errors for event accessors
