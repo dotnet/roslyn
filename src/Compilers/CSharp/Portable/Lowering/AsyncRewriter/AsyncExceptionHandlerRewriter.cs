@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // since finalized region is a try we can just attach finally to it
                     Debug.Assert(asTry.FinallyBlockOpt == null);
-                    return asTry.Update(asTry.TryBlock, asTry.CatchBlocks, rewrittenFinally, asTry.PreferFaultHandler);
+                    return asTry.Update(asTry.TryBlock, asTry.CatchBlocks, rewrittenFinally, asTry.FinallyLabelOpt, asTry.PreferFaultHandler);
                 }
                 else
                 {
@@ -187,9 +187,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _F.HiddenSequencePoint(),
                     _F.Goto(finallyLabel),
                     PendBranches(frame, pendingBranchVar, finallyLabel)),
-                ImmutableArray.Create(catchAll));
+                ImmutableArray.Create(catchAll),
+                finallyLabel: finallyLabel);
 
-            var syntheticFinally = _F.Block(
+            BoundBlock syntheticFinallyBlock = _F.Block(
                 _F.HiddenSequencePoint(),
                 _F.Label(finallyLabel),
                 rewrittenFinally,
@@ -200,6 +201,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     pendingBranchVar,
                     pendingExceptionLocal));
 
+            BoundStatement syntheticFinally = syntheticFinallyBlock;
+            if (_F.CurrentFunction.IsAsync && _F.CurrentFunction.IsIterator)
+            {
+                // We wrap this block so that it can be processed as a finally block by async-iterator rewriting
+                syntheticFinally = _F.ExtractedFinallyBlock(syntheticFinallyBlock);
+            }
 
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             var statements = ArrayBuilder<BoundStatement>.GetInstance();
@@ -893,7 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(parent != null);
                 Debug.Assert(statementSyntax != null);
 
-                Debug.Assert(statementSyntax.Kind() == SyntaxKind.TryStatement || 
+                Debug.Assert(statementSyntax.Kind() == SyntaxKind.TryStatement ||
                     (statementSyntax.Kind() == SyntaxKind.UsingStatement && ((UsingStatementSyntax)statementSyntax).AwaitKeyword != default) ||
                     (statementSyntax.Kind() == SyntaxKind.ForEachStatement && ((CommonForEachStatementSyntax)statementSyntax).AwaitKeyword != default) ||
                     (statementSyntax.Kind() == SyntaxKind.ForEachVariableStatement && ((CommonForEachStatementSyntax)statementSyntax).AwaitKeyword != default));

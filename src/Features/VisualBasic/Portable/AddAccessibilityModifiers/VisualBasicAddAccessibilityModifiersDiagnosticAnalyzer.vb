@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                     ' We have to keep this here.
                     Return
                 End If
-           
+
             Else ' Require all, flag missing modidifers
                 If Accessibility <> Accessibility.NotApplicable Then
                     Return
@@ -94,13 +94,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             ' Top level items in a namespace or file
             If member.IsParentKind(SyntaxKind.CompilationUnit) OrElse
                member.IsParentKind(SyntaxKind.NamespaceBlock) Then
-               ' default is Friend
+                ' default is Friend
                 Return accessibility = Accessibility.Friend
             End If
 
             ' default for const and field in a class is private
-            If member.IsParentKind(SyntaxKind.ClassBlock) OrElse 
-               member.IsParentKind(SyntaxKind.ModuleBlock) Then                
+            If member.IsParentKind(SyntaxKind.ClassBlock) OrElse
+               member.IsParentKind(SyntaxKind.ModuleBlock) Then
                 If member.IsKind(SyntaxKind.FieldDeclaration) Then
                     Return accessibility = Accessibility.Private
                 End If

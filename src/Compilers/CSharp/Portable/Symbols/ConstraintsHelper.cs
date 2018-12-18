@@ -685,10 +685,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
             }
 
-            // very rare case. 
-            // some implemented interfaces are related
-            // will have to instantiate interfaces and check
-            hasRelatedInterfaces:
+// very rare case. 
+// some implemented interfaces are related
+// will have to instantiate interfaces and check
+hasRelatedInterfaces:
             return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
         }
 
@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (conversions.IncludeNullability && warningsBuilderOpt != null &&
                     typeParameter.ReferenceTypeConstraintIsNullable == false &&
-                    (typeArgument.IsNullable == true || typeArgument.IsPossiblyNullableReferenceTypeTypeParameter()))
+                    typeArgument.GetValueNullableAnnotation().IsAnyNullable())
                 {
                     var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, containingSymbol.ConstructedFrom(), typeParameter, typeArgument);
                     warningsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));
@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (conversions.IncludeNullability && warningsBuilderOpt != null)
                     {
                         if (!SatisfiesConstraintType(conversions, typeArgument, constraintType, ref useSiteDiagnostics) ||
-                            (((typeArgument.IsNullable == true && !typeArgument.IsValueType) || typeArgument.IsPossiblyNullableReferenceTypeTypeParameter()) &&
+                            (typeArgument.GetValueNullableAnnotation().IsAnyNullable() && !typeArgument.IsValueType &&
                              TypeParameterSymbol.IsNotNullableIfReferenceTypeFromConstraintType(constraintType) == true))
                         {
                             var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument);
@@ -1044,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // "... A boxing conversion (6.1.7), provided that type A is a non-nullable value type. ..."
             // NOTE: we extend this to allow, for example, a conversion from Nullable<T> to object.
             if (typeArgument.IsValueType &&
-                conversions.HasBoxingConversion(typeArgument.TypeSymbol.IsNullableType() ? ((NamedTypeSymbol)typeArgument.TypeSymbol).ConstructedFrom : typeArgument.TypeSymbol, 
+                conversions.HasBoxingConversion(typeArgument.TypeSymbol.IsNullableType() ? ((NamedTypeSymbol)typeArgument.TypeSymbol).ConstructedFrom : typeArgument.TypeSymbol,
                                                 constraintType.TypeSymbol, ref useSiteDiagnostics))
             {
                 return true;

@@ -171,12 +171,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement rewrittenSwitchStatement = MakeSwitchStatementWithNonNullableExpression(
                 syntax,
                 condGotoNullValueTargetLabel,
-                rewrittenExpression, 
-                rewrittenSections, 
-                constantTargetOpt, 
-                locals, 
-                localFunctions, 
-                breakLabel, 
+                rewrittenExpression,
+                rewrittenSections,
+                constantTargetOpt,
+                locals,
+                localFunctions,
+                breakLabel,
                 oldNode);
 
             statementBuilder.Add(rewrittenSwitchStatement);

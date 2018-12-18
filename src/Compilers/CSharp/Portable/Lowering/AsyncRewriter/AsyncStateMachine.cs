@@ -25,13 +25,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation = asyncMethod.DeclaringCompilation;
             var interfaces = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
-            if (asyncMethod.IsIterator)
+            bool isIterator = asyncMethod.IsIterator;
+            if (isIterator)
             {
                 var elementType = TypeMap.SubstituteType(asyncMethod.IteratorElementType).TypeSymbol;
                 this.IteratorElementType = elementType;
 
-                // IAsyncEnumerable<TResult>
-                interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T).Construct(elementType));
+                bool isEnumerable = asyncMethod.IsIAsyncEnumerableReturningAsync(compilation);
+                if (isEnumerable)
+                {
+                    // IAsyncEnumerable<TResult>
+                    interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T).Construct(elementType));
+                }
 
                 // IAsyncEnumerator<TResult>
                 interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T).Construct(elementType));
@@ -39,10 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IValueTaskSource<bool>
                 interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T).Construct(compilation.GetSpecialType(SpecialType.System_Boolean)));
 
-                // IStrongBox<ManualResetValueTaskSourceLogic<bool>>
-                interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IStrongBox_T).Construct(
-                    compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T)
-                        .Construct(compilation.GetSpecialType(SpecialType.System_Boolean))));
+                // IValueTaskSource
+                interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource));
 
                 // IAsyncDisposable
                 interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable));
@@ -51,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             interfaces.Add(compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine));
             _interfaces = interfaces.ToImmutableAndFree();
 
-            _constructor = new AsyncConstructor(this);
+            _constructor = isIterator ? (MethodSymbol)new IteratorConstructor(this) : new AsyncConstructor(this);
         }
 
         public override TypeKind TypeKind

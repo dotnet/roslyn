@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
         private static bool TryConvertToExpressionBody(
             LambdaExpressionSyntax declaration,
-            ParseOptions options, ExpressionBodyPreference conversionPreference, 
-            out ExpressionSyntax expressionWhenOnSingleLine, 
+            ParseOptions options, ExpressionBodyPreference conversionPreference,
+            out ExpressionSyntax expressionWhenOnSingleLine,
             out SyntaxToken semicolonWhenOnSingleLine)
         {
             return TryConvertToExpressionBodyWorker(
@@ -139,10 +139,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         }
 
         private static LambdaExpressionSyntax UpdateWorker(
-            SemanticModel semanticModel, bool useExpressionBody, 
+            SemanticModel semanticModel, bool useExpressionBody,
             LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration)
         {
-            return useExpressionBody 
+            return useExpressionBody
                 ? WithExpressionBody(currentDeclaration)
                 : WithBlockBody(semanticModel, originalDeclaration, currentDeclaration);
         }

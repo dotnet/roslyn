@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // https://github.com/dotnet/roslyn/issues/27961 Should ignore untyped
                     // expressions such as unbound lambdas and typeless tuples.
-                    result = NullableAnnotation.NullableBasedOnAnalysis;
+                    result = NullableAnnotation.Nullable;
                     continue;
                 }
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (type.IsPossiblyNullableReferenceTypeTypeParameter() && !bestTypeIsPossiblyNullableReferenceTypeTypeParameter)
                 {
-                    nullableAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
+                    nullableAnnotation = NullableAnnotation.Nullable;
                 }
                 else
                 {
@@ -55,20 +55,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (result != nullableAnnotation)
                     {
-                        result = NullableAnnotation.Nullable;
+                        result = NullableAnnotation.Annotated;
                     }
                 }
                 else if (result == null)
                 {
                     result = nullableAnnotation;
                 }
-                else if (result.GetValueOrDefault() == NullableAnnotation.NotNullableBasedOnAnalysis && nullableAnnotation == NullableAnnotation.NotNullable)
+                else if (result.GetValueOrDefault() == NullableAnnotation.NotNullable && nullableAnnotation == NullableAnnotation.NotAnnotated)
                 {
-                    result = NullableAnnotation.NotNullable;
+                    result = NullableAnnotation.NotAnnotated;
                 }
             }
 
-            return result ?? NullableAnnotation.NotNullable;
+            return result ?? NullableAnnotation.NotAnnotated;
         }
 
         /// <remarks>
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol best = null;
             int bestIndex = -1;
-            for(int i = 0; i < types.Count; i++)
+            for (int i = 0; i < types.Count; i++)
             {
                 TypeSymbol type = types[i];
                 if ((object)best == null)

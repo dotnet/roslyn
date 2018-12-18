@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindTokenOnLeftOfPosition(textSpan.Start);
 
-            var model = await document.GetSemanticModelAsync(cancellationToken);
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var awaitable = GetAwaitableExpression(textSpan, token, model, syntaxFacts, cancellationToken);
             if (awaitable == null)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 .AddParentheses(syntaxGenerator.AwaitExpression(withoutTrivia))
                 .WithTriviaFrom(invocation);
 
-            return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken);
+            return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken).ConfigureAwait(false); ;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

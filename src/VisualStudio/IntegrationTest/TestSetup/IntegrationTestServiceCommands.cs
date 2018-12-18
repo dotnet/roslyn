@@ -26,7 +26,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         public static readonly Guid guidTestWindowCmdSet = new Guid("1E198C22-5980-4E7E-92F3-F73168D1FB63");
         #endregion
 
-        private static readonly BinaryServerFormatterSinkProvider DefaultSinkProvider = new BinaryServerFormatterSinkProvider() {
+        private static readonly BinaryServerFormatterSinkProvider DefaultSinkProvider = new BinaryServerFormatterSinkProvider()
+        {
             TypeFilterLevel = TypeFilterLevel.Full
         };
 

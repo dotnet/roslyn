@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -154,5 +155,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol ComUnregisterFunctionAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(ComUnregisterFunctionAttribute).FullName);
+
+        public static INamedTypeSymbol ConditionalAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ConditionalAttribute).FullName);
+
+        public static INamedTypeSymbol ObsoleteAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName);
+
+        public static INamedTypeSymbol SystemCompositionImportingConstructorAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(System.Composition.ImportingConstructorAttribute).FullName);
+
+        public static INamedTypeSymbol SystemComponentModelCompositionImportingConstructorAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportingConstructorAttribute");
     }
 }

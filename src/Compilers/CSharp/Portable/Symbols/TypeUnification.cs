@@ -183,8 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         for (int i = 0; i < arity; i++)
                         {
-                            if (!CanUnifyHelper(nt1Arguments[i], 
-                                                nt2Arguments[i],  
+                            if (!CanUnifyHelper(nt1Arguments[i],
+                                                nt2Arguments[i],
                                                 ref substitution))
                             {
                                 return false;

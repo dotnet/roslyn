@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //NOTE: TopLevel is special.
                 //For our purpose parameters and top level locals are on that level.
                 var parentScope = next;
-                while(parentScope != null)
+                while (parentScope != null)
                 {
                     if (parentScope is InMethodBinder || parentScope is WithLambdaParametersBinder)
                     {

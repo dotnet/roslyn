@@ -1354,15 +1354,15 @@ End Class
 
         Dim consoleappSource =
             <compilation>
-                        <file name="a.vb">
-                            <![CDATA[
+                <file name="a.vb">
+                    <![CDATA[
 Class Program
 	Private Shared Sub Main(args As String())
 	End Sub
 End Class
                     ]]>
-                        </file>
-                    </compilation>
+                </file>
+            </compilation>
 
         Dim netmoduleCompilation = CreateEmptyCompilationWithReferences(netmoduleSource, references:={MinCorlibRef}, options:=TestOptions.ReleaseModule)
         Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"))

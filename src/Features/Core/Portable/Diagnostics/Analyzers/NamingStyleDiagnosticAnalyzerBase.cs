@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         protected NamingStyleDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.NamingRuleId,
-                   s_localizableTitleNamingStyle, 
+                   s_localizableTitleNamingStyle,
                    s_localizableMessageFormat)
         {
         }

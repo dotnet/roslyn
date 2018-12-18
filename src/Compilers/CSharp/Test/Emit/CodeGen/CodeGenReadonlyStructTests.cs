@@ -1248,7 +1248,7 @@ class Test
             {
                 CompileAndVerify(comp, expectedOutput: "overflow", verify: Verification.Fails).VerifyIL("Test.M", expectedIL);
             }
-            else 
+            else
             {
                 // On 64bit the native int does not overflow, so we get StackOverflow instead
                 // therefore we will just check the IL

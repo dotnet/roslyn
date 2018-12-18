@@ -25,7 +25,7 @@ class C : IAsyncEnumerable<int>
         {
         }
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.Regular7_3);
@@ -43,7 +43,7 @@ class C : IAsyncEnumerable<int>
 using System.Collections.Generic;
 public class C : IAsyncEnumerable<int>
 {
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
 }";
 
@@ -84,7 +84,7 @@ public class C
 ";
             var comp_checked = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable });
             comp_checked.VerifyDiagnostics(
-                // (8,33): error CS8411: Async foreach statement cannot operate on variables of type 'IAsyncEnumerator<int>' because 'IAsyncEnumerator<int>' does not contain a public instance definition for 'GetAsyncEnumerator'
+                // (8,33): error CS8411: Async foreach statement cannot operate on variables of type 'IAsyncEnumerator<int>' because 'IAsyncEnumerator<int>' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
                 //         await foreach (int i in enumerator) { }
                 Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "enumerator").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "GetAsyncEnumerator").WithLocation(8, 33)
                 );
@@ -113,7 +113,7 @@ public class C : IAsyncEnumerable<uint>
         }
     }
 
-    public IAsyncEnumerator<uint> GetAsyncEnumerator()
+    public IAsyncEnumerator<uint> GetAsyncEnumerator(System.Threading.CancellationToken token)
         => new AsyncEnumerator();
     public sealed class AsyncEnumerator : IAsyncEnumerator<uint>
     {
@@ -155,9 +155,9 @@ class C : IAsyncEnumerable<int>, IAsyncEnumerable<string>
         {
         }
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
-    IAsyncEnumerator<string> IAsyncEnumerable<string>.GetAsyncEnumerator()
+    IAsyncEnumerator<string> IAsyncEnumerable<string>.GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable });
@@ -183,7 +183,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'
+                // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -201,7 +201,7 @@ class C
         {
         }
     }
-    public static Enumerator GetAsyncEnumerator()
+    public static Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
@@ -211,7 +211,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'
+                // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -229,7 +229,7 @@ class C
         {
         }
     }
-    internal Enumerator GetAsyncEnumerator()
+    internal Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
@@ -239,9 +239,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): warning CS0279: 'C' does not implement the 'async streams' pattern. 'C.GetAsyncEnumerator()' is either static or not public.
+                // (6,33): warning CS0279: 'C' does not implement the 'async streams' pattern. 'C.GetAsyncEnumerator(System.Threading.CancellationToken)' is either static or not public.
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new C()").WithArguments("C", "async streams", "C.GetAsyncEnumerator()").WithLocation(6, 33),
+                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new C()").WithArguments("C", "async streams", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33),
                 // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
@@ -261,7 +261,7 @@ class C
         }
     }
     [System.Obsolete]
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
@@ -281,9 +281,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,15): warning CS0612: 'C.GetAsyncEnumerator()' is obsolete
+                // (6,15): warning CS0612: 'C.GetAsyncEnumerator(CancellationToken)' is obsolete
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.GetAsyncEnumerator()").WithLocation(6, 15),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 15),
                 // (6,15): warning CS0612: 'C.Enumerator.MoveNextAsync()' is obsolete
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.Enumerator.MoveNextAsync()").WithLocation(6, 15),
@@ -303,7 +303,7 @@ class C
     {
         await foreach (var i in new C()) { }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
     public sealed class Enumerator
     {
@@ -317,9 +317,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C()) { }
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
         }
 
@@ -335,7 +335,7 @@ class C
         {
         }
     }
-    public Enumerator GetAsyncEnumerator() => throw null;
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
     public sealed class Enumerator
     {
         public System.Threading.Tasks.Task<object> MoveNextAsync() => throw null; // returns Task<object>
@@ -344,9 +344,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
         }
 
@@ -362,7 +362,7 @@ class C
         {
         }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
@@ -380,9 +380,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
         }
 
@@ -396,7 +396,7 @@ class C
     {
         await foreach (var i in new C()) { }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
     public sealed class Enumerator
     {
@@ -410,9 +410,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C()) { }
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
         }
 
@@ -426,7 +426,7 @@ class C
     {
         await foreach (var i in new C()) { }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
     public sealed class Enumerator
     {
@@ -438,9 +438,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C()) { }
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
         }
 
@@ -454,7 +454,7 @@ class C
     {
         await foreach (var i in new C()) { }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
     public sealed class Enumerator
     {
@@ -471,9 +471,9 @@ class C
                 // (6,33): error CS0122: 'C.Enumerator.Current' is inaccessible due to its protection level
                 //         await foreach (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadAccess, "new C()").WithArguments("C.Enumerator.Current").WithLocation(6, 33),
-                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C()) { }
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
         }
 
@@ -487,7 +487,7 @@ class C
     {
         await foreach (var i in new C()) { }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
     public sealed class Enumerator
     {
@@ -502,9 +502,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C()) { }
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
         }
 
@@ -518,7 +518,7 @@ class C
     {
         await foreach (var i in new C()) { }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
     public sealed class Enumerator
     {
@@ -532,9 +532,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C()) { }
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
         }
 
@@ -550,7 +550,7 @@ class C
         {
         }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
@@ -568,9 +568,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
         }
 
@@ -586,7 +586,7 @@ class C
         {
         }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
@@ -604,9 +604,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
         }
 
@@ -622,7 +622,7 @@ class C
         {
         }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
@@ -640,9 +640,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
         }
 
@@ -658,7 +658,7 @@ class C
         {
         }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
     public sealed class Enumerator
     {
@@ -682,7 +682,7 @@ class C
             var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
-            Assert.Equal("C.Enumerator C.GetAsyncEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal("C.Enumerator C.GetAsyncEnumerator(System.Threading.CancellationToken token)", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<System.Boolean> C.Enumerator.MoveNextAsync()", info.MoveNextMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Enumerator.Current { get; }", info.CurrentProperty.ToTestDisplayString());
             Assert.Null(info.DisposeMethod);
@@ -704,7 +704,7 @@ class C
         {
         }
     }
-    public AsyncEnumerator GetAsyncEnumerator()
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
             => throw null;
     public sealed class AsyncEnumerator
     {
@@ -744,7 +744,7 @@ class C
             Write($""Got({i}) "");
         }
     }
-    public AsyncEnumerator GetAsyncEnumerator()
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator();
     }
@@ -781,7 +781,7 @@ class Element
     public override string ToString() => i.ToString();
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics( );
+            comp.VerifyDiagnostics();
 
             CompileAndVerify(comp,
                 expectedOutput: "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Current(3) Convert(3) Got(3) NextAsync(3) Dispose(4)",
@@ -806,7 +806,7 @@ public class C
         }
         f();
     }
-    public AsyncEnumerator GetAsyncEnumerator()
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator();
     }
@@ -852,7 +852,7 @@ public class Program
 }
 class C<T> where T : IntContainer, new()
 {
-    public AsyncEnumerator GetAsyncEnumerator()
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator();
     }
@@ -911,7 +911,7 @@ public class C
             Write(e.Message);
         }
     }
-    public AsyncEnumerator GetAsyncEnumerator()
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw new System.ArgumentException(""exception"");
     public sealed class AsyncEnumerator : System.IAsyncDisposable
     {
@@ -951,7 +951,7 @@ public class C
             Write(e.Message);
         }
     }
-    public AsyncEnumerator GetAsyncEnumerator()
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
         => new AsyncEnumerator();
     public sealed class AsyncEnumerator : System.IAsyncDisposable
     {
@@ -994,7 +994,7 @@ public class C
             Write(e.Message);
         }
     }
-    public AsyncEnumerator GetAsyncEnumerator()
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
         => new AsyncEnumerator();
     public sealed class AsyncEnumerator : System.IAsyncDisposable
     {
@@ -1041,7 +1041,7 @@ public class C
             Write(e.Message);
         }
     }
-    public AsyncEnumerator GetAsyncEnumerator()
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
         => new AsyncEnumerator();
     public sealed class AsyncEnumerator : System.IAsyncDisposable
     {
@@ -1102,7 +1102,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (12,33): error CS8411: Async foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a public instance definition for 'GetAsyncEnumerator'
+                // (12,33): error CS8411: Async foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
                 //         await foreach (var i in collection)
                 Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetAsyncEnumerator").WithLocation(12, 33)
                 );
@@ -1116,7 +1116,7 @@ namespace System.Collections.Generic
 {
     public interface IAsyncEnumerable<out T>
     {
-        IAsyncEnumerator<T> GetAsyncEnumerator();
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token);
     }
 
     public interface IAsyncEnumerator<out T>
@@ -1138,9 +1138,9 @@ class C
                 // (18,33): error CS0117: 'IAsyncEnumerator<int>' does not contain a definition for 'Current'
                 //         await foreach (var i in collection)
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "Current").WithLocation(18, 33),
-                // (18,33): error CS8412: Async foreach requires that the return type 'IAsyncEnumerator<int>' of 'IAsyncEnumerable<int>.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (18,33): error CS8412: Async foreach requires that the return type 'IAsyncEnumerator<int>' of 'IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)' must have a suitable public MoveNextAsync method and public Current property
                 //         await foreach (var i in collection)
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator()").WithLocation(18, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(18, 33)
                 );
         }
 
@@ -1152,7 +1152,7 @@ namespace System.Collections.Generic
 {
     public interface IAsyncEnumerable<out T>
     {
-        IAsyncEnumerator<T> GetAsyncEnumerator();
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token);
     }
 
     public interface IAsyncEnumerator<out T>
@@ -1174,9 +1174,9 @@ class C
                 // (18,33): error CS0117: 'IAsyncEnumerator<int>' does not contain a definition for 'MoveNextAsync'
                 //         await foreach (var i in collection)
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "MoveNextAsync").WithLocation(18, 33),
-                // (18,33): error CS8412: Async foreach requires that the return type 'IAsyncEnumerator<int>' of 'IAsyncEnumerable<int>.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (18,33): error CS8412: Async foreach requires that the return type 'IAsyncEnumerator<int>' of 'IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)' must have a suitable public MoveNextAsync method and public Current property
                 //         await foreach (var i in collection)
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator()").WithLocation(18, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(18, 33)
                 );
         }
 
@@ -1253,7 +1253,7 @@ public class C
         {
         }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
@@ -1277,9 +1277,9 @@ public static class Extensions
                 // (6,33): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNextAsync'
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Enumerator", "MoveNextAsync").WithLocation(6, 33),
-                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(System.Threading.CancellationToken)' must have a suitable public MoveNextAsync method and public Current property
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
         }
 
@@ -1364,7 +1364,7 @@ class C
         {
         }
     }
-    public Enumerator GetAsyncEnumerator() => throw null;
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
     public sealed class Enumerator
     {
         public System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
@@ -1417,12 +1417,12 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
-                // (7,33): error CS8415: Async foreach statement cannot operate on variables of type 'IEnumerable<int>' because 'IEnumerable<int>' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
-                //         await foreach (var i in collection)
-                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync, "collection").WithArguments("System.Collections.Generic.IEnumerable<int>", "GetAsyncEnumerator").WithLocation(7, 33),
                 // (7,9): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
                 //         await foreach (var i in collection)
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(7, 9),
+                // (7,33): error CS8415: Asynchronous foreach statement cannot operate on variables of type 'IEnumerable<int>' because 'IEnumerable<int>' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+                //         await foreach (var i in collection)
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync, "collection").WithArguments("System.Collections.Generic.IEnumerable<int>", "GetAsyncEnumerator").WithLocation(7, 33)
                 );
         }
 
@@ -1438,7 +1438,7 @@ class C
         {
         }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
     public sealed class Enumerator
     {
@@ -1452,6 +1452,35 @@ class C
                 // (6,27): error CS8414: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'await foreach'?
                 //         foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_ForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetEnumerator").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        public void TestPatternBased_MissingCancellationToken()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public Enumerator GetAsyncEnumerator() // missing parameter
+        => throw null;
+    public sealed class Enumerator
+    {
+        public System.Threading.Tasks.Task<bool> MoveNextAsync()
+            => throw null;
+        public int Current { get => throw null; }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable });
+            comp.VerifyDiagnostics(
+                // (6,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
         }
 
@@ -1478,7 +1507,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8415: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+                // (6,33): error CS8415: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -1496,7 +1525,7 @@ class C
         {
         }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
@@ -1520,7 +1549,7 @@ class C
             var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
-            Assert.Equal("C.Enumerator C.GetAsyncEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal("C.Enumerator C.GetAsyncEnumerator(System.Threading.CancellationToken token)", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<System.Boolean> C.Enumerator.MoveNextAsync()", info.MoveNextMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Enumerator.Current { get; }", info.CurrentProperty.ToTestDisplayString());
             Assert.Null(info.DisposeMethod);
@@ -1546,7 +1575,7 @@ class C
         {
         }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
             => throw null;
     public sealed class Enumerator
     {
@@ -1579,7 +1608,7 @@ unsafe class C
         {
         }
     }
-    public Enumerator GetAsyncEnumerator() => throw null;
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
     public sealed class Enumerator
     {
         public System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
@@ -1613,7 +1642,7 @@ class C
 }
 class D
 {
-    private Enumerator GetAsyncEnumerator()
+    private Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
             => throw null;
     public sealed class Enumerator
     {
@@ -1650,7 +1679,7 @@ class C
 }
 class D
 {
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
             => throw null;
     public sealed class Enumerator
     {
@@ -1664,9 +1693,9 @@ class D
                 // (6,33): error CS0122: 'D.Enumerator.MoveNextAsync()' is inaccessible due to its protection level
                 //         await foreach (var i in new D())
                 Diagnostic(ErrorCode.ERR_BadAccess, "new D()").WithArguments("D.Enumerator.MoveNextAsync()").WithLocation(6, 33),
-                // (6,33): error CS8412: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator(System.Threading.CancellationToken)' must have a suitable public MoveNextAsync method and public Current property
                 //         await foreach (var i in new D())
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -1688,7 +1717,7 @@ class C
 }
 class D
 {
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
             => throw null;
     public sealed class Enumerator
     {
@@ -1701,9 +1730,9 @@ class D
                 // (6,33): error CS0122: 'D.Enumerator.Current' is inaccessible due to its protection level
                 //         await foreach (var i in new D()) { }
                 Diagnostic(ErrorCode.ERR_BadAccess, "new D()").WithArguments("D.Enumerator.Current").WithLocation(6, 33),
-                // (6,33): error CS8412: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator(System.Threading.CancellationToken)' must have a suitable public MoveNextAsync method and public Current property
                 //         await foreach (var i in new D()) { }
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -1725,7 +1754,7 @@ class C
 }
 class D
 {
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
             => throw null;
     public sealed class Enumerator
     {
@@ -1735,9 +1764,9 @@ class D
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator(System.Threading.CancellationToken)' must have a suitable public MoveNextAsync method and public Current property
                 //         await foreach (var i in new D()) { }
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator()").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -1762,7 +1791,7 @@ public class C
         }
         Write(""Done"");
     }
-    public Enumerator GetAsyncEnumerator() => new Enumerator();
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => new Enumerator();
     public sealed class Enumerator : System.IAsyncDisposable
     {
         int i = 0;
@@ -1809,7 +1838,7 @@ public class C
         }
         Write(""Done"");
     }
-    public Enumerator GetAsyncEnumerator() => new Enumerator();
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => new Enumerator();
     public sealed class Enumerator
     {
         int i = 0;
@@ -1858,7 +1887,7 @@ class C
             i = 1;
         }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
     public sealed class Enumerator
     {
@@ -1891,7 +1920,7 @@ class C
         }
         Write($""Done"");
     }
-    public AsyncEnumerator GetAsyncEnumerator()
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator(0);
     }
@@ -1945,7 +1974,7 @@ class C
         }
         Write($""Done"");
     }
-    public AsyncEnumerator GetAsyncEnumerator()
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator(0);
     }
@@ -2007,7 +2036,7 @@ public class C
             Write($""Got({i}) "");
         }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new Enumerator();
     }
@@ -2068,7 +2097,7 @@ public class C
             Write($""Got({i}) "");
         }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new DerivedEnumerator();
     }
@@ -2118,16 +2147,17 @@ public class C
 
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      470 (0x1d6)
+  // Code size      485 (0x1e5)
   .maxstack  3
   .locals init (int V_0,
-                System.Runtime.CompilerServices.TaskAwaiter<bool> V_1,
-                C.<Main>d__0 V_2,
-                object V_3,
-                System.IAsyncDisposable V_4,
-                System.Runtime.CompilerServices.ValueTaskAwaiter V_5,
-                System.Threading.Tasks.ValueTask V_6,
-                System.Exception V_7)
+                System.Threading.CancellationToken V_1,
+                System.Runtime.CompilerServices.TaskAwaiter<bool> V_2,
+                C.<Main>d__0 V_3,
+                object V_4,
+                System.IAsyncDisposable V_5,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_6,
+                System.Threading.Tasks.ValueTask V_7,
+                System.Exception V_8)
   // sequence point: <hidden>
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<Main>d__0.<>1__state""
@@ -2142,8 +2172,8 @@ public class C
     IL_000d:  ldc.i4.1
     IL_000e:  beq.s      IL_0014
     IL_0010:  br.s       IL_0019
-    IL_0012:  br.s       IL_0039
-    IL_0014:  br         IL_0146
+    IL_0012:  br.s       IL_0042
+    IL_0014:  br         IL_0151
     // sequence point: {
     IL_0019:  nop
     // sequence point: foreach
@@ -2151,205 +2181,208 @@ public class C
     // sequence point: new C()
     IL_001b:  ldarg.0
     IL_001c:  newobj     ""C..ctor()""
-    IL_0021:  call       ""C.Enumerator C.GetAsyncEnumerator()""
-    IL_0026:  stfld      ""C.Enumerator C.<Main>d__0.<>s__1""
+    IL_0021:  ldloca.s   V_1
+    IL_0023:  initobj    ""System.Threading.CancellationToken""
+    IL_0029:  ldloc.1
+    IL_002a:  call       ""C.Enumerator C.GetAsyncEnumerator(System.Threading.CancellationToken)""
+    IL_002f:  stfld      ""C.Enumerator C.<Main>d__0.<>s__1""
     // sequence point: <hidden>
-    IL_002b:  ldarg.0
-    IL_002c:  ldnull
-    IL_002d:  stfld      ""object C.<Main>d__0.<>s__2""
-    IL_0032:  ldarg.0
-    IL_0033:  ldc.i4.0
-    IL_0034:  stfld      ""int C.<Main>d__0.<>s__3""
+    IL_0034:  ldarg.0
+    IL_0035:  ldnull
+    IL_0036:  stfld      ""object C.<Main>d__0.<>s__2""
+    IL_003b:  ldarg.0
+    IL_003c:  ldc.i4.0
+    IL_003d:  stfld      ""int C.<Main>d__0.<>s__3""
     // sequence point: <hidden>
-    IL_0039:  nop
+    IL_0042:  nop
     .try
     {
       // sequence point: <hidden>
-      IL_003a:  ldloc.0
-      IL_003b:  brfalse.s  IL_003f
-      IL_003d:  br.s       IL_0041
-      IL_003f:  br.s       IL_00b2
+      IL_0043:  ldloc.0
+      IL_0044:  brfalse.s  IL_0048
+      IL_0046:  br.s       IL_004a
+      IL_0048:  br.s       IL_00bb
       // sequence point: <hidden>
-      IL_0041:  br.s       IL_0071
+      IL_004a:  br.s       IL_007a
       // sequence point: var i
-      IL_0043:  ldarg.0
-      IL_0044:  ldarg.0
-      IL_0045:  ldfld      ""C.Enumerator C.<Main>d__0.<>s__1""
-      IL_004a:  callvirt   ""int C.Enumerator.Current.get""
-      IL_004f:  stfld      ""int C.<Main>d__0.<i>5__4""
+      IL_004c:  ldarg.0
+      IL_004d:  ldarg.0
+      IL_004e:  ldfld      ""C.Enumerator C.<Main>d__0.<>s__1""
+      IL_0053:  callvirt   ""int C.Enumerator.Current.get""
+      IL_0058:  stfld      ""int C.<Main>d__0.<i>5__4""
       // sequence point: {
-      IL_0054:  nop
+      IL_005d:  nop
       // sequence point: Write($""Got({i}) "");
-      IL_0055:  ldstr      ""Got({0}) ""
-      IL_005a:  ldarg.0
-      IL_005b:  ldfld      ""int C.<Main>d__0.<i>5__4""
-      IL_0060:  box        ""int""
-      IL_0065:  call       ""string string.Format(string, object)""
-      IL_006a:  call       ""void System.Console.Write(string)""
-      IL_006f:  nop
+      IL_005e:  ldstr      ""Got({0}) ""
+      IL_0063:  ldarg.0
+      IL_0064:  ldfld      ""int C.<Main>d__0.<i>5__4""
+      IL_0069:  box        ""int""
+      IL_006e:  call       ""string string.Format(string, object)""
+      IL_0073:  call       ""void System.Console.Write(string)""
+      IL_0078:  nop
       // sequence point: }
-      IL_0070:  nop
+      IL_0079:  nop
       // sequence point: in
-      IL_0071:  ldarg.0
-      IL_0072:  ldfld      ""C.Enumerator C.<Main>d__0.<>s__1""
-      IL_0077:  callvirt   ""System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()""
-      IL_007c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
-      IL_0081:  stloc.1
+      IL_007a:  ldarg.0
+      IL_007b:  ldfld      ""C.Enumerator C.<Main>d__0.<>s__1""
+      IL_0080:  callvirt   ""System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()""
+      IL_0085:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
+      IL_008a:  stloc.2
       // sequence point: <hidden>
-      IL_0082:  ldloca.s   V_1
-      IL_0084:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
-      IL_0089:  brtrue.s   IL_00ce
-      IL_008b:  ldarg.0
-      IL_008c:  ldc.i4.0
-      IL_008d:  dup
-      IL_008e:  stloc.0
-      IL_008f:  stfld      ""int C.<Main>d__0.<>1__state""
-      // async: yield
+      IL_008b:  ldloca.s   V_2
+      IL_008d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
+      IL_0092:  brtrue.s   IL_00d7
       IL_0094:  ldarg.0
-      IL_0095:  ldloc.1
-      IL_0096:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
-      IL_009b:  ldarg.0
-      IL_009c:  stloc.2
+      IL_0095:  ldc.i4.0
+      IL_0096:  dup
+      IL_0097:  stloc.0
+      IL_0098:  stfld      ""int C.<Main>d__0.<>1__state""
+      // async: yield
       IL_009d:  ldarg.0
-      IL_009e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-      IL_00a3:  ldloca.s   V_1
-      IL_00a5:  ldloca.s   V_2
-      IL_00a7:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<Main>d__0)""
-      IL_00ac:  nop
-      IL_00ad:  leave      IL_01d5
+      IL_009e:  ldloc.2
+      IL_009f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00a4:  ldarg.0
+      IL_00a5:  stloc.3
+      IL_00a6:  ldarg.0
+      IL_00a7:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+      IL_00ac:  ldloca.s   V_2
+      IL_00ae:  ldloca.s   V_3
+      IL_00b0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<Main>d__0)""
+      IL_00b5:  nop
+      IL_00b6:  leave      IL_01e4
       // async: resume
-      IL_00b2:  ldarg.0
-      IL_00b3:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
-      IL_00b8:  stloc.1
-      IL_00b9:  ldarg.0
-      IL_00ba:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
-      IL_00bf:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
-      IL_00c5:  ldarg.0
-      IL_00c6:  ldc.i4.m1
-      IL_00c7:  dup
-      IL_00c8:  stloc.0
-      IL_00c9:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_00bb:  ldarg.0
+      IL_00bc:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00c1:  stloc.2
+      IL_00c2:  ldarg.0
+      IL_00c3:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00c8:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
       IL_00ce:  ldarg.0
-      IL_00cf:  ldloca.s   V_1
-      IL_00d1:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
-      IL_00d6:  stfld      ""bool C.<Main>d__0.<>s__5""
-      IL_00db:  ldarg.0
-      IL_00dc:  ldfld      ""bool C.<Main>d__0.<>s__5""
-      IL_00e1:  brtrue     IL_0043
+      IL_00cf:  ldc.i4.m1
+      IL_00d0:  dup
+      IL_00d1:  stloc.0
+      IL_00d2:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_00d7:  ldarg.0
+      IL_00d8:  ldloca.s   V_2
+      IL_00da:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
+      IL_00df:  stfld      ""bool C.<Main>d__0.<>s__5""
+      IL_00e4:  ldarg.0
+      IL_00e5:  ldfld      ""bool C.<Main>d__0.<>s__5""
+      IL_00ea:  brtrue     IL_004c
       // sequence point: <hidden>
-      IL_00e6:  leave.s    IL_00f2
+      IL_00ef:  leave.s    IL_00fd
     }
     catch object
     {
       // sequence point: <hidden>
-      IL_00e8:  stloc.3
-      IL_00e9:  ldarg.0
-      IL_00ea:  ldloc.3
-      IL_00eb:  stfld      ""object C.<Main>d__0.<>s__2""
-      IL_00f0:  leave.s    IL_00f2
+      IL_00f1:  stloc.s    V_4
+      IL_00f3:  ldarg.0
+      IL_00f4:  ldloc.s    V_4
+      IL_00f6:  stfld      ""object C.<Main>d__0.<>s__2""
+      IL_00fb:  leave.s    IL_00fd
     }
     // sequence point: <hidden>
-    IL_00f2:  ldarg.0
-    IL_00f3:  ldfld      ""C.Enumerator C.<Main>d__0.<>s__1""
-    IL_00f8:  isinst     ""System.IAsyncDisposable""
-    IL_00fd:  stloc.s    V_4
-    IL_00ff:  ldloc.s    V_4
-    IL_0101:  brfalse.s  IL_016b
-    IL_0103:  ldloc.s    V_4
-    IL_0105:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
-    IL_010a:  stloc.s    V_6
-    IL_010c:  ldloca.s   V_6
-    IL_010e:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
-    IL_0113:  stloc.s    V_5
+    IL_00fd:  ldarg.0
+    IL_00fe:  ldfld      ""C.Enumerator C.<Main>d__0.<>s__1""
+    IL_0103:  isinst     ""System.IAsyncDisposable""
+    IL_0108:  stloc.s    V_5
+    IL_010a:  ldloc.s    V_5
+    IL_010c:  brfalse.s  IL_0176
+    IL_010e:  ldloc.s    V_5
+    IL_0110:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_0115:  stloc.s    V_7
+    IL_0117:  ldloca.s   V_7
+    IL_0119:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_011e:  stloc.s    V_6
     // sequence point: <hidden>
-    IL_0115:  ldloca.s   V_5
-    IL_0117:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
-    IL_011c:  brtrue.s   IL_0163
-    IL_011e:  ldarg.0
-    IL_011f:  ldc.i4.1
-    IL_0120:  dup
-    IL_0121:  stloc.0
-    IL_0122:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0120:  ldloca.s   V_6
+    IL_0122:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_0127:  brtrue.s   IL_016e
+    IL_0129:  ldarg.0
+    IL_012a:  ldc.i4.1
+    IL_012b:  dup
+    IL_012c:  stloc.0
+    IL_012d:  stfld      ""int C.<Main>d__0.<>1__state""
     // async: yield
-    IL_0127:  ldarg.0
-    IL_0128:  ldloc.s    V_5
-    IL_012a:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
-    IL_012f:  ldarg.0
-    IL_0130:  stloc.2
-    IL_0131:  ldarg.0
-    IL_0132:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_0137:  ldloca.s   V_5
-    IL_0139:  ldloca.s   V_2
-    IL_013b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
-    IL_0140:  nop
-    IL_0141:  leave      IL_01d5
+    IL_0132:  ldarg.0
+    IL_0133:  ldloc.s    V_6
+    IL_0135:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_013a:  ldarg.0
+    IL_013b:  stloc.3
+    IL_013c:  ldarg.0
+    IL_013d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_0142:  ldloca.s   V_6
+    IL_0144:  ldloca.s   V_3
+    IL_0146:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
+    IL_014b:  nop
+    IL_014c:  leave      IL_01e4
     // async: resume
-    IL_0146:  ldarg.0
-    IL_0147:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
-    IL_014c:  stloc.s    V_5
-    IL_014e:  ldarg.0
-    IL_014f:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
-    IL_0154:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
-    IL_015a:  ldarg.0
-    IL_015b:  ldc.i4.m1
-    IL_015c:  dup
-    IL_015d:  stloc.0
-    IL_015e:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_0163:  ldloca.s   V_5
-    IL_0165:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
-    IL_016a:  nop
+    IL_0151:  ldarg.0
+    IL_0152:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_0157:  stloc.s    V_6
+    IL_0159:  ldarg.0
+    IL_015a:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_015f:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_0165:  ldarg.0
+    IL_0166:  ldc.i4.m1
+    IL_0167:  dup
+    IL_0168:  stloc.0
+    IL_0169:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_016e:  ldloca.s   V_6
+    IL_0170:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_0175:  nop
     // sequence point: <hidden>
-    IL_016b:  ldarg.0
-    IL_016c:  ldfld      ""object C.<Main>d__0.<>s__2""
-    IL_0171:  stloc.3
-    IL_0172:  ldloc.3
-    IL_0173:  brfalse.s  IL_0190
-    IL_0175:  ldloc.3
-    IL_0176:  isinst     ""System.Exception""
-    IL_017b:  stloc.s    V_7
-    IL_017d:  ldloc.s    V_7
-    IL_017f:  brtrue.s   IL_0183
-    IL_0181:  ldloc.3
-    IL_0182:  throw
-    IL_0183:  ldloc.s    V_7
-    IL_0185:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
-    IL_018a:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
-    IL_018f:  nop
-    IL_0190:  ldarg.0
-    IL_0191:  ldfld      ""int C.<Main>d__0.<>s__3""
-    IL_0196:  pop
-    IL_0197:  ldarg.0
-    IL_0198:  ldnull
-    IL_0199:  stfld      ""object C.<Main>d__0.<>s__2""
-    IL_019e:  ldarg.0
-    IL_019f:  ldnull
-    IL_01a0:  stfld      ""C.Enumerator C.<Main>d__0.<>s__1""
-    IL_01a5:  leave.s    IL_01c1
+    IL_0176:  ldarg.0
+    IL_0177:  ldfld      ""object C.<Main>d__0.<>s__2""
+    IL_017c:  stloc.s    V_4
+    IL_017e:  ldloc.s    V_4
+    IL_0180:  brfalse.s  IL_019f
+    IL_0182:  ldloc.s    V_4
+    IL_0184:  isinst     ""System.Exception""
+    IL_0189:  stloc.s    V_8
+    IL_018b:  ldloc.s    V_8
+    IL_018d:  brtrue.s   IL_0192
+    IL_018f:  ldloc.s    V_4
+    IL_0191:  throw
+    IL_0192:  ldloc.s    V_8
+    IL_0194:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_0199:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_019e:  nop
+    IL_019f:  ldarg.0
+    IL_01a0:  ldfld      ""int C.<Main>d__0.<>s__3""
+    IL_01a5:  pop
+    IL_01a6:  ldarg.0
+    IL_01a7:  ldnull
+    IL_01a8:  stfld      ""object C.<Main>d__0.<>s__2""
+    IL_01ad:  ldarg.0
+    IL_01ae:  ldnull
+    IL_01af:  stfld      ""C.Enumerator C.<Main>d__0.<>s__1""
+    IL_01b4:  leave.s    IL_01d0
   }
   catch System.Exception
   {
     // sequence point: <hidden>
-    IL_01a7:  stloc.s    V_7
-    IL_01a9:  ldarg.0
-    IL_01aa:  ldc.i4.s   -2
-    IL_01ac:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_01b1:  ldarg.0
-    IL_01b2:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_01b7:  ldloc.s    V_7
-    IL_01b9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_01be:  nop
-    IL_01bf:  leave.s    IL_01d5
+    IL_01b6:  stloc.s    V_8
+    IL_01b8:  ldarg.0
+    IL_01b9:  ldc.i4.s   -2
+    IL_01bb:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_01c0:  ldarg.0
+    IL_01c1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_01c6:  ldloc.s    V_8
+    IL_01c8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_01cd:  nop
+    IL_01ce:  leave.s    IL_01e4
   }
   // sequence point: }
-  IL_01c1:  ldarg.0
-  IL_01c2:  ldc.i4.s   -2
-  IL_01c4:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_01d0:  ldarg.0
+  IL_01d1:  ldc.i4.s   -2
+  IL_01d3:  stfld      ""int C.<Main>d__0.<>1__state""
   // sequence point: <hidden>
-  IL_01c9:  ldarg.0
-  IL_01ca:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-  IL_01cf:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_01d4:  nop
-  IL_01d5:  ret
+  IL_01d8:  ldarg.0
+  IL_01d9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_01de:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_01e3:  nop
+  IL_01e4:  ret
 }
 ", sequencePoints: "C+<Main>d__0.MoveNext", source: source + s_IAsyncEnumerable);
         }
@@ -2369,7 +2402,7 @@ class C
             Write($""Got({i}) "");
         }
     }
-    public Enumerator GetAsyncEnumerator()
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new Enumerator();
     }
@@ -2420,7 +2453,7 @@ class C
 using System.Threading.Tasks;
 public class C
 {
-    public Enumerator GetAsyncEnumerator() => throw null;
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
     public sealed class Enumerator : System.IAsyncDisposable
     {
         public int Current { get => throw null; }
@@ -2472,11 +2505,11 @@ class C : IAsyncEnumerable<int>, IAsyncEnumerable<string>
         {
         }
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
-    IAsyncEnumerator<string> IAsyncEnumerable<string>.GetAsyncEnumerator()
+    IAsyncEnumerator<string> IAsyncEnumerable<string>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
@@ -2497,7 +2530,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 class Base : IAsyncEnumerable<string>
 {
-    IAsyncEnumerator<string> IAsyncEnumerable<string>.GetAsyncEnumerator()
+    IAsyncEnumerator<string> IAsyncEnumerable<string>.GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
 }
 class C : Base, IAsyncEnumerable<int>
@@ -2508,7 +2541,7 @@ class C : Base, IAsyncEnumerable<int>
         {
         }
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
@@ -2535,7 +2568,7 @@ class C : IAsyncEnumerable<int>
             Write($""Got({i}) "");
         }
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator();
     }
@@ -2574,7 +2607,7 @@ class C : IAsyncEnumerable<int>
             var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
-            Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
+            Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])",
                 info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
                 info.MoveNextMethod.ToTestDisplayString());
@@ -2608,7 +2641,7 @@ class C : IAsyncEnumerable<int>
         }
         Write($""Done"");
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator(2);
     }
@@ -2662,7 +2695,7 @@ class C : IAsyncEnumerable<int>
         }
         Write(""Done"");
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator();
     }
@@ -2719,7 +2752,7 @@ class C : IAsyncEnumerable<int>
         done:
         Write(""Done"");
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator();
     }
@@ -2773,7 +2806,7 @@ class C : IAsyncEnumerable<int>
         }
         Write($""Done"");
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator(0);
     }
@@ -2848,7 +2881,7 @@ class C : IAsyncEnumerable<int>
         {
         }
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
@@ -2883,7 +2916,7 @@ class C : IAsyncEnumerable<int>
             System.Console.Write(""Success"");
         }
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator(0);
     }
@@ -2926,7 +2959,7 @@ class C : IAsyncEnumerable<int>
         }
         Write($""Done"");
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator(0);
     }
@@ -2961,6 +2994,7 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: "Try NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done", verify: Verification.Skipped);
         }
 
+        /// Covered in greater details by <see cref="CodeGenAsyncIteratorTests.TryFinally_AwaitForeachInFinally"/>
         [Fact]
         public void TestInFinally()
         {
@@ -2981,17 +3015,13 @@ class C : IAsyncEnumerable<int>
             }
         }
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
-            comp.VerifyDiagnostics(
-                // (13,13): error CS0157: Control cannot leave the body of a finally clause
-                //             await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadFinallyLeave, "await").WithLocation(13, 13)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
@@ -3011,7 +3041,7 @@ class C : IAsyncEnumerable<int>
         }
         Write($""Done"");
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator(0);
     }
@@ -3057,7 +3087,7 @@ class Element
             var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
-            Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
+            Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])",
                 info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
                 info.MoveNextMethod.ToTestDisplayString());
@@ -3092,7 +3122,7 @@ struct C : IAsyncEnumerable<int>
             Write($""Got({i}) "");
         }
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator();
     }
@@ -3131,7 +3161,7 @@ struct C : IAsyncEnumerable<int>
             var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
-            Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
+            Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])",
                 info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
                 info.MoveNextMethod.ToTestDisplayString());
@@ -3172,7 +3202,7 @@ struct C : IAsyncEnumerable<int>
             Write($""Success"");
         }
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw new System.Exception();
     }
@@ -3199,7 +3229,7 @@ class C : IAsyncEnumerable<int>
         }
         Write($""Done"");
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator();
     }
@@ -3241,7 +3271,7 @@ public static class Extensions
             var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachVariableStatementSyntax>().Single();
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
-            Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
+            Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])",
                 info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
                 info.MoveNextMethod.ToTestDisplayString());
@@ -3271,7 +3301,7 @@ class C : IAsyncEnumerable<int>
         {
         }
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
 }
 public static class Extensions
@@ -3303,7 +3333,7 @@ class C : IAsyncEnumerable<(string, int)>
         }
         Write($""Done"");
     }
-    IAsyncEnumerator<(string, int)> IAsyncEnumerable<(string, int)>.GetAsyncEnumerator()
+    IAsyncEnumerator<(string, int)> IAsyncEnumerable<(string, int)>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator();
     }
@@ -3340,7 +3370,7 @@ class C : IAsyncEnumerable<(string, int)>
             var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachVariableStatementSyntax>().Single();
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
-            Assert.Equal("System.Collections.Generic.IAsyncEnumerator<(System.String, System.Int32)> System.Collections.Generic.IAsyncEnumerable<(System.String, System.Int32)>.GetAsyncEnumerator()",
+            Assert.Equal("System.Collections.Generic.IAsyncEnumerator<(System.String, System.Int32)> System.Collections.Generic.IAsyncEnumerable<(System.String, System.Int32)>.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])",
                 info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<(System.String, System.Int32)>.MoveNextAsync()",
                 info.MoveNextMethod.ToTestDisplayString());
@@ -3376,7 +3406,7 @@ class C : IAsyncEnumerable<int>
 
         Write($""Done"");
     }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator(0);
     }
@@ -3430,7 +3460,7 @@ class C
         }
     }
     [System.Obsolete]
-    public AsyncEnumerator GetAsyncEnumerator()
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
@@ -3447,9 +3477,9 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (7,15): warning CS0612: 'C.GetAsyncEnumerator()' is obsolete
+                // (7,15): warning CS0612: 'C.GetAsyncEnumerator(CancellationToken)' is obsolete
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.GetAsyncEnumerator()").WithLocation(7, 15),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(7, 15),
                 // (7,15): warning CS0612: 'C.AsyncEnumerator.MoveNextAsync()' is obsolete
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.AsyncEnumerator.MoveNextAsync()").WithLocation(7, 15),
@@ -3474,7 +3504,7 @@ class C
         {
         }
     }
-    public IAsyncEnumerator<int> GetAsyncEnumerator() => throw null;
+    public IAsyncEnumerator<int> GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
             comp.VerifyDiagnostics(
@@ -3497,7 +3527,7 @@ class C
         {
         }
     }
-    public IAsyncEnumerator<int> GetAsyncEnumerator()
+    public IAsyncEnumerator<int> GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         throw null;
     }
@@ -3519,7 +3549,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 class Collection<T> : IAsyncEnumerable<T>
 {
-    IAsyncEnumerator<T> IAsyncEnumerable<T>.GetAsyncEnumerator()
+    IAsyncEnumerator<T> IAsyncEnumerable<T>.GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new AsyncEnumerator();
     }
@@ -3567,7 +3597,7 @@ class C
             var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
-            Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
+            Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])",
                 info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
                 info.MoveNextMethod.ToTestDisplayString());
@@ -3593,7 +3623,7 @@ using System.Threading.Tasks;
 
 public interface ICollection<T>
 {
-    IMyAsyncEnumerator<T> GetAsyncEnumerator();
+    IMyAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token);
 }
 public interface IMyAsyncEnumerator<T>
 {
@@ -3603,7 +3633,7 @@ public interface IMyAsyncEnumerator<T>
 
 public class Collection<T> : ICollection<T>
 {
-    public IMyAsyncEnumerator<T> GetAsyncEnumerator()
+    public IMyAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         return new MyAsyncEnumerator<T>();
     }
@@ -3648,7 +3678,7 @@ class C
             var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
-            Assert.Equal("IMyAsyncEnumerator<System.Int32> ICollection<System.Int32>.GetAsyncEnumerator()",
+            Assert.Equal("IMyAsyncEnumerator<System.Int32> ICollection<System.Int32>.GetAsyncEnumerator(System.Threading.CancellationToken token)",
                 info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<System.Boolean> IMyAsyncEnumerator<System.Int32>.MoveNextAsync()",
                 info.MoveNextMethod.ToTestDisplayString());
@@ -3666,16 +3696,17 @@ class C
 
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      466 (0x1d2)
+  // Code size      481 (0x1e1)
   .maxstack  3
   .locals init (int V_0,
-                System.Runtime.CompilerServices.TaskAwaiter<bool> V_1,
-                C.<Main>d__0 V_2,
-                object V_3,
-                System.IAsyncDisposable V_4,
-                System.Runtime.CompilerServices.ValueTaskAwaiter V_5,
-                System.Threading.Tasks.ValueTask V_6,
-                System.Exception V_7)
+                System.Threading.CancellationToken V_1,
+                System.Runtime.CompilerServices.TaskAwaiter<bool> V_2,
+                C.<Main>d__0 V_3,
+                object V_4,
+                System.IAsyncDisposable V_5,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_6,
+                System.Threading.Tasks.ValueTask V_7,
+                System.Exception V_8)
   // sequence point: <hidden>
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<Main>d__0.<>1__state""
@@ -3690,8 +3721,8 @@ class C
     IL_000d:  ldc.i4.1
     IL_000e:  beq.s      IL_0014
     IL_0010:  br.s       IL_0019
-    IL_0012:  br.s       IL_0045
-    IL_0014:  br         IL_0142
+    IL_0012:  br.s       IL_004e
+    IL_0014:  br         IL_014d
     // sequence point: {
     IL_0019:  nop
     // sequence point: ICollection<int> c = new Collection<int>();
@@ -3704,203 +3735,240 @@ class C
     IL_0026:  ldarg.0
     IL_0027:  ldarg.0
     IL_0028:  ldfld      ""ICollection<int> C.<Main>d__0.<c>5__1""
-    IL_002d:  callvirt   ""IMyAsyncEnumerator<int> ICollection<int>.GetAsyncEnumerator()""
-    IL_0032:  stfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
+    IL_002d:  ldloca.s   V_1
+    IL_002f:  initobj    ""System.Threading.CancellationToken""
+    IL_0035:  ldloc.1
+    IL_0036:  callvirt   ""IMyAsyncEnumerator<int> ICollection<int>.GetAsyncEnumerator(System.Threading.CancellationToken)""
+    IL_003b:  stfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
     // sequence point: <hidden>
-    IL_0037:  ldarg.0
-    IL_0038:  ldnull
-    IL_0039:  stfld      ""object C.<Main>d__0.<>s__3""
-    IL_003e:  ldarg.0
-    IL_003f:  ldc.i4.0
-    IL_0040:  stfld      ""int C.<Main>d__0.<>s__4""
+    IL_0040:  ldarg.0
+    IL_0041:  ldnull
+    IL_0042:  stfld      ""object C.<Main>d__0.<>s__3""
+    IL_0047:  ldarg.0
+    IL_0048:  ldc.i4.0
+    IL_0049:  stfld      ""int C.<Main>d__0.<>s__4""
     // sequence point: <hidden>
-    IL_0045:  nop
+    IL_004e:  nop
     .try
     {
       // sequence point: <hidden>
-      IL_0046:  ldloc.0
-      IL_0047:  brfalse.s  IL_004b
-      IL_0049:  br.s       IL_004d
-      IL_004b:  br.s       IL_00ae
+      IL_004f:  ldloc.0
+      IL_0050:  brfalse.s  IL_0054
+      IL_0052:  br.s       IL_0056
+      IL_0054:  br.s       IL_00b7
       // sequence point: <hidden>
-      IL_004d:  br.s       IL_006d
+      IL_0056:  br.s       IL_0076
       // sequence point: var i
-      IL_004f:  ldarg.0
-      IL_0050:  ldarg.0
-      IL_0051:  ldfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
-      IL_0056:  callvirt   ""int IMyAsyncEnumerator<int>.Current.get""
-      IL_005b:  stfld      ""int C.<Main>d__0.<i>5__5""
+      IL_0058:  ldarg.0
+      IL_0059:  ldarg.0
+      IL_005a:  ldfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
+      IL_005f:  callvirt   ""int IMyAsyncEnumerator<int>.Current.get""
+      IL_0064:  stfld      ""int C.<Main>d__0.<i>5__5""
       // sequence point: {
-      IL_0060:  nop
+      IL_0069:  nop
       // sequence point: Write($""Got "");
-      IL_0061:  ldstr      ""Got ""
-      IL_0066:  call       ""void System.Console.Write(string)""
-      IL_006b:  nop
+      IL_006a:  ldstr      ""Got ""
+      IL_006f:  call       ""void System.Console.Write(string)""
+      IL_0074:  nop
       // sequence point: }
-      IL_006c:  nop
+      IL_0075:  nop
       // sequence point: in
-      IL_006d:  ldarg.0
-      IL_006e:  ldfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
-      IL_0073:  callvirt   ""System.Threading.Tasks.Task<bool> IMyAsyncEnumerator<int>.MoveNextAsync()""
-      IL_0078:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
-      IL_007d:  stloc.1
+      IL_0076:  ldarg.0
+      IL_0077:  ldfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
+      IL_007c:  callvirt   ""System.Threading.Tasks.Task<bool> IMyAsyncEnumerator<int>.MoveNextAsync()""
+      IL_0081:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
+      IL_0086:  stloc.2
       // sequence point: <hidden>
-      IL_007e:  ldloca.s   V_1
-      IL_0080:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
-      IL_0085:  brtrue.s   IL_00ca
-      IL_0087:  ldarg.0
-      IL_0088:  ldc.i4.0
-      IL_0089:  dup
-      IL_008a:  stloc.0
-      IL_008b:  stfld      ""int C.<Main>d__0.<>1__state""
-      // async: yield
+      IL_0087:  ldloca.s   V_2
+      IL_0089:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
+      IL_008e:  brtrue.s   IL_00d3
       IL_0090:  ldarg.0
-      IL_0091:  ldloc.1
-      IL_0092:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
-      IL_0097:  ldarg.0
-      IL_0098:  stloc.2
+      IL_0091:  ldc.i4.0
+      IL_0092:  dup
+      IL_0093:  stloc.0
+      IL_0094:  stfld      ""int C.<Main>d__0.<>1__state""
+      // async: yield
       IL_0099:  ldarg.0
-      IL_009a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-      IL_009f:  ldloca.s   V_1
-      IL_00a1:  ldloca.s   V_2
-      IL_00a3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<Main>d__0)""
-      IL_00a8:  nop
-      IL_00a9:  leave      IL_01d1
+      IL_009a:  ldloc.2
+      IL_009b:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00a0:  ldarg.0
+      IL_00a1:  stloc.3
+      IL_00a2:  ldarg.0
+      IL_00a3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+      IL_00a8:  ldloca.s   V_2
+      IL_00aa:  ldloca.s   V_3
+      IL_00ac:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<Main>d__0)""
+      IL_00b1:  nop
+      IL_00b2:  leave      IL_01e0
       // async: resume
-      IL_00ae:  ldarg.0
-      IL_00af:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
-      IL_00b4:  stloc.1
-      IL_00b5:  ldarg.0
-      IL_00b6:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
-      IL_00bb:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
-      IL_00c1:  ldarg.0
-      IL_00c2:  ldc.i4.m1
-      IL_00c3:  dup
-      IL_00c4:  stloc.0
-      IL_00c5:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_00b7:  ldarg.0
+      IL_00b8:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00bd:  stloc.2
+      IL_00be:  ldarg.0
+      IL_00bf:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00c4:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
       IL_00ca:  ldarg.0
-      IL_00cb:  ldloca.s   V_1
-      IL_00cd:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
-      IL_00d2:  stfld      ""bool C.<Main>d__0.<>s__6""
-      IL_00d7:  ldarg.0
-      IL_00d8:  ldfld      ""bool C.<Main>d__0.<>s__6""
-      IL_00dd:  brtrue     IL_004f
+      IL_00cb:  ldc.i4.m1
+      IL_00cc:  dup
+      IL_00cd:  stloc.0
+      IL_00ce:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_00d3:  ldarg.0
+      IL_00d4:  ldloca.s   V_2
+      IL_00d6:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
+      IL_00db:  stfld      ""bool C.<Main>d__0.<>s__6""
+      IL_00e0:  ldarg.0
+      IL_00e1:  ldfld      ""bool C.<Main>d__0.<>s__6""
+      IL_00e6:  brtrue     IL_0058
       // sequence point: <hidden>
-      IL_00e2:  leave.s    IL_00ee
+      IL_00eb:  leave.s    IL_00f9
     }
     catch object
     {
       // sequence point: <hidden>
-      IL_00e4:  stloc.3
-      IL_00e5:  ldarg.0
-      IL_00e6:  ldloc.3
-      IL_00e7:  stfld      ""object C.<Main>d__0.<>s__3""
-      IL_00ec:  leave.s    IL_00ee
+      IL_00ed:  stloc.s    V_4
+      IL_00ef:  ldarg.0
+      IL_00f0:  ldloc.s    V_4
+      IL_00f2:  stfld      ""object C.<Main>d__0.<>s__3""
+      IL_00f7:  leave.s    IL_00f9
     }
     // sequence point: <hidden>
-    IL_00ee:  ldarg.0
-    IL_00ef:  ldfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
-    IL_00f4:  isinst     ""System.IAsyncDisposable""
-    IL_00f9:  stloc.s    V_4
-    IL_00fb:  ldloc.s    V_4
-    IL_00fd:  brfalse.s  IL_0167
-    IL_00ff:  ldloc.s    V_4
-    IL_0101:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
-    IL_0106:  stloc.s    V_6
-    IL_0108:  ldloca.s   V_6
-    IL_010a:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
-    IL_010f:  stloc.s    V_5
+    IL_00f9:  ldarg.0
+    IL_00fa:  ldfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
+    IL_00ff:  isinst     ""System.IAsyncDisposable""
+    IL_0104:  stloc.s    V_5
+    IL_0106:  ldloc.s    V_5
+    IL_0108:  brfalse.s  IL_0172
+    IL_010a:  ldloc.s    V_5
+    IL_010c:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_0111:  stloc.s    V_7
+    IL_0113:  ldloca.s   V_7
+    IL_0115:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_011a:  stloc.s    V_6
     // sequence point: <hidden>
-    IL_0111:  ldloca.s   V_5
-    IL_0113:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
-    IL_0118:  brtrue.s   IL_015f
-    IL_011a:  ldarg.0
-    IL_011b:  ldc.i4.1
-    IL_011c:  dup
-    IL_011d:  stloc.0
-    IL_011e:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_011c:  ldloca.s   V_6
+    IL_011e:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_0123:  brtrue.s   IL_016a
+    IL_0125:  ldarg.0
+    IL_0126:  ldc.i4.1
+    IL_0127:  dup
+    IL_0128:  stloc.0
+    IL_0129:  stfld      ""int C.<Main>d__0.<>1__state""
     // async: yield
-    IL_0123:  ldarg.0
-    IL_0124:  ldloc.s    V_5
-    IL_0126:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
-    IL_012b:  ldarg.0
-    IL_012c:  stloc.2
-    IL_012d:  ldarg.0
-    IL_012e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_0133:  ldloca.s   V_5
-    IL_0135:  ldloca.s   V_2
-    IL_0137:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
-    IL_013c:  nop
-    IL_013d:  leave      IL_01d1
+    IL_012e:  ldarg.0
+    IL_012f:  ldloc.s    V_6
+    IL_0131:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_0136:  ldarg.0
+    IL_0137:  stloc.3
+    IL_0138:  ldarg.0
+    IL_0139:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_013e:  ldloca.s   V_6
+    IL_0140:  ldloca.s   V_3
+    IL_0142:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
+    IL_0147:  nop
+    IL_0148:  leave      IL_01e0
     // async: resume
-    IL_0142:  ldarg.0
-    IL_0143:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
-    IL_0148:  stloc.s    V_5
-    IL_014a:  ldarg.0
-    IL_014b:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
-    IL_0150:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
-    IL_0156:  ldarg.0
-    IL_0157:  ldc.i4.m1
-    IL_0158:  dup
-    IL_0159:  stloc.0
-    IL_015a:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_015f:  ldloca.s   V_5
-    IL_0161:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
-    IL_0166:  nop
+    IL_014d:  ldarg.0
+    IL_014e:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_0153:  stloc.s    V_6
+    IL_0155:  ldarg.0
+    IL_0156:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_015b:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_0161:  ldarg.0
+    IL_0162:  ldc.i4.m1
+    IL_0163:  dup
+    IL_0164:  stloc.0
+    IL_0165:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_016a:  ldloca.s   V_6
+    IL_016c:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_0171:  nop
     // sequence point: <hidden>
-    IL_0167:  ldarg.0
-    IL_0168:  ldfld      ""object C.<Main>d__0.<>s__3""
-    IL_016d:  stloc.3
-    IL_016e:  ldloc.3
-    IL_016f:  brfalse.s  IL_018c
-    IL_0171:  ldloc.3
-    IL_0172:  isinst     ""System.Exception""
-    IL_0177:  stloc.s    V_7
-    IL_0179:  ldloc.s    V_7
-    IL_017b:  brtrue.s   IL_017f
-    IL_017d:  ldloc.3
-    IL_017e:  throw
-    IL_017f:  ldloc.s    V_7
-    IL_0181:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
-    IL_0186:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
-    IL_018b:  nop
-    IL_018c:  ldarg.0
-    IL_018d:  ldfld      ""int C.<Main>d__0.<>s__4""
-    IL_0192:  pop
-    IL_0193:  ldarg.0
-    IL_0194:  ldnull
-    IL_0195:  stfld      ""object C.<Main>d__0.<>s__3""
-    IL_019a:  ldarg.0
-    IL_019b:  ldnull
-    IL_019c:  stfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
-    IL_01a1:  leave.s    IL_01bd
+    IL_0172:  ldarg.0
+    IL_0173:  ldfld      ""object C.<Main>d__0.<>s__3""
+    IL_0178:  stloc.s    V_4
+    IL_017a:  ldloc.s    V_4
+    IL_017c:  brfalse.s  IL_019b
+    IL_017e:  ldloc.s    V_4
+    IL_0180:  isinst     ""System.Exception""
+    IL_0185:  stloc.s    V_8
+    IL_0187:  ldloc.s    V_8
+    IL_0189:  brtrue.s   IL_018e
+    IL_018b:  ldloc.s    V_4
+    IL_018d:  throw
+    IL_018e:  ldloc.s    V_8
+    IL_0190:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_0195:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_019a:  nop
+    IL_019b:  ldarg.0
+    IL_019c:  ldfld      ""int C.<Main>d__0.<>s__4""
+    IL_01a1:  pop
+    IL_01a2:  ldarg.0
+    IL_01a3:  ldnull
+    IL_01a4:  stfld      ""object C.<Main>d__0.<>s__3""
+    IL_01a9:  ldarg.0
+    IL_01aa:  ldnull
+    IL_01ab:  stfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
+    IL_01b0:  leave.s    IL_01cc
   }
   catch System.Exception
   {
     // sequence point: <hidden>
-    IL_01a3:  stloc.s    V_7
-    IL_01a5:  ldarg.0
-    IL_01a6:  ldc.i4.s   -2
-    IL_01a8:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_01ad:  ldarg.0
-    IL_01ae:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_01b3:  ldloc.s    V_7
-    IL_01b5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_01ba:  nop
-    IL_01bb:  leave.s    IL_01d1
+    IL_01b2:  stloc.s    V_8
+    IL_01b4:  ldarg.0
+    IL_01b5:  ldc.i4.s   -2
+    IL_01b7:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_01bc:  ldarg.0
+    IL_01bd:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_01c2:  ldloc.s    V_8
+    IL_01c4:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_01c9:  nop
+    IL_01ca:  leave.s    IL_01e0
   }
   // sequence point: }
-  IL_01bd:  ldarg.0
-  IL_01be:  ldc.i4.s   -2
-  IL_01c0:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_01cc:  ldarg.0
+  IL_01cd:  ldc.i4.s   -2
+  IL_01cf:  stfld      ""int C.<Main>d__0.<>1__state""
   // sequence point: <hidden>
-  IL_01c5:  ldarg.0
-  IL_01c6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-  IL_01cb:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_01d0:  nop
-  IL_01d1:  ret
+  IL_01d4:  ldarg.0
+  IL_01d5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_01da:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_01df:  nop
+  IL_01e0:  ret
 }
 ", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void CancellationTokenIsDefault()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using static System.Console;
+class C
+{
+    public static async Task Main()
+    {
+        try
+        {
+            await foreach (var i in new C())
+            {
+            }
+        }
+        catch { }
+    }
+    public IAsyncEnumerator<int> GetAsyncEnumerator(System.Threading.CancellationToken token)
+    {
+        if (token == default)
+        {
+            Write(""correct token value"");
+        }
+        throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "correct token value", verify: Verification.Skipped);
         }
     }
 }
