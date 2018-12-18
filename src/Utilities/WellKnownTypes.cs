@@ -6,6 +6,8 @@ namespace Analyzer.Utilities
 {
     internal static class WellKnownTypes
     {
+        public const string SystemSecurityCryptographyCipherMode = "System.Security.Cryptography.CipherMode";
+
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Collections.ICollection");
