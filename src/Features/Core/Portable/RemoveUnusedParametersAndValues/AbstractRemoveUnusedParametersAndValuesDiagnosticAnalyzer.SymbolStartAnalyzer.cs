@@ -50,8 +50,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 var attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(context.Compilation).WhereNotNull());
                 var eventsArgType = context.Compilation.EventArgsType();
-                var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore);
-                context.RegisterSymbolStartAction(symbolAnalyzer.OnSymbolStart, SymbolKind.NamedType);
+                context.RegisterSymbolStartAction(symbolStartContext =>
+                {
+                    // Create a new SymbolStartAnalyzer instance for every named type symbol
+                    // to ensure there is no shared state (such as identified unused parameters within the type),
+                    // as that would lead to duplicate diagnostics being reported from symbol end action callbacks
+                    // for unrelated named types.
+                    var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore);
+                    symbolAnalyzer.OnSymbolStart(symbolStartContext);
+                }, SymbolKind.NamedType);
             }
 
             private void OnSymbolStart(SymbolStartAnalysisContext context)
@@ -159,6 +166,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 // Don't flag obsolete methods.
                 yield return compilation.ObsoleteAttribute();
+
+                // Don't flag MEF import constructors with ImportingConstructor attribute.
+                yield return compilation.SystemCompositionImportingConstructorAttribute();
+                yield return compilation.SystemComponentModelCompositionImportingConstructorAttribute();
             }
 
             private bool IsUnusedParameterCandidate(IParameterSymbol parameter)
@@ -179,7 +190,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     method.IsOverride ||
                     !method.ExplicitOrImplicitInterfaceImplementations().IsEmpty ||
                     method.IsAccessor() ||
-                    method.IsAnonymousFunction())
+                    method.IsAnonymousFunction() ||
+                    _compilationAnalyzer.MethodHasHandlesClause(method))
                 {
                     return false;
                 }

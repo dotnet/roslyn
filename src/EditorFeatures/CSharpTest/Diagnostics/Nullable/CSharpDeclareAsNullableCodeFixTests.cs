@@ -82,6 +82,56 @@ class Program
         }
 
         [Fact]
+        public async Task FixReturnType_Async()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    static async System.Threading.Tasks.Task<string> M()
+    {
+        return [|null|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    static async System.Threading.Tasks.Task<string?> M()
+    {
+        return null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixReturnType_AsyncLocalFunction()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    static void M()
+    {
+        async System.Threading.Tasks.Task<string> local()
+        {
+            return [|null|];
+        }
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    static void M()
+    {
+        async System.Threading.Tasks.Task<string?> local()
+        {
+            return null;
+        }
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
         public async Task FixReturnType_WithTrivia()
         {
             await TestInRegularAndScript1Async(
@@ -138,7 +188,7 @@ class Program
         [WorkItem(26639, "https://github.com/dotnet/roslyn/issues/26639")]
         public async Task FixLocalFunctionReturnType()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 NonNullTypes + @"
 class Program
 {
@@ -147,6 +197,17 @@ class Program
         string local()
         {
             return [|null|];
+        }
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        string? local()
+        {
+            return null;
         }
     }
 }", parameters: s_nullableFeature);

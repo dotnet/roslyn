@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             constraints |= TypeParameterConstraintKind.NotNullableReferenceType;
                         }
-                        else 
+                        else
                         {
                             constraints |= TypeParameterConstraintKind.ReferenceType;
                         }

@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# 
-# TODO: This file is currently a subset of Arcade's init-tools.ps1.
-# 
 # Stop script if unbound variable found (use ${var:-} if intentional)
 set -u
 
@@ -212,8 +209,37 @@ function InitializeToolset {
 
   GetNuGetPackageCachePath
 
-  # TODO: restore Arcade SDK
-  local toolset_build_proj="$eng_root/targets/RepoToolset/Build.proj"
+  ReadGlobalVersion "Microsoft.DotNet.Arcade.Sdk"
+
+  local toolset_version=$_ReadGlobalVersion
+  local toolset_location_file="$toolset_dir/$toolset_version.txt"
+
+  if [[ -a "$toolset_location_file" ]]; then
+    local path=`cat "$toolset_location_file"`
+    if [[ -a "$path" ]]; then
+      # return value
+      _InitializeToolset="$path"
+      return
+    fi
+  fi
+
+  if [[ "$restore" != true ]]; then
+    echo "Toolset version $toolsetVersion has not been restored." >&2
+    ExitWithExitCode 2
+  fi
+
+  local toolset_restore_log="$log_dir/ToolsetRestore.binlog"
+  local proj="$toolset_dir/restore.proj"
+
+  echo '<Project Sdk="Microsoft.DotNet.Arcade.Sdk"/>' > "$proj"
+  MSBuild "$proj" /t:__WriteToolsetLocation /noconsolelogger /bl:"$toolset_restore_log" /p:__ToolsetLocationOutputFile="$toolset_location_file"
+
+  local toolset_build_proj=`cat "$toolset_location_file"`
+
+  if [[ ! -a "$toolset_build_proj" ]]; then
+    echo "Invalid toolset path: $toolset_build_proj" >&2
+    ExitWithExitCode 3
+  fi
 
   # return value
   _InitializeToolset="$toolset_build_proj"
@@ -280,6 +306,7 @@ if [[ -z $HOME ]]; then
   mkdir -p "$HOME"
 fi
 
+mkdir -p "$toolset_dir"
 mkdir -p "$temp_dir"
 mkdir -p "$log_dir"
 
