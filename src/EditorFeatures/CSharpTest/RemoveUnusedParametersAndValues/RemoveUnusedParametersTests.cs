@@ -862,6 +862,21 @@ class C: I
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Parameter_ConditionalDirective()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    void M(int [|p|])
+    {
+#if DEBUG
+        System.Console.WriteLine(p);
+#endif
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task Parameter_EventHandler_FirstParameter()
         {
             await TestDiagnosticMissingAsync(
