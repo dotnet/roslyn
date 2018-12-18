@@ -83,13 +83,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
-        <source>A goto can not jump to a location before a using declaration within the same block.</source>
-        <target state="new">A goto can not jump to a location before a using declaration within the same block.</target>
+        <source>A goto cannot jump to a location before a using declaration within the same block.</source>
+        <target state="new">A goto cannot jump to a location before a using declaration within the same block.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToForwardJumpOverUsingVar">
-        <source>A goto can not jump to a location after a using declaration.</source>
-        <target state="new">A goto can not jump to a location after a using declaration.</target>
+        <source>A goto cannot jump to a location after a using declaration.</source>
+        <target state="new">A goto cannot jump to a location after a using declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">

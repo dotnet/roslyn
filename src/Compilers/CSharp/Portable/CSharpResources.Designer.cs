@@ -5218,7 +5218,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A goto can not jump to a location before a using declaration within the same block..
+        ///   Looks up a localized string similar to A goto cannot jump to a location before a using declaration within the same block..
         /// </summary>
         internal static string ERR_GoToBackwardJumpOverUsingVar {
             get {
@@ -5227,7 +5227,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A goto can not jump to a location after a using declaration..
+        ///   Looks up a localized string similar to A goto cannot jump to a location after a using declaration..
         /// </summary>
         internal static string ERR_GoToForwardJumpOverUsingVar {
             get {
