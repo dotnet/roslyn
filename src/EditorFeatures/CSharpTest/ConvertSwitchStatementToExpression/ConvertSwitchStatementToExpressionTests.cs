@@ -52,6 +52,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestAssignmnet_Array()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    var array = new int[1];
+    int M(int i)
+    {
+        [||]switch (i)
+        {
+            case 1:
+                array[1] = 4;
+                break;
+            case 2:
+                array[1] = 5;
+                break;
+            case 3:
+                array[1] = 6;
+                break;
+            default:
+                array[1] = 7;
+                break;
+        }
+    }
+}",
+@"class Program
+{
+    var array = new int[1];
+    int M(int i)
+    {
+        array[1] = i switch
+        {
+            1 => 4,
+            2 => 5,
+            3 => 6,
+            _ => 7
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnDefalutBreak_01()
         {
             await TestMissingAsync(
@@ -188,6 +230,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
     void M(int i)
     {
         var j = i switch
+        {
+            1 => 4,
+            2 => 5,
+            3 => 6,
+            _ => throw null
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestAssignment_UseBeforeAssignment()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    void M(int i)
+    {
+        int j = 123;
+        M(i);
+        [||]switch (i)
+        {
+            case 1:
+                j = 4;
+                break;
+            case 2:
+                j = 5;
+                break;
+            case 3:
+                j = 6;
+                break;
+        }
+        throw null;
+    }
+}",
+@"class Program
+{
+    void M(int i)
+    {
+        int j = 123;
+        M(i);
+        j = i switch
         {
             1 => 4,
             2 => 5,

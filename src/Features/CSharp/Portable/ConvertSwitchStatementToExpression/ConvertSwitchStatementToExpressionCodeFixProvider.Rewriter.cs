@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
@@ -41,18 +41,55 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             private bool TryRemoveVariableDeclarators(SwitchStatementSyntax node, SemanticModel semanticModel, SyntaxEditor editor)
             {
-                var dataFlow = semanticModel.AnalyzeDataFlow(node);
-                if (!dataFlow.Succeeded)
+                // Try to remove the varaiable declarator only if these are simple identifiers.
+                if (_assignmentTargets.Count == 0 ||
+                    !_assignmentTargets.All(target => target.IsKind(SyntaxKind.IdentifierName)))
                 {
                     return false;
                 }
 
-                var symbols = _assignmentTargets.Select(target => semanticModel.GetSymbolInfo(target).Symbol).ToImmutableArray();
+                var symbols = _assignmentTargets.Select(target => semanticModel.GetSymbolInfo(target).Symbol);
                 // If all variables are local and data does not flows in for any of them, 
                 // we can assign the switch expression directly to a variable declaration.
-                if (!symbols.All(symbol => symbol.Kind == SymbolKind.Local && !dataFlow.DataFlowsIn.Contains(symbol)))
+                foreach (var symbol in symbols)
                 {
-                    return false;
+                    if (symbol == null)
+                    {
+                        return false;
+                    }
+
+                    if (symbol.Kind != SymbolKind.Local)
+                    {
+                        // Not a local
+                        return false;
+                    }
+
+                    var syntaxRefereces = symbol.DeclaringSyntaxReferences;
+                    if (syntaxRefereces.Length != 1)
+                    {
+                        return false;
+                    }
+
+                    var declarator = (VariableDeclaratorSyntax)syntaxRefereces[0].GetSyntax();
+                    if (declarator.Initializer != null)
+                    {
+                        return false;
+                    }
+
+                    var dataFlow = semanticModel.AnalyzeDataFlow(
+                        declarator.GetAncestor<StatementSyntax>(),
+                        node.GetPreviousStatement());
+
+                    if (!dataFlow.Succeeded)
+                    {
+                        return false;
+                    }
+
+                    if (dataFlow.ReadInside.Contains(symbol) ||
+                        dataFlow.WrittenInside.Contains(symbol))
+                    {
+                        return false;
+                    }
                 }
 
                 foreach (var symbol in symbols)
