@@ -750,7 +750,7 @@ class C
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void LocalsAndPseudoVariables()
         {
             var source =
@@ -4434,7 +4434,7 @@ class Base
     C() 
     : base(TakeOutParam(1, out var x1))
     {
-#line 1000 
+#line 1000
         ;
     }     
 
@@ -4493,7 +4493,7 @@ class Base
 {
     C() 
     : base(TakeOutParam(1, out var x1))
-#line 1000 
+#line 1000
     => System.Console.WriteLine();
 
     static bool TakeOutParam(int y, out int x) 
@@ -4553,7 +4553,7 @@ class Base
     : base(TakeOutParam(1, out var x1))
     {
         int x2 = 1;
-#line 1000 
+#line 1000
         System.Console.WriteLine(x2);
     }     
 
@@ -4623,7 +4623,7 @@ class Base
 {
     C() 
     : base(TakeOutParam(1, out var x1))
-#line 1000 
+#line 1000
     => System.Console.WriteLine(TakeOutParam(2, out var x2));
 
     static bool TakeOutParam(int y, out int x) 
