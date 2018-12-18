@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SwitchExpressionLocalRewriter.Rewrite(this, node);
         }
 
-        private class SwitchExpressionLocalRewriter : BasePatternSwitchLocalRewriter
+        private class SwitchExpressionLocalRewriter : BaseSwitchLocalRewriter
         {
             private SwitchExpressionLocalRewriter(BoundSwitchExpression node, LocalRewriter localRewriter)
                 : base(node.Syntax, localRewriter, node.SwitchArms.SelectAsArray(arm => arm.Syntax), isSwitchStatement: false)

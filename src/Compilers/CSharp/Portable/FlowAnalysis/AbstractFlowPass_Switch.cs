@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.Expression);
 
             // visit switch block
-            VisitPatternSwitchBlock(node);
+            VisitSwitchBlock(node);
 
             return null;
         }
 
-        private void VisitPatternSwitchBlock(BoundSwitchStatement node)
+        private void VisitSwitchBlock(BoundSwitchStatement node)
         {
             var initialState = State.Clone();
             var reachableLabels = node.DecisionDag.ReachableLabels;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var iLastSection = (switchSections.Length - 1);
             for (var iSection = 0; iSection <= iLastSection; iSection++)
             {
-                VisitPatternSwitchSection(switchSections[iSection], iSection == iLastSection);
+                VisitSwitchSection(switchSections[iSection], iSection == iLastSection);
                 // Even though it is illegal for the end of a switch section to be reachable, in erroneous
                 // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
                 Join(ref afterSwitchState, ref this.State);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ResolveBreaks(afterSwitchState, node.BreakLabel);
         }
 
-        protected virtual void VisitPatternSwitchSection(BoundSwitchSection node, bool isLastSection)
+        protected virtual void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
         {
             SetState(UnreachableState());
             foreach (var label in node.SwitchLabels)

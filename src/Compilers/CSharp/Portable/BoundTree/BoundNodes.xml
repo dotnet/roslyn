@@ -729,7 +729,8 @@
   <!--
   This node is used to represent a visibility scope for locals, 
   for which lifetime is extended beyond the visibility scope. 
-  At the moment, only locals declared within CasePatternSwitchLabelSyntax 
+  At the moment, only locals declared within CaseSwitchLabelSyntax
+  and SwitchExpressionSyntax
   have their lifetime expanded to the entire switch body, whereas their 
   visibility scope is the declaring switch section. The node is added into 
   the tree during lowering phase.
@@ -833,7 +834,7 @@
     <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
     <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>
     <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
-    <Field Name="DefaultLabel" Type="BoundPatternSwitchLabel" Null="allow"/>
+    <Field Name="DefaultLabel" Type="BoundSwitchLabel" Null="allow"/>
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
   </Node>
 
@@ -1235,10 +1236,10 @@
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundPatternSwitchLabel&gt;"/>
+    <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundSwitchLabel&gt;"/>
   </Node>
 
-  <Node Name="BoundPatternSwitchLabel" Base="BoundNode">
+  <Node Name="BoundSwitchLabel" Base="BoundNode">
     <Field Name="Label" Type="LabelSymbol"/>
     <Field Name="Pattern" Type="BoundPattern"/>
     <Field Name="WhenClause" Type="BoundExpression" Null="allow"/>

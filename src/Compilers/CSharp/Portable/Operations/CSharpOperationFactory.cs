@@ -251,9 +251,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.DiscardPattern:
                     return CreateBoundDiscardPatternOperation((BoundDiscardPattern)boundNode);
                 case BoundKind.SwitchStatement:
-                    return CreateBoundPatternSwitchStatementOperation((BoundSwitchStatement)boundNode);
-                case BoundKind.PatternSwitchLabel:
-                    return CreateBoundPatternSwitchLabelOperation((BoundPatternSwitchLabel)boundNode);
+                    return CreateBoundSwitchStatementOperation((BoundSwitchStatement)boundNode);
+                case BoundKind.SwitchLabel:
+                    return CreateBoundSwitchLabelOperation((BoundSwitchLabel)boundNode);
                 case BoundKind.IsPatternExpression:
                     return CreateBoundIsPatternExpressionOperation((BoundIsPatternExpression)boundNode);
                 case BoundKind.QueryClause:
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.RangeExpression:
                     return CreateRangeExpressionOperation((BoundRangeExpression)boundNode);
                 case BoundKind.SwitchSection:
-                    return CreateBoundPatternSwitchSectionOperation((BoundSwitchSection)boundNode);
+                    return CreateBoundSwitchSectionOperation((BoundSwitchSection)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
@@ -1854,47 +1854,47 @@ namespace Microsoft.CodeAnalysis.Operations
             return new RecursivePattern(variable, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private ISwitchOperation CreateBoundPatternSwitchStatementOperation(BoundSwitchStatement boundPatternSwitchStatement)
+        private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)
         {
-            ImmutableArray<ILocalSymbol> locals = boundPatternSwitchStatement.InnerLocals.As<ILocalSymbol>();
-            ILabelSymbol exitLabel = boundPatternSwitchStatement.BreakLabel;
-            SyntaxNode syntax = boundPatternSwitchStatement.Syntax;
+            ImmutableArray<ILocalSymbol> locals = boundSwitchStatement.InnerLocals.As<ILocalSymbol>();
+            ILabelSymbol exitLabel = boundSwitchStatement.BreakLabel;
+            SyntaxNode syntax = boundSwitchStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            bool isImplicit = boundPatternSwitchStatement.WasCompilerGenerated;
-            return new CSharpLazySwitchOperation(this, boundPatternSwitchStatement, locals, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit);
+            bool isImplicit = boundSwitchStatement.WasCompilerGenerated;
+            return new CSharpLazySwitchOperation(this, boundSwitchStatement, locals, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private ISwitchCaseOperation CreateBoundPatternSwitchSectionOperation(BoundSwitchSection boundPatternSwitchSection)
+        private ISwitchCaseOperation CreateBoundSwitchSectionOperation(BoundSwitchSection boundSwitchSection)
         {
-            ImmutableArray<ILocalSymbol> locals = StaticCast<ILocalSymbol>.From(boundPatternSwitchSection.Locals);
+            ImmutableArray<ILocalSymbol> locals = StaticCast<ILocalSymbol>.From(boundSwitchSection.Locals);
 
-            return new CSharpLazySwitchCaseOperation(this, boundPatternSwitchSection, locals, _semanticModel, boundPatternSwitchSection.Syntax, type: null, constantValue: default, isImplicit: boundPatternSwitchSection.WasCompilerGenerated);
+            return new CSharpLazySwitchCaseOperation(this, boundSwitchSection, locals, _semanticModel, boundSwitchSection.Syntax, type: null, constantValue: default, isImplicit: boundSwitchSection.WasCompilerGenerated);
         }
 
-        private ICaseClauseOperation CreateBoundPatternSwitchLabelOperation(BoundPatternSwitchLabel boundPatternSwitchLabel)
+        private ICaseClauseOperation CreateBoundSwitchLabelOperation(BoundSwitchLabel boundSwitchLabel)
         {
-            SyntaxNode syntax = boundPatternSwitchLabel.Syntax;
+            SyntaxNode syntax = boundSwitchLabel.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            bool isImplicit = boundPatternSwitchLabel.WasCompilerGenerated;
-            LabelSymbol label = boundPatternSwitchLabel.Label;
+            bool isImplicit = boundSwitchLabel.WasCompilerGenerated;
+            LabelSymbol label = boundSwitchLabel.Label;
 
-            if (boundPatternSwitchLabel.Syntax.Kind() == SyntaxKind.DefaultSwitchLabel)
+            if (boundSwitchLabel.Syntax.Kind() == SyntaxKind.DefaultSwitchLabel)
             {
-                Debug.Assert(boundPatternSwitchLabel.Pattern.Kind == BoundKind.DiscardPattern);
+                Debug.Assert(boundSwitchLabel.Pattern.Kind == BoundKind.DiscardPattern);
                 return new DefaultCaseClauseOperation(label, _semanticModel, syntax, type, constantValue, isImplicit);
             }
-            else if (boundPatternSwitchLabel.WhenClause == null &&
-                     boundPatternSwitchLabel.Pattern.Kind == BoundKind.ConstantPattern &&
-                     boundPatternSwitchLabel.Pattern is BoundConstantPattern cp &&
+            else if (boundSwitchLabel.WhenClause == null &&
+                     boundSwitchLabel.Pattern.Kind == BoundKind.ConstantPattern &&
+                     boundSwitchLabel.Pattern is BoundConstantPattern cp &&
                      cp.InputType.IsValidV6SwitchGoverningType())
             {
                 return new CSharpLazySingleValueCaseClauseOperation(this, cp.Value, label, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else
             {
-                return new CSharpLazyPatternCaseClauseOperation(this, boundPatternSwitchLabel, label, _semanticModel, syntax, type, constantValue, isImplicit);
+                return new CSharpLazyPatternCaseClauseOperation(this, boundSwitchLabel, label, _semanticModel, syntax, type, constantValue, isImplicit);
             }
         }
 

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A common base class for lowering the pattern switch statement and the pattern switch expression.
         /// </summary>
-        private class BasePatternSwitchLocalRewriter : PatternLocalRewriter
+        private class BaseSwitchLocalRewriter : PatternLocalRewriter
         {
             /// <summary>
             /// Map from switch section's syntax to the lowered code for the section. The code for a section
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private readonly bool _isSwitchStatement;
 
-            protected BasePatternSwitchLocalRewriter(
+            protected BaseSwitchLocalRewriter(
                 SyntaxNode node,
                 LocalRewriter localRewriter,
                 ImmutableArray<SyntaxNode> arms,
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
                     if (_isSwitchStatement && !whenClause.WhenExpression.WasCompilerGenerated && _localRewriter.Instrument)
                     {
-                        conditionalGoto = _localRewriter._instrumenter.InstrumentPatternSwitchWhenClauseConditionalGotoBody(whenClause.WhenExpression, conditionalGoto);
+                        conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenClause.WhenExpression, conditionalGoto);
                     }
 
                     sectionBuilder.Add(conditionalGoto);
