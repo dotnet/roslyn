@@ -154,7 +154,7 @@ class B
         o3 = F3/*T:A<object!, string?>!*/;
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Disabled));
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Disable));
             comp.VerifyDiagnostics(
                 // (5,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     static A<object, string?> F1;
@@ -200,7 +200,7 @@ class B
         o3 = F3/*T:A<object!, string?>!*/;
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Enabled));
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Enable));
             comp.VerifyDiagnostics(
                 // (14,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     static A<object, string?> F2;
@@ -275,7 +275,7 @@ partial class C9 { }
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C9()").WithArguments("C9", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(18, 11));
 
             // -nullable-:
-            comp = CreateCompilation(new[] { source0, source1, source2 }, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Disabled));
+            comp = CreateCompilation(new[] { source0, source1, source2 }, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Disable));
             comp.VerifyDiagnostics(
                 // (15,11): warning CS8620: Nullability of reference types in argument of type 'C6' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
                 //         F(new C6());
@@ -288,7 +288,7 @@ partial class C9 { }
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C9()").WithArguments("C9", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(18, 11));
 
             // -nullable+:
-            comp = CreateCompilation(new[] { source0, source1, source2 }, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Enabled));
+            comp = CreateCompilation(new[] { source0, source1, source2 }, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Enable));
             comp.VerifyDiagnostics(
                 // (10,11): warning CS8620: Nullability of reference types in argument of type 'C1' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
                 //         F(new C1());
@@ -1346,10 +1346,10 @@ class C4 { }";
         [Fact]
         public void NullableOption()
         {
-            var comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.Enabled), parseOptions: TestOptions.Regular7_3);
+            var comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.Enable), parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-                // error CS8630: Invalid 'NullableContextOptions' value: 'Enabled' for C# 7.3. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enabled", "7.3", "8.0").WithLocation(1, 1)
+                // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "8.0").WithLocation(1, 1)
                 );
 
             comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.SafeOnly), parseOptions: TestOptions.Regular7_3);
@@ -1358,22 +1358,22 @@ class C4 { }";
                 Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "SafeOnly", "7.3", "8.0").WithLocation(1, 1)
                 );
 
-            comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.Disabled), parseOptions: TestOptions.Regular7_3);
+            comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.Disable), parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.Enabled), parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.Enable), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.SafeOnly), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.Disabled), parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.Disable), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.Enabled), parseOptions: TestOptions.Regular7_3);
+            comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.Enable), parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.Enabled), parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.Enable), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.SafeOnly), parseOptions: TestOptions.Regular7_3);
@@ -1382,10 +1382,10 @@ class C4 { }";
             comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.SafeOnly), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.Disabled), parseOptions: TestOptions.Regular7_3);
+            comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.Disable), parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.Disabled), parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.Disable), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -3190,8 +3190,8 @@ class B<T> : A<T> where T : A<T>.I
 
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
-                // error CS8630: Invalid 'NullableContextOptions' value: 'Enabled' for C# 7.0. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enabled", "7.0", "8.0").WithLocation(1, 1)
+                // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.0", "8.0").WithLocation(1, 1)
                 );
 
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -34482,8 +34482,8 @@ class P
             // No warnings with C#7.3.
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
-                // error CS8630: Invalid 'NullableContextOptions' value: 'Enabled' for C# 7.3. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enabled", "7.3", "8.0").WithLocation(1, 1)
+                // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "8.0").WithLocation(1, 1)
                 );
         }
 
@@ -42088,8 +42088,8 @@ class B<T1> where T1 : class?
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(expected
                 .Concat(new[] {
-                // error CS8630: Invalid 'NullableContextOptions' value: 'Enabled' for C# 7.3. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enabled", "7.3", "8.0").WithLocation(1, 1),
+                // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "8.0").WithLocation(1, 1),
                 }).ToArray()
                 );
         }
@@ -43482,8 +43482,8 @@ class B<T1> where T1 : struct?
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(expected
                 .Concat(new[] { 
-                // error CS8630: Invalid 'NullableContextOptions' value: 'Enabled' for C# 7.3. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enabled", "7.3", "8.0").WithLocation(1, 1)
+                // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "8.0").WithLocation(1, 1)
                 }).ToArray()
                 );
         }
@@ -44788,8 +44788,8 @@ class B
 
             comp.VerifyDiagnostics(expected
             .Concat(new[] {
-                // error CS8630: Invalid 'NullableContextOptions' value: 'Enabled' for C# 7.3. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enabled", "7.3", "8.0").WithLocation(1, 1),
+                // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "8.0").WithLocation(1, 1),
             }).ToArray()
             );
 
@@ -49583,7 +49583,7 @@ class B4 : A<string?>
 
             void verifyAllConstraintTypes()
             {
-                string bangOrEmpty = comp0.Options.NullableContextOptions == NullableContextOptions.Disabled ? "" : "!";
+                string bangOrEmpty = comp0.Options.NullableContextOptions == NullableContextOptions.Disable ? "" : "!";
                 verifyConstraintTypes("B1.F1", "System.String", "I<System.String>");
                 verifyConstraintTypes("B1.F2", "System.String?", "I<System.String?>");
                 verifyConstraintTypes("B1.F3", "System.String" + bangOrEmpty, "I<System.String" + bangOrEmpty + ">!");
@@ -52430,7 +52430,7 @@ class A
 
 class B {}
 ";
-            assertType(NullableContextOptions.Enabled);
+            assertType(NullableContextOptions.Enable);
             assertType(NullableContextOptions.SafeOnly);
 
             void assertType(NullableContextOptions nullableContextOptions)
@@ -52462,7 +52462,7 @@ class A
 
 class B {}
 ";
-            assertType(NullableContextOptions.Enabled);
+            assertType(NullableContextOptions.Enable);
             assertType(NullableContextOptions.SafeOnly);
 
             void assertType(NullableContextOptions nullableContextOptions)
@@ -52493,7 +52493,7 @@ class A
 
 class B {}
 ";
-            assertType(NullableContextOptions.Enabled);
+            assertType(NullableContextOptions.Enable);
             assertType(NullableContextOptions.SafeOnly);
 
             void assertType(NullableContextOptions nullableContextOptions)
@@ -52525,7 +52525,7 @@ class A
 
 class B {}
 ";
-            assertType(NullableContextOptions.Enabled);
+            assertType(NullableContextOptions.Enable);
             assertType(NullableContextOptions.SafeOnly);
 
             void assertType(NullableContextOptions nullableContextOptions)
@@ -52556,7 +52556,7 @@ class A
 
 class B {}
 ";
-            assertType(NullableContextOptions.Enabled);
+            assertType(NullableContextOptions.Enable);
             assertType(NullableContextOptions.SafeOnly);
 
             void assertType(NullableContextOptions nullableContextOptions)
@@ -52586,7 +52586,7 @@ class A
 
 class B {}
 ";
-            assertType(NullableContextOptions.Enabled);
+            assertType(NullableContextOptions.Enable);
             assertType(NullableContextOptions.SafeOnly);
 
             void assertType(NullableContextOptions nullableContextOptions)
@@ -61743,7 +61743,7 @@ partial class Program
                 comp.VerifyDiagnostics();
             }
 
-            assertDiagnosticOptions(NullableContextOptions.Enabled);
+            assertDiagnosticOptions(NullableContextOptions.Enable);
             assertDiagnosticOptions(NullableContextOptions.SafeOnly);
 
             void assertDiagnosticOptions(NullableContextOptions nullableContextOptions)
@@ -61926,7 +61926,7 @@ partial class Program
                 comp.VerifyDiagnostics();
             }
 
-            assertDiagnosticOptions(NullableContextOptions.Enabled);
+            assertDiagnosticOptions(NullableContextOptions.Enable);
             assertDiagnosticOptions(NullableContextOptions.SafeOnly);
 
             void assertDiagnosticOptions(NullableContextOptions nullableContextOptions)
@@ -62072,8 +62072,8 @@ partial class Program
     {
     }
 }";
-            assertDiagnosticOptions(NullableContextOptions.Disabled);
-            assertDiagnosticOptions(NullableContextOptions.Enabled);
+            assertDiagnosticOptions(NullableContextOptions.Disable);
+            assertDiagnosticOptions(NullableContextOptions.Enable);
             assertDiagnosticOptions(NullableContextOptions.SafeOnly);
 
             void assertDiagnosticOptions(NullableContextOptions nullableContextOptions)
@@ -62886,7 +62886,7 @@ partial class Program
                 );
             Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
 
-            assertDiagnosticOptions(NullableContextOptions.Disabled);
+            assertDiagnosticOptions(NullableContextOptions.Disable);
             assertDiagnosticOptions(NullableContextOptions.SafeOnly);
 
             void assertDiagnosticOptions(NullableContextOptions nullableContextOptions)
@@ -62954,8 +62954,8 @@ partial class Program
         return new object();
     }
 }";
-            assertDiagnosticOptions(NullableContextOptions.Disabled);
-            assertDiagnosticOptions(NullableContextOptions.Enabled);
+            assertDiagnosticOptions(NullableContextOptions.Disable);
+            assertDiagnosticOptions(NullableContextOptions.Enable);
             assertDiagnosticOptions(NullableContextOptions.SafeOnly);
 
             void assertDiagnosticOptions(NullableContextOptions nullableContextOptions)
@@ -63721,8 +63721,8 @@ partial class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // error CS8630: Invalid 'NullableContextOptions' value: 'Enabled' for C# 7.0. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enabled", "7.0", "8.0").WithLocation(1, 1)
+                // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.0", "8.0").WithLocation(1, 1)
                 );
         }
 
