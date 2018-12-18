@@ -61,7 +61,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIHtmlControlsHtmlContainerControl,  // Test this covers HtmlSelect, HtmlTable, HtmlTableRow
+                WellKnownTypes.SystemWebUIHtmlControlsHtmlContainerControl,  // Covers HtmlSelect, HtmlTable, HtmlTableRow
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -184,7 +184,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isAnyStringParameterInConstructorASink: false,
                 sinkProperties: new[] {
                     "Text",
-                    "TextAlign",    // Test TextAlign, not a string
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
@@ -195,13 +194,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: new[] {
                     "Text",
                 },
-                sinkMethodParameters: null);
-            builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsCheckBoxList,
-                sinkKinds,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: new[] { "TextAlign" },   // Test TextAlign, not a string
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
                 WellKnownTypes.SystemWebUIWebControlsDetailsView,
@@ -285,7 +277,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsListControl,    // Test this covers BulletedList, CheckBoxList, RadioButtonList
+                WellKnownTypes.SystemWebUIWebControlsListControl,    // Covers BulletedList, CheckBoxList, RadioButtonList
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -312,15 +304,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsLogin,
-                sinkKinds,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: new[] {
-                    "TextLayout",   // Test LoginTextLayout, not a string
-                },
-                sinkMethodParameters: null);
-            builder.AddSinkInfo(
                 WellKnownTypes.SystemWebUIWebControlsMenuItem,
                 sinkKinds,
                 isInterface: false,
@@ -337,24 +320,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: new[] {
                     "Text",
                     "TextField",
-                },
-                sinkMethodParameters: null);
-            builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsPasswordRecovery,
-                sinkKinds,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: new[] {
-                    "TextLayout",   // Test LoginTextLayout, not a string
-                },
-                sinkMethodParameters: null);
-            builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsRadioButtonList,
-                sinkKinds,
-                isInterface: false,
-                isAnyStringParameterInConstructorASink: false,
-                sinkProperties: new[] {
-                    "TextAlign",   // Test TextAlign, not a string
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(

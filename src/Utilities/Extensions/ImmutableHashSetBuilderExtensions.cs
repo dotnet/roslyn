@@ -44,16 +44,13 @@ namespace Analyzer.Utilities.Extensions
                 sinkKinds.ToImmutableHashSet(),
                 isInterface,
                 isAnyStringParameterInConstructorASink,
-                sinkProperties:
-                    sinkProperties != null
-                        ? sinkProperties.ToImmutableHashSet(StringComparer.Ordinal)
-                        : ImmutableHashSet<string>.Empty,
+                sinkProperties: sinkProperties?.ToImmutableHashSet(StringComparer.Ordinal)
+                        ?? ImmutableHashSet<string>.Empty,
                 sinkMethodParameters:
-                    sinkMethodParameters != null
-                        ? sinkMethodParameters
-                             .Select(o => new KeyValuePair<string, ImmutableHashSet<string>>(o.Method, o.Parameters.ToImmutableHashSet()))
-                             .ToImmutableDictionary(StringComparer.Ordinal)
-                        : ImmutableDictionary<string, ImmutableHashSet<string>>.Empty);
+                    sinkMethodParameters
+                            ?.Select(o => new KeyValuePair<string, ImmutableHashSet<string>>(o.Method, o.Parameters.ToImmutableHashSet()))
+                            ?.ToImmutableDictionary(StringComparer.Ordinal)
+                        ?? ImmutableDictionary<string, ImmutableHashSet<string>>.Empty);
             builder.Add(sinkInfo);
         }
 
@@ -68,12 +65,11 @@ namespace Analyzer.Utilities.Extensions
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
                 isInterface: isInterface,
-                taintedProperties: taintedProperties != null
-                    ? ImmutableHashSet.Create<string>(StringComparer.Ordinal, taintedProperties)
-                    : ImmutableHashSet<string>.Empty,
-                taintedMethods: taintedMethods != null
-                    ? ImmutableHashSet.Create<string>(StringComparer.Ordinal, taintedMethods)
-                    : ImmutableHashSet<string>.Empty);
+                taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
+                    ?? ImmutableHashSet<string>.Empty,
+                taintedMethods: 
+                    taintedMethods?.ToImmutableHashSet(StringComparer.Ordinal)
+                    ?? ImmutableHashSet<string>.Empty);
             builder.Add(metadata);
         }
     }
