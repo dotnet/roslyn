@@ -13,8 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gives an approximate printout of a bound node as C# code.
         /// </summary>
-        internal string Source()
+        internal string DumpSource()
         {
+            int indentSize = 4;
             var builder = new StringBuilder();
             appendSourceCore(this, indent: 0, tempIdentifiers: new Dictionary<SynthesizedLocal, int>());
             return builder.ToString();
@@ -358,29 +359,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 void incrementIndent()
                 {
-                    indent += 4;
-                    builder.Append(' ', 4);
+                    indent += indentSize;
+                    builder.Append(' ', indentSize);
                 }
 
                 void decrementIndent()
                 {
-                    indent -= 4;
-                    builder.Remove(builder.Length - 4, 4);
+                    indent -= indentSize;
+                    builder.Remove(builder.Length - indentSize, indentSize);
                 }
 
                 void appendLine(string s)
                 {
                     if (s == "{")
                     {
-                        indent += 4;
+                        indent += indentSize;
                         builder.AppendLine(s);
                         builder.Append(' ', indent);
                     }
                     else if (s == "}")
                     {
-                        builder.Remove(builder.Length - 4, 4);
+                        builder.Remove(builder.Length - indentSize, indentSize);
                         builder.AppendLine(s);
-                        indent -= 4;
+                        indent -= indentSize;
                         builder.Append(' ', indent);
                     }
                     else

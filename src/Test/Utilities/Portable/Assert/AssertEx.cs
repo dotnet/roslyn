@@ -267,7 +267,7 @@ namespace Roslyn.Test.Utilities
 
         public static void SetEqual(IEnumerable<string> expected, IEnumerable<string> actual, IEqualityComparer<string> comparer = null, string message = null, string itemSeparator = "\r\n", Func<string, string> itemInspector = null)
         {
-            var indexes = new Dictionary<string, int>();
+            var indexes = new Dictionary<string, int>(comparer);
             int counter = 0;
             foreach (var expectedItem in expected)
             {
