@@ -499,21 +499,49 @@ namespace Microsoft.CodeAnalysis
             return count;
         }
 
-        private static class UnderlyingArrayHelper<T>
+        [StructLayout(LayoutKind.Explicit)]
+        private struct ByteArrayUnion
         {
-            public static readonly Func<object, object> GetValue =
-                typeof(ImmutableArray<T>).GetField("array",
-                    BindingFlags.Instance | BindingFlags.NonPublic).GetValue;
+            [FieldOffset(0)]
+            internal byte[] MutableArray;
+
+            [FieldOffset(0)]
+            internal ImmutableArray<byte> ImmutableArray;
         }
 
-        internal static T[] DangerousGetUnderlyingArray<T>(this ImmutableArray<T> array)
-            => (T[])UnderlyingArrayHelper<T>.GetValue(array);
+        [StructLayout(LayoutKind.Explicit)]
+        private struct IntArrayUnion
+        {
+            [FieldOffset(0)]
+            internal int[] MutableArray;
 
-        internal static ReadOnlySpan<T> AsSpan<T>(this ImmutableArray<T> array)
-            => DangerousGetUnderlyingArray(array).AsSpan();
-           
-        internal static ReadOnlyMemory<T> AsMemory<T>(this ImmutableArray<T> array)
-            => array.DangerousGetUnderlyingArray().AsMemory();
+            [FieldOffset(0)]
+            internal ImmutableArray<int> ImmutableArray;
+        }
+
+        // TODO(https://github.com/dotnet/corefx/issues/34126): Remove when System.Collections.Immutable
+        // provides a Span API
+        internal static byte[] DangerousGetUnderlyingArray(this ImmutableArray<byte> array)
+        {
+            var union = new ByteArrayUnion();
+            union.ImmutableArray = array;
+            return union.MutableArray;
+        }
+
+        // TODO(https://github.com/dotnet/corefx/issues/34126): Remove when System.Collections.Immutable
+        // provides a Span API
+        private static int[] DangerousGetUnderlyingArray(this ImmutableArray<int> array)
+        {
+            var union = new IntArrayUnion();
+            union.ImmutableArray = array;
+            return union.MutableArray;
+        }
+
+        internal static ReadOnlySpan<byte> AsSpan(this ImmutableArray<byte> array)
+            => array.DangerousGetUnderlyingArray().AsSpan();
+
+        internal static ReadOnlySpan<int> AsSpan(this ImmutableArray<int> array)
+            => array.DangerousGetUnderlyingArray().AsSpan();
 
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
         {
