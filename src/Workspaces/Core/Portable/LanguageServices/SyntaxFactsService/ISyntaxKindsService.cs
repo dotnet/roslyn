@@ -7,7 +7,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal interface ISyntaxKindsService : ILanguageService
     {
         int IfKeyword { get; }
+
+        /// <summary>
+        /// A short-circuiting logical 'and'. In C#, 'LogicalAndExpression'. In VB, 'AndAlsoExpression'.
+        /// </summary>
         int LogicalAndExpression { get; }
+
+        /// <summary>
+        /// A short-circuiting logical 'or'. In C#, 'LogicalOrExpression'. In VB, 'OrElseExpression'.
+        /// </summary>
         int LogicalOrExpression { get; }
     }
 }
