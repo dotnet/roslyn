@@ -633,5 +633,63 @@ class C
     Task Bar() { }
 }", options: UseBlockBody);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyNestedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void Goo()
+    {
+        void Bar()
+        {
+            void Test() => [|NestedTest()|];
+        }
+    }
+}",
+@"class C
+{
+    void Goo()
+    {
+        void Bar()
+        {
+            void Test()
+            {
+                NestedTest();
+            }
+        }
+    }
+}", options: UseBlockBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseExpressionBodyNestedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void Goo()
+    {
+        void Bar()
+        {
+            void Test()
+            {
+                [|NestedTest()|];
+            }
+        }
+    }
+}",
+@"class C
+{
+    void Goo()
+    {
+        void Bar()
+        {
+            void Test() => NestedTest();
+        }
+    }
+}", options: UseExpressionBody);
+        }
     }
 }
