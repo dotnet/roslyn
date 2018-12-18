@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return;
             }
 
-            if (!Analyzer.CanConvertToSwitchExpression(switchStatement, context.SemanticModel))
+            if (!Analyzer.CanConvertToSwitchExpression(switchStatement))
             {
                 return;
             }

@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
@@ -27,11 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         {
             private readonly AnalysisResultKind _kind;
 
-            // Holds assignment target symbols in each switch
+            // Holds assignment target expressions in each switch
             // section to ensure that they are all the same.
-            private readonly ImmutableArray<ISymbol> _assignmentTargets;
+            private readonly ImmutableArray<ExpressionSyntax> _assignmentTargets;
 
-            private AnalysisResult(AnalysisResultKind kind, ImmutableArray<ISymbol> assignmentTargets = default)
+            private AnalysisResult(AnalysisResultKind kind, ImmutableArray<ExpressionSyntax> assignmentTargets = default)
             {
                 _kind = kind;
                 _assignmentTargets = assignmentTargets;
@@ -41,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             public static AnalysisResult Return => new AnalysisResult(AnalysisResultKind.Return);
             public static AnalysisResult Break => new AnalysisResult(AnalysisResultKind.Break);
             public static AnalysisResult Neutral => new AnalysisResult(AnalysisResultKind.Neutral);
-            public static AnalysisResult Assignment(ImmutableArray<ISymbol> targets) => new AnalysisResult(AnalysisResultKind.Assignment, targets);
-            public static AnalysisResult Assignment(ISymbol target) => new AnalysisResult(AnalysisResultKind.Assignment, ImmutableArray.Create(target));
+            public static AnalysisResult Assignment(ImmutableArray<ExpressionSyntax> targets) => new AnalysisResult(AnalysisResultKind.Assignment, targets);
+            public static AnalysisResult Assignment(ExpressionSyntax target) => new AnalysisResult(AnalysisResultKind.Assignment, ImmutableArray.Create(target));
 
             public bool IsFailure => _kind == AnalysisResultKind.Failure;
             public bool IsBreak => _kind == AnalysisResultKind.Break;
@@ -79,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 if (left.IsAssignment && right.IsAssignment)
                 {
                     // Assignments only match if they have the same set of targets
-                    if (left._assignmentTargets.SequenceEqual(right._assignmentTargets))
+                    if (left._assignmentTargets.SequenceEqual(right._assignmentTargets,
+                        (leftNode, rightNode) => leftNode.IsEquivalentTo(rightNode)))
                     {
                         return left;
                     }

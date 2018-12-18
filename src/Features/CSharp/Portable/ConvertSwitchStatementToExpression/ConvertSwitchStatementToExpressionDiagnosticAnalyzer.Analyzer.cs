@@ -11,16 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
     {
         private sealed class Analyzer : CSharpSyntaxVisitor<AnalysisResult>
         {
-            private readonly SemanticModel _semanticModel;
-
-            private Analyzer(SemanticModel semanticModel)
+            private Analyzer()
             {
-                _semanticModel = semanticModel;
             }
 
-            public static bool CanConvertToSwitchExpression(SyntaxNode node, SemanticModel semanticModel)
+            public static bool CanConvertToSwitchExpression(SyntaxNode node)
             {
-                return new Analyzer(semanticModel).Visit(node).Success;
+                return new Analyzer().Visit(node).Success;
             }
 
             private static bool IsDefaultSwitchLabel(SwitchLabelSyntax node)
@@ -109,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             public override AnalysisResult VisitAssignmentExpression(AssignmentExpressionSyntax node)
             {
                 return node.IsKind(SyntaxKind.SimpleAssignmentExpression)
-                    ? AnalysisResult.Assignment(_semanticModel.GetSymbolInfo(node.Left).Symbol)
+                    ? AnalysisResult.Assignment(node.Left)
                     : AnalysisResult.Failure;
             }
 
