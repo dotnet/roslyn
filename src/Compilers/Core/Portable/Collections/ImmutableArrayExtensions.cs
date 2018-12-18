@@ -499,43 +499,16 @@ namespace Microsoft.CodeAnalysis
             return count;
         }
 
-        [StructLayout(LayoutKind.Explicit)]
-        private struct ByteArrayUnion
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ImmutableArrayProxy<T>
         {
-            [FieldOffset(0)]
-            internal byte[] MutableArray;
-
-            [FieldOffset(0)]
-            internal ImmutableArray<byte> ImmutableArray;
-        }
-
-        [StructLayout(LayoutKind.Explicit)]
-        private struct IntArrayUnion
-        {
-            [FieldOffset(0)]
-            internal int[] MutableArray;
-
-            [FieldOffset(0)]
-            internal ImmutableArray<int> ImmutableArray;
+            internal T[] MutableArray;
         }
 
         // TODO(https://github.com/dotnet/corefx/issues/34126): Remove when System.Collections.Immutable
         // provides a Span API
-        internal static byte[] DangerousGetUnderlyingArray(this ImmutableArray<byte> array)
-        {
-            var union = new ByteArrayUnion();
-            union.ImmutableArray = array;
-            return union.MutableArray;
-        }
-
-        // TODO(https://github.com/dotnet/corefx/issues/34126): Remove when System.Collections.Immutable
-        // provides a Span API
-        private static int[] DangerousGetUnderlyingArray(this ImmutableArray<int> array)
-        {
-            var union = new IntArrayUnion();
-            union.ImmutableArray = array;
-            return union.MutableArray;
-        }
+        internal static T[] DangerousGetUnderlyingArray<T>(this ImmutableArray<T> array)
+            => Unsafe.As<ImmutableArray<T>, ImmutableArrayProxy<T>>(ref array).MutableArray;
 
         internal static ReadOnlySpan<byte> AsSpan(this ImmutableArray<byte> array)
             => array.DangerousGetUnderlyingArray().AsSpan();
