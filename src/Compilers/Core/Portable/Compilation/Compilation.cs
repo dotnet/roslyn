@@ -1653,6 +1653,18 @@ namespace Microsoft.CodeAnalysis
         #region Emit
 
         /// <summary>
+        /// There are two ways to sign PE files
+        ///   1. By directly signing the <see cref="PEBuilder"/>
+        ///   2. Write the unsigned PE to disk and use CLR COM APIs to sign.
+        /// The preferred method is #1 as it's more efficient and more resilient (no reliance on %TEMP%). But 
+        /// we must continue to support #2 as it's the only way to access private keys stored in a key 
+        /// container.
+        /// </summary>
+        internal bool SignUsingBuilder =>
+            string.IsNullOrEmpty(StrongNameKeys.KeyContainer) &&
+            !_features.ContainsKey("UseLegacyStrongNameProvider");
+
+        /// <summary>
         /// Constructs the module serialization properties out of the compilation options of this compilation.
         /// </summary>
         internal Cci.ModulePropertiesForSerialization ConstructModuleSerializationProperties(
@@ -2422,7 +2434,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 RSAParameters? privateKeyOpt = null;
-                if (Options.StrongNameProvider?.Capability == SigningCapability.SignsPeBuilder && !Options.PublicSign)
+                if (Options.StrongNameProvider != null && SignUsingBuilder && !Options.PublicSign)
                 {
                     privateKeyOpt = StrongNameKeys.PrivateKey;
                 }
@@ -2795,7 +2807,7 @@ namespace Microsoft.CodeAnalysis
             // If this binary is configured to be signed, create a temp file, output to that
             // then stream that to the stream that this method was called with. Otherwise output to the
             // stream that this method was called with.
-            if (!metadataOnly && IsRealSigned && Options.StrongNameProvider.Capability == SigningCapability.SignsStream)
+            if (!metadataOnly && IsRealSigned && !SignUsingBuilder)
             {
                 Debug.Assert(Options.StrongNameProvider != null);
 

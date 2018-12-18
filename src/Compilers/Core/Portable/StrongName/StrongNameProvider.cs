@@ -11,13 +11,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    // TODO: rename SigningMode
-    internal enum SigningCapability
-    {
-        SignsStream,
-        SignsPeBuilder,
-    }
-
     /// <summary>
     /// Provides strong name and signs source assemblies.
     /// </summary>
@@ -31,12 +24,10 @@ namespace Microsoft.CodeAnalysis
         public abstract override int GetHashCode();
         public override abstract bool Equals(object other);
 
-        // TOOD: should be called preferred mode as once we're done the implementation will work for both forms of signing.
-        internal abstract SigningCapability Capability { get; }
         internal abstract StrongNameFileSystem FileSystem { get; }
 
         /// <summary>
-        /// Create a <see cref="Stream"/> for use in when in the <see cref="SigningCapability.SignsStream"/> mode.
+        /// Create a <see cref="Stream"/> for use in when not signing with a builder (<see cref="Compilation.SignUsingBuilder"/>).
         /// </summary>
         // TOOD: Create and expose a SigningStream. This avoids unnecessary casting in the SignStream method
         internal virtual Stream CreateInputStream() => throw new NotSupportedException();

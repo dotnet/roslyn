@@ -284,16 +284,7 @@ namespace Microsoft.CodeAnalysis
 
         internal StrongNameProvider GetStrongNameProvider(
             StrongNameFileSystem fileSystem,
-            string tempDirectory)
-        {
-            bool fallback =
-                !(CoreClrShim.IsRunningOnCoreClr || PlatformInformation.IsRunningOnMono) ||
-                ParseOptionsCore.Features.ContainsKey("UseLegacyStrongNameProvider") ||
-                CompilationOptionsCore.CryptoKeyContainer != null;
-            return fallback ?
-                new DesktopStrongNameProvider(KeyFileSearchPaths, tempDirectory, fileSystem) :
-                (StrongNameProvider)new PortableStrongNameProvider(KeyFileSearchPaths, fileSystem, tempDirectory);
-        }
+            string tempDirectory) => new DesktopStrongNameProvider(KeyFileSearchPaths, tempDirectory, fileSystem);
 
         internal CommandLineArguments()
         {

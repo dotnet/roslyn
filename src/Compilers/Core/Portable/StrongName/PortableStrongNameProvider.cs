@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis
             return 0;
         }
 
-        internal override SigningCapability Capability => SigningCapability.SignsPeBuilder;
         internal override StrongNameFileSystem FileSystem => _provider.FileSystem;
 
         internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider)

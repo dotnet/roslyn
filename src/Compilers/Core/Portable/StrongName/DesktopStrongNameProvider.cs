@@ -125,8 +125,6 @@ namespace Microsoft.CodeAnalysis
         // for testing/mocking
         internal Func<IClrStrongName> TestStrongNameInterfaceFactory;
 
-        internal override SigningCapability Capability => SigningCapability.SignsStream;
-
         public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths) : this(keyFileSearchPaths, null, null)
         {
 
