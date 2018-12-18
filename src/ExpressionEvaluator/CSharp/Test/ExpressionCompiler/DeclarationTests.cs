@@ -277,7 +277,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(13159, "https://github.com/dotnet/roslyn/issues/13159")]
         public void ExpressionLocals_ExpressionStatement_02()
         {
@@ -1746,7 +1746,7 @@ class C
             flags = resultProperties.Flags;
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_01()
         {
             var source =
@@ -1814,7 +1814,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_02()
         {
             var source =
@@ -1881,7 +1881,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_03()
         {
             var source =
@@ -1944,7 +1944,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_04()
         {
             var source =
@@ -2003,7 +2003,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_05()
         {
             var source =
@@ -2073,7 +2073,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_LocalDeclarationStatement_01()
         {
             var source =
