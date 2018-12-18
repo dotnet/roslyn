@@ -12,7 +12,6 @@ $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 try {
-    . (Join-Path $roslynDir "eng/common/tools.ps1")
     . (Join-Path $roslynDir "eng/build-utils.ps1")
 
     # Download dotnet if it isn't already available
@@ -23,8 +22,7 @@ try {
     if (-not (Test-Path $reproPath)) {
         $tmpFile = [System.IO.Path]::GetTempFileName()
         Invoke-WebRequest -Uri "https://roslyninfra.blob.core.windows.net/perf-artifacts/CodeAnalysisRepro.zip" -UseBasicParsing -OutFile $tmpFile
-        [Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem') | Out-Null
-        [IO.Compression.ZipFile]::ExtractToDirectory($tmpFile, $ArtifactsDir)
+        Unzip $tmpFile $ArtifactsDir
     }
 
     Exec-Command "dotnet" "run -c Release $reproPath"
