@@ -608,7 +608,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)associatedPropertyOrEvent == null)
                     {
-                        diagnostics.Add(ErrorCode.ERR_OverrideNotExpected, overridingMemberLocation, overridingMember);
+                        if (overridingMember.GetTypeOrReturnType().Kind == SymbolKind.ErrorType)
+                        {
+                            // The return type must be fixed before the override can be found, so suppress error
+                        }
+                        else if (overridingMemberIsMethod && ((MethodSymbol) overridingMember).ParameterTypes.Any(SymbolKind.ErrorType))
+                        {
+                            // The parameter type/s must be fixed before the override can be found, so suppress error
+                        }
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_OverrideNotExpected, overridingMemberLocation,
+                                overridingMember);
+                        }
                     }
                     else if (associatedPropertyOrEvent.Kind == SymbolKind.Property) //no specific errors for event accessors
                     {
