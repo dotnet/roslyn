@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 isDefaultOfUnconstrainedTypeParameter(conversion.Operand);
                         }
                     case BoundKind.DefaultExpression:
-                        return IsUnconstrainedTypeParameter(expr.Type);
+                        return IsTypeParameterDisallowingAnnotation(expr.Type);
                     default:
                         return false;
                 }
@@ -1080,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return returnType;
         }
 
-        private static bool IsUnconstrainedTypeParameter(TypeSymbol typeOpt)
+        private static bool IsTypeParameterDisallowingAnnotation(TypeSymbol typeOpt)
         {
             return typeOpt?.IsTypeParameterDisallowingAnnotation() == true;
         }
@@ -3536,7 +3536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             resultAnnotation = (operandType.IsNullableTypeOrTypeParameter() && operandType.GetValueNullableAnnotation().IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
                             break;
                         }
-                        else if (IsUnconstrainedTypeParameter(operandType.TypeSymbol))
+                        else if (IsTypeParameterDisallowingAnnotation(operandType.TypeSymbol))
                         {
                             if (operandType.IsPossiblyNullableReferenceTypeTypeParameter() && !targetTypeWithNullability.IsPossiblyNullableReferenceTypeTypeParameter())
                             {

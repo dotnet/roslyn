@@ -64001,8 +64001,8 @@ partial class Program
 
             var expected = new NullableAnnotation[5, 5]
             {
+                { NullableAnnotation.Annotated,     NullableAnnotation.Annotated,     NullableAnnotation.Unknown,       NullableAnnotation.NotNullable,   NullableAnnotation.NotAnnotated },
                 { NullableAnnotation.Annotated,     NullableAnnotation.Nullable,      NullableAnnotation.Unknown,       NullableAnnotation.NotNullable,   NullableAnnotation.NotAnnotated },
-                { NullableAnnotation.Nullable,      NullableAnnotation.Nullable,      NullableAnnotation.Unknown,       NullableAnnotation.NotNullable,   NullableAnnotation.NotAnnotated },
                 { NullableAnnotation.Unknown,       NullableAnnotation.Unknown,       NullableAnnotation.Unknown,       NullableAnnotation.NotNullable,   NullableAnnotation.NotAnnotated },
                 { NullableAnnotation.NotNullable,   NullableAnnotation.NotNullable,   NullableAnnotation.NotNullable,   NullableAnnotation.NotNullable,   NullableAnnotation.NotNullable  },
                 { NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated,  NullableAnnotation.NotNullable,   NullableAnnotation.NotAnnotated },
