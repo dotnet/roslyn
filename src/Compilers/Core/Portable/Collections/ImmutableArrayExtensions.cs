@@ -510,11 +510,8 @@ namespace Microsoft.CodeAnalysis
         internal static T[] DangerousGetUnderlyingArray<T>(this ImmutableArray<T> array)
             => Unsafe.As<ImmutableArray<T>, ImmutableArrayProxy<T>>(ref array).MutableArray;
 
-        internal static ReadOnlySpan<byte> AsSpan(this ImmutableArray<byte> array)
-            => array.DangerousGetUnderlyingArray().AsSpan();
-
-        internal static ReadOnlySpan<int> AsSpan(this ImmutableArray<int> array)
-            => array.DangerousGetUnderlyingArray().AsSpan();
+        internal static ReadOnlySpan<T> AsSpan<T>(this ImmutableArray<T> array)
+            => array.DangerousGetUnderlyingArray();
 
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
         {
