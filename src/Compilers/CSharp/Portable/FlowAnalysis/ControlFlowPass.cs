@@ -317,28 +317,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             _labelsUsed.Add(node.Label);
 
             // check for illegal jumps across using declarations
-            var targetLocation = node.Label.Locations[0];
-            var sourceLocation = node.Syntax.Location;
+            var sourceStart = node.Syntax.Location.SourceSpan.Start;
+            var targetStart = node.Label.Locations[0].SourceSpan.Start;
 
             foreach (var usingDecl in _usingDeclarations)
             {
-                var usingLocation = usingDecl.Locations[0];
-                if (sourceLocation.SourceSpan.Start < usingLocation.SourceSpan.Start && targetLocation.SourceSpan.Start > usingLocation.SourceSpan.Start)
+                var usingStart = usingDecl.Locations[0].SourceSpan.Start;
+                if (sourceStart < usingStart && targetStart > usingStart)
                 {
                     // no forward jumps
-                    Diagnostics.Add(ErrorCode.ERR_GoToForwardJumpOverUsingVar, sourceLocation);
+                    Diagnostics.Add(ErrorCode.ERR_GoToForwardJumpOverUsingVar, node.Syntax.Location);
                     break;
                 }
-                else if(sourceLocation.SourceSpan.Start > usingLocation.SourceSpan.Start && targetLocation.SourceSpan.Start < usingLocation.SourceSpan.Start)
+                else if(sourceStart > usingStart && targetStart < usingStart)
                 {
                     // backward jump, error if part of the same block
                     if (_currentUsingDeclarations.Contains(usingDecl))
                     {
-                        Diagnostics.Add(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, sourceLocation);
+                        Diagnostics.Add(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, node.Syntax.Location);
                         break;
                     }
                 }
             }
+
             return base.VisitGotoStatement(node);
         }
 
