@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets the set of interfaces that this type directly implements. This set does not include
         /// interfaces that are base interfaces of directly implemented interfaces.
         /// </summary>
-        internal abstract ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null);
+        internal abstract ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved = null);
 
         /// <summary>
         /// The list of all interfaces of which this type is a declared subtype, excluding this type
@@ -1580,22 +1580,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator !=(TypeSymbol left, Symbol right)
-            => throw ExceptionUtilities.Unreachable;
-
-        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
-        public static bool operator ==(object left, TypeSymbol right)
-            => throw ExceptionUtilities.Unreachable;
-
-        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
-        public static bool operator !=(object left, TypeSymbol right)
-            => throw ExceptionUtilities.Unreachable;
-
-        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
-        public static bool operator ==(TypeSymbol left, object right)
-            => throw ExceptionUtilities.Unreachable;
-
-        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
-        public static bool operator !=(TypeSymbol left, object right)
             => throw ExceptionUtilities.Unreachable;
     }
 }
