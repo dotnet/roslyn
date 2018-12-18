@@ -98,17 +98,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                         // string M() { return null; }
                         // async Task<string> M() { return null; }
                         // IEnumerable<string> M() { yield return null; }
-                        return TryGetMethodReturnType(method.ReturnType, method.Modifiers, onYield);
+                        return TryGetReturnType(method.ReturnType, method.Modifiers, onYield);
 
                     case LocalFunctionStatementSyntax localFunction:
                         // string local() { return null; }
                         // async Task<string> local() { return null; }
                         // IEnumerable<string> local() { yield return null; }
-                        return TryGetMethodReturnType(localFunction.ReturnType, localFunction.Modifiers, onYield);
+                        return TryGetReturnType(localFunction.ReturnType, localFunction.Modifiers, onYield);
 
                     case PropertyDeclarationSyntax property:
                         // string x { get { return null; } }
-                        return property.Type;
+                        // IEnumerable<string> Property { get { yield return null; } }
+                        return TryGetReturnType(property.Type, modifiers: default, onYield);
 
                     default:
                         return null;
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             return null;
 
             // local functions
-            TypeSyntax TryGetMethodReturnType(TypeSyntax returnType, SyntaxTokenList modifiers, bool onYield)
+            TypeSyntax TryGetReturnType(TypeSyntax returnType, SyntaxTokenList modifiers, bool onYield)
             {
                 if (modifiers.Any(SyntaxKind.AsyncKeyword) || onYield)
                 {

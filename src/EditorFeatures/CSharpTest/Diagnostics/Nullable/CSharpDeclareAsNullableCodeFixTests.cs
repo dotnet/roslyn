@@ -396,6 +396,34 @@ class Program
         }
 
         [Fact]
+        public async Task FixReturnType_IteratorProperty()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    System.Collections.Generic.IEnumerable<string> Property
+    {
+        get
+        {
+            yield return [|null|];
+        }
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    System.Collections.Generic.IEnumerable<string?> Property
+    {
+        get
+        {
+            yield return null;
+        }
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
         public async Task FixReturnType_Iterator_LocalFunction()
         {
             await TestInRegularAndScript1Async(
