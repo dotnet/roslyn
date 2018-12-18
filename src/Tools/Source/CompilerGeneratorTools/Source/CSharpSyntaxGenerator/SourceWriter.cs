@@ -434,11 +434,7 @@ namespace CSharpSyntaxGenerator
         private void WriteSetAnnotations(Node node)
         {
             WriteLine();
-            WriteLine("    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)");
-            WriteLine("    {");
-
-            Write("         return new {0}(", node.Name);
-            Write("this.Kind, ");
+            Write("    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new {0}(this.Kind, ", node.Name);
             for (int f = 0; f < node.Fields.Count; f++)
             {
                 var field = node.Fields[f];
@@ -447,17 +443,12 @@ namespace CSharpSyntaxGenerator
                 Write("this.{0}", CamelCase(field.Name));
             }
             WriteLine(", GetDiagnostics(), annotations);");
-            WriteLine("    }");
         }
 
         private void WriteSetDiagnostics(Node node)
         {
             WriteLine();
-            WriteLine("    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)");
-            WriteLine("    {");
-
-            Write("         return new {0}(", node.Name);
-            Write("this.Kind, ");
+            Write("    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new {0}(this.Kind, ", node.Name);
             for (int f = 0; f < node.Fields.Count; f++)
             {
                 var field = node.Fields[f];
@@ -466,7 +457,6 @@ namespace CSharpSyntaxGenerator
                 Write("this.{0}", CamelCase(field.Name));
             }
             WriteLine(", diagnostics, GetAnnotations());");
-            WriteLine("    }");
         }
 
         private void WriteGreenAcceptMethods(Node node)
