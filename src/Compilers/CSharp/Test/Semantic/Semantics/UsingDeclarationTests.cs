@@ -148,7 +148,7 @@ class C
         }
 
         [Fact]
-        public void DisallowGoToBackwardsAcrossUsingDeclarations()
+        public void DisallowGoToBackwardsAcrossUsingDeclarationsWhenLabelIsInTheSameScope()
         {
             var source = @"
 using System;
@@ -192,7 +192,7 @@ class C
         }
 
         [Fact]
-        public void AllowGoToBackwardsAcrossUsingDeclarationsWhenFromALowerBlock()
+        public void AllowGoToBackwardsAcrossUsingDeclarationsWhenLabelIsInHigherScope()
         {
             var source = @"
 using System;
@@ -201,12 +201,9 @@ class C
     static void Main()
     {
         label1:
-        using var x = (IDisposable)null;
         {
-            if (true)
-            {
-                goto label1;
-            }
+            using var x = (IDisposable)null;
+            goto label1;
         }
     }
 }
@@ -227,7 +224,7 @@ class C
         {
             using var x = (IDisposable)null;
         }
-        label1:
+        label1: ;
     }
 }
 ";

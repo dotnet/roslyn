@@ -999,10 +999,12 @@ class C2
     {
         int x = 0;
         label1:
-        using C1 o1 = new C1(""first"");
-        if(x++ < 3)
         {
-            goto label1;
+            using C1 o1 = new C1(""first"");
+            if(x++ < 3)
+            {
+                goto label1;
+            }
         }
     }
 }";

@@ -11,20 +11,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class ControlFlowPass : AbstractFlowPass<ControlFlowPass.LocalState>
     {
-        private readonly PooledHashSet<LabelSymbol> _labelsDefined = PooledHashSet<LabelSymbol>.GetInstance();
+        private readonly PooledDictionary<LabelSymbol, BoundBlock> _labelsDefined = PooledDictionary<LabelSymbol, BoundBlock>.GetInstance();
         private readonly PooledHashSet<LabelSymbol> _labelsUsed = PooledHashSet<LabelSymbol>.GetInstance();
         protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
 
         private readonly PooledHashSet<LocalSymbol> _usingDeclarations = PooledHashSet<LocalSymbol>.GetInstance();
-        private PooledHashSet<LocalSymbol> _currentUsingDeclarations = PooledHashSet<LocalSymbol>.GetInstance();
+        private BoundBlock _currentBlock = null;
 
         protected override void Free()
         {
             _labelsDefined.Free();
             _labelsUsed.Free();
             _usingDeclarations.Free();
-            _currentUsingDeclarations.Free();
-
             base.Free();
         }
 
@@ -120,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Diagnostics.Clear();  // clear reported diagnostics
             var result = base.Scan(ref badRegion);
-            foreach (var label in _labelsDefined)
+            foreach (var label in _labelsDefined.Keys)
             {
                 if (!_labelsUsed.Contains(label))
                 {
@@ -300,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitLabel(BoundLabeledStatement node)
         {
-            _labelsDefined.Add(node.Label);
+            _labelsDefined.Add(node.Label, _currentBlock);
             base.VisitLabel(node);
         }
 
@@ -325,14 +323,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var usingStart = usingDecl.Locations[0].SourceSpan.Start;
                 if (sourceStart < usingStart && targetStart > usingStart)
                 {
-                    // no forward jumps
+                    // No forward jumps
                     Diagnostics.Add(ErrorCode.ERR_GoToForwardJumpOverUsingVar, node.Syntax.Location);
                     break;
                 }
                 else if(sourceStart > usingStart && targetStart < usingStart)
                 {
-                    // backward jump, error if part of the same block
-                    if (_currentUsingDeclarations.Contains(usingDecl))
+                    // Backwards jump, so we must have already seen the label
+                    Debug.Assert(_labelsDefined.ContainsKey(node.Label)); 
+
+                    // Error if label and using are part of the same block
+                    if (_labelsDefined[node.Label].Locals.Contains(usingDecl))
                     {
                         Diagnostics.Add(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, node.Syntax.Location);
                         break;
@@ -380,26 +381,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            var previousUsingDeclarations = _currentUsingDeclarations;
-            _currentUsingDeclarations = PooledHashSet<LocalSymbol>.GetInstance();
+            var parentBlock = _currentBlock;
+            _currentBlock = node;
+            ArrayBuilder<LocalSymbol> localUsingDecls = ArrayBuilder<LocalSymbol>.GetInstance();
             foreach(var local in node.Locals)
             {
                 if (local.IsUsing)
                 {
-                    _currentUsingDeclarations.Add(local);
+                    localUsingDecls.Add(local);
                     _usingDeclarations.Add(local);
                 }
             }
 
             var result = base.VisitBlock(node);
 
-            foreach(var local in _currentUsingDeclarations)
+            foreach(var local in localUsingDecls)
             {
                 _usingDeclarations.Remove(local);
             }
-            _currentUsingDeclarations.Free();
-            _currentUsingDeclarations = previousUsingDeclarations;
-
+            localUsingDecls.Free();
+            _currentBlock = parentBlock;
             return result;
         }
     }
