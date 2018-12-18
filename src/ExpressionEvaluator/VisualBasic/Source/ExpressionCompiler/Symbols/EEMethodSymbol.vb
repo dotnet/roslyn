@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim substitutedSourceHasMeParameter = substitutedSourceMeParameter IsNot Nothing
             If substitutedSourceHasMeParameter Then
                 _meParameter = MakeParameterSymbol(0, GeneratedNames.MakeStateMachineCapturedMeName(), substitutedSourceMeParameter) ' NOTE: Name doesn't actually matter.
-                Debug.Assert(_meParameter.Type = Me.SubstitutedSourceMethod.ContainingType)
+                Debug.Assert(TypeSymbol.Equals(_meParameter.Type, Me.SubstitutedSourceMethod.ContainingType, TypeCompareKind.ConsiderEverything2))
                 parameterBuilder.Add(_meParameter)
             End If
 

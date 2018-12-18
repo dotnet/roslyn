@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If Not (t1IsDefinition AndAlso t2IsDefinition) Then ' This is a generic instantiation case
 
-                    If t1.OriginalDefinition <> t2.OriginalDefinition Then
+                    If Not TypeSymbol.Equals(t1.OriginalDefinition, t2.OriginalDefinition, TypeCompareKind.ConsiderEverything2) Then
                         Return False ' different definition
                     End If
 
@@ -336,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            Return (t1 = t2)
+            Return (TypeSymbol.Equals(t1, t2, TypeCompareKind.ConsiderEverything2))
         End Function
 
         Private Function HasSameTypeArgumentCustomModifiers(type1 As NamedTypeSymbol, type2 As NamedTypeSymbol) As Boolean
@@ -644,7 +644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Function IsSameOrNestedWithin(inner As NamedTypeSymbol, outer As NamedTypeSymbol) As Boolean
             Do
-                If inner = outer Then
+                If TypeSymbol.Equals(inner, outer, TypeCompareKind.ConsiderEverything2) Then
                     Return True
                 End If
 
@@ -1040,7 +1040,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Return type.GetEnumUnderlyingTypeOrSelf.SpecialType.IsValidTypeForAttributeArgument() OrElse
-                type = compilation.GetWellKnownType(WellKnownType.System_Type) ' don't call the version with diagnostics
+                TypeSymbol.Equals(type, compilation.GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.ConsiderEverything2) ' don't call the version with diagnostics
         End Function
 
         <Extension()>
@@ -1184,7 +1184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim namedType = DirectCast(type, NamedTypeSymbol)
 
                 ' Note that if the compilation doesn't have the Expression(Of T) well-known type, then the below test just fails correctly.
-                If namedType.Arity = 1 AndAlso namedType.OriginalDefinition = compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T) Then
+                If namedType.Arity = 1 AndAlso TypeSymbol.Equals(namedType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T), TypeCompareKind.ConsiderEverything2) Then
                     Dim typeArgument = namedType.TypeArgumentsNoUseSiteDiagnostics(0)
                     If typeArgument.TypeKind = TypeKind.Delegate Then
                         Return DirectCast(typeArgument, NamedTypeSymbol)

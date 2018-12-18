@@ -1092,7 +1092,7 @@ End Class
                (leftSpecial = SpecialType.None OrElse rightSpecial = SpecialType.None OrElse
                 (op = BinaryOperatorKind.Subtract AndAlso leftSpecial = SpecialType.System_DateTime AndAlso rightSpecial = SpecialType.System_DateTime)) Then
 
-                If leftSpecial = SpecialType.System_Object OrElse rightSpecial = SpecialType.System_Object OrElse leftType = rightType Then
+                If leftSpecial = SpecialType.System_Object OrElse rightSpecial = SpecialType.System_Object OrElse TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2) Then
                     If leftSpecial = SpecialType.System_Object OrElse rightSpecial = SpecialType.System_Object Then
                         resultType = SpecialType.System_Object
                     End If
@@ -1104,8 +1104,8 @@ End Class
                             Dim method = DirectCast(m, MethodSymbol)
                             If method.MethodKind = MethodKind.UserDefinedOperator AndAlso
                                method.ParameterCount = 2 AndAlso
-                               method.Parameters(0).Type = nonSpecialType AndAlso
-                               method.Parameters(1).Type = nonSpecialType Then
+                               TypeSymbol.Equals(method.Parameters(0).Type, nonSpecialType, TypeCompareKind.ConsiderEverything2) AndAlso
+                               TypeSymbol.Equals(method.Parameters(1).Type, nonSpecialType, TypeCompareKind.ConsiderEverything2) Then
                                 userDefined = method
                                 resultType = SpecialType.None
                             End If
@@ -1186,7 +1186,7 @@ End Class
                     End If
 
                 Case BinaryOperatorKind.Xor, BinaryOperatorKind.And, BinaryOperatorKind.Or
-                    If leftType.IsEnumType() AndAlso leftType = rightType Then
+                    If leftType.IsEnumType() AndAlso TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2) Then
                         containerName = leftType.ToTestDisplayString()
                         rightName = containerName
                         returnName = containerName

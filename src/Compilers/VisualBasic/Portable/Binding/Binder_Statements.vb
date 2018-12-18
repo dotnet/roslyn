@@ -2457,7 +2457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 diagnostics.Add(node.Name, useSiteDiagnostics)
 
-                Debug.Assert(targetAsEvent.Type = eventField.Type OrElse eventSym.IsWindowsRuntimeEvent, "non-WinRT event should have the same type as its backing field")
+                Debug.Assert(TypeSymbol.Equals(targetAsEvent.Type, eventField.Type, TypeCompareKind.ConsiderEverything2) OrElse eventSym.IsWindowsRuntimeEvent, "non-WinRT event should have the same type as its backing field")
 
                 receiver = New BoundFieldAccess(node.Name,
                                                 targetAsEvent.ReceiverOpt,
@@ -2514,7 +2514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return New BoundBadStatement(node, StaticCast(Of BoundNode).From(boundArguments).Add(target), True)
                 End If
 
-                If fireMethod.ContainingType <> Me.ContainingType Then
+                If Not TypeSymbol.Equals(fireMethod.ContainingType, Me.ContainingType, TypeCompareKind.ConsiderEverything2) Then
                     ' Re: Dev10
                     ' // UNDONE: harishk - note that this is different from the check for an
                     ' // accessible event field for non-block events. This is because there
@@ -3772,7 +3772,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If ((collection.IsNothingLiteral OrElse collectionType.IsObjectType) AndAlso Me.OptionStrict <> OptionStrict.On) OrElse
                        (Not collection.IsNothingLiteral AndAlso Not collectionType.IsArrayType AndAlso IsOrInheritsFromOrImplementsInterface(collectionType, ienumerable, useSiteDiagnostics, matchingInterfaces)) Then
 
-                        Debug.Assert(collection.IsNothingLiteral OrElse collectionType.IsObjectType OrElse (matchingInterfaces.First = ienumerable AndAlso matchingInterfaces.Count = 1))
+                        Debug.Assert(collection.IsNothingLiteral OrElse collectionType.IsObjectType OrElse (TypeSymbol.Equals(matchingInterfaces.First, ienumerable, TypeCompareKind.ConsiderEverything2) AndAlso matchingInterfaces.Count = 1))
 
                         diagnostics.Add(collectionSyntax, useSiteDiagnostics)
 
@@ -4317,7 +4317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
             Else
                 ' derivedType could be an interface
-                If derivedType.OriginalDefinition = interfaceType Then
+                If TypeSymbol.Equals(derivedType.OriginalDefinition, interfaceType, TypeCompareKind.ConsiderEverything2) Then
                     If matchingInterfaces Is Nothing Then
                         Return True
                     End If
@@ -4327,7 +4327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' implements or inherits interface
                 For Each interfaceOfDerived In derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                    If interfaceOfDerived.OriginalDefinition = interfaceType Then
+                    If TypeSymbol.Equals(interfaceOfDerived.OriginalDefinition, interfaceType, TypeCompareKind.ConsiderEverything2) Then
                         If matchingInterfaces Is Nothing Then
                             Return True
                         End If
@@ -4821,7 +4821,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     If Not previousType.IsErrorType() Then
-                        If previousType = exceptionType Then
+                        If TypeSymbol.Equals(previousType, exceptionType, TypeCompareKind.ConsiderEverything2) Then
                             ReportDiagnostic(diagnostics, declaration, ERRID.WRN_DuplicateCatch, exceptionType)
                             Exit For
                         End If

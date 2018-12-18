@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Function [Is](other As TypeSymbol) As Boolean
-            Return Me.Type = other AndAlso Me.CustomModifiers.IsEmpty
+            Return TypeSymbol.Equals(Me.Type, other, TypeCompareKind.ConsiderEverything2) AndAlso Me.CustomModifiers.IsEmpty
         End Function
 
         <Obsolete("Use Is method.", True)>
