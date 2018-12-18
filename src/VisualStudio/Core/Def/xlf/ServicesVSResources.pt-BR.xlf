@@ -82,14 +82,9 @@
         <target state="translated">Em outros operadores</target>
         <note />
       </trans-unit>
-      <trans-unit id="Interface_cant_have_abstract_member">
-        <source>Interface can't have abstract member.</source>
-        <target state="new">Interface can't have abstract member.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_cant_have_field">
-        <source>Interface can't have field.</source>
-        <target state="new">Interface can't have field.</target>
+      <trans-unit id="Interface_can_not_have_field">
+        <source>Interface can not have field.</source>
+        <target state="new">Interface can not have field.</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
@@ -100,6 +95,11 @@
       <trans-unit id="Kind">
         <source>Kind</source>
         <target state="new">Kind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_0_abstract">
+        <source>Make '{0}' abstract</source>
+        <target state="new">Make '{0}' abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_abstract">

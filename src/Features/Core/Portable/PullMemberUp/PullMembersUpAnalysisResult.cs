@@ -6,7 +6,7 @@ using System.Linq;
 namespace Microsoft.CodeAnalysis.PullMemberUp
 {
     /// <summary>
-    /// This struct contains all the operations needs to be done on members and destination to complete the pull up operation.
+    /// This class contains all the operations needs to be done on members and destination to complete the pull up operation.
     /// </summary>
     internal class PullMembersUpAnalysisResult
     {

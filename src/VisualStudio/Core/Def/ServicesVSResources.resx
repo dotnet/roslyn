@@ -1129,11 +1129,8 @@ I agree to all of the foregoing:</value>
   <data name="Found_problems_colon" xml:space="preserve">
     <value>Found problems:</value>
   </data>
-  <data name="Interface_cant_have_abstract_member" xml:space="preserve">
-    <value>Interface can't have abstract member.</value>
-  </data>
-  <data name="Interface_cant_have_field" xml:space="preserve">
-    <value>Interface can't have field.</value>
+  <data name="Interface_can_not_have_field" xml:space="preserve">
+    <value>Interface can not have field.</value>
   </data>
   <data name="Make_abstract" xml:space="preserve">
     <value>Make abstract</value>
@@ -1179,5 +1176,8 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Select_destination_colon" xml:space="preserve">
     <value>Select destination:</value>
+  </data>
+  <data name="Make_0_abstract" xml:space="preserve">
+    <value>Make '{0}' abstract</value>
   </data>
 </root>

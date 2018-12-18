@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         internal class PullMemberUpWithDialogCodeAction : CodeActionWithOptions
         {
             private readonly ISymbol _selectedMember;
-
             private readonly Document _document;
-
             private readonly IPullMemberUpOptionsService _service;
 
             public override string Title => string.Format(FeaturesResources.More_option_to_pull_0_up, _selectedMember.ToDisplayString());
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             public override object GetOptions(CancellationToken cancellationToken)
             {
                 var pullMemberUpOptionService = _service ?? _document.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
-                return pullMemberUpOptionService.GetPullMemberUpAnalysisResultFromDialogBox(_selectedMember, _document);
+                return pullMemberUpOptionService.GetPullMemberUpOptions(_selectedMember, _document);
             }
             
             protected async override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)

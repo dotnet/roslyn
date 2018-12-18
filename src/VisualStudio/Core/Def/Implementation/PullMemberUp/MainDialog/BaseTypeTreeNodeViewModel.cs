@@ -3,7 +3,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.VisualStudio.Language.Intellisense;
 using static Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface.ExtractInterfaceDialogViewModel;
 
@@ -33,9 +35,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         }
 
         /// <summary>
-        /// Use breadth first search to create the inheritance tree. Only types in the solution will be included in the tree.
+        /// Use breadth first search to create the inheritance tree. Only non-generated types in the solution will be included in the tree.
         /// </summary>
-        internal static BaseTypeTreeNodeViewModel CreateBaseTypeTree(INamedTypeSymbol root, IGlyphService glyphService)
+        internal static BaseTypeTreeNodeViewModel CreateBaseTypeTree(
+            INamedTypeSymbol root,
+            Solution solution,
+            IGlyphService glyphService,
+            CancellationToken cancellationToken)
         {
             var rootTreeNode = new BaseTypeTreeNodeViewModel(root, glyphService) { IsChecked = false, IsExpanded = true};
             var queue = new Queue<BaseTypeTreeNodeViewModel>();
@@ -46,9 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                 var currentTypeSymbol = currentTreeNode.MemberSymbol as INamedTypeSymbol;
 
                 currentTreeNode.BaseTypeNodes = currentTypeSymbol.Interfaces.Concat(currentTypeSymbol.BaseType).
-                    WhereAsArray(baseType => baseType != null &&
-                        baseType.DeclaringSyntaxReferences.Length > 0 &&
-                        baseType.Locations.Any(location => location.IsInSource)).
+                    WhereAsArray(baseType => MemberAndDestinationValidator.IsDestinationValid(baseType, solution, cancellationToken)).
                     SelectAsArray(baseType => new BaseTypeTreeNodeViewModel(baseType, glyphService) { IsChecked = false, IsExpanded = true });
 
                 foreach (var node in currentTreeNode.BaseTypeNodes)

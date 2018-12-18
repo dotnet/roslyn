@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
             DestinationName = destinationName;
         }
 
-        public PullMembersUpAnalysisResult GetPullMemberUpAnalysisResultFromDialogBox(ISymbol selectedNodeSymbol, Document document)
+        public PullMembersUpAnalysisResult GetPullMemberUpOptions(ISymbol selectedNodeSymbol, Document document)
         {
             var members = selectedNodeSymbol.ContainingType.GetMembers().Where(member => MemberAndDestinationValidator.IsMemeberValid(member));
 

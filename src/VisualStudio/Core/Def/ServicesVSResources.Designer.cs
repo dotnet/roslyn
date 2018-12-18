@@ -1353,20 +1353,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Interface can&apos;t have abstract member..
+        ///   Looks up a localized string similar to Interface can not have field..
         /// </summary>
-        internal static string Interface_cant_have_abstract_member {
+        internal static string Interface_can_not_have_field {
             get {
-                return ResourceManager.GetString("Interface_cant_have_abstract_member", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Interface can&apos;t have field..
-        /// </summary>
-        internal static string Interface_cant_have_field {
-            get {
-                return ResourceManager.GetString("Interface_cant_have_field", resourceCulture);
+                return ResourceManager.GetString("Interface_can_not_have_field", resourceCulture);
             }
         }
         
@@ -1448,6 +1439,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Location_colon {
             get {
                 return ResourceManager.GetString("Location_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make &apos;{0}&apos; abstract.
+        /// </summary>
+        internal static string Make_0_abstract {
+            get {
+                return ResourceManager.GetString("Make_0_abstract", resourceCulture);
             }
         }
         

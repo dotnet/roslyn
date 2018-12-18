@@ -7,51 +7,44 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 {
     internal class SymbolDependentsBuilder : OperationWalker
     {
         private readonly HashSet<ISymbol> _dependents;
-
         private readonly ImmutableHashSet<ISymbol> _membersInType;
+        private readonly Document _document;
 
-        internal static ImmutableDictionary<ISymbol, AsyncLazy<ImmutableArray<ISymbol>>> CreateDependentsMap(
-            Document document,
-            ImmutableArray<ISymbol> membersInType)
+        internal SymbolDependentsBuilder(ImmutableArray<ISymbol> membersInType, Document document)
         {
-            return membersInType.ToImmutableDictionary(
-                member => member,
-                member => new AsyncLazy<ImmutableArray<ISymbol>>(
-                    cancellationToken => FindMemberDependentsAsync(member, document, membersInType, cancellationToken),
-                    cacheResult: true));
+            _membersInType = membersInType.ToImmutableHashSet();
+            _document = document;
+            _dependents = new HashSet<ISymbol>();
         }
 
-        private async static Task<ImmutableArray<ISymbol>> FindMemberDependentsAsync(
+        internal ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> CreateDependentsMap(CancellationToken cancellationToken)
+        {
+            return _membersInType.ToImmutableDictionary(
+                member => member,
+                member => FindMemberDependentsAsync(member, _document, cancellationToken));
+        }
+
+        private async Task<ImmutableArray<ISymbol>> FindMemberDependentsAsync(
             ISymbol member,
             Document contextDocument,
-            ImmutableArray<ISymbol> membersInType,
             CancellationToken cancellationToken)
         {
             var tasks = member.DeclaringSyntaxReferences.Select(@ref => @ref.GetSyntaxAsync(cancellationToken));
             var syntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
             var compilation = await contextDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var builder = new SymbolDependentsBuilder(membersInType.ToImmutableHashSet());
-            var operations = syntaxes.Select(syntax => compilation.GetSemanticModel(syntax.SyntaxTree).GetOperation(syntax, cancellationToken));
 
-            foreach (var operation in operations)
+            foreach (var operation in syntaxes.Select(syntax => compilation.GetSemanticModel(syntax.SyntaxTree).GetOperation(syntax, cancellationToken)))
             {
-                builder.Visit(operation);
+                Visit(operation);
             }
 
-            return builder._dependents.ToImmutableArray();
-        }
-
-        private SymbolDependentsBuilder(ImmutableHashSet<ISymbol> membersInType)
-        {
-            _membersInType = membersInType;
-            _dependents = new HashSet<ISymbol>();
+            return _dependents.ToImmutableArray();
         }
 
         public override void Visit(IOperation operation)

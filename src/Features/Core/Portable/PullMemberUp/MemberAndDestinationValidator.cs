@@ -10,11 +10,19 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
     {
         internal static bool IsDestinationValid(INamedTypeSymbol destination, Solution solution, CancellationToken cancellationToken)
         {
-            return destination != null &&
-                destination.DeclaringSyntaxReferences.Length != 0 &&
-                (destination.TypeKind == TypeKind.Interface || destination.TypeKind == TypeKind.Class) &&
-                destination.Locations.Any(location => location.IsInSource &&
-                !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
+            if (destination == null)
+            {
+                return false;
+            }
+
+            // Check destination is class or interface since destination could be ErrorTypeSymbol
+            var isDestinationInterfaceOrClass = destination.TypeKind == TypeKind.Interface || destination.TypeKind == TypeKind.Class;
+
+            // Don't provide any refactoring option if the destination is not in source.
+            // If the destination is generated code, also don't provide refactoring since we can't make sure if we will break it.
+            var isDestinationInSourceAndNotGeneratedCode = destination.Locations.
+                Any(location => location.IsInSource && !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
+            return destination.DeclaringSyntaxReferences.Length != 0 && isDestinationInterfaceOrClass && isDestinationInSourceAndNotGeneratedCode;
         }
 
         internal static bool IsMemeberValid(ISymbol member)

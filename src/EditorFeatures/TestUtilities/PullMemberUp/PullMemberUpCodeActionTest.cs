@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
         internal Task TestWithPullMemberDialogAsync(
             string initialMarkUp,
             string expectedResult,
-            IEnumerable<(string, bool)> selection = null,
+            IEnumerable<(string memberName, bool makeAbstract)> selection = null,
             string target = null,
             int index = 0,
             CodeActionPriority? priority = null,

@@ -10,10 +10,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
     /// </summary>
     internal class SelectAllCheckBox : CheckBox
     {
-        // The order of the three state checkbox is reversed since if the checkbox is in indeterminate (null),
-        // click the checkbox will then trigger select all, then in checked state(true).
         protected override void OnToggle()
         {
+            // The order of the three state checkbox is reversed since if the checkbox is in indeterminate (null),
+            // click the checkbox will then trigger select all, then in checked state(true).
             if (IsChecked == false)
             {
                 IsChecked = IsThreeState ? null : true as bool?;
