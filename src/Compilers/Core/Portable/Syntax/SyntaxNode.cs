@@ -1239,7 +1239,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return false;
-
         }
 
         private protected virtual bool IsSimilarToCore(SyntaxNode other) => false;
