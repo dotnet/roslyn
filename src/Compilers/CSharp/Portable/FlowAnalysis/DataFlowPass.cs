@@ -1437,6 +1437,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitStatementsWithLocalFunctions(node);
 
+            // any local using symbols are implicitly read at the end of the block when they get disposed
+            foreach (var local in node.Locals)
+            {
+                if (local.IsUsing)
+                {
+                    NoteRead(local);
+                }
+            }
+
             ReportUnusedVariables(node.Locals);
             ReportUnusedVariables(node.LocalFunctions);
 
@@ -1559,18 +1568,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             DeclareVariables(node.Locals);
             return base.VisitFixedStatement(node);
-        }
-
-        public override BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
-        {
-            var visited = base.VisitUsingLocalDeclarations(node);
-
-            // every variable declared in a using local declaration is implicity read when it goes out of scope and it is disposed
-            foreach (var decl in node.LocalDeclarations)
-            {
-                NoteRead(decl.LocalSymbol);
-            }
-            return visited;
         }
 
         public override BoundNode VisitSequence(BoundSequence node)
