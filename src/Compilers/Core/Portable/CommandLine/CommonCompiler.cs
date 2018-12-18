@@ -806,8 +806,8 @@ namespace Microsoft.CodeAnalysis
                 var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
                 if (Arguments.AnalyzerConfigPaths.Length > 0)
                 {
-                    // PROTOTYPE: The compiler currently doesn't support configuring diagnostic reporting
-                    // on additional text files individually.
+                    // TODO(https://github.com/dotnet/roslyn/issues/31916): The compiler currently doesn't support
+                    // configuring diagnostic reporting on additional text files individually.
                     AnalyzerConfigOptionsResult result = GetAnalyzerConfigOptions(
                         additionalTextFiles.SelectAsArray(f => f.Path),
                         sortedAnalyzerConfigs);
