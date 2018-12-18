@@ -192,7 +192,7 @@ class C
         }
 
         [Fact]
-        public void AllowGoToAcrossUsingDeclarationsBackwardsWhenFromADifferentBlock()
+        public void AllowGoToBackwardsAcrossUsingDeclarationsWhenFromALowerBlock()
         {
             var source = @"
 using System;
@@ -208,6 +208,50 @@ class C
                 goto label1;
             }
         }
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AllowGoToForwardsAcrossUsingDeclarationsInALowerBlock()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        goto label1;
+        {
+            using var x = (IDisposable)null;
+        }
+        label1:
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,9): warning CS0162: Unreachable code detected
+                //         using var x = (IDisposable)null;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "using").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
+        public void AllowGoToBackwardsAcrossUsingDeclarationsInALowerBlock()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        label1:
+        {
+            using var x = (IDisposable)null;
+        }
+        goto label1;
     }
 }
 ";
