@@ -4708,7 +4708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.IndexExpression:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       switch (operatorToken.Kind())
       {
@@ -4796,7 +4796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.SuppressNullableWarningExpression:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       if (operand == null)
         throw new ArgumentNullException(nameof(operand));
@@ -4843,7 +4843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.PointerMemberAccessExpression:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -5010,7 +5010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.CoalesceExpression:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       if (left == null)
         throw new ArgumentNullException(nameof(left));
@@ -5123,7 +5123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.CoalesceAssignmentExpression:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       if (left == null)
         throw new ArgumentNullException(nameof(left));
@@ -5278,7 +5278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.DefaultLiteralExpression:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       switch (token.Kind())
       {
@@ -5455,7 +5455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.UncheckedExpression:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       switch (keyword.Kind())
       {
@@ -5934,7 +5934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.ComplexElementInitializerExpression:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       switch (openBraceToken.Kind())
       {
@@ -6437,7 +6437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.DescendingOrdering:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -7106,7 +7106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.GotoDefaultStatement:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       switch (gotoKeyword.Kind())
       {
@@ -7264,7 +7264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.YieldBreakStatement:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       switch (yieldKeyword.Kind())
       {
@@ -7677,7 +7677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.UncheckedStatement:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       switch (keyword.Kind())
       {
@@ -8925,7 +8925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.StructConstraint:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       switch (classOrStructKeyword.Kind())
       {
@@ -9268,7 +9268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.ThisConstructorInitializer:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       switch (colonToken.Kind())
       {
@@ -9543,7 +9543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.UnknownAccessorDeclaration:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       switch (keyword.Kind())
       {
@@ -9709,7 +9709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.MultiLineDocumentationCommentTrivia:
           break;
         default:
-          throw new ArgumentException(nameof(kind();
+          throw new ArgumentException(nameof(kind));
       }
       switch (endOfComment.Kind())
       {

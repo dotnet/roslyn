@@ -1747,7 +1747,7 @@ namespace CSharpSyntaxGenerator
                 }
                 WriteLine("          break;");
                 WriteLine("        default:");
-                WriteLine("          throw new ArgumentException(nameof(kind();");
+                WriteLine("          throw new ArgumentException(nameof(kind));");
                 WriteLine("      }");
             }
 
