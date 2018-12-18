@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (substitutedSourceHasThisParameter)
             {
                 _thisParameter = MakeParameterSymbol(0, GeneratedNames.ThisProxyFieldName(), substitutedSourceThisParameter);
-                Debug.Assert(_thisParameter.Type.TypeSymbol == this.SubstitutedSourceMethod.ContainingType);
+                Debug.Assert(TypeSymbol.Equals(_thisParameter.Type.TypeSymbol, this.SubstitutedSourceMethod.ContainingType, TypeCompareKind.ConsiderEverything2));
                 parameterBuilder.Add(_thisParameter);
             }
 
