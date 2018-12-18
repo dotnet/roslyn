@@ -242,13 +242,13 @@ namespace CSharpSyntaxGenerator
                     }
                     else if (IsSeparatedNodeList(field.Type))
                     {
-                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1}(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{3}));",
+                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1}(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{3}));",
                             OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name), i
                             );
                     }
                     else if (field.Type == "SyntaxNodeOrTokenList")
                     {
-                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> {1} => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{2});",
+                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> {1} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{2});",
                             OverrideOrNewModifier(field), field.Name, CamelCase(field.Name)
                             );
                     }
