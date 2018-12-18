@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             public readonly INamedTypeSymbol _iEnumerableOfTType;
             public readonly INamedTypeSymbol _iEnumeratorOfTType;
 
-            public readonly INamedTypeSymbol _iAsyncEnumerableOfTType;
-            public readonly INamedTypeSymbol _iAsyncEnumeratorOfTType;
+            public readonly INamedTypeSymbol _iAsyncEnumerableOfTTypeOpt;
+            public readonly INamedTypeSymbol _iAsyncEnumeratorOfTTypeOpt;
 
             internal KnownTypes(Compilation compilation)
             {
@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                 _iEnumerableOfTType = compilation.IEnumerableOfTType();
                 _iEnumeratorOfTType = compilation.IEnumeratorOfTType();
 
-                _iAsyncEnumerableOfTType = compilation.IAsyncEnumerableOfTType();
-                _iAsyncEnumeratorOfTType = compilation.IAsyncEnumeratorOfTType();
+                _iAsyncEnumerableOfTTypeOpt = compilation.IAsyncEnumerableOfTType();
+                _iAsyncEnumeratorOfTTypeOpt = compilation.IAsyncEnumeratorOfTType();
             }
         }
     }

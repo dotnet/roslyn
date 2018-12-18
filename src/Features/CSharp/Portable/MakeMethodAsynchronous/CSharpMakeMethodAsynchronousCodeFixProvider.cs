@@ -90,15 +90,15 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                 var returnType = methodSymbol.ReturnType;
                 if (IsIEnumerable(returnType, knownTypes) && IsIterator(methodSymbol))
                 {
-                    newReturnType = knownTypes._iAsyncEnumerableOfTType is null
+                    newReturnType = knownTypes._iAsyncEnumerableOfTTypeOpt is null
                         ? MakeGenericType("IAsyncEnumerable", methodSymbol.ReturnType)
-                        : knownTypes._iAsyncEnumerableOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
+                        : knownTypes._iAsyncEnumerableOfTTypeOpt.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
                 }
                 else if (IsIEnumerator(returnType, knownTypes) && IsIterator(methodSymbol))
                 {
-                    newReturnType = knownTypes._iAsyncEnumeratorOfTType is null
+                    newReturnType = knownTypes._iAsyncEnumeratorOfTTypeOpt is null
                         ? MakeGenericType("IAsyncEnumerator", methodSymbol.ReturnType)
-                        : knownTypes._iAsyncEnumeratorOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
+                        : knownTypes._iAsyncEnumeratorOfTTypeOpt.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
                 }
                 else if (IsIAsyncEnumerableOrEnumerator(returnType, knownTypes))
                 {
@@ -135,8 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
         }
 
         private static bool IsIAsyncEnumerableOrEnumerator(ITypeSymbol returnType, KnownTypes knownTypes)
-            => returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTType) ||
-                returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumeratorOfTType);
+            => returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTTypeOpt) ||
+                returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumeratorOfTTypeOpt);
 
         private static bool IsIEnumerable(ITypeSymbol returnType, KnownTypes knownTypes)
             => returnType.OriginalDefinition.Equals(knownTypes._iEnumerableOfTType);
