@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public BoundNode MakeDeclarationUsingStatement(SyntaxNode syntax,
+        private BoundStatement MakeDeclarationUsingStatement(SyntaxNode syntax,
                                                        BoundBlock body, 
                                                        ImmutableArray<LocalSymbol> locals,
                                                        ImmutableArray<BoundLocalDeclaration> declarations,
@@ -88,14 +88,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock body = new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements);
             
             //PROTOTYPE: need to handle await using when boundMultipleLocalDeclarations supports it
-            var usingStatement = (BoundStatement)MakeDeclarationUsingStatement(syntax,
-                                                                               body,
-                                                                               ImmutableArray<LocalSymbol>.Empty,
-                                                                               usingDeclarations.LocalDeclarations, 
-                                                                               usingDeclarations.IDisposableConversion,
-                                                                               usingDeclarations.DisposeMethodOpt, 
-                                                                               awaitOpt: null, 
-                                                                               awaitKeyword: default);
+            var usingStatement = MakeDeclarationUsingStatement(syntax,
+                                                               body,
+                                                               ImmutableArray<LocalSymbol>.Empty,
+                                                               usingDeclarations.LocalDeclarations, 
+                                                               usingDeclarations.IDisposableConversion,
+                                                               usingDeclarations.DisposeMethodOpt, 
+                                                               awaitOpt: null, 
+                                                               awaitKeyword: default);
 
             return usingStatement;
         }

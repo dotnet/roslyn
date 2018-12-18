@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeLabeledStatement(node, rewrittenBody);
         }
 
-        public BoundNode MakeLabeledStatement(BoundLabeledStatement node, BoundStatement rewrittenBody)
+        private BoundNode MakeLabeledStatement(BoundLabeledStatement node, BoundStatement rewrittenBody)
         {
             BoundStatement labelStatement = new BoundLabelStatement(node.Syntax, node.Label);
 
