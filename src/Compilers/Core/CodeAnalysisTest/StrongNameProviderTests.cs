@@ -33,36 +33,38 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var subdirSearchPath = ImmutableArray.Create(subdir);
 
             // using base directory; base path ignored
-            var path = provider.ResolveStrongNameKeyFile(fileName, subdirSearchPath);
+            var path = resolve(fileName, subdirSearchPath);
             Assert.Equal(subFilePath, path, StringComparer.OrdinalIgnoreCase);
 
             // search paths
             var searchPathsSP = ImmutableArray.Create(@"C:\goo", dir, subdir);
 
-            path = provider.ResolveStrongNameKeyFile(fileName, searchPathsSP);
+            path = resolve(fileName, searchPathsSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // null base dir, no search paths
             var searchPathsEmpty = ImmutableArray<string>.Empty;
 
             // relative path
-            path = provider.ResolveStrongNameKeyFile(fileName, searchPathsEmpty);
+            path = resolve(fileName, searchPathsEmpty);
             Assert.Null(path);
 
             // full path
-            path = provider.ResolveStrongNameKeyFile(filePath, searchPathsEmpty);
+            path = resolve(filePath, searchPathsEmpty);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // null base dir
             var searchPathsNullBaseSP = ImmutableArray.Create(dir, subdir);
 
             // relative path
-            path = provider.ResolveStrongNameKeyFile(fileName, searchPathsNullBaseSP);
+            path = resolve(fileName, searchPathsNullBaseSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // full path
-            path = provider.ResolveStrongNameKeyFile(filePath, searchPathsNullBaseSP);
+            path = resolve(filePath, searchPathsNullBaseSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
+
+            string resolve(string keyFilePath, ImmutableArray<string> searchPaths) => DesktopStrongNameProvider.ResolveStrongNameKeyFile(keyFilePath, provider.FileSystem, searchPaths);
         }
 
         public class VirtualizedStrongNameProvider : DesktopStrongNameProvider

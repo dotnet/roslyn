@@ -5,7 +5,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Interop;
 using Roslyn.Utilities;
 
@@ -171,7 +174,22 @@ namespace Microsoft.CodeAnalysis
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
-                return CommonCreateKeys(keyFilePath, _keyFileSearchPaths, messageProvider);
+                try
+                {
+                    string resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath, FileSystem, _keyFileSearchPaths);
+                    if (resolvedKeyFile == null)
+                    {
+                        return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, CodeAnalysisResources.FileNotFound));
+                    }
+
+                    Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
+                    var fileContent = ImmutableArray.Create(FileSystem.ReadAllBytes(resolvedKeyFile));
+                    return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
+                }
+                catch (Exception ex)
+                {
+                    return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, ex.Message));
+                }
             }
             else if (!string.IsNullOrEmpty(keyContainerName))
             {
@@ -192,6 +210,40 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new StrongNameKeys(keyPair, publicKey, null, container, keyFilePath);
+        }
+
+        /// <summary>
+        /// Resolves assembly strong name key file path.
+        /// </summary>
+        /// <returns>Normalized key file path or null if not found.</returns>
+        internal static string ResolveStrongNameKeyFile(string path, StrongNameFileSystem fileSystem, ImmutableArray<string> keyFileSearchPaths)
+        {
+            // Dev11: key path is simply appended to the search paths, even if it starts with the current (parent) directory ("." or "..").
+            // This is different from PathUtilities.ResolveRelativePath.
+
+            if (PathUtilities.IsAbsolute(path))
+            {
+                if (fileSystem.FileExists(path))
+                {
+                    return FileUtilities.TryNormalizeAbsolutePath(path);
+                }
+
+                return path;
+            }
+
+            foreach (var searchPath in keyFileSearchPaths)
+            {
+                string combinedPath = PathUtilities.CombineAbsoluteAndRelativePaths(searchPath, path);
+
+                Debug.Assert(combinedPath == null || PathUtilities.IsAbsolute(combinedPath));
+
+                if (fileSystem.FileExists(combinedPath))
+                {
+                    return FileUtilities.TryNormalizeAbsolutePath(combinedPath);
+                }
+            }
+
+            return null;
         }
 
         internal virtual void ReadKeysFromContainer(string keyContainer, out ImmutableArray<byte> publicKey)
@@ -234,6 +286,11 @@ namespace Microsoft.CodeAnalysis
             {
                 fileToSign.CopyTo(outputStream);
             }
+        }
+
+        internal override void SignPeBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey)
+        {
+            peBuilder.Sign(peBlob, content => SigningUtilities.CalculateRsaSignature(content, privateKey));
         }
 
         // EDMAURER in the event that the key is supplied as a file,

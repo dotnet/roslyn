@@ -11,6 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    // TODO: rename SigningMode
     internal enum SigningCapability
     {
         SignsStream,
@@ -30,77 +31,30 @@ namespace Microsoft.CodeAnalysis
         public abstract override int GetHashCode();
         public override abstract bool Equals(object other);
 
+        // TOOD: should be called preferred mode as once we're done the implementation will work for both forms of signing.
         internal abstract SigningCapability Capability { get; }
         internal abstract StrongNameFileSystem FileSystem { get; }
 
-        /// <exception cref="IOException"></exception>
-        internal abstract Stream CreateInputStream();
-
-        internal abstract StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider);
-
-        internal StrongNameKeys CommonCreateKeys(string keyFilePath, ImmutableArray<string> keyFileSearchPaths, CommonMessageProvider messageProvider)
-        {
-            try
-            {
-                string resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath, keyFileSearchPaths);
-                if (resolvedKeyFile == null)
-                {
-                    return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, CodeAnalysisResources.FileNotFound));
-                }
-
-                Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
-                var fileContent = ImmutableArray.Create(FileSystem.ReadAllBytes(resolvedKeyFile));
-                return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
-            }
-            catch (Exception ex)
-            {
-                return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, ex.Message));
-            }
-        }
+        /// <summary>
+        /// Create a <see cref="Stream"/> for use in when in the <see cref="SigningCapability.SignsStream"/> mode.
+        /// </summary>
+        // TOOD: Create and expose a SigningStream. This avoids unnecessary casting in the SignStream method
+        internal virtual Stream CreateInputStream() => throw new NotSupportedException();
 
         /// <summary>
-        /// Resolves assembly strong name key file path.
+        /// Signs the <paramref name="inputStream"/> value using <paramref name="keys"/> and copies the final result
+        /// to <paramref name="outputStream"/>
         /// </summary>
-        /// <returns>Normalized key file path or null if not found.</returns>
-        internal string ResolveStrongNameKeyFile(string path, ImmutableArray<string> keyFileSearchPaths)
-        {
-            // Dev11: key path is simply appended to the search paths, even if it starts with the current (parent) directory ("." or "..").
-            // This is different from PathUtilities.ResolveRelativePath.
+        internal virtual void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream) => throw new NotSupportedException();
 
-            if (PathUtilities.IsAbsolute(path))
-            {
-                if (FileSystem.FileExists(path))
-                {
-                    return FileUtilities.TryNormalizeAbsolutePath(path);
-                }
+        /// <summary>
+        /// Signs the contents of <paramref name="peBuilder"/> using <paramref name="privateKey"/>.
+        /// </summary>
+        internal virtual void SignPeBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey) => throw new NotSupportedException();
 
-                return path;
-            }
-
-            foreach (var searchPath in keyFileSearchPaths)
-            {
-                string combinedPath = PathUtilities.CombineAbsoluteAndRelativePaths(searchPath, path);
-
-                Debug.Assert(combinedPath == null || PathUtilities.IsAbsolute(combinedPath));
-
-                if (FileSystem.FileExists(combinedPath))
-                {
-                    return FileUtilities.TryNormalizeAbsolutePath(combinedPath);
-                }
-            }
-
-            return null;
-        }
-
-
-        internal virtual void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream)
-        {
-            throw new NotSupportedException();
-        }
-
-        internal virtual void SignPeBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privkey)
-        {
-            throw new NotSupportedException();
-        }
+        /// <summary>
+        /// Create a <see cref="StrongNameKeys"/> for the provided information.
+        /// </summary>
+        internal abstract StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider);
     }
 }

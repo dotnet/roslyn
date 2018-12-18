@@ -16,13 +16,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class PortableStrongNameProvider : StrongNameProvider
     {
-        private readonly ImmutableArray<string> _keyFileSearchPaths;
-        internal override StrongNameFileSystem FileSystem { get; }
+        private readonly DesktopStrongNameProvider _provider;
 
-        public PortableStrongNameProvider(ImmutableArray<string> keySearchPaths, StrongNameFileSystem strongNameFileSystem)
+        public PortableStrongNameProvider(ImmutableArray<string> keySearchPaths, StrongNameFileSystem strongNameFileSystem, string tempPath)
         {
-            FileSystem = strongNameFileSystem ?? StrongNameFileSystem.Instance;
-            _keyFileSearchPaths = keySearchPaths.NullToEmpty();
+            _provider = new DesktopStrongNameProvider(keySearchPaths, tempPath, strongNameFileSystem);
         }
 
         public override int GetHashCode()
@@ -31,29 +29,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal override SigningCapability Capability => SigningCapability.SignsPeBuilder;
+        internal override StrongNameFileSystem FileSystem => _provider.FileSystem;
 
         internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider)
         {
-            var keyPair = default(ImmutableArray<byte>);
-            var publicKey = default(ImmutableArray<byte>);
-            string container = null;
-
-            if (!string.IsNullOrEmpty(keyFilePath))
-            {
-                return CommonCreateKeys(keyFilePath, _keyFileSearchPaths, messageProvider);
-            }
-
-            return new StrongNameKeys(keyPair, publicKey, null, container, keyFilePath);
+            return _provider.CreateKeys(keyFilePath, keyContainerName, messageProvider);
         }
 
-        internal override void SignPeBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privkey)
+        internal override void SignPeBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey)
         {
-            peBuilder.Sign(peBlob, content => SigningUtilities.CalculateRsaSignature(content, privkey));
+            _provider.SignPeBuilder(peBuilder, peBlob, privateKey);
         }
 
         internal override Stream CreateInputStream()
         {
-            throw new NotSupportedException();
+            return _provider.CreateInputStream();
         }
 
         public override bool Equals(object obj)
@@ -63,8 +53,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            return FileSystem == other.FileSystem &&
-                _keyFileSearchPaths.SequenceEqual(other._keyFileSearchPaths);
+            return FileSystem == other.FileSystem;
         }
     }
 }

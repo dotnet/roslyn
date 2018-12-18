@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis
                 CompilationOptionsCore.CryptoKeyContainer != null;
             return fallback ?
                 new DesktopStrongNameProvider(KeyFileSearchPaths, tempDirectory, fileSystem) :
-                (StrongNameProvider)new PortableStrongNameProvider(KeyFileSearchPaths, fileSystem);
+                (StrongNameProvider)new PortableStrongNameProvider(KeyFileSearchPaths, fileSystem, tempDirectory);
         }
 
         internal CommandLineArguments()

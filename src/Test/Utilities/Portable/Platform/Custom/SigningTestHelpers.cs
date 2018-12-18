@@ -17,7 +17,7 @@ namespace Roslyn.Test.Utilities
             new DesktopStrongNameProvider(ImmutableArray<string>.Empty, null, new VirtualizedStrongNameFileSystem());
 
         public static readonly StrongNameProvider s_defaultPortableProvider =
-            new PortableStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem());
+            new PortableStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem(), null);
 
         // these are virtual paths that don't exist on disk
         internal static readonly string KeyFileDirectory = ExecutionConditionUtil.IsWindows
