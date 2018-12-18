@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current, bag);
 
                 EnsureWellKnownMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync, bag);
-                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask__ctor, bag);
 
@@ -208,22 +208,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol IAsyncEnumerableOfElementType_MoveNextAsync = F.WellKnownMethod(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync)
                     .AsMember(IAsyncEnumeratorOfElementType);
 
+                var promiseType = (NamedTypeSymbol)_promiseOfValueOrEndField.Type.TypeSymbol;
+
+                MethodSymbol promise_GetStatus = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetStatus)
+                    .AsMember(promiseType);
+
+                MethodSymbol promise_GetResult = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetResult)
+                    .AsMember(promiseType);
+
                 var moveNextAsyncReturnType = (NamedTypeSymbol)IAsyncEnumerableOfElementType_MoveNextAsync.ReturnType.TypeSymbol;
 
-                MethodSymbol promise_GetStatus =
-                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetStatus)
-                    .AsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type.TypeSymbol);
-
-                MethodSymbol promise_GetResult =
-                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetResult)
-                    .AsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type.TypeSymbol);
-
-                MethodSymbol valueTaskT_ctorValue =
-                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue)
+                MethodSymbol valueTaskT_ctorValue = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue)
                     .AsMember(moveNextAsyncReturnType);
 
-                MethodSymbol valueTaskT_ctor =
-                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor)
+                MethodSymbol valueTaskT_ctor = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken)
                     .AsMember(moveNextAsyncReturnType);
 
                 // The implementation doesn't depend on the method body of the iterator method.

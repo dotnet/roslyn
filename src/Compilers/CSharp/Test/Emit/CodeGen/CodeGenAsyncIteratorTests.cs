@@ -806,7 +806,7 @@ namespace System
         [Fact]
         public void MissingTypeAndMembers_ValueTaskT()
         {
-            VerifyMissingMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor,
+            VerifyMissingMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken,
                 // (5,64): error CS0656: Missing compiler required member 'System.Threading.Tasks.ValueTask`1..ctor'
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Threading.Tasks.ValueTask`1", ".ctor").WithLocation(5, 64)
@@ -4122,7 +4122,7 @@ class C
             verifyType(WellKnownType.System_Threading_Tasks_ValueTask,
                 "System.Threading.Tasks.ValueTask");
 
-            verifyMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor,
+            verifyMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken,
                 "System.Threading.Tasks.ValueTask<TResult>..ctor(System.Threading.Tasks.Sources.IValueTaskSource<TResult> source, System.Int16 token)");
 
             verifyMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue,
