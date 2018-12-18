@@ -2633,7 +2633,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
   </data>
   <data name="ERR_AwaitForEachMissingMember" xml:space="preserve">
-    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
+    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</value>
   </data>
   <data name="ERR_ForEachMissingMemberWrongAsync" xml:space="preserve">
     <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</value>

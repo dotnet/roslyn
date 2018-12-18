@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Asynchronous foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Asynchronous foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a suitable public instance definition for &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_AwaitForEachMissingMember {
             get {

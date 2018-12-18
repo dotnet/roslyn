@@ -578,6 +578,7 @@ namespace System
                     case WellKnownType.System_Threading_Tasks_ValueTask_T:
                     case WellKnownType.System_Threading_Tasks_ValueTask:
                     case WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder:
+                    case WellKnownType.System_Threading_CancellationToken:
                     // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.

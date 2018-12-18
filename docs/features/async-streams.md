@@ -9,7 +9,7 @@ namespace System.Collections.Generic
 {
     public interface IAsyncEnumerable<out T>
     {
-        IAsyncEnumerator<T> GetAsyncEnumerator();
+        IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken token = default);
     }
 
     public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
@@ -67,14 +67,21 @@ An asynchronous `using` is lowered just like a regular `using`, except that `Dis
 ### Detailed design for `await foreach` statement
 
 An `await foreach` is lowered just like a regular `foreach`, except that:
-- `GetEnumerator()` is replaced with `await GetEnumeratorAsync()`
+- `GetEnumerator()` is replaced with `await GetAsyncEnumerator(default)`
 - `MoveNext()` is replaced with `await MoveNextAsync()`
 - `Dispose()` is replaced with `await DisposeAsync()`
 
-Asynchronous foreach loops are disallowed on collections of type dynamic, as there is no asynchronous equivalent of the non-generic `IEnumerable` interface.
+Asynchronous foreach loops are disallowed on collections of type dynamic,
+as there is no asynchronous equivalent of the non-generic `IEnumerable` interface.
+
+The `CancellationToken` is always passed as `default` by the `await foreach` statement.
+But wrapper types can pass non-default values (see `.WithCancellation(CancellationToken)` extension method),
+thereby allowing consumers of async-streams to control cancellation.
+A producer of async-streams can make use of the cancellation token by writing an
+`IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken)` async-iterator method in a custom type.
 
 ```C#
-E e = ((C)(x)).GetAsyncEnumerator();
+E e = ((C)(x)).GetAsyncEnumerator(default);
 try
 {
     while (await e.MoveNextAsync())
@@ -151,7 +158,7 @@ T Current => current;
 The kick-off method and the initialization of the state machine for an async-iterator method follows those for regular iterator methods.
 In particular, the synthesized `GetAsyncEnumerator()` method is like `GetEnumerator()` except that it sets the initial state to to StateMachineStates.NotStartedStateMachine (-1):
 ```C#
-IAsyncEnumerator<T> GetAsyncEnumerator()
+IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken token)
 {
     {StateMachineType} result;
     if (initialThreadId == /*managedThreadId*/ && state == StateMachineStates.FinishedStateMachine)

@@ -3156,11 +3156,13 @@ namespace Microsoft.CodeAnalysis
                 (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                                                               // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T - WellKnownType.ExtSentinel),               // DeclaringTypeId
                 0,                                                                                                                                              // Arity
-                    0,                                                                                                                                          // Method Signature
+                    1,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.GenericTypeInstance, // Return Type: IAsyncEnumerator<T>
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T - WellKnownType.ExtSentinel),
-                    1,
-                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T - WellKnownType.ExtSentinel),
+                        1,
+                        (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                    (byte)SignatureTypeCode.TypeHandle, // Argument: CancellationToken
+                        (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_CancellationToken - WellKnownType.ExtSentinel),
 
                 // System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync
                 (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                                                               // Flags

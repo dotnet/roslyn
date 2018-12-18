@@ -1484,7 +1484,7 @@ class C
                     "C.<M>d__0..ctor(System.Int32 <>1__state)",
                     "void C.<M>d__0.MoveNext()",
                     "void C.<M>d__0.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine)",
-                    "System.Collections.Generic.IAsyncEnumerator<System.Int32> C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
+                    "System.Collections.Generic.IAsyncEnumerator<System.Int32> C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator(System.Threading.CancellationToken token)",
                     "System.Threading.Tasks.ValueTask<System.Boolean> C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
                     "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
                     "System.Boolean C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult(System.Int16 token)",
@@ -1847,7 +1847,7 @@ class C
   IL_004f:  ret
 }
 ");
-                verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator()", @"
+                verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
@@ -2402,7 +2402,7 @@ public class C : System.Collections.Generic.IAsyncEnumerable<int>
     {
         return new C();
     }
-    public async System.Collections.Generic.IAsyncEnumerator<int> GetAsyncEnumerator()
+    public async System.Collections.Generic.IAsyncEnumerator<int> GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         yield return 1;
         await System.Threading.Tasks.Task.Delay(10);
@@ -4418,6 +4418,70 @@ static class M1
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "B1::F;D::F;B1::F;");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void AsyncIteratorReturningEnumerator_UsingCancellationToken()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading;
+using System.Threading.Tasks;
+public class D
+{
+    static async Task Main()
+    {
+        var enumerable = new MyEnumerable(42);
+        using (CancellationTokenSource source = new CancellationTokenSource())
+        {
+            CancellationToken token = source.Token;
+            await using (var enumerator = enumerable.GetAsyncEnumerator(token))
+            {
+                if (!await enumerator.MoveNextAsync()) throw null;
+                System.Console.Write($""{enumerator.Current} ""); // 42
+
+                if (!await enumerator.MoveNextAsync()) throw null;
+                System.Console.Write($""{enumerator.Current} ""); // 43
+
+                var task = enumerator.MoveNextAsync(); // starts long computation
+                source.Cancel();
+
+                try
+                {
+                    await task;
+                }
+                catch (System.OperationCanceledException)
+                {
+                    Write(""Cancelled"");
+                }
+            }
+        }
+    }
+}
+public class MyEnumerable
+{
+    private int value;
+    public MyEnumerable(int value)
+    {
+        this.value = value;
+    }
+    public async System.Collections.Generic.IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken token)
+    {
+        yield return value++;
+        yield return value;
+        System.Console.Write($""Long "");
+        bool b = true;
+        while (b)
+        {
+            await Task.Delay(100);
+            token.ThrowIfCancellationRequested();
+        }
+        System.Console.Write($""SKIPPED"");
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42 43 Long Cancelled");
         }
     }
 }
