@@ -488,5 +488,24 @@ class C2
               Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, "var c1 = new C1(), c2 = new C2()").WithLocation(11, 15)
             );
         }
+
+        [Fact]
+        public void UsingVariableDiscardIsValid()
+        {
+            var source = @"
+using System;
+class C1 : IDisposable
+{
+    public void Dispose() { Console.Write(""Disposed""); }
+}
+class C2
+{
+    public static void Main()
+    {
+        using var _ = new C1();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
     }
 }
