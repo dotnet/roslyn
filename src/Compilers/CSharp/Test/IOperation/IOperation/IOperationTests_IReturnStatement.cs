@@ -446,7 +446,7 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
     Next (Return) Block[B2]
-        IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.UnaryOperator, Type: System.Boolean) (Syntax: '!f')
+        IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.Unary, Type: System.Boolean) (Syntax: '!f')
           Operand: 
             IParameterReferenceOperation: f (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'f')
 Block[B2] - Exit
