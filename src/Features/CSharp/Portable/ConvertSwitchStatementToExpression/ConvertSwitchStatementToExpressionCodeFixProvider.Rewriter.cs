@@ -60,17 +60,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
                     if (symbol.Kind != SymbolKind.Local)
                     {
-                        // Not a local
                         return false;
                     }
 
-                    var syntaxRefereces = symbol.DeclaringSyntaxReferences;
-                    if (syntaxRefereces.Length != 1)
+                    var syntaxReferences = symbol.DeclaringSyntaxReferences;
+                    if (syntaxReferences.Length != 1)
                     {
                         return false;
                     }
 
-                    var declarator = (VariableDeclaratorSyntax)syntaxRefereces[0].GetSyntax();
+                    var declarator = (VariableDeclaratorSyntax)syntaxReferences[0].GetSyntax();
                     if (declarator.Initializer != null)
                     {
                         return false;
