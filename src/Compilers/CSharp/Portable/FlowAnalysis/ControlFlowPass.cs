@@ -15,10 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly PooledHashSet<LabelSymbol> _labelsUsed = PooledHashSet<LabelSymbol>.GetInstance();
         protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
 
+        private readonly PooledHashSet<LocalSymbol> _usingDeclarations = PooledHashSet<LocalSymbol>.GetInstance();
+        private PooledHashSet<LocalSymbol> _currentUsingDeclarations = PooledHashSet<LocalSymbol>.GetInstance();
+
         protected override void Free()
         {
             _labelsDefined.Free();
             _labelsUsed.Free();
+            _usingDeclarations.Free();
+            _currentUsingDeclarations.Free();
 
             base.Free();
         }
@@ -310,6 +315,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitGotoStatement(BoundGotoStatement node)
         {
             _labelsUsed.Add(node.Label);
+
+            // check for illegal jumps across using declarations
+            var targetLocation = node.Label.Locations[0];
+            var sourceLocation = node.Syntax.Location;
+
+            foreach (var usingDecl in _usingDeclarations)
+            {
+                var usingLocation = usingDecl.Locations[0];
+                if (sourceLocation.SourceSpan.Start < usingLocation.SourceSpan.Start && targetLocation.SourceSpan.Start > usingLocation.SourceSpan.Start)
+                {
+                    // no forward jumps
+                    Diagnostics.Add(ErrorCode.ERR_GoToForwardJumpOverUsingVar, sourceLocation);
+                    break;
+                }
+                else if(sourceLocation.SourceSpan.Start > usingLocation.SourceSpan.Start && targetLocation.SourceSpan.Start < usingLocation.SourceSpan.Start)
+                {
+                    // backward jump, error if part of the same block
+                    if (_currentUsingDeclarations.Contains(usingDecl))
+                    {
+                        Diagnostics.Add(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, sourceLocation);
+                        break;
+                    }
+                }
+            }
             return base.VisitGotoStatement(node);
         }
 
@@ -346,6 +375,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Diagnostics.Add(isLastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(syntax), syntax.ToString());
             }
+        }
+
+        public override BoundNode VisitBlock(BoundBlock node)
+        {
+            var previousUsingDeclarations = _currentUsingDeclarations;
+            _currentUsingDeclarations = PooledHashSet<LocalSymbol>.GetInstance();
+            foreach(var local in node.Locals)
+            {
+                if (local.IsUsing)
+                {
+                    _currentUsingDeclarations.Add(local);
+                    _usingDeclarations.Add(local);
+                }
+            }
+
+            var result = base.VisitBlock(node);
+
+            foreach(var local in _currentUsingDeclarations)
+            {
+                _usingDeclarations.Remove(local);
+            }
+            _currentUsingDeclarations.Free();
+            _currentUsingDeclarations = previousUsingDeclarations;
+
+            return result;
         }
     }
 }

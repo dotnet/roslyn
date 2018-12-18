@@ -31,7 +31,7 @@ class C
         }
 
         [Fact]
-        public void DisallowGoToAcrossUsingDeclarationsForward()
+        public void DisallowGoToForwardAcrossUsingDeclarations()
         {
             var source = @"
 using System;
@@ -50,7 +50,7 @@ class C
             CreateCompilation(source).VerifyDiagnostics(
                 // (7,9): error CS8641: A goto target within the same block can not cross a using declaration.
                 //         goto label1;
-                Diagnostic(ErrorCode.ERR_GoToJumpOverUsingVar, "goto label1;").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_GoToForwardJumpOverUsingVar, "goto label1;").WithLocation(7, 9),
                 // (8,9): warning CS0162: Unreachable code detected
                 //         using var x = (IDisposable)null;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "using").WithLocation(8, 9)
@@ -58,7 +58,97 @@ class C
         }
 
         [Fact]
-        public void DisallowGoToAcrossUsingDeclarationsBackwards()
+        public void DisallowGoToForwardAcrossUsingDeclarationsFromLowerBlock()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {   
+        {
+            goto label1;
+        }
+        using var x = (IDisposable)null;
+
+        label1:
+        return;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,9): error CS8641: A goto target within the same block can not cross a using declaration.
+                //         goto label1;
+                Diagnostic(ErrorCode.ERR_GoToForwardJumpOverUsingVar, "goto label1;").WithLocation(8, 13),
+                // (8,9): warning CS0162: Unreachable code detected
+                //         using var x = (IDisposable)null;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "using").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
+        public void DisallowGoToForwardAcrossMultipleUsingDeclarationsGivesOnlyOneDiagnostic()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        goto label1;
+        using var x = (IDisposable)null;
+        using var y = (IDisposable)null;
+
+        label1:
+        return;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,9): error CS8641: A goto target within the same block can not cross a using declaration.
+                //         goto label1;
+                Diagnostic(ErrorCode.ERR_GoToForwardJumpOverUsingVar, "goto label1;").WithLocation(7, 9),
+                // (8,9): warning CS0162: Unreachable code detected
+                //         using var x = (IDisposable)null;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "using").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void DisallowMultipleGoToForwardAcrossMultipleUsingDeclarations()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        goto label1;
+        using var x = (IDisposable)null;
+        goto label2;
+        using var y = (IDisposable)null;
+
+        label1:
+        label2:
+        return;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,9): error CS8641: A goto target within the same block can not cross a using declaration.
+                //         goto label1;
+                Diagnostic(ErrorCode.ERR_GoToForwardJumpOverUsingVar, "goto label1;").WithLocation(7, 9),
+                // (8,9): warning CS0162: Unreachable code detected
+                //         using var x = (IDisposable)null;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "using").WithLocation(8, 9),
+                // (9,9): error CS8641: A goto target can not be after any using declarations.
+                //         goto label2;
+                Diagnostic(ErrorCode.ERR_GoToForwardJumpOverUsingVar, "goto label2;").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void DisallowGoToBackwardsAcrossUsingDeclarations()
         {
             var source = @"
 using System;
@@ -76,7 +166,7 @@ class C
             CreateCompilation(source).VerifyDiagnostics(
                 // (10,9): error CS8641: A goto target within the same block can not cross a using declaration.
                 //         goto label1;
-                Diagnostic(ErrorCode.ERR_GoToJumpOverUsingVar, "goto label1;").WithLocation(10, 9)
+                Diagnostic(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, "goto label1;").WithLocation(10, 9)
                 );
         }
 
@@ -113,7 +203,10 @@ class C
         label1:
         using var x = (IDisposable)null;
         {
-            goto label1;
+            if (true)
+            {
+                goto label1;
+            }
         }
     }
 }

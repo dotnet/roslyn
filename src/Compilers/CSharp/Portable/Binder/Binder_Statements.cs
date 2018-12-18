@@ -1665,18 +1665,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntaxStatements = node.Statements;
             int nStatements = syntaxStatements.Count;
-            bool sawGotos = false;
+
             ArrayBuilder<BoundStatement> boundStatements = ArrayBuilder<BoundStatement>.GetInstance(nStatements);
 
             for (int i = 0; i < nStatements; i++)
             {
                 var boundStatement = BindStatement(syntaxStatements[i], diagnostics);
                 boundStatements.Add(boundStatement);
-
-                sawGotos |= boundStatement.Kind == BoundKind.GotoStatement;
             }
-
-            var immutableBoundStatements = boundStatements.ToImmutableAndFree();
 
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
 
@@ -1701,78 +1697,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (sawGotos)
-            {
-                // check there are no goto jumps across any using declarations declaration
-                CheckForInvalidGotos(immutableBoundStatements, diagnostics);
-            }
-
             return new BoundBlock(
                 node,
                 locals,
                 GetDeclaredLocalFunctionsForScope(node),
-                immutableBoundStatements);
-        }
-
-        private static void CheckForInvalidGotos(ImmutableArray<BoundStatement> immutableBoundStatements, DiagnosticBag diagnostics)
-        {
-            // map the location of any goto / label pair, and using declarations
-            var labelDictionary = PooledDictionary<LabelSymbol, (int, int)>.GetInstance();
-            var usingStatementIndicies = PooledHashSet<int>.GetInstance();
-            for (int i = 0; i < immutableBoundStatements.Length; i++)
-            {
-                var statement = immutableBoundStatements[i];
-                switch (statement.Kind)
-                {
-                    case BoundKind.GotoStatement:
-                        var gotoStatement = (BoundGotoStatement)statement;
-                        var (_, labelIndex) = getLabelEntry(gotoStatement.Label);
-                        labelDictionary[gotoStatement.Label] = (i, labelIndex);
-                        break;
-                    case BoundKind.LabeledStatement:
-                        var labelStatement = (BoundLabeledStatement)statement;
-                        var (gotoIndex, _) = getLabelEntry(labelStatement.Label);
-                        labelDictionary[labelStatement.Label] = (gotoIndex, i);
-                        break;
-                }
-
-                if(statement.ContainsUsingDeclarationStatement(out var _))
-                {
-                    usingStatementIndicies.Add(i);
-                }
-            }
-
-            foreach((int gotoIndex, int labelIndex) in labelDictionary.Values)
-            {
-                // negative indicates we didn't see a goto or label for this LabelSymbol
-                if(gotoIndex == -1 || labelIndex == -1)
-                {
-                    continue;
-                }
-
-                int start = Math.Min(gotoIndex, labelIndex);
-                int end = Math.Max(gotoIndex, labelIndex);
-
-                //include start statement, as it could be a labled using, exclude the end because a labeled using is valid
-                for(int i = start; i < end; i++)
-                {
-                    if (usingStatementIndicies.Contains(i))
-                    {
-                        // we're jumping across a using declaration in the same block, which is an error
-                        diagnostics.Add(ErrorCode.ERR_GoToJumpOverUsingVar, immutableBoundStatements[gotoIndex].Syntax.Location);
-                    }
-                }
-            }
-
-            usingStatementIndicies.Free();
-            labelDictionary.Free();
-
-            (int, int) getLabelEntry(LabelSymbol symbol)
-            {
-                return labelDictionary.ContainsKey(symbol)
-                        ? labelDictionary[symbol]
-                        : (-1, -1);
-            }
+                boundStatements.ToImmutableAndFree());
         }
 
         internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, DiagnosticBag diagnostics, bool isDefaultParameter = false, bool isRefAssignment = false)

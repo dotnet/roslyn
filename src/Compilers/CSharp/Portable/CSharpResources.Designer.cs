@@ -5218,11 +5218,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A goto target within the same block can not cross a using declaration..
+        ///   Looks up a localized string similar to A goto can not jump to a location before a using declaration within the same block..
         /// </summary>
-        internal static string ERR_GoToJumpOverUsingVar {
+        internal static string ERR_GoToBackwardJumpOverUsingVar {
             get {
-                return ResourceManager.GetString("ERR_GoToJumpOverUsingVar", resourceCulture);
+                return ResourceManager.GetString("ERR_GoToBackwardJumpOverUsingVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A goto can not jump to a location after a using declaration..
+        /// </summary>
+        internal static string ERR_GoToForwardJumpOverUsingVar {
+            get {
+                return ResourceManager.GetString("ERR_GoToForwardJumpOverUsingVar", resourceCulture);
             }
         }
         
