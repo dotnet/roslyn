@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return builder.ToImmutableAndFree();
         }
 
-        private ImmutableArray<ISwitchCaseOperation> GetPatternSwitchStatementCases(BoundSwitchStatement statement)
+        private ImmutableArray<ISwitchCaseOperation> GetSwitchStatementCases(BoundSwitchStatement statement)
         {
             return statement.SwitchSections.SelectAsArray(switchSection =>
             {

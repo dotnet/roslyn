@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<RemainingTestsForCase>.GetInstance(switchSections.Length);
             foreach (BoundSwitchSection section in switchSections)
             {
-                foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
+                foreach (BoundSwitchLabel label in section.SwitchLabels)
                 {
                     if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
                     {

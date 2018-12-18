@@ -433,14 +433,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public override BoundStatement InstrumentPatternSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
         {
-            return AddDynamicAnalysis(original, base.InstrumentPatternSwitchStatement(original, rewritten));
+            return AddDynamicAnalysis(original, base.InstrumentSwitchStatement(original, rewritten));
         }
 
-        public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
+        public override BoundStatement InstrumentSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
-            ifConditionGotoBody = base.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
+            ifConditionGotoBody = base.InstrumentSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
             WhenClauseSyntax whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
             Debug.Assert(whenClause != null);
 

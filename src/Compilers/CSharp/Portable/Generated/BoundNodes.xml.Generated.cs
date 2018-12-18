@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DagPropertyEvaluation,
         DagIndexEvaluation,
         SwitchSection,
-        PatternSwitchLabel,
+        SwitchLabel,
         SequencePointExpression,
         Sequence,
         SpillSequence,
@@ -2918,7 +2918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchStatement : BoundStatement
     {
-        public BoundSwitchStatement(SyntaxNode syntax, BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundSwitchSection> switchSections, BoundDecisionDag decisionDag, BoundPatternSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel, bool hasErrors = false)
+        public BoundSwitchStatement(SyntaxNode syntax, BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundSwitchSection> switchSections, BoundDecisionDag decisionDag, BoundSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel, bool hasErrors = false)
             : base(BoundKind.SwitchStatement, syntax, hasErrors || expression.HasErrors() || switchSections.HasErrors() || decisionDag.HasErrors() || defaultLabel.HasErrors())
         {
 
@@ -2949,7 +2949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDecisionDag DecisionDag { get; }
 
-        public BoundPatternSwitchLabel DefaultLabel { get; }
+        public BoundSwitchLabel DefaultLabel { get; }
 
         public GeneratedLabelSymbol BreakLabel { get; }
 
@@ -2958,7 +2958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitSwitchStatement(this);
         }
 
-        public BoundSwitchStatement Update(BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundSwitchSection> switchSections, BoundDecisionDag decisionDag, BoundPatternSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel)
+        public BoundSwitchStatement Update(BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundSwitchSection> switchSections, BoundDecisionDag decisionDag, BoundSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel)
         {
             if (expression != this.Expression || innerLocals != this.InnerLocals || innerLocalFunctions != this.InnerLocalFunctions || switchSections != this.SwitchSections || decisionDag != this.DecisionDag || defaultLabel != this.DefaultLabel || breakLabel != this.BreakLabel)
             {
@@ -4750,7 +4750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchSection : BoundStatementList
     {
-        public BoundSwitchSection(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundPatternSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
+        public BoundSwitchSection(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
             : base(BoundKind.SwitchSection, syntax, statements, hasErrors || switchLabels.HasErrors() || statements.HasErrors())
         {
 
@@ -4765,14 +4765,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<LocalSymbol> Locals { get; }
 
-        public ImmutableArray<BoundPatternSwitchLabel> SwitchLabels { get; }
+        public ImmutableArray<BoundSwitchLabel> SwitchLabels { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitSwitchSection(this);
         }
 
-        public BoundSwitchSection Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundPatternSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements)
+        public BoundSwitchSection Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements)
         {
             if (locals != this.Locals || switchLabels != this.SwitchLabels || statements != this.Statements)
             {
@@ -4784,10 +4784,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundPatternSwitchLabel : BoundNode
+    internal sealed partial class BoundSwitchLabel : BoundNode
     {
-        public BoundPatternSwitchLabel(SyntaxNode syntax, LabelSymbol label, BoundPattern pattern, BoundExpression whenClause, bool hasErrors = false)
-            : base(BoundKind.PatternSwitchLabel, syntax, hasErrors || pattern.HasErrors() || whenClause.HasErrors())
+        public BoundSwitchLabel(SyntaxNode syntax, LabelSymbol label, BoundPattern pattern, BoundExpression whenClause, bool hasErrors = false)
+            : base(BoundKind.SwitchLabel, syntax, hasErrors || pattern.HasErrors() || whenClause.HasErrors())
         {
 
             Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -4807,14 +4807,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
-            return visitor.VisitPatternSwitchLabel(this);
+            return visitor.VisitSwitchLabel(this);
         }
 
-        public BoundPatternSwitchLabel Update(LabelSymbol label, BoundPattern pattern, BoundExpression whenClause)
+        public BoundSwitchLabel Update(LabelSymbol label, BoundPattern pattern, BoundExpression whenClause)
         {
             if (label != this.Label || pattern != this.Pattern || whenClause != this.WhenClause)
             {
-                var result = new BoundPatternSwitchLabel(this.Syntax, label, pattern, whenClause, this.HasErrors);
+                var result = new BoundSwitchLabel(this.Syntax, label, pattern, whenClause, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -7604,8 +7604,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDagIndexEvaluation(node as BoundDagIndexEvaluation, arg);
                 case BoundKind.SwitchSection: 
                     return VisitSwitchSection(node as BoundSwitchSection, arg);
-                case BoundKind.PatternSwitchLabel: 
-                    return VisitPatternSwitchLabel(node as BoundPatternSwitchLabel, arg);
+                case BoundKind.SwitchLabel: 
+                    return VisitSwitchLabel(node as BoundSwitchLabel, arg);
                 case BoundKind.SequencePointExpression: 
                     return VisitSequencePointExpression(node as BoundSequencePointExpression, arg);
                 case BoundKind.Sequence: 
@@ -8202,7 +8202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
-        public virtual R VisitPatternSwitchLabel(BoundPatternSwitchLabel node, A arg)
+        public virtual R VisitSwitchLabel(BoundSwitchLabel node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -8922,7 +8922,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node);
         }
-        public virtual BoundNode VisitPatternSwitchLabel(BoundPatternSwitchLabel node)
+        public virtual BoundNode VisitSwitchLabel(BoundSwitchLabel node)
         {
             return this.DefaultVisit(node);
         }
@@ -9776,7 +9776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.VisitList(node.Statements);
             return null;
         }
-        public override BoundNode VisitPatternSwitchLabel(BoundPatternSwitchLabel node)
+        public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)
         {
             this.Visit(node.Pattern);
             this.Visit(node.WhenClause);
@@ -10522,7 +10522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
             BoundDecisionDag decisionDag = node.DecisionDag;
-            BoundPatternSwitchLabel defaultLabel = (BoundPatternSwitchLabel)this.Visit(node.DefaultLabel);
+            BoundSwitchLabel defaultLabel = (BoundSwitchLabel)this.Visit(node.DefaultLabel);
             return node.Update(expression, node.InnerLocals, node.InnerLocalFunctions, switchSections, decisionDag, defaultLabel, node.BreakLabel);
         }
         public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
@@ -10780,11 +10780,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitSwitchSection(BoundSwitchSection node)
         {
-            ImmutableArray<BoundPatternSwitchLabel> switchLabels = (ImmutableArray<BoundPatternSwitchLabel>)this.VisitList(node.SwitchLabels);
+            ImmutableArray<BoundSwitchLabel> switchLabels = (ImmutableArray<BoundSwitchLabel>)this.VisitList(node.SwitchLabels);
             ImmutableArray<BoundStatement> statements = (ImmutableArray<BoundStatement>)this.VisitList(node.Statements);
             return node.Update(node.Locals, switchLabels, statements);
         }
-        public override BoundNode VisitPatternSwitchLabel(BoundPatternSwitchLabel node)
+        public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)
         {
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
             BoundExpression whenClause = (BoundExpression)this.Visit(node.WhenClause);
@@ -12353,9 +12353,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             );
         }
-        public override TreeDumperNode VisitPatternSwitchLabel(BoundPatternSwitchLabel node, object arg)
+        public override TreeDumperNode VisitSwitchLabel(BoundSwitchLabel node, object arg)
         {
-            return new TreeDumperNode("patternSwitchLabel", null, new TreeDumperNode[]
+            return new TreeDumperNode("switchLabel", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("label", node.Label, null),
                 new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
