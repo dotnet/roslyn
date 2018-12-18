@@ -90,11 +90,15 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                 var returnType = methodSymbol.ReturnType;
                 if (IsIEnumerable(returnType, knownTypes) && IsIterator(methodSymbol))
                 {
-                    newReturnType = MakeGenericType("IAsyncEnumerable", methodSymbol.ReturnType);
+                    newReturnType = knownTypes._iAsyncEnumerableOfTType is null
+                        ? MakeGenericType("IAsyncEnumerable", methodSymbol.ReturnType)
+                        : knownTypes._iAsyncEnumerableOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
                 }
                 else if (IsIEnumerator(returnType, knownTypes) && IsIterator(methodSymbol))
                 {
-                    newReturnType = MakeGenericType("IAsyncEnumerator", methodSymbol.ReturnType);
+                    newReturnType = knownTypes._iAsyncEnumeratorOfTType is null
+                        ? MakeGenericType("IAsyncEnumerator", methodSymbol.ReturnType)
+                        : knownTypes._iAsyncEnumeratorOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
                 }
                 else if (IsIAsyncEnumerableOrEnumerator(returnType, knownTypes))
                 {
@@ -112,12 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
             TypeSyntax MakeGenericType(string type, ITypeSymbol typeArgumentFrom)
             {
-                var @namespace = SyntaxFactory.QualifiedName(SyntaxFactory.QualifiedName(
-                    SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Collections")), SyntaxFactory.IdentifierName("Generic"));
-
-                var result = SyntaxFactory.QualifiedName(@namespace,
-                    SyntaxFactory.GenericName(SyntaxFactory.Identifier(type),
-                        SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax()))));
+                var result = SyntaxFactory.GenericName(SyntaxFactory.Identifier(type),
+                        SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax())));
 
                 return result.WithAdditionalAnnotations(Simplifier.Annotation);
             }

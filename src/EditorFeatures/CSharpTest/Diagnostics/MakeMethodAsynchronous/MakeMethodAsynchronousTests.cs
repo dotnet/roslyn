@@ -524,6 +524,35 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        public async Task BadAwaitInEnumerableMethodMissingIAsyncEnumerableType()
+        {
+            var initial =
+@"using System.Threading.Tasks;
+using System.Collections.Generic;
+class Program
+{
+    IEnumerable<int> Test()
+    {
+        yield return 1;
+        [|await Task.Delay(1);|]
+    }
+}";
+
+            var expected =
+@"using System.Threading.Tasks;
+using System.Collections.Generic;
+class Program
+{
+    async IAsyncEnumerable<int> TestAsync()
+    {
+        yield return 1;
+        await Task.Delay(1);
+    }
+}";
+            await TestInRegularAndScriptAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task BadAwaitInEnumerableMethodWithReturn()
         {
             var initial =
