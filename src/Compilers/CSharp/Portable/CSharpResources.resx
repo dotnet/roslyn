@@ -4602,7 +4602,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               `default` (latest major version), or
                               `latest` (latest version, including minor versions),
                               or specific versions like `6` or `7.1`
--nullable[+|-]                Enable/disable Nullable Reference Types feature
+-nullable[+|-]                Specify nullable context option enable|disable.
+-nullable:{enable|disable|safeonly}
+                              Specify nullable context option enable|disable|safeonly.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -5633,7 +5635,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
   <data name="ERR_NullableDirectiveQualifierExpected" xml:space="preserve">
-    <value>Expected enable or disable</value>
+    <value>Expected 'enable', 'safeonly', 'disable', or 'restore'</value>
   </data>
   <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
     <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
@@ -5643,5 +5645,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExpressionTreeCantContainNullCoalescingAssignment" xml:space="preserve">
     <value>An expression tree may not contain a null coalescing assignment</value>
+  </data>
+  <data name="ERR_BadNullableContextOption" xml:space="preserve">
+    <value>Invalid option '{0}' for /nullable; must be 'disabled', 'enabled' or 'safeonly'</value>
   </data>
 </root>

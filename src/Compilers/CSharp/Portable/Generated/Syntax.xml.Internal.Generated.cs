@@ -45186,6 +45186,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       {
         case SyntaxKind.EnableKeyword:
         case SyntaxKind.DisableKeyword:
+        case SyntaxKind.RestoreKeyword:
+        case SyntaxKind.SafeOnlyKeyword:
           break;
         default:
           throw new ArgumentException("settingToken");
@@ -52272,6 +52274,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       {
         case SyntaxKind.EnableKeyword:
         case SyntaxKind.DisableKeyword:
+        case SyntaxKind.RestoreKeyword:
+        case SyntaxKind.SafeOnlyKeyword:
           break;
         default:
           throw new ArgumentException("settingToken");

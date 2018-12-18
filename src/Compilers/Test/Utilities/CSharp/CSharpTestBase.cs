@@ -411,12 +411,22 @@ namespace System.Runtime.CompilerServices
 
         protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
         {
-            return (options ?? TestOptions.ReleaseDll).WithNullable(true);
+            return WithNonNullTypes(options, NullableContextOptions.Enabled);
         }
 
         protected static CSharpCompilationOptions WithNonNullTypesFalse(CSharpCompilationOptions options = null)
         {
-            return (options ?? TestOptions.ReleaseDll).WithNullable(false);
+            return WithNonNullTypes(options, NullableContextOptions.Disabled);
+        }
+
+        protected static CSharpCompilationOptions WithNonNullTypes(NullableContextOptions nullableContextOptions)
+        {
+            return WithNonNullTypes(null, nullableContextOptions);
+        }
+
+        protected static CSharpCompilationOptions WithNonNullTypes(CSharpCompilationOptions options, NullableContextOptions nullableContextOptions)
+        {
+            return (options ?? TestOptions.ReleaseDll).WithNullableContextOptions(nullableContextOptions);
         }
 
         protected static string NonNullTypesOff()

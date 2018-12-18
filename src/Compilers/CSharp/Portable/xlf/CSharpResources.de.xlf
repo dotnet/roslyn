@@ -37,6 +37,11 @@
         <target state="new">Cannot use a collection of dynamic type in an asynchronous foreach</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNullableContextOption">
+        <source>Invalid option '{0}' for /nullable; must be 'disabled', 'enabled' or 'safeonly'</source>
+        <target state="new">Invalid option '{0}' for /nullable; must be 'disabled', 'enabled' or 'safeonly'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
@@ -133,8 +138,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
-        <source>Expected enable or disable</source>
-        <target state="new">Expected enable or disable</target>
+        <source>Expected 'enable', 'safeonly', 'disable', or 'restore'</source>
+        <target state="new">Expected 'enable', 'safeonly', 'disable', or 'restore'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -7948,7 +7953,9 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
                               `default` (latest major version), or
                               `latest` (latest version, including minor versions),
                               or specific versions like `6` or `7.1`
--nullable[+|-]                Enable/disable Nullable Reference Types feature
+-nullable[+|-]                Specify nullable context option enable|disable.
+-nullable:{enable|disable|safeonly}
+                              Specify nullable context option enable|disable|safeonly.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
