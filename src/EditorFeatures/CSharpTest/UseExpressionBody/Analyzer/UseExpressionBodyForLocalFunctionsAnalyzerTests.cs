@@ -21,10 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             => (new UseExpressionBodyDiagnosticAnalyzer(), new UseExpressionBodyCodeFixProvider());
 
         private IDictionary<OptionKey, object> UseExpressionBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
+            Option(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
+
+        private IDictionary<OptionKey, object> UseExpressionBodyWhenOnSingleLine =>
+            Option(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement);
 
         private IDictionary<OptionKey, object> UseBlockBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+            Option(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()
@@ -116,6 +119,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         int Bar() => [|throw|] new NotImplementedException(); // comment
     }
 }", options: UseExpressionBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseExpressionBodyWhenOnSingleLineMissing()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    int Goo()
+    {
+        int Bar()
+        {
+            [|return|] 1 +
+                2 +
+                3;
+        }
+    }
+}", new TestParameters(options: UseExpressionBodyWhenOnSingleLine));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseExpressionBodyWhenOnSingleLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int Goo()
+    {
+        int Bar()
+        {
+            [|return|] 1 + 2 + 3;
+        }
+    }
+}",
+@"class C
+{
+    int Goo()
+    {
+        int Bar() => 1 + 2 + 3;
+    }
+}", options: UseExpressionBodyWhenOnSingleLine);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
