@@ -236,25 +236,25 @@ namespace CSharpSyntaxGenerator
                     WriteComment(field.PropertyComment, "    ");
                     if (IsNodeList(field.Type))
                     {
-                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} {{ get {{ return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1}(this.{3}); }} }}",
+                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1}(this.{3});",
                             OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name)
                             );
                     }
                     else if (IsSeparatedNodeList(field.Type))
                     {
-                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} {{ get {{ return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1}(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{3})); }} }}",
+                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1}(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{3}));",
                             OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name), i
                             );
                     }
                     else if (field.Type == "SyntaxNodeOrTokenList")
                     {
-                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> {1} {{ get {{ return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{2}); }} }}",
+                        WriteLine("    public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> {1} => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{2});",
                             OverrideOrNewModifier(field), field.Name, CamelCase(field.Name)
                             );
                     }
                     else
                     {
-                        WriteLine("    public {0}{1} {2} {{ get {{ return this.{3}; }} }}",
+                        WriteLine("    public {0}{1} {2} => this.{3};",
                             OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name)
                             );
                     }
@@ -264,7 +264,7 @@ namespace CSharpSyntaxGenerator
                 {
                     var field = valueFields[i];
                     WriteComment(field.PropertyComment, "    ");
-                    WriteLine("    public {0}{1} {2} {{ get {{ return this.{3}; }} }}",
+                    WriteLine("    public {0}{1} {2} => this.{3};",
                         OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name)
                         );
                 }
@@ -285,10 +285,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine("    }");
 
                 WriteLine();
-                WriteLine("    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)");
-                WriteLine("    {");
-                WriteLine("      return new CSharp.Syntax.{0}(this, parent, position);", node.Name);
-                WriteLine("    }");
+                WriteLine("    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.{0}(this, parent, position);", node.Name);
 
                 this.WriteGreenAcceptMethods(nd);
                 this.WriteGreenUpdateMethod(nd);
@@ -480,15 +477,9 @@ namespace CSharpSyntaxGenerator
             //WriteLine("        return visitor.Visit{0}(this, argument);", StripPost(node.Name, "Syntax"));
             //WriteLine("    }");
             WriteLine();
-            WriteLine("    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)");
-            WriteLine("    {");
-            WriteLine("        return visitor.Visit{0}(this);", StripPost(node.Name, "Syntax"));
-            WriteLine("    }");
+            WriteLine("    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.Visit{0}(this);", StripPost(node.Name, "Syntax"));
             WriteLine();
-            WriteLine("    public override void Accept(CSharpSyntaxVisitor visitor)");
-            WriteLine("    {");
-            WriteLine("        visitor.Visit{0}(this);", StripPost(node.Name, "Syntax"));
-            WriteLine("    }");
+            WriteLine("    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.Visit{0}(this);", StripPost(node.Name, "Syntax"));
         }
 
         private void WriteGreenVisitors()
@@ -515,10 +506,8 @@ namespace CSharpSyntaxGenerator
                     if (nWritten > 0)
                         WriteLine();
                     nWritten++;
-                    WriteLine("    public virtual " + (withResult ? "TResult" : "void") + " Visit{0}({1} node{2})", StripPost(node.Name, "Syntax"), node.Name, withArgument ? ", TArgument argument" : "");
-                    WriteLine("    {");
-                    WriteLine("      " + (withResult ? "return " : "") + "this.DefaultVisit(node{0});", withArgument ? ", argument" : "");
-                    WriteLine("    }");
+
+                    WriteLine("    public virtual {0} Visit{1}({2} node{3}) => this.DefaultVisit(node{4});", withResult ? "TResult" : "void", StripPost(node.Name, "Syntax"), node.Name, withArgument ? ", TArgument argument" : "", withArgument ? ", argument" : "");
                 }
             }
             WriteLine("  }");

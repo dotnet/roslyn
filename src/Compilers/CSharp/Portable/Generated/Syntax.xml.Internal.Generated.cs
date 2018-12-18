@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the keyword for the kind of the identifier name.</summary>
-    public override SyntaxToken Identifier { get { return this.identifier; } }
+    public override SyntaxToken Identifier => this.identifier;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -93,20 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.IdentifierNameSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.IdentifierNameSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitIdentifierName(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIdentifierName(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitIdentifierName(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIdentifierName(this);
 
     public IdentifierNameSyntax Update(SyntaxToken identifier)
     {
@@ -206,11 +197,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>NameSyntax node representing the name on the left side of the dot token of the qualified name.</summary>
-    public NameSyntax Left { get { return this.left; } }
+    public NameSyntax Left => this.left;
     /// <summary>SyntaxToken representing the dot.</summary>
-    public SyntaxToken DotToken { get { return this.dotToken; } }
+    public SyntaxToken DotToken => this.dotToken;
     /// <summary>SimpleNameSyntax node representing the name on the right side of the dot token of the qualified name.</summary>
-    public SimpleNameSyntax Right { get { return this.right; } }
+    public SimpleNameSyntax Right => this.right;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -223,20 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.QualifiedNameSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.QualifiedNameSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitQualifiedName(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQualifiedName(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitQualifiedName(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQualifiedName(this);
 
     public QualifiedNameSyntax Update(NameSyntax left, SyntaxToken dotToken, SimpleNameSyntax right)
     {
@@ -343,9 +325,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the name of the identifier of the generic name.</summary>
-    public override SyntaxToken Identifier { get { return this.identifier; } }
+    public override SyntaxToken Identifier => this.identifier;
     /// <summary>TypeArgumentListSyntax node representing the list of type arguments of the generic name.</summary>
-    public TypeArgumentListSyntax TypeArgumentList { get { return this.typeArgumentList; } }
+    public TypeArgumentListSyntax TypeArgumentList => this.typeArgumentList;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -357,20 +339,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.GenericNameSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.GenericNameSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitGenericName(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGenericName(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitGenericName(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGenericName(this);
 
     public GenericNameSyntax Update(SyntaxToken identifier, TypeArgumentListSyntax typeArgumentList)
     {
@@ -486,11 +459,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing less than.</summary>
-    public SyntaxToken LessThanToken { get { return this.lessThanToken; } }
+    public SyntaxToken LessThanToken => this.lessThanToken;
     /// <summary>SeparatedSyntaxList of TypeSyntax node representing the type arguments.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeSyntax> Arguments { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments)); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeSyntax> Arguments => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments));
     /// <summary>SyntaxToken representing greater than.</summary>
-    public SyntaxToken GreaterThanToken { get { return this.greaterThanToken; } }
+    public SyntaxToken GreaterThanToken => this.greaterThanToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -503,20 +476,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.TypeArgumentListSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TypeArgumentListSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitTypeArgumentList(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeArgumentList(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitTypeArgumentList(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeArgumentList(this);
 
     public TypeArgumentListSyntax Update(SyntaxToken lessThanToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeSyntax> arguments, SyntaxToken greaterThanToken)
     {
@@ -630,11 +594,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>IdentifierNameSyntax node representing the name of the alias</summary>
-    public IdentifierNameSyntax Alias { get { return this.alias; } }
+    public IdentifierNameSyntax Alias => this.alias;
     /// <summary>SyntaxToken representing colon colon.</summary>
-    public SyntaxToken ColonColonToken { get { return this.colonColonToken; } }
+    public SyntaxToken ColonColonToken => this.colonColonToken;
     /// <summary>SimpleNameSyntax node representing the name that is being alias qualified.</summary>
-    public SimpleNameSyntax Name { get { return this.name; } }
+    public SimpleNameSyntax Name => this.name;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -647,20 +611,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.AliasQualifiedNameSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AliasQualifiedNameSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitAliasQualifiedName(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAliasQualifiedName(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitAliasQualifiedName(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAliasQualifiedName(this);
 
     public AliasQualifiedNameSyntax Update(IdentifierNameSyntax alias, SyntaxToken colonColonToken, SimpleNameSyntax name)
     {
@@ -778,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken which represents the keyword corresponding to the predefined type.</summary>
-    public SyntaxToken Keyword { get { return this.keyword; } }
+    public SyntaxToken Keyword => this.keyword;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -789,20 +744,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.PredefinedTypeSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PredefinedTypeSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitPredefinedType(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPredefinedType(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitPredefinedType(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPredefinedType(this);
 
     public PredefinedTypeSyntax Update(SyntaxToken keyword)
     {
@@ -904,9 +850,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>TypeSyntax node representing the type of the element of the array.</summary>
-    public TypeSyntax ElementType { get { return this.elementType; } }
+    public TypeSyntax ElementType => this.elementType;
     /// <summary>SyntaxList of ArrayRankSpecifierSyntax nodes representing the list of rank specifiers for the array.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ArrayRankSpecifierSyntax> RankSpecifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ArrayRankSpecifierSyntax>(this.rankSpecifiers); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ArrayRankSpecifierSyntax> RankSpecifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ArrayRankSpecifierSyntax>(this.rankSpecifiers);
 
     internal override GreenNode GetSlot(int index)
     {
@@ -918,20 +864,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ArrayTypeSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ArrayTypeSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitArrayType(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrayType(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitArrayType(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrayType(this);
 
     public ArrayTypeSyntax Update(TypeSyntax elementType, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers)
     {
@@ -1061,11 +998,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public SyntaxToken OpenBracketToken { get { return this.openBracketToken; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> Sizes { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.sizes)); } }
-    public SyntaxToken CloseBracketToken { get { return this.closeBracketToken; } }
+    public SyntaxToken OpenBracketToken => this.openBracketToken;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> Sizes => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.sizes));
+    public SyntaxToken CloseBracketToken => this.closeBracketToken;
     /// <summary>SyntaxToken representing the question mark.</summary>
-    public SyntaxToken QuestionToken { get { return this.questionToken; } }
+    public SyntaxToken QuestionToken => this.questionToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -1079,20 +1016,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ArrayRankSpecifierSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ArrayRankSpecifierSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitArrayRankSpecifier(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrayRankSpecifier(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitArrayRankSpecifier(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrayRankSpecifier(this);
 
     public ArrayRankSpecifierSyntax Update(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken, SyntaxToken questionToken)
     {
@@ -1206,9 +1134,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>TypeSyntax node that represents the element type of the pointer.</summary>
-    public TypeSyntax ElementType { get { return this.elementType; } }
+    public TypeSyntax ElementType => this.elementType;
     /// <summary>SyntaxToken representing the asterisk.</summary>
-    public SyntaxToken AsteriskToken { get { return this.asteriskToken; } }
+    public SyntaxToken AsteriskToken => this.asteriskToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -1220,20 +1148,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.PointerTypeSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PointerTypeSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitPointerType(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPointerType(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitPointerType(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPointerType(this);
 
     public PointerTypeSyntax Update(TypeSyntax elementType, SyntaxToken asteriskToken)
     {
@@ -1333,9 +1252,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>TypeSyntax node representing the type of the element.</summary>
-    public TypeSyntax ElementType { get { return this.elementType; } }
+    public TypeSyntax ElementType => this.elementType;
     /// <summary>SyntaxToken representing the question mark.</summary>
-    public SyntaxToken QuestionToken { get { return this.questionToken; } }
+    public SyntaxToken QuestionToken => this.questionToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -1347,20 +1266,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.NullableTypeSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.NullableTypeSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitNullableType(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNullableType(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitNullableType(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNullableType(this);
 
     public NullableTypeSyntax Update(TypeSyntax elementType, SyntaxToken questionToken)
     {
@@ -1476,10 +1386,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the open parenthesis.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TupleElementSyntax> Elements { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TupleElementSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.elements)); } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TupleElementSyntax> Elements => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TupleElementSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.elements));
     /// <summary>SyntaxToken representing the close parenthesis.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -1492,20 +1402,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.TupleTypeSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TupleTypeSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitTupleType(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTupleType(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitTupleType(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTupleType(this);
 
     public TupleTypeSyntax Update(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TupleElementSyntax> elements, SyntaxToken closeParenToken)
     {
@@ -1621,9 +1522,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the type of the tuple element.</summary>
-    public TypeSyntax Type { get { return this.type; } }
+    public TypeSyntax Type => this.type;
     /// <summary>Gets the name of the tuple element.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
+    public SyntaxToken Identifier => this.identifier;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -1635,20 +1536,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.TupleElementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TupleElementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitTupleElement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTupleElement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitTupleElement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTupleElement(this);
 
     public TupleElementSyntax Update(TypeSyntax type, SyntaxToken identifier)
     {
@@ -1741,7 +1633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the omitted type argument.</summary>
-    public SyntaxToken OmittedTypeArgumentToken { get { return this.omittedTypeArgumentToken; } }
+    public SyntaxToken OmittedTypeArgumentToken => this.omittedTypeArgumentToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -1752,20 +1644,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.OmittedTypeArgumentSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.OmittedTypeArgumentSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitOmittedTypeArgument(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOmittedTypeArgument(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitOmittedTypeArgument(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOmittedTypeArgument(this);
 
     public OmittedTypeArgumentSyntax Update(SyntaxToken omittedTypeArgumentToken)
     {
@@ -1873,10 +1756,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.type = type;
     }
 
-    public SyntaxToken RefKeyword { get { return this.refKeyword; } }
+    public SyntaxToken RefKeyword => this.refKeyword;
     /// <summary>Gets the optional "readonly" keyword.</summary>
-    public SyntaxToken ReadOnlyKeyword { get { return this.readOnlyKeyword; } }
-    public TypeSyntax Type { get { return this.type; } }
+    public SyntaxToken ReadOnlyKeyword => this.readOnlyKeyword;
+    public TypeSyntax Type => this.type;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -1889,20 +1772,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.RefTypeSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.RefTypeSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitRefType(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefType(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitRefType(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefType(this);
 
     public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
     {
@@ -2034,11 +1908,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the open parenthesis.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>ExpressionSyntax node representing the expression enclosed within the parenthesis.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
     /// <summary>SyntaxToken representing the close parenthesis.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -2051,20 +1925,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ParenthesizedExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ParenthesizedExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitParenthesizedExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitParenthesizedExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedExpression(this);
 
     public ParenthesizedExpressionSyntax Update(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
     {
@@ -2187,11 +2052,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the open parenthesis.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> Arguments { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments)); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> Arguments => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments));
     /// <summary>SyntaxToken representing the close parenthesis.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -2204,20 +2069,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.TupleExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TupleExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitTupleExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTupleExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitTupleExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTupleExpression(this);
 
     public TupleExpressionSyntax Update(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParenToken)
     {
@@ -2324,9 +2180,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the kind of the operator of the prefix unary expression.</summary>
-    public SyntaxToken OperatorToken { get { return this.operatorToken; } }
+    public SyntaxToken OperatorToken => this.operatorToken;
     /// <summary>ExpressionSyntax representing the operand of the prefix unary expression.</summary>
-    public ExpressionSyntax Operand { get { return this.operand; } }
+    public ExpressionSyntax Operand => this.operand;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -2338,20 +2194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.PrefixUnaryExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PrefixUnaryExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitPrefixUnaryExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPrefixUnaryExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitPrefixUnaryExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPrefixUnaryExpression(this);
 
     public PrefixUnaryExpressionSyntax Update(SyntaxToken operatorToken, ExpressionSyntax operand)
     {
@@ -2451,9 +2298,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the kind "await" keyword.</summary>
-    public SyntaxToken AwaitKeyword { get { return this.awaitKeyword; } }
+    public SyntaxToken AwaitKeyword => this.awaitKeyword;
     /// <summary>ExpressionSyntax representing the operand of the "await" operator.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -2465,20 +2312,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.AwaitExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AwaitExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitAwaitExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAwaitExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitAwaitExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAwaitExpression(this);
 
     public AwaitExpressionSyntax Update(SyntaxToken awaitKeyword, ExpressionSyntax expression)
     {
@@ -2578,9 +2416,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>ExpressionSyntax representing the operand of the postfix unary expression.</summary>
-    public ExpressionSyntax Operand { get { return this.operand; } }
+    public ExpressionSyntax Operand => this.operand;
     /// <summary>SyntaxToken representing the kind of the operator of the postfix unary expression.</summary>
-    public SyntaxToken OperatorToken { get { return this.operatorToken; } }
+    public SyntaxToken OperatorToken => this.operatorToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -2592,20 +2430,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.PostfixUnaryExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PostfixUnaryExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitPostfixUnaryExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPostfixUnaryExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitPostfixUnaryExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPostfixUnaryExpression(this);
 
     public PostfixUnaryExpressionSyntax Update(ExpressionSyntax operand, SyntaxToken operatorToken)
     {
@@ -2712,11 +2541,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>ExpressionSyntax node representing the object that the member belongs to.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
     /// <summary>SyntaxToken representing the kind of the operator in the member access expression.</summary>
-    public SyntaxToken OperatorToken { get { return this.operatorToken; } }
+    public SyntaxToken OperatorToken => this.operatorToken;
     /// <summary>SimpleNameSyntax node representing the member being accessed.</summary>
-    public SimpleNameSyntax Name { get { return this.name; } }
+    public SimpleNameSyntax Name => this.name;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -2729,20 +2558,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.MemberAccessExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.MemberAccessExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMemberAccessExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMemberAccessExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitMemberAccessExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMemberAccessExpression(this);
 
     public MemberAccessExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name)
     {
@@ -2856,11 +2676,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>ExpressionSyntax node representing the object conditionally accessed.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
     /// <summary>SyntaxToken representing the question mark.</summary>
-    public SyntaxToken OperatorToken { get { return this.operatorToken; } }
+    public SyntaxToken OperatorToken => this.operatorToken;
     /// <summary>ExpressionSyntax node representing the access expression to be executed when the object is not null.</summary>
-    public ExpressionSyntax WhenNotNull { get { return this.whenNotNull; } }
+    public ExpressionSyntax WhenNotNull => this.whenNotNull;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -2873,20 +2693,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ConditionalAccessExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConditionalAccessExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitConditionalAccessExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConditionalAccessExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitConditionalAccessExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConditionalAccessExpression(this);
 
     public ConditionalAccessExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken operatorToken, ExpressionSyntax whenNotNull)
     {
@@ -2993,9 +2804,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing dot.</summary>
-    public SyntaxToken OperatorToken { get { return this.operatorToken; } }
+    public SyntaxToken OperatorToken => this.operatorToken;
     /// <summary>SimpleNameSyntax node representing the member being bound to.</summary>
-    public SimpleNameSyntax Name { get { return this.name; } }
+    public SimpleNameSyntax Name => this.name;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -3007,20 +2818,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.MemberBindingExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.MemberBindingExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMemberBindingExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMemberBindingExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitMemberBindingExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMemberBindingExpression(this);
 
     public MemberBindingExpressionSyntax Update(SyntaxToken operatorToken, SimpleNameSyntax name)
     {
@@ -3113,7 +2915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>BracketedArgumentListSyntax node representing the list of arguments of the element binding expression.</summary>
-    public BracketedArgumentListSyntax ArgumentList { get { return this.argumentList; } }
+    public BracketedArgumentListSyntax ArgumentList => this.argumentList;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -3124,20 +2926,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ElementBindingExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ElementBindingExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitElementBindingExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElementBindingExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitElementBindingExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElementBindingExpression(this);
 
     public ElementBindingExpressionSyntax Update(BracketedArgumentListSyntax argumentList)
     {
@@ -3255,11 +3048,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>ExpressionSyntax node representing the expression on the left of the range operator.</summary>
-    public ExpressionSyntax LeftOperand { get { return this.leftOperand; } }
+    public ExpressionSyntax LeftOperand => this.leftOperand;
     /// <summary>SyntaxToken representing the operator of the range expression.</summary>
-    public SyntaxToken OperatorToken { get { return this.operatorToken; } }
+    public SyntaxToken OperatorToken => this.operatorToken;
     /// <summary>ExpressionSyntax node representing the expression on the right of the range operator.</summary>
-    public ExpressionSyntax RightOperand { get { return this.rightOperand; } }
+    public ExpressionSyntax RightOperand => this.rightOperand;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -3272,20 +3065,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.RangeExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.RangeExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitRangeExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRangeExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitRangeExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRangeExpression(this);
 
     public RangeExpressionSyntax Update(ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand)
     {
@@ -3385,7 +3169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>BracketedArgumentListSyntax node representing the list of arguments of the implicit element access expression.</summary>
-    public BracketedArgumentListSyntax ArgumentList { get { return this.argumentList; } }
+    public BracketedArgumentListSyntax ArgumentList => this.argumentList;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -3396,20 +3180,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ImplicitElementAccessSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ImplicitElementAccessSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitImplicitElementAccess(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitElementAccess(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitImplicitElementAccess(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitElementAccess(this);
 
     public ImplicitElementAccessSyntax Update(BracketedArgumentListSyntax argumentList)
     {
@@ -3509,11 +3284,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>ExpressionSyntax node representing the expression on the left of the binary operator.</summary>
-    public ExpressionSyntax Left { get { return this.left; } }
+    public ExpressionSyntax Left => this.left;
     /// <summary>SyntaxToken representing the operator of the binary expression.</summary>
-    public SyntaxToken OperatorToken { get { return this.operatorToken; } }
+    public SyntaxToken OperatorToken => this.operatorToken;
     /// <summary>ExpressionSyntax node representing the expression on the right of the binary operator.</summary>
-    public ExpressionSyntax Right { get { return this.right; } }
+    public ExpressionSyntax Right => this.right;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -3526,20 +3301,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.BinaryExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BinaryExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitBinaryExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBinaryExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitBinaryExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBinaryExpression(this);
 
     public BinaryExpressionSyntax Update(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
     {
@@ -3653,11 +3419,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>ExpressionSyntax node representing the expression on the left of the assignment operator.</summary>
-    public ExpressionSyntax Left { get { return this.left; } }
+    public ExpressionSyntax Left => this.left;
     /// <summary>SyntaxToken representing the operator of the assignment expression.</summary>
-    public SyntaxToken OperatorToken { get { return this.operatorToken; } }
+    public SyntaxToken OperatorToken => this.operatorToken;
     /// <summary>ExpressionSyntax node representing the expression on the right of the assignment operator.</summary>
-    public ExpressionSyntax Right { get { return this.right; } }
+    public ExpressionSyntax Right => this.right;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -3670,20 +3436,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.AssignmentExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AssignmentExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitAssignmentExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAssignmentExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitAssignmentExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAssignmentExpression(this);
 
     public AssignmentExpressionSyntax Update(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
     {
@@ -3811,15 +3568,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>ExpressionSyntax node representing the condition of the conditional expression.</summary>
-    public ExpressionSyntax Condition { get { return this.condition; } }
+    public ExpressionSyntax Condition => this.condition;
     /// <summary>SyntaxToken representing the question mark.</summary>
-    public SyntaxToken QuestionToken { get { return this.questionToken; } }
+    public SyntaxToken QuestionToken => this.questionToken;
     /// <summary>ExpressionSyntax node representing the expression to be executed when the condition is true.</summary>
-    public ExpressionSyntax WhenTrue { get { return this.whenTrue; } }
+    public ExpressionSyntax WhenTrue => this.whenTrue;
     /// <summary>SyntaxToken representing the colon.</summary>
-    public SyntaxToken ColonToken { get { return this.colonToken; } }
+    public SyntaxToken ColonToken => this.colonToken;
     /// <summary>ExpressionSyntax node representing the expression to be executed when the condition is false.</summary>
-    public ExpressionSyntax WhenFalse { get { return this.whenFalse; } }
+    public ExpressionSyntax WhenFalse => this.whenFalse;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -3834,20 +3591,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ConditionalExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConditionalExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitConditionalExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConditionalExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitConditionalExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConditionalExpression(this);
 
     public ConditionalExpressionSyntax Update(ExpressionSyntax condition, SyntaxToken questionToken, ExpressionSyntax whenTrue, SyntaxToken colonToken, ExpressionSyntax whenFalse)
     {
@@ -3979,7 +3727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the this keyword.</summary>
-    public SyntaxToken Token { get { return this.token; } }
+    public SyntaxToken Token => this.token;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -3990,20 +3738,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ThisExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ThisExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitThisExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitThisExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitThisExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitThisExpression(this);
 
     public ThisExpressionSyntax Update(SyntaxToken token)
     {
@@ -4089,7 +3828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the base keyword.</summary>
-    public SyntaxToken Token { get { return this.token; } }
+    public SyntaxToken Token => this.token;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -4100,20 +3839,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.BaseExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BaseExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitBaseExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBaseExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitBaseExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBaseExpression(this);
 
     public BaseExpressionSyntax Update(SyntaxToken token)
     {
@@ -4199,7 +3929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the keyword corresponding to the kind of the literal expression.</summary>
-    public SyntaxToken Token { get { return this.token; } }
+    public SyntaxToken Token => this.token;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -4210,20 +3940,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.LiteralExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LiteralExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitLiteralExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLiteralExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitLiteralExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLiteralExpression(this);
 
     public LiteralExpressionSyntax Update(SyntaxToken token)
     {
@@ -4330,13 +4051,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the MakeRefKeyword.</summary>
-    public SyntaxToken Keyword { get { return this.keyword; } }
+    public SyntaxToken Keyword => this.keyword;
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>Argument of the primary function.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -4350,20 +4071,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.MakeRefExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.MakeRefExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMakeRefExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMakeRefExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitMakeRefExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMakeRefExpression(this);
 
     public MakeRefExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
     {
@@ -4491,13 +4203,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the RefTypeKeyword.</summary>
-    public SyntaxToken Keyword { get { return this.keyword; } }
+    public SyntaxToken Keyword => this.keyword;
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>Argument of the primary function.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -4511,20 +4223,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.RefTypeExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.RefTypeExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitRefTypeExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefTypeExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitRefTypeExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefTypeExpression(this);
 
     public RefTypeExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
     {
@@ -4666,17 +4369,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the RefValueKeyword.</summary>
-    public SyntaxToken Keyword { get { return this.keyword; } }
+    public SyntaxToken Keyword => this.keyword;
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>Typed reference expression.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
     /// <summary>Comma separating the arguments.</summary>
-    public SyntaxToken Comma { get { return this.comma; } }
+    public SyntaxToken Comma => this.comma;
     /// <summary>The type of the value.</summary>
-    public TypeSyntax Type { get { return this.type; } }
+    public TypeSyntax Type => this.type;
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -4692,20 +4395,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.RefValueExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.RefValueExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitRefValueExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefValueExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitRefValueExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefValueExpression(this);
 
     public RefValueExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken comma, TypeSyntax type, SyntaxToken closeParenToken)
     {
@@ -4847,13 +4541,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the checked or unchecked keyword.</summary>
-    public SyntaxToken Keyword { get { return this.keyword; } }
+    public SyntaxToken Keyword => this.keyword;
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>Argument of the primary function.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -4867,20 +4561,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.CheckedExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CheckedExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCheckedExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCheckedExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitCheckedExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCheckedExpression(this);
 
     public CheckedExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
     {
@@ -5008,13 +4693,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the DefaultKeyword.</summary>
-    public SyntaxToken Keyword { get { return this.keyword; } }
+    public SyntaxToken Keyword => this.keyword;
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>Argument of the primary function.</summary>
-    public TypeSyntax Type { get { return this.type; } }
+    public TypeSyntax Type => this.type;
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -5028,20 +4713,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.DefaultExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DefaultExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitDefaultExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefaultExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitDefaultExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefaultExpression(this);
 
     public DefaultExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
     {
@@ -5169,13 +4845,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the TypeOfKeyword.</summary>
-    public SyntaxToken Keyword { get { return this.keyword; } }
+    public SyntaxToken Keyword => this.keyword;
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>The expression to return type of.</summary>
-    public TypeSyntax Type { get { return this.type; } }
+    public TypeSyntax Type => this.type;
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -5189,20 +4865,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.TypeOfExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TypeOfExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitTypeOfExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeOfExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitTypeOfExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeOfExpression(this);
 
     public TypeOfExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
     {
@@ -5330,13 +4997,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the SizeOfKeyword.</summary>
-    public SyntaxToken Keyword { get { return this.keyword; } }
+    public SyntaxToken Keyword => this.keyword;
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>Argument of the primary function.</summary>
-    public TypeSyntax Type { get { return this.type; } }
+    public TypeSyntax Type => this.type;
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -5350,20 +5017,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.SizeOfExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SizeOfExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitSizeOfExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSizeOfExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitSizeOfExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSizeOfExpression(this);
 
     public SizeOfExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
     {
@@ -5477,9 +5135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>ExpressionSyntax node representing the expression part of the invocation.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
     /// <summary>ArgumentListSyntax node representing the list of arguments of the invocation expression.</summary>
-    public ArgumentListSyntax ArgumentList { get { return this.argumentList; } }
+    public ArgumentListSyntax ArgumentList => this.argumentList;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -5491,20 +5149,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.InvocationExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InvocationExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitInvocationExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInvocationExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitInvocationExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInvocationExpression(this);
 
     public InvocationExpressionSyntax Update(ExpressionSyntax expression, ArgumentListSyntax argumentList)
     {
@@ -5604,9 +5253,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>ExpressionSyntax node representing the expression which is accessing the element.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
     /// <summary>BracketedArgumentListSyntax node representing the list of arguments of the element access expression.</summary>
-    public BracketedArgumentListSyntax ArgumentList { get { return this.argumentList; } }
+    public BracketedArgumentListSyntax ArgumentList => this.argumentList;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -5618,20 +5267,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ElementAccessExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ElementAccessExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitElementAccessExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElementAccessExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitElementAccessExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElementAccessExpression(this);
 
     public ElementAccessExpressionSyntax Update(ExpressionSyntax expression, BracketedArgumentListSyntax argumentList)
     {
@@ -5768,11 +5408,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing open parenthesis.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> Arguments { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments)); } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> Arguments => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments));
     /// <summary>SyntaxToken representing close parenthesis.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -5785,20 +5425,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ArgumentListSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ArgumentListSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitArgumentList(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArgumentList(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitArgumentList(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArgumentList(this);
 
     public ArgumentListSyntax Update(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParenToken)
     {
@@ -5921,11 +5552,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing open bracket.</summary>
-    public SyntaxToken OpenBracketToken { get { return this.openBracketToken; } }
+    public SyntaxToken OpenBracketToken => this.openBracketToken;
     /// <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> Arguments { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments)); } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> Arguments => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments));
     /// <summary>SyntaxToken representing close bracket.</summary>
-    public SyntaxToken CloseBracketToken { get { return this.closeBracketToken; } }
+    public SyntaxToken CloseBracketToken => this.closeBracketToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -5938,20 +5569,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.BracketedArgumentListSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BracketedArgumentListSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitBracketedArgumentList(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBracketedArgumentList(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitBracketedArgumentList(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBracketedArgumentList(this);
 
     public BracketedArgumentListSyntax Update(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeBracketToken)
     {
@@ -6083,11 +5705,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>NameColonSyntax node representing the optional name arguments.</summary>
-    public NameColonSyntax NameColon { get { return this.nameColon; } }
+    public NameColonSyntax NameColon => this.nameColon;
     /// <summary>SyntaxToken representing the optional ref or out keyword.</summary>
-    public SyntaxToken RefKindKeyword { get { return this.refKindKeyword; } }
+    public SyntaxToken RefKindKeyword => this.refKindKeyword;
     /// <summary>ExpressionSyntax node representing the argument.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -6100,20 +5722,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ArgumentSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ArgumentSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitArgument(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArgument(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitArgument(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArgument(this);
 
     public ArgumentSyntax Update(NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
     {
@@ -6220,9 +5833,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>IdentifierNameSyntax representing the identifier name.</summary>
-    public IdentifierNameSyntax Name { get { return this.name; } }
+    public IdentifierNameSyntax Name => this.name;
     /// <summary>SyntaxToken representing colon.</summary>
-    public SyntaxToken ColonToken { get { return this.colonToken; } }
+    public SyntaxToken ColonToken => this.colonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -6234,20 +5847,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.NameColonSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.NameColonSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitNameColon(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNameColon(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitNameColon(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNameColon(this);
 
     public NameColonSyntax Update(IdentifierNameSyntax name, SyntaxToken colonToken)
     {
@@ -6346,9 +5950,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.designation = designation;
     }
 
-    public TypeSyntax Type { get { return this.type; } }
+    public TypeSyntax Type => this.type;
     /// <summary>Declaration representing the variable declared in an out parameter or deconstruction.</summary>
-    public VariableDesignationSyntax Designation { get { return this.designation; } }
+    public VariableDesignationSyntax Designation => this.designation;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -6360,20 +5964,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.DeclarationExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DeclarationExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitDeclarationExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDeclarationExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitDeclarationExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDeclarationExpression(this);
 
     public DeclarationExpressionSyntax Update(TypeSyntax type, VariableDesignationSyntax designation)
     {
@@ -6487,13 +6082,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the open parenthesis.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>TypeSyntax node representing the type to which the expression is being cast.</summary>
-    public TypeSyntax Type { get { return this.type; } }
+    public TypeSyntax Type => this.type;
     /// <summary>SyntaxToken representing the close parenthesis.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
     /// <summary>ExpressionSyntax node representing the expression that is being casted.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -6507,20 +6102,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.CastExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CastExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCastExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCastExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitCastExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCastExpression(this);
 
     public CastExpressionSyntax Update(SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, ExpressionSyntax expression)
     {
@@ -6690,13 +6276,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the "async" token.</summary>
-    public override SyntaxToken AsyncKeyword { get { return this.asyncKeyword; } }
+    public override SyntaxToken AsyncKeyword => this.asyncKeyword;
     /// <summary>SyntaxToken representing the delegate keyword.</summary>
-    public SyntaxToken DelegateKeyword { get { return this.delegateKeyword; } }
+    public SyntaxToken DelegateKeyword => this.delegateKeyword;
     /// <summary>List of parameters of the anonymous method expression, or null if there no parameters are specified.</summary>
-    public ParameterListSyntax ParameterList { get { return this.parameterList; } }
+    public ParameterListSyntax ParameterList => this.parameterList;
     /// <summary>BlockSyntax node representing the body of the anonymous method.</summary>
-    public override CSharpSyntaxNode Body { get { return this.body; } }
+    public override CSharpSyntaxNode Body => this.body;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -6710,20 +6296,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.AnonymousMethodExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AnonymousMethodExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitAnonymousMethodExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAnonymousMethodExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitAnonymousMethodExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAnonymousMethodExpression(this);
 
     public AnonymousMethodExpressionSyntax Update(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, CSharpSyntaxNode body)
     {
@@ -6881,13 +6458,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the "async" token.</summary>
-    public override SyntaxToken AsyncKeyword { get { return this.asyncKeyword; } }
+    public override SyntaxToken AsyncKeyword => this.asyncKeyword;
     /// <summary>ParameterSyntax node representing the parameter of the lambda expression.</summary>
-    public ParameterSyntax Parameter { get { return this.parameter; } }
+    public ParameterSyntax Parameter => this.parameter;
     /// <summary>SyntaxToken representing equals greater than.</summary>
-    public override SyntaxToken ArrowToken { get { return this.arrowToken; } }
+    public override SyntaxToken ArrowToken => this.arrowToken;
     /// <summary>SyntaxNode representing the body of the lambda expression.</summary>
-    public override CSharpSyntaxNode Body { get { return this.body; } }
+    public override CSharpSyntaxNode Body => this.body;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -6901,20 +6478,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.SimpleLambdaExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SimpleLambdaExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitSimpleLambdaExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleLambdaExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitSimpleLambdaExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleLambdaExpression(this);
 
     public SimpleLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, CSharpSyntaxNode body)
     {
@@ -7026,8 +6594,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.expression = expression;
     }
 
-    public SyntaxToken RefKeyword { get { return this.refKeyword; } }
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public SyntaxToken RefKeyword => this.refKeyword;
+    public ExpressionSyntax Expression => this.expression;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -7039,20 +6607,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.RefExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.RefExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitRefExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitRefExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefExpression(this);
 
     public RefExpressionSyntax Update(SyntaxToken refKeyword, ExpressionSyntax expression)
     {
@@ -7175,13 +6734,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the "async" token.</summary>
-    public override SyntaxToken AsyncKeyword { get { return this.asyncKeyword; } }
+    public override SyntaxToken AsyncKeyword => this.asyncKeyword;
     /// <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
-    public ParameterListSyntax ParameterList { get { return this.parameterList; } }
+    public ParameterListSyntax ParameterList => this.parameterList;
     /// <summary>SyntaxToken representing equals greater than.</summary>
-    public override SyntaxToken ArrowToken { get { return this.arrowToken; } }
+    public override SyntaxToken ArrowToken => this.arrowToken;
     /// <summary>SyntaxNode representing the body of the lambda expression.</summary>
-    public override CSharpSyntaxNode Body { get { return this.body; } }
+    public override CSharpSyntaxNode Body => this.body;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -7195,20 +6754,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ParenthesizedLambdaExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ParenthesizedLambdaExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitParenthesizedLambdaExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedLambdaExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitParenthesizedLambdaExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedLambdaExpression(this);
 
     public ParenthesizedLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, CSharpSyntaxNode body)
     {
@@ -7338,11 +6888,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the open brace.</summary>
-    public SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
+    public SyntaxToken OpenBraceToken => this.openBraceToken;
     /// <summary>SeparatedSyntaxList of ExpressionSyntax representing the list of expressions in the initializer expression.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> Expressions { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.expressions)); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> Expressions => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.expressions));
     /// <summary>SyntaxToken representing the close brace.</summary>
-    public SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
+    public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -7355,20 +6905,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.InitializerExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InitializerExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitInitializerExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInitializerExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitInitializerExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInitializerExpression(this);
 
     public InitializerExpressionSyntax Update(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
     {
@@ -7507,13 +7048,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the new keyword.</summary>
-    public SyntaxToken NewKeyword { get { return this.newKeyword; } }
+    public SyntaxToken NewKeyword => this.newKeyword;
     /// <summary>TypeSyntax representing the type of the object being created.</summary>
-    public TypeSyntax Type { get { return this.type; } }
+    public TypeSyntax Type => this.type;
     /// <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
-    public ArgumentListSyntax ArgumentList { get { return this.argumentList; } }
+    public ArgumentListSyntax ArgumentList => this.argumentList;
     /// <summary>InitializerExpressionSyntax representing the initializer expression for the object being created.</summary>
-    public InitializerExpressionSyntax Initializer { get { return this.initializer; } }
+    public InitializerExpressionSyntax Initializer => this.initializer;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -7527,20 +7068,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ObjectCreationExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ObjectCreationExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitObjectCreationExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitObjectCreationExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitObjectCreationExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitObjectCreationExpression(this);
 
     public ObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, TypeSyntax type, ArgumentListSyntax argumentList, InitializerExpressionSyntax initializer)
     {
@@ -7662,9 +7194,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>NameEqualsSyntax representing the optional name of the member being initialized.</summary>
-    public NameEqualsSyntax NameEquals { get { return this.nameEquals; } }
+    public NameEqualsSyntax NameEquals => this.nameEquals;
     /// <summary>ExpressionSyntax representing the value the member is initialized with.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -7676,20 +7208,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitAnonymousObjectMemberDeclarator(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAnonymousObjectMemberDeclarator(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitAnonymousObjectMemberDeclarator(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAnonymousObjectMemberDeclarator(this);
 
     public AnonymousObjectMemberDeclaratorSyntax Update(NameEqualsSyntax nameEquals, ExpressionSyntax expression)
     {
@@ -7812,13 +7335,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the new keyword.</summary>
-    public SyntaxToken NewKeyword { get { return this.newKeyword; } }
+    public SyntaxToken NewKeyword => this.newKeyword;
     /// <summary>SyntaxToken representing the open brace.</summary>
-    public SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
+    public SyntaxToken OpenBraceToken => this.openBraceToken;
     /// <summary>SeparatedSyntaxList of AnonymousObjectMemberDeclaratorSyntax representing the list of object member initializers.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> Initializers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.initializers)); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> Initializers => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.initializers));
     /// <summary>SyntaxToken representing the close brace.</summary>
-    public SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
+    public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -7832,20 +7355,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.AnonymousObjectCreationExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AnonymousObjectCreationExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitAnonymousObjectCreationExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAnonymousObjectCreationExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitAnonymousObjectCreationExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAnonymousObjectCreationExpression(this);
 
     public AnonymousObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, SyntaxToken closeBraceToken)
     {
@@ -7975,11 +7489,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the new keyword.</summary>
-    public SyntaxToken NewKeyword { get { return this.newKeyword; } }
+    public SyntaxToken NewKeyword => this.newKeyword;
     /// <summary>ArrayTypeSyntax node representing the type of the array.</summary>
-    public ArrayTypeSyntax Type { get { return this.type; } }
+    public ArrayTypeSyntax Type => this.type;
     /// <summary>InitializerExpressionSyntax node representing the initializer of the array creation expression.</summary>
-    public InitializerExpressionSyntax Initializer { get { return this.initializer; } }
+    public InitializerExpressionSyntax Initializer => this.initializer;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -7992,20 +7506,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ArrayCreationExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ArrayCreationExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitArrayCreationExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrayCreationExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitArrayCreationExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrayCreationExpression(this);
 
     public ArrayCreationExpressionSyntax Update(SyntaxToken newKeyword, ArrayTypeSyntax type, InitializerExpressionSyntax initializer)
     {
@@ -8142,15 +7647,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the new keyword.</summary>
-    public SyntaxToken NewKeyword { get { return this.newKeyword; } }
+    public SyntaxToken NewKeyword => this.newKeyword;
     /// <summary>SyntaxToken representing the open bracket.</summary>
-    public SyntaxToken OpenBracketToken { get { return this.openBracketToken; } }
+    public SyntaxToken OpenBracketToken => this.openBracketToken;
     /// <summary>SyntaxList of SyntaxToken representing the commas in the implicit array creation expression.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Commas { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.commas); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Commas => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.commas);
     /// <summary>SyntaxToken representing the close bracket.</summary>
-    public SyntaxToken CloseBracketToken { get { return this.closeBracketToken; } }
+    public SyntaxToken CloseBracketToken => this.closeBracketToken;
     /// <summary>InitializerExpressionSyntax representing the initializer expression of the implicit array creation expression.</summary>
-    public InitializerExpressionSyntax Initializer { get { return this.initializer; } }
+    public InitializerExpressionSyntax Initializer => this.initializer;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -8165,20 +7670,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ImplicitArrayCreationExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ImplicitArrayCreationExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitImplicitArrayCreationExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitArrayCreationExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitImplicitArrayCreationExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitArrayCreationExpression(this);
 
     public ImplicitArrayCreationExpressionSyntax Update(SyntaxToken newKeyword, SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> commas, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
     {
@@ -8315,11 +7811,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the stackalloc keyword.</summary>
-    public SyntaxToken StackAllocKeyword { get { return this.stackAllocKeyword; } }
+    public SyntaxToken StackAllocKeyword => this.stackAllocKeyword;
     /// <summary>TypeSyntax node representing the type of the stackalloc array.</summary>
-    public TypeSyntax Type { get { return this.type; } }
+    public TypeSyntax Type => this.type;
     /// <summary>InitializerExpressionSyntax node representing the initializer of the stackalloc array creation expression.</summary>
-    public InitializerExpressionSyntax Initializer { get { return this.initializer; } }
+    public InitializerExpressionSyntax Initializer => this.initializer;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -8332,20 +7828,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.StackAllocArrayCreationExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.StackAllocArrayCreationExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitStackAllocArrayCreationExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitStackAllocArrayCreationExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitStackAllocArrayCreationExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitStackAllocArrayCreationExpression(this);
 
     public StackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, TypeSyntax type, InitializerExpressionSyntax initializer)
     {
@@ -8466,13 +7953,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the stackalloc keyword.</summary>
-    public SyntaxToken StackAllocKeyword { get { return this.stackAllocKeyword; } }
+    public SyntaxToken StackAllocKeyword => this.stackAllocKeyword;
     /// <summary>SyntaxToken representing the open bracket.</summary>
-    public SyntaxToken OpenBracketToken { get { return this.openBracketToken; } }
+    public SyntaxToken OpenBracketToken => this.openBracketToken;
     /// <summary>SyntaxToken representing the close bracket.</summary>
-    public SyntaxToken CloseBracketToken { get { return this.closeBracketToken; } }
+    public SyntaxToken CloseBracketToken => this.closeBracketToken;
     /// <summary>InitializerExpressionSyntax representing the initializer expression of the implicit stackalloc array creation expression.</summary>
-    public InitializerExpressionSyntax Initializer { get { return this.initializer; } }
+    public InitializerExpressionSyntax Initializer => this.initializer;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -8486,20 +7973,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ImplicitStackAllocArrayCreationExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ImplicitStackAllocArrayCreationExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitImplicitStackAllocArrayCreationExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitStackAllocArrayCreationExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitImplicitStackAllocArrayCreationExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitStackAllocArrayCreationExpression(this);
 
     public ImplicitStackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, SyntaxToken openBracketToken, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
     {
@@ -8645,8 +8123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.body = body;
     }
 
-    public FromClauseSyntax FromClause { get { return this.fromClause; } }
-    public QueryBodySyntax Body { get { return this.body; } }
+    public FromClauseSyntax FromClause => this.fromClause;
+    public QueryBodySyntax Body => this.body;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -8658,20 +8136,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.QueryExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.QueryExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitQueryExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQueryExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitQueryExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQueryExpression(this);
 
     public QueryExpressionSyntax Update(FromClauseSyntax fromClause, QueryBodySyntax body)
     {
@@ -8794,9 +8263,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<QueryClauseSyntax> Clauses { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<QueryClauseSyntax>(this.clauses); } }
-    public SelectOrGroupClauseSyntax SelectOrGroup { get { return this.selectOrGroup; } }
-    public QueryContinuationSyntax Continuation { get { return this.continuation; } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<QueryClauseSyntax> Clauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<QueryClauseSyntax>(this.clauses);
+    public SelectOrGroupClauseSyntax SelectOrGroup => this.selectOrGroup;
+    public QueryContinuationSyntax Continuation => this.continuation;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -8809,20 +8278,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.QueryBodySyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.QueryBodySyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitQueryBody(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQueryBody(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitQueryBody(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQueryBody(this);
 
     public QueryBodySyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<QueryClauseSyntax> clauses, SelectOrGroupClauseSyntax selectOrGroup, QueryContinuationSyntax continuation)
     {
@@ -8957,12 +8417,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.expression = expression;
     }
 
-    public SyntaxToken FromKeyword { get { return this.fromKeyword; } }
-    public TypeSyntax Type { get { return this.type; } }
+    public SyntaxToken FromKeyword => this.fromKeyword;
+    public TypeSyntax Type => this.type;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public SyntaxToken InKeyword { get { return this.inKeyword; } }
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public SyntaxToken Identifier => this.identifier;
+    public SyntaxToken InKeyword => this.inKeyword;
+    public ExpressionSyntax Expression => this.expression;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -8977,20 +8437,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.FromClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.FromClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitFromClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFromClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitFromClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFromClause(this);
 
     public FromClauseSyntax Update(SyntaxToken fromKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression)
     {
@@ -9123,11 +8574,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.expression = expression;
     }
 
-    public SyntaxToken LetKeyword { get { return this.letKeyword; } }
+    public SyntaxToken LetKeyword => this.letKeyword;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public SyntaxToken EqualsToken { get { return this.equalsToken; } }
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public SyntaxToken Identifier => this.identifier;
+    public SyntaxToken EqualsToken => this.equalsToken;
+    public ExpressionSyntax Expression => this.expression;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -9141,20 +8592,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.LetClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LetClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitLetClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLetClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitLetClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLetClause(this);
 
     public LetClauseSyntax Update(SyntaxToken letKeyword, SyntaxToken identifier, SyntaxToken equalsToken, ExpressionSyntax expression)
     {
@@ -9340,17 +8782,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public SyntaxToken JoinKeyword { get { return this.joinKeyword; } }
-    public TypeSyntax Type { get { return this.type; } }
+    public SyntaxToken JoinKeyword => this.joinKeyword;
+    public TypeSyntax Type => this.type;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public SyntaxToken InKeyword { get { return this.inKeyword; } }
-    public ExpressionSyntax InExpression { get { return this.inExpression; } }
-    public SyntaxToken OnKeyword { get { return this.onKeyword; } }
-    public ExpressionSyntax LeftExpression { get { return this.leftExpression; } }
-    public SyntaxToken EqualsKeyword { get { return this.equalsKeyword; } }
-    public ExpressionSyntax RightExpression { get { return this.rightExpression; } }
-    public JoinIntoClauseSyntax Into { get { return this.into; } }
+    public SyntaxToken Identifier => this.identifier;
+    public SyntaxToken InKeyword => this.inKeyword;
+    public ExpressionSyntax InExpression => this.inExpression;
+    public SyntaxToken OnKeyword => this.onKeyword;
+    public ExpressionSyntax LeftExpression => this.leftExpression;
+    public SyntaxToken EqualsKeyword => this.equalsKeyword;
+    public ExpressionSyntax RightExpression => this.rightExpression;
+    public JoinIntoClauseSyntax Into => this.into;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -9370,20 +8812,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.JoinClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.JoinClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitJoinClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitJoinClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitJoinClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitJoinClause(this);
 
     public JoinClauseSyntax Update(SyntaxToken joinKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax inExpression, SyntaxToken onKeyword, ExpressionSyntax leftExpression, SyntaxToken equalsKeyword, ExpressionSyntax rightExpression, JoinIntoClauseSyntax into)
     {
@@ -9537,9 +8970,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.identifier = identifier;
     }
 
-    public SyntaxToken IntoKeyword { get { return this.intoKeyword; } }
+    public SyntaxToken IntoKeyword => this.intoKeyword;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
+    public SyntaxToken Identifier => this.identifier;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -9551,20 +8984,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.JoinIntoClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.JoinIntoClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitJoinIntoClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitJoinIntoClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitJoinIntoClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitJoinIntoClause(this);
 
     public JoinIntoClauseSyntax Update(SyntaxToken intoKeyword, SyntaxToken identifier)
     {
@@ -9662,8 +9086,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.condition = condition;
     }
 
-    public SyntaxToken WhereKeyword { get { return this.whereKeyword; } }
-    public ExpressionSyntax Condition { get { return this.condition; } }
+    public SyntaxToken WhereKeyword => this.whereKeyword;
+    public ExpressionSyntax Condition => this.condition;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -9675,20 +9099,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.WhereClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.WhereClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitWhereClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWhereClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitWhereClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWhereClause(this);
 
     public WhereClauseSyntax Update(SyntaxToken whereKeyword, ExpressionSyntax condition)
     {
@@ -9795,8 +9210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public SyntaxToken OrderByKeyword { get { return this.orderByKeyword; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<OrderingSyntax> Orderings { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<OrderingSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.orderings)); } }
+    public SyntaxToken OrderByKeyword => this.orderByKeyword;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<OrderingSyntax> Orderings => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<OrderingSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.orderings));
 
     internal override GreenNode GetSlot(int index)
     {
@@ -9808,20 +9223,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.OrderByClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.OrderByClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitOrderByClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOrderByClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitOrderByClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOrderByClause(this);
 
     public OrderByClauseSyntax Update(SyntaxToken orderByKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<OrderingSyntax> orderings)
     {
@@ -9928,8 +9334,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public ExpressionSyntax Expression { get { return this.expression; } }
-    public SyntaxToken AscendingOrDescendingKeyword { get { return this.ascendingOrDescendingKeyword; } }
+    public ExpressionSyntax Expression => this.expression;
+    public SyntaxToken AscendingOrDescendingKeyword => this.ascendingOrDescendingKeyword;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -9941,20 +9347,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.OrderingSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.OrderingSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitOrdering(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOrdering(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitOrdering(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOrdering(this);
 
     public OrderingSyntax Update(ExpressionSyntax expression, SyntaxToken ascendingOrDescendingKeyword)
     {
@@ -10052,8 +9449,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.expression = expression;
     }
 
-    public SyntaxToken SelectKeyword { get { return this.selectKeyword; } }
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public SyntaxToken SelectKeyword => this.selectKeyword;
+    public ExpressionSyntax Expression => this.expression;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -10065,20 +9462,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.SelectClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SelectClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitSelectClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSelectClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitSelectClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSelectClause(this);
 
     public SelectClauseSyntax Update(SyntaxToken selectKeyword, ExpressionSyntax expression)
     {
@@ -10190,10 +9578,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.byExpression = byExpression;
     }
 
-    public SyntaxToken GroupKeyword { get { return this.groupKeyword; } }
-    public ExpressionSyntax GroupExpression { get { return this.groupExpression; } }
-    public SyntaxToken ByKeyword { get { return this.byKeyword; } }
-    public ExpressionSyntax ByExpression { get { return this.byExpression; } }
+    public SyntaxToken GroupKeyword => this.groupKeyword;
+    public ExpressionSyntax GroupExpression => this.groupExpression;
+    public SyntaxToken ByKeyword => this.byKeyword;
+    public ExpressionSyntax ByExpression => this.byExpression;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -10207,20 +9595,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.GroupClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.GroupClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitGroupClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGroupClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitGroupClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGroupClause(this);
 
     public GroupClauseSyntax Update(SyntaxToken groupKeyword, ExpressionSyntax groupExpression, SyntaxToken byKeyword, ExpressionSyntax byExpression)
     {
@@ -10339,10 +9718,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.body = body;
     }
 
-    public SyntaxToken IntoKeyword { get { return this.intoKeyword; } }
+    public SyntaxToken IntoKeyword => this.intoKeyword;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public QueryBodySyntax Body { get { return this.body; } }
+    public SyntaxToken Identifier => this.identifier;
+    public QueryBodySyntax Body => this.body;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -10355,20 +9734,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.QueryContinuationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.QueryContinuationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitQueryContinuation(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQueryContinuation(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitQueryContinuation(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQueryContinuation(this);
 
     public QueryContinuationSyntax Update(SyntaxToken intoKeyword, SyntaxToken identifier, QueryBodySyntax body)
     {
@@ -10468,7 +9838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the omitted array size expression.</summary>
-    public SyntaxToken OmittedArraySizeExpressionToken { get { return this.omittedArraySizeExpressionToken; } }
+    public SyntaxToken OmittedArraySizeExpressionToken => this.omittedArraySizeExpressionToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -10479,20 +9849,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.OmittedArraySizeExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.OmittedArraySizeExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitOmittedArraySizeExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOmittedArraySizeExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitOmittedArraySizeExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOmittedArraySizeExpression(this);
 
     public OmittedArraySizeExpressionSyntax Update(SyntaxToken omittedArraySizeExpressionToken)
     {
@@ -10600,11 +9961,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>The first part of an interpolated string, $" or $@"</summary>
-    public SyntaxToken StringStartToken { get { return this.stringStartToken; } }
+    public SyntaxToken StringStartToken => this.stringStartToken;
     /// <summary>List of parts of the interpolated string, each one is either a literal part or an interpolation.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> Contents { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax>(this.contents); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> Contents => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax>(this.contents);
     /// <summary>The closing quote of the interpolated string.</summary>
-    public SyntaxToken StringEndToken { get { return this.stringEndToken; } }
+    public SyntaxToken StringEndToken => this.stringEndToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -10617,20 +9978,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.InterpolatedStringExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InterpolatedStringExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitInterpolatedStringExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolatedStringExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitInterpolatedStringExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolatedStringExpression(this);
 
     public InterpolatedStringExpressionSyntax Update(SyntaxToken stringStartToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> contents, SyntaxToken stringEndToken)
     {
@@ -10744,10 +10096,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>ExpressionSyntax node representing the expression on the left of the "is" operator.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
-    public SyntaxToken IsKeyword { get { return this.isKeyword; } }
+    public ExpressionSyntax Expression => this.expression;
+    public SyntaxToken IsKeyword => this.isKeyword;
     /// <summary>PatternSyntax node representing the pattern on the right of the "is" operator.</summary>
-    public PatternSyntax Pattern { get { return this.pattern; } }
+    public PatternSyntax Pattern => this.pattern;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -10760,20 +10112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.IsPatternExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.IsPatternExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitIsPatternExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIsPatternExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitIsPatternExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIsPatternExpression(this);
 
     public IsPatternExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken isKeyword, PatternSyntax pattern)
     {
@@ -10878,8 +10221,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.expression = expression;
     }
 
-    public SyntaxToken ThrowKeyword { get { return this.throwKeyword; } }
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public SyntaxToken ThrowKeyword => this.throwKeyword;
+    public ExpressionSyntax Expression => this.expression;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -10891,20 +10234,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ThrowExpressionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ThrowExpressionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitThrowExpression(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitThrowExpression(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitThrowExpression(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitThrowExpression(this);
 
     public ThrowExpressionSyntax Update(SyntaxToken throwKeyword, ExpressionSyntax expression)
     {
@@ -11002,8 +10336,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.condition = condition;
     }
 
-    public SyntaxToken WhenKeyword { get { return this.whenKeyword; } }
-    public ExpressionSyntax Condition { get { return this.condition; } }
+    public SyntaxToken WhenKeyword => this.whenKeyword;
+    public ExpressionSyntax Condition => this.condition;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -11015,20 +10349,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.WhenClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.WhenClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitWhenClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWhenClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitWhenClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWhenClause(this);
 
     public WhenClauseSyntax Update(SyntaxToken whenKeyword, ExpressionSyntax condition)
     {
@@ -11143,8 +10468,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.designation = designation;
     }
 
-    public TypeSyntax Type { get { return this.type; } }
-    public VariableDesignationSyntax Designation { get { return this.designation; } }
+    public TypeSyntax Type => this.type;
+    public VariableDesignationSyntax Designation => this.designation;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -11156,20 +10481,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.DeclarationPatternSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DeclarationPatternSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitDeclarationPattern(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDeclarationPattern(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitDeclarationPattern(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDeclarationPattern(this);
 
     public DeclarationPatternSyntax Update(TypeSyntax type, VariableDesignationSyntax designation)
     {
@@ -11261,7 +10577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>ExpressionSyntax node representing the constant expression.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -11272,20 +10588,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ConstantPatternSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConstantPatternSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitConstantPattern(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstantPattern(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitConstantPattern(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstantPattern(this);
 
     public ConstantPatternSyntax Update(ExpressionSyntax expression)
     {
@@ -11387,7 +10694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>The text contents of a part of the interpolated string.</summary>
-    public SyntaxToken TextToken { get { return this.textToken; } }
+    public SyntaxToken TextToken => this.textToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -11398,20 +10705,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.InterpolatedStringTextSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InterpolatedStringTextSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitInterpolatedStringText(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolatedStringText(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitInterpolatedStringText(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolatedStringText(this);
 
     public InterpolatedStringTextSyntax Update(SyntaxToken textToken)
     {
@@ -11541,11 +10839,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.closeBraceToken = closeBraceToken;
     }
 
-    public SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
-    public ExpressionSyntax Expression { get { return this.expression; } }
-    public InterpolationAlignmentClauseSyntax AlignmentClause { get { return this.alignmentClause; } }
-    public InterpolationFormatClauseSyntax FormatClause { get { return this.formatClause; } }
-    public SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
+    public SyntaxToken OpenBraceToken => this.openBraceToken;
+    public ExpressionSyntax Expression => this.expression;
+    public InterpolationAlignmentClauseSyntax AlignmentClause => this.alignmentClause;
+    public InterpolationFormatClauseSyntax FormatClause => this.formatClause;
+    public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -11560,20 +10858,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.InterpolationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InterpolationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitInterpolation(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolation(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitInterpolation(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolation(this);
 
     public InterpolationSyntax Update(SyntaxToken openBraceToken, ExpressionSyntax expression, InterpolationAlignmentClauseSyntax alignmentClause, InterpolationFormatClauseSyntax formatClause, SyntaxToken closeBraceToken)
     {
@@ -11692,8 +10981,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.value = value;
     }
 
-    public SyntaxToken CommaToken { get { return this.commaToken; } }
-    public ExpressionSyntax Value { get { return this.value; } }
+    public SyntaxToken CommaToken => this.commaToken;
+    public ExpressionSyntax Value => this.value;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -11705,20 +10994,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.InterpolationAlignmentClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InterpolationAlignmentClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitInterpolationAlignmentClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolationAlignmentClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitInterpolationAlignmentClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolationAlignmentClause(this);
 
     public InterpolationAlignmentClauseSyntax Update(SyntaxToken commaToken, ExpressionSyntax value)
     {
@@ -11816,9 +11096,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.formatStringToken = formatStringToken;
     }
 
-    public SyntaxToken ColonToken { get { return this.colonToken; } }
+    public SyntaxToken ColonToken => this.colonToken;
     /// <summary>The text contents of the format specifier for an interpolation.</summary>
-    public SyntaxToken FormatStringToken { get { return this.formatStringToken; } }
+    public SyntaxToken FormatStringToken => this.formatStringToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -11830,20 +11110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.InterpolationFormatClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InterpolationFormatClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitInterpolationFormatClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolationFormatClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitInterpolationFormatClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolationFormatClause(this);
 
     public InterpolationFormatClauseSyntax Update(SyntaxToken colonToken, SyntaxToken formatStringToken)
     {
@@ -11934,7 +11205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
-    public StatementSyntax Statement { get { return this.statement; } }
+    public StatementSyntax Statement => this.statement;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -11945,20 +11216,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.GlobalStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.GlobalStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitGlobalStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGlobalStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitGlobalStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGlobalStatement(this);
 
     public GlobalStatementSyntax Update(StatementSyntax statement)
     {
@@ -12083,9 +11345,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.closeBraceToken = closeBraceToken;
     }
 
-    public SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> Statements { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax>(this.statements); } }
-    public SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
+    public SyntaxToken OpenBraceToken => this.openBraceToken;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> Statements => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax>(this.statements);
+    public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -12098,20 +11360,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.BlockSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BlockSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitBlock(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBlock(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitBlock(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBlock(this);
 
     public BlockSyntax Update(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
     {
@@ -12319,17 +11572,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
-    public TypeSyntax ReturnType { get { return this.returnType; } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public TypeSyntax ReturnType => this.returnType;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public TypeParameterListSyntax TypeParameterList { get { return this.typeParameterList; } }
-    public ParameterListSyntax ParameterList { get { return this.parameterList; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses); } }
-    public BlockSyntax Body { get { return this.body; } }
-    public ArrowExpressionClauseSyntax ExpressionBody { get { return this.expressionBody; } }
+    public SyntaxToken Identifier => this.identifier;
+    public TypeParameterListSyntax TypeParameterList => this.typeParameterList;
+    public ParameterListSyntax ParameterList => this.parameterList;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public BlockSyntax Body => this.body;
+    public ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
     /// <summary>Gets the optional semicolon token.</summary>
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -12348,20 +11601,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.LocalFunctionStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LocalFunctionStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitLocalFunctionStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLocalFunctionStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitLocalFunctionStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLocalFunctionStatement(this);
 
     public LocalFunctionStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
     {
@@ -12525,9 +11769,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the modifier list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
-    public VariableDeclarationSyntax Declaration { get { return this.declaration; } }
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public VariableDeclarationSyntax Declaration => this.declaration;
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -12540,20 +11784,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.LocalDeclarationStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LocalDeclarationStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitLocalDeclarationStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLocalDeclarationStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitLocalDeclarationStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLocalDeclarationStatement(this);
 
     public LocalDeclarationStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
@@ -12667,8 +11902,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public TypeSyntax Type { get { return this.type; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax> Variables { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.variables)); } }
+    public TypeSyntax Type => this.type;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax> Variables => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.variables));
 
     internal override GreenNode GetSlot(int index)
     {
@@ -12680,20 +11915,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.VariableDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.VariableDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitVariableDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitVariableDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitVariableDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitVariableDeclaration(this);
 
     public VariableDeclarationSyntax Update(TypeSyntax type, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
     {
@@ -12817,9 +12043,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public BracketedArgumentListSyntax ArgumentList { get { return this.argumentList; } }
-    public EqualsValueClauseSyntax Initializer { get { return this.initializer; } }
+    public SyntaxToken Identifier => this.identifier;
+    public BracketedArgumentListSyntax ArgumentList => this.argumentList;
+    public EqualsValueClauseSyntax Initializer => this.initializer;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -12832,20 +12058,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.VariableDeclaratorSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.VariableDeclaratorSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitVariableDeclarator(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitVariableDeclarator(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitVariableDeclarator(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitVariableDeclarator(this);
 
     public VariableDeclaratorSyntax Update(SyntaxToken identifier, BracketedArgumentListSyntax argumentList, EqualsValueClauseSyntax initializer)
     {
@@ -12950,8 +12167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.value = value;
     }
 
-    public SyntaxToken EqualsToken { get { return this.equalsToken; } }
-    public ExpressionSyntax Value { get { return this.value; } }
+    public SyntaxToken EqualsToken => this.equalsToken;
+    public ExpressionSyntax Value => this.value;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -12963,20 +12180,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.EqualsValueClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EqualsValueClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitEqualsValueClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEqualsValueClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitEqualsValueClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEqualsValueClause(this);
 
     public EqualsValueClauseSyntax Update(SyntaxToken equalsToken, ExpressionSyntax value)
     {
@@ -13084,7 +12292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.identifier = identifier;
     }
 
-    public SyntaxToken Identifier { get { return this.identifier; } }
+    public SyntaxToken Identifier => this.identifier;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -13095,20 +12303,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.SingleVariableDesignationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SingleVariableDesignationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitSingleVariableDesignation(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSingleVariableDesignation(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitSingleVariableDesignation(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSingleVariableDesignation(this);
 
     public SingleVariableDesignationSyntax Update(SyntaxToken identifier)
     {
@@ -13192,7 +12391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.underscoreToken = underscoreToken;
     }
 
-    public SyntaxToken UnderscoreToken { get { return this.underscoreToken; } }
+    public SyntaxToken UnderscoreToken => this.underscoreToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -13203,20 +12402,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.DiscardDesignationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DiscardDesignationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitDiscardDesignation(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDiscardDesignation(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitDiscardDesignation(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDiscardDesignation(this);
 
     public DiscardDesignationSyntax Update(SyntaxToken underscoreToken)
     {
@@ -13323,9 +12513,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.closeParenToken = closeParenToken;
     }
 
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDesignationSyntax> Variables { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDesignationSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.variables)); } }
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDesignationSyntax> Variables => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDesignationSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.variables));
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -13338,20 +12528,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ParenthesizedVariableDesignationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ParenthesizedVariableDesignationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitParenthesizedVariableDesignation(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedVariableDesignation(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitParenthesizedVariableDesignation(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedVariableDesignation(this);
 
     public ParenthesizedVariableDesignationSyntax Update(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDesignationSyntax> variables, SyntaxToken closeParenToken)
     {
@@ -13456,8 +12637,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public ExpressionSyntax Expression { get { return this.expression; } }
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public ExpressionSyntax Expression => this.expression;
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -13469,20 +12650,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ExpressionStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ExpressionStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitExpressionStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExpressionStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitExpressionStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExpressionStatement(this);
 
     public ExpressionStatementSyntax Update(ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
@@ -13573,7 +12745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -13584,20 +12756,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.EmptyStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EmptyStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitEmptyStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEmptyStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitEmptyStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEmptyStatement(this);
 
     public EmptyStatementSyntax Update(SyntaxToken semicolonToken)
     {
@@ -13697,10 +12860,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
+    public SyntaxToken Identifier => this.identifier;
     /// <summary>Gets a SyntaxToken that represents the colon succeeding the statement's label.</summary>
-    public SyntaxToken ColonToken { get { return this.colonToken; } }
-    public StatementSyntax Statement { get { return this.statement; } }
+    public SyntaxToken ColonToken => this.colonToken;
+    public StatementSyntax Statement => this.statement;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -13713,20 +12876,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.LabeledStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LabeledStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitLabeledStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLabeledStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitLabeledStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLabeledStatement(this);
 
     public LabeledStatementSyntax Update(SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
     {
@@ -13869,19 +13023,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>
     /// Gets a SyntaxToken that represents the goto keyword.
     /// </summary>
-    public SyntaxToken GotoKeyword { get { return this.gotoKeyword; } }
+    public SyntaxToken GotoKeyword => this.gotoKeyword;
     /// <summary>
     /// Gets a SyntaxToken that represents the case or default keywords if any exists.
     /// </summary>
-    public SyntaxToken CaseOrDefaultKeyword { get { return this.caseOrDefaultKeyword; } }
+    public SyntaxToken CaseOrDefaultKeyword => this.caseOrDefaultKeyword;
     /// <summary>
     /// Gets a constant expression for a goto case statement.
     /// </summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
     /// <summary>
     /// Gets a SyntaxToken that represents the semi-colon at the end of the statement.
     /// </summary>
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -13895,20 +13049,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.GotoStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.GotoStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitGotoStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGotoStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitGotoStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGotoStatement(this);
 
     public GotoStatementSyntax Update(SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
@@ -14020,8 +13165,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public SyntaxToken BreakKeyword { get { return this.breakKeyword; } }
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken BreakKeyword => this.breakKeyword;
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -14033,20 +13178,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.BreakStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BreakStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitBreakStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBreakStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitBreakStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBreakStatement(this);
 
     public BreakStatementSyntax Update(SyntaxToken breakKeyword, SyntaxToken semicolonToken)
     {
@@ -14144,8 +13280,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public SyntaxToken ContinueKeyword { get { return this.continueKeyword; } }
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken ContinueKeyword => this.continueKeyword;
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -14157,20 +13293,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ContinueStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ContinueStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitContinueStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitContinueStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitContinueStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitContinueStatement(this);
 
     public ContinueStatementSyntax Update(SyntaxToken continueKeyword, SyntaxToken semicolonToken)
     {
@@ -14284,9 +13411,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public SyntaxToken ReturnKeyword { get { return this.returnKeyword; } }
-    public ExpressionSyntax Expression { get { return this.expression; } }
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken ReturnKeyword => this.returnKeyword;
+    public ExpressionSyntax Expression => this.expression;
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -14299,20 +13426,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ReturnStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ReturnStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitReturnStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitReturnStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitReturnStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitReturnStatement(this);
 
     public ReturnStatementSyntax Update(SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
@@ -14433,9 +13551,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public SyntaxToken ThrowKeyword { get { return this.throwKeyword; } }
-    public ExpressionSyntax Expression { get { return this.expression; } }
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken ThrowKeyword => this.throwKeyword;
+    public ExpressionSyntax Expression => this.expression;
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -14448,20 +13566,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ThrowStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ThrowStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitThrowStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitThrowStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitThrowStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitThrowStatement(this);
 
     public ThrowStatementSyntax Update(SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
@@ -14589,10 +13698,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public SyntaxToken YieldKeyword { get { return this.yieldKeyword; } }
-    public SyntaxToken ReturnOrBreakKeyword { get { return this.returnOrBreakKeyword; } }
-    public ExpressionSyntax Expression { get { return this.expression; } }
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken YieldKeyword => this.yieldKeyword;
+    public SyntaxToken ReturnOrBreakKeyword => this.returnOrBreakKeyword;
+    public ExpressionSyntax Expression => this.expression;
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -14606,20 +13715,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.YieldStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.YieldStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitYieldStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitYieldStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitYieldStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitYieldStatement(this);
 
     public YieldStatementSyntax Update(SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
@@ -14752,11 +13852,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
-    public SyntaxToken WhileKeyword { get { return this.whileKeyword; } }
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public ExpressionSyntax Condition { get { return this.condition; } }
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
-    public StatementSyntax Statement { get { return this.statement; } }
+    public SyntaxToken WhileKeyword => this.whileKeyword;
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    public ExpressionSyntax Condition => this.condition;
+    public SyntaxToken CloseParenToken => this.closeParenToken;
+    public StatementSyntax Statement => this.statement;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -14771,20 +13871,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.WhileStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.WhileStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitWhileStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWhileStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitWhileStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWhileStatement(this);
 
     public WhileStatementSyntax Update(SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
     {
@@ -14938,13 +14029,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public SyntaxToken DoKeyword { get { return this.doKeyword; } }
-    public StatementSyntax Statement { get { return this.statement; } }
-    public SyntaxToken WhileKeyword { get { return this.whileKeyword; } }
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public ExpressionSyntax Condition { get { return this.condition; } }
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken DoKeyword => this.doKeyword;
+    public StatementSyntax Statement => this.statement;
+    public SyntaxToken WhileKeyword => this.whileKeyword;
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    public ExpressionSyntax Condition => this.condition;
+    public SyntaxToken CloseParenToken => this.closeParenToken;
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -14961,20 +14052,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.DoStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DoStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitDoStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDoStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitDoStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDoStatement(this);
 
     public DoStatementSyntax Update(SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
     {
@@ -15199,16 +14281,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
-    public SyntaxToken ForKeyword { get { return this.forKeyword; } }
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public VariableDeclarationSyntax Declaration { get { return this.declaration; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> Initializers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.initializers)); } }
-    public SyntaxToken FirstSemicolonToken { get { return this.firstSemicolonToken; } }
-    public ExpressionSyntax Condition { get { return this.condition; } }
-    public SyntaxToken SecondSemicolonToken { get { return this.secondSemicolonToken; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> Incrementors { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.incrementors)); } }
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
-    public StatementSyntax Statement { get { return this.statement; } }
+    public SyntaxToken ForKeyword => this.forKeyword;
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    public VariableDeclarationSyntax Declaration => this.declaration;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> Initializers => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.initializers));
+    public SyntaxToken FirstSemicolonToken => this.firstSemicolonToken;
+    public ExpressionSyntax Condition => this.condition;
+    public SyntaxToken SecondSemicolonToken => this.secondSemicolonToken;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> Incrementors => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.incrementors));
+    public SyntaxToken CloseParenToken => this.closeParenToken;
+    public StatementSyntax Statement => this.statement;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -15228,20 +14310,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ForStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ForStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitForStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitForStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitForStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForStatement(this);
 
     public ForStatementSyntax Update(SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
     {
@@ -15484,16 +14557,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
-    public override SyntaxToken AwaitKeyword { get { return this.awaitKeyword; } }
-    public override SyntaxToken ForEachKeyword { get { return this.forEachKeyword; } }
-    public override SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public TypeSyntax Type { get { return this.type; } }
+    public override SyntaxToken AwaitKeyword => this.awaitKeyword;
+    public override SyntaxToken ForEachKeyword => this.forEachKeyword;
+    public override SyntaxToken OpenParenToken => this.openParenToken;
+    public TypeSyntax Type => this.type;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public override SyntaxToken InKeyword { get { return this.inKeyword; } }
-    public override ExpressionSyntax Expression { get { return this.expression; } }
-    public override SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
-    public override StatementSyntax Statement { get { return this.statement; } }
+    public SyntaxToken Identifier => this.identifier;
+    public override SyntaxToken InKeyword => this.inKeyword;
+    public override ExpressionSyntax Expression => this.expression;
+    public override SyntaxToken CloseParenToken => this.closeParenToken;
+    public override StatementSyntax Statement => this.statement;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -15512,20 +14585,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ForEachStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ForEachStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitForEachStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitForEachStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitForEachStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForEachStatement(this);
 
     public ForEachStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
@@ -15723,20 +14787,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
-    public override SyntaxToken AwaitKeyword { get { return this.awaitKeyword; } }
-    public override SyntaxToken ForEachKeyword { get { return this.forEachKeyword; } }
-    public override SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public override SyntaxToken AwaitKeyword => this.awaitKeyword;
+    public override SyntaxToken ForEachKeyword => this.forEachKeyword;
+    public override SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>
     /// The variable(s) of the loop. In correct code this is a tuple
     /// literal, declaration expression with a tuple designator, or
     /// a wildcard syntax in the form of a simple identifier. In broken
     /// code it could be something else.
     /// </summary>
-    public ExpressionSyntax Variable { get { return this.variable; } }
-    public override SyntaxToken InKeyword { get { return this.inKeyword; } }
-    public override ExpressionSyntax Expression { get { return this.expression; } }
-    public override SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
-    public override StatementSyntax Statement { get { return this.statement; } }
+    public ExpressionSyntax Variable => this.variable;
+    public override SyntaxToken InKeyword => this.inKeyword;
+    public override ExpressionSyntax Expression => this.expression;
+    public override SyntaxToken CloseParenToken => this.closeParenToken;
+    public override StatementSyntax Statement => this.statement;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -15754,20 +14818,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ForEachVariableStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ForEachVariableStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitForEachVariableStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitForEachVariableStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitForEachVariableStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForEachVariableStatement(this);
 
     public ForEachVariableStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
@@ -15969,13 +15024,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
-    public SyntaxToken AwaitKeyword { get { return this.awaitKeyword; } }
-    public SyntaxToken UsingKeyword { get { return this.usingKeyword; } }
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public VariableDeclarationSyntax Declaration { get { return this.declaration; } }
-    public ExpressionSyntax Expression { get { return this.expression; } }
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
-    public StatementSyntax Statement { get { return this.statement; } }
+    public SyntaxToken AwaitKeyword => this.awaitKeyword;
+    public SyntaxToken UsingKeyword => this.usingKeyword;
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    public VariableDeclarationSyntax Declaration => this.declaration;
+    public ExpressionSyntax Expression => this.expression;
+    public SyntaxToken CloseParenToken => this.closeParenToken;
+    public StatementSyntax Statement => this.statement;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -15992,20 +15047,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.UsingStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.UsingStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitUsingStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUsingStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitUsingStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUsingStatement(this);
 
     public UsingStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
@@ -16159,11 +15205,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
-    public SyntaxToken FixedKeyword { get { return this.fixedKeyword; } }
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public VariableDeclarationSyntax Declaration { get { return this.declaration; } }
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
-    public StatementSyntax Statement { get { return this.statement; } }
+    public SyntaxToken FixedKeyword => this.fixedKeyword;
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    public VariableDeclarationSyntax Declaration => this.declaration;
+    public SyntaxToken CloseParenToken => this.closeParenToken;
+    public StatementSyntax Statement => this.statement;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -16178,20 +15224,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.FixedStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.FixedStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitFixedStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFixedStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitFixedStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFixedStatement(this);
 
     public FixedStatementSyntax Update(SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
     {
@@ -16310,8 +15347,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.block = block;
     }
 
-    public SyntaxToken Keyword { get { return this.keyword; } }
-    public BlockSyntax Block { get { return this.block; } }
+    public SyntaxToken Keyword => this.keyword;
+    public BlockSyntax Block => this.block;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -16323,20 +15360,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.CheckedStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CheckedStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCheckedStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCheckedStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitCheckedStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCheckedStatement(this);
 
     public CheckedStatementSyntax Update(SyntaxToken keyword, BlockSyntax block)
     {
@@ -16434,8 +15462,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.block = block;
     }
 
-    public SyntaxToken UnsafeKeyword { get { return this.unsafeKeyword; } }
-    public BlockSyntax Block { get { return this.block; } }
+    public SyntaxToken UnsafeKeyword => this.unsafeKeyword;
+    public BlockSyntax Block => this.block;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -16447,20 +15475,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.UnsafeStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.UnsafeStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitUnsafeStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUnsafeStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitUnsafeStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnsafeStatement(this);
 
     public UnsafeStatementSyntax Update(SyntaxToken unsafeKeyword, BlockSyntax block)
     {
@@ -16579,11 +15598,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
-    public SyntaxToken LockKeyword { get { return this.lockKeyword; } }
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public ExpressionSyntax Expression { get { return this.expression; } }
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
-    public StatementSyntax Statement { get { return this.statement; } }
+    public SyntaxToken LockKeyword => this.lockKeyword;
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    public ExpressionSyntax Expression => this.expression;
+    public SyntaxToken CloseParenToken => this.closeParenToken;
+    public StatementSyntax Statement => this.statement;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -16598,20 +15617,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.LockStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LockStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitLockStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLockStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitLockStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLockStatement(this);
 
     public LockStatementSyntax Update(SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
@@ -16773,27 +15783,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>
     /// Gets a SyntaxToken that represents the if keyword.
     /// </summary>
-    public SyntaxToken IfKeyword { get { return this.ifKeyword; } }
+    public SyntaxToken IfKeyword => this.ifKeyword;
     /// <summary>
     /// Gets a SyntaxToken that represents the open parenthesis before the if statement's condition expression.
     /// </summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>
     /// Gets an ExpressionSyntax that represents the condition of the if statement.
     /// </summary>
-    public ExpressionSyntax Condition { get { return this.condition; } }
+    public ExpressionSyntax Condition => this.condition;
     /// <summary>
     /// Gets a SyntaxToken that represents the close parenthesis after the if statement's condition expression.
     /// </summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
     /// <summary>
     /// Gets a StatementSyntax the represents the statement to be executed when the condition is true.
     /// </summary>
-    public StatementSyntax Statement { get { return this.statement; } }
+    public StatementSyntax Statement => this.statement;
     /// <summary>
     /// Gets an ElseClauseSyntax that represents the statement to be executed when the condition is false if such statement exists.
     /// </summary>
-    public ElseClauseSyntax Else { get { return this.@else; } }
+    public ElseClauseSyntax Else => this.@else;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -16809,20 +15819,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.IfStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.IfStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitIfStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIfStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitIfStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIfStatement(this);
 
     public IfStatementSyntax Update(SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
     {
@@ -16952,8 +15953,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>
     /// Gets a syntax token
     /// </summary>
-    public SyntaxToken ElseKeyword { get { return this.elseKeyword; } }
-    public StatementSyntax Statement { get { return this.statement; } }
+    public SyntaxToken ElseKeyword => this.elseKeyword;
+    public StatementSyntax Statement => this.statement;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -16965,20 +15966,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ElseClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ElseClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitElseClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElseClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitElseClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElseClause(this);
 
     public ElseClauseSyntax Update(SyntaxToken elseKeyword, StatementSyntax statement)
     {
@@ -17124,31 +16116,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>
     /// Gets a SyntaxToken that represents the switch keyword.
     /// </summary>
-    public SyntaxToken SwitchKeyword { get { return this.switchKeyword; } }
+    public SyntaxToken SwitchKeyword => this.switchKeyword;
     /// <summary>
     /// Gets a SyntaxToken that represents the open parenthesis preceding the switch expression.
     /// </summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>
     /// Gets an ExpressionSyntax representing the expression of the switch statement.
     /// </summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
     /// <summary>
     /// Gets a SyntaxToken that represents the close parenthesis succeeding the switch expression.
     /// </summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
     /// <summary>
     /// Gets a SyntaxToken that represents the open braces preceding the switch sections.
     /// </summary>
-    public SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
+    public SyntaxToken OpenBraceToken => this.openBraceToken;
     /// <summary>
     /// Gets a SyntaxList of SwitchSectionSyntax's that represents the switch sections of the switch statement.
     /// </summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax> Sections { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax>(this.sections); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax> Sections => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax>(this.sections);
     /// <summary>
     /// Gets a SyntaxToken that represents the open braces succeeding the switch sections.
     /// </summary>
-    public SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
+    public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -17165,20 +16157,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.SwitchStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SwitchStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitSwitchStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitSwitchStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchStatement(this);
 
     public SwitchStatementSyntax Update(SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax> sections, SyntaxToken closeBraceToken)
     {
@@ -17333,11 +16316,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>
     /// Gets a SyntaxList of SwitchLabelSyntax's the represents the possible labels that control can transfer to within the section.
     /// </summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchLabelSyntax> Labels { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchLabelSyntax>(this.labels); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchLabelSyntax> Labels => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchLabelSyntax>(this.labels);
     /// <summary>
     /// Gets a SyntaxList of StatementSyntax's the represents the statements to be executed when control transfer to a label the belongs to the section.
     /// </summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> Statements { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax>(this.statements); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> Statements => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax>(this.statements);
 
     internal override GreenNode GetSlot(int index)
     {
@@ -17349,20 +16332,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.SwitchSectionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SwitchSectionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitSwitchSection(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchSection(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitSwitchSection(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchSection(this);
 
     public SwitchSectionSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchLabelSyntax> labels, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements)
     {
@@ -17513,13 +16487,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the case keyword token.</summary>
-    public override SyntaxToken Keyword { get { return this.keyword; } }
+    public override SyntaxToken Keyword => this.keyword;
     /// <summary>
     /// Gets a PatternSyntax that represents the pattern that gets matched for the case label.
     /// </summary>
-    public PatternSyntax Pattern { get { return this.pattern; } }
-    public WhenClauseSyntax WhenClause { get { return this.whenClause; } }
-    public override SyntaxToken ColonToken { get { return this.colonToken; } }
+    public PatternSyntax Pattern => this.pattern;
+    public WhenClauseSyntax WhenClause => this.whenClause;
+    public override SyntaxToken ColonToken => this.colonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -17533,20 +16507,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.CasePatternSwitchLabelSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CasePatternSwitchLabelSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCasePatternSwitchLabel(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCasePatternSwitchLabel(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitCasePatternSwitchLabel(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCasePatternSwitchLabel(this);
 
     public CasePatternSwitchLabelSyntax Update(SyntaxToken keyword, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken colonToken)
     {
@@ -17667,12 +16632,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the case keyword token.</summary>
-    public override SyntaxToken Keyword { get { return this.keyword; } }
+    public override SyntaxToken Keyword => this.keyword;
     /// <summary>
     /// Gets an ExpressionSyntax that represents the constant expression that gets matched for the case label.
     /// </summary>
-    public ExpressionSyntax Value { get { return this.value; } }
-    public override SyntaxToken ColonToken { get { return this.colonToken; } }
+    public ExpressionSyntax Value => this.value;
+    public override SyntaxToken ColonToken => this.colonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -17685,20 +16650,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.CaseSwitchLabelSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CaseSwitchLabelSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCaseSwitchLabel(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCaseSwitchLabel(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitCaseSwitchLabel(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCaseSwitchLabel(this);
 
     public CaseSwitchLabelSyntax Update(SyntaxToken keyword, ExpressionSyntax value, SyntaxToken colonToken)
     {
@@ -17805,8 +16761,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the default keyword token.</summary>
-    public override SyntaxToken Keyword { get { return this.keyword; } }
-    public override SyntaxToken ColonToken { get { return this.colonToken; } }
+    public override SyntaxToken Keyword => this.keyword;
+    public override SyntaxToken ColonToken => this.colonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -17818,20 +16774,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.DefaultSwitchLabelSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DefaultSwitchLabelSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitDefaultSwitchLabel(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefaultSwitchLabel(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitDefaultSwitchLabel(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefaultSwitchLabel(this);
 
     public DefaultSwitchLabelSyntax Update(SyntaxToken keyword, SyntaxToken colonToken)
     {
@@ -17961,10 +16908,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public SyntaxToken TryKeyword { get { return this.tryKeyword; } }
-    public BlockSyntax Block { get { return this.block; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> Catches { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax>(this.catches); } }
-    public FinallyClauseSyntax Finally { get { return this.@finally; } }
+    public SyntaxToken TryKeyword => this.tryKeyword;
+    public BlockSyntax Block => this.block;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> Catches => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax>(this.catches);
+    public FinallyClauseSyntax Finally => this.@finally;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -17978,20 +16925,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.TryStatementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TryStatementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitTryStatement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTryStatement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitTryStatement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTryStatement(this);
 
     public TryStatementSyntax Update(SyntaxToken tryKeyword, BlockSyntax block, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
     {
@@ -18135,10 +17073,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.block = block;
     }
 
-    public SyntaxToken CatchKeyword { get { return this.catchKeyword; } }
-    public CatchDeclarationSyntax Declaration { get { return this.declaration; } }
-    public CatchFilterClauseSyntax Filter { get { return this.filter; } }
-    public BlockSyntax Block { get { return this.block; } }
+    public SyntaxToken CatchKeyword => this.catchKeyword;
+    public CatchDeclarationSyntax Declaration => this.declaration;
+    public CatchFilterClauseSyntax Filter => this.filter;
+    public BlockSyntax Block => this.block;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -18152,20 +17090,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.CatchClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CatchClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCatchClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCatchClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitCatchClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCatchClause(this);
 
     public CatchClauseSyntax Update(SyntaxToken catchKeyword, CatchDeclarationSyntax declaration, CatchFilterClauseSyntax filter, BlockSyntax block)
     {
@@ -18300,10 +17229,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.closeParenToken = closeParenToken;
     }
 
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public TypeSyntax Type { get { return this.type; } }
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    public TypeSyntax Type => this.type;
+    public SyntaxToken Identifier => this.identifier;
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -18317,20 +17246,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.CatchDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CatchDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCatchDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCatchDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitCatchDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCatchDeclaration(this);
 
     public CatchDeclarationSyntax Update(SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken closeParenToken)
     {
@@ -18456,10 +17376,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.closeParenToken = closeParenToken;
     }
 
-    public SyntaxToken WhenKeyword { get { return this.whenKeyword; } }
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public ExpressionSyntax FilterExpression { get { return this.filterExpression; } }
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken WhenKeyword => this.whenKeyword;
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    public ExpressionSyntax FilterExpression => this.filterExpression;
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -18473,20 +17393,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.CatchFilterClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CatchFilterClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCatchFilterClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCatchFilterClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitCatchFilterClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCatchFilterClause(this);
 
     public CatchFilterClauseSyntax Update(SyntaxToken whenKeyword, SyntaxToken openParenToken, ExpressionSyntax filterExpression, SyntaxToken closeParenToken)
     {
@@ -18598,8 +17509,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.block = block;
     }
 
-    public SyntaxToken FinallyKeyword { get { return this.finallyKeyword; } }
-    public BlockSyntax Block { get { return this.block; } }
+    public SyntaxToken FinallyKeyword => this.finallyKeyword;
+    public BlockSyntax Block => this.block;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -18611,20 +17522,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.FinallyClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.FinallyClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitFinallyClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFinallyClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitFinallyClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFinallyClause(this);
 
     public FinallyClauseSyntax Update(SyntaxToken finallyKeyword, BlockSyntax block)
     {
@@ -18779,12 +17681,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.endOfFileToken = endOfFileToken;
     }
 
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax>(this.externs); } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> Usings { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax>(this.usings); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax>(this.externs);
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> Usings => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax>(this.usings);
     /// <summary>Gets the attribute declaration list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members); } }
-    public SyntaxToken EndOfFileToken { get { return this.endOfFileToken; } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public SyntaxToken EndOfFileToken => this.endOfFileToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -18799,20 +17701,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.CompilationUnitSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CompilationUnitSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCompilationUnit(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCompilationUnit(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitCompilationUnit(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCompilationUnit(this);
 
     public CompilationUnitSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> externs, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken endOfFileToken)
     {
@@ -18949,13 +17842,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>SyntaxToken representing the extern keyword.</summary>
-    public SyntaxToken ExternKeyword { get { return this.externKeyword; } }
+    public SyntaxToken ExternKeyword => this.externKeyword;
     /// <summary>SyntaxToken representing the alias keyword.</summary>
-    public SyntaxToken AliasKeyword { get { return this.aliasKeyword; } }
+    public SyntaxToken AliasKeyword => this.aliasKeyword;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
+    public SyntaxToken Identifier => this.identifier;
     /// <summary>SyntaxToken representing the semicolon token.</summary>
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -18969,20 +17862,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ExternAliasDirectiveSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ExternAliasDirectiveSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitExternAliasDirective(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExternAliasDirective(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitExternAliasDirective(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExternAliasDirective(this);
 
     public ExternAliasDirectiveSyntax Update(SyntaxToken externKeyword, SyntaxToken aliasKeyword, SyntaxToken identifier, SyntaxToken semicolonToken)
     {
@@ -19133,11 +18017,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
-    public SyntaxToken UsingKeyword { get { return this.usingKeyword; } }
-    public SyntaxToken StaticKeyword { get { return this.staticKeyword; } }
-    public NameEqualsSyntax Alias { get { return this.alias; } }
-    public NameSyntax Name { get { return this.name; } }
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken UsingKeyword => this.usingKeyword;
+    public SyntaxToken StaticKeyword => this.staticKeyword;
+    public NameEqualsSyntax Alias => this.alias;
+    public NameSyntax Name => this.name;
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -19152,20 +18036,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.UsingDirectiveSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.UsingDirectiveSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitUsingDirective(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUsingDirective(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitUsingDirective(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUsingDirective(this);
 
     public UsingDirectiveSyntax Update(SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax alias, NameSyntax name, SyntaxToken semicolonToken)
     {
@@ -19380,15 +18255,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public SyntaxToken NamespaceKeyword { get { return this.namespaceKeyword; } }
-    public NameSyntax Name { get { return this.name; } }
-    public SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax>(this.externs); } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> Usings { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax>(this.usings); } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members); } }
-    public SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
+    public SyntaxToken NamespaceKeyword => this.namespaceKeyword;
+    public NameSyntax Name => this.name;
+    public SyntaxToken OpenBraceToken => this.openBraceToken;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax>(this.externs);
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> Usings => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax>(this.usings);
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public SyntaxToken CloseBraceToken => this.closeBraceToken;
     /// <summary>Gets the optional semicolon token.</summary>
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -19406,20 +18281,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.NamespaceDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.NamespaceDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitNamespaceDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNamespaceDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitNamespaceDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNamespaceDeclaration(this);
 
     public NamespaceDeclarationSyntax Update(SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> externs, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
     {
@@ -19593,13 +18459,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the open bracket token.</summary>
-    public SyntaxToken OpenBracketToken { get { return this.openBracketToken; } }
+    public SyntaxToken OpenBracketToken => this.openBracketToken;
     /// <summary>Gets the optional construct targeted by the attribute.</summary>
-    public AttributeTargetSpecifierSyntax Target { get { return this.target; } }
+    public AttributeTargetSpecifierSyntax Target => this.target;
     /// <summary>Gets the attribute declaration list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeSyntax> Attributes { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.attributes)); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeSyntax> Attributes => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.attributes));
     /// <summary>Gets the close bracket token.</summary>
-    public SyntaxToken CloseBracketToken { get { return this.closeBracketToken; } }
+    public SyntaxToken CloseBracketToken => this.closeBracketToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -19613,20 +18479,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.AttributeListSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AttributeListSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitAttributeList(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeList(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitAttributeList(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeList(this);
 
     public AttributeListSyntax Update(SyntaxToken openBracketToken, AttributeTargetSpecifierSyntax target, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeSyntax> attributes, SyntaxToken closeBracketToken)
     {
@@ -19740,9 +18597,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
+    public SyntaxToken Identifier => this.identifier;
     /// <summary>Gets the colon token.</summary>
-    public SyntaxToken ColonToken { get { return this.colonToken; } }
+    public SyntaxToken ColonToken => this.colonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -19754,20 +18611,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.AttributeTargetSpecifierSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AttributeTargetSpecifierSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitAttributeTargetSpecifier(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeTargetSpecifier(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitAttributeTargetSpecifier(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeTargetSpecifier(this);
 
     public AttributeTargetSpecifierSyntax Update(SyntaxToken identifier, SyntaxToken colonToken)
     {
@@ -19876,8 +18724,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the name.</summary>
-    public NameSyntax Name { get { return this.name; } }
-    public AttributeArgumentListSyntax ArgumentList { get { return this.argumentList; } }
+    public NameSyntax Name => this.name;
+    public AttributeArgumentListSyntax ArgumentList => this.argumentList;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -19889,20 +18737,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.AttributeSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AttributeSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitAttribute(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttribute(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitAttribute(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttribute(this);
 
     public AttributeSyntax Update(NameSyntax name, AttributeArgumentListSyntax argumentList)
     {
@@ -20018,11 +18857,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the open paren token.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>Gets the arguments syntax list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeArgumentSyntax> Arguments { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeArgumentSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments)); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeArgumentSyntax> Arguments => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeArgumentSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.arguments));
     /// <summary>Gets the close paren token.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -20035,20 +18874,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.AttributeArgumentListSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AttributeArgumentListSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitAttributeArgumentList(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeArgumentList(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitAttributeArgumentList(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeArgumentList(this);
 
     public AttributeArgumentListSyntax Update(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeArgumentSyntax> arguments, SyntaxToken closeParenToken)
     {
@@ -20179,10 +19009,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.expression = expression;
     }
 
-    public NameEqualsSyntax NameEquals { get { return this.nameEquals; } }
-    public NameColonSyntax NameColon { get { return this.nameColon; } }
+    public NameEqualsSyntax NameEquals => this.nameEquals;
+    public NameColonSyntax NameColon => this.nameColon;
     /// <summary>Gets the expression.</summary>
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public ExpressionSyntax Expression => this.expression;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -20195,20 +19025,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.AttributeArgumentSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AttributeArgumentSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitAttributeArgument(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeArgument(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitAttributeArgument(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeArgument(this);
 
     public AttributeArgumentSyntax Update(NameEqualsSyntax nameEquals, NameColonSyntax nameColon, ExpressionSyntax expression)
     {
@@ -20315,8 +19136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the identifier name.</summary>
-    public IdentifierNameSyntax Name { get { return this.name; } }
-    public SyntaxToken EqualsToken { get { return this.equalsToken; } }
+    public IdentifierNameSyntax Name => this.name;
+    public SyntaxToken EqualsToken => this.equalsToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -20328,20 +19149,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.NameEqualsSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.NameEqualsSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitNameEquals(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNameEquals(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitNameEquals(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNameEquals(this);
 
     public NameEqualsSyntax Update(IdentifierNameSyntax name, SyntaxToken equalsToken)
     {
@@ -20457,11 +19269,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the &lt; token.</summary>
-    public SyntaxToken LessThanToken { get { return this.lessThanToken; } }
+    public SyntaxToken LessThanToken => this.lessThanToken;
     /// <summary>Gets the parameter list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeParameterSyntax> Parameters { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeParameterSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters)); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeParameterSyntax> Parameters => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeParameterSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters));
     /// <summary>Gets the &gt; token.</summary>
-    public SyntaxToken GreaterThanToken { get { return this.greaterThanToken; } }
+    public SyntaxToken GreaterThanToken => this.greaterThanToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -20474,20 +19286,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.TypeParameterListSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TypeParameterListSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitTypeParameterList(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeParameterList(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitTypeParameterList(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeParameterList(this);
 
     public TypeParameterListSyntax Update(SyntaxToken lessThanToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeParameterSyntax> parameters, SyntaxToken greaterThanToken)
     {
@@ -20619,10 +19422,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the attribute declaration list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
-    public SyntaxToken VarianceKeyword { get { return this.varianceKeyword; } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public SyntaxToken VarianceKeyword => this.varianceKeyword;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
+    public SyntaxToken Identifier => this.identifier;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -20635,20 +19438,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.TypeParameterSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TypeParameterSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitTypeParameter(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeParameter(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitTypeParameter(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeParameter(this);
 
     public TypeParameterSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken varianceKeyword, SyntaxToken identifier)
     {
@@ -20948,18 +19742,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     /// <summary>Gets the class keyword token.</summary>
-    public override SyntaxToken Keyword { get { return this.keyword; } }
-    public override SyntaxToken Identifier { get { return this.identifier; } }
-    public override TypeParameterListSyntax TypeParameterList { get { return this.typeParameterList; } }
-    public override BaseListSyntax BaseList { get { return this.baseList; } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses); } }
-    public override SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members); } }
-    public override SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
-    public override SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public override SyntaxToken Keyword => this.keyword;
+    public override SyntaxToken Identifier => this.identifier;
+    public override TypeParameterListSyntax TypeParameterList => this.typeParameterList;
+    public override BaseListSyntax BaseList => this.baseList;
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public override SyntaxToken OpenBraceToken => this.openBraceToken;
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public override SyntaxToken CloseBraceToken => this.closeBraceToken;
+    public override SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -20980,20 +19774,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ClassDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ClassDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitClassDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitClassDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitClassDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitClassDeclaration(this);
 
     public ClassDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
     {
@@ -21281,18 +20066,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     /// <summary>Gets the struct keyword token.</summary>
-    public override SyntaxToken Keyword { get { return this.keyword; } }
-    public override SyntaxToken Identifier { get { return this.identifier; } }
-    public override TypeParameterListSyntax TypeParameterList { get { return this.typeParameterList; } }
-    public override BaseListSyntax BaseList { get { return this.baseList; } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses); } }
-    public override SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members); } }
-    public override SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
-    public override SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public override SyntaxToken Keyword => this.keyword;
+    public override SyntaxToken Identifier => this.identifier;
+    public override TypeParameterListSyntax TypeParameterList => this.typeParameterList;
+    public override BaseListSyntax BaseList => this.baseList;
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public override SyntaxToken OpenBraceToken => this.openBraceToken;
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public override SyntaxToken CloseBraceToken => this.closeBraceToken;
+    public override SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -21313,20 +20098,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.StructDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.StructDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitStructDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitStructDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitStructDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitStructDeclaration(this);
 
     public StructDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
     {
@@ -21614,18 +20390,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     /// <summary>Gets the interface keyword token.</summary>
-    public override SyntaxToken Keyword { get { return this.keyword; } }
-    public override SyntaxToken Identifier { get { return this.identifier; } }
-    public override TypeParameterListSyntax TypeParameterList { get { return this.typeParameterList; } }
-    public override BaseListSyntax BaseList { get { return this.baseList; } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses); } }
-    public override SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members); } }
-    public override SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
-    public override SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public override SyntaxToken Keyword => this.keyword;
+    public override SyntaxToken Identifier => this.identifier;
+    public override TypeParameterListSyntax TypeParameterList => this.typeParameterList;
+    public override BaseListSyntax BaseList => this.baseList;
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public override SyntaxToken OpenBraceToken => this.openBraceToken;
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public override SyntaxToken CloseBraceToken => this.closeBraceToken;
+    public override SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -21646,20 +20422,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.InterfaceDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.InterfaceDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitInterfaceDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterfaceDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitInterfaceDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterfaceDeclaration(this);
 
     public InterfaceDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
     {
@@ -21915,18 +20682,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     /// <summary>Gets the enum keyword token.</summary>
-    public SyntaxToken EnumKeyword { get { return this.enumKeyword; } }
-    public override SyntaxToken Identifier { get { return this.identifier; } }
-    public override BaseListSyntax BaseList { get { return this.baseList; } }
-    public override SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
+    public SyntaxToken EnumKeyword => this.enumKeyword;
+    public override SyntaxToken Identifier => this.identifier;
+    public override BaseListSyntax BaseList => this.baseList;
+    public override SyntaxToken OpenBraceToken => this.openBraceToken;
     /// <summary>Gets the members declaration list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> Members { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.members)); } }
-    public override SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> Members => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.members));
+    public override SyntaxToken CloseBraceToken => this.closeBraceToken;
     /// <summary>Gets the optional semicolon token.</summary>
-    public override SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public override SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -21945,20 +20712,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.EnumDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EnumDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitEnumDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEnumDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitEnumDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEnumDeclaration(this);
 
     public EnumDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax baseList, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
     {
@@ -22192,22 +20950,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the attribute declaration list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     /// <summary>Gets the modifier list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     /// <summary>Gets the "delegate" keyword.</summary>
-    public SyntaxToken DelegateKeyword { get { return this.delegateKeyword; } }
+    public SyntaxToken DelegateKeyword => this.delegateKeyword;
     /// <summary>Gets the return type.</summary>
-    public TypeSyntax ReturnType { get { return this.returnType; } }
+    public TypeSyntax ReturnType => this.returnType;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public TypeParameterListSyntax TypeParameterList { get { return this.typeParameterList; } }
+    public SyntaxToken Identifier => this.identifier;
+    public TypeParameterListSyntax TypeParameterList => this.typeParameterList;
     /// <summary>Gets the parameter list.</summary>
-    public ParameterListSyntax ParameterList { get { return this.parameterList; } }
+    public ParameterListSyntax ParameterList => this.parameterList;
     /// <summary>Gets the constraint clause list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
     /// <summary>Gets the semicolon token.</summary>
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -22226,20 +20984,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.DelegateDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DelegateDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitDelegateDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDelegateDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitDelegateDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDelegateDeclaration(this);
 
     public DelegateDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken delegateKeyword, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken semicolonToken)
     {
@@ -22412,10 +21161,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the attribute declaration list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public EqualsValueClauseSyntax EqualsValue { get { return this.equalsValue; } }
+    public SyntaxToken Identifier => this.identifier;
+    public EqualsValueClauseSyntax EqualsValue => this.equalsValue;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -22428,20 +21177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.EnumMemberDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EnumMemberDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitEnumMemberDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEnumMemberDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitEnumMemberDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEnumMemberDeclaration(this);
 
     public EnumMemberDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken identifier, EqualsValueClauseSyntax equalsValue)
     {
@@ -22557,9 +21297,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the colon token.</summary>
-    public SyntaxToken ColonToken { get { return this.colonToken; } }
+    public SyntaxToken ColonToken => this.colonToken;
     /// <summary>Gets the base type references.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<BaseTypeSyntax> Types { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<BaseTypeSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.types)); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<BaseTypeSyntax> Types => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<BaseTypeSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.types));
 
     internal override GreenNode GetSlot(int index)
     {
@@ -22571,20 +21311,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.BaseListSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BaseListSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitBaseList(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBaseList(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitBaseList(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBaseList(this);
 
     public BaseListSyntax Update(SyntaxToken colonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<BaseTypeSyntax> types)
     {
@@ -22695,7 +21426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.type = type;
     }
 
-    public override TypeSyntax Type { get { return this.type; } }
+    public override TypeSyntax Type => this.type;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -22706,20 +21437,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.SimpleBaseTypeSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SimpleBaseTypeSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitSimpleBaseType(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleBaseType(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitSimpleBaseType(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleBaseType(this);
 
     public SimpleBaseTypeSyntax Update(TypeSyntax type)
     {
@@ -22834,13 +21556,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public SyntaxToken WhereKeyword { get { return this.whereKeyword; } }
+    public SyntaxToken WhereKeyword => this.whereKeyword;
     /// <summary>Gets the identifier.</summary>
-    public IdentifierNameSyntax Name { get { return this.name; } }
+    public IdentifierNameSyntax Name => this.name;
     /// <summary>Gets the colon token.</summary>
-    public SyntaxToken ColonToken { get { return this.colonToken; } }
+    public SyntaxToken ColonToken => this.colonToken;
     /// <summary>Gets the constraints list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeParameterConstraintSyntax> Constraints { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeParameterConstraintSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.constraints)); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeParameterConstraintSyntax> Constraints => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeParameterConstraintSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.constraints));
 
     internal override GreenNode GetSlot(int index)
     {
@@ -22854,20 +21576,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.TypeParameterConstraintClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TypeParameterConstraintClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitTypeParameterConstraintClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeParameterConstraintClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitTypeParameterConstraintClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeParameterConstraintClause(this);
 
     public TypeParameterConstraintClauseSyntax Update(SyntaxToken whereKeyword, IdentifierNameSyntax name, SyntaxToken colonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeParameterConstraintSyntax> constraints)
     {
@@ -23006,11 +21719,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the "new" keyword.</summary>
-    public SyntaxToken NewKeyword { get { return this.newKeyword; } }
+    public SyntaxToken NewKeyword => this.newKeyword;
     /// <summary>Gets the open paren keyword.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>Gets the close paren keyword.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -23023,20 +21736,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ConstructorConstraintSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConstructorConstraintSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitConstructorConstraint(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstructorConstraint(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitConstructorConstraint(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstructorConstraint(this);
 
     public ConstructorConstraintSyntax Update(SyntaxToken newKeyword, SyntaxToken openParenToken, SyntaxToken closeParenToken)
     {
@@ -23152,9 +21856,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the constraint keyword ("class" or "struct").</summary>
-    public SyntaxToken ClassOrStructKeyword { get { return this.classOrStructKeyword; } }
+    public SyntaxToken ClassOrStructKeyword => this.classOrStructKeyword;
     /// <summary>SyntaxToken representing the question mark.</summary>
-    public SyntaxToken QuestionToken { get { return this.questionToken; } }
+    public SyntaxToken QuestionToken => this.questionToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -23166,20 +21870,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ClassOrStructConstraintSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ClassOrStructConstraintSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitClassOrStructConstraint(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitClassOrStructConstraint(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitClassOrStructConstraint(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitClassOrStructConstraint(this);
 
     public ClassOrStructConstraintSyntax Update(SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
     {
@@ -23272,7 +21967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the type syntax.</summary>
-    public TypeSyntax Type { get { return this.type; } }
+    public TypeSyntax Type => this.type;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -23283,20 +21978,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.TypeConstraintSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TypeConstraintSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitTypeConstraint(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeConstraint(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitTypeConstraint(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeConstraint(this);
 
     public TypeConstraintSyntax Update(TypeSyntax type)
     {
@@ -23447,11 +22133,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the attribute declaration list.</summary>
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     /// <summary>Gets the modifier list.</summary>
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
-    public override VariableDeclarationSyntax Declaration { get { return this.declaration; } }
-    public override SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override VariableDeclarationSyntax Declaration => this.declaration;
+    public override SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -23465,20 +22151,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.FieldDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.FieldDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitFieldDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFieldDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitFieldDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFieldDeclaration(this);
 
     public FieldDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
@@ -23630,12 +22307,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the attribute declaration list.</summary>
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     /// <summary>Gets the modifier list.</summary>
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
-    public SyntaxToken EventKeyword { get { return this.eventKeyword; } }
-    public override VariableDeclarationSyntax Declaration { get { return this.declaration; } }
-    public override SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public SyntaxToken EventKeyword => this.eventKeyword;
+    public override VariableDeclarationSyntax Declaration => this.declaration;
+    public override SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -23650,20 +22327,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.EventFieldDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EventFieldDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitEventFieldDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEventFieldDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitEventFieldDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEventFieldDeclaration(this);
 
     public EventFieldDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken eventKeyword, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
@@ -23782,8 +22450,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.dotToken = dotToken;
     }
 
-    public NameSyntax Name { get { return this.name; } }
-    public SyntaxToken DotToken { get { return this.dotToken; } }
+    public NameSyntax Name => this.name;
+    public SyntaxToken DotToken => this.dotToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -23795,20 +22463,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ExplicitInterfaceSpecifierSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ExplicitInterfaceSpecifierSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitExplicitInterfaceSpecifier(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExplicitInterfaceSpecifier(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitExplicitInterfaceSpecifier(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExplicitInterfaceSpecifier(this);
 
     public ExplicitInterfaceSpecifierSyntax Update(NameSyntax name, SyntaxToken dotToken)
     {
@@ -24076,21 +22735,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     /// <summary>Gets the return type syntax.</summary>
-    public TypeSyntax ReturnType { get { return this.returnType; } }
-    public ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier { get { return this.explicitInterfaceSpecifier; } }
+    public TypeSyntax ReturnType => this.returnType;
+    public ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public TypeParameterListSyntax TypeParameterList { get { return this.typeParameterList; } }
-    public override ParameterListSyntax ParameterList { get { return this.parameterList; } }
+    public SyntaxToken Identifier => this.identifier;
+    public TypeParameterListSyntax TypeParameterList => this.typeParameterList;
+    public override ParameterListSyntax ParameterList => this.parameterList;
     /// <summary>Gets the constraint clause list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses); } }
-    public override BlockSyntax Body { get { return this.body; } }
-    public override ArrowExpressionClauseSyntax ExpressionBody { get { return this.expressionBody; } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public override BlockSyntax Body => this.body;
+    public override ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
     /// <summary>Gets the optional semicolon token.</summary>
-    public override SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public override SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -24111,20 +22770,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.MethodDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.MethodDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitMethodDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMethodDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitMethodDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMethodDeclaration(this);
 
     public MethodDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
     {
@@ -24380,18 +23030,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     /// <summary>Gets the return type.</summary>
-    public TypeSyntax ReturnType { get { return this.returnType; } }
+    public TypeSyntax ReturnType => this.returnType;
     /// <summary>Gets the "operator" keyword.</summary>
-    public SyntaxToken OperatorKeyword { get { return this.operatorKeyword; } }
+    public SyntaxToken OperatorKeyword => this.operatorKeyword;
     /// <summary>Gets the operator token.</summary>
-    public SyntaxToken OperatorToken { get { return this.operatorToken; } }
-    public override ParameterListSyntax ParameterList { get { return this.parameterList; } }
-    public override BlockSyntax Body { get { return this.body; } }
-    public override ArrowExpressionClauseSyntax ExpressionBody { get { return this.expressionBody; } }
-    public override SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken OperatorToken => this.operatorToken;
+    public override ParameterListSyntax ParameterList => this.parameterList;
+    public override BlockSyntax Body => this.body;
+    public override ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
+    public override SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -24410,20 +23060,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.OperatorDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.OperatorDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitOperatorDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOperatorDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitOperatorDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOperatorDeclaration(this);
 
     public OperatorDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
     {
@@ -24665,19 +23306,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     /// <summary>Gets the "implicit" or "explicit" token.</summary>
-    public SyntaxToken ImplicitOrExplicitKeyword { get { return this.implicitOrExplicitKeyword; } }
+    public SyntaxToken ImplicitOrExplicitKeyword => this.implicitOrExplicitKeyword;
     /// <summary>Gets the "operator" token.</summary>
-    public SyntaxToken OperatorKeyword { get { return this.operatorKeyword; } }
+    public SyntaxToken OperatorKeyword => this.operatorKeyword;
     /// <summary>Gets the type.</summary>
-    public TypeSyntax Type { get { return this.type; } }
-    public override ParameterListSyntax ParameterList { get { return this.parameterList; } }
-    public override BlockSyntax Body { get { return this.body; } }
-    public override ArrowExpressionClauseSyntax ExpressionBody { get { return this.expressionBody; } }
+    public TypeSyntax Type => this.type;
+    public override ParameterListSyntax ParameterList => this.parameterList;
+    public override BlockSyntax Body => this.body;
+    public override ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
     /// <summary>Gets the optional semicolon token.</summary>
-    public override SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public override SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -24696,20 +23337,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ConversionOperatorDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConversionOperatorDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitConversionOperatorDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConversionOperatorDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitConversionOperatorDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConversionOperatorDeclaration(this);
 
     public ConversionOperatorDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
     {
@@ -24953,16 +23585,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public override ParameterListSyntax ParameterList { get { return this.parameterList; } }
-    public ConstructorInitializerSyntax Initializer { get { return this.initializer; } }
-    public override BlockSyntax Body { get { return this.body; } }
-    public override ArrowExpressionClauseSyntax ExpressionBody { get { return this.expressionBody; } }
+    public SyntaxToken Identifier => this.identifier;
+    public override ParameterListSyntax ParameterList => this.parameterList;
+    public ConstructorInitializerSyntax Initializer => this.initializer;
+    public override BlockSyntax Body => this.body;
+    public override ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
     /// <summary>Gets the optional semicolon token.</summary>
-    public override SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public override SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -24980,20 +23612,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ConstructorDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConstructorDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitConstructorDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstructorDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitConstructorDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstructorDeclaration(this);
 
     public ConstructorDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken identifier, ParameterListSyntax parameterList, ConstructorInitializerSyntax initializer, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
     {
@@ -25142,10 +23765,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the colon token.</summary>
-    public SyntaxToken ColonToken { get { return this.colonToken; } }
+    public SyntaxToken ColonToken => this.colonToken;
     /// <summary>Gets the "this" or "base" keyword.</summary>
-    public SyntaxToken ThisOrBaseKeyword { get { return this.thisOrBaseKeyword; } }
-    public ArgumentListSyntax ArgumentList { get { return this.argumentList; } }
+    public SyntaxToken ThisOrBaseKeyword => this.thisOrBaseKeyword;
+    public ArgumentListSyntax ArgumentList => this.argumentList;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -25158,20 +23781,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ConstructorInitializerSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConstructorInitializerSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitConstructorInitializer(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstructorInitializer(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitConstructorInitializer(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstructorInitializer(this);
 
     public ConstructorInitializerSyntax Update(SyntaxToken colonToken, SyntaxToken thisOrBaseKeyword, ArgumentListSyntax argumentList)
     {
@@ -25364,17 +23978,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     /// <summary>Gets the tilde token.</summary>
-    public SyntaxToken TildeToken { get { return this.tildeToken; } }
+    public SyntaxToken TildeToken => this.tildeToken;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public override ParameterListSyntax ParameterList { get { return this.parameterList; } }
-    public override BlockSyntax Body { get { return this.body; } }
-    public override ArrowExpressionClauseSyntax ExpressionBody { get { return this.expressionBody; } }
+    public SyntaxToken Identifier => this.identifier;
+    public override ParameterListSyntax ParameterList => this.parameterList;
+    public override BlockSyntax Body => this.body;
+    public override ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
     /// <summary>Gets the optional semicolon token.</summary>
-    public override SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public override SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -25392,20 +24006,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.DestructorDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DestructorDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitDestructorDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDestructorDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitDestructorDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDestructorDeclaration(this);
 
     public DestructorDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken tildeToken, SyntaxToken identifier, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
     {
@@ -25689,16 +24294,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
-    public override TypeSyntax Type { get { return this.type; } }
-    public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier { get { return this.explicitInterfaceSpecifier; } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override TypeSyntax Type => this.type;
+    public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public override AccessorListSyntax AccessorList { get { return this.accessorList; } }
-    public ArrowExpressionClauseSyntax ExpressionBody { get { return this.expressionBody; } }
-    public EqualsValueClauseSyntax Initializer { get { return this.initializer; } }
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken Identifier => this.identifier;
+    public override AccessorListSyntax AccessorList => this.accessorList;
+    public ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
+    public EqualsValueClauseSyntax Initializer => this.initializer;
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -25717,20 +24322,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.PropertyDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PropertyDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitPropertyDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPropertyDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitPropertyDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPropertyDeclaration(this);
 
     public PropertyDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, EqualsValueClauseSyntax initializer, SyntaxToken semicolonToken)
     {
@@ -25878,8 +24474,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.expression = expression;
     }
 
-    public SyntaxToken ArrowToken { get { return this.arrowToken; } }
-    public ExpressionSyntax Expression { get { return this.expression; } }
+    public SyntaxToken ArrowToken => this.arrowToken;
+    public ExpressionSyntax Expression => this.expression;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -25891,20 +24487,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ArrowExpressionClauseSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ArrowExpressionClauseSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitArrowExpressionClause(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrowExpressionClause(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitArrowExpressionClause(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrowExpressionClause(this);
 
     public ArrowExpressionClauseSyntax Update(SyntaxToken arrowToken, ExpressionSyntax expression)
     {
@@ -26064,14 +24651,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.accessorList = accessorList;
     }
 
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
-    public SyntaxToken EventKeyword { get { return this.eventKeyword; } }
-    public override TypeSyntax Type { get { return this.type; } }
-    public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier { get { return this.explicitInterfaceSpecifier; } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public SyntaxToken EventKeyword => this.eventKeyword;
+    public override TypeSyntax Type => this.type;
+    public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public override AccessorListSyntax AccessorList { get { return this.accessorList; } }
+    public SyntaxToken Identifier => this.identifier;
+    public override AccessorListSyntax AccessorList => this.accessorList;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -26088,20 +24675,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.EventDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EventDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitEventDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEventDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitEventDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEventDeclaration(this);
 
     public EventDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList)
     {
@@ -26337,16 +24915,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
-    public override TypeSyntax Type { get { return this.type; } }
-    public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier { get { return this.explicitInterfaceSpecifier; } }
-    public SyntaxToken ThisKeyword { get { return this.thisKeyword; } }
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public override TypeSyntax Type => this.type;
+    public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier => this.explicitInterfaceSpecifier;
+    public SyntaxToken ThisKeyword => this.thisKeyword;
     /// <summary>Gets the parameter list.</summary>
-    public BracketedParameterListSyntax ParameterList { get { return this.parameterList; } }
-    public override AccessorListSyntax AccessorList { get { return this.accessorList; } }
-    public ArrowExpressionClauseSyntax ExpressionBody { get { return this.expressionBody; } }
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public BracketedParameterListSyntax ParameterList => this.parameterList;
+    public override AccessorListSyntax AccessorList => this.accessorList;
+    public ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -26365,20 +24943,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.IndexerDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.IndexerDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitIndexerDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIndexerDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitIndexerDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIndexerDeclaration(this);
 
     public IndexerDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken thisKeyword, BracketedParameterListSyntax parameterList, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
     {
@@ -26541,9 +25110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.closeBraceToken = closeBraceToken;
     }
 
-    public SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AccessorDeclarationSyntax> Accessors { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AccessorDeclarationSyntax>(this.accessors); } }
-    public SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
+    public SyntaxToken OpenBraceToken => this.openBraceToken;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AccessorDeclarationSyntax> Accessors => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AccessorDeclarationSyntax>(this.accessors);
+    public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -26556,20 +25125,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.AccessorListSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AccessorListSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitAccessorList(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAccessorList(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitAccessorList(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAccessorList(this);
 
     public AccessorListSyntax Update(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AccessorDeclarationSyntax> accessors, SyntaxToken closeBraceToken)
     {
@@ -26748,17 +25308,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the attribute declaration list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     /// <summary>Gets the modifier list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     /// <summary>Gets the keyword token, or identifier if an erroneous accessor declaration.</summary>
-    public SyntaxToken Keyword { get { return this.keyword; } }
+    public SyntaxToken Keyword => this.keyword;
     /// <summary>Gets the optional body block which may be empty, but it is null if there are no braces.</summary>
-    public BlockSyntax Body { get { return this.body; } }
+    public BlockSyntax Body => this.body;
     /// <summary>Gets the optional expression body.</summary>
-    public ArrowExpressionClauseSyntax ExpressionBody { get { return this.expressionBody; } }
+    public ArrowExpressionClauseSyntax ExpressionBody => this.expressionBody;
     /// <summary>Gets the optional semicolon token.</summary>
-    public SyntaxToken SemicolonToken { get { return this.semicolonToken; } }
+    public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -26774,20 +25334,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.AccessorDeclarationSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.AccessorDeclarationSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitAccessorDeclaration(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAccessorDeclaration(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitAccessorDeclaration(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAccessorDeclaration(this);
 
     public AccessorDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
     {
@@ -26952,10 +25503,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the open paren token.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> Parameters { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters)); } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> Parameters => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters));
     /// <summary>Gets the close paren token.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -26968,20 +25519,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ParameterListSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ParameterListSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitParameterList(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParameterList(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitParameterList(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParameterList(this);
 
     public ParameterListSyntax Update(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeParenToken)
     {
@@ -27104,10 +25646,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the open bracket token.</summary>
-    public SyntaxToken OpenBracketToken { get { return this.openBracketToken; } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> Parameters { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters)); } }
+    public SyntaxToken OpenBracketToken => this.openBracketToken;
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> Parameters => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters));
     /// <summary>Gets the close bracket token.</summary>
-    public SyntaxToken CloseBracketToken { get { return this.closeBracketToken; } }
+    public SyntaxToken CloseBracketToken => this.closeBracketToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -27120,20 +25662,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.BracketedParameterListSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BracketedParameterListSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitBracketedParameterList(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBracketedParameterList(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitBracketedParameterList(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBracketedParameterList(this);
 
     public BracketedParameterListSyntax Update(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeBracketToken)
     {
@@ -27297,13 +25830,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the attribute declaration list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     /// <summary>Gets the modifier list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
-    public TypeSyntax Type { get { return this.type; } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public TypeSyntax Type => this.type;
     /// <summary>Gets the identifier.</summary>
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public EqualsValueClauseSyntax Default { get { return this.@default; } }
+    public SyntaxToken Identifier => this.identifier;
+    public EqualsValueClauseSyntax Default => this.@default;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -27318,20 +25851,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ParameterSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ParameterSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitParameter(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParameter(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitParameter(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParameter(this);
 
     public ParameterSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default)
     {
@@ -27485,10 +26009,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the attribute declaration list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     /// <summary>Gets the modifier list.</summary>
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers); } }
-    public TypeSyntax Type { get { return this.type; } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    public TypeSyntax Type => this.type;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -27501,20 +26025,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.IncompleteMemberSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.IncompleteMemberSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitIncompleteMember(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIncompleteMember(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitIncompleteMember(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIncompleteMember(this);
 
     public IncompleteMemberSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type)
     {
@@ -27621,7 +26136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Tokens { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.tokens); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Tokens => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.tokens);
 
     internal override GreenNode GetSlot(int index)
     {
@@ -27632,20 +26147,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.SkippedTokensTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SkippedTokensTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitSkippedTokensTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSkippedTokensTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitSkippedTokensTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSkippedTokensTrivia(this);
 
     public SkippedTokensTriviaSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> tokens)
     {
@@ -27745,8 +26251,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.endOfComment = endOfComment;
     }
 
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax> Content { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax>(this.content); } }
-    public SyntaxToken EndOfComment { get { return this.endOfComment; } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax> Content => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax>(this.content);
+    public SyntaxToken EndOfComment => this.endOfComment;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -27758,20 +26264,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.DocumentationCommentTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DocumentationCommentTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitDocumentationCommentTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDocumentationCommentTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitDocumentationCommentTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDocumentationCommentTrivia(this);
 
     public DocumentationCommentTriviaSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax> content, SyntaxToken endOfComment)
     {
@@ -27890,7 +26387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.type = type;
     }
 
-    public TypeSyntax Type { get { return this.type; } }
+    public TypeSyntax Type => this.type;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -27901,20 +26398,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.TypeCrefSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.TypeCrefSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitTypeCref(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeCref(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitTypeCref(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeCref(this);
 
     public TypeCrefSyntax Update(TypeSyntax type)
     {
@@ -28019,9 +26507,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.member = member;
     }
 
-    public TypeSyntax Container { get { return this.container; } }
-    public SyntaxToken DotToken { get { return this.dotToken; } }
-    public MemberCrefSyntax Member { get { return this.member; } }
+    public TypeSyntax Container => this.container;
+    public SyntaxToken DotToken => this.dotToken;
+    public MemberCrefSyntax Member => this.member;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -28034,20 +26522,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.QualifiedCrefSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.QualifiedCrefSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitQualifiedCref(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQualifiedCref(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitQualifiedCref(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQualifiedCref(this);
 
     public QualifiedCrefSyntax Update(TypeSyntax container, SyntaxToken dotToken, MemberCrefSyntax member)
     {
@@ -28191,8 +26670,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public TypeSyntax Name { get { return this.name; } }
-    public CrefParameterListSyntax Parameters { get { return this.parameters; } }
+    public TypeSyntax Name => this.name;
+    public CrefParameterListSyntax Parameters => this.parameters;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -28204,20 +26683,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.NameMemberCrefSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.NameMemberCrefSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitNameMemberCref(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNameMemberCref(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitNameMemberCref(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNameMemberCref(this);
 
     public NameMemberCrefSyntax Update(TypeSyntax name, CrefParameterListSyntax parameters)
     {
@@ -28328,8 +26798,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public SyntaxToken ThisKeyword { get { return this.thisKeyword; } }
-    public CrefBracketedParameterListSyntax Parameters { get { return this.parameters; } }
+    public SyntaxToken ThisKeyword => this.thisKeyword;
+    public CrefBracketedParameterListSyntax Parameters => this.parameters;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -28341,20 +26811,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.IndexerMemberCrefSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.IndexerMemberCrefSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitIndexerMemberCref(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIndexerMemberCref(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitIndexerMemberCref(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIndexerMemberCref(this);
 
     public IndexerMemberCrefSyntax Update(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax parameters)
     {
@@ -28473,10 +26934,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public SyntaxToken OperatorKeyword { get { return this.operatorKeyword; } }
+    public SyntaxToken OperatorKeyword => this.operatorKeyword;
     /// <summary>Gets the operator token.</summary>
-    public SyntaxToken OperatorToken { get { return this.operatorToken; } }
-    public CrefParameterListSyntax Parameters { get { return this.parameters; } }
+    public SyntaxToken OperatorToken => this.operatorToken;
+    public CrefParameterListSyntax Parameters => this.parameters;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -28489,20 +26950,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.OperatorMemberCrefSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.OperatorMemberCrefSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitOperatorMemberCref(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOperatorMemberCref(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitOperatorMemberCref(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOperatorMemberCref(this);
 
     public OperatorMemberCrefSyntax Update(SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax parameters)
     {
@@ -28634,10 +27086,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public SyntaxToken ImplicitOrExplicitKeyword { get { return this.implicitOrExplicitKeyword; } }
-    public SyntaxToken OperatorKeyword { get { return this.operatorKeyword; } }
-    public TypeSyntax Type { get { return this.type; } }
-    public CrefParameterListSyntax Parameters { get { return this.parameters; } }
+    public SyntaxToken ImplicitOrExplicitKeyword => this.implicitOrExplicitKeyword;
+    public SyntaxToken OperatorKeyword => this.operatorKeyword;
+    public TypeSyntax Type => this.type;
+    public CrefParameterListSyntax Parameters => this.parameters;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -28651,20 +27103,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ConversionOperatorMemberCrefSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ConversionOperatorMemberCrefSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitConversionOperatorMemberCref(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConversionOperatorMemberCref(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitConversionOperatorMemberCref(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConversionOperatorMemberCref(this);
 
     public ConversionOperatorMemberCrefSyntax Update(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax parameters)
     {
@@ -28820,10 +27263,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the open paren token.</summary>
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax> Parameters { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters)); } }
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax> Parameters => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters));
     /// <summary>Gets the close paren token.</summary>
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+    public SyntaxToken CloseParenToken => this.closeParenToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -28836,20 +27279,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.CrefParameterListSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CrefParameterListSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCrefParameterList(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCrefParameterList(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitCrefParameterList(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCrefParameterList(this);
 
     public CrefParameterListSyntax Update(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeParenToken)
     {
@@ -28974,10 +27408,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     /// <summary>Gets the open bracket token.</summary>
-    public SyntaxToken OpenBracketToken { get { return this.openBracketToken; } }
-    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax> Parameters { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters)); } }
+    public SyntaxToken OpenBracketToken => this.openBracketToken;
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax> Parameters => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters));
     /// <summary>Gets the close bracket token.</summary>
-    public SyntaxToken CloseBracketToken { get { return this.closeBracketToken; } }
+    public SyntaxToken CloseBracketToken => this.closeBracketToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -28990,20 +27424,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.CrefBracketedParameterListSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CrefBracketedParameterListSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCrefBracketedParameterList(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCrefBracketedParameterList(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitCrefBracketedParameterList(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCrefBracketedParameterList(this);
 
     public CrefBracketedParameterListSyntax Update(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeBracketToken)
     {
@@ -29122,8 +27547,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.type = type;
     }
 
-    public SyntaxToken RefKindKeyword { get { return this.refKindKeyword; } }
-    public TypeSyntax Type { get { return this.type; } }
+    public SyntaxToken RefKindKeyword => this.refKindKeyword;
+    public TypeSyntax Type => this.type;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -29135,20 +27560,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.CrefParameterSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.CrefParameterSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitCrefParameter(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCrefParameter(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitCrefParameter(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCrefParameter(this);
 
     public CrefParameterSyntax Update(SyntaxToken refKindKeyword, TypeSyntax type)
     {
@@ -29279,9 +27695,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.endTag = endTag;
     }
 
-    public XmlElementStartTagSyntax StartTag { get { return this.startTag; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax> Content { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax>(this.content); } }
-    public XmlElementEndTagSyntax EndTag { get { return this.endTag; } }
+    public XmlElementStartTagSyntax StartTag => this.startTag;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax> Content => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax>(this.content);
+    public XmlElementEndTagSyntax EndTag => this.endTag;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -29294,20 +27710,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.XmlElementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlElementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitXmlElement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlElement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitXmlElement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlElement(this);
 
     public XmlElementSyntax Update(XmlElementStartTagSyntax startTag, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax> content, XmlElementEndTagSyntax endTag)
     {
@@ -29435,10 +27842,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.greaterThanToken = greaterThanToken;
     }
 
-    public SyntaxToken LessThanToken { get { return this.lessThanToken; } }
-    public XmlNameSyntax Name { get { return this.name; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlAttributeSyntax> Attributes { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlAttributeSyntax>(this.attributes); } }
-    public SyntaxToken GreaterThanToken { get { return this.greaterThanToken; } }
+    public SyntaxToken LessThanToken => this.lessThanToken;
+    public XmlNameSyntax Name => this.name;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlAttributeSyntax> Attributes => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlAttributeSyntax>(this.attributes);
+    public SyntaxToken GreaterThanToken => this.greaterThanToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -29452,20 +27859,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.XmlElementStartTagSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlElementStartTagSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitXmlElementStartTag(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlElementStartTag(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitXmlElementStartTag(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlElementStartTag(this);
 
     public XmlElementStartTagSyntax Update(SyntaxToken lessThanToken, XmlNameSyntax name, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlAttributeSyntax> attributes, SyntaxToken greaterThanToken)
     {
@@ -29584,9 +27982,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.greaterThanToken = greaterThanToken;
     }
 
-    public SyntaxToken LessThanSlashToken { get { return this.lessThanSlashToken; } }
-    public XmlNameSyntax Name { get { return this.name; } }
-    public SyntaxToken GreaterThanToken { get { return this.greaterThanToken; } }
+    public SyntaxToken LessThanSlashToken => this.lessThanSlashToken;
+    public XmlNameSyntax Name => this.name;
+    public SyntaxToken GreaterThanToken => this.greaterThanToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -29599,20 +27997,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.XmlElementEndTagSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlElementEndTagSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitXmlElementEndTag(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlElementEndTag(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitXmlElementEndTag(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlElementEndTag(this);
 
     public XmlElementEndTagSyntax Update(SyntaxToken lessThanSlashToken, XmlNameSyntax name, SyntaxToken greaterThanToken)
     {
@@ -29740,10 +28129,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.slashGreaterThanToken = slashGreaterThanToken;
     }
 
-    public SyntaxToken LessThanToken { get { return this.lessThanToken; } }
-    public XmlNameSyntax Name { get { return this.name; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlAttributeSyntax> Attributes { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlAttributeSyntax>(this.attributes); } }
-    public SyntaxToken SlashGreaterThanToken { get { return this.slashGreaterThanToken; } }
+    public SyntaxToken LessThanToken => this.lessThanToken;
+    public XmlNameSyntax Name => this.name;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlAttributeSyntax> Attributes => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlAttributeSyntax>(this.attributes);
+    public SyntaxToken SlashGreaterThanToken => this.slashGreaterThanToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -29757,20 +28146,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.XmlEmptyElementSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlEmptyElementSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitXmlEmptyElement(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlEmptyElement(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitXmlEmptyElement(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlEmptyElement(this);
 
     public XmlEmptyElementSyntax Update(SyntaxToken lessThanToken, XmlNameSyntax name, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlAttributeSyntax> attributes, SyntaxToken slashGreaterThanToken)
     {
@@ -29891,8 +28271,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.localName = localName;
     }
 
-    public XmlPrefixSyntax Prefix { get { return this.prefix; } }
-    public SyntaxToken LocalName { get { return this.localName; } }
+    public XmlPrefixSyntax Prefix => this.prefix;
+    public SyntaxToken LocalName => this.localName;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -29904,20 +28284,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.XmlNameSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlNameSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitXmlName(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlName(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitXmlName(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlName(this);
 
     public XmlNameSyntax Update(XmlPrefixSyntax prefix, SyntaxToken localName)
     {
@@ -30015,8 +28386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.colonToken = colonToken;
     }
 
-    public SyntaxToken Prefix { get { return this.prefix; } }
-    public SyntaxToken ColonToken { get { return this.colonToken; } }
+    public SyntaxToken Prefix => this.prefix;
+    public SyntaxToken ColonToken => this.colonToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -30028,20 +28399,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.XmlPrefixSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlPrefixSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitXmlPrefix(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlPrefix(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitXmlPrefix(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlPrefix(this);
 
     public XmlPrefixSyntax Update(SyntaxToken prefix, SyntaxToken colonToken)
     {
@@ -30194,11 +28556,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.endQuoteToken = endQuoteToken;
     }
 
-    public override XmlNameSyntax Name { get { return this.name; } }
-    public override SyntaxToken EqualsToken { get { return this.equalsToken; } }
-    public override SyntaxToken StartQuoteToken { get { return this.startQuoteToken; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> TextTokens { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.textTokens); } }
-    public override SyntaxToken EndQuoteToken { get { return this.endQuoteToken; } }
+    public override XmlNameSyntax Name => this.name;
+    public override SyntaxToken EqualsToken => this.equalsToken;
+    public override SyntaxToken StartQuoteToken => this.startQuoteToken;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> TextTokens => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.textTokens);
+    public override SyntaxToken EndQuoteToken => this.endQuoteToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -30213,20 +28575,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.XmlTextAttributeSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlTextAttributeSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitXmlTextAttribute(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlTextAttribute(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitXmlTextAttribute(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlTextAttribute(this);
 
     public XmlTextAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens, SyntaxToken endQuoteToken)
     {
@@ -30366,11 +28719,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.endQuoteToken = endQuoteToken;
     }
 
-    public override XmlNameSyntax Name { get { return this.name; } }
-    public override SyntaxToken EqualsToken { get { return this.equalsToken; } }
-    public override SyntaxToken StartQuoteToken { get { return this.startQuoteToken; } }
-    public CrefSyntax Cref { get { return this.cref; } }
-    public override SyntaxToken EndQuoteToken { get { return this.endQuoteToken; } }
+    public override XmlNameSyntax Name => this.name;
+    public override SyntaxToken EqualsToken => this.equalsToken;
+    public override SyntaxToken StartQuoteToken => this.startQuoteToken;
+    public CrefSyntax Cref => this.cref;
+    public override SyntaxToken EndQuoteToken => this.endQuoteToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -30385,20 +28738,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.XmlCrefAttributeSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlCrefAttributeSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitXmlCrefAttribute(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlCrefAttribute(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitXmlCrefAttribute(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlCrefAttribute(this);
 
     public XmlCrefAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, CrefSyntax cref, SyntaxToken endQuoteToken)
     {
@@ -30538,11 +28882,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.endQuoteToken = endQuoteToken;
     }
 
-    public override XmlNameSyntax Name { get { return this.name; } }
-    public override SyntaxToken EqualsToken { get { return this.equalsToken; } }
-    public override SyntaxToken StartQuoteToken { get { return this.startQuoteToken; } }
-    public IdentifierNameSyntax Identifier { get { return this.identifier; } }
-    public override SyntaxToken EndQuoteToken { get { return this.endQuoteToken; } }
+    public override XmlNameSyntax Name => this.name;
+    public override SyntaxToken EqualsToken => this.equalsToken;
+    public override SyntaxToken StartQuoteToken => this.startQuoteToken;
+    public IdentifierNameSyntax Identifier => this.identifier;
+    public override SyntaxToken EndQuoteToken => this.endQuoteToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -30557,20 +28901,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.XmlNameAttributeSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlNameAttributeSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitXmlNameAttribute(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlNameAttribute(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitXmlNameAttribute(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlNameAttribute(this);
 
     public XmlNameAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, IdentifierNameSyntax identifier, SyntaxToken endQuoteToken)
     {
@@ -30691,7 +29026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> TextTokens { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.textTokens); } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> TextTokens => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.textTokens);
 
     internal override GreenNode GetSlot(int index)
     {
@@ -30702,20 +29037,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.XmlTextSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlTextSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitXmlText(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlText(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitXmlText(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlText(this);
 
     public XmlTextSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens)
     {
@@ -30822,9 +29148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.endCDataToken = endCDataToken;
     }
 
-    public SyntaxToken StartCDataToken { get { return this.startCDataToken; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> TextTokens { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.textTokens); } }
-    public SyntaxToken EndCDataToken { get { return this.endCDataToken; } }
+    public SyntaxToken StartCDataToken => this.startCDataToken;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> TextTokens => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.textTokens);
+    public SyntaxToken EndCDataToken => this.endCDataToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -30837,20 +29163,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.XmlCDataSectionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlCDataSectionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitXmlCDataSection(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlCDataSection(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitXmlCDataSection(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlCDataSection(this);
 
     public XmlCDataSectionSyntax Update(SyntaxToken startCDataToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens, SyntaxToken endCDataToken)
     {
@@ -30978,10 +29295,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.endProcessingInstructionToken = endProcessingInstructionToken;
     }
 
-    public SyntaxToken StartProcessingInstructionToken { get { return this.startProcessingInstructionToken; } }
-    public XmlNameSyntax Name { get { return this.name; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> TextTokens { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.textTokens); } }
-    public SyntaxToken EndProcessingInstructionToken { get { return this.endProcessingInstructionToken; } }
+    public SyntaxToken StartProcessingInstructionToken => this.startProcessingInstructionToken;
+    public XmlNameSyntax Name => this.name;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> TextTokens => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.textTokens);
+    public SyntaxToken EndProcessingInstructionToken => this.endProcessingInstructionToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -30995,20 +29312,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.XmlProcessingInstructionSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlProcessingInstructionSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitXmlProcessingInstruction(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlProcessingInstruction(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitXmlProcessingInstruction(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlProcessingInstruction(this);
 
     public XmlProcessingInstructionSyntax Update(SyntaxToken startProcessingInstructionToken, XmlNameSyntax name, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens, SyntaxToken endProcessingInstructionToken)
     {
@@ -31136,9 +29444,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.minusMinusGreaterThanToken = minusMinusGreaterThanToken;
     }
 
-    public SyntaxToken LessThanExclamationMinusMinusToken { get { return this.lessThanExclamationMinusMinusToken; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> TextTokens { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.textTokens); } }
-    public SyntaxToken MinusMinusGreaterThanToken { get { return this.minusMinusGreaterThanToken; } }
+    public SyntaxToken LessThanExclamationMinusMinusToken => this.lessThanExclamationMinusMinusToken;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> TextTokens => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.textTokens);
+    public SyntaxToken MinusMinusGreaterThanToken => this.minusMinusGreaterThanToken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -31151,20 +29459,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.XmlCommentSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.XmlCommentSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitXmlComment(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlComment(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitXmlComment(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlComment(this);
 
     public XmlCommentSyntax Update(SyntaxToken lessThanExclamationMinusMinusToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens, SyntaxToken minusMinusGreaterThanToken)
     {
@@ -31361,13 +29660,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.conditionValue = conditionValue;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken IfKeyword { get { return this.ifKeyword; } }
-    public override ExpressionSyntax Condition { get { return this.condition; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
-    public override bool BranchTaken { get { return this.branchTaken; } }
-    public override bool ConditionValue { get { return this.conditionValue; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken IfKeyword => this.ifKeyword;
+    public override ExpressionSyntax Condition => this.condition;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
+    public override bool BranchTaken => this.branchTaken;
+    public override bool ConditionValue => this.conditionValue;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -31381,20 +29680,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.IfDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.IfDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitIfDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIfDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitIfDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIfDirectiveTrivia(this);
 
     public IfDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken ifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
     {
@@ -31538,13 +29828,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.conditionValue = conditionValue;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken ElifKeyword { get { return this.elifKeyword; } }
-    public override ExpressionSyntax Condition { get { return this.condition; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
-    public override bool BranchTaken { get { return this.branchTaken; } }
-    public override bool ConditionValue { get { return this.conditionValue; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken ElifKeyword => this.elifKeyword;
+    public override ExpressionSyntax Condition => this.condition;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
+    public override bool BranchTaken => this.branchTaken;
+    public override bool ConditionValue => this.conditionValue;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -31558,20 +29848,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ElifDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ElifDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitElifDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElifDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitElifDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElifDirectiveTrivia(this);
 
     public ElifDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken elifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
     {
@@ -31704,11 +29985,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.branchTaken = branchTaken;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken ElseKeyword { get { return this.elseKeyword; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
-    public override bool BranchTaken { get { return this.branchTaken; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken ElseKeyword => this.elseKeyword;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
+    public override bool BranchTaken => this.branchTaken;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -31721,20 +30002,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ElseDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ElseDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitElseDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElseDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitElseDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElseDirectiveTrivia(this);
 
     public ElseDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken elseKeyword, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken)
     {
@@ -31854,10 +30126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken EndIfKeyword { get { return this.endIfKeyword; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken EndIfKeyword => this.endIfKeyword;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -31870,20 +30142,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.EndIfDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EndIfDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitEndIfDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEndIfDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitEndIfDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEndIfDirectiveTrivia(this);
 
     public EndIfDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken endIfKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -32001,10 +30264,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken RegionKeyword { get { return this.regionKeyword; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken RegionKeyword => this.regionKeyword;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -32017,20 +30280,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.RegionDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.RegionDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitRegionDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRegionDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitRegionDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRegionDirectiveTrivia(this);
 
     public RegionDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken regionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -32148,10 +30402,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken EndRegionKeyword { get { return this.endRegionKeyword; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken EndRegionKeyword => this.endRegionKeyword;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -32164,20 +30418,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.EndRegionDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.EndRegionDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitEndRegionDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEndRegionDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitEndRegionDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEndRegionDirectiveTrivia(this);
 
     public EndRegionDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken endRegionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -32295,10 +30540,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken ErrorKeyword { get { return this.errorKeyword; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken ErrorKeyword => this.errorKeyword;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -32311,20 +30556,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ErrorDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ErrorDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitErrorDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitErrorDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitErrorDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitErrorDirectiveTrivia(this);
 
     public ErrorDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken errorKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -32442,10 +30678,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken WarningKeyword { get { return this.warningKeyword; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken WarningKeyword => this.warningKeyword;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -32458,20 +30694,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.WarningDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.WarningDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitWarningDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWarningDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitWarningDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWarningDirectiveTrivia(this);
 
     public WarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken warningKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -32589,10 +30816,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken Identifier { get { return this.identifier; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken Identifier => this.identifier;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -32605,20 +30832,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.BadDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.BadDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitBadDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBadDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitBadDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBadDirectiveTrivia(this);
 
     public BadDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken identifier, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -32743,11 +30961,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken DefineKeyword { get { return this.defineKeyword; } }
-    public SyntaxToken Name { get { return this.name; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken DefineKeyword => this.defineKeyword;
+    public SyntaxToken Name => this.name;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -32761,20 +30979,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.DefineDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DefineDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitDefineDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefineDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitDefineDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefineDirectiveTrivia(this);
 
     public DefineDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken defineKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -32906,11 +31115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken UndefKeyword { get { return this.undefKeyword; } }
-    public SyntaxToken Name { get { return this.name; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken UndefKeyword => this.undefKeyword;
+    public SyntaxToken Name => this.name;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -32924,20 +31133,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.UndefDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.UndefDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitUndefDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUndefDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitUndefDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUndefDirectiveTrivia(this);
 
     public UndefDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken undefKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -33085,12 +31285,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken LineKeyword { get { return this.lineKeyword; } }
-    public SyntaxToken Line { get { return this.line; } }
-    public SyntaxToken File { get { return this.file; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken LineKeyword => this.lineKeyword;
+    public SyntaxToken Line => this.line;
+    public SyntaxToken File => this.file;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -33105,20 +31305,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.LineDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LineDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitLineDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLineDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitLineDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLineDirectiveTrivia(this);
 
     public LineDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken lineKeyword, SyntaxToken line, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -33280,13 +31471,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken PragmaKeyword { get { return this.pragmaKeyword; } }
-    public SyntaxToken WarningKeyword { get { return this.warningKeyword; } }
-    public SyntaxToken DisableOrRestoreKeyword { get { return this.disableOrRestoreKeyword; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> ErrorCodes { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.errorCodes)); } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken PragmaKeyword => this.pragmaKeyword;
+    public SyntaxToken WarningKeyword => this.warningKeyword;
+    public SyntaxToken DisableOrRestoreKeyword => this.disableOrRestoreKeyword;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> ErrorCodes => return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.errorCodes));
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -33302,20 +31493,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.PragmaWarningDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PragmaWarningDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitPragmaWarningDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPragmaWarningDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitPragmaWarningDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPragmaWarningDirectiveTrivia(this);
 
     public PragmaWarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -33482,14 +31664,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken PragmaKeyword { get { return this.pragmaKeyword; } }
-    public SyntaxToken ChecksumKeyword { get { return this.checksumKeyword; } }
-    public SyntaxToken File { get { return this.file; } }
-    public SyntaxToken Guid { get { return this.guid; } }
-    public SyntaxToken Bytes { get { return this.bytes; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken PragmaKeyword => this.pragmaKeyword;
+    public SyntaxToken ChecksumKeyword => this.checksumKeyword;
+    public SyntaxToken File => this.file;
+    public SyntaxToken Guid => this.guid;
+    public SyntaxToken Bytes => this.bytes;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -33506,20 +31688,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.PragmaChecksumDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PragmaChecksumDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitPragmaChecksumDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPragmaChecksumDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitPragmaChecksumDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPragmaChecksumDirectiveTrivia(this);
 
     public PragmaChecksumDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken checksumKeyword, SyntaxToken file, SyntaxToken guid, SyntaxToken bytes, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -33672,11 +31845,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken ReferenceKeyword { get { return this.referenceKeyword; } }
-    public SyntaxToken File { get { return this.file; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken ReferenceKeyword => this.referenceKeyword;
+    public SyntaxToken File => this.file;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -33690,20 +31863,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ReferenceDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ReferenceDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitReferenceDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitReferenceDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitReferenceDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitReferenceDirectiveTrivia(this);
 
     public ReferenceDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken referenceKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -33835,11 +31999,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken LoadKeyword { get { return this.loadKeyword; } }
-    public SyntaxToken File { get { return this.file; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken LoadKeyword => this.loadKeyword;
+    public SyntaxToken File => this.file;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -33853,20 +32017,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.LoadDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.LoadDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitLoadDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLoadDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitLoadDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLoadDirectiveTrivia(this);
 
     public LoadDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken loadKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -33991,10 +32146,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken ExclamationToken { get { return this.exclamationToken; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken ExclamationToken => this.exclamationToken;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -34007,20 +32162,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.ShebangDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.ShebangDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitShebangDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitShebangDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitShebangDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitShebangDirectiveTrivia(this);
 
     public ShebangDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -34145,11 +32291,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.isActive = isActive;
     }
 
-    public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken NullableKeyword { get { return this.nullableKeyword; } }
-    public SyntaxToken SettingToken { get { return this.settingToken; } }
-    public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
-    public override bool IsActive { get { return this.isActive; } }
+    public override SyntaxToken HashToken => this.hashToken;
+    public SyntaxToken NullableKeyword => this.nullableKeyword;
+    public SyntaxToken SettingToken => this.settingToken;
+    public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+    public override bool IsActive => this.isActive;
 
     internal override GreenNode GetSlot(int index)
     {
@@ -34163,20 +32309,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.NullableDirectiveTriviaSyntax(this, parent, position);
-    }
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.NullableDirectiveTriviaSyntax(this, parent, position);
 
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitNullableDirectiveTrivia(this);
-    }
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNullableDirectiveTrivia(this);
 
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitNullableDirectiveTrivia(this);
-    }
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNullableDirectiveTrivia(this);
 
     public NullableDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken endOfDirectiveToken, bool isActive)
     {
@@ -34254,2079 +32391,837 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal partial class CSharpSyntaxVisitor<TResult>
   {
-    public virtual TResult VisitIdentifierName(IdentifierNameSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitQualifiedName(QualifiedNameSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitGenericName(GenericNameSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitTypeArgumentList(TypeArgumentListSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitPredefinedType(PredefinedTypeSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitArrayType(ArrayTypeSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitPointerType(PointerTypeSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitNullableType(NullableTypeSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitTupleType(TupleTypeSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitTupleElement(TupleElementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitRefType(RefTypeSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitTupleExpression(TupleExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitAwaitExpression(AwaitExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitMemberBindingExpression(MemberBindingExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitElementBindingExpression(ElementBindingExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitRangeExpression(RangeExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitBinaryExpression(BinaryExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitAssignmentExpression(AssignmentExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitConditionalExpression(ConditionalExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitThisExpression(ThisExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitBaseExpression(BaseExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitLiteralExpression(LiteralExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitMakeRefExpression(MakeRefExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitRefTypeExpression(RefTypeExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitRefValueExpression(RefValueExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitCheckedExpression(CheckedExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitDefaultExpression(DefaultExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitTypeOfExpression(TypeOfExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitSizeOfExpression(SizeOfExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitInvocationExpression(InvocationExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitElementAccessExpression(ElementAccessExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitArgumentList(ArgumentListSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitBracketedArgumentList(BracketedArgumentListSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitArgument(ArgumentSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitNameColon(NameColonSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitDeclarationExpression(DeclarationExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitCastExpression(CastExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitRefExpression(RefExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitInitializerExpression(InitializerExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitArrayCreationExpression(ArrayCreationExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitQueryExpression(QueryExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitQueryBody(QueryBodySyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitFromClause(FromClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitLetClause(LetClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitJoinClause(JoinClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitJoinIntoClause(JoinIntoClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitWhereClause(WhereClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitOrderByClause(OrderByClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitOrdering(OrderingSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitSelectClause(SelectClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitGroupClause(GroupClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitQueryContinuation(QueryContinuationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitIsPatternExpression(IsPatternExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitThrowExpression(ThrowExpressionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitWhenClause(WhenClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitDeclarationPattern(DeclarationPatternSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitConstantPattern(ConstantPatternSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitInterpolation(InterpolationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitGlobalStatement(GlobalStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitBlock(BlockSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitVariableDeclaration(VariableDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitVariableDeclarator(VariableDeclaratorSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitEqualsValueClause(EqualsValueClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitDiscardDesignation(DiscardDesignationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitExpressionStatement(ExpressionStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitEmptyStatement(EmptyStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitLabeledStatement(LabeledStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitGotoStatement(GotoStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitBreakStatement(BreakStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitContinueStatement(ContinueStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitReturnStatement(ReturnStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitThrowStatement(ThrowStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitYieldStatement(YieldStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitWhileStatement(WhileStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitDoStatement(DoStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitForStatement(ForStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitForEachStatement(ForEachStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitUsingStatement(UsingStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitFixedStatement(FixedStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitCheckedStatement(CheckedStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitUnsafeStatement(UnsafeStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitLockStatement(LockStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitIfStatement(IfStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitElseClause(ElseClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitSwitchStatement(SwitchStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitSwitchSection(SwitchSectionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitCaseSwitchLabel(CaseSwitchLabelSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitTryStatement(TryStatementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitCatchClause(CatchClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitCatchDeclaration(CatchDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitCatchFilterClause(CatchFilterClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitFinallyClause(FinallyClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitCompilationUnit(CompilationUnitSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitExternAliasDirective(ExternAliasDirectiveSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitUsingDirective(UsingDirectiveSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitAttributeList(AttributeListSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitAttribute(AttributeSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitAttributeArgumentList(AttributeArgumentListSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitAttributeArgument(AttributeArgumentSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitNameEquals(NameEqualsSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitTypeParameterList(TypeParameterListSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitTypeParameter(TypeParameterSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitClassDeclaration(ClassDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitStructDeclaration(StructDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitEnumDeclaration(EnumDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitDelegateDeclaration(DelegateDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitBaseList(BaseListSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitSimpleBaseType(SimpleBaseTypeSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitConstructorConstraint(ConstructorConstraintSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitTypeConstraint(TypeConstraintSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitFieldDeclaration(FieldDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitMethodDeclaration(MethodDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitOperatorDeclaration(OperatorDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitConstructorInitializer(ConstructorInitializerSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitDestructorDeclaration(DestructorDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitPropertyDeclaration(PropertyDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitEventDeclaration(EventDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitIndexerDeclaration(IndexerDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitAccessorList(AccessorListSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitAccessorDeclaration(AccessorDeclarationSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitParameterList(ParameterListSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitBracketedParameterList(BracketedParameterListSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitParameter(ParameterSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitIncompleteMember(IncompleteMemberSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitTypeCref(TypeCrefSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitQualifiedCref(QualifiedCrefSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitNameMemberCref(NameMemberCrefSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitIndexerMemberCref(IndexerMemberCrefSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitOperatorMemberCref(OperatorMemberCrefSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitCrefParameterList(CrefParameterListSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitCrefParameter(CrefParameterSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitXmlElement(XmlElementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitXmlElementStartTag(XmlElementStartTagSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitXmlElementEndTag(XmlElementEndTagSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitXmlEmptyElement(XmlEmptyElementSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitXmlName(XmlNameSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitXmlPrefix(XmlPrefixSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitXmlTextAttribute(XmlTextAttributeSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitXmlCrefAttribute(XmlCrefAttributeSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitXmlNameAttribute(XmlNameAttributeSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitXmlText(XmlTextSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitXmlCDataSection(XmlCDataSectionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitXmlComment(XmlCommentSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
-
-    public virtual TResult VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
-    {
-      return this.DefaultVisit(node);
-    }
+    public virtual TResult VisitIdentifierName(IdentifierNameSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitQualifiedName(QualifiedNameSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitGenericName(GenericNameSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitTypeArgumentList(TypeArgumentListSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitAliasQualifiedName(AliasQualifiedNameSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitPredefinedType(PredefinedTypeSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitArrayType(ArrayTypeSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitPointerType(PointerTypeSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitTupleType(TupleTypeSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitAwaitExpression(AwaitExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitRangeExpression(RangeExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitImplicitElementAccess(ImplicitElementAccessSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitBinaryExpression(BinaryExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitAssignmentExpression(AssignmentExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitConditionalExpression(ConditionalExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitThisExpression(ThisExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitBaseExpression(BaseExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitCheckedExpression(CheckedExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitDefaultExpression(DefaultExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitTypeOfExpression(TypeOfExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitSizeOfExpression(SizeOfExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitInvocationExpression(InvocationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitElementAccessExpression(ElementAccessExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitArgumentList(ArgumentListSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitBracketedArgumentList(BracketedArgumentListSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitArgument(ArgumentSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitNameColon(NameColonSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitDeclarationExpression(DeclarationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitCastExpression(CastExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitRefExpression(RefExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitInitializerExpression(InitializerExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitArrayCreationExpression(ArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitFromClause(FromClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitLetClause(LetClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitJoinClause(JoinClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitJoinIntoClause(JoinIntoClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitWhereClause(WhereClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitOrderByClause(OrderByClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitOrdering(OrderingSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitSelectClause(SelectClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitGroupClause(GroupClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitQueryContinuation(QueryContinuationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitIsPatternExpression(IsPatternExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitThrowExpression(ThrowExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitWhenClause(WhenClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitDeclarationPattern(DeclarationPatternSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitInterpolation(InterpolationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitGlobalStatement(GlobalStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitBlock(BlockSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitLocalFunctionStatement(LocalFunctionStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitVariableDeclaration(VariableDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitVariableDeclarator(VariableDeclaratorSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitEqualsValueClause(EqualsValueClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitSingleVariableDesignation(SingleVariableDesignationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitDiscardDesignation(DiscardDesignationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitExpressionStatement(ExpressionStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitEmptyStatement(EmptyStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitLabeledStatement(LabeledStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitGotoStatement(GotoStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitBreakStatement(BreakStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitContinueStatement(ContinueStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitReturnStatement(ReturnStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitThrowStatement(ThrowStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitYieldStatement(YieldStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitWhileStatement(WhileStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitDoStatement(DoStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitForStatement(ForStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitForEachStatement(ForEachStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitForEachVariableStatement(ForEachVariableStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitUsingStatement(UsingStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitFixedStatement(FixedStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitCheckedStatement(CheckedStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitUnsafeStatement(UnsafeStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitLockStatement(LockStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitIfStatement(IfStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitElseClause(ElseClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitSwitchStatement(SwitchStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitSwitchSection(SwitchSectionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitCaseSwitchLabel(CaseSwitchLabelSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitTryStatement(TryStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitCatchClause(CatchClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitCatchDeclaration(CatchDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitCatchFilterClause(CatchFilterClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitFinallyClause(FinallyClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitCompilationUnit(CompilationUnitSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitExternAliasDirective(ExternAliasDirectiveSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitUsingDirective(UsingDirectiveSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitAttribute(AttributeSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitAttributeArgumentList(AttributeArgumentListSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitAttributeArgument(AttributeArgumentSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitNameEquals(NameEqualsSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitTypeParameterList(TypeParameterListSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitTypeParameter(TypeParameterSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitClassDeclaration(ClassDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitMethodDeclaration(MethodDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitOperatorDeclaration(OperatorDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitConstructorDeclaration(ConstructorDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitConstructorInitializer(ConstructorInitializerSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitDestructorDeclaration(DestructorDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitPropertyDeclaration(PropertyDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitArrowExpressionClause(ArrowExpressionClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitEventDeclaration(EventDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitIndexerDeclaration(IndexerDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitAccessorList(AccessorListSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitAccessorDeclaration(AccessorDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitParameterList(ParameterListSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitBracketedParameterList(BracketedParameterListSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitParameter(ParameterSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitTypeCref(TypeCrefSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitQualifiedCref(QualifiedCrefSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitOperatorMemberCref(OperatorMemberCrefSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitCrefParameterList(CrefParameterListSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitCrefParameter(CrefParameterSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitXmlElement(XmlElementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitXmlElementStartTag(XmlElementStartTagSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitXmlElementEndTag(XmlElementEndTagSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitXmlEmptyElement(XmlEmptyElementSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitXmlName(XmlNameSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitXmlPrefix(XmlPrefixSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitXmlTextAttribute(XmlTextAttributeSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitXmlCrefAttribute(XmlCrefAttributeSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitXmlNameAttribute(XmlNameAttributeSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitXmlText(XmlTextSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitXmlCDataSection(XmlCDataSectionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitXmlComment(XmlCommentSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
   }
 
 
   internal partial class CSharpSyntaxVisitor
   {
-    public virtual void VisitIdentifierName(IdentifierNameSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitQualifiedName(QualifiedNameSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitGenericName(GenericNameSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitTypeArgumentList(TypeArgumentListSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitPredefinedType(PredefinedTypeSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitArrayType(ArrayTypeSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitPointerType(PointerTypeSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitNullableType(NullableTypeSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitTupleType(TupleTypeSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitTupleElement(TupleElementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitRefType(RefTypeSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitTupleExpression(TupleExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitAwaitExpression(AwaitExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitMemberBindingExpression(MemberBindingExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitElementBindingExpression(ElementBindingExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitRangeExpression(RangeExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitBinaryExpression(BinaryExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitAssignmentExpression(AssignmentExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitConditionalExpression(ConditionalExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitThisExpression(ThisExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitBaseExpression(BaseExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitLiteralExpression(LiteralExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitMakeRefExpression(MakeRefExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitRefTypeExpression(RefTypeExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitRefValueExpression(RefValueExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitCheckedExpression(CheckedExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitDefaultExpression(DefaultExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitTypeOfExpression(TypeOfExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitSizeOfExpression(SizeOfExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitInvocationExpression(InvocationExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitElementAccessExpression(ElementAccessExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitArgumentList(ArgumentListSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitBracketedArgumentList(BracketedArgumentListSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitArgument(ArgumentSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitNameColon(NameColonSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitDeclarationExpression(DeclarationExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitCastExpression(CastExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitRefExpression(RefExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitInitializerExpression(InitializerExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitArrayCreationExpression(ArrayCreationExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitQueryExpression(QueryExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitQueryBody(QueryBodySyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitFromClause(FromClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitLetClause(LetClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitJoinClause(JoinClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitJoinIntoClause(JoinIntoClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitWhereClause(WhereClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitOrderByClause(OrderByClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitOrdering(OrderingSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitSelectClause(SelectClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitGroupClause(GroupClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitQueryContinuation(QueryContinuationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitIsPatternExpression(IsPatternExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitThrowExpression(ThrowExpressionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitWhenClause(WhenClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitDeclarationPattern(DeclarationPatternSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitConstantPattern(ConstantPatternSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitInterpolation(InterpolationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitGlobalStatement(GlobalStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitBlock(BlockSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitVariableDeclaration(VariableDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitVariableDeclarator(VariableDeclaratorSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitEqualsValueClause(EqualsValueClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitDiscardDesignation(DiscardDesignationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitExpressionStatement(ExpressionStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitEmptyStatement(EmptyStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitLabeledStatement(LabeledStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitGotoStatement(GotoStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitBreakStatement(BreakStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitContinueStatement(ContinueStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitReturnStatement(ReturnStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitThrowStatement(ThrowStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitYieldStatement(YieldStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitWhileStatement(WhileStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitDoStatement(DoStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitForStatement(ForStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitForEachStatement(ForEachStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitUsingStatement(UsingStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitFixedStatement(FixedStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitCheckedStatement(CheckedStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitUnsafeStatement(UnsafeStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitLockStatement(LockStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitIfStatement(IfStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitElseClause(ElseClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitSwitchStatement(SwitchStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitSwitchSection(SwitchSectionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitCaseSwitchLabel(CaseSwitchLabelSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitTryStatement(TryStatementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitCatchClause(CatchClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitCatchDeclaration(CatchDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitCatchFilterClause(CatchFilterClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitFinallyClause(FinallyClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitCompilationUnit(CompilationUnitSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitExternAliasDirective(ExternAliasDirectiveSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitUsingDirective(UsingDirectiveSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitAttributeList(AttributeListSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitAttribute(AttributeSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitAttributeArgumentList(AttributeArgumentListSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitAttributeArgument(AttributeArgumentSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitNameEquals(NameEqualsSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitTypeParameterList(TypeParameterListSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitTypeParameter(TypeParameterSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitClassDeclaration(ClassDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitStructDeclaration(StructDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitEnumDeclaration(EnumDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitDelegateDeclaration(DelegateDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitBaseList(BaseListSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitSimpleBaseType(SimpleBaseTypeSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitConstructorConstraint(ConstructorConstraintSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitTypeConstraint(TypeConstraintSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitFieldDeclaration(FieldDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitMethodDeclaration(MethodDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitOperatorDeclaration(OperatorDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitConstructorInitializer(ConstructorInitializerSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitDestructorDeclaration(DestructorDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitEventDeclaration(EventDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitIndexerDeclaration(IndexerDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitAccessorList(AccessorListSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitAccessorDeclaration(AccessorDeclarationSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitParameterList(ParameterListSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitBracketedParameterList(BracketedParameterListSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitParameter(ParameterSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitIncompleteMember(IncompleteMemberSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitTypeCref(TypeCrefSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitQualifiedCref(QualifiedCrefSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitNameMemberCref(NameMemberCrefSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitIndexerMemberCref(IndexerMemberCrefSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitOperatorMemberCref(OperatorMemberCrefSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitCrefParameterList(CrefParameterListSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitCrefParameter(CrefParameterSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitXmlElement(XmlElementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitXmlElementStartTag(XmlElementStartTagSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitXmlElementEndTag(XmlElementEndTagSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitXmlEmptyElement(XmlEmptyElementSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitXmlName(XmlNameSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitXmlPrefix(XmlPrefixSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitXmlTextAttribute(XmlTextAttributeSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitXmlCrefAttribute(XmlCrefAttributeSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitXmlNameAttribute(XmlNameAttributeSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitXmlText(XmlTextSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitXmlCDataSection(XmlCDataSectionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitXmlComment(XmlCommentSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
-
-    public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
-    {
-      this.DefaultVisit(node);
-    }
+    public virtual void VisitIdentifierName(IdentifierNameSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitQualifiedName(QualifiedNameSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitGenericName(GenericNameSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitTypeArgumentList(TypeArgumentListSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitAliasQualifiedName(AliasQualifiedNameSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitPredefinedType(PredefinedTypeSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitArrayType(ArrayTypeSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitPointerType(PointerTypeSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitTupleType(TupleTypeSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitAwaitExpression(AwaitExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitRangeExpression(RangeExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitImplicitElementAccess(ImplicitElementAccessSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitBinaryExpression(BinaryExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitAssignmentExpression(AssignmentExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitConditionalExpression(ConditionalExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitThisExpression(ThisExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitBaseExpression(BaseExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitCheckedExpression(CheckedExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitDefaultExpression(DefaultExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitTypeOfExpression(TypeOfExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitSizeOfExpression(SizeOfExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitInvocationExpression(InvocationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitElementAccessExpression(ElementAccessExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitArgumentList(ArgumentListSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitBracketedArgumentList(BracketedArgumentListSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitArgument(ArgumentSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitNameColon(NameColonSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitDeclarationExpression(DeclarationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitCastExpression(CastExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitRefExpression(RefExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitInitializerExpression(InitializerExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitArrayCreationExpression(ArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitFromClause(FromClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitLetClause(LetClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitJoinClause(JoinClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitJoinIntoClause(JoinIntoClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitWhereClause(WhereClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitOrderByClause(OrderByClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitOrdering(OrderingSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitSelectClause(SelectClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitGroupClause(GroupClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitQueryContinuation(QueryContinuationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitIsPatternExpression(IsPatternExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitThrowExpression(ThrowExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitWhenClause(WhenClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitDeclarationPattern(DeclarationPatternSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitInterpolation(InterpolationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitGlobalStatement(GlobalStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitBlock(BlockSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitVariableDeclaration(VariableDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitVariableDeclarator(VariableDeclaratorSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitEqualsValueClause(EqualsValueClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitSingleVariableDesignation(SingleVariableDesignationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitDiscardDesignation(DiscardDesignationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitExpressionStatement(ExpressionStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitEmptyStatement(EmptyStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitLabeledStatement(LabeledStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitGotoStatement(GotoStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitBreakStatement(BreakStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitContinueStatement(ContinueStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitReturnStatement(ReturnStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitThrowStatement(ThrowStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitYieldStatement(YieldStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitWhileStatement(WhileStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitDoStatement(DoStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitForStatement(ForStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitForEachStatement(ForEachStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitForEachVariableStatement(ForEachVariableStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitUsingStatement(UsingStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitFixedStatement(FixedStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitCheckedStatement(CheckedStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitUnsafeStatement(UnsafeStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitLockStatement(LockStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitIfStatement(IfStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitElseClause(ElseClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitSwitchStatement(SwitchStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitSwitchSection(SwitchSectionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitCaseSwitchLabel(CaseSwitchLabelSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitTryStatement(TryStatementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitCatchClause(CatchClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitCatchDeclaration(CatchDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitCatchFilterClause(CatchFilterClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitFinallyClause(FinallyClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitCompilationUnit(CompilationUnitSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitExternAliasDirective(ExternAliasDirectiveSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitUsingDirective(UsingDirectiveSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitAttribute(AttributeSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitAttributeArgumentList(AttributeArgumentListSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitAttributeArgument(AttributeArgumentSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitNameEquals(NameEqualsSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitTypeParameterList(TypeParameterListSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitTypeParameter(TypeParameterSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitClassDeclaration(ClassDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitMethodDeclaration(MethodDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitOperatorDeclaration(OperatorDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitConstructorDeclaration(ConstructorDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitConstructorInitializer(ConstructorInitializerSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitDestructorDeclaration(DestructorDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitPropertyDeclaration(PropertyDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitEventDeclaration(EventDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitIndexerDeclaration(IndexerDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitAccessorList(AccessorListSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitAccessorDeclaration(AccessorDeclarationSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitParameterList(ParameterListSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitBracketedParameterList(BracketedParameterListSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitParameter(ParameterSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitTypeCref(TypeCrefSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitQualifiedCref(QualifiedCrefSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitOperatorMemberCref(OperatorMemberCrefSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitCrefParameterList(CrefParameterListSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitCrefParameter(CrefParameterSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitXmlElement(XmlElementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitXmlElementStartTag(XmlElementStartTagSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitXmlElementEndTag(XmlElementEndTagSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitXmlEmptyElement(XmlEmptyElementSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitXmlName(XmlNameSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitXmlPrefix(XmlPrefixSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitXmlTextAttribute(XmlTextAttributeSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitXmlCrefAttribute(XmlCrefAttributeSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitXmlNameAttribute(XmlNameAttributeSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitXmlText(XmlTextSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitXmlCDataSection(XmlCDataSectionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitXmlComment(XmlCommentSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
   }
 
   internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNode>
