@@ -7902,20 +7902,21 @@ class Module1
             Assert.Null(symbol1.DeclaringCompilation);
             Assert.Equal(symbol1.Name, symbol1.MetadataName);
 
-            Assert.True(symbol1.ContainingSymbol == symbol1.Parameters[0].Type.TypeSymbol || symbol1.ContainingSymbol == symbol1.Parameters[1].Type.TypeSymbol);
+            Assert.True(TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2) ||
+                TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2));
 
             int match = 0;
-            if (symbol1.ContainingSymbol == symbol1.ReturnType.TypeSymbol)
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }
 
-            if (symbol1.ContainingSymbol == symbol1.Parameters[0].Type.TypeSymbol)
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }
 
-            if (symbol1.ContainingSymbol == symbol1.Parameters[1].Type.TypeSymbol)
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }
