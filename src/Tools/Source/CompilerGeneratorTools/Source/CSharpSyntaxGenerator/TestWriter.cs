@@ -92,12 +92,12 @@ namespace CSharpSyntaxGenerator
 
             var strippedName = StripPost(node.Name, "Syntax");
 
-            WriteLine("private static {0}{1} Generate{2}()", csharpNamespace, node.Name, strippedName);
-            OpenBlock();
+            Write("private static {0}{1} Generate{2}() => {0}SyntaxFactory.{2}(", csharpNamespace, node.Name, strippedName);
+            //OpenBlock();
 
             //instantiate node
             {
-                Write("return {0}SyntaxFactory.{1}(", csharpNamespace, strippedName);
+                //Write("return {0}SyntaxFactory.{1}(", csharpNamespace, strippedName);
 
                 bool first = true;
 
@@ -200,7 +200,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine(");");
             }
 
-            CloseBlock();
+            //CloseBlock();
         }
 
         private void WriteFactoryPropertyTests(bool isGreen)
