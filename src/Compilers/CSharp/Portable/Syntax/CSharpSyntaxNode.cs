@@ -462,6 +462,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private protected override bool IsSimilarToCore(SyntaxNode other)
         {
+            int thisGroup = kindGroup(this);
+
+            return thisGroup != -1 && thisGroup == kindGroup(other);
+            
             int kindGroup(SyntaxNode node)
             {
                 switch (node.Kind())
@@ -474,10 +478,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return -1;
                 }
             }
-
-            int thisGroup = kindGroup(this);
-
-            return thisGroup != -1 && thisGroup == kindGroup(other);
         }
 
         /// <summary>
