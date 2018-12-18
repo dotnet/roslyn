@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? methodSignatureOpt,
             BoundNode node,
             ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)>? returnTypesOpt,
-            VariableState initialState,
+            VariableState? initialState,
             Action<BoundExpression, TypeSymbolWithAnnotations>? callbackOpt)
             : base(compilation, method, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: true)
         {
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return base.MakeSlot(node);
 
-            MethodSymbol getTopLevelMethod(MethodSymbol method)
+            MethodSymbol? getTopLevelMethod(MethodSymbol? method)
             {
                 while ((object)method != null)
                 {
@@ -537,6 +537,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool ReportNullableAssignmentIfNecessary(BoundExpression? value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings, AssignmentKind assignmentKind = AssignmentKind.Assignment, Symbol? target = null)
         {
+            Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
+
             if (value == null)
             {
                 return false;
@@ -1056,7 +1058,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbolWithAnnotations GetReturnType()
         {
             var method = (MethodSymbol)_symbol;
+            // https://github.com/dotnet/roslyn/issues/31907: "warning IDE0055: Fix formatting:" reported for `_methodSignatureOpt!`.
+#pragma warning disable IDE0055
             var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt! : method).ReturnType;
+#pragma warning restore IDE0055
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
             if (method.IsGenericTaskReturningAsync(compilation))
             {
@@ -2214,7 +2219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
-                node.Expanded, node.InvokedAsExtensionMethod, conversions, method);
+                node.Expanded, node.InvokedAsExtensionMethod, conversions, method)!;
 
             if (method.MethodKind == MethodKind.LocalFunction)
             {
@@ -3348,6 +3353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null);
             Debug.Assert(operandOpt != null || !operandType.IsNull);
             Debug.Assert(!targetTypeWithNullability.IsNull);
+            Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
 
             NullableAnnotation resultAnnotation = NullableAnnotation.Unknown;
             bool forceOperandAnnotationForResult = false;
@@ -3406,7 +3412,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             checkConversion: true,
                             fromExplicitCast: false,
                             useLegacyWarnings,
-                            assignmentKind);
+                            assignmentKind,
+                            target);
 
                         // Update method based on operandType: see https://github.com/dotnet/roslyn/issues/29605.
                         // (see NullableReferenceTypesTests.ImplicitConversions_07).
@@ -3444,7 +3451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // method return type -> conversion "to" type
                         // May be distinct from method return type for Nullable<T>.
-                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType, useLegacyWarnings, assignmentKind, target: null);
+                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType, useLegacyWarnings, assignmentKind, target);
 
                         // conversion "to" type -> final type
                         // https://github.com/dotnet/roslyn/issues/29959 If the original conversion was
@@ -3530,7 +3537,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (useLegacyWarnings && operandOpt?.Kind == BoundKind.Conversion)
                     {
                         var operandConversion = (BoundConversion)operandOpt;
-                        var explicitType = operandConversion.ConversionGroupOpt.ExplicitType;
+                        // https://github.com/dotnet/roslyn/issues/31906: operandOpt should be considered not null.
+                        var explicitType = operandConversion!.ConversionGroupOpt.ExplicitType;
                         if (!explicitType.IsNull && explicitType.Equals(targetTypeWithNullability, TypeCompareKind.IgnoreInsignificantNullableModifiersDifference))
                         {
                             return operandType;
@@ -3664,7 +3672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (assignmentKind == AssignmentKind.Argument)
                     {
-                        ReportNullabilityMismatchInArgument(node, operandType.TypeSymbol, target, targetType);
+                        ReportNullabilityMismatchInArgument(node, operandType.TypeSymbol, target!, targetType);
                     }
                     else
                     {
@@ -3683,6 +3691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundExpression node, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations operandType, bool useLegacyWarnings, AssignmentKind assignmentKind, ParameterSymbol? target)
         {
+            Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var conversion = _conversions.ClassifyStandardConversion(null, operandType.TypeSymbol, targetType.TypeSymbol, ref useSiteDiagnostics);
             if (!conversion.Exists)
@@ -4855,7 +4864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void CheckPossibleNullReceiver(BoundExpression receiverOpt, bool checkNullableValueType = false, SyntaxNode syntaxOpt = null)
+        private void CheckPossibleNullReceiver(BoundExpression receiverOpt, bool checkNullableValueType = false, SyntaxNode? syntaxOpt = null)
         {
             Debug.Assert(!this.IsConditionalState);
             if (receiverOpt != null && this.State.Reachable)
@@ -4991,7 +5000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
+        public override BoundNode? VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
             BoundExpression expr = node.Expression;
             if (expr == null)
