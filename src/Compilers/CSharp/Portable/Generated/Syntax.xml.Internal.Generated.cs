@@ -38132,7 +38132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GlobalKeyword:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
 #endif
 
@@ -38161,7 +38161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DotToken:
           break;
         default:
-          throw new ArgumentException("dotToken");
+          throw new ArgumentException(nameof(dotToken));
       }
       if (right == null)
         throw new ArgumentNullException(nameof(right));
@@ -38190,7 +38190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (typeArgumentList == null)
         throw new ArgumentNullException(nameof(typeArgumentList));
@@ -38219,7 +38219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LessThanToken:
           break;
         default:
-          throw new ArgumentException("lessThanToken");
+          throw new ArgumentException(nameof(lessThanToken));
       }
       if (greaterThanToken == null)
         throw new ArgumentNullException(nameof(greaterThanToken));
@@ -38228,7 +38228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GreaterThanToken:
           break;
         default:
-          throw new ArgumentException("greaterThanToken");
+          throw new ArgumentException(nameof(greaterThanToken));
       }
 #endif
 
@@ -38257,7 +38257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonColonToken:
           break;
         default:
-          throw new ArgumentException("colonColonToken");
+          throw new ArgumentException(nameof(colonColonToken));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -38301,7 +38301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.VoidKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
 #endif
 
@@ -38348,7 +38348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBracketToken:
           break;
         default:
-          throw new ArgumentException("openBracketToken");
+          throw new ArgumentException(nameof(openBracketToken));
       }
       if (closeBracketToken == null)
         throw new ArgumentNullException(nameof(closeBracketToken));
@@ -38357,7 +38357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBracketToken:
           break;
         default:
-          throw new ArgumentException("closeBracketToken");
+          throw new ArgumentException(nameof(closeBracketToken));
       }
       if (questionToken != null)
       {
@@ -38367,7 +38367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("questionToken");
+          throw new ArgumentException(nameof(questionToken));
       }
       }
 #endif
@@ -38387,7 +38387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.AsteriskToken:
           break;
         default:
-          throw new ArgumentException("asteriskToken");
+          throw new ArgumentException(nameof(asteriskToken));
       }
 #endif
 
@@ -38416,7 +38416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.QuestionToken:
           break;
         default:
-          throw new ArgumentException("questionToken");
+          throw new ArgumentException(nameof(questionToken));
       }
 #endif
 
@@ -38443,7 +38443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -38452,7 +38452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -38482,7 +38482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       }
 #endif
@@ -38510,7 +38510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OmittedTypeArgumentToken:
           break;
         default:
-          throw new ArgumentException("omittedTypeArgumentToken");
+          throw new ArgumentException(nameof(omittedTypeArgumentToken));
       }
 #endif
 
@@ -38537,7 +38537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.RefKeyword:
           break;
         default:
-          throw new ArgumentException("refKeyword");
+          throw new ArgumentException(nameof(refKeyword));
       }
       if (readOnlyKeyword != null)
       {
@@ -38547,7 +38547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("readOnlyKeyword");
+          throw new ArgumentException(nameof(readOnlyKeyword));
       }
       }
       if (type == null)
@@ -38577,7 +38577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -38588,7 +38588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -38615,7 +38615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -38624,7 +38624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -38656,7 +38656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IndexExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (operatorToken == null)
@@ -38674,7 +38674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CaretToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
       if (operand == null)
         throw new ArgumentNullException(nameof(operand));
@@ -38703,7 +38703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.AwaitKeyword:
           break;
         default:
-          throw new ArgumentException("awaitKeyword");
+          throw new ArgumentException(nameof(awaitKeyword));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -38731,7 +38731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SuppressNullableWarningExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (operand == null)
@@ -38745,7 +38745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ExclamationToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
 #endif
 
@@ -38770,7 +38770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.PointerMemberAccessExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (expression == null)
@@ -38783,7 +38783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.MinusGreaterThanToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -38814,7 +38814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.QuestionToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
       if (whenNotNull == null)
         throw new ArgumentNullException(nameof(whenNotNull));
@@ -38843,7 +38843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DotToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -38892,7 +38892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DotDotToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
 #endif
 
@@ -38956,7 +38956,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CoalesceExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (left == null)
@@ -38988,7 +38988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.QuestionQuestionToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
       if (right == null)
         throw new ArgumentNullException(nameof(right));
@@ -39025,7 +39025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CoalesceAssignmentExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (left == null)
@@ -39048,7 +39048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.QuestionQuestionEqualsToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
       if (right == null)
         throw new ArgumentNullException(nameof(right));
@@ -39079,7 +39079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.QuestionToken:
           break;
         default:
-          throw new ArgumentException("questionToken");
+          throw new ArgumentException(nameof(questionToken));
       }
       if (whenTrue == null)
         throw new ArgumentNullException(nameof(whenTrue));
@@ -39090,7 +39090,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
       if (whenFalse == null)
         throw new ArgumentNullException(nameof(whenFalse));
@@ -39109,7 +39109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ThisKeyword:
           break;
         default:
-          throw new ArgumentException("token");
+          throw new ArgumentException(nameof(token));
       }
 #endif
 
@@ -39136,7 +39136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.BaseKeyword:
           break;
         default:
-          throw new ArgumentException("token");
+          throw new ArgumentException(nameof(token));
       }
 #endif
 
@@ -39167,7 +39167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DefaultLiteralExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (token == null)
@@ -39184,7 +39184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DefaultKeyword:
           break;
         default:
-          throw new ArgumentException("token");
+          throw new ArgumentException(nameof(token));
       }
 #endif
 
@@ -39211,7 +39211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.MakeRefKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -39220,7 +39220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -39231,7 +39231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -39248,7 +39248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.RefTypeKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -39257,7 +39257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -39268,7 +39268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -39285,7 +39285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.RefValueKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -39294,7 +39294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -39305,7 +39305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CommaToken:
           break;
         default:
-          throw new ArgumentException("comma");
+          throw new ArgumentException(nameof(comma));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -39316,7 +39316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -39331,7 +39331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UncheckedExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (keyword == null)
@@ -39342,7 +39342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UncheckedKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -39351,7 +39351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -39362,7 +39362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -39379,7 +39379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DefaultKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -39388,7 +39388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -39399,7 +39399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -39416,7 +39416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.TypeOfKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -39425,7 +39425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -39436,7 +39436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -39453,7 +39453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SizeOfKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -39462,7 +39462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -39473,7 +39473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -39534,7 +39534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -39543,7 +39543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -39570,7 +39570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBracketToken:
           break;
         default:
-          throw new ArgumentException("openBracketToken");
+          throw new ArgumentException(nameof(openBracketToken));
       }
       if (closeBracketToken == null)
         throw new ArgumentNullException(nameof(closeBracketToken));
@@ -39579,7 +39579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBracketToken:
           break;
         default:
-          throw new ArgumentException("closeBracketToken");
+          throw new ArgumentException(nameof(closeBracketToken));
       }
 #endif
 
@@ -39609,7 +39609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("refKindKeyword");
+          throw new ArgumentException(nameof(refKindKeyword));
       }
       }
       if (expression == null)
@@ -39641,7 +39641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
 #endif
 
@@ -39690,7 +39690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -39701,7 +39701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -39721,7 +39721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("asyncKeyword");
+          throw new ArgumentException(nameof(asyncKeyword));
       }
       }
       if (delegateKeyword == null)
@@ -39731,7 +39731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DelegateKeyword:
           break;
         default:
-          throw new ArgumentException("delegateKeyword");
+          throw new ArgumentException(nameof(delegateKeyword));
       }
       if (body == null)
         throw new ArgumentNullException(nameof(body));
@@ -39751,7 +39751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("asyncKeyword");
+          throw new ArgumentException(nameof(asyncKeyword));
       }
       }
       if (parameter == null)
@@ -39763,7 +39763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsGreaterThanToken:
           break;
         default:
-          throw new ArgumentException("arrowToken");
+          throw new ArgumentException(nameof(arrowToken));
       }
       if (body == null)
         throw new ArgumentNullException(nameof(body));
@@ -39782,7 +39782,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.RefKeyword:
           break;
         default:
-          throw new ArgumentException("refKeyword");
+          throw new ArgumentException(nameof(refKeyword));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -39812,7 +39812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("asyncKeyword");
+          throw new ArgumentException(nameof(asyncKeyword));
       }
       }
       if (parameterList == null)
@@ -39824,7 +39824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsGreaterThanToken:
           break;
         default:
-          throw new ArgumentException("arrowToken");
+          throw new ArgumentException(nameof(arrowToken));
       }
       if (body == null)
         throw new ArgumentNullException(nameof(body));
@@ -39843,7 +39843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ComplexElementInitializerExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (openBraceToken == null)
@@ -39853,7 +39853,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -39862,7 +39862,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
 #endif
 
@@ -39889,7 +39889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.NewKeyword:
           break;
         default:
-          throw new ArgumentException("newKeyword");
+          throw new ArgumentException(nameof(newKeyword));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -39928,7 +39928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.NewKeyword:
           break;
         default:
-          throw new ArgumentException("newKeyword");
+          throw new ArgumentException(nameof(newKeyword));
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -39937,7 +39937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -39946,7 +39946,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
 #endif
 
@@ -39963,7 +39963,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.NewKeyword:
           break;
         default:
-          throw new ArgumentException("newKeyword");
+          throw new ArgumentException(nameof(newKeyword));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -39992,7 +39992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.NewKeyword:
           break;
         default:
-          throw new ArgumentException("newKeyword");
+          throw new ArgumentException(nameof(newKeyword));
       }
       if (openBracketToken == null)
         throw new ArgumentNullException(nameof(openBracketToken));
@@ -40001,7 +40001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBracketToken:
           break;
         default:
-          throw new ArgumentException("openBracketToken");
+          throw new ArgumentException(nameof(openBracketToken));
       }
       if (closeBracketToken == null)
         throw new ArgumentNullException(nameof(closeBracketToken));
@@ -40010,7 +40010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBracketToken:
           break;
         default:
-          throw new ArgumentException("closeBracketToken");
+          throw new ArgumentException(nameof(closeBracketToken));
       }
       if (initializer == null)
         throw new ArgumentNullException(nameof(initializer));
@@ -40029,7 +40029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StackAllocKeyword:
           break;
         default:
-          throw new ArgumentException("stackAllocKeyword");
+          throw new ArgumentException(nameof(stackAllocKeyword));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -40058,7 +40058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StackAllocKeyword:
           break;
         default:
-          throw new ArgumentException("stackAllocKeyword");
+          throw new ArgumentException(nameof(stackAllocKeyword));
       }
       if (openBracketToken == null)
         throw new ArgumentNullException(nameof(openBracketToken));
@@ -40067,7 +40067,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBracketToken:
           break;
         default:
-          throw new ArgumentException("openBracketToken");
+          throw new ArgumentException(nameof(openBracketToken));
       }
       if (closeBracketToken == null)
         throw new ArgumentNullException(nameof(closeBracketToken));
@@ -40076,7 +40076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBracketToken:
           break;
         default:
-          throw new ArgumentException("closeBracketToken");
+          throw new ArgumentException(nameof(closeBracketToken));
       }
       if (initializer == null)
         throw new ArgumentNullException(nameof(initializer));
@@ -40137,7 +40137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.FromKeyword:
           break;
         default:
-          throw new ArgumentException("fromKeyword");
+          throw new ArgumentException(nameof(fromKeyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -40146,7 +40146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (inKeyword == null)
         throw new ArgumentNullException(nameof(inKeyword));
@@ -40155,7 +40155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InKeyword:
           break;
         default:
-          throw new ArgumentException("inKeyword");
+          throw new ArgumentException(nameof(inKeyword));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -40174,7 +40174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LetKeyword:
           break;
         default:
-          throw new ArgumentException("letKeyword");
+          throw new ArgumentException(nameof(letKeyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -40183,7 +40183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (equalsToken == null)
         throw new ArgumentNullException(nameof(equalsToken));
@@ -40192,7 +40192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsToken:
           break;
         default:
-          throw new ArgumentException("equalsToken");
+          throw new ArgumentException(nameof(equalsToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -40211,7 +40211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.JoinKeyword:
           break;
         default:
-          throw new ArgumentException("joinKeyword");
+          throw new ArgumentException(nameof(joinKeyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -40220,7 +40220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (inKeyword == null)
         throw new ArgumentNullException(nameof(inKeyword));
@@ -40229,7 +40229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InKeyword:
           break;
         default:
-          throw new ArgumentException("inKeyword");
+          throw new ArgumentException(nameof(inKeyword));
       }
       if (inExpression == null)
         throw new ArgumentNullException(nameof(inExpression));
@@ -40240,7 +40240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OnKeyword:
           break;
         default:
-          throw new ArgumentException("onKeyword");
+          throw new ArgumentException(nameof(onKeyword));
       }
       if (leftExpression == null)
         throw new ArgumentNullException(nameof(leftExpression));
@@ -40251,7 +40251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsKeyword:
           break;
         default:
-          throw new ArgumentException("equalsKeyword");
+          throw new ArgumentException(nameof(equalsKeyword));
       }
       if (rightExpression == null)
         throw new ArgumentNullException(nameof(rightExpression));
@@ -40270,7 +40270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IntoKeyword:
           break;
         default:
-          throw new ArgumentException("intoKeyword");
+          throw new ArgumentException(nameof(intoKeyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -40279,7 +40279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
 #endif
 
@@ -40306,7 +40306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WhereKeyword:
           break;
         default:
-          throw new ArgumentException("whereKeyword");
+          throw new ArgumentException(nameof(whereKeyword));
       }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
@@ -40335,7 +40335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OrderByKeyword:
           break;
         default:
-          throw new ArgumentException("orderByKeyword");
+          throw new ArgumentException(nameof(orderByKeyword));
       }
 #endif
 
@@ -40360,7 +40360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DescendingOrdering:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (expression == null)
@@ -40374,7 +40374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("ascendingOrDescendingKeyword");
+          throw new ArgumentException(nameof(ascendingOrDescendingKeyword));
       }
       }
 #endif
@@ -40402,7 +40402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SelectKeyword:
           break;
         default:
-          throw new ArgumentException("selectKeyword");
+          throw new ArgumentException(nameof(selectKeyword));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -40431,7 +40431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GroupKeyword:
           break;
         default:
-          throw new ArgumentException("groupKeyword");
+          throw new ArgumentException(nameof(groupKeyword));
       }
       if (groupExpression == null)
         throw new ArgumentNullException(nameof(groupExpression));
@@ -40442,7 +40442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ByKeyword:
           break;
         default:
-          throw new ArgumentException("byKeyword");
+          throw new ArgumentException(nameof(byKeyword));
       }
       if (byExpression == null)
         throw new ArgumentNullException(nameof(byExpression));
@@ -40461,7 +40461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IntoKeyword:
           break;
         default:
-          throw new ArgumentException("intoKeyword");
+          throw new ArgumentException(nameof(intoKeyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -40470,7 +40470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (body == null)
         throw new ArgumentNullException(nameof(body));
@@ -40499,7 +40499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OmittedArraySizeExpressionToken:
           break;
         default:
-          throw new ArgumentException("omittedArraySizeExpressionToken");
+          throw new ArgumentException(nameof(omittedArraySizeExpressionToken));
       }
 #endif
 
@@ -40527,7 +40527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InterpolatedVerbatimStringStartToken:
           break;
         default:
-          throw new ArgumentException("stringStartToken");
+          throw new ArgumentException(nameof(stringStartToken));
       }
       if (stringEndToken == null)
         throw new ArgumentNullException(nameof(stringEndToken));
@@ -40536,7 +40536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InterpolatedStringEndToken:
           break;
         default:
-          throw new ArgumentException("stringEndToken");
+          throw new ArgumentException(nameof(stringEndToken));
       }
 #endif
 
@@ -40565,7 +40565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IsKeyword:
           break;
         default:
-          throw new ArgumentException("isKeyword");
+          throw new ArgumentException(nameof(isKeyword));
       }
       if (pattern == null)
         throw new ArgumentNullException(nameof(pattern));
@@ -40594,7 +40594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ThrowKeyword:
           break;
         default:
-          throw new ArgumentException("throwKeyword");
+          throw new ArgumentException(nameof(throwKeyword));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -40623,7 +40623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WhenKeyword:
           break;
         default:
-          throw new ArgumentException("whenKeyword");
+          throw new ArgumentException(nameof(whenKeyword));
       }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
@@ -40694,7 +40694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InterpolatedStringTextToken:
           break;
         default:
-          throw new ArgumentException("textToken");
+          throw new ArgumentException(nameof(textToken));
       }
 #endif
 
@@ -40721,7 +40721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -40732,7 +40732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
 #endif
 
@@ -40773,7 +40773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InterpolatedStringTextToken:
           break;
         default:
-          throw new ArgumentException("formatStringToken");
+          throw new ArgumentException(nameof(formatStringToken));
       }
 #endif
 
@@ -40820,7 +40820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -40829,7 +40829,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
 #endif
 
@@ -40858,7 +40858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (parameterList == null)
         throw new ArgumentNullException(nameof(parameterList));
@@ -40870,7 +40870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -40890,7 +40890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -40937,7 +40937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
 #endif
 
@@ -40964,7 +40964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsToken:
           break;
         default:
-          throw new ArgumentException("equalsToken");
+          throw new ArgumentException(nameof(equalsToken));
       }
       if (value == null)
         throw new ArgumentNullException(nameof(value));
@@ -40993,7 +40993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
 #endif
 
@@ -41020,7 +41020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UnderscoreToken:
           break;
         default:
-          throw new ArgumentException("underscoreToken");
+          throw new ArgumentException(nameof(underscoreToken));
       }
 #endif
 
@@ -41047,7 +41047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -41056,7 +41056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -41085,7 +41085,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -41112,7 +41112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -41139,7 +41139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (colonToken == null)
         throw new ArgumentNullException(nameof(colonToken));
@@ -41148,7 +41148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -41176,7 +41176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GotoDefaultStatement:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (gotoKeyword == null)
@@ -41186,7 +41186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GotoKeyword:
           break;
         default:
-          throw new ArgumentException("gotoKeyword");
+          throw new ArgumentException(nameof(gotoKeyword));
       }
       if (caseOrDefaultKeyword != null)
       {
@@ -41197,7 +41197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("caseOrDefaultKeyword");
+          throw new ArgumentException(nameof(caseOrDefaultKeyword));
       }
       }
       if (semicolonToken == null)
@@ -41207,7 +41207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -41224,7 +41224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.BreakKeyword:
           break;
         default:
-          throw new ArgumentException("breakKeyword");
+          throw new ArgumentException(nameof(breakKeyword));
       }
       if (semicolonToken == null)
         throw new ArgumentNullException(nameof(semicolonToken));
@@ -41233,7 +41233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -41260,7 +41260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ContinueKeyword:
           break;
         default:
-          throw new ArgumentException("continueKeyword");
+          throw new ArgumentException(nameof(continueKeyword));
       }
       if (semicolonToken == null)
         throw new ArgumentNullException(nameof(semicolonToken));
@@ -41269,7 +41269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -41296,7 +41296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ReturnKeyword:
           break;
         default:
-          throw new ArgumentException("returnKeyword");
+          throw new ArgumentException(nameof(returnKeyword));
       }
       if (semicolonToken == null)
         throw new ArgumentNullException(nameof(semicolonToken));
@@ -41305,7 +41305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -41332,7 +41332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ThrowKeyword:
           break;
         default:
-          throw new ArgumentException("throwKeyword");
+          throw new ArgumentException(nameof(throwKeyword));
       }
       if (semicolonToken == null)
         throw new ArgumentNullException(nameof(semicolonToken));
@@ -41341,7 +41341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -41366,7 +41366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.YieldBreakStatement:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (yieldKeyword == null)
@@ -41376,7 +41376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.YieldKeyword:
           break;
         default:
-          throw new ArgumentException("yieldKeyword");
+          throw new ArgumentException(nameof(yieldKeyword));
       }
       if (returnOrBreakKeyword == null)
         throw new ArgumentNullException(nameof(returnOrBreakKeyword));
@@ -41386,7 +41386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.BreakKeyword:
           break;
         default:
-          throw new ArgumentException("returnOrBreakKeyword");
+          throw new ArgumentException(nameof(returnOrBreakKeyword));
       }
       if (semicolonToken == null)
         throw new ArgumentNullException(nameof(semicolonToken));
@@ -41395,7 +41395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -41412,7 +41412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WhileKeyword:
           break;
         default:
-          throw new ArgumentException("whileKeyword");
+          throw new ArgumentException(nameof(whileKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -41421,7 +41421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
@@ -41432,7 +41432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -41451,7 +41451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DoKeyword:
           break;
         default:
-          throw new ArgumentException("doKeyword");
+          throw new ArgumentException(nameof(doKeyword));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -41462,7 +41462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WhileKeyword:
           break;
         default:
-          throw new ArgumentException("whileKeyword");
+          throw new ArgumentException(nameof(whileKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -41471,7 +41471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
@@ -41482,7 +41482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (semicolonToken == null)
         throw new ArgumentNullException(nameof(semicolonToken));
@@ -41491,7 +41491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -41508,7 +41508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ForKeyword:
           break;
         default:
-          throw new ArgumentException("forKeyword");
+          throw new ArgumentException(nameof(forKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -41517,7 +41517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (firstSemicolonToken == null)
         throw new ArgumentNullException(nameof(firstSemicolonToken));
@@ -41526,7 +41526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("firstSemicolonToken");
+          throw new ArgumentException(nameof(firstSemicolonToken));
       }
       if (secondSemicolonToken == null)
         throw new ArgumentNullException(nameof(secondSemicolonToken));
@@ -41535,7 +41535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("secondSemicolonToken");
+          throw new ArgumentException(nameof(secondSemicolonToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -41544,7 +41544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -41564,7 +41564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("awaitKeyword");
+          throw new ArgumentException(nameof(awaitKeyword));
       }
       }
       if (forEachKeyword == null)
@@ -41574,7 +41574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ForEachKeyword:
           break;
         default:
-          throw new ArgumentException("forEachKeyword");
+          throw new ArgumentException(nameof(forEachKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -41583,7 +41583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -41594,7 +41594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (inKeyword == null)
         throw new ArgumentNullException(nameof(inKeyword));
@@ -41603,7 +41603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InKeyword:
           break;
         default:
-          throw new ArgumentException("inKeyword");
+          throw new ArgumentException(nameof(inKeyword));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -41614,7 +41614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -41634,7 +41634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("awaitKeyword");
+          throw new ArgumentException(nameof(awaitKeyword));
       }
       }
       if (forEachKeyword == null)
@@ -41644,7 +41644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ForEachKeyword:
           break;
         default:
-          throw new ArgumentException("forEachKeyword");
+          throw new ArgumentException(nameof(forEachKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -41653,7 +41653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (variable == null)
         throw new ArgumentNullException(nameof(variable));
@@ -41664,7 +41664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InKeyword:
           break;
         default:
-          throw new ArgumentException("inKeyword");
+          throw new ArgumentException(nameof(inKeyword));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -41675,7 +41675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -41695,7 +41695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("awaitKeyword");
+          throw new ArgumentException(nameof(awaitKeyword));
       }
       }
       if (usingKeyword == null)
@@ -41705,7 +41705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UsingKeyword:
           break;
         default:
-          throw new ArgumentException("usingKeyword");
+          throw new ArgumentException(nameof(usingKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -41714,7 +41714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -41723,7 +41723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -41742,7 +41742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.FixedKeyword:
           break;
         default:
-          throw new ArgumentException("fixedKeyword");
+          throw new ArgumentException(nameof(fixedKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -41751,7 +41751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (declaration == null)
         throw new ArgumentNullException(nameof(declaration));
@@ -41762,7 +41762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -41779,7 +41779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UncheckedStatement:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (keyword == null)
@@ -41790,7 +41790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UncheckedKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (block == null)
         throw new ArgumentNullException(nameof(block));
@@ -41819,7 +41819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UnsafeKeyword:
           break;
         default:
-          throw new ArgumentException("unsafeKeyword");
+          throw new ArgumentException(nameof(unsafeKeyword));
       }
       if (block == null)
         throw new ArgumentNullException(nameof(block));
@@ -41848,7 +41848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LockKeyword:
           break;
         default:
-          throw new ArgumentException("lockKeyword");
+          throw new ArgumentException(nameof(lockKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -41857,7 +41857,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -41868,7 +41868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -41887,7 +41887,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IfKeyword:
           break;
         default:
-          throw new ArgumentException("ifKeyword");
+          throw new ArgumentException(nameof(ifKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -41896,7 +41896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
@@ -41907,7 +41907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -41926,7 +41926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ElseKeyword:
           break;
         default:
-          throw new ArgumentException("elseKeyword");
+          throw new ArgumentException(nameof(elseKeyword));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -41955,7 +41955,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SwitchKeyword:
           break;
         default:
-          throw new ArgumentException("switchKeyword");
+          throw new ArgumentException(nameof(switchKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -41964,7 +41964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -41975,7 +41975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -41984,7 +41984,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -41993,7 +41993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
 #endif
 
@@ -42028,7 +42028,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CaseKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (pattern == null)
         throw new ArgumentNullException(nameof(pattern));
@@ -42049,7 +42049,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CaseKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (value == null)
         throw new ArgumentNullException(nameof(value));
@@ -42080,7 +42080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DefaultKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (colonToken == null)
         throw new ArgumentNullException(nameof(colonToken));
@@ -42109,7 +42109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.TryKeyword:
           break;
         default:
-          throw new ArgumentException("tryKeyword");
+          throw new ArgumentException(nameof(tryKeyword));
       }
       if (block == null)
         throw new ArgumentNullException(nameof(block));
@@ -42128,7 +42128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CatchKeyword:
           break;
         default:
-          throw new ArgumentException("catchKeyword");
+          throw new ArgumentException(nameof(catchKeyword));
       }
       if (block == null)
         throw new ArgumentNullException(nameof(block));
@@ -42147,7 +42147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -42159,7 +42159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       }
       if (closeParenToken == null)
@@ -42169,7 +42169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -42186,7 +42186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WhenKeyword:
           break;
         default:
-          throw new ArgumentException("whenKeyword");
+          throw new ArgumentException(nameof(whenKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -42195,7 +42195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (filterExpression == null)
         throw new ArgumentNullException(nameof(filterExpression));
@@ -42206,7 +42206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -42223,7 +42223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.FinallyKeyword:
           break;
         default:
-          throw new ArgumentException("finallyKeyword");
+          throw new ArgumentException(nameof(finallyKeyword));
       }
       if (block == null)
         throw new ArgumentNullException(nameof(block));
@@ -42252,7 +42252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfFileToken:
           break;
         default:
-          throw new ArgumentException("endOfFileToken");
+          throw new ArgumentException(nameof(endOfFileToken));
       }
 #endif
 
@@ -42269,7 +42269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ExternKeyword:
           break;
         default:
-          throw new ArgumentException("externKeyword");
+          throw new ArgumentException(nameof(externKeyword));
       }
       if (aliasKeyword == null)
         throw new ArgumentNullException(nameof(aliasKeyword));
@@ -42278,7 +42278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.AliasKeyword:
           break;
         default:
-          throw new ArgumentException("aliasKeyword");
+          throw new ArgumentException(nameof(aliasKeyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -42287,7 +42287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (semicolonToken == null)
         throw new ArgumentNullException(nameof(semicolonToken));
@@ -42296,7 +42296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -42313,7 +42313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UsingKeyword:
           break;
         default:
-          throw new ArgumentException("usingKeyword");
+          throw new ArgumentException(nameof(usingKeyword));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -42324,7 +42324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -42341,7 +42341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.NamespaceKeyword:
           break;
         default:
-          throw new ArgumentException("namespaceKeyword");
+          throw new ArgumentException(nameof(namespaceKeyword));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -42352,7 +42352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -42361,7 +42361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
       if (semicolonToken != null)
       {
@@ -42371,7 +42371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -42389,7 +42389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBracketToken:
           break;
         default:
-          throw new ArgumentException("openBracketToken");
+          throw new ArgumentException(nameof(openBracketToken));
       }
       if (closeBracketToken == null)
         throw new ArgumentNullException(nameof(closeBracketToken));
@@ -42398,7 +42398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBracketToken:
           break;
         default:
-          throw new ArgumentException("closeBracketToken");
+          throw new ArgumentException(nameof(closeBracketToken));
       }
 #endif
 
@@ -42417,7 +42417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
 #endif
 
@@ -42464,7 +42464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -42473,7 +42473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -42522,7 +42522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsToken:
           break;
         default:
-          throw new ArgumentException("equalsToken");
+          throw new ArgumentException(nameof(equalsToken));
       }
 #endif
 
@@ -42549,7 +42549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LessThanToken:
           break;
         default:
-          throw new ArgumentException("lessThanToken");
+          throw new ArgumentException(nameof(lessThanToken));
       }
       if (greaterThanToken == null)
         throw new ArgumentNullException(nameof(greaterThanToken));
@@ -42558,7 +42558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GreaterThanToken:
           break;
         default:
-          throw new ArgumentException("greaterThanToken");
+          throw new ArgumentException(nameof(greaterThanToken));
       }
 #endif
 
@@ -42587,7 +42587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("varianceKeyword");
+          throw new ArgumentException(nameof(varianceKeyword));
       }
       }
       if (identifier == null)
@@ -42597,7 +42597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
 #endif
 
@@ -42624,7 +42624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ClassKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -42633,7 +42633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -42642,7 +42642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -42651,7 +42651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
       if (semicolonToken != null)
       {
@@ -42661,7 +42661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -42679,7 +42679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StructKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -42688,7 +42688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -42697,7 +42697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -42706,7 +42706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
       if (semicolonToken != null)
       {
@@ -42716,7 +42716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -42734,7 +42734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InterfaceKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -42743,7 +42743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -42752,7 +42752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -42761,7 +42761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
       if (semicolonToken != null)
       {
@@ -42771,7 +42771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -42789,7 +42789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EnumKeyword:
           break;
         default:
-          throw new ArgumentException("enumKeyword");
+          throw new ArgumentException(nameof(enumKeyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -42798,7 +42798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -42807,7 +42807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -42816,7 +42816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
       if (semicolonToken != null)
       {
@@ -42826,7 +42826,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -42844,7 +42844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DelegateKeyword:
           break;
         default:
-          throw new ArgumentException("delegateKeyword");
+          throw new ArgumentException(nameof(delegateKeyword));
       }
       if (returnType == null)
         throw new ArgumentNullException(nameof(returnType));
@@ -42855,7 +42855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (parameterList == null)
         throw new ArgumentNullException(nameof(parameterList));
@@ -42866,7 +42866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -42883,7 +42883,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
 #endif
 
@@ -42910,7 +42910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
 #endif
 
@@ -42957,7 +42957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WhereKeyword:
           break;
         default:
-          throw new ArgumentException("whereKeyword");
+          throw new ArgumentException(nameof(whereKeyword));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -42968,7 +42968,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
 #endif
 
@@ -42985,7 +42985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.NewKeyword:
           break;
         default:
-          throw new ArgumentException("newKeyword");
+          throw new ArgumentException(nameof(newKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -42994,7 +42994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -43003,7 +43003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -43028,7 +43028,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StructConstraint:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (classOrStructKeyword == null)
@@ -43039,7 +43039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StructKeyword:
           break;
         default:
-          throw new ArgumentException("classOrStructKeyword");
+          throw new ArgumentException(nameof(classOrStructKeyword));
       }
       if (questionToken != null)
       {
@@ -43049,7 +43049,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("questionToken");
+          throw new ArgumentException(nameof(questionToken));
       }
       }
 #endif
@@ -43099,7 +43099,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -43116,7 +43116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EventKeyword:
           break;
         default:
-          throw new ArgumentException("eventKeyword");
+          throw new ArgumentException(nameof(eventKeyword));
       }
       if (declaration == null)
         throw new ArgumentNullException(nameof(declaration));
@@ -43127,7 +43127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -43146,7 +43146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DotToken:
           break;
         default:
-          throw new ArgumentException("dotToken");
+          throw new ArgumentException(nameof(dotToken));
       }
 #endif
 
@@ -43175,7 +43175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (parameterList == null)
         throw new ArgumentNullException(nameof(parameterList));
@@ -43187,7 +43187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -43207,7 +43207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OperatorKeyword:
           break;
         default:
-          throw new ArgumentException("operatorKeyword");
+          throw new ArgumentException(nameof(operatorKeyword));
       }
       if (operatorToken == null)
         throw new ArgumentNullException(nameof(operatorToken));
@@ -43238,7 +43238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IsKeyword:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
       if (parameterList == null)
         throw new ArgumentNullException(nameof(parameterList));
@@ -43250,7 +43250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -43269,7 +43269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ExplicitKeyword:
           break;
         default:
-          throw new ArgumentException("implicitOrExplicitKeyword");
+          throw new ArgumentException(nameof(implicitOrExplicitKeyword));
       }
       if (operatorKeyword == null)
         throw new ArgumentNullException(nameof(operatorKeyword));
@@ -43278,7 +43278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OperatorKeyword:
           break;
         default:
-          throw new ArgumentException("operatorKeyword");
+          throw new ArgumentException(nameof(operatorKeyword));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -43292,7 +43292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -43310,7 +43310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (parameterList == null)
         throw new ArgumentNullException(nameof(parameterList));
@@ -43322,7 +43322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -43338,7 +43338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ThisConstructorInitializer:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (colonToken == null)
@@ -43348,7 +43348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
       if (thisOrBaseKeyword == null)
         throw new ArgumentNullException(nameof(thisOrBaseKeyword));
@@ -43358,7 +43358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ThisKeyword:
           break;
         default:
-          throw new ArgumentException("thisOrBaseKeyword");
+          throw new ArgumentException(nameof(thisOrBaseKeyword));
       }
       if (argumentList == null)
         throw new ArgumentNullException(nameof(argumentList));
@@ -43387,7 +43387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.TildeToken:
           break;
         default:
-          throw new ArgumentException("tildeToken");
+          throw new ArgumentException(nameof(tildeToken));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -43396,7 +43396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (parameterList == null)
         throw new ArgumentNullException(nameof(parameterList));
@@ -43408,7 +43408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -43428,7 +43428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (semicolonToken != null)
       {
@@ -43438,7 +43438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -43456,7 +43456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsGreaterThanToken:
           break;
         default:
-          throw new ArgumentException("arrowToken");
+          throw new ArgumentException(nameof(arrowToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -43485,7 +43485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EventKeyword:
           break;
         default:
-          throw new ArgumentException("eventKeyword");
+          throw new ArgumentException(nameof(eventKeyword));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -43496,7 +43496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (accessorList == null)
         throw new ArgumentNullException(nameof(accessorList));
@@ -43517,7 +43517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ThisKeyword:
           break;
         default:
-          throw new ArgumentException("thisKeyword");
+          throw new ArgumentException(nameof(thisKeyword));
       }
       if (parameterList == null)
         throw new ArgumentNullException(nameof(parameterList));
@@ -43529,7 +43529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -43547,7 +43547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -43556,7 +43556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
 #endif
 
@@ -43584,7 +43584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UnknownAccessorDeclaration:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (keyword == null)
@@ -43598,7 +43598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (semicolonToken != null)
       {
@@ -43608,7 +43608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -43626,7 +43626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -43635,7 +43635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -43662,7 +43662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBracketToken:
           break;
         default:
-          throw new ArgumentException("openBracketToken");
+          throw new ArgumentException(nameof(openBracketToken));
       }
       if (closeBracketToken == null)
         throw new ArgumentNullException(nameof(closeBracketToken));
@@ -43671,7 +43671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBracketToken:
           break;
         default:
-          throw new ArgumentException("closeBracketToken");
+          throw new ArgumentException(nameof(closeBracketToken));
       }
 #endif
 
@@ -43699,7 +43699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ArgListKeyword:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
 #endif
 
@@ -43730,7 +43730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.MultiLineDocumentationCommentTrivia:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (endOfComment == null)
@@ -43740,7 +43740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDocumentationCommentToken:
           break;
         default:
-          throw new ArgumentException("endOfComment");
+          throw new ArgumentException(nameof(endOfComment));
       }
 #endif
 
@@ -43779,7 +43779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DotToken:
           break;
         default:
-          throw new ArgumentException("dotToken");
+          throw new ArgumentException(nameof(dotToken));
       }
       if (member == null)
         throw new ArgumentNullException(nameof(member));
@@ -43828,7 +43828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ThisKeyword:
           break;
         default:
-          throw new ArgumentException("thisKeyword");
+          throw new ArgumentException(nameof(thisKeyword));
       }
 #endif
 
@@ -43855,7 +43855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OperatorKeyword:
           break;
         default:
-          throw new ArgumentException("operatorKeyword");
+          throw new ArgumentException(nameof(operatorKeyword));
       }
       if (operatorToken == null)
         throw new ArgumentNullException(nameof(operatorToken));
@@ -43885,7 +43885,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.TrueKeyword:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
 #endif
 
@@ -43913,7 +43913,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ExplicitKeyword:
           break;
         default:
-          throw new ArgumentException("implicitOrExplicitKeyword");
+          throw new ArgumentException(nameof(implicitOrExplicitKeyword));
       }
       if (operatorKeyword == null)
         throw new ArgumentNullException(nameof(operatorKeyword));
@@ -43922,7 +43922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OperatorKeyword:
           break;
         default:
-          throw new ArgumentException("operatorKeyword");
+          throw new ArgumentException(nameof(operatorKeyword));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -43941,7 +43941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -43950,7 +43950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -43977,7 +43977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBracketToken:
           break;
         default:
-          throw new ArgumentException("openBracketToken");
+          throw new ArgumentException(nameof(openBracketToken));
       }
       if (closeBracketToken == null)
         throw new ArgumentNullException(nameof(closeBracketToken));
@@ -43986,7 +43986,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBracketToken:
           break;
         default:
-          throw new ArgumentException("closeBracketToken");
+          throw new ArgumentException(nameof(closeBracketToken));
       }
 #endif
 
@@ -44016,7 +44016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("refKindKeyword");
+          throw new ArgumentException(nameof(refKindKeyword));
       }
       }
       if (type == null)
@@ -44068,7 +44068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LessThanToken:
           break;
         default:
-          throw new ArgumentException("lessThanToken");
+          throw new ArgumentException(nameof(lessThanToken));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -44079,7 +44079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GreaterThanToken:
           break;
         default:
-          throw new ArgumentException("greaterThanToken");
+          throw new ArgumentException(nameof(greaterThanToken));
       }
 #endif
 
@@ -44096,7 +44096,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LessThanSlashToken:
           break;
         default:
-          throw new ArgumentException("lessThanSlashToken");
+          throw new ArgumentException(nameof(lessThanSlashToken));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -44107,7 +44107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GreaterThanToken:
           break;
         default:
-          throw new ArgumentException("greaterThanToken");
+          throw new ArgumentException(nameof(greaterThanToken));
       }
 #endif
 
@@ -44134,7 +44134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LessThanToken:
           break;
         default:
-          throw new ArgumentException("lessThanToken");
+          throw new ArgumentException(nameof(lessThanToken));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -44145,7 +44145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SlashGreaterThanToken:
           break;
         default:
-          throw new ArgumentException("slashGreaterThanToken");
+          throw new ArgumentException(nameof(slashGreaterThanToken));
       }
 #endif
 
@@ -44162,7 +44162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("localName");
+          throw new ArgumentException(nameof(localName));
       }
 #endif
 
@@ -44189,7 +44189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("prefix");
+          throw new ArgumentException(nameof(prefix));
       }
       if (colonToken == null)
         throw new ArgumentNullException(nameof(colonToken));
@@ -44198,7 +44198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
 #endif
 
@@ -44227,7 +44227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsToken:
           break;
         default:
-          throw new ArgumentException("equalsToken");
+          throw new ArgumentException(nameof(equalsToken));
       }
       if (startQuoteToken == null)
         throw new ArgumentNullException(nameof(startQuoteToken));
@@ -44237,7 +44237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DoubleQuoteToken:
           break;
         default:
-          throw new ArgumentException("startQuoteToken");
+          throw new ArgumentException(nameof(startQuoteToken));
       }
       if (endQuoteToken == null)
         throw new ArgumentNullException(nameof(endQuoteToken));
@@ -44247,7 +44247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DoubleQuoteToken:
           break;
         default:
-          throw new ArgumentException("endQuoteToken");
+          throw new ArgumentException(nameof(endQuoteToken));
       }
 #endif
 
@@ -44266,7 +44266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsToken:
           break;
         default:
-          throw new ArgumentException("equalsToken");
+          throw new ArgumentException(nameof(equalsToken));
       }
       if (startQuoteToken == null)
         throw new ArgumentNullException(nameof(startQuoteToken));
@@ -44276,7 +44276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DoubleQuoteToken:
           break;
         default:
-          throw new ArgumentException("startQuoteToken");
+          throw new ArgumentException(nameof(startQuoteToken));
       }
       if (cref == null)
         throw new ArgumentNullException(nameof(cref));
@@ -44288,7 +44288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DoubleQuoteToken:
           break;
         default:
-          throw new ArgumentException("endQuoteToken");
+          throw new ArgumentException(nameof(endQuoteToken));
       }
 #endif
 
@@ -44307,7 +44307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsToken:
           break;
         default:
-          throw new ArgumentException("equalsToken");
+          throw new ArgumentException(nameof(equalsToken));
       }
       if (startQuoteToken == null)
         throw new ArgumentNullException(nameof(startQuoteToken));
@@ -44317,7 +44317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DoubleQuoteToken:
           break;
         default:
-          throw new ArgumentException("startQuoteToken");
+          throw new ArgumentException(nameof(startQuoteToken));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -44329,7 +44329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DoubleQuoteToken:
           break;
         default:
-          throw new ArgumentException("endQuoteToken");
+          throw new ArgumentException(nameof(endQuoteToken));
       }
 #endif
 
@@ -44364,7 +44364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.XmlCDataStartToken:
           break;
         default:
-          throw new ArgumentException("startCDataToken");
+          throw new ArgumentException(nameof(startCDataToken));
       }
       if (endCDataToken == null)
         throw new ArgumentNullException(nameof(endCDataToken));
@@ -44373,7 +44373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.XmlCDataEndToken:
           break;
         default:
-          throw new ArgumentException("endCDataToken");
+          throw new ArgumentException(nameof(endCDataToken));
       }
 #endif
 
@@ -44400,7 +44400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.XmlProcessingInstructionStartToken:
           break;
         default:
-          throw new ArgumentException("startProcessingInstructionToken");
+          throw new ArgumentException(nameof(startProcessingInstructionToken));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -44411,7 +44411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.XmlProcessingInstructionEndToken:
           break;
         default:
-          throw new ArgumentException("endProcessingInstructionToken");
+          throw new ArgumentException(nameof(endProcessingInstructionToken));
       }
 #endif
 
@@ -44428,7 +44428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.XmlCommentStartToken:
           break;
         default:
-          throw new ArgumentException("lessThanExclamationMinusMinusToken");
+          throw new ArgumentException(nameof(lessThanExclamationMinusMinusToken));
       }
       if (minusMinusGreaterThanToken == null)
         throw new ArgumentNullException(nameof(minusMinusGreaterThanToken));
@@ -44437,7 +44437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.XmlCommentEndToken:
           break;
         default:
-          throw new ArgumentException("minusMinusGreaterThanToken");
+          throw new ArgumentException(nameof(minusMinusGreaterThanToken));
       }
 #endif
 
@@ -44464,7 +44464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (ifKeyword == null)
         throw new ArgumentNullException(nameof(ifKeyword));
@@ -44473,7 +44473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IfKeyword:
           break;
         default:
-          throw new ArgumentException("ifKeyword");
+          throw new ArgumentException(nameof(ifKeyword));
       }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
@@ -44484,7 +44484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -44501,7 +44501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (elifKeyword == null)
         throw new ArgumentNullException(nameof(elifKeyword));
@@ -44510,7 +44510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ElifKeyword:
           break;
         default:
-          throw new ArgumentException("elifKeyword");
+          throw new ArgumentException(nameof(elifKeyword));
       }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
@@ -44521,7 +44521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -44538,7 +44538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (elseKeyword == null)
         throw new ArgumentNullException(nameof(elseKeyword));
@@ -44547,7 +44547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ElseKeyword:
           break;
         default:
-          throw new ArgumentException("elseKeyword");
+          throw new ArgumentException(nameof(elseKeyword));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -44556,7 +44556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -44573,7 +44573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (endIfKeyword == null)
         throw new ArgumentNullException(nameof(endIfKeyword));
@@ -44582,7 +44582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndIfKeyword:
           break;
         default:
-          throw new ArgumentException("endIfKeyword");
+          throw new ArgumentException(nameof(endIfKeyword));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -44591,7 +44591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -44608,7 +44608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (regionKeyword == null)
         throw new ArgumentNullException(nameof(regionKeyword));
@@ -44617,7 +44617,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.RegionKeyword:
           break;
         default:
-          throw new ArgumentException("regionKeyword");
+          throw new ArgumentException(nameof(regionKeyword));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -44626,7 +44626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -44643,7 +44643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (endRegionKeyword == null)
         throw new ArgumentNullException(nameof(endRegionKeyword));
@@ -44652,7 +44652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndRegionKeyword:
           break;
         default:
-          throw new ArgumentException("endRegionKeyword");
+          throw new ArgumentException(nameof(endRegionKeyword));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -44661,7 +44661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -44678,7 +44678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (errorKeyword == null)
         throw new ArgumentNullException(nameof(errorKeyword));
@@ -44687,7 +44687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ErrorKeyword:
           break;
         default:
-          throw new ArgumentException("errorKeyword");
+          throw new ArgumentException(nameof(errorKeyword));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -44696,7 +44696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -44713,7 +44713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (warningKeyword == null)
         throw new ArgumentNullException(nameof(warningKeyword));
@@ -44722,7 +44722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WarningKeyword:
           break;
         default:
-          throw new ArgumentException("warningKeyword");
+          throw new ArgumentException(nameof(warningKeyword));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -44731,7 +44731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -44748,7 +44748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -44759,7 +44759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -44776,7 +44776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (defineKeyword == null)
         throw new ArgumentNullException(nameof(defineKeyword));
@@ -44785,7 +44785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DefineKeyword:
           break;
         default:
-          throw new ArgumentException("defineKeyword");
+          throw new ArgumentException(nameof(defineKeyword));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -44794,7 +44794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("name");
+          throw new ArgumentException(nameof(name));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -44803,7 +44803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -44820,7 +44820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (undefKeyword == null)
         throw new ArgumentNullException(nameof(undefKeyword));
@@ -44829,7 +44829,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UndefKeyword:
           break;
         default:
-          throw new ArgumentException("undefKeyword");
+          throw new ArgumentException(nameof(undefKeyword));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -44838,7 +44838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("name");
+          throw new ArgumentException(nameof(name));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -44847,7 +44847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -44864,7 +44864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (lineKeyword == null)
         throw new ArgumentNullException(nameof(lineKeyword));
@@ -44873,7 +44873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LineKeyword:
           break;
         default:
-          throw new ArgumentException("lineKeyword");
+          throw new ArgumentException(nameof(lineKeyword));
       }
       if (line == null)
         throw new ArgumentNullException(nameof(line));
@@ -44884,7 +44884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HiddenKeyword:
           break;
         default:
-          throw new ArgumentException("line");
+          throw new ArgumentException(nameof(line));
       }
       if (file != null)
       {
@@ -44894,7 +44894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("file");
+          throw new ArgumentException(nameof(file));
       }
       }
       if (endOfDirectiveToken == null)
@@ -44904,7 +44904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -44921,7 +44921,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (pragmaKeyword == null)
         throw new ArgumentNullException(nameof(pragmaKeyword));
@@ -44930,7 +44930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.PragmaKeyword:
           break;
         default:
-          throw new ArgumentException("pragmaKeyword");
+          throw new ArgumentException(nameof(pragmaKeyword));
       }
       if (warningKeyword == null)
         throw new ArgumentNullException(nameof(warningKeyword));
@@ -44939,7 +44939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WarningKeyword:
           break;
         default:
-          throw new ArgumentException("warningKeyword");
+          throw new ArgumentException(nameof(warningKeyword));
       }
       if (disableOrRestoreKeyword == null)
         throw new ArgumentNullException(nameof(disableOrRestoreKeyword));
@@ -44949,7 +44949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.RestoreKeyword:
           break;
         default:
-          throw new ArgumentException("disableOrRestoreKeyword");
+          throw new ArgumentException(nameof(disableOrRestoreKeyword));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -44958,7 +44958,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -44975,7 +44975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (pragmaKeyword == null)
         throw new ArgumentNullException(nameof(pragmaKeyword));
@@ -44984,7 +44984,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.PragmaKeyword:
           break;
         default:
-          throw new ArgumentException("pragmaKeyword");
+          throw new ArgumentException(nameof(pragmaKeyword));
       }
       if (checksumKeyword == null)
         throw new ArgumentNullException(nameof(checksumKeyword));
@@ -44993,7 +44993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ChecksumKeyword:
           break;
         default:
-          throw new ArgumentException("checksumKeyword");
+          throw new ArgumentException(nameof(checksumKeyword));
       }
       if (file == null)
         throw new ArgumentNullException(nameof(file));
@@ -45002,7 +45002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StringLiteralToken:
           break;
         default:
-          throw new ArgumentException("file");
+          throw new ArgumentException(nameof(file));
       }
       if (guid == null)
         throw new ArgumentNullException(nameof(guid));
@@ -45011,7 +45011,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StringLiteralToken:
           break;
         default:
-          throw new ArgumentException("guid");
+          throw new ArgumentException(nameof(guid));
       }
       if (bytes == null)
         throw new ArgumentNullException(nameof(bytes));
@@ -45020,7 +45020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StringLiteralToken:
           break;
         default:
-          throw new ArgumentException("bytes");
+          throw new ArgumentException(nameof(bytes));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -45029,7 +45029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -45046,7 +45046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (referenceKeyword == null)
         throw new ArgumentNullException(nameof(referenceKeyword));
@@ -45055,7 +45055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ReferenceKeyword:
           break;
         default:
-          throw new ArgumentException("referenceKeyword");
+          throw new ArgumentException(nameof(referenceKeyword));
       }
       if (file == null)
         throw new ArgumentNullException(nameof(file));
@@ -45064,7 +45064,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StringLiteralToken:
           break;
         default:
-          throw new ArgumentException("file");
+          throw new ArgumentException(nameof(file));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -45073,7 +45073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -45090,7 +45090,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (loadKeyword == null)
         throw new ArgumentNullException(nameof(loadKeyword));
@@ -45099,7 +45099,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LoadKeyword:
           break;
         default:
-          throw new ArgumentException("loadKeyword");
+          throw new ArgumentException(nameof(loadKeyword));
       }
       if (file == null)
         throw new ArgumentNullException(nameof(file));
@@ -45108,7 +45108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StringLiteralToken:
           break;
         default:
-          throw new ArgumentException("file");
+          throw new ArgumentException(nameof(file));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -45117,7 +45117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -45134,7 +45134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (exclamationToken == null)
         throw new ArgumentNullException(nameof(exclamationToken));
@@ -45143,7 +45143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ExclamationToken:
           break;
         default:
-          throw new ArgumentException("exclamationToken");
+          throw new ArgumentException(nameof(exclamationToken));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -45152,7 +45152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -45169,7 +45169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (nullableKeyword == null)
         throw new ArgumentNullException(nameof(nullableKeyword));
@@ -45178,7 +45178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.NullableKeyword:
           break;
         default:
-          throw new ArgumentException("nullableKeyword");
+          throw new ArgumentException(nameof(nullableKeyword));
       }
       if (settingToken == null)
         throw new ArgumentNullException(nameof(settingToken));
@@ -45190,7 +45190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SafeOnlyKeyword:
           break;
         default:
-          throw new ArgumentException("settingToken");
+          throw new ArgumentException(nameof(settingToken));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -45199,7 +45199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -45220,7 +45220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GlobalKeyword:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
 #endif
 
@@ -45249,7 +45249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DotToken:
           break;
         default:
-          throw new ArgumentException("dotToken");
+          throw new ArgumentException(nameof(dotToken));
       }
       if (right == null)
         throw new ArgumentNullException(nameof(right));
@@ -45278,7 +45278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (typeArgumentList == null)
         throw new ArgumentNullException(nameof(typeArgumentList));
@@ -45307,7 +45307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LessThanToken:
           break;
         default:
-          throw new ArgumentException("lessThanToken");
+          throw new ArgumentException(nameof(lessThanToken));
       }
       if (greaterThanToken == null)
         throw new ArgumentNullException(nameof(greaterThanToken));
@@ -45316,7 +45316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GreaterThanToken:
           break;
         default:
-          throw new ArgumentException("greaterThanToken");
+          throw new ArgumentException(nameof(greaterThanToken));
       }
 #endif
 
@@ -45345,7 +45345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonColonToken:
           break;
         default:
-          throw new ArgumentException("colonColonToken");
+          throw new ArgumentException(nameof(colonColonToken));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -45389,7 +45389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.VoidKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
 #endif
 
@@ -45436,7 +45436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBracketToken:
           break;
         default:
-          throw new ArgumentException("openBracketToken");
+          throw new ArgumentException(nameof(openBracketToken));
       }
       if (closeBracketToken == null)
         throw new ArgumentNullException(nameof(closeBracketToken));
@@ -45445,7 +45445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBracketToken:
           break;
         default:
-          throw new ArgumentException("closeBracketToken");
+          throw new ArgumentException(nameof(closeBracketToken));
       }
       if (questionToken != null)
       {
@@ -45455,7 +45455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("questionToken");
+          throw new ArgumentException(nameof(questionToken));
       }
       }
 #endif
@@ -45475,7 +45475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.AsteriskToken:
           break;
         default:
-          throw new ArgumentException("asteriskToken");
+          throw new ArgumentException(nameof(asteriskToken));
       }
 #endif
 
@@ -45504,7 +45504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.QuestionToken:
           break;
         default:
-          throw new ArgumentException("questionToken");
+          throw new ArgumentException(nameof(questionToken));
       }
 #endif
 
@@ -45531,7 +45531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -45540,7 +45540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -45570,7 +45570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       }
 #endif
@@ -45598,7 +45598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OmittedTypeArgumentToken:
           break;
         default:
-          throw new ArgumentException("omittedTypeArgumentToken");
+          throw new ArgumentException(nameof(omittedTypeArgumentToken));
       }
 #endif
 
@@ -45625,7 +45625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.RefKeyword:
           break;
         default:
-          throw new ArgumentException("refKeyword");
+          throw new ArgumentException(nameof(refKeyword));
       }
       if (readOnlyKeyword != null)
       {
@@ -45635,7 +45635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("readOnlyKeyword");
+          throw new ArgumentException(nameof(readOnlyKeyword));
       }
       }
       if (type == null)
@@ -45665,7 +45665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -45676,7 +45676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -45703,7 +45703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -45712,7 +45712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -45744,7 +45744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IndexExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (operatorToken == null)
@@ -45762,7 +45762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CaretToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
       if (operand == null)
         throw new ArgumentNullException(nameof(operand));
@@ -45791,7 +45791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.AwaitKeyword:
           break;
         default:
-          throw new ArgumentException("awaitKeyword");
+          throw new ArgumentException(nameof(awaitKeyword));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -45819,7 +45819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SuppressNullableWarningExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (operand == null)
@@ -45833,7 +45833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ExclamationToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
 #endif
 
@@ -45858,7 +45858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.PointerMemberAccessExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (expression == null)
@@ -45871,7 +45871,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.MinusGreaterThanToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -45902,7 +45902,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.QuestionToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
       if (whenNotNull == null)
         throw new ArgumentNullException(nameof(whenNotNull));
@@ -45931,7 +45931,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DotToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -45980,7 +45980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DotDotToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
 #endif
 
@@ -46044,7 +46044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CoalesceExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (left == null)
@@ -46076,7 +46076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.QuestionQuestionToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
       if (right == null)
         throw new ArgumentNullException(nameof(right));
@@ -46113,7 +46113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CoalesceAssignmentExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (left == null)
@@ -46136,7 +46136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.QuestionQuestionEqualsToken:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
       if (right == null)
         throw new ArgumentNullException(nameof(right));
@@ -46167,7 +46167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.QuestionToken:
           break;
         default:
-          throw new ArgumentException("questionToken");
+          throw new ArgumentException(nameof(questionToken));
       }
       if (whenTrue == null)
         throw new ArgumentNullException(nameof(whenTrue));
@@ -46178,7 +46178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
       if (whenFalse == null)
         throw new ArgumentNullException(nameof(whenFalse));
@@ -46197,7 +46197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ThisKeyword:
           break;
         default:
-          throw new ArgumentException("token");
+          throw new ArgumentException(nameof(token));
       }
 #endif
 
@@ -46224,7 +46224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.BaseKeyword:
           break;
         default:
-          throw new ArgumentException("token");
+          throw new ArgumentException(nameof(token));
       }
 #endif
 
@@ -46255,7 +46255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DefaultLiteralExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (token == null)
@@ -46272,7 +46272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DefaultKeyword:
           break;
         default:
-          throw new ArgumentException("token");
+          throw new ArgumentException(nameof(token));
       }
 #endif
 
@@ -46299,7 +46299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.MakeRefKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -46308,7 +46308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -46319,7 +46319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -46336,7 +46336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.RefTypeKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -46345,7 +46345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -46356,7 +46356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -46373,7 +46373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.RefValueKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -46382,7 +46382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -46393,7 +46393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CommaToken:
           break;
         default:
-          throw new ArgumentException("comma");
+          throw new ArgumentException(nameof(comma));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -46404,7 +46404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -46419,7 +46419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UncheckedExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (keyword == null)
@@ -46430,7 +46430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UncheckedKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -46439,7 +46439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -46450,7 +46450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -46467,7 +46467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DefaultKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -46476,7 +46476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -46487,7 +46487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -46504,7 +46504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.TypeOfKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -46513,7 +46513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -46524,7 +46524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -46541,7 +46541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SizeOfKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -46550,7 +46550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -46561,7 +46561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -46622,7 +46622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -46631,7 +46631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -46658,7 +46658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBracketToken:
           break;
         default:
-          throw new ArgumentException("openBracketToken");
+          throw new ArgumentException(nameof(openBracketToken));
       }
       if (closeBracketToken == null)
         throw new ArgumentNullException(nameof(closeBracketToken));
@@ -46667,7 +46667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBracketToken:
           break;
         default:
-          throw new ArgumentException("closeBracketToken");
+          throw new ArgumentException(nameof(closeBracketToken));
       }
 #endif
 
@@ -46697,7 +46697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("refKindKeyword");
+          throw new ArgumentException(nameof(refKindKeyword));
       }
       }
       if (expression == null)
@@ -46729,7 +46729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
 #endif
 
@@ -46778,7 +46778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -46789,7 +46789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -46809,7 +46809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("asyncKeyword");
+          throw new ArgumentException(nameof(asyncKeyword));
       }
       }
       if (delegateKeyword == null)
@@ -46819,7 +46819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DelegateKeyword:
           break;
         default:
-          throw new ArgumentException("delegateKeyword");
+          throw new ArgumentException(nameof(delegateKeyword));
       }
       if (body == null)
         throw new ArgumentNullException(nameof(body));
@@ -46839,7 +46839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("asyncKeyword");
+          throw new ArgumentException(nameof(asyncKeyword));
       }
       }
       if (parameter == null)
@@ -46851,7 +46851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsGreaterThanToken:
           break;
         default:
-          throw new ArgumentException("arrowToken");
+          throw new ArgumentException(nameof(arrowToken));
       }
       if (body == null)
         throw new ArgumentNullException(nameof(body));
@@ -46870,7 +46870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.RefKeyword:
           break;
         default:
-          throw new ArgumentException("refKeyword");
+          throw new ArgumentException(nameof(refKeyword));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -46900,7 +46900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("asyncKeyword");
+          throw new ArgumentException(nameof(asyncKeyword));
       }
       }
       if (parameterList == null)
@@ -46912,7 +46912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsGreaterThanToken:
           break;
         default:
-          throw new ArgumentException("arrowToken");
+          throw new ArgumentException(nameof(arrowToken));
       }
       if (body == null)
         throw new ArgumentNullException(nameof(body));
@@ -46931,7 +46931,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ComplexElementInitializerExpression:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (openBraceToken == null)
@@ -46941,7 +46941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -46950,7 +46950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
 #endif
 
@@ -46977,7 +46977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.NewKeyword:
           break;
         default:
-          throw new ArgumentException("newKeyword");
+          throw new ArgumentException(nameof(newKeyword));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -47016,7 +47016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.NewKeyword:
           break;
         default:
-          throw new ArgumentException("newKeyword");
+          throw new ArgumentException(nameof(newKeyword));
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -47025,7 +47025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -47034,7 +47034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
 #endif
 
@@ -47051,7 +47051,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.NewKeyword:
           break;
         default:
-          throw new ArgumentException("newKeyword");
+          throw new ArgumentException(nameof(newKeyword));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -47080,7 +47080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.NewKeyword:
           break;
         default:
-          throw new ArgumentException("newKeyword");
+          throw new ArgumentException(nameof(newKeyword));
       }
       if (openBracketToken == null)
         throw new ArgumentNullException(nameof(openBracketToken));
@@ -47089,7 +47089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBracketToken:
           break;
         default:
-          throw new ArgumentException("openBracketToken");
+          throw new ArgumentException(nameof(openBracketToken));
       }
       if (closeBracketToken == null)
         throw new ArgumentNullException(nameof(closeBracketToken));
@@ -47098,7 +47098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBracketToken:
           break;
         default:
-          throw new ArgumentException("closeBracketToken");
+          throw new ArgumentException(nameof(closeBracketToken));
       }
       if (initializer == null)
         throw new ArgumentNullException(nameof(initializer));
@@ -47117,7 +47117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StackAllocKeyword:
           break;
         default:
-          throw new ArgumentException("stackAllocKeyword");
+          throw new ArgumentException(nameof(stackAllocKeyword));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -47146,7 +47146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StackAllocKeyword:
           break;
         default:
-          throw new ArgumentException("stackAllocKeyword");
+          throw new ArgumentException(nameof(stackAllocKeyword));
       }
       if (openBracketToken == null)
         throw new ArgumentNullException(nameof(openBracketToken));
@@ -47155,7 +47155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBracketToken:
           break;
         default:
-          throw new ArgumentException("openBracketToken");
+          throw new ArgumentException(nameof(openBracketToken));
       }
       if (closeBracketToken == null)
         throw new ArgumentNullException(nameof(closeBracketToken));
@@ -47164,7 +47164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBracketToken:
           break;
         default:
-          throw new ArgumentException("closeBracketToken");
+          throw new ArgumentException(nameof(closeBracketToken));
       }
       if (initializer == null)
         throw new ArgumentNullException(nameof(initializer));
@@ -47225,7 +47225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.FromKeyword:
           break;
         default:
-          throw new ArgumentException("fromKeyword");
+          throw new ArgumentException(nameof(fromKeyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -47234,7 +47234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (inKeyword == null)
         throw new ArgumentNullException(nameof(inKeyword));
@@ -47243,7 +47243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InKeyword:
           break;
         default:
-          throw new ArgumentException("inKeyword");
+          throw new ArgumentException(nameof(inKeyword));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -47262,7 +47262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LetKeyword:
           break;
         default:
-          throw new ArgumentException("letKeyword");
+          throw new ArgumentException(nameof(letKeyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -47271,7 +47271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (equalsToken == null)
         throw new ArgumentNullException(nameof(equalsToken));
@@ -47280,7 +47280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsToken:
           break;
         default:
-          throw new ArgumentException("equalsToken");
+          throw new ArgumentException(nameof(equalsToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -47299,7 +47299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.JoinKeyword:
           break;
         default:
-          throw new ArgumentException("joinKeyword");
+          throw new ArgumentException(nameof(joinKeyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -47308,7 +47308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (inKeyword == null)
         throw new ArgumentNullException(nameof(inKeyword));
@@ -47317,7 +47317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InKeyword:
           break;
         default:
-          throw new ArgumentException("inKeyword");
+          throw new ArgumentException(nameof(inKeyword));
       }
       if (inExpression == null)
         throw new ArgumentNullException(nameof(inExpression));
@@ -47328,7 +47328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OnKeyword:
           break;
         default:
-          throw new ArgumentException("onKeyword");
+          throw new ArgumentException(nameof(onKeyword));
       }
       if (leftExpression == null)
         throw new ArgumentNullException(nameof(leftExpression));
@@ -47339,7 +47339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsKeyword:
           break;
         default:
-          throw new ArgumentException("equalsKeyword");
+          throw new ArgumentException(nameof(equalsKeyword));
       }
       if (rightExpression == null)
         throw new ArgumentNullException(nameof(rightExpression));
@@ -47358,7 +47358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IntoKeyword:
           break;
         default:
-          throw new ArgumentException("intoKeyword");
+          throw new ArgumentException(nameof(intoKeyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -47367,7 +47367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
 #endif
 
@@ -47394,7 +47394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WhereKeyword:
           break;
         default:
-          throw new ArgumentException("whereKeyword");
+          throw new ArgumentException(nameof(whereKeyword));
       }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
@@ -47423,7 +47423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OrderByKeyword:
           break;
         default:
-          throw new ArgumentException("orderByKeyword");
+          throw new ArgumentException(nameof(orderByKeyword));
       }
 #endif
 
@@ -47448,7 +47448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DescendingOrdering:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (expression == null)
@@ -47462,7 +47462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("ascendingOrDescendingKeyword");
+          throw new ArgumentException(nameof(ascendingOrDescendingKeyword));
       }
       }
 #endif
@@ -47490,7 +47490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SelectKeyword:
           break;
         default:
-          throw new ArgumentException("selectKeyword");
+          throw new ArgumentException(nameof(selectKeyword));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -47519,7 +47519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GroupKeyword:
           break;
         default:
-          throw new ArgumentException("groupKeyword");
+          throw new ArgumentException(nameof(groupKeyword));
       }
       if (groupExpression == null)
         throw new ArgumentNullException(nameof(groupExpression));
@@ -47530,7 +47530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ByKeyword:
           break;
         default:
-          throw new ArgumentException("byKeyword");
+          throw new ArgumentException(nameof(byKeyword));
       }
       if (byExpression == null)
         throw new ArgumentNullException(nameof(byExpression));
@@ -47549,7 +47549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IntoKeyword:
           break;
         default:
-          throw new ArgumentException("intoKeyword");
+          throw new ArgumentException(nameof(intoKeyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -47558,7 +47558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (body == null)
         throw new ArgumentNullException(nameof(body));
@@ -47587,7 +47587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OmittedArraySizeExpressionToken:
           break;
         default:
-          throw new ArgumentException("omittedArraySizeExpressionToken");
+          throw new ArgumentException(nameof(omittedArraySizeExpressionToken));
       }
 #endif
 
@@ -47615,7 +47615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InterpolatedVerbatimStringStartToken:
           break;
         default:
-          throw new ArgumentException("stringStartToken");
+          throw new ArgumentException(nameof(stringStartToken));
       }
       if (stringEndToken == null)
         throw new ArgumentNullException(nameof(stringEndToken));
@@ -47624,7 +47624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InterpolatedStringEndToken:
           break;
         default:
-          throw new ArgumentException("stringEndToken");
+          throw new ArgumentException(nameof(stringEndToken));
       }
 #endif
 
@@ -47653,7 +47653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IsKeyword:
           break;
         default:
-          throw new ArgumentException("isKeyword");
+          throw new ArgumentException(nameof(isKeyword));
       }
       if (pattern == null)
         throw new ArgumentNullException(nameof(pattern));
@@ -47682,7 +47682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ThrowKeyword:
           break;
         default:
-          throw new ArgumentException("throwKeyword");
+          throw new ArgumentException(nameof(throwKeyword));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -47711,7 +47711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WhenKeyword:
           break;
         default:
-          throw new ArgumentException("whenKeyword");
+          throw new ArgumentException(nameof(whenKeyword));
       }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
@@ -47782,7 +47782,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InterpolatedStringTextToken:
           break;
         default:
-          throw new ArgumentException("textToken");
+          throw new ArgumentException(nameof(textToken));
       }
 #endif
 
@@ -47809,7 +47809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -47820,7 +47820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
 #endif
 
@@ -47861,7 +47861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InterpolatedStringTextToken:
           break;
         default:
-          throw new ArgumentException("formatStringToken");
+          throw new ArgumentException(nameof(formatStringToken));
       }
 #endif
 
@@ -47908,7 +47908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -47917,7 +47917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
 #endif
 
@@ -47946,7 +47946,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (parameterList == null)
         throw new ArgumentNullException(nameof(parameterList));
@@ -47958,7 +47958,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -47978,7 +47978,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -48025,7 +48025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
 #endif
 
@@ -48052,7 +48052,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsToken:
           break;
         default:
-          throw new ArgumentException("equalsToken");
+          throw new ArgumentException(nameof(equalsToken));
       }
       if (value == null)
         throw new ArgumentNullException(nameof(value));
@@ -48081,7 +48081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
 #endif
 
@@ -48108,7 +48108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UnderscoreToken:
           break;
         default:
-          throw new ArgumentException("underscoreToken");
+          throw new ArgumentException(nameof(underscoreToken));
       }
 #endif
 
@@ -48135,7 +48135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -48144,7 +48144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -48173,7 +48173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -48200,7 +48200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -48227,7 +48227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (colonToken == null)
         throw new ArgumentNullException(nameof(colonToken));
@@ -48236,7 +48236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -48264,7 +48264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GotoDefaultStatement:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (gotoKeyword == null)
@@ -48274,7 +48274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GotoKeyword:
           break;
         default:
-          throw new ArgumentException("gotoKeyword");
+          throw new ArgumentException(nameof(gotoKeyword));
       }
       if (caseOrDefaultKeyword != null)
       {
@@ -48285,7 +48285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("caseOrDefaultKeyword");
+          throw new ArgumentException(nameof(caseOrDefaultKeyword));
       }
       }
       if (semicolonToken == null)
@@ -48295,7 +48295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -48312,7 +48312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.BreakKeyword:
           break;
         default:
-          throw new ArgumentException("breakKeyword");
+          throw new ArgumentException(nameof(breakKeyword));
       }
       if (semicolonToken == null)
         throw new ArgumentNullException(nameof(semicolonToken));
@@ -48321,7 +48321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -48348,7 +48348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ContinueKeyword:
           break;
         default:
-          throw new ArgumentException("continueKeyword");
+          throw new ArgumentException(nameof(continueKeyword));
       }
       if (semicolonToken == null)
         throw new ArgumentNullException(nameof(semicolonToken));
@@ -48357,7 +48357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -48384,7 +48384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ReturnKeyword:
           break;
         default:
-          throw new ArgumentException("returnKeyword");
+          throw new ArgumentException(nameof(returnKeyword));
       }
       if (semicolonToken == null)
         throw new ArgumentNullException(nameof(semicolonToken));
@@ -48393,7 +48393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -48420,7 +48420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ThrowKeyword:
           break;
         default:
-          throw new ArgumentException("throwKeyword");
+          throw new ArgumentException(nameof(throwKeyword));
       }
       if (semicolonToken == null)
         throw new ArgumentNullException(nameof(semicolonToken));
@@ -48429,7 +48429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -48454,7 +48454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.YieldBreakStatement:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (yieldKeyword == null)
@@ -48464,7 +48464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.YieldKeyword:
           break;
         default:
-          throw new ArgumentException("yieldKeyword");
+          throw new ArgumentException(nameof(yieldKeyword));
       }
       if (returnOrBreakKeyword == null)
         throw new ArgumentNullException(nameof(returnOrBreakKeyword));
@@ -48474,7 +48474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.BreakKeyword:
           break;
         default:
-          throw new ArgumentException("returnOrBreakKeyword");
+          throw new ArgumentException(nameof(returnOrBreakKeyword));
       }
       if (semicolonToken == null)
         throw new ArgumentNullException(nameof(semicolonToken));
@@ -48483,7 +48483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -48500,7 +48500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WhileKeyword:
           break;
         default:
-          throw new ArgumentException("whileKeyword");
+          throw new ArgumentException(nameof(whileKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -48509,7 +48509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
@@ -48520,7 +48520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -48539,7 +48539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DoKeyword:
           break;
         default:
-          throw new ArgumentException("doKeyword");
+          throw new ArgumentException(nameof(doKeyword));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -48550,7 +48550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WhileKeyword:
           break;
         default:
-          throw new ArgumentException("whileKeyword");
+          throw new ArgumentException(nameof(whileKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -48559,7 +48559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
@@ -48570,7 +48570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (semicolonToken == null)
         throw new ArgumentNullException(nameof(semicolonToken));
@@ -48579,7 +48579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -48596,7 +48596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ForKeyword:
           break;
         default:
-          throw new ArgumentException("forKeyword");
+          throw new ArgumentException(nameof(forKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -48605,7 +48605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (firstSemicolonToken == null)
         throw new ArgumentNullException(nameof(firstSemicolonToken));
@@ -48614,7 +48614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("firstSemicolonToken");
+          throw new ArgumentException(nameof(firstSemicolonToken));
       }
       if (secondSemicolonToken == null)
         throw new ArgumentNullException(nameof(secondSemicolonToken));
@@ -48623,7 +48623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("secondSemicolonToken");
+          throw new ArgumentException(nameof(secondSemicolonToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -48632,7 +48632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -48652,7 +48652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("awaitKeyword");
+          throw new ArgumentException(nameof(awaitKeyword));
       }
       }
       if (forEachKeyword == null)
@@ -48662,7 +48662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ForEachKeyword:
           break;
         default:
-          throw new ArgumentException("forEachKeyword");
+          throw new ArgumentException(nameof(forEachKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -48671,7 +48671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -48682,7 +48682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (inKeyword == null)
         throw new ArgumentNullException(nameof(inKeyword));
@@ -48691,7 +48691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InKeyword:
           break;
         default:
-          throw new ArgumentException("inKeyword");
+          throw new ArgumentException(nameof(inKeyword));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -48702,7 +48702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -48722,7 +48722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("awaitKeyword");
+          throw new ArgumentException(nameof(awaitKeyword));
       }
       }
       if (forEachKeyword == null)
@@ -48732,7 +48732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ForEachKeyword:
           break;
         default:
-          throw new ArgumentException("forEachKeyword");
+          throw new ArgumentException(nameof(forEachKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -48741,7 +48741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (variable == null)
         throw new ArgumentNullException(nameof(variable));
@@ -48752,7 +48752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InKeyword:
           break;
         default:
-          throw new ArgumentException("inKeyword");
+          throw new ArgumentException(nameof(inKeyword));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -48763,7 +48763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -48783,7 +48783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("awaitKeyword");
+          throw new ArgumentException(nameof(awaitKeyword));
       }
       }
       if (usingKeyword == null)
@@ -48793,7 +48793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UsingKeyword:
           break;
         default:
-          throw new ArgumentException("usingKeyword");
+          throw new ArgumentException(nameof(usingKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -48802,7 +48802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -48811,7 +48811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -48830,7 +48830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.FixedKeyword:
           break;
         default:
-          throw new ArgumentException("fixedKeyword");
+          throw new ArgumentException(nameof(fixedKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -48839,7 +48839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (declaration == null)
         throw new ArgumentNullException(nameof(declaration));
@@ -48850,7 +48850,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -48867,7 +48867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UncheckedStatement:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (keyword == null)
@@ -48878,7 +48878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UncheckedKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (block == null)
         throw new ArgumentNullException(nameof(block));
@@ -48907,7 +48907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UnsafeKeyword:
           break;
         default:
-          throw new ArgumentException("unsafeKeyword");
+          throw new ArgumentException(nameof(unsafeKeyword));
       }
       if (block == null)
         throw new ArgumentNullException(nameof(block));
@@ -48936,7 +48936,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LockKeyword:
           break;
         default:
-          throw new ArgumentException("lockKeyword");
+          throw new ArgumentException(nameof(lockKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -48945,7 +48945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -48956,7 +48956,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -48975,7 +48975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IfKeyword:
           break;
         default:
-          throw new ArgumentException("ifKeyword");
+          throw new ArgumentException(nameof(ifKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -48984,7 +48984,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
@@ -48995,7 +48995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -49014,7 +49014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ElseKeyword:
           break;
         default:
-          throw new ArgumentException("elseKeyword");
+          throw new ArgumentException(nameof(elseKeyword));
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -49043,7 +49043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SwitchKeyword:
           break;
         default:
-          throw new ArgumentException("switchKeyword");
+          throw new ArgumentException(nameof(switchKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -49052,7 +49052,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -49063,7 +49063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -49072,7 +49072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -49081,7 +49081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
 #endif
 
@@ -49116,7 +49116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CaseKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (pattern == null)
         throw new ArgumentNullException(nameof(pattern));
@@ -49137,7 +49137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CaseKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (value == null)
         throw new ArgumentNullException(nameof(value));
@@ -49168,7 +49168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DefaultKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (colonToken == null)
         throw new ArgumentNullException(nameof(colonToken));
@@ -49197,7 +49197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.TryKeyword:
           break;
         default:
-          throw new ArgumentException("tryKeyword");
+          throw new ArgumentException(nameof(tryKeyword));
       }
       if (block == null)
         throw new ArgumentNullException(nameof(block));
@@ -49216,7 +49216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CatchKeyword:
           break;
         default:
-          throw new ArgumentException("catchKeyword");
+          throw new ArgumentException(nameof(catchKeyword));
       }
       if (block == null)
         throw new ArgumentNullException(nameof(block));
@@ -49235,7 +49235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -49247,7 +49247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       }
       if (closeParenToken == null)
@@ -49257,7 +49257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -49274,7 +49274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WhenKeyword:
           break;
         default:
-          throw new ArgumentException("whenKeyword");
+          throw new ArgumentException(nameof(whenKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -49283,7 +49283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (filterExpression == null)
         throw new ArgumentNullException(nameof(filterExpression));
@@ -49294,7 +49294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -49311,7 +49311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.FinallyKeyword:
           break;
         default:
-          throw new ArgumentException("finallyKeyword");
+          throw new ArgumentException(nameof(finallyKeyword));
       }
       if (block == null)
         throw new ArgumentNullException(nameof(block));
@@ -49340,7 +49340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfFileToken:
           break;
         default:
-          throw new ArgumentException("endOfFileToken");
+          throw new ArgumentException(nameof(endOfFileToken));
       }
 #endif
 
@@ -49357,7 +49357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ExternKeyword:
           break;
         default:
-          throw new ArgumentException("externKeyword");
+          throw new ArgumentException(nameof(externKeyword));
       }
       if (aliasKeyword == null)
         throw new ArgumentNullException(nameof(aliasKeyword));
@@ -49366,7 +49366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.AliasKeyword:
           break;
         default:
-          throw new ArgumentException("aliasKeyword");
+          throw new ArgumentException(nameof(aliasKeyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -49375,7 +49375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (semicolonToken == null)
         throw new ArgumentNullException(nameof(semicolonToken));
@@ -49384,7 +49384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -49401,7 +49401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UsingKeyword:
           break;
         default:
-          throw new ArgumentException("usingKeyword");
+          throw new ArgumentException(nameof(usingKeyword));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -49412,7 +49412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -49429,7 +49429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.NamespaceKeyword:
           break;
         default:
-          throw new ArgumentException("namespaceKeyword");
+          throw new ArgumentException(nameof(namespaceKeyword));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -49440,7 +49440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -49449,7 +49449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
       if (semicolonToken != null)
       {
@@ -49459,7 +49459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -49477,7 +49477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBracketToken:
           break;
         default:
-          throw new ArgumentException("openBracketToken");
+          throw new ArgumentException(nameof(openBracketToken));
       }
       if (closeBracketToken == null)
         throw new ArgumentNullException(nameof(closeBracketToken));
@@ -49486,7 +49486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBracketToken:
           break;
         default:
-          throw new ArgumentException("closeBracketToken");
+          throw new ArgumentException(nameof(closeBracketToken));
       }
 #endif
 
@@ -49505,7 +49505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
 #endif
 
@@ -49552,7 +49552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -49561,7 +49561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -49610,7 +49610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsToken:
           break;
         default:
-          throw new ArgumentException("equalsToken");
+          throw new ArgumentException(nameof(equalsToken));
       }
 #endif
 
@@ -49637,7 +49637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LessThanToken:
           break;
         default:
-          throw new ArgumentException("lessThanToken");
+          throw new ArgumentException(nameof(lessThanToken));
       }
       if (greaterThanToken == null)
         throw new ArgumentNullException(nameof(greaterThanToken));
@@ -49646,7 +49646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GreaterThanToken:
           break;
         default:
-          throw new ArgumentException("greaterThanToken");
+          throw new ArgumentException(nameof(greaterThanToken));
       }
 #endif
 
@@ -49675,7 +49675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("varianceKeyword");
+          throw new ArgumentException(nameof(varianceKeyword));
       }
       }
       if (identifier == null)
@@ -49685,7 +49685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
 #endif
 
@@ -49712,7 +49712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ClassKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -49721,7 +49721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -49730,7 +49730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -49739,7 +49739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
       if (semicolonToken != null)
       {
@@ -49749,7 +49749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -49767,7 +49767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StructKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -49776,7 +49776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -49785,7 +49785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -49794,7 +49794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
       if (semicolonToken != null)
       {
@@ -49804,7 +49804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -49822,7 +49822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.InterfaceKeyword:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -49831,7 +49831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -49840,7 +49840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -49849,7 +49849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
       if (semicolonToken != null)
       {
@@ -49859,7 +49859,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -49877,7 +49877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EnumKeyword:
           break;
         default:
-          throw new ArgumentException("enumKeyword");
+          throw new ArgumentException(nameof(enumKeyword));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -49886,7 +49886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -49895,7 +49895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -49904,7 +49904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
       if (semicolonToken != null)
       {
@@ -49914,7 +49914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -49932,7 +49932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DelegateKeyword:
           break;
         default:
-          throw new ArgumentException("delegateKeyword");
+          throw new ArgumentException(nameof(delegateKeyword));
       }
       if (returnType == null)
         throw new ArgumentNullException(nameof(returnType));
@@ -49943,7 +49943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (parameterList == null)
         throw new ArgumentNullException(nameof(parameterList));
@@ -49954,7 +49954,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -49971,7 +49971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
 #endif
 
@@ -49998,7 +49998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
 #endif
 
@@ -50045,7 +50045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WhereKeyword:
           break;
         default:
-          throw new ArgumentException("whereKeyword");
+          throw new ArgumentException(nameof(whereKeyword));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -50056,7 +50056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
 #endif
 
@@ -50073,7 +50073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.NewKeyword:
           break;
         default:
-          throw new ArgumentException("newKeyword");
+          throw new ArgumentException(nameof(newKeyword));
       }
       if (openParenToken == null)
         throw new ArgumentNullException(nameof(openParenToken));
@@ -50082,7 +50082,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -50091,7 +50091,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -50116,7 +50116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StructConstraint:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (classOrStructKeyword == null)
@@ -50127,7 +50127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StructKeyword:
           break;
         default:
-          throw new ArgumentException("classOrStructKeyword");
+          throw new ArgumentException(nameof(classOrStructKeyword));
       }
       if (questionToken != null)
       {
@@ -50137,7 +50137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("questionToken");
+          throw new ArgumentException(nameof(questionToken));
       }
       }
 #endif
@@ -50187,7 +50187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -50204,7 +50204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EventKeyword:
           break;
         default:
-          throw new ArgumentException("eventKeyword");
+          throw new ArgumentException(nameof(eventKeyword));
       }
       if (declaration == null)
         throw new ArgumentNullException(nameof(declaration));
@@ -50215,7 +50215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SemicolonToken:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
 #endif
 
@@ -50234,7 +50234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DotToken:
           break;
         default:
-          throw new ArgumentException("dotToken");
+          throw new ArgumentException(nameof(dotToken));
       }
 #endif
 
@@ -50263,7 +50263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (parameterList == null)
         throw new ArgumentNullException(nameof(parameterList));
@@ -50275,7 +50275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -50295,7 +50295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OperatorKeyword:
           break;
         default:
-          throw new ArgumentException("operatorKeyword");
+          throw new ArgumentException(nameof(operatorKeyword));
       }
       if (operatorToken == null)
         throw new ArgumentNullException(nameof(operatorToken));
@@ -50326,7 +50326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IsKeyword:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
       if (parameterList == null)
         throw new ArgumentNullException(nameof(parameterList));
@@ -50338,7 +50338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -50357,7 +50357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ExplicitKeyword:
           break;
         default:
-          throw new ArgumentException("implicitOrExplicitKeyword");
+          throw new ArgumentException(nameof(implicitOrExplicitKeyword));
       }
       if (operatorKeyword == null)
         throw new ArgumentNullException(nameof(operatorKeyword));
@@ -50366,7 +50366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OperatorKeyword:
           break;
         default:
-          throw new ArgumentException("operatorKeyword");
+          throw new ArgumentException(nameof(operatorKeyword));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -50380,7 +50380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -50398,7 +50398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (parameterList == null)
         throw new ArgumentNullException(nameof(parameterList));
@@ -50410,7 +50410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -50426,7 +50426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ThisConstructorInitializer:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (colonToken == null)
@@ -50436,7 +50436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
       if (thisOrBaseKeyword == null)
         throw new ArgumentNullException(nameof(thisOrBaseKeyword));
@@ -50446,7 +50446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ThisKeyword:
           break;
         default:
-          throw new ArgumentException("thisOrBaseKeyword");
+          throw new ArgumentException(nameof(thisOrBaseKeyword));
       }
       if (argumentList == null)
         throw new ArgumentNullException(nameof(argumentList));
@@ -50475,7 +50475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.TildeToken:
           break;
         default:
-          throw new ArgumentException("tildeToken");
+          throw new ArgumentException(nameof(tildeToken));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -50484,7 +50484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (parameterList == null)
         throw new ArgumentNullException(nameof(parameterList));
@@ -50496,7 +50496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -50516,7 +50516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (semicolonToken != null)
       {
@@ -50526,7 +50526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -50544,7 +50544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsGreaterThanToken:
           break;
         default:
-          throw new ArgumentException("arrowToken");
+          throw new ArgumentException(nameof(arrowToken));
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
@@ -50573,7 +50573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EventKeyword:
           break;
         default:
-          throw new ArgumentException("eventKeyword");
+          throw new ArgumentException(nameof(eventKeyword));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -50584,7 +50584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
       if (accessorList == null)
         throw new ArgumentNullException(nameof(accessorList));
@@ -50605,7 +50605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ThisKeyword:
           break;
         default:
-          throw new ArgumentException("thisKeyword");
+          throw new ArgumentException(nameof(thisKeyword));
       }
       if (parameterList == null)
         throw new ArgumentNullException(nameof(parameterList));
@@ -50617,7 +50617,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -50635,7 +50635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBraceToken:
           break;
         default:
-          throw new ArgumentException("openBraceToken");
+          throw new ArgumentException(nameof(openBraceToken));
       }
       if (closeBraceToken == null)
         throw new ArgumentNullException(nameof(closeBraceToken));
@@ -50644,7 +50644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBraceToken:
           break;
         default:
-          throw new ArgumentException("closeBraceToken");
+          throw new ArgumentException(nameof(closeBraceToken));
       }
 #endif
 
@@ -50672,7 +50672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UnknownAccessorDeclaration:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (keyword == null)
@@ -50686,7 +50686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("keyword");
+          throw new ArgumentException(nameof(keyword));
       }
       if (semicolonToken != null)
       {
@@ -50696,7 +50696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("semicolonToken");
+          throw new ArgumentException(nameof(semicolonToken));
       }
       }
 #endif
@@ -50714,7 +50714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -50723,7 +50723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -50750,7 +50750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBracketToken:
           break;
         default:
-          throw new ArgumentException("openBracketToken");
+          throw new ArgumentException(nameof(openBracketToken));
       }
       if (closeBracketToken == null)
         throw new ArgumentNullException(nameof(closeBracketToken));
@@ -50759,7 +50759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBracketToken:
           break;
         default:
-          throw new ArgumentException("closeBracketToken");
+          throw new ArgumentException(nameof(closeBracketToken));
       }
 #endif
 
@@ -50787,7 +50787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ArgListKeyword:
           break;
         default:
-          throw new ArgumentException("identifier");
+          throw new ArgumentException(nameof(identifier));
       }
 #endif
 
@@ -50818,7 +50818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.MultiLineDocumentationCommentTrivia:
           break;
         default:
-          throw new ArgumentException("kind");
+          throw new ArgumentException(nameof(kind));
       }
 #if DEBUG
       if (endOfComment == null)
@@ -50828,7 +50828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDocumentationCommentToken:
           break;
         default:
-          throw new ArgumentException("endOfComment");
+          throw new ArgumentException(nameof(endOfComment));
       }
 #endif
 
@@ -50867,7 +50867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DotToken:
           break;
         default:
-          throw new ArgumentException("dotToken");
+          throw new ArgumentException(nameof(dotToken));
       }
       if (member == null)
         throw new ArgumentNullException(nameof(member));
@@ -50916,7 +50916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ThisKeyword:
           break;
         default:
-          throw new ArgumentException("thisKeyword");
+          throw new ArgumentException(nameof(thisKeyword));
       }
 #endif
 
@@ -50943,7 +50943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OperatorKeyword:
           break;
         default:
-          throw new ArgumentException("operatorKeyword");
+          throw new ArgumentException(nameof(operatorKeyword));
       }
       if (operatorToken == null)
         throw new ArgumentNullException(nameof(operatorToken));
@@ -50973,7 +50973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.TrueKeyword:
           break;
         default:
-          throw new ArgumentException("operatorToken");
+          throw new ArgumentException(nameof(operatorToken));
       }
 #endif
 
@@ -51001,7 +51001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ExplicitKeyword:
           break;
         default:
-          throw new ArgumentException("implicitOrExplicitKeyword");
+          throw new ArgumentException(nameof(implicitOrExplicitKeyword));
       }
       if (operatorKeyword == null)
         throw new ArgumentNullException(nameof(operatorKeyword));
@@ -51010,7 +51010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OperatorKeyword:
           break;
         default:
-          throw new ArgumentException("operatorKeyword");
+          throw new ArgumentException(nameof(operatorKeyword));
       }
       if (type == null)
         throw new ArgumentNullException(nameof(type));
@@ -51029,7 +51029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenParenToken:
           break;
         default:
-          throw new ArgumentException("openParenToken");
+          throw new ArgumentException(nameof(openParenToken));
       }
       if (closeParenToken == null)
         throw new ArgumentNullException(nameof(closeParenToken));
@@ -51038,7 +51038,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseParenToken:
           break;
         default:
-          throw new ArgumentException("closeParenToken");
+          throw new ArgumentException(nameof(closeParenToken));
       }
 #endif
 
@@ -51065,7 +51065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.OpenBracketToken:
           break;
         default:
-          throw new ArgumentException("openBracketToken");
+          throw new ArgumentException(nameof(openBracketToken));
       }
       if (closeBracketToken == null)
         throw new ArgumentNullException(nameof(closeBracketToken));
@@ -51074,7 +51074,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.CloseBracketToken:
           break;
         default:
-          throw new ArgumentException("closeBracketToken");
+          throw new ArgumentException(nameof(closeBracketToken));
       }
 #endif
 
@@ -51104,7 +51104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("refKindKeyword");
+          throw new ArgumentException(nameof(refKindKeyword));
       }
       }
       if (type == null)
@@ -51156,7 +51156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LessThanToken:
           break;
         default:
-          throw new ArgumentException("lessThanToken");
+          throw new ArgumentException(nameof(lessThanToken));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -51167,7 +51167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GreaterThanToken:
           break;
         default:
-          throw new ArgumentException("greaterThanToken");
+          throw new ArgumentException(nameof(greaterThanToken));
       }
 #endif
 
@@ -51184,7 +51184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LessThanSlashToken:
           break;
         default:
-          throw new ArgumentException("lessThanSlashToken");
+          throw new ArgumentException(nameof(lessThanSlashToken));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -51195,7 +51195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.GreaterThanToken:
           break;
         default:
-          throw new ArgumentException("greaterThanToken");
+          throw new ArgumentException(nameof(greaterThanToken));
       }
 #endif
 
@@ -51222,7 +51222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LessThanToken:
           break;
         default:
-          throw new ArgumentException("lessThanToken");
+          throw new ArgumentException(nameof(lessThanToken));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -51233,7 +51233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SlashGreaterThanToken:
           break;
         default:
-          throw new ArgumentException("slashGreaterThanToken");
+          throw new ArgumentException(nameof(slashGreaterThanToken));
       }
 #endif
 
@@ -51250,7 +51250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("localName");
+          throw new ArgumentException(nameof(localName));
       }
 #endif
 
@@ -51277,7 +51277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("prefix");
+          throw new ArgumentException(nameof(prefix));
       }
       if (colonToken == null)
         throw new ArgumentNullException(nameof(colonToken));
@@ -51286,7 +51286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ColonToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException(nameof(colonToken));
       }
 #endif
 
@@ -51315,7 +51315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsToken:
           break;
         default:
-          throw new ArgumentException("equalsToken");
+          throw new ArgumentException(nameof(equalsToken));
       }
       if (startQuoteToken == null)
         throw new ArgumentNullException(nameof(startQuoteToken));
@@ -51325,7 +51325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DoubleQuoteToken:
           break;
         default:
-          throw new ArgumentException("startQuoteToken");
+          throw new ArgumentException(nameof(startQuoteToken));
       }
       if (endQuoteToken == null)
         throw new ArgumentNullException(nameof(endQuoteToken));
@@ -51335,7 +51335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DoubleQuoteToken:
           break;
         default:
-          throw new ArgumentException("endQuoteToken");
+          throw new ArgumentException(nameof(endQuoteToken));
       }
 #endif
 
@@ -51354,7 +51354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsToken:
           break;
         default:
-          throw new ArgumentException("equalsToken");
+          throw new ArgumentException(nameof(equalsToken));
       }
       if (startQuoteToken == null)
         throw new ArgumentNullException(nameof(startQuoteToken));
@@ -51364,7 +51364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DoubleQuoteToken:
           break;
         default:
-          throw new ArgumentException("startQuoteToken");
+          throw new ArgumentException(nameof(startQuoteToken));
       }
       if (cref == null)
         throw new ArgumentNullException(nameof(cref));
@@ -51376,7 +51376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DoubleQuoteToken:
           break;
         default:
-          throw new ArgumentException("endQuoteToken");
+          throw new ArgumentException(nameof(endQuoteToken));
       }
 #endif
 
@@ -51395,7 +51395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EqualsToken:
           break;
         default:
-          throw new ArgumentException("equalsToken");
+          throw new ArgumentException(nameof(equalsToken));
       }
       if (startQuoteToken == null)
         throw new ArgumentNullException(nameof(startQuoteToken));
@@ -51405,7 +51405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DoubleQuoteToken:
           break;
         default:
-          throw new ArgumentException("startQuoteToken");
+          throw new ArgumentException(nameof(startQuoteToken));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -51417,7 +51417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DoubleQuoteToken:
           break;
         default:
-          throw new ArgumentException("endQuoteToken");
+          throw new ArgumentException(nameof(endQuoteToken));
       }
 #endif
 
@@ -51452,7 +51452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.XmlCDataStartToken:
           break;
         default:
-          throw new ArgumentException("startCDataToken");
+          throw new ArgumentException(nameof(startCDataToken));
       }
       if (endCDataToken == null)
         throw new ArgumentNullException(nameof(endCDataToken));
@@ -51461,7 +51461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.XmlCDataEndToken:
           break;
         default:
-          throw new ArgumentException("endCDataToken");
+          throw new ArgumentException(nameof(endCDataToken));
       }
 #endif
 
@@ -51488,7 +51488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.XmlProcessingInstructionStartToken:
           break;
         default:
-          throw new ArgumentException("startProcessingInstructionToken");
+          throw new ArgumentException(nameof(startProcessingInstructionToken));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -51499,7 +51499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.XmlProcessingInstructionEndToken:
           break;
         default:
-          throw new ArgumentException("endProcessingInstructionToken");
+          throw new ArgumentException(nameof(endProcessingInstructionToken));
       }
 #endif
 
@@ -51516,7 +51516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.XmlCommentStartToken:
           break;
         default:
-          throw new ArgumentException("lessThanExclamationMinusMinusToken");
+          throw new ArgumentException(nameof(lessThanExclamationMinusMinusToken));
       }
       if (minusMinusGreaterThanToken == null)
         throw new ArgumentNullException(nameof(minusMinusGreaterThanToken));
@@ -51525,7 +51525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.XmlCommentEndToken:
           break;
         default:
-          throw new ArgumentException("minusMinusGreaterThanToken");
+          throw new ArgumentException(nameof(minusMinusGreaterThanToken));
       }
 #endif
 
@@ -51552,7 +51552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (ifKeyword == null)
         throw new ArgumentNullException(nameof(ifKeyword));
@@ -51561,7 +51561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IfKeyword:
           break;
         default:
-          throw new ArgumentException("ifKeyword");
+          throw new ArgumentException(nameof(ifKeyword));
       }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
@@ -51572,7 +51572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -51589,7 +51589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (elifKeyword == null)
         throw new ArgumentNullException(nameof(elifKeyword));
@@ -51598,7 +51598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ElifKeyword:
           break;
         default:
-          throw new ArgumentException("elifKeyword");
+          throw new ArgumentException(nameof(elifKeyword));
       }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
@@ -51609,7 +51609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -51626,7 +51626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (elseKeyword == null)
         throw new ArgumentNullException(nameof(elseKeyword));
@@ -51635,7 +51635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ElseKeyword:
           break;
         default:
-          throw new ArgumentException("elseKeyword");
+          throw new ArgumentException(nameof(elseKeyword));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -51644,7 +51644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -51661,7 +51661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (endIfKeyword == null)
         throw new ArgumentNullException(nameof(endIfKeyword));
@@ -51670,7 +51670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndIfKeyword:
           break;
         default:
-          throw new ArgumentException("endIfKeyword");
+          throw new ArgumentException(nameof(endIfKeyword));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -51679,7 +51679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -51696,7 +51696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (regionKeyword == null)
         throw new ArgumentNullException(nameof(regionKeyword));
@@ -51705,7 +51705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.RegionKeyword:
           break;
         default:
-          throw new ArgumentException("regionKeyword");
+          throw new ArgumentException(nameof(regionKeyword));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -51714,7 +51714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -51731,7 +51731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (endRegionKeyword == null)
         throw new ArgumentNullException(nameof(endRegionKeyword));
@@ -51740,7 +51740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndRegionKeyword:
           break;
         default:
-          throw new ArgumentException("endRegionKeyword");
+          throw new ArgumentException(nameof(endRegionKeyword));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -51749,7 +51749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -51766,7 +51766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (errorKeyword == null)
         throw new ArgumentNullException(nameof(errorKeyword));
@@ -51775,7 +51775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ErrorKeyword:
           break;
         default:
-          throw new ArgumentException("errorKeyword");
+          throw new ArgumentException(nameof(errorKeyword));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -51784,7 +51784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -51801,7 +51801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (warningKeyword == null)
         throw new ArgumentNullException(nameof(warningKeyword));
@@ -51810,7 +51810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WarningKeyword:
           break;
         default:
-          throw new ArgumentException("warningKeyword");
+          throw new ArgumentException(nameof(warningKeyword));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -51819,7 +51819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -51836,7 +51836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (identifier == null)
         throw new ArgumentNullException(nameof(identifier));
@@ -51847,7 +51847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -51864,7 +51864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (defineKeyword == null)
         throw new ArgumentNullException(nameof(defineKeyword));
@@ -51873,7 +51873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.DefineKeyword:
           break;
         default:
-          throw new ArgumentException("defineKeyword");
+          throw new ArgumentException(nameof(defineKeyword));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -51882,7 +51882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("name");
+          throw new ArgumentException(nameof(name));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -51891,7 +51891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -51908,7 +51908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (undefKeyword == null)
         throw new ArgumentNullException(nameof(undefKeyword));
@@ -51917,7 +51917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.UndefKeyword:
           break;
         default:
-          throw new ArgumentException("undefKeyword");
+          throw new ArgumentException(nameof(undefKeyword));
       }
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -51926,7 +51926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.IdentifierToken:
           break;
         default:
-          throw new ArgumentException("name");
+          throw new ArgumentException(nameof(name));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -51935,7 +51935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -51952,7 +51952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (lineKeyword == null)
         throw new ArgumentNullException(nameof(lineKeyword));
@@ -51961,7 +51961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LineKeyword:
           break;
         default:
-          throw new ArgumentException("lineKeyword");
+          throw new ArgumentException(nameof(lineKeyword));
       }
       if (line == null)
         throw new ArgumentNullException(nameof(line));
@@ -51972,7 +51972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HiddenKeyword:
           break;
         default:
-          throw new ArgumentException("line");
+          throw new ArgumentException(nameof(line));
       }
       if (file != null)
       {
@@ -51982,7 +51982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("file");
+          throw new ArgumentException(nameof(file));
       }
       }
       if (endOfDirectiveToken == null)
@@ -51992,7 +51992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -52009,7 +52009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (pragmaKeyword == null)
         throw new ArgumentNullException(nameof(pragmaKeyword));
@@ -52018,7 +52018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.PragmaKeyword:
           break;
         default:
-          throw new ArgumentException("pragmaKeyword");
+          throw new ArgumentException(nameof(pragmaKeyword));
       }
       if (warningKeyword == null)
         throw new ArgumentNullException(nameof(warningKeyword));
@@ -52027,7 +52027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.WarningKeyword:
           break;
         default:
-          throw new ArgumentException("warningKeyword");
+          throw new ArgumentException(nameof(warningKeyword));
       }
       if (disableOrRestoreKeyword == null)
         throw new ArgumentNullException(nameof(disableOrRestoreKeyword));
@@ -52037,7 +52037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.RestoreKeyword:
           break;
         default:
-          throw new ArgumentException("disableOrRestoreKeyword");
+          throw new ArgumentException(nameof(disableOrRestoreKeyword));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -52046,7 +52046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -52063,7 +52063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (pragmaKeyword == null)
         throw new ArgumentNullException(nameof(pragmaKeyword));
@@ -52072,7 +52072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.PragmaKeyword:
           break;
         default:
-          throw new ArgumentException("pragmaKeyword");
+          throw new ArgumentException(nameof(pragmaKeyword));
       }
       if (checksumKeyword == null)
         throw new ArgumentNullException(nameof(checksumKeyword));
@@ -52081,7 +52081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ChecksumKeyword:
           break;
         default:
-          throw new ArgumentException("checksumKeyword");
+          throw new ArgumentException(nameof(checksumKeyword));
       }
       if (file == null)
         throw new ArgumentNullException(nameof(file));
@@ -52090,7 +52090,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StringLiteralToken:
           break;
         default:
-          throw new ArgumentException("file");
+          throw new ArgumentException(nameof(file));
       }
       if (guid == null)
         throw new ArgumentNullException(nameof(guid));
@@ -52099,7 +52099,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StringLiteralToken:
           break;
         default:
-          throw new ArgumentException("guid");
+          throw new ArgumentException(nameof(guid));
       }
       if (bytes == null)
         throw new ArgumentNullException(nameof(bytes));
@@ -52108,7 +52108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StringLiteralToken:
           break;
         default:
-          throw new ArgumentException("bytes");
+          throw new ArgumentException(nameof(bytes));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -52117,7 +52117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -52134,7 +52134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (referenceKeyword == null)
         throw new ArgumentNullException(nameof(referenceKeyword));
@@ -52143,7 +52143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ReferenceKeyword:
           break;
         default:
-          throw new ArgumentException("referenceKeyword");
+          throw new ArgumentException(nameof(referenceKeyword));
       }
       if (file == null)
         throw new ArgumentNullException(nameof(file));
@@ -52152,7 +52152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StringLiteralToken:
           break;
         default:
-          throw new ArgumentException("file");
+          throw new ArgumentException(nameof(file));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -52161,7 +52161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -52178,7 +52178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (loadKeyword == null)
         throw new ArgumentNullException(nameof(loadKeyword));
@@ -52187,7 +52187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.LoadKeyword:
           break;
         default:
-          throw new ArgumentException("loadKeyword");
+          throw new ArgumentException(nameof(loadKeyword));
       }
       if (file == null)
         throw new ArgumentNullException(nameof(file));
@@ -52196,7 +52196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.StringLiteralToken:
           break;
         default:
-          throw new ArgumentException("file");
+          throw new ArgumentException(nameof(file));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -52205,7 +52205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -52222,7 +52222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (exclamationToken == null)
         throw new ArgumentNullException(nameof(exclamationToken));
@@ -52231,7 +52231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.ExclamationToken:
           break;
         default:
-          throw new ArgumentException("exclamationToken");
+          throw new ArgumentException(nameof(exclamationToken));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -52240,7 +52240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
@@ -52257,7 +52257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.HashToken:
           break;
         default:
-          throw new ArgumentException("hashToken");
+          throw new ArgumentException(nameof(hashToken));
       }
       if (nullableKeyword == null)
         throw new ArgumentNullException(nameof(nullableKeyword));
@@ -52266,7 +52266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.NullableKeyword:
           break;
         default:
-          throw new ArgumentException("nullableKeyword");
+          throw new ArgumentException(nameof(nullableKeyword));
       }
       if (settingToken == null)
         throw new ArgumentNullException(nameof(settingToken));
@@ -52278,7 +52278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.SafeOnlyKeyword:
           break;
         default:
-          throw new ArgumentException("settingToken");
+          throw new ArgumentException(nameof(settingToken));
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -52287,7 +52287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.EndOfDirectiveToken:
           break;
         default:
-          throw new ArgumentException("endOfDirectiveToken");
+          throw new ArgumentException(nameof(endOfDirectiveToken));
       }
 #endif
 
