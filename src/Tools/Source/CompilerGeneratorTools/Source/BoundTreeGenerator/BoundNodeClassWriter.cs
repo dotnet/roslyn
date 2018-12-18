@@ -1219,7 +1219,7 @@ namespace BoundTreeGenerator
                     WriteLine("public static TreeDumperNode MakeTree(BoundNode node) => (new BoundTreeDumperNodeProducer()).Visit(node, null);");
                     foreach (var node in _tree.Types.OfType<Node>())
                     {
-                        WriteLine("public override TreeDumperNode Visit{0}({1} node, object arg) => new TreeDumperNode(\"{2}\", null, ", StripBound(node.Name), node.Name, ToCamelCase(StripBound(node.Name)));
+                        Write("public override TreeDumperNode Visit{0}({1} node, object arg) => new TreeDumperNode(\"{2}\", null, ", StripBound(node.Name), node.Name, ToCamelCase(StripBound(node.Name)));
                         var allFields = AllFields(node).ToArray();
                         if (allFields.Length > 0)
                         {
