@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    types.Add(type.AsSpeakable());
+                    types.Add(type);
                 }
             }
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;

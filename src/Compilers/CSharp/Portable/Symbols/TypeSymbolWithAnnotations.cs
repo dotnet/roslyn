@@ -71,32 +71,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Join nullable annotations from the set of lower bounds for fixing a type parameter.
+        /// This uses the covariant merging rules.
         /// </summary>
         public static NullableAnnotation JoinForFixingLowerBounds(this NullableAnnotation a, NullableAnnotation b)
         {
-            if (a == b)
-            {
-                return a;
-            }
+            Debug.Assert(a.IsSpeakable());
+            Debug.Assert(b.IsSpeakable());
 
-            if (a.IsAnyNullable() && b.IsAnyNullable())
+            if (a == NullableAnnotation.Annotated || b == NullableAnnotation.Annotated)
             {
                 return NullableAnnotation.Annotated;
-            }
-
-            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
-            // If either candidate is nullable - result is nullable
-            // Otherwise - result is "oblivious".
-
-            if (a.IsAnyNullable())
-            {
-                Debug.Assert(!b.IsAnyNullable());
-                return a;
-            }
-
-            if (b.IsAnyNullable())
-            {
-                return b;
             }
 
             if (a == NullableAnnotation.Unknown || b == NullableAnnotation.Unknown)
@@ -104,11 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NullableAnnotation.Unknown;
             }
 
-            Debug.Assert((a == NullableAnnotation.NotAnnotated && b == NullableAnnotation.NotNullable) ||
-                (b == NullableAnnotation.NotAnnotated && a == NullableAnnotation.NotNullable));
-            return NullableAnnotation.NotAnnotated; // It is reasonable to settle on this value because the difference in annotations is either
-                                                    // not significant for the type, or candidate corresponding to this value is possibly a
-                                                    // nullable reference type type parameter and nullable should win.
+            return NullableAnnotation.NotAnnotated;
         }
 
         /// <summary>
@@ -173,35 +153,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Meet two nullable annotations for computing the nullable annotation of a type parameter from upper bounds.
+        /// This uses the contravariant merging rules.
         /// </summary>
         public static NullableAnnotation MeetForFixingUpperBounds(this NullableAnnotation a, NullableAnnotation b)
         {
-            if (a == b)
-            {
-                return a;
-            }
-
-            if (a.IsAnyNullable() && b.IsAnyNullable())
-            {
-                return NullableAnnotation.Annotated;
-            }
-
-            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
-            // If either candidate is not nullable - result is not nullable
-            // Otherwise - result is "oblivious".
-
-            if (a == NullableAnnotation.NotNullable || b == NullableAnnotation.NotNullable)
-            {
-                return NullableAnnotation.NotNullable;
-            }
+            Debug.Assert(a.IsSpeakable());
+            Debug.Assert(b.IsSpeakable());
 
             if (a == NullableAnnotation.NotAnnotated || b == NullableAnnotation.NotAnnotated)
             {
                 return NullableAnnotation.NotAnnotated;
             }
 
-            Debug.Assert(a == NullableAnnotation.Unknown || b == NullableAnnotation.Unknown);
-            return NullableAnnotation.Unknown;
+            if (a == NullableAnnotation.Unknown || b == NullableAnnotation.Unknown)
+            {
+                return NullableAnnotation.Unknown;
+            }
+
+            return NullableAnnotation.Annotated;
         }
 
         /// <summary>
@@ -237,6 +206,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static NullableAnnotation EnsureCompatible<T>(this NullableAnnotation a, NullableAnnotation b, T type, Func<T, bool> isPossiblyNullableReferenceTypeTypeParameter, out bool hadNullabilityMismatch)
         {
+            Debug.Assert(a.IsSpeakable());
+            Debug.Assert(b.IsSpeakable());
+
             hadNullabilityMismatch = false;
             if (a == b)
             {
@@ -373,8 +345,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeSymbolWithAnnotations AsSpeakable()
         {
+            if (IsNull)
+            {
+                return default;
+            }
+
             TypeSymbol typeSymbol = this.TypeSymbol;
-            return Create(typeSymbol, this.NullableAnnotation.AsSpeakable(typeSymbol), this.IsNull ? default : this.CustomModifiers);
+            var annotation = this.NullableAnnotation;
+            var speakableAnnotation = annotation.AsSpeakable(typeSymbol);
+
+            if (annotation == speakableAnnotation)
+            {
+                return this;
+            }
+
+            return Create(typeSymbol, speakableAnnotation, this.CustomModifiers);
         }
 
         public override string ToString() => TypeSymbol.ToString();
