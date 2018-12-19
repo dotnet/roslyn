@@ -1378,7 +1378,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             int n = elementBuilder.Count;
             var conversionBuilder = ArrayBuilder<Conversion>.GetInstance(n);
             var resultBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
-            var speakableResultBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
                 (BoundExpression element, Conversion conversion) = RemoveConversion(elementBuilder[i], includeExplicitConversions: false);
@@ -1386,7 +1385,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversionBuilder.Add(conversion);
                 var resultType = VisitRvalueWithResult(element);
                 resultBuilder.Add(resultType);
-                speakableResultBuilder.Add(resultType.AsSpeakable());
             }
 
             bool checkConversions = true;
@@ -1400,7 +1398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
                     for (int i = 0; i < n; i++)
                     {
-                        placeholderBuilder.Add(CreatePlaceholderIfNecessary(elementBuilder[i], speakableResultBuilder[i]));
+                        placeholderBuilder.Add(CreatePlaceholderIfNecessary(elementBuilder[i], resultBuilder[i]));
                     }
                     var placeholders = placeholderBuilder.ToImmutableAndFree();
                     bool hadNullabilityMismatch;
@@ -1419,7 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    elementType = TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(bestType, speakableResultBuilder));
+                    elementType = TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(bestType, resultBuilder));
                 }
                 arrayType = arrayType.WithElementType(elementType);
             }
@@ -1436,7 +1434,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             resultBuilder.Free();
-            speakableResultBuilder.Free();
             elementBuilder.Free();
             _resultType = _invalidType;
             return arrayType;
@@ -1895,11 +1892,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (constant.IsNull)
                             {
-                                return NullableAnnotation.Annotated;
+                                return NullableAnnotation.Nullable;
                             }
                             if (expr.Type?.IsReferenceType == true)
                             {
-                                return NullableAnnotation.NotAnnotated;
+                                return NullableAnnotation.NotNullable;
                             }
                         }
                         return NullableAnnotation.Unknown;
@@ -2863,7 +2860,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol InferMethodTypeArguments(BoundCall node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
             Debug.Assert(method.IsGenericMethod);
-            Debug.Assert(arguments.All(a => GetNullableAnnotation(a).IsSpeakable()));
 
             // https://github.com/dotnet/roslyn/issues/27961 OverloadResolution.IsMemberApplicableInNormalForm and
             // IsMemberApplicableInExpandedForm use the least overridden method. We need to do the same here.
@@ -2904,7 +2900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments,
                 out hadNullabilityMismatch,
                 ref useSiteDiagnostics,
-                getNullableAnnotationOpt: expr => GetNullableAnnotation(expr));
+                getNullableAnnotationOpt: expr => GetNullableAnnotation(expr).AsSpeakable(expr.Type));
 
             if (!result.Success)
             {
@@ -2950,7 +2946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // 'out var' doesn't contribute to inference
                     return new BoundExpressionWithNullability(argument.Syntax, argument, NullableAnnotation.Unknown, type: null);
                 }
-                return new BoundExpressionWithNullability(argument.Syntax, argument, argumentType.GetSpeakableNullableAnnotation(), argumentType.TypeSymbol);
+                return new BoundExpressionWithNullability(argument.Syntax, argument, argumentType.NullableAnnotation, argumentType.TypeSymbol);
             }
         }
 

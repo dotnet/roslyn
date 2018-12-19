@@ -24,21 +24,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                Debug.Assert(type.NullableAnnotation.IsSpeakable());
-                if (!type.IsReferenceType && !type.TypeSymbol.IsPossiblyNullableReferenceTypeTypeParameter())
+                var speakableType = type.AsSpeakable();
+                if (!speakableType.IsReferenceType && !speakableType.TypeSymbol.IsPossiblyNullableReferenceTypeTypeParameter())
                 {
                     return NullableAnnotation.Unknown;
                 }
 
                 NullableAnnotation nullableAnnotation;
 
-                if (type.IsPossiblyNullableReferenceTypeTypeParameter() && !bestTypeIsPossiblyNullableReferenceTypeTypeParameter)
+                if (speakableType.IsPossiblyNullableReferenceTypeTypeParameter() && !bestTypeIsPossiblyNullableReferenceTypeTypeParameter)
                 {
                     nullableAnnotation = NullableAnnotation.Nullable;
                 }
                 else
                 {
-                    nullableAnnotation = type.NullableAnnotation;
+                    nullableAnnotation = speakableType.NullableAnnotation;
                 }
 
                 if (nullableAnnotation == NullableAnnotation.Unknown)

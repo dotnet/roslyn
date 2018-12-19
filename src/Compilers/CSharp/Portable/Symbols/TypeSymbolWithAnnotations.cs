@@ -40,6 +40,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// This method projects nullable annotations onto a smaller set that can be expressed in source.
+        /// </summary>
+        public static NullableAnnotation AsSpeakable(this NullableAnnotation annotation, TypeSymbol type)
+        {
+            switch (annotation)
+            {
+                case NullableAnnotation.Unknown:
+                case NullableAnnotation.NotAnnotated:
+                case NullableAnnotation.Annotated:
+                    return annotation;
+
+                case NullableAnnotation.Nullable:
+                    if (type.IsTypeParameterDisallowingAnnotation())
+                    {
+                        return NullableAnnotation.NotAnnotated;
+                    }
+                    return NullableAnnotation.Annotated;
+
+                case NullableAnnotation.NotNullable:
+                    // Example of unspeakable types:
+                    // - an unconstrained T which was null-tested already
+                    // - a nullable value type which was null-tested already
+                    return NullableAnnotation.NotAnnotated;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(annotation);
+            }
+        }
+
+        /// <summary>
         /// Join nullable annotations from the set of lower bounds for fixing a type parameter.
         /// </summary>
         public static NullableAnnotation JoinForFixingLowerBounds(this NullableAnnotation a, NullableAnnotation b)
@@ -343,38 +373,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeSymbolWithAnnotations AsSpeakable()
         {
-            return Create(this.TypeSymbol, this.GetSpeakableNullableAnnotation(), this.IsNull ? default : this.CustomModifiers);
-        }
-
-        /// <summary>
-        /// This method projects nullable annotations onto a smaller set that can be expressed in source.
-        /// </summary>
-        public NullableAnnotation GetSpeakableNullableAnnotation()
-        {
-            var annotation = NullableAnnotation;
-            switch (annotation)
-            {
-                case NullableAnnotation.Unknown:
-                case NullableAnnotation.NotAnnotated:
-                case NullableAnnotation.Annotated:
-                    return annotation;
-
-                case NullableAnnotation.Nullable:
-                    if (TypeSymbol.IsTypeParameterDisallowingAnnotation())
-                    {
-                        return NullableAnnotation.NotAnnotated;
-                    }
-                    return NullableAnnotation.Annotated;
-
-                case NullableAnnotation.NotNullable:
-                    // Example of unspeakable types:
-                    // - an unconstrained T which was null-tested already
-                    // - a nullable value type which was null-tested already
-                    return NullableAnnotation.NotAnnotated;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(annotation);
-            }
+            TypeSymbol typeSymbol = this.TypeSymbol;
+            return Create(typeSymbol, this.NullableAnnotation.AsSpeakable(typeSymbol), this.IsNull ? default : this.CustomModifiers);
         }
 
         public override string ToString() => TypeSymbol.ToString();
