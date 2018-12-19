@@ -469,5 +469,43 @@ BeginningOfLine,
              c;
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestAdditionEnd()
+        {
+            await TestEndOfLine(
+@"class C {
+    void Bar() {
+        var goo = [||]""now"" + ""is"" + ""the"" + ""time"";
+    }
+}",
+@"class C {
+    void Bar() {
+        var goo = ""now"" +
+                  ""is"" +
+                  ""the"" +
+                  ""time"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestAdditionBeginning()
+        {
+            await TestBeginningOfLine(
+@"class C {
+    void Bar() {
+        var goo = [||]""now"" + ""is"" + ""the"" + ""time"";
+    }
+}",
+@"class C {
+    void Bar() {
+        var goo = ""now""
+                  + ""is""
+                  + ""the""
+                  + ""time"";
+    }
+}");
+        }
     }
 }

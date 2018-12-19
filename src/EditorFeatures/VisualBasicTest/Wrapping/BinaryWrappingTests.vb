@@ -445,5 +445,41 @@ end class",
             c
 end class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestAdditionEnd() As Task
+            Await TestEndOfLine(
+"class C
+    sub Bar()
+        dim goo = [||]""now"" & ""is"" & ""the"" & ""time""
+    end sub
+end class",
+"class C
+    sub Bar()
+        dim goo = ""now"" &
+                  ""is"" &
+                  ""the"" &
+                  ""time""
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestAdditionBeginning() As Task
+            Await TestBeginningOfLine(
+"class C
+    sub Bar()
+        dim goo = [||]""now"" & ""is"" & ""the"" & ""time""
+    end sub
+end class",
+"class C
+    sub Bar()
+        dim goo = ""now"" _
+                  & ""is"" _
+                  & ""the"" _
+                  & ""time""
+    end sub
+end class")
+        End Function
     End Class
 End Namespace
