@@ -369,7 +369,7 @@ class C
         {
             var source = @"
 using System;
-class C2
+class C2 : IDisposable
 {
     public void Dispose()
     {
@@ -396,7 +396,7 @@ class C
         {
             var source = @"
 using System;
-class C2
+class C2 : IDisposable
 {
     public void Dispose()
     {
