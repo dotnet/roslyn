@@ -435,7 +435,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 Lazy<HashSet<SinkKind>> lazySinkKinds = new Lazy<HashSet<SinkKind>>(() => new HashSet<SinkKind>());
                 foreach (SinkInfo sinkInfo in this.DataFlowAnalysisContext.SinkInfos.GetInfosForType(method.ContainingType))
                 {
-                    if (lazySinkKinds.IsValueCreated && lazySinkKinds.Value.Contains(sinkInfo.SinkKind))
+                    if (lazySinkKinds.IsValueCreated && lazySinkKinds.Value.IsSupersetOf(sinkInfo.SinkKinds))
                     {
                         continue;
                     }
@@ -444,12 +444,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         && sinkInfo.IsAnyStringParameterInConstructorASink
                         && taintedArguments.Any(a => a.Parameter.Type.SpecialType == SpecialType.System_String))
                     {
-                        lazySinkKinds.Value.Add(sinkInfo.SinkKind);
+                        lazySinkKinds.Value.UnionWith(sinkInfo.SinkKinds);
                     }
                     else if (sinkInfo.SinkMethodParameters.TryGetValue(method.MetadataName, out ImmutableHashSet<string> sinkParameters)
                         && taintedArguments.Any(a => sinkParameters.Contains(a.Parameter.MetadataName)))
                     {
-                        lazySinkKinds.Value.Add(sinkInfo.SinkKind);
+                        lazySinkKinds.Value.UnionWith(sinkInfo.SinkKinds);
                     }
                 }
 
@@ -474,14 +474,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 Lazy<HashSet<SinkKind>> lazySinkKinds = new Lazy<HashSet<SinkKind>>(() => new HashSet<SinkKind>());
                 foreach (SinkInfo sinkInfo in this.DataFlowAnalysisContext.SinkInfos.GetInfosForType(propertyReferenceOperation.Member.ContainingType))
                 {
-                    if (lazySinkKinds.IsValueCreated && lazySinkKinds.Value.Contains(sinkInfo.SinkKind))
+                    if (lazySinkKinds.IsValueCreated && lazySinkKinds.Value.IsSupersetOf(sinkInfo.SinkKinds))
                     {
                         continue;
                     }
 
                     if (sinkInfo.SinkProperties.Contains(propertyReferenceOperation.Member.MetadataName))
                     {
-                        lazySinkKinds.Value.Add(sinkInfo.SinkKind);
+                        lazySinkKinds.Value.UnionWith(sinkInfo.SinkKinds);
                     }
                 }
 

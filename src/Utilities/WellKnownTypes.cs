@@ -49,6 +49,7 @@ namespace Analyzer.Utilities
         public const string SystemWebUIHtmlControlsHtmlSelect = "System.Web.UI.HtmlControls.HtmlSelect";
         public const string SystemWebUIHtmlControlsHtmlTextArea = "System.Web.UI.HtmlControls.HtmlTextArea";
         public const string SystemWebUIHtmlControlsHtmlTitle = "System.Web.UI.HtmlControls.HtmlTitle";
+        public const string SystemWebUIHtmlTextWriter = "System.Web.UI.HtmlTextWriter";
         public const string SystemWebUIIndexedString = "System.Web.UI.IndexedString";
         public const string SystemWebUILiteralControl = "System.Web.UI.LiteralControl";
         public const string SystemWebUIResourceBasedLiteralControl = "System.Web.UI.ResourceBasedLiteralControl";
@@ -123,6 +124,7 @@ namespace Analyzer.Utilities
         public const string SystemWebUIWebControlsWebPartsWebPartMinimizeVerb = "System.Web.UI.WebControls.WebParts.WebPartMinimizeVerb";
         public const string SystemWebUIWebControlsWebPartsWebPartRestoreVerb = "System.Web.UI.WebControls.WebParts.WebPartRestoreVerb";
         public const string SystemWebUIWebControlsWebPartsWebPartVerb = "System.Web.UI.WebControls.WebParts.WebPartVerb";
+        public const string SystemWebUIITextControl = "System.Web.UI.ITextControl";
         public const string SystemCollectionsGenericICollection1 = "System.Collections.Generic.ICollection`1";
         public const string SystemCollectionsGenericIReadOnlyCollection1 = "System.Collections.Generic.IReadOnlyCollection`1";
         public const string SystemRuntimeSerializationFormattersBinaryBinaryFormatter = "System.Runtime.Serialization.Formatters.Binary.BinaryFormatter";
@@ -130,6 +132,15 @@ namespace Analyzer.Utilities
         public const string SystemReflectionAssembly = "System.Reflection.Assembly";
         public const string SystemAppDomain = "System.AppDomain";
         public const string SystemWindowsAssemblyPart = "System.Windows.AssemblyPart";
+        public const string SystemWebUIHtmlControlsHtmlContainerControl = "System.Web.UI.HtmlControls.HtmlContainerControl";
+        public const string SystemWebUIHtmlControlsHtmlTable = "System.Web.UI.HtmlControls.HtmlTable";
+        public const string SystemWebUIHtmlControlsHtmlTableRow = "System.Web.UI.HtmlControls.HtmlTableRow";
+        public const string SystemWebUIWebControlsBaseDataList = "System.Web.UI.WebControls.BaseDataList";
+        public const string SystemWebUIWebControlsCalendar = "System.Web.UI.WebControls.Calendar";
+        public const string SystemWebUIWebControlsRepeatInfo = "System.Web.UI.WebControls.RepeatInfo";
+        public const string SystemWebUIWebControlsTable = "System.Web.UI.WebControls.Table";
+        public const string SystemWebHttpResponse = "System.Web.HttpResponse";
+        public const string SystemWebHttpResponseBase = "System.Web.HttpResponseBase";
 
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {
