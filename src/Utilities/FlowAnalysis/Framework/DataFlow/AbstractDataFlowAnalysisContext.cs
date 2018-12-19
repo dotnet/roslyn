@@ -82,9 +82,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> interproceduralAnalysisData);
 
         public ControlFlowGraph GetLocalFunctionControlFlowGraph(IMethodSymbol localFunction)
-            => ControlFlowGraph.LocalFunctions.Contains(localFunction) ?
-                ControlFlowGraph.GetLocalFunctionControlFlowGraph(localFunction):
+        {
+            if (localFunction == OwningSymbol)
+            {
+                return ControlFlowGraph;
+            }
+
+            return ControlFlowGraph.LocalFunctions.Contains(localFunction) ?
+                ControlFlowGraph.GetLocalFunctionControlFlowGraph(localFunction) :
                 ParentControlFlowGraphOpt?.GetLocalFunctionControlFlowGraph(localFunction);
+        }
 
         public ControlFlowGraph GetAnonymousFunctionControlFlowGraph(IFlowAnonymousFunctionOperation lambda)
         {

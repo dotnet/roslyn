@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         }
 
         [Conditional("DEBUG")]
-        private static void AssertValidPointsToAnalysisData(CorePointsToAnalysisData map)
+        public static void AssertValidPointsToAnalysisData(CorePointsToAnalysisData map)
         {
             foreach (var kvp in map)
             {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         }
 
         [Conditional("DEBUG")]
-        private static void AssertValidPointsToAnalysisKeyValuePair(
+        public static void AssertValidPointsToAnalysisKeyValuePair(
             AnalysisEntity key,
             PointsToAbstractValue value)
         {

@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
             protected override ValueContentAbstractValue GetDefaultValue(AnalysisEntity analysisEntity) => ValueContentAbstractValue.MayBeContainsNonLiteralState;
             protected override bool CanSkipNewEntry(AnalysisEntity analysisEntity, ValueContentAbstractValue value) => value.NonLiteralState == ValueContainsNonLiteralState.Maybe;
+            protected override void AssertValidEntryForMergedMap(AnalysisEntity analysisEntity, ValueContentAbstractValue value)
+            {
+                // No validation.
+            }
 
             public CoreValueContentAnalysisData MergeAnalysisDataForBackEdge(CoreValueContentAnalysisData forwardEdgeAnalysisData, CoreValueContentAnalysisData backEdgeAnalysisData)
             {

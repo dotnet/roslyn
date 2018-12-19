@@ -79,6 +79,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 return (object)value2 == null;
             }
+            else if ((object)value2 == null)
+            {
+                return false;
+            }
 
             return value1.Equals(value2);
         }

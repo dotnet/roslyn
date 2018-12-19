@@ -39,7 +39,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// This is done for performance reasons for analyzing methods with extremely large call trees.
         /// https://github.com/dotnet/roslyn-analyzers/issues/1809 tracks improving this heuristic.
         /// </summary>
-        private const int MaxInterproceduralCallChain = 3;
+        private const int MaxInterproceduralMethodCallChain = 3;
+
+        /// <summary>
+        /// Defines the max length for lambda/local function method call chain (call stack size) for interprocedural analysis.
+        /// This is done for performance reasons for analyzing methods with extremely large call trees.
+        /// https://github.com/dotnet/roslyn-analyzers/issues/1809 tracks improving this heuristic.
+        /// </summary>
+        private const int MaxInterproceduralLambdaorLocalFunctionCallChain = 10;
 
         /// <summary>
         /// Stores a map from entity to set of entities that share the same instance location.
@@ -122,7 +129,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected bool IsLValueFlowCapture(CaptureId captureId) => _lValueFlowCaptures.Contains(captureId);
 
-        protected virtual int GetAllowedInterproceduralCallChain() => MaxInterproceduralCallChain;
+        protected virtual int GetAllowedInterproceduralMethodCallChain() => MaxInterproceduralMethodCallChain;
+        protected virtual int GetAllowedInterproceduralLambdaorLocalFunctionCallChain() => MaxInterproceduralLambdaorLocalFunctionCallChain;
 
         protected DataFlowOperationVisitor(TAnalysisContext analysisContext)
         {
@@ -1385,17 +1393,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return ResetAnalysisDataAndReturnDefaultValue();
             }
 
-            // Check if we are already at the maximum allowed interprocedural call chain length for non-lambda/local functions.
-            if (!isLambdaOrLocalFunction)
-            {
-                var callStackThreshold = GetAllowedInterproceduralCallChain();
-                Debug.Assert(callStackThreshold <= MaxInterproceduralCallChain);
+            // Check if we are already at the maximum allowed interprocedural call chain length.
+            var methodCallStackThreshold = GetAllowedInterproceduralMethodCallChain();
+            Debug.Assert(methodCallStackThreshold <= MaxInterproceduralMethodCallChain);
 
-                int currentCount = currentMethodsBeingAnalyzed.Where(m => !((IMethodSymbol)m.OwningSymbol).IsLambdaOrLocalFunctionOrDelegate()).Count();
-                if (currentCount == callStackThreshold)
-                {
-                    return ResetAnalysisDataAndReturnDefaultValue();
-                }
+            var lambdaOrLocalFunctionCallStackThreshold = GetAllowedInterproceduralLambdaorLocalFunctionCallChain();
+            Debug.Assert(lambdaOrLocalFunctionCallStackThreshold <= MaxInterproceduralLambdaorLocalFunctionCallChain);
+
+            int currentMethodCallCount = currentMethodsBeingAnalyzed.Where(m => !((IMethodSymbol)m.OwningSymbol).IsLambdaOrLocalFunctionOrDelegate()).Count();
+            int currentLambdaOrLocallFunctionCallCount = currentMethodsBeingAnalyzed.Count - currentMethodCallCount;
+
+            if (currentMethodCallCount == methodCallStackThreshold ||
+                currentLambdaOrLocallFunctionCallCount == lambdaOrLocalFunctionCallStackThreshold)
+            {
+                return ResetAnalysisDataAndReturnDefaultValue();
             }
 
             // Compute the dependent interprocedural PointsTo and Copy analysis results, if any.

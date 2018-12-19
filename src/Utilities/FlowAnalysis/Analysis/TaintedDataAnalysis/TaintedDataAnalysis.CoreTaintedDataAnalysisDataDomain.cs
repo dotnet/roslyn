@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
@@ -22,6 +23,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             protected override TaintedDataAbstractValue GetDefaultValue(AnalysisEntity analysisEntity)
             {
                 return TaintedDataAbstractValue.NotTainted;
+            }
+
+            protected override void AssertValidEntryForMergedMap(AnalysisEntity analysisEntity, TaintedDataAbstractValue value)
+            {
+                Debug.Assert(value.Kind == TaintedDataAbstractValueKind.Tainted);
             }
         }
     }
