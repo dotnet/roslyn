@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
         {
             private readonly ImmutableArray<SyntaxNodeOrToken> _exprsAndOperators;
             private readonly OperatorPlacementWhenWrappingPreference _preference;
-            private readonly SyntaxTriviaList _indentationTrivia;
 
+            private readonly SyntaxTriviaList _indentationTrivia;
             private readonly SyntaxTriviaList _newlineBeforeOperatorTrivia;
 
             public BinaryExpressionCodeActionComputer(
@@ -46,14 +46,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
             }
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
-            {
-                var actions = ArrayBuilder<WrapItemsAction>.GetInstance();
-                actions.Add(await GetWrapCodeActionAsync().ConfigureAwait(false));
-                actions.Add(await GetUnwrapCodeActionAsync().ConfigureAwait(false));
-
-                return ImmutableArray.Create(new WrappingGroup(
-                    isInlinable: true, actions.ToImmutableAndFree()));
-            }
+                => ImmutableArray.Create(new WrappingGroup(
+                    isInlinable: true, ImmutableArray.Create(
+                        await GetWrapCodeActionAsync().ConfigureAwait(false),
+                        await GetUnwrapCodeActionAsync().ConfigureAwait(false))));
 
             private Task<WrapItemsAction> GetWrapCodeActionAsync()
                 => TryCreateCodeActionAsync(
