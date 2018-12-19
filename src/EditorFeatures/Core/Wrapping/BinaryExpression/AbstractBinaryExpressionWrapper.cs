@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                 return null;
             }
 
-            var exprsAndOperators = GetExpressionsAndOperators(binaryExpr);
+            var exprsAndOperators = GetExpressionsAndOperators(precedence, binaryExpr);
 #if DEBUG
             Debug.Assert(exprsAndOperators.Length >= 3);
             Debug.Assert(exprsAndOperators.Length % 2 == 1, "Should have odd number of exprs and operators");
@@ -82,11 +82,11 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                 exprsAndOperators, cancellationToken);
         }
 
-        private ImmutableArray<SyntaxNodeOrToken> GetExpressionsAndOperators(TBinaryExpressionSyntax binaryExpr)
+        private ImmutableArray<SyntaxNodeOrToken> GetExpressionsAndOperators(
+            PrecedenceKind precedence, TBinaryExpressionSyntax binaryExpr)
         {
             var result = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
-            AddExpressionsAndOperators(
-                _precedenceService.GetPrecedenceKind(binaryExpr), binaryExpr, result);
+            AddExpressionsAndOperators(precedence, binaryExpr, result);
             return result.ToImmutableAndFree();
         }
 
