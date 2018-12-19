@@ -3847,5 +3847,31 @@ public unsafe struct OtherStruct
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>*").WithArguments("unmanaged generic structs", "8.0").WithLocation(9, 12)
                 );
         }
+
+        [Fact]
+        public void GenericRefStructAddressOf()
+        {
+            var code = @"
+public ref struct MyStruct<T>
+{
+    public T field;
+}
+
+public class MyClass
+{
+    public static unsafe void Main()
+    {
+        var ms = new MyStruct<int>() { field = 42 };
+        var ptr = &ms;
+        System.Console.Write(ptr->field);
+    }
+}
+";
+
+            CompileAndVerify(code,
+                options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Skipped,
+                expectedOutput: "42");
+        }
     }
 }
