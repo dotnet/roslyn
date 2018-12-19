@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                     {
                         var span = TextSpan.FromBounds(edit.Left.Span.End, edit.Right.Span.Start);
                         var text = OriginalSourceText.ToString(span);
-                        if (!this.IsSafeToRemove(text))
+                        if (!IsSafeToRemove(text))
                         {
                             // editing some piece of non-whitespace trivia.  We don't support this.
                             return default;

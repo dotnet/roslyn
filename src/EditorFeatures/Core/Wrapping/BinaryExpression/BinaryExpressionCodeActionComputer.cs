@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -14,10 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
 {
     internal partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> where TBinaryExpressionSyntax : SyntaxNode
     {
-        private class BinaryExpressionCodeActionComputer : 
+        private class BinaryExpressionCodeActionComputer :
             AbstractCodeActionComputer<AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax>>
         {
             private readonly ImmutableArray<SyntaxNodeOrToken> _exprsAndOperators;
+            private readonly OperatorPlacementWhenWrappingPreference _preference;
             private readonly SyntaxTriviaList _indentationTrivia;
 
             private readonly SyntaxTriviaList _newlineBeforeOperatorTrivia;
@@ -33,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                 : base(service, document, originalSourceText, options, cancellationToken)
             {
                 _exprsAndOperators = exprsAndOperators;
+                _preference = options.GetOption(CodeStyleOptions.OperatorPlacementWhenWrapping);
 
                 var generator = SyntaxGenerator.GetGenerator(document);
                 var indentationString = OriginalSourceText.GetOffset(binaryExpression.Span.Start)
@@ -46,8 +49,15 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
             {
                 var actions = ArrayBuilder<WrapItemsAction>.GetInstance();
 
-                actions.Add(await GetWrapCodeActionAsync(includeOperators: false).ConfigureAwait(false));
-                actions.Add(await GetWrapCodeActionAsync(includeOperators: true).ConfigureAwait(false));
+                if (_preference == OperatorPlacementWhenWrappingPreference.EndOfLine)
+                {
+                    actions.Add(await GetWrapCodeActionAsync(includeOperators: false).ConfigureAwait(false));
+                }
+                else
+                {
+                    actions.Add(await GetWrapCodeActionAsync(includeOperators: true).ConfigureAwait(false));
+                }
+
                 actions.Add(await GetUnwrapCodeActionAsync().ConfigureAwait(false));
 
                 return ImmutableArray.Create(new WrappingGroup(
