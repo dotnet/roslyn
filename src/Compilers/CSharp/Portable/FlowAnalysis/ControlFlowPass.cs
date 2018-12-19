@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly PooledHashSet<LabelSymbol> _labelsUsed = PooledHashSet<LabelSymbol>.GetInstance();
         protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
 
-        private readonly PooledHashSet<LocalSymbol> _usingDeclarations = PooledHashSet<LocalSymbol>.GetInstance();
+        private readonly ArrayBuilder<(LocalSymbol symbol, BoundBlock block)> _usingDeclarations = ArrayBuilder<(LocalSymbol, BoundBlock)>.GetInstance();
         private BoundBlock _currentBlock = null;
 
         protected override void Free()
@@ -315,16 +315,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             _labelsUsed.Add(node.Label);
 
             // check for illegal jumps across using declarations
-            var sourceStart = node.Syntax.Location.SourceSpan.Start;
+            var sourceLocation = node.Syntax.Location;
+            var sourceStart = sourceLocation.SourceSpan.Start;
             var targetStart = node.Label.Locations[0].SourceSpan.Start;
 
             foreach (var usingDecl in _usingDeclarations)
             {
-                var usingStart = usingDecl.Locations[0].SourceSpan.Start;
+                var usingStart = usingDecl.symbol.Locations[0].SourceSpan.Start;
                 if (sourceStart < usingStart && targetStart > usingStart)
                 {
                     // No forward jumps
-                    Diagnostics.Add(ErrorCode.ERR_GoToForwardJumpOverUsingVar, node.Syntax.Location);
+                    Diagnostics.Add(ErrorCode.ERR_GoToForwardJumpOverUsingVar, sourceLocation);
                     break;
                 }
                 else if(sourceStart > usingStart && targetStart < usingStart)
@@ -333,9 +334,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(_labelsDefined.ContainsKey(node.Label)); 
 
                     // Error if label and using are part of the same block
-                    if (_labelsDefined[node.Label].Locals.Contains(usingDecl))
+                    if (_labelsDefined[node.Label] == usingDecl.block)
                     {
-                        Diagnostics.Add(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, node.Syntax.Location);
+                        Diagnostics.Add(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, sourceLocation);
                         break;
                     }
                 }
@@ -383,23 +384,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var parentBlock = _currentBlock;
             _currentBlock = node;
-            ArrayBuilder<LocalSymbol> localUsingDecls = ArrayBuilder<LocalSymbol>.GetInstance();
+            var localUsingCount = 0;
             foreach(var local in node.Locals)
             {
                 if (local.IsUsing)
                 {
-                    localUsingDecls.Add(local);
-                    _usingDeclarations.Add(local);
+                    _usingDeclarations.Add((local, node));
+                    localUsingCount++;
                 }
             }
 
             var result = base.VisitBlock(node);
 
-            foreach(var local in localUsingDecls)
-            {
-                _usingDeclarations.Remove(local);
-            }
-            localUsingDecls.Free();
+            _usingDeclarations.Clip(_usingDeclarations.Count - localUsingCount);
             _currentBlock = parentBlock;
             return result;
         }
