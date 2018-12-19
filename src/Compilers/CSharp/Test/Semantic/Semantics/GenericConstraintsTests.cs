@@ -3873,5 +3873,63 @@ public class MyClass
                 verify: Verification.Skipped,
                 expectedOutput: "42");
         }
+
+        [Fact]
+        public void GenericStructFixedStatement()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class MyClass
+{
+    public MyStruct<int> ms;
+    public static unsafe void Main()
+    {
+        var c = new MyClass();
+        c.ms.field = 42;
+        fixed (MyStruct<int>* ptr = &c.ms)
+        {
+            System.Console.Write(ptr->field);
+        }
+    }
+}
+";
+
+            CompileAndVerify(code,
+                options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Skipped,
+                expectedOutput: "42");
+        }
+
+        [Fact]
+        public void GenericStructLocalFixedStatement()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class MyClass
+{
+    public static unsafe void Main()
+    {
+        var ms = new MyStruct<int>();
+        fixed (int* ptr = &ms.field)
+        {
+        }
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (12,27): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                    //         fixed (int* ptr = &ms.field)
+                    Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&ms.field").WithLocation(12, 27)
+                );
+        }
     }
 }
