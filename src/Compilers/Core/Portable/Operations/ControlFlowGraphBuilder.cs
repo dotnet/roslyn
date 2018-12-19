@@ -2071,7 +2071,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             if (IsBooleanLogicalNot(operation))
             {
-                return VisitConditionalExpression(operation.Operand, sense: false, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
+                return VisitConditionalExpression(operation, sense: true, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
             }
 
             return new UnaryOperation(operation.OperatorKind, Visit(operation.Operand), operation.IsLifted, operation.IsChecked, operation.OperatorMethod,

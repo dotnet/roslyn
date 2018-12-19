@@ -101,7 +101,7 @@
   </PropertyGroup>
 
   <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" AfterTargets="CoreCompile">
-    <ValidateBootstrap BootstrapPath="$(RoslynToolsetDirectory)" />
+    <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
   </Target>
 
   <!--

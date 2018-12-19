@@ -292,6 +292,7 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Tasks_ValueTask_T,
         System_Threading_Tasks_ValueTask,
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
+        System_Threading_CancellationToken,
 
         NextAvailable,
 
@@ -581,6 +582,7 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.Tasks.ValueTask`1",
             "System.Threading.Tasks.ValueTask",
             "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder",
+            "System.Threading.CancellationToken",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

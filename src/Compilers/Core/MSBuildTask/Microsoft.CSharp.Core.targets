@@ -91,7 +91,7 @@
          NoLogo="$(NoLogo)"
          NoStandardLib="$(NoCompilerStandardLib)"
          NoWin32Manifest="$(NoWin32Manifest)"
-         NullableReferenceTypes="$(NullableReferenceTypes)"
+         NullableContextOptions="$(NullableContextOptions)"
          Optimize="$(Optimize)"
          Deterministic="$(Deterministic)"
          PublicSign="$(PublicSign)"

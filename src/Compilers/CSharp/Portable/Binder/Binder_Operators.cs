@@ -925,9 +925,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // As mentioned above, we relax this restriction. The types must all be the same.
 
-            bool typesAreSame = signature.LeftType == signature.RightType && signature.LeftType == signature.ReturnType;
-            bool typeMatchesContainer = signature.ReturnType == t ||
-                signature.ReturnType.IsNullableType() && signature.ReturnType.GetNullableUnderlyingType() == t;
+            bool typesAreSame = TypeSymbol.Equals(signature.LeftType, signature.RightType, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(signature.LeftType, signature.ReturnType, TypeCompareKind.ConsiderEverything2);
+            bool typeMatchesContainer = TypeSymbol.Equals(signature.ReturnType, t, TypeCompareKind.ConsiderEverything2) ||
+                signature.ReturnType.IsNullableType() && TypeSymbol.Equals(signature.ReturnType.GetNullableUnderlyingType(), t, TypeCompareKind.ConsiderEverything2);
 
             if (!typesAreSame || !typeMatchesContainer)
             {
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasApplicableBooleanOperator(NamedTypeSymbol containingType, string name, TypeSymbol argumentType, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out MethodSymbol @operator)
         {
-            for (var type = containingType; type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            for (var type = containingType; (object)type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
                 var operators = type.GetOperators(name);
                 for (var i = 0; i < operators.Length; i++)
@@ -3552,7 +3552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // must be A (where A is the type of a), as it is where the result of the assignment will end up. Therefore,
             // we must ensure that B (where B is the type of b) is implicitly convertible to A.
             TypeSymbol leftType = leftOperand.Type;
-            Debug.Assert(leftType != null);
+            Debug.Assert((object)leftType != null);
 
             // If A is a non-nullable value type, a compile-time error occurs
             if (leftType.IsValueType && !leftType.IsNullableType())
@@ -3664,7 +3664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type;
             bool hasErrors = false;
 
-            if (trueType == falseType)
+            if (TypeSymbol.Equals(trueType, falseType, TypeCompareKind.ConsiderEverything2))
             {
                 // NOTE: Dev10 lets the type inferrer handle this case (presumably, for maximum consistency),
                 // but it seems like a worthwhile short-circuit for a common case.

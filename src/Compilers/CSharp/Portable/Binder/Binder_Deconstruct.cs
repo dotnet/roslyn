@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ArrayBuilder<DeconstructionVariable> variables,
                         out Conversion conversion)
         {
-            Debug.Assert(type != null);
+            Debug.Assert((object)type != null);
             ImmutableArray<TypeSymbol> tupleOrDeconstructedTypes;
             conversion = Conversion.Deconstruction;
 
@@ -846,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!declType.IsNull)
             {
                 var fieldType = field.GetFieldType(this.FieldsBeingBound);
-                Debug.Assert(declType.TypeSymbol == fieldType.TypeSymbol);
+                Debug.Assert(TypeSymbol.Equals(declType.TypeSymbol, fieldType.TypeSymbol, TypeCompareKind.ConsiderEverything2));
                 return new BoundFieldAccess(syntax,
                                             receiver,
                                             field,

@@ -1355,7 +1355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression InferTypeForDiscardAssignment(BoundDiscardExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
         {
             var inferredType = op2.Type;
-            if (inferredType == null)
+            if ((object)inferredType == null)
             {
                 return op1.FailInference(this, diagnostics);
             }
@@ -1527,7 +1527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (object)sourceProperty != null &&
                     sourceProperty.IsAutoProperty &&
-                    sourceProperty.ContainingType == fromMember.ContainingType &&
+                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
                     IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
                     (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
         }
@@ -1967,7 +1967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_NoImplicitConv, syntax, distinguisher.First, distinguisher.Second);
                     }
                 }
-                else if (sourceType == targetType)
+                else if (TypeSymbol.Equals(sourceType, targetType, TypeCompareKind.ConsiderEverything2))
                 {
                     // This occurs for `void`, which cannot even convert to itself. Since SymbolDistinguisher
                     // requires two distinct types, we preempt its use here. The diagnostic is strange, but correct.
@@ -2701,7 +2701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!badAsyncReturnAlreadyReported)
                     {
                         RefKind unusedRefKind;
-                        if (IsGenericTaskReturningAsyncMethod() && argument.Type == this.GetCurrentReturnType(out unusedRefKind))
+                        if (IsGenericTaskReturningAsyncMethod() && TypeSymbol.Equals(argument.Type, this.GetCurrentReturnType(out unusedRefKind), TypeCompareKind.ConsiderEverything2))
                         {
                             // Since this is an async method, the return expression must be of type '{0}' rather than 'Task<{0}>'
                             Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType);
@@ -2830,7 +2830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             diagnostics.Add(declaration.Type, useSiteDiagnostics);
                         }
-                        else if (previousType == Compilation.GetWellKnownType(WellKnownType.System_Exception) &&
+                        else if (TypeSymbol.Equals(previousType, Compilation.GetWellKnownType(WellKnownType.System_Exception), TypeCompareKind.ConsiderEverything2) &&
                                  Compilation.SourceAssembly.RuntimeCompatibilityWrapNonExceptionThrows)
                         {
                             // If the RuntimeCompatibility(WrapNonExceptionThrows = false) is applied on the source assembly or any referenced netmodule.
@@ -2853,7 +2853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (local?.DeclarationKind == LocalDeclarationKind.CatchVariable)
             {
-                Debug.Assert(local.Type.IsErrorType() || (local.Type.TypeSymbol == type));
+                Debug.Assert(local.Type.IsErrorType() || (TypeSymbol.Equals(local.Type.TypeSymbol, type, TypeCompareKind.ConsiderEverything2)));
 
                 // Check for local variable conflicts in the *enclosing* binder, not the *current* binder;
                 // obviously we will find a local of the given name in the current binder.

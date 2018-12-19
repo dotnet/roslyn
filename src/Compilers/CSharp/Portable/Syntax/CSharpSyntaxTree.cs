@@ -621,7 +621,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns true if the `#nullable` directive preceding the position is
-        /// `enable`, false if `disable`, and null if no preceding directive.
+        /// `enable` or `safeonly`, false if `disable`, and null if no preceding directive,
+        /// or directive preceding the position is `restore`.
         /// </summary>
         internal bool? GetNullableDirectiveState(int position)
         {
