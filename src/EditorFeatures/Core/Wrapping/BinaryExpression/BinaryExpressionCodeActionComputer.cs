@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                         ? FeaturesResources.Wrap_expression_including_operators
                         : FeaturesResources.Wrap_expression);
 
+            /// <param name="includeOperators">Whether or not the operator should be wrapped
+            /// to the next line as well, or if it should stay on the same line it started on.</param>
             private ImmutableArray<Edit> GetWrapEdits(bool includeOperators)
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
