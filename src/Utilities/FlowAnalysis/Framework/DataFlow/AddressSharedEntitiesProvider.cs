@@ -39,9 +39,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             if (parameter.RefKind != RefKind.None &&
                 assignedValueOpt?.AnalysisEntityOpt != null)
             {
-                var addressSharedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
-                addressSharedEntities.Add(analysisEntity);
-                addressSharedEntities.Add(assignedValueOpt.AnalysisEntityOpt);
+                var copyValue = new CopyAbstractValue(ComputeAddressSharedEntities());
+                foreach (var entity in copyValue.AnalysisEntities)
+                {
+                    _addressSharedEntitiesBuilder[entity] = copyValue;
+                }
+            }
+
+            ImmutableHashSet<AnalysisEntity> ComputeAddressSharedEntities()
+            {
+                var addressSharedEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+                addressSharedEntitiesBuilder.Add(analysisEntity);
+                addressSharedEntitiesBuilder.Add(assignedValueOpt.AnalysisEntityOpt);
 
                 // We need to handle multiple ref/out parameters passed the same location.
                 // For example, "M(ref a, ref a);"
@@ -49,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 {
                     foreach (var entity in existingValue.AnalysisEntities)
                     {
-                        addressSharedEntities.Add(entity);
+                        addressSharedEntitiesBuilder.Add(entity);
                     }
                 }
 
@@ -58,15 +67,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 {
                     foreach (var entity in existingValue.AnalysisEntities)
                     {
-                        addressSharedEntities.Add(entity);
+                        addressSharedEntitiesBuilder.Add(entity);
                     }
                 }
 
-                var copyValue = new CopyAbstractValue(addressSharedEntities.ToImmutableAndFree());
-                foreach (var entity in addressSharedEntities)
-                {
-                    _addressSharedEntitiesBuilder[entity] = copyValue;
-                }
+                return addressSharedEntitiesBuilder.ToImmutableAndFree();
             }
         }
 
