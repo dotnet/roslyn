@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
     internal class CSharpBinaryExpressionWrapper : AbstractBinaryExpressionWrapper<BinaryExpressionSyntax>
     {
         public CSharpBinaryExpressionWrapper()
-            : base(CSharpSyntaxFactsService.Instance)
+            : base(CSharpSyntaxFactsService.Instance, CSharpPrecedenceService.Instance)
         {
         }
 

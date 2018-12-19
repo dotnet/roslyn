@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.BinaryExpression
         Inherits AbstractBinaryExpressionWrapper(Of BinaryExpressionSyntax)
 
         Public Sub New()
-            MyBase.New(VisualBasicSyntaxFactsService.Instance)
+            MyBase.New(VisualBasicSyntaxFactsService.Instance, VisualBasicPrecedenceService.Instance)
         End Sub
 
         Protected Overrides Function GetNewLineBeforeOperatorTrivia(newLine As SyntaxTriviaList) As SyntaxTriviaList

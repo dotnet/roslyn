@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
 {
@@ -13,10 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
         where TBinaryExpressionSyntax : SyntaxNode
     {
         private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly IPrecedenceService _precedenceService;
 
-        protected AbstractBinaryExpressionWrapper(ISyntaxFactsService syntaxFacts)
+        protected AbstractBinaryExpressionWrapper(
+            ISyntaxFactsService syntaxFacts,
+            IPrecedenceService precedenceService)
         {
             _syntaxFacts = syntaxFacts;
+            _precedenceService = precedenceService;
         }
 
         /// <summary>
@@ -34,15 +39,18 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                 return null;
             }
 
-            if (!IsLogicalExpression(binaryExpr))
+            var precedence = _precedenceService.GetPrecedenceKind(binaryExpr);
+            if (precedence == PrecedenceKind.Other)
             {
                 return null;
             }
 
-            // Don't process this binary expression if it's in a parent logical expr.  We'll just
-            // allow our caller to walk up to that and call back into us to handle.  This way, we're
-            // always starting at the topmost logical binary expr.
-            if (IsLogicalExpression(binaryExpr.Parent))
+            // Don't process this binary expression if it's in a parent binary expr of the same
+            // precedence.  We'll just allow our caller to walk up to that and call back into us 
+            // to handle.  This way, we're always starting at the topmost binary expr of this
+            // precedence.
+            if (binaryExpr.Parent is TBinaryExpressionSyntax parentBinary &&
+                precedence == _precedenceService.GetPrecedenceKind(parentBinary))
             {
                 return null;
             }
@@ -77,29 +85,27 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
         private ImmutableArray<SyntaxNodeOrToken> GetExpressionsAndOperators(TBinaryExpressionSyntax binaryExpr)
         {
             var result = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
-            AddExpressionsAndOperators(binaryExpr, result);
+            AddExpressionsAndOperators(
+                _precedenceService.GetPrecedenceKind(binaryExpr), binaryExpr, result);
             return result.ToImmutableAndFree();
         }
 
         private void AddExpressionsAndOperators(
-            SyntaxNode expr, ArrayBuilder<SyntaxNodeOrToken> result)
+            PrecedenceKind precedence, SyntaxNode expr, ArrayBuilder<SyntaxNodeOrToken> result)
         {
-            if (IsLogicalExpression(expr))
+            if (expr is TBinaryExpressionSyntax &&
+                precedence == _precedenceService.GetPrecedenceKind(expr))
             {
                 _syntaxFacts.GetPartsOfBinaryExpression(
                     expr, out var left, out var opToken, out var right);
-                AddExpressionsAndOperators(left, result);
+                AddExpressionsAndOperators(precedence, left, result);
                 result.Add(opToken);
-                AddExpressionsAndOperators(right, result);
+                AddExpressionsAndOperators(precedence, right, result);
             }
             else
             {
                 result.Add(expr);
             }
         }
-
-        private bool IsLogicalExpression(SyntaxNode node)
-            => _syntaxFacts.IsLogicalAndExpression(node) ||
-               _syntaxFacts.IsLogicalOrExpression(node);
     }
 }
