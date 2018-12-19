@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
             // If either candidate is nullable - result is nullable
-            // Otherwise - result is "oblivious". 
+            // Otherwise - result is "oblivious".
 
             if (a.IsAnyNullable())
             {
@@ -77,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((a == NullableAnnotation.NotAnnotated && b == NullableAnnotation.NotNullable) ||
                 (b == NullableAnnotation.NotAnnotated && a == NullableAnnotation.NotNullable));
             return NullableAnnotation.NotAnnotated; // It is reasonable to settle on this value because the difference in annotations is either
-                                                    // not significant for the type, or candidate corresponding to this value is possibly a 
-                                                    // nullable reference type type parameter and nullable should win. 
+                                                    // not significant for the type, or candidate corresponding to this value is possibly a
+                                                    // nullable reference type type parameter and nullable should win.
         }
 
         /// <summary>
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
             // If either candidate is not nullable - result is not nullable
-            // Otherwise - result is "oblivious". 
+            // Otherwise - result is "oblivious".
 
             if (a == NullableAnnotation.NotNullable || b == NullableAnnotation.NotNullable)
             {
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
             // If either candidate is "oblivious" - result is the nullability of the other candidate
-            // Otherwise - we declare a mismatch and result is not nullable. 
+            // Otherwise - we declare a mismatch and result is not nullable.
 
             if (a == NullableAnnotation.Unknown)
             {
@@ -368,8 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 case NullableAnnotation.NotNullable:
                     // Example of unspeakable types:
-                    // - a "tight T", which is an unconstrained T which was null-tested already
-                    // - a "tight int?"
+                    // - an unconstrained T which was null-tested already
+                    // - a nullable value type which was null-tested already
                     return NullableAnnotation.NotAnnotated;
 
                 default:

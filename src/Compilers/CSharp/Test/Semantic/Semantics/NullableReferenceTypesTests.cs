@@ -74,28 +74,36 @@ class C
                 );
         }
 
-        [Theory]
-        [InlineData("void M(int? t)")]
-        [InlineData("void M<T>(T? t) where T : struct")]
-        public void SpeakableInference_MethodTypeInference_NullableValueType(string signature)
+        [Fact]
+        public void SpeakableInference_MethodTypeInference_NullableValueType()
         {
             var source =
 @"class Program
 {
-    SIGNATURE
+    void M(int? t)
     {
         if (t == null) throw null;
         t.Value.ToString();
         var t2 = Copy(t);
         t2.Value.ToString(); // warn
     }
-    static T Copy<T>(T t) => throw null;
+    void M2<T>(T? t) where T : struct
+    {
+        if (t == null) throw null;
+        t.Value.ToString();
+        var t2 = Copy(t);
+        t2.Value.ToString(); // warn
+    }
+     static T Copy<T>(T t) => throw null;
 }";
-            var comp = CreateCompilationWithIndexAndRange(source.Replace("SIGNATURE", signature), options: WithNonNullTypesTrue());
+            var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8629: Nullable value type may be null.
                 //         t2.Value.ToString(); // warn
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t2.Value").WithLocation(8, 9)
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t2.Value").WithLocation(8, 9),
+                // (15,9): warning CS8629: Nullable value type may be null.
+                //         t2.Value.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t2.Value").WithLocation(15, 9)
                 );
         }
 
@@ -121,15 +129,20 @@ class C
                 );
         }
 
-        [Theory]
-        [InlineData("void M(int? t)")]
-        [InlineData("void M<T>(T? t) where T : struct")]
-        public void SpeakableInference_ArrayTypeInference_NullableValueType(string signature)
+        [Fact]
+        public void SpeakableInference_ArrayTypeInference_NullableValueType()
         {
             var source =
 @"class Program
 {
-    SIGNATURE
+    void M(int? t)
+    {
+        if (t == null) throw null;
+        t.Value.ToString();
+        var t2 = new[] { t };
+        t2[0].Value.ToString(); // warn
+    }
+    void M2<T>(T? t) where T : struct
     {
         if (t == null) throw null;
         t.Value.ToString();
@@ -137,11 +150,14 @@ class C
         t2[0].Value.ToString(); // warn
     }
 }";
-            var comp = CreateCompilationWithIndexAndRange(source.Replace("SIGNATURE", signature), options: WithNonNullTypesTrue());
+            var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8629: Nullable value type may be null.
                 //         t2[0].Value.ToString(); // warn
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t2[0].Value").WithLocation(8, 9)
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t2[0].Value").WithLocation(8, 9),
+                // (15,9): warning CS8629: Nullable value type may be null.
+                //         t2[0].Value.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t2[0].Value").WithLocation(15, 9)
                 );
         }
 

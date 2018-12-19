@@ -1384,9 +1384,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (BoundExpression element, Conversion conversion) = RemoveConversion(elementBuilder[i], includeExplicitConversions: false);
                 elementBuilder[i] = element;
                 conversionBuilder.Add(conversion);
-                var value = VisitRvalueWithResult(element);
-                resultBuilder.Add(value);
-                speakableResultBuilder.Add(value.AsSpeakable());
+                var resultType = VisitRvalueWithResult(element);
+                resultBuilder.Add(resultType);
+                speakableResultBuilder.Add(resultType.AsSpeakable());
             }
 
             bool checkConversions = true;
@@ -1895,11 +1895,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (constant.IsNull)
                             {
-                                return NullableAnnotation.Nullable;
+                                return NullableAnnotation.Annotated;
                             }
                             if (expr.Type?.IsReferenceType == true)
                             {
-                                return NullableAnnotation.NotNullable;
+                                return NullableAnnotation.NotAnnotated;
                             }
                         }
                         return NullableAnnotation.Unknown;
@@ -2863,7 +2863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol InferMethodTypeArguments(BoundCall node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
             Debug.Assert(method.IsGenericMethod);
-            Debug.Assert(arguments.All(a => a.GetTypeAndNullability().NullableAnnotation.IsSpeakable()));
+            Debug.Assert(arguments.All(a => GetNullableAnnotation(a).IsSpeakable()));
 
             // https://github.com/dotnet/roslyn/issues/27961 OverloadResolution.IsMemberApplicableInNormalForm and
             // IsMemberApplicableInExpandedForm use the least overridden method. We need to do the same here.
