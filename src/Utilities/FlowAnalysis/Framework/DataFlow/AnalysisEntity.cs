@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     internal sealed class AnalysisEntity : CacheBasedEquatable<AnalysisEntity>
     {
-        private readonly Lazy<ImmutableArray<int>> _lazyIgnoringLocationHashCodeParts;
-        private readonly Lazy<int> _lazyIgnoringLocationHashCode;
+        private readonly ImmutableArray<int> _ignoringLocationHashCodeParts;
+        private readonly int _ignoringLocationHashCode;
 
         private AnalysisEntity(
             ISymbol symbolOpt,
@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ParentOpt = parentOpt;
             IsThisOrMeInstance = isThisOrMeInstance;
 
-            _lazyIgnoringLocationHashCodeParts = new Lazy<ImmutableArray<int>>(ComputeIgnoringLocationHashCodeParts);
-            _lazyIgnoringLocationHashCode = new Lazy<int>(ComputeIgnoringLocationHashCode);
+            _ignoringLocationHashCodeParts = ComputeIgnoringLocationHashCodeParts();
+            _ignoringLocationHashCode = HashUtilities.Combine(_ignoringLocationHashCodeParts);
         }
 
         private AnalysisEntity(ISymbol symbolOpt, ImmutableArray<AbstractIndex> indices, PointsToAbstractValue location, ITypeSymbol type, AnalysisEntity parentOpt)
@@ -179,6 +179,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public bool HasUnknownInstanceLocation => InstanceLocation.Kind == PointsToAbstractValueKind.Unknown;
 
+        public bool IsLValueFlowCaptureEntity => CaptureIdOpt.HasValue && CaptureIdOpt.Value.IsLValueFlowCapture;
+
         public bool EqualsIgnoringInstanceLocation(AnalysisEntity other)
         {
             // Perform fast equality checks first.
@@ -188,24 +190,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             if (other == null ||
-                _lazyIgnoringLocationHashCode.Value != other._lazyIgnoringLocationHashCode.Value)
+                _ignoringLocationHashCode != other._ignoringLocationHashCode)
             {
                 return false;
             }
 
             // Now perform slow check that compares individual hash code parts sequences.
-            return _lazyIgnoringLocationHashCodeParts.Value.SequenceEqual(other._lazyIgnoringLocationHashCodeParts.Value);
+            return _ignoringLocationHashCodeParts.SequenceEqual(other._ignoringLocationHashCodeParts);
         }
 
-        public int EqualsIgnoringInstanceLocationId => _lazyIgnoringLocationHashCode.Value;
+        public int EqualsIgnoringInstanceLocationId => _ignoringLocationHashCode;
 
-        protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
+        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
         {
             builder.Add(InstanceLocation.GetHashCode());
             ComputeHashCodePartsIgnoringLocation(builder);
         }
 
-        private void ComputeHashCodePartsIgnoringLocation(ImmutableArray<int>.Builder builder)
+        private void ComputeHashCodePartsIgnoringLocation(ArrayBuilder<int> builder)
         {
             builder.Add(SymbolOpt.GetHashCodeOrDefault());
             builder.Add(HashUtilities.Combine(Indices));
@@ -216,13 +218,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             builder.Add(IsThisOrMeInstance.GetHashCode());
         }
 
-        private int ComputeIgnoringLocationHashCode() => HashUtilities.Combine(_lazyIgnoringLocationHashCodeParts.Value);
-
         private ImmutableArray<int> ComputeIgnoringLocationHashCodeParts()
         {
-            var builder = ImmutableArray.CreateBuilder<int>();
+            var builder = ArrayBuilder<int>.GetInstance(7);
             ComputeHashCodePartsIgnoringLocation(builder);
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         public bool HasAncestor(AnalysisEntity ancestor)

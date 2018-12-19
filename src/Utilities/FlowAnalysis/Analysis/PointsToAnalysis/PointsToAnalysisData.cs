@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Analyzer.Utilities.Extensions;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
@@ -16,17 +15,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// </summary>
     internal sealed class PointsToAnalysisData : AnalysisEntityBasedPredicateAnalysisData<PointsToAbstractValue>
     {
-        public PointsToAnalysisData(Func<AnalysisEntity, bool> isLValueFlowCaptureEntity)
+        public PointsToAnalysisData()
         {
-            IsLValueFlowCaptureEntity = isLValueFlowCaptureEntity;
         }
 
-        public PointsToAnalysisData(CorePointsToAnalysisData fromData, Func<AnalysisEntity, bool> isLValueFlowCaptureEntity)
+        public PointsToAnalysisData(CorePointsToAnalysisData fromData)
             : base(fromData)
         {
-            IsLValueFlowCaptureEntity = isLValueFlowCaptureEntity;
-
-            AssertValidPointsToAnalysisData(fromData, ShouldBeTracked, isLValueFlowCaptureEntity);
+            AssertValidPointsToAnalysisData(fromData);
         }
 
         public PointsToAnalysisData(
@@ -34,35 +30,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             PredicatedAnalysisData<AnalysisEntity, PointsToAbstractValue> predicatedData1,
             PredicatedAnalysisData<AnalysisEntity, PointsToAbstractValue> predicatedData2,
             bool isReachableData,
-            MapAbstractDomain<AnalysisEntity, PointsToAbstractValue> coreDataAnalysisDomain,
-            Func<AnalysisEntity, bool> isLValueFlowCaptureEntity)
+            MapAbstractDomain<AnalysisEntity, PointsToAbstractValue> coreDataAnalysisDomain)
             : base(mergedCoreAnalysisData, predicatedData1, predicatedData2, isReachableData, coreDataAnalysisDomain)
         {
-            IsLValueFlowCaptureEntity = isLValueFlowCaptureEntity;
-
-            AssertValidPointsToAnalysisData(mergedCoreAnalysisData, ShouldBeTracked, isLValueFlowCaptureEntity);
+            AssertValidPointsToAnalysisData(mergedCoreAnalysisData);
             AssertValidPointsToAnalysisData();
         }
 
         private PointsToAnalysisData(PointsToAnalysisData fromData)
             : base(fromData)
         {
-            IsLValueFlowCaptureEntity = fromData.IsLValueFlowCaptureEntity;
-
             fromData.AssertValidPointsToAnalysisData();
         }
 
         private PointsToAnalysisData(PointsToAnalysisData data1, PointsToAnalysisData data2, MapAbstractDomain<AnalysisEntity, PointsToAbstractValue> coreDataAnalysisDomain)
             : base(data1, data2, coreDataAnalysisDomain)
         {
-            IsLValueFlowCaptureEntity = data1.IsLValueFlowCaptureEntity;
-
             data1.AssertValidPointsToAnalysisData();
             data2.AssertValidPointsToAnalysisData();
             AssertValidPointsToAnalysisData();
         }
-
-        public Func<AnalysisEntity, bool> IsLValueFlowCaptureEntity { get; }
 
         public override AnalysisEntityBasedPredicateAnalysisData<PointsToAbstractValue> Clone() => new PointsToAnalysisData(this);
 
@@ -77,14 +64,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             return mergedData;
         }
 
-        public static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType();
-
-        public bool ShouldBeTracked(AnalysisEntity analysisEntity)
-            => ShouldBeTracked(analysisEntity.Type) || IsLValueFlowCaptureEntity(analysisEntity) || analysisEntity.IsThisOrMeInstance;
-
         public override void SetAbstractValue(AnalysisEntity key, PointsToAbstractValue value)
         {
-            AssertValidPointsToAnalysisKeyValuePair(key, value, ShouldBeTracked, IsLValueFlowCaptureEntity);
+            AssertValidPointsToAnalysisKeyValuePair(key, value);
             base.SetAbstractValue(key, value);
         }
 
@@ -114,32 +96,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         [Conditional("DEBUG")]
         public void AssertValidPointsToAnalysisData()
         {
-            AssertValidPointsToAnalysisData(CoreAnalysisData, ShouldBeTracked, IsLValueFlowCaptureEntity);
-            AssertValidPredicatedAnalysisData(map => AssertValidPointsToAnalysisData(map, ShouldBeTracked, IsLValueFlowCaptureEntity));
+            AssertValidPointsToAnalysisData(CoreAnalysisData);
+            AssertValidPredicatedAnalysisData(map => AssertValidPointsToAnalysisData(map));
         }
 
         [Conditional("DEBUG")]
-        private static void AssertValidPointsToAnalysisData(
-            CorePointsToAnalysisData map,
-            Func<AnalysisEntity, bool> shouldBeTracked,
-            Func<AnalysisEntity, bool> isLValueFlowCaptureEntity)
+        private static void AssertValidPointsToAnalysisData(CorePointsToAnalysisData map)
         {
             foreach (var kvp in map)
             {
-                AssertValidPointsToAnalysisKeyValuePair(kvp.Key, kvp.Value, shouldBeTracked, isLValueFlowCaptureEntity);
+                AssertValidPointsToAnalysisKeyValuePair(kvp.Key, kvp.Value);
             }
         }
 
         [Conditional("DEBUG")]
         private static void AssertValidPointsToAnalysisKeyValuePair(
             AnalysisEntity key,
-            PointsToAbstractValue value,
-            Func<AnalysisEntity, bool> shouldBeTracked,
-            Func<AnalysisEntity, bool> isLValueFlowCaptureEntity)
+            PointsToAbstractValue value)
         {
             Debug.Assert(value.Kind != PointsToAbstractValueKind.Undefined);
-            Debug.Assert(!isLValueFlowCaptureEntity(key) || value.Kind == PointsToAbstractValueKind.KnownLValueCaptures);
-            Debug.Assert(shouldBeTracked(key));
+            Debug.Assert(!key.IsLValueFlowCaptureEntity || value.Kind == PointsToAbstractValueKind.KnownLValueCaptures);
+            Debug.Assert(PointsToAnalysis.ShouldBeTracked(key));
         }
     }
 }

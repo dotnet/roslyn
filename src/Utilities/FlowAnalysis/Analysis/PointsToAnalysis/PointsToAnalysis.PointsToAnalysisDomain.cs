@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     getChildAnalysisEntities,
                     resetAbstractValue);
                 return new PointsToAnalysisData(mergedCoreAnalysisData, forwardEdgeAnalysisData,
-                    backEdgeAnalysisData, forwardEdgeAnalysisData.IsReachableBlockData, CoreDataAnalysisDomain,
-                    forwardEdgeAnalysisData.IsLValueFlowCaptureEntity);
+                    backEdgeAnalysisData, forwardEdgeAnalysisData.IsReachableBlockData, CoreDataAnalysisDomain);
             }
         }
     }

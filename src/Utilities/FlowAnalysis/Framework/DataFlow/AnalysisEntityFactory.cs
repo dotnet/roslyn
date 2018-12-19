@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             AnalysisEntity interproceduralInvocationInstanceOpt,
             AnalysisEntity interproceduralThisOrMeInstanceForCallerOpt,
             ImmutableStack<IOperation> interproceduralCallStackOpt,
-            IEnumerable<KeyValuePair<ISymbol, PointsToAbstractValue>> instanceLocationsFromCallee)
+            ImmutableDictionary<ISymbol, PointsToAbstractValue> interproceduralCapturedVariablesMapOpt)
         {
             _controlFlowGraph = controlFlowGraph;
             _getPointsToAbstractValueOpt = getPointsToAbstractValueOpt;
@@ -50,7 +50,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _captureIdEntityMap = new Dictionary<CaptureId, AnalysisEntity>();
 
             _instanceLocationsForSymbols = new Dictionary<ISymbol, PointsToAbstractValue>();
-            _instanceLocationsForSymbols.AddRange(instanceLocationsFromCallee);
+            if (interproceduralCapturedVariablesMapOpt != null)
+            {
+                _instanceLocationsForSymbols.AddRange(interproceduralCapturedVariablesMapOpt);
+            }
 
             if (interproceduralInvocationInstanceOpt != null)
             {
@@ -71,13 +74,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             if (indices.Length > 0)
             {
-                var builder = ImmutableArray.CreateBuilder<AbstractIndex>();
+                var builder = ArrayBuilder<AbstractIndex>.GetInstance(indices.Length);
                 foreach (var index in indices)
                 {
                     builder.Add(CreateAbstractIndex(index));
                 }
 
-                return builder.ToImmutable();
+                return builder.ToImmutableAndFree();
             }
 
             return ImmutableArray<AbstractIndex>.Empty;

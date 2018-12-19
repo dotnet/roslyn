@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
+    using CopyAnalysisDomain = PredicatedAnalysisDataDomain<CopyAnalysisData, CopyAbstractValue>;
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
 
     internal partial class CopyAnalysis : ForwardDataFlowAnalysis<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyBlockAnalysisResult, CopyAbstractValue>
@@ -20,7 +21,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             public CopyDataFlowOperationVisitor(CopyAnalysisContext analysisContext)
                 : base(analysisContext)
             {
+                var coreAnalysisDomain = new CoreCopyAnalysisDataDomain(CopyAbstractValueDomain.Default, GetDefaultCopyValue);
+                AnalysisDomain = new CopyAnalysisDomain(coreAnalysisDomain);
             }
+
+            public CopyAnalysisDomain AnalysisDomain { get; }
 
             public override CopyAnalysisData Flow(IOperation statement, BasicBlock block, CopyAnalysisData input)
             {
@@ -41,6 +46,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 return result;
             }
 
+            [Conditional("DEBUG")]
+            private void AssertValidCopyAnalysisData(CopyAnalysisData copyAnalysisData)
+            {
+                copyAnalysisData.AssertValidCopyAnalysisData(GetDefaultCopyValue);
+            }
+
             protected override void AddTrackedEntities(ImmutableArray<AnalysisEntity>.Builder builder) => CurrentAnalysisData.AddTrackedEntities(builder);
 
             protected override bool HasAbstractValue(AnalysisEntity analysisEntity) => CurrentAnalysisData.HasAbstractValue(analysisEntity);
@@ -54,9 +65,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 // First set the value to unknown so we remove the entity from existing copy sets.
                 // Note that we pass 'tryGetAddressSharedCopyValue = null' to ensure that
                 // we do not reset the entries for address shared entities.
-                SetAbstractValue(CurrentAnalysisData, analysisEntity, CopyAbstractValue.Unknown,
-                    tryGetAddressSharedCopyValue: _ => null, fromPredicate: false);
-                AssertValidCopyAnalysisData(CurrentAnalysisData);
+                SetAbstractValue(CurrentAnalysisData, analysisEntity, CopyAbstractValue.Unknown, tryGetAddressSharedCopyValue: _ => null);
+                CurrentAnalysisData.AssertValidCopyAnalysisData(tryGetDefaultCopyValueOpt: null);
 
                 // Now it should be safe to remove the entry.
                 CurrentAnalysisData.RemoveEntries(analysisEntity);
@@ -74,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 Debug.Assert(analysisEntity != null);
                 Debug.Assert(value != null);
 
-                SetAbstractValue(CurrentAnalysisData, analysisEntity, value, TryGetAddressSharedCopyValue, fromPredicate: false);
+                SetAbstractValue(CurrentAnalysisData, analysisEntity, value, TryGetAddressSharedCopyValue);
             }
 
             protected override void SetAbstractValueForAssignment(AnalysisEntity targetAnalysisEntity, IOperation assignedValueOperation, CopyAbstractValue assignedValue)
@@ -86,6 +96,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 }
 
                 base.SetAbstractValueForAssignment(targetAnalysisEntity, assignedValueOperation, assignedValue);
+                CurrentAnalysisData.AssertValidCopyAnalysisData();
             }
 
             private static void SetAbstractValue(
@@ -93,10 +104,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 AnalysisEntity analysisEntity,
                 CopyAbstractValue value,
                 Func<AnalysisEntity, CopyAbstractValue> tryGetAddressSharedCopyValue,
-                bool fromPredicate)
+                bool fromPredicate = false,
+                bool initializingParameters = false)
             {
                 SetAbstractValue(sourceCopyAnalysisData: copyAnalysisData, targetCopyAnalysisData: copyAnalysisData,
-                    analysisEntity: analysisEntity, value: value, tryGetAddressSharedCopyValue: tryGetAddressSharedCopyValue, fromPredicate: fromPredicate);
+                    analysisEntity: analysisEntity, value: value, tryGetAddressSharedCopyValue: tryGetAddressSharedCopyValue, fromPredicate: fromPredicate,
+                    initializingParameters: initializingParameters);
             }
 
             private static void SetAbstractValue(
@@ -105,10 +118,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 AnalysisEntity analysisEntity,
                 CopyAbstractValue value,
                 Func<AnalysisEntity, CopyAbstractValue> tryGetAddressSharedCopyValue,
-                bool fromPredicate)
+                bool fromPredicate,
+                bool initializingParameters)
             {
-                AssertValidCopyAnalysisData(sourceCopyAnalysisData);
-                AssertValidCopyAnalysisData(targetCopyAnalysisData);
+                sourceCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
+                targetCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
                 Debug.Assert(ReferenceEquals(sourceCopyAnalysisData, targetCopyAnalysisData) || fromPredicate);
 
                 // Don't track entities if do not know about it's instance location.
@@ -119,11 +133,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
                 if (value.AnalysisEntities.Count > 0)
                 {
-                    if (sourceCopyAnalysisData.TryGetValue(value.AnalysisEntities.First(), out var fixedUpValue))
-                    {
-                        value = fixedUpValue;
-                    }
-
                     var validEntities = value.AnalysisEntities.Where(entity => !entity.HasUnknownInstanceLocation).ToImmutableHashSet();
                     if (validEntities.Count < value.AnalysisEntities.Count)
                     {
@@ -192,20 +201,45 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     targetCopyAnalysisData.SetAbstactValue(entityToUpdate, newValue, isEntityBeingAssigned: entityToUpdate == analysisEntity);
                 }
 
-                AssertValidCopyAnalysisData(targetCopyAnalysisData);
+                targetCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
             }
 
-            // Create a dummy copy value for each parameter on entry.
-            protected override CopyAbstractValue GetDefaultValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity)
-                => new CopyAbstractValue(analysisEntity);
+            protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<CopyAbstractValue> assignedValueOpt)
+            {
+                CopyAbstractValue copyValue;
+                if (assignedValueOpt != null)
+                {
+                    var assignedEntities = assignedValueOpt.Value.AnalysisEntities;
+                    if (assignedValueOpt.AnalysisEntityOpt != null && !assignedEntities.Contains(assignedValueOpt.AnalysisEntityOpt))
+                    {
+                        assignedEntities = assignedEntities.Add(assignedValueOpt.AnalysisEntityOpt);
+                    }
+
+                    var newAnalysisEntities = assignedEntities;
+                    foreach (var entity in assignedEntities)
+                    {
+                        if (CurrentAnalysisData.TryGetValue(entity, out var existingValue))
+                        {
+                            newAnalysisEntities = newAnalysisEntities.Union(existingValue.AnalysisEntities);
+                        }
+                    }
+
+                    copyValue = assignedValueOpt.Value.AnalysisEntities.Count == newAnalysisEntities.Count ?
+                        assignedValueOpt.Value :
+                        new CopyAbstractValue(newAnalysisEntities);
+                }
+                else
+                {
+                    copyValue = GetDefaultCopyValue(analysisEntity);
+                }
+
+                SetAbstractValue(CurrentAnalysisData, analysisEntity, copyValue, TryGetAddressSharedCopyValue, initializingParameters: true);
+            }
 
             protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
             {
                 // Do not escape the copy value for parameter at exit.
             }
-
-            private CopyAbstractValue GetDefaultCopyValue(AnalysisEntity analysisEntity)
-                => TryGetAddressSharedCopyValue(analysisEntity) ?? new CopyAbstractValue(analysisEntity);
 
             private CopyAbstractValue GetResetValue(AnalysisEntity analysisEntity, CopyAbstractValue currentValue)
                 => currentValue.AnalysisEntities.Count > 1 ? GetDefaultCopyValue(analysisEntity) : currentValue;
@@ -287,7 +321,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             #endregion
 
             protected override CopyAnalysisData MergeAnalysisData(CopyAnalysisData value1, CopyAnalysisData value2)
-                => s_AnalysisDomain.Merge(value1, value2);
+                => AnalysisDomain.Merge(value1, value2);
             protected override CopyAnalysisData GetClonedAnalysisData(CopyAnalysisData analysisData)
                 => (CopyAnalysisData)analysisData.Clone();
             public override CopyAnalysisData GetEmptyAnalysisData()

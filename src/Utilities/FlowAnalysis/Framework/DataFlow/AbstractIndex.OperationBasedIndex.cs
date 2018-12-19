@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             public IOperation Operation { get; }
 
 #pragma warning disable CA1307 // Specify StringComparison - string.GetHashCode(StringComparison) not available in all projects that reference this shared project
-            protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
+            protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
             {
                 builder.Add(Operation.GetHashCode());
                 builder.Add(nameof(OperationBasedIndex).GetHashCode());

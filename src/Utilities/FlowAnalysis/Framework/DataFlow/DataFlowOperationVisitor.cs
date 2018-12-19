@@ -39,14 +39,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// This is done for performance reasons for analyzing methods with extremely large call trees.
         /// https://github.com/dotnet/roslyn-analyzers/issues/1809 tracks improving this heuristic.
         /// </summary>
-        private const int MaxInterproceduralCallChain = 5;
+        private const int MaxInterproceduralCallChain = 3;
 
         /// <summary>
-        /// Map builder from entity to set of entities that share the same instance location.
+        /// Stores a map from entity to set of entities that share the same instance location.
         /// Primarily used for ref arguments for context sensitive interprocedural analysis
         /// to ensure that PointsTo value updates to any of the mapped entities is reflected in the others in the set.
         /// </summary>
-        private readonly ImmutableDictionary<AnalysisEntity, CopyAbstractValue>.Builder _addressSharedEntitiesBuilder;
+        private readonly AddressSharedEntitiesProvider<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> _addressSharedEntitiesProvider;
 
         /// <summary>
         /// Current interprocedural operation call stack.
@@ -121,8 +121,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected bool IsInsideAnonymousObjectInitializer { get; private set; }
 
         protected bool IsLValueFlowCapture(CaptureId captureId) => _lValueFlowCaptures.Contains(captureId);
-        public bool IsLValueFlowCaptureEntity(AnalysisEntity analysisEntity)
-            => analysisEntity.CaptureIdOpt != null && analysisEntity.CaptureIdOpt.Value.IsLValueFlowCapture;
 
         protected virtual int GetAllowedInterproceduralCallChain() => MaxInterproceduralCallChain;
 
@@ -141,7 +139,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _interproceduralResultsBuilder = ImmutableDictionary.CreateBuilder<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>>();
 
             _interproceduralCallStack = new Stack<IOperation>();
-            _addressSharedEntitiesBuilder = ImmutableDictionary.CreateBuilder<AnalysisEntity, CopyAbstractValue>();
+            _addressSharedEntitiesProvider = new AddressSharedEntitiesProvider<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>(analysisContext);
             if (analysisContext.InterproceduralAnalysisDataOpt != null)
             {
                 foreach (var argumentInfo in analysisContext.InterproceduralAnalysisDataOpt.Arguments)
@@ -154,7 +152,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     _interproceduralCallStack.Push(operation);
                 }
 
-                _addressSharedEntitiesBuilder.AddRange(analysisContext.InterproceduralAnalysisDataOpt.AddressSharedEntities);
                 _interproceduralMethodToCfgMapOpt = null;
             }
             else
@@ -186,15 +183,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 interproceduralInvocationInstanceOpt: interproceduralInvocationInstanceOpt,
                 interproceduralThisOrMeInstanceForCallerOpt: analysisContext.InterproceduralAnalysisDataOpt?.ThisOrMeInstanceForCallerOpt?.Instance,
                 interproceduralCallStackOpt: analysisContext.InterproceduralAnalysisDataOpt?.CallStack,
-                instanceLocationsFromCallee: GetInstanceLocationsFromCallee(analysisContext.OwningSymbol, analysisContext.InterproceduralAnalysisDataOpt));
+                interproceduralCapturedVariablesMapOpt: analysisContext.InterproceduralAnalysisDataOpt?.CapturedVariablesMap);
         }
 
         public override int GetHashCode() => HashUtilities.Combine(GetType().GetHashCode(), DataFlowAnalysisContext.GetHashCode());
 
+        protected CopyAbstractValue GetDefaultCopyValue(AnalysisEntity analysisEntity)
+                => _addressSharedEntitiesProvider.GetDefaultCopyValue(analysisEntity);
+
         protected CopyAbstractValue TryGetAddressSharedCopyValue(AnalysisEntity analysisEntity)
-            => _addressSharedEntitiesBuilder.TryGetValue(analysisEntity, out var addressSharedEntities) ?
-            addressSharedEntities :
-            null;
+            => _addressSharedEntitiesProvider.TryGetAddressSharedCopyValue(analysisEntity);
 
         public (TAbstractAnalysisValue, PredicateValueKind)? GetReturnValueAndPredicateKind()
         {
@@ -243,32 +241,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             else
             {
                 return PointsToAbstractValue.NoLocation;
-            }
-        }
-
-        private static IEnumerable<KeyValuePair<ISymbol, PointsToAbstractValue>> GetInstanceLocationsFromCallee(
-            ISymbol owningSymbol,
-            InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> interproceduralAnalysisData)
-        {
-            if (interproceduralAnalysisData != null)
-            {
-                // Use the instance location from argument for ref/out parameters.
-                var parameters = ((IMethodSymbol)owningSymbol).Parameters;
-                for (int i = 0; i < parameters.Length; i++)
-                {
-                    IParameterSymbol parameter = parameters[i];
-                    PointsToAbstractValue instanceLocation = interproceduralAnalysisData.Arguments[i].InstanceLocation;
-                    if (parameter.RefKind != RefKind.None && instanceLocation.Kind != PointsToAbstractValueKind.Unknown)
-                    {
-                        yield return new KeyValuePair<ISymbol, PointsToAbstractValue>(parameter, instanceLocation);
-                    }
-                }
-
-                // Use the instance location from captured variables.
-                foreach (var kvp in interproceduralAnalysisData.CapturedVariablesMap)
-                {
-                    yield return kvp;
-                }
             }
         }
 
@@ -380,50 +352,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         assignedValueOpt = argumentValues[argumentIndex++];
                     }
 
+                    _addressSharedEntitiesProvider.UpdateAddressSharedEntitiesForParameter(parameter, analysisEntity, assignedValueOpt);
                     SetValueForParameterOnEntry(parameter, analysisEntity, assignedValueOpt);
-                    UpdateAddressSharedEntitiesForParameter(parameter, analysisEntity, assignedValueOpt);
                 }
 
                 _lazyParameterEntities = builder.ToImmutable();
-            }
-
-            return;
-            
-            // Local functions.
-            void UpdateAddressSharedEntitiesForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue> assignedValueOpt)
-            {
-                if (parameter.RefKind != RefKind.None &&
-                    assignedValueOpt?.AnalysisEntityOpt != null)
-                {
-                    var addressSharedEntities = ImmutableHashSet.CreateBuilder<AnalysisEntity>();
-                    addressSharedEntities.Add(analysisEntity);
-                    addressSharedEntities.Add(assignedValueOpt.AnalysisEntityOpt);
-
-                    // We need to handle multiple ref/out parameters passed the same location.
-                    // For example, "M(ref a, ref a);"
-                    if (_addressSharedEntitiesBuilder.TryGetValue(assignedValueOpt.AnalysisEntityOpt, out var existingValue))
-                    {
-                        foreach (var entity in existingValue.AnalysisEntities)
-                        {
-                            addressSharedEntities.Add(entity);
-                        }
-                    }
-
-                    // Also handle case where the passed in argument is also a ref/out parameter and has address shared entities.
-                    if (_addressSharedEntitiesBuilder.TryGetValue(analysisEntity, out existingValue))
-                    {
-                        foreach (var entity in existingValue.AnalysisEntities)
-                        {
-                            addressSharedEntities.Add(entity);
-                        }
-                    }
-
-                    var copyValue = new CopyAbstractValue(addressSharedEntities.ToImmutable());
-                    foreach (var entity in addressSharedEntities)
-                    {
-                        _addressSharedEntitiesBuilder[entity] = copyValue;
-                    }
-                }
             }
         }
 
@@ -455,6 +388,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // as they will no longer be in caller's analysis scope.
             if (_lazyParameterEntities != null && DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null)
             {
+                // Reset address shared entities to caller's address shared entities.
+                _addressSharedEntitiesProvider.SetAddressSharedEntities(DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.AddressSharedEntities);
+
                 foreach (var kvp in _lazyParameterEntities)
                 {
                     IParameterSymbol parameter = kvp.Key;
@@ -1568,7 +1504,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     GetThisOrMeInstance(),
                     GetArgumentValues(),
                     GetCapturedVariablesMap(),
-                    _addressSharedEntitiesBuilder.ToImmutable(),
+                    _addressSharedEntitiesProvider.GetAddressedSharedEntityMap(),
                     ImmutableStack.CreateRange(_interproceduralCallStack),
                     newMethodsBeingAnalyzed,
                     getCachedAbstractValueFromCaller: GetCachedAbstractValue,

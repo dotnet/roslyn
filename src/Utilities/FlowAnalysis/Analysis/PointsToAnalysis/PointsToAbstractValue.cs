@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         public PointsToAbstractValueKind Kind { get; }
         public NullAbstractValue NullState { get; }
 
-        protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
+        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
         {
             builder.Add(HashUtilities.Combine(Locations));
             builder.Add(HashUtilities.Combine(LValueCapturedOperations));
