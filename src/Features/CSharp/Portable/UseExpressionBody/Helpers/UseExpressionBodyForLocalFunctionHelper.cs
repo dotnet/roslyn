@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    internal class UseExpressionBodyForLocalFunctionHelper : 
+    internal class UseExpressionBodyForLocalFunctionHelper :
         UseExpressionBodyHelper<LocalFunctionStatementSyntax>
     {
         public static readonly UseExpressionBodyForLocalFunctionHelper Instance = new UseExpressionBodyForLocalFunctionHelper();
