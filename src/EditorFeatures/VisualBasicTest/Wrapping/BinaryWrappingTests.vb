@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
     Public Class BinaryWrappingTests
@@ -12,18 +13,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return New VisualBasicWrappingCodeRefactoringProvider()
         End Function
 
+        Private ReadOnly Property EndOfLine As IDictionary(Of OptionKey, Object) = [Option](
+            CodeStyleOptions.OperatorPlacementWhenWrapping,
+            OperatorPlacementWhenWrappingPreference.EndOfLine)
+
+        Private ReadOnly Property BeginningOfLine As IDictionary(Of OptionKey, Object) = [Option](
+            CodeStyleOptions.OperatorPlacementWhenWrapping,
+            OperatorPlacementWhenWrappingPreference.BeginningOfLine)
+
         Private Function TestEndOfLine(markup As String, expected As String) As Task
             Return TestInRegularAndScript1Async(markup, expected, parameters:=New TestParameters(
-                options:=[Option](
-                    CodeStyleOptions.OperatorPlacementWhenWrapping,
-                    OperatorPlacementWhenWrappingPreference.EndOfLine)))
+                options:=EndOfLine))
         End Function
 
         Private Function TestBeginningOfLine(markup As String, expected As String) As Task
             Return TestInRegularAndScript1Async(markup, expected, parameters:=New TestParameters(
-                options:=[Option](
-                    CodeStyleOptions.OperatorPlacementWhenWrapping,
-                    OperatorPlacementWhenWrappingPreference.BeginningOfLine)))
+                options:=BeginningOfLine))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
@@ -202,7 +207,7 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
-        Public Async Function TestTwoExprWrappingCases() As Task
+        Public Async Function TestTwoExprWrappingCases_End() As Task
             Await TestAllWrappingCasesAsync(
 "class C
     sub Bar()
@@ -210,13 +215,26 @@ end class")
         end if
     end sub
 end class",
+EndOfLine,
 "class C
     sub Bar()
         if (i andalso
             j)
         end if
     end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestTwoExprWrappingCases_Beginning() As Task
+            Await TestAllWrappingCasesAsync(
+"class C
+    sub Bar()
+        if ([||]i andalso j)
+        end if
+    end sub
 end class",
+BeginningOfLine,
 "class C
     sub Bar()
         if (i _
@@ -227,7 +245,7 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
-        Public Async Function TestThreeExprWrappingCases() As Task
+        Public Async Function TestThreeExprWrappingCases_End() As Task
             Await TestAllWrappingCasesAsync(
 "class C
     sub Bar()
@@ -235,6 +253,7 @@ end class")
         end if
     end sub
 end class",
+EndOfLine,
 "class C
     sub Bar()
         if (i andalso
@@ -242,7 +261,19 @@ end class",
             k)
         end if
     end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestThreeExprWrappingCases_Beginning() As Task
+            Await TestAllWrappingCasesAsync(
+"class C
+    sub Bar()
+        if ([||]i andalso j orelse k)
+        end if
+    end sub
 end class",
+BeginningOfLine,
 "class C
     sub Bar()
         if (i _
@@ -254,7 +285,7 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
-        Public Async Function Test_AllOptions_NoInitialMatches() As Task
+        Public Async Function Test_AllOptions_NoInitialMatches_End() As Task
             Await TestAllWrappingCasesAsync(
 "class C
     sub Bar()
@@ -265,6 +296,7 @@ end class")
         end if
     end sub
 end class",
+EndOfLine,
 "class C
     sub Bar()
         if (
@@ -274,6 +306,28 @@ end class",
         end if
     end sub
 end class",
+"class C
+    sub Bar()
+        if (
+            i andalso j orelse k)
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function Test_AllOptions_NoInitialMatches_Beginning() As Task
+            Await TestAllWrappingCasesAsync(
+"class C
+    sub Bar()
+        if (
+            [||]i   andalso
+                j _
+                 orelse   k)
+        end if
+    end sub
+end class",
+BeginningOfLine,
 "class C
     sub Bar()
         if (
@@ -318,7 +372,7 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
-        Public Async Function Test_DoNotOfferExistingOption2() As Task
+        Public Async Function Test_DoNotOfferExistingOption2_End() As Task
             Await TestAllWrappingCasesAsync(
 "class C
     sub Bar()
@@ -327,6 +381,7 @@ end class")
         end if
     end sub
 end class",
+EndOfLine,
 "class C
     sub Bar()
         if (a andalso
@@ -334,6 +389,25 @@ end class",
         end if
     end sub
 end class",
+"class C
+    sub Bar()
+        if (a andalso b)
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function Test_DoNotOfferExistingOption2_Beginning() As Task
+            Await TestAllWrappingCasesAsync(
+"class C
+    sub Bar()
+        if ([||]a _
+            andalso b)
+        end if
+    end sub
+end class",
+BeginningOfLine,
 "class C
     sub Bar()
         if (a andalso b)
