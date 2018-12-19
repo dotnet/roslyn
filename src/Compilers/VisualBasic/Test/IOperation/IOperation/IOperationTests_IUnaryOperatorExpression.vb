@@ -2208,5 +2208,83 @@ IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: Function C.op_UnaryNe
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
+        
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
+        Public Sub LogicalNotFlow_01()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Function M(f as Boolean) As Boolean 'BIND:"Function M"
+        Return Not f
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [M As System.Boolean]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Return) Block[B2]
+            IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.Unary, Type: System.Boolean) (Syntax: 'Not f')
+              Operand: 
+                IParameterReferenceOperation: f (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'f')
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+        
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
+        Public Sub LogicalNotFlow_02()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Function M(f as Boolean) As Boolean 'BIND:"Function M"
+        Return Not Not f
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [M As System.Boolean]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Return) Block[B2]
+            IParameterReferenceOperation: f (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'f')
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
