@@ -405,6 +405,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExternalAccess", "ExternalA
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.FSharp", "src\Tools\ExternalAccess\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj", "{BD8CE303-5F04-45EC-8DCF-73C9164CD614}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.MonoDevelop", "src\Tools\ExternalAccess\MonoDevelop\Microsoft.CodeAnalysis.ExternalAccess.MonoDevelop.csproj", "{47DF466C-0634-4412-BC65-D70B82C5B77D}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
@@ -1066,6 +1068,10 @@ Global
 		{BD8CE303-5F04-45EC-8DCF-73C9164CD614}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD8CE303-5F04-45EC-8DCF-73C9164CD614}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD8CE303-5F04-45EC-8DCF-73C9164CD614}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47DF466C-0634-4412-BC65-D70B82C5B77D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47DF466C-0634-4412-BC65-D70B82C5B77D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47DF466C-0634-4412-BC65-D70B82C5B77D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47DF466C-0634-4412-BC65-D70B82C5B77D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1256,6 +1262,7 @@ Global
 		{6362616E-6A47-48F0-9EE0-27800B306ACB} = {AFA5F921-0650-45E8-B293-51A0BB89DEA0}
 		{8977A560-45C2-4EC2-A849-97335B382C74} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{BD8CE303-5F04-45EC-8DCF-73C9164CD614} = {8977A560-45C2-4EC2-A849-97335B382C74}
+		{47DF466C-0634-4412-BC65-D70B82C5B77D} = {8977A560-45C2-4EC2-A849-97335B382C74}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
