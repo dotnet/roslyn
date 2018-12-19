@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
@@ -48,9 +49,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             ImmutableHashSet<AnalysisEntity> ComputeAddressSharedEntities()
             {
-                var addressSharedEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
-                addressSharedEntitiesBuilder.Add(analysisEntity);
-                addressSharedEntitiesBuilder.Add(assignedValueOpt.AnalysisEntityOpt);
+                var builder = PooledHashSet<AnalysisEntity>.GetInstance();
+                AddIfHasKnownInstanceLocation(analysisEntity, builder);
+                AddIfHasKnownInstanceLocation(assignedValueOpt.AnalysisEntityOpt, builder);
 
                 // We need to handle multiple ref/out parameters passed the same location.
                 // For example, "M(ref a, ref a);"
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 {
                     foreach (var entity in existingValue.AnalysisEntities)
                     {
-                        addressSharedEntitiesBuilder.Add(entity);
+                        AddIfHasKnownInstanceLocation(entity, builder);
                     }
                 }
 
@@ -67,11 +68,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 {
                     foreach (var entity in existingValue.AnalysisEntities)
                     {
-                        addressSharedEntitiesBuilder.Add(entity);
+                        AddIfHasKnownInstanceLocation(entity, builder);
                     }
                 }
 
-                return addressSharedEntitiesBuilder.ToImmutableAndFree();
+                Debug.Assert(builder.All(e => !e.HasUnknownInstanceLocation));
+                return builder.ToImmutableAndFree();
+            }
+
+            void AddIfHasKnownInstanceLocation(AnalysisEntity entity, PooledHashSet<AnalysisEntity> builder)
+            {
+                // Only add entity to address shared entities if they have known instance location.
+                if (!entity.HasUnknownInstanceLocation)
+                {
+                    builder.Add(entity);
+                }
             }
         }
 
