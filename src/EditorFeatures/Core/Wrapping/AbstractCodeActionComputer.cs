@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 }
             }
 
-            private bool IsSafeToRemove(string text)
+            private static bool IsSafeToRemove(string text)
             {
                 foreach (var ch in text)
                 {
