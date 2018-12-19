@@ -2623,8 +2623,29 @@ struct S<T>
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.False(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
             Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedType);
-            Assert.True(type.GetMember<FieldSymbol>("f3").Type.IsManagedType);
+            Assert.True(type.GetMember<FieldSymbol>("f3").Type.IsManagedType); // is managed due to being ErrorType due to protection level (CS0169)
             Assert.True(type.GetMember<FieldSymbol>("f4").Type.IsManagedType);
+        }
+
+        [Fact]
+        public void IsManagedType_GenericStruct()
+        {
+            var text = @"
+class C<U>
+{
+    S<object> f1;
+    S<int> f2;
+}
+
+struct S<T>
+{
+    T field;
+}
+";
+            var compilation = CreateCompilation(text);
+            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            Assert.True(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
+            Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedType);
         }
 
         [Fact]
