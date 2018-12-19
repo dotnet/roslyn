@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitLabel(BoundLabeledStatement node)
         {
-            _labelsDefined.Add(node.Label, _currentBlock);
+            _labelsDefined[node.Label] = _currentBlock;
             base.VisitLabel(node);
         }
 
