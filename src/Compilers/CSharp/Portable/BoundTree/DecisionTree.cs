@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Type = type;
             this.Temp = temp;
             Debug.Assert(this.Expression != null);
-            Debug.Assert(this.Type != null);
+            Debug.Assert((object)this.Type != null);
         }
 
         /// <summary>

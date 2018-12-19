@@ -1458,7 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (node.Indices.Length == 1 &&
-                node.Indices[0].Type == compilation.GetWellKnownType(WellKnownType.System_Range))
+                TypeSymbol.Equals(node.Indices[0].Type, compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2))
             {
                 _resultType = TypeSymbolWithAnnotations.Create(type);
             }
@@ -1927,7 +1927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (_resultType.IsPossiblyNullableReferenceTypeTypeParameter())
             {
-                Debug.Assert(_resultType.TypeSymbol == type);
+                Debug.Assert(TypeSymbol.Equals(_resultType.TypeSymbol, type, TypeCompareKind.ConsiderEverything2));
                 Conversion conversion;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
@@ -2528,7 +2528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var argument = arguments[i];
                 var argumentType = argument.Type;
-                if (argumentType == null || (argumentType.IsValueType && !argumentType.IsNullableType()))
+                if ((object)argumentType == null || (argumentType.IsValueType && !argumentType.IsNullableType()))
                 {
                     continue;
                 }
@@ -4115,7 +4115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // https://github.com/dotnet/roslyn/issues/30620 remove before shipping dev16
             if (node.Arguments.Length == 1 &&
-                node.Arguments[0].Type == compilation.GetWellKnownType(WellKnownType.System_Range))
+                TypeSymbol.Equals(node.Arguments[0].Type, compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2))
             {
                 _resultType = TypeSymbolWithAnnotations.Create(node.Type);
             }
@@ -4214,7 +4214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private int GetNullableOfTValueSlot(TypeSymbol containingType, int containingSlot)
         {
             Debug.Assert(containingType.IsNullableType());
-            Debug.Assert(GetSlotType(containingSlot) == containingType);
+            Debug.Assert(TypeSymbol.Equals(GetSlotType(containingSlot), containingType, TypeCompareKind.ConsiderEverything2));
 
             var getValue = (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value);
             var member = getValue?.AsMember((NamedTypeSymbol)containingType)?.AssociatedSymbol;
@@ -4850,7 +4850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type.IsDynamic());
 
             // https://github.com/dotnet/roslyn/issues/29893 Update applicable members based on inferred argument types.
-            NullableAnnotation nullableAnnotation = node.Type != null && !node.Type.IsValueType ?
+            NullableAnnotation nullableAnnotation = (object)node.Type != null && !node.Type.IsValueType ?
                 InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableIndexers)) :
                 NullableAnnotation.Unknown;
             _resultType = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _F = factory;
             _F.CurrentFunction = containingMethod;
-            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
+            Debug.Assert(TypeSymbol.Equals(factory.CurrentType, (containingType ?? containingMethod.ContainingType), TypeCompareKind.ConsiderEverything2));
             _diagnostics = diagnostics;
             _analysis = analysis;
         }
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             Debug.Assert(containingSymbol != null);
-            Debug.Assert(containingType != null);
+            Debug.Assert((object)containingType != null);
             Debug.Assert(statement != null);
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
@@ -1013,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public void HoistLocal(LocalSymbol local, SyntheticBoundNodeFactory F)
             {
-                if (!_hoistedLocals.Keys.Any(l => l.Name == local.Name && l.Type.TypeSymbol == local.Type.TypeSymbol))
+                if (!_hoistedLocals.Keys.Any(l => l.Name == local.Name && TypeSymbol.Equals(l.Type.TypeSymbol, local.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2)))
                 {
                     _hoistedLocals.Add(local, local);
                     _orderedHoistedLocals.Add(local);
