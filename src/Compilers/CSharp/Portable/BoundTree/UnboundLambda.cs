@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Diagnostics from NullableWalker.Analyze can be dropped here since Analyze
                 // will be called again from NullableWalker.ApplyConversion when the
                 // BoundLambda is converted to an anonymous function.
-                // https://github.com/dotnet/roslyn/issues/29617 Can we avoid generating extra
+                // https://github.com/dotnet/roslyn/issues/31752: Can we avoid generating extra
                 // diagnostics? And is this exponential when there are nested lambdas?
                 var diagnostics = DiagnosticBag.GetInstance();
                 var delegateType = Type.GetDelegateType();

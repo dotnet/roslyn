@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="Add_to_current_file">
+        <source>Add to _current file</source>
+        <target state="new">Add to _current file</target>
+        <note />
+      </trans-unit>
       <trans-unit id="All_methods">
         <source>All methods</source>
         <target state="new">All methods</target>
@@ -122,6 +127,11 @@
         <target state="new">Save .editorconfig file</target>
         <note />
       </trans-unit>
+      <trans-unit id="Select_destination">
+        <source>Select destination</source>
+        <target state="new">Select destination</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
         <target state="new">Unused value is explicitly assigned to an unused local</target>
@@ -135,6 +145,11 @@
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="new">Use expression body for lambdas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="new">Use expression body for local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">

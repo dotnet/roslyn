@@ -88,6 +88,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
+        protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
+        protected abstract bool IsIfConditionalDirective(SyntaxNode node);
         protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
         protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
 

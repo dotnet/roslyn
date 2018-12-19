@@ -2219,11 +2219,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckAssemblyName(builder);
                 builder.AddRange(Options.Errors);
 
-                if (Options.Nullable && LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
+                if (Options.NullableContextOptions != NullableContextOptions.Disable && LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
                     _syntaxAndDeclarations.ExternalSyntaxTrees.Any())
                 {
                     builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
-                                                 nameof(Options.Nullable), Options.Nullable, LanguageVersion.ToDisplayString(),
+                                                 nameof(Options.NullableContextOptions), Options.NullableContextOptions, LanguageVersion.ToDisplayString(),
                                                  new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
                 }
 

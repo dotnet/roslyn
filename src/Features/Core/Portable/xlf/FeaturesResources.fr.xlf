@@ -292,6 +292,11 @@
         <target state="new">Use block body for lambda expressions</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_block_body_for_local_functions">
+        <source>Use block body for local functions</source>
+        <target state="new">Use block body for local functions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_compound_assignment">
         <source>Use compound assignment</source>
         <target state="new">Use compound assignment</target>
@@ -310,6 +315,11 @@
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="new">Use expression body for lambda expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="new">Use expression body for local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_index_operator">

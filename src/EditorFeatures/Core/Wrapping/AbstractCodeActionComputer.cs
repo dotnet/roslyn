@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                         }
 
                         return newToken;
-                    }, 
+                    },
                     trivia: null,
                     computeReplacementTrivia: null);
 

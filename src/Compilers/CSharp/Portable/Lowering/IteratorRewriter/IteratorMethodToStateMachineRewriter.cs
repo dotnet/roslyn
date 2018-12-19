@@ -357,6 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     (BoundBlock)Visit(node.TryBlock),
                                     VisitList(node.CatchBlocks),
                                     (BoundBlock)Visit(node.FinallyBlockOpt),
+                                    node.FinallyLabelOpt,
                                     node.PreferFaultHandler);
 
                 _tryNestingLevel--;
