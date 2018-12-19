@@ -914,7 +914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Function SetAssociatedPropertyOrEvent(propertyOrEventSymbol As Symbol, methodKind As MethodKind) As Boolean
             If Me._associatedPropertyOrEventOpt Is Nothing Then
-                Debug.Assert(TypeSymbol.Equals(propertyOrEventSymbol.ContainingType, Me.ContainingType, TypeCompareKind.ConsiderEverything2))
+                Debug.Assert(TypeSymbol.Equals(propertyOrEventSymbol.ContainingType, Me.ContainingType, TypeCompareKind.ConsiderEverything))
                 Me._associatedPropertyOrEventOpt = propertyOrEventSymbol
                 _packedFlags.MethodKind = methodKind
                 Return True

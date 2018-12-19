@@ -389,7 +389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function AsMember(newOwner As NamedTypeSymbol) As FieldSymbol
             Debug.Assert(Me Is Me.OriginalDefinition)
             Debug.Assert(newOwner.OriginalDefinition Is Me.ContainingSymbol.OriginalDefinition)
-            Return If(TypeSymbol.Equals(newOwner, DirectCast(Me.ContainingSymbol, TypeSymbol), TypeCompareKind.ConsiderEverything2),
+            Return If(TypeSymbol.Equals(newOwner, DirectCast(Me.ContainingSymbol, TypeSymbol), TypeCompareKind.ConsiderEverything),
                 Me,
                 DirectCast(DirectCast(newOwner, SubstitutedNamedType).GetMemberForDefinition(Me), FieldSymbol))
         End Function

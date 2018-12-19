@@ -686,7 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 ' if was found in one of bases, need to override it
-                If Not TypeSymbol.Equals(witheventsProperty.ContainingType, Me.ContainingType, TypeCompareKind.ConsiderEverything2) Then
+                If Not TypeSymbol.Equals(witheventsProperty.ContainingType, Me.ContainingType, TypeCompareKind.ConsiderEverything) Then
                     witheventsPropertyInCurrentClass = DirectCast(Me.ContainingType, SourceNamedTypeSymbol).GetOrAddWithEventsOverride(witheventsProperty)
                 Else
                     witheventsPropertyInCurrentClass = witheventsProperty

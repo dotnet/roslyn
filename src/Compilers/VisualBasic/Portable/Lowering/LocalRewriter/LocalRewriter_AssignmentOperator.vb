@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(
                 sourceProperty IsNot Nothing AndAlso
                 sourceProperty.IsAutoProperty AndAlso
-                TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) AndAlso
+                TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything) AndAlso
                 propertyIsStatic = fromMember.IsShared AndAlso
                 (propertyIsStatic OrElse receiver.Kind = BoundKind.MeReference) AndAlso
                 (fromMember.Kind = SymbolKind.Field OrElse (fromMember.Kind = SymbolKind.Method AndAlso

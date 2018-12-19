@@ -62,11 +62,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If _isCheckedBuiltin = other._isCheckedBuiltin AndAlso
                _parameters.Length = other._parameters.Length AndAlso
                String.Equals(_name, other._name, StringComparison.Ordinal) AndAlso
-               TypeSymbol.Equals(m_containingType, other.m_containingType, TypeCompareKind.ConsiderEverything2) AndAlso
-               TypeSymbol.Equals(_returnType, other._returnType, TypeCompareKind.ConsiderEverything2) Then
+               TypeSymbol.Equals(m_containingType, other.m_containingType, TypeCompareKind.ConsiderEverything) AndAlso
+               TypeSymbol.Equals(_returnType, other._returnType, TypeCompareKind.ConsiderEverything) Then
 
                 For i As Integer = 0 To _parameters.Length - 1
-                    If Not TypeSymbol.Equals(_parameters(i).Type, other._parameters(i).Type, TypeCompareKind.ConsiderEverything2) Then
+                    If Not TypeSymbol.Equals(_parameters(i).Type, other._parameters(i).Type, TypeCompareKind.ConsiderEverything) Then
                         Return False
                     End If
                 Next

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         Private Sub Validate()
-            Debug.Assert(TypeSymbol.Equals(Type, ObjectCreation.Type, TypeCompareKind.ConsiderEverything2))
+            Debug.Assert(TypeSymbol.Equals(Type, ObjectCreation.Type, TypeCompareKind.ConsiderEverything))
         End Sub
 #End If
 

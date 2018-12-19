@@ -269,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
 
             ' while readonly fields have home it is not valid to refer to it when not constructing.
-            If Not TypeSymbol.Equals(field.ContainingType, Me._method.ContainingType, TypeCompareKind.ConsiderEverything2) Then
+            If Not TypeSymbol.Equals(field.ContainingType, Me._method.ContainingType, TypeCompareKind.ConsiderEverything) Then
                 Return False
             End If
 

@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim testExpression As BoundExpression = node.TestExpression
             Dim testExpressionType As TypeSymbol = testExpression.Type
             Dim rewrittenTestExpression As BoundExpression = VisitExpression(testExpression)
-            Debug.Assert(TypeSymbol.Equals(testExpressionType, rewrittenTestExpression.Type, TypeCompareKind.ConsiderEverything2))
+            Debug.Assert(TypeSymbol.Equals(testExpressionType, rewrittenTestExpression.Type, TypeCompareKind.ConsiderEverything))
 
             Dim rewrittenWhenTrue As BoundExpression = Nothing
 
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             testExpressionType.GetNullableUnderlyingTypeOrSelf)
                 End If
             Else
-                Debug.Assert(node.TestExpressionPlaceholder Is Nothing OrElse TypeSymbol.Equals(node.TestExpressionPlaceholder.Type, testExpressionType.GetNullableUnderlyingTypeOrSelf, TypeCompareKind.ConsiderEverything2))
+                Debug.Assert(node.TestExpressionPlaceholder Is Nothing OrElse TypeSymbol.Equals(node.TestExpressionPlaceholder.Type, testExpressionType.GetNullableUnderlyingTypeOrSelf, TypeCompareKind.ConsiderEverything))
                 rewrittenWhenTrue = VisitExpressionNode(convertedTestExpression,
                                                         node.TestExpressionPlaceholder,
                                                         If(testExpressionType.IsNullableType,
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' TODO: Checking type equality of test and else is not strictly needed.
             '       Consider removing this requirement.
-            If testExpr.IsConstant AndAlso (TypeSymbol.Equals(testExpr.Type, elseExpr.Type, TypeCompareKind.ConsiderEverything2)) Then
+            If testExpr.IsConstant AndAlso (TypeSymbol.Equals(testExpr.Type, elseExpr.Type, TypeCompareKind.ConsiderEverything)) Then
                 '  the only valid IF(...) with the first constant are: IF("abc", <expr>) or IF(Nothing, <expr>)
                 If testExpr.ConstantValueOpt.IsNothing Then
                     ' CASE: IF(Nothing, <expr>) 

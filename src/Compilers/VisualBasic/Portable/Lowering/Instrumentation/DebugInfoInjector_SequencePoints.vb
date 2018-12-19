@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function MakeAssignmentExpression(syntax As SyntaxNode, left As BoundExpression, right As BoundExpression) As BoundExpression
-            Debug.Assert(TypeSymbol.Equals(left.Type, right.Type, TypeCompareKind.ConsiderEverything2))
+            Debug.Assert(TypeSymbol.Equals(left.Type, right.Type, TypeCompareKind.ConsiderEverything))
             Dim boundNode = New BoundAssignmentOperator(syntax, left, right, suppressObjectClone:=True)
             boundNode.SetWasCompilerGenerated()
             Return boundNode

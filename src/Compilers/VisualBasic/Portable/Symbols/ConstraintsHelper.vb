@@ -1105,7 +1105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End If
 
-            Debug.Assert(Not TypeSymbol.Equals(type.ConstructedFrom, type, TypeCompareKind.ConsiderEverything2))
+            Debug.Assert(Not TypeSymbol.Equals(type.ConstructedFrom, type, TypeCompareKind.ConsiderEverything))
             Return True
         End Function
 

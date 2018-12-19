@@ -443,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     left As BoundExpression,
                                     right As BoundExpression) As BoundExpression
 
-            Debug.Assert(TypeSymbol.Equals(left.Type, right.Type, TypeCompareKind.ConsiderEverything2))
+            Debug.Assert(TypeSymbol.Equals(left.Type, right.Type, TypeCompareKind.ConsiderEverything))
             Debug.Assert(left.Type.IsBooleanType)
 
             Return MakeBinaryExpression(syntax, binaryOpKind, left, right, False, left.Type)

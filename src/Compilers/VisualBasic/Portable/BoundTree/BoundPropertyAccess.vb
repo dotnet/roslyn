@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(Me.ReceiverOpt Is Nothing OrElse Me.PropertyGroupOpt Is Nothing OrElse Me.PropertyGroupOpt.ReceiverOpt Is Nothing)
 
             Dim expectedType = GetTypeFromAccessKind(Me.PropertySymbol, Me.AccessKind)
-            Debug.Assert(TypeSymbol.Equals(Me.Type, expectedType, TypeCompareKind.ConsiderEverything2))
+            Debug.Assert(TypeSymbol.Equals(Me.Type, expectedType, TypeCompareKind.ConsiderEverything))
             Debug.Assert(DefaultArguments.IsNull OrElse Not Arguments.IsEmpty)
         End Sub
 #End If

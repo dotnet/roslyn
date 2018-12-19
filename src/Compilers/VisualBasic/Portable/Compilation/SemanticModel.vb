@@ -1216,7 +1216,7 @@ _Default:
                         meParam = New MeParameterSymbol(containingMember, containingType)
 
                     Else
-                        If TypeSymbol.Equals(referenceType, ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything2) Then
+                        If TypeSymbol.Equals(referenceType, ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything) Then
                             ' in an instance member, but binder considered Me/MyBase/MyClass unreferenceable
                             meParam = New MeParameterSymbol(containingMember, containingType)
                             resultKind = LookupResultKind.NotReferencable
@@ -1447,7 +1447,7 @@ _Default:
                         Case BoundKind.Attribute
                             Dim boundAttribute As BoundAttribute = DirectCast(boundNodeOfSyntacticParent, BoundAttribute)
 
-                            Debug.Assert(resultKind <> LookupResultKind.Good OrElse TypeSymbol.Equals(namedTypeSymbol, boundAttribute.Type, TypeCompareKind.ConsiderEverything2))
+                            Debug.Assert(resultKind <> LookupResultKind.Good OrElse TypeSymbol.Equals(namedTypeSymbol, boundAttribute.Type, TypeCompareKind.ConsiderEverything))
                             constructor = boundAttribute.Constructor
                             resultKind = LookupResult.WorseResultKind(resultKind, boundAttribute.ResultKind)
 

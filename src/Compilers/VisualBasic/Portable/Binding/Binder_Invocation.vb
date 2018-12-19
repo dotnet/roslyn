@@ -1776,7 +1776,7 @@ ProduceBoundNode:
                 Dim container As NamedTypeSymbol = bestSymbols(0).ContainingType
 
                 For i As Integer = 1 To bestSymbols.Length - 1 Step 1
-                    If Not TypeSymbol.Equals(bestSymbols(i).ContainingType, container, TypeCompareKind.ConsiderEverything2) Then
+                    If Not TypeSymbol.Equals(bestSymbols(i).ContainingType, container, TypeCompareKind.ConsiderEverything) Then
                         withContainingTypeInDiagnostics = True
                     End If
                 Next

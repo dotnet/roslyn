@@ -23288,10 +23288,10 @@ End Class
             Dim errortyp = DirectCast(typ, ErrorTypeSymbol)
             Assert.Equal(CandidateReason.Ambiguous, errortyp.CandidateReason)
             Assert.Equal(2, errortyp.CandidateSymbols.Length)
-            Assert.True((TypeSymbol.Equals(classB1, TryCast(errortyp.CandidateSymbols(0), TypeSymbol), TypeCompareKind.ConsiderEverything2) AndAlso
-                        TypeSymbol.Equals(classB2, TryCast(errortyp.CandidateSymbols(1), TypeSymbol), TypeCompareKind.ConsiderEverything2)) OrElse
-                        (TypeSymbol.Equals(classB2, TryCast(errortyp.CandidateSymbols(0), TypeSymbol), TypeCompareKind.ConsiderEverything2) AndAlso
-                        TypeSymbol.Equals(classB1, TryCast(errortyp.CandidateSymbols(1), TypeSymbol), TypeCompareKind.ConsiderEverything2)), "should have B1 and B2 in some order")
+            Assert.True((TypeSymbol.Equals(classB1, TryCast(errortyp.CandidateSymbols(0), TypeSymbol), TypeCompareKind.ConsiderEverything) AndAlso
+                        TypeSymbol.Equals(classB2, TryCast(errortyp.CandidateSymbols(1), TypeSymbol), TypeCompareKind.ConsiderEverything)) OrElse
+                        (TypeSymbol.Equals(classB2, TryCast(errortyp.CandidateSymbols(0), TypeSymbol), TypeCompareKind.ConsiderEverything) AndAlso
+                        TypeSymbol.Equals(classB1, TryCast(errortyp.CandidateSymbols(1), TypeSymbol), TypeCompareKind.ConsiderEverything)), "should have B1 and B2 in some order")
         End Sub
 
         <Fact()>
