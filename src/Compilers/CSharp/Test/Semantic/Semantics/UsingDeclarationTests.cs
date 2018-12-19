@@ -171,6 +171,77 @@ class C
         }
 
         [Fact]
+        public void DissallowGoToAccrossUsingDeclarationsComplexTest()
+        {
+            var source = @"
+using System;
+#pragma warning disable 162 // disable unreachable code warnings
+class C
+{
+    static void Main()
+    {
+        label1:
+        {
+            label2:
+            using var a = (IDisposable)null;
+            goto label1; // allowed
+            
+            goto label2; // disallowed 1
+        }
+
+        label3:
+        using var b = (IDisposable)null;
+        {
+            goto label3; // disallowed 2
+        }
+    
+        {
+            goto label4; // allowed
+            goto label5; // disallowed 3
+            label4:
+            using var c = (IDisposable)null;
+            label5:
+            using var d = (IDisposable)null;
+        }
+        
+        using var e = (IDisposable)null;
+        label6:
+        {
+            {
+                goto label6; //allowed
+                label7:
+                {
+                    label8:
+                    using var f = (IDisposable)null;      
+                    goto label7; // allowed
+                    {
+                        using var g = (IDisposable)null;
+                        goto label7; //allowed
+                        goto label8; // disallowed 4
+                    }
+                }
+            }
+        }
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (14,13): error CS8642: A goto cannot jump to a location before a using declaration within the same block.
+                //             goto label2; // disallowed 1
+                Diagnostic(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, "goto label2;").WithLocation(14, 13),
+                // (20,13): error CS8642: A goto cannot jump to a location before a using declaration within the same block.
+                //             goto label3; // disallowed 2
+                Diagnostic(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, "goto label3;").WithLocation(20, 13),
+                // (25,13): error CS8641: A goto cannot jump to a location after a using declaration.
+                //             goto label5; // disallowed 3
+                Diagnostic(ErrorCode.ERR_GoToForwardJumpOverUsingVar, "goto label5;").WithLocation(25, 13),
+                // (45,25): error CS8642: A goto cannot jump to a location before a using declaration within the same block.
+                //                         goto label8; // disallowed 4
+                Diagnostic(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, "goto label8;").WithLocation(45, 25)
+                );
+        }
+
+        [Fact]
         public void AllowGoToAroundUsingDeclarations()
         {
             var source = @"

@@ -384,19 +384,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var parentBlock = _currentBlock;
             _currentBlock = node;
-            var localUsingCount = 0;
+            var initialUsingCount = _usingDeclarations.Count;
             foreach(var local in node.Locals)
             {
                 if (local.IsUsing)
                 {
                     _usingDeclarations.Add((local, node));
-                    localUsingCount++;
                 }
             }
 
             var result = base.VisitBlock(node);
 
-            _usingDeclarations.Clip(_usingDeclarations.Count - localUsingCount);
+            _usingDeclarations.Clip(initialUsingCount);
             _currentBlock = parentBlock;
             return result;
         }
