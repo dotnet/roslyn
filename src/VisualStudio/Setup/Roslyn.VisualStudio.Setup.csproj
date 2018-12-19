@@ -46,6 +46,11 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
+    <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.Razor</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj">
       <Name>Workspaces.Desktop</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
