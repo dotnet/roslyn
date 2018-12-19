@@ -608,17 +608,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)associatedPropertyOrEvent == null)
                     {
-                        if (overridingMember.GetTypeOrReturnType().Kind == SymbolKind.ErrorType)
+                        bool suppressError = false;
+                        if (overridingMemberIsMethod)
                         {
-                            // The return type must be fixed before the override can be found, so suppress error
+                            foreach (var parameterType in ((MethodSymbol) overridingMember).ParameterTypes)
+                            {
+                                if (IsOrContainsErrorType(parameterType.TypeSymbol))
+                                {
+                                    suppressError = true; // The parameter type must be fixed before the override can be found, so suppress error
+                                    break;
+                                }
+                            }
+                            
                         }
-                        else if (overridingMemberIsMethod && ((MethodSymbol) overridingMember).ParameterTypes.Any(SymbolKind.ErrorType))
-                        {
-                            // The parameter type/s must be fixed before the override can be found, so suppress error
-                        }
-                        else
+                        if(!suppressError)
                         {
                             diagnostics.Add(ErrorCode.ERR_OverrideNotExpected, overridingMemberLocation, overridingMember);
+                        }
+
+                        bool IsOrContainsErrorType(TypeSymbol symbol)
+                        {
+                            if (symbol.IsErrorType())
+                                return true;
+
+                            if (symbol.IsArray())
+                                return IsOrContainsErrorType(((ArrayTypeSymbol)symbol).ElementType.TypeSymbol);
+
+                            if (symbol.IsTupleType)
+                            {
+                                var tupleSymbol = (TupleTypeSymbol)symbol;
+                                foreach (var fieldType in tupleSymbol.TupleElementTypes)
+                                {
+                                    if (IsOrContainsErrorType(fieldType.TypeSymbol))
+                                        return true;
+                                }
+
+                                return false;
+                            }
+
+                            if (symbol.Kind == SymbolKind.NamedType)
+                            {
+                                var namedSymbol = (NamedTypeSymbol) symbol;
+                                foreach (var typeArgument in namedSymbol.TypeArgumentsNoUseSiteDiagnostics)
+                                {
+                                    if (IsOrContainsErrorType(typeArgument.TypeSymbol))
+                                        return true;
+                                }
+                                return false;
+                            }
+
+                            return false;
                         }
                     }
                     else if (associatedPropertyOrEvent.Kind == SymbolKind.Property) //no specific errors for event accessors

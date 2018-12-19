@@ -96,17 +96,7 @@ class C : CSharpErrors.ClassMethods
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
                 // (5,41): error CS0246: The type or namespace name 'UnavailableClass' could not be found (are you missing a using directive or an assembly reference?)
                 //     public override void ParameterType2(UnavailableClass[] x) { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"),
-
-                // CONSIDER: Dev10 doesn't report these cascading errors (CS0115)
-                // NOTE: Cascaded error messages would be the same for non-existent class - not specific to use site errors.
-
-                // (4,26): error CS0115: 'C.ParameterType1(UnavailableClass)': no suitable method found to override
-                //     public override void ParameterType1(UnavailableClass x) { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "ParameterType1").WithArguments("C.ParameterType1(UnavailableClass)"),
-                // (5,26): error CS0115: 'C.ParameterType2(UnavailableClass[])': no suitable method found to override
-                //     public override void ParameterType2(UnavailableClass[] x) { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "ParameterType2").WithArguments("C.ParameterType2(UnavailableClass[])"));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnavailableClass").WithArguments("UnavailableClass"));
         }
 
         [Fact]
