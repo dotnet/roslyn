@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -83,14 +83,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public ControlFlowGraph GetLocalFunctionControlFlowGraph(IMethodSymbol localFunction)
         {
-            if (localFunction == OwningSymbol)
+            if (localFunction.Equals(OwningSymbol))
             {
                 return ControlFlowGraph;
             }
 
-            return ControlFlowGraph.LocalFunctions.Contains(localFunction) ?
-                ControlFlowGraph.GetLocalFunctionControlFlowGraph(localFunction) :
-                ParentControlFlowGraphOpt?.GetLocalFunctionControlFlowGraph(localFunction);
+            if (ControlFlowGraph.LocalFunctions.Contains(localFunction))
+            {
+                return ControlFlowGraph.GetLocalFunctionControlFlowGraph(localFunction);
+            }
+
+            if (ParentControlFlowGraphOpt != null && InterproceduralAnalysisDataOpt != null)
+            {
+                var parentAnalysisContext = InterproceduralAnalysisDataOpt.MethodsBeingAnalyzed.FirstOrDefault(context => context.ControlFlowGraph == ParentControlFlowGraphOpt);
+                return parentAnalysisContext?.GetLocalFunctionControlFlowGraph(localFunction);
+            }
+
+            Debug.Fail($"Unable to find control flow graph for {localFunction.ToDisplayString()}");
+            return null;
         }
 
         public ControlFlowGraph GetAnonymousFunctionControlFlowGraph(IFlowAnonymousFunctionOperation lambda)
@@ -103,7 +113,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
             catch (ArgumentOutOfRangeException)
             {
-                return ParentControlFlowGraphOpt?.GetAnonymousFunctionControlFlowGraph(lambda);
+                if (ParentControlFlowGraphOpt != null && InterproceduralAnalysisDataOpt != null)
+                {
+                    var parentAnalysisContext = InterproceduralAnalysisDataOpt.MethodsBeingAnalyzed.FirstOrDefault(context => context.ControlFlowGraph == ParentControlFlowGraphOpt);
+                    return parentAnalysisContext?.GetAnonymousFunctionControlFlowGraph(lambda);
+                }
+
+                Debug.Fail($"Unable to find control flow graph for {lambda.Symbol.ToDisplayString()}");
+                return null;
             }
         }
 
