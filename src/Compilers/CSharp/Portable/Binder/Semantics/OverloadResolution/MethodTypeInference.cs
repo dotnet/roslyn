@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeParameterSymbol typeParameter = (TypeParameterSymbol)type.TypeSymbol;
             int ordinal = typeParameter.Ordinal;
             return ValidIndex(ordinal) &&
-                typeParameter == _methodTypeParameters[ordinal] &&
+                TypeSymbol.Equals(typeParameter, _methodTypeParameters[ordinal], TypeCompareKind.ConsiderEverything2) &&
                 IsUnfixed(ordinal);
         }
 
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var destination = (NamedTypeSymbol)formalType.TypeSymbol;
 
-            Debug.Assert(argument.Type == null, "should not need to dig into elements if tuple has natural type");
+            Debug.Assert((object)argument.Type == null, "should not need to dig into elements if tuple has natural type");
             var sourceArguments = argument.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
@@ -1570,7 +1570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (namedSource.OriginalDefinition != namedTarget.OriginalDefinition)
+            if (!TypeSymbol.Equals(namedSource.OriginalDefinition, namedTarget.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 return false;
             }
@@ -1594,7 +1594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
-            Debug.Assert(source.OriginalDefinition == target.OriginalDefinition);
+            Debug.Assert(TypeSymbol.Equals(source.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
 
             var sourceTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             var targetTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
@@ -1822,7 +1822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var constructedSource = source as NamedTypeSymbol;
             if ((object)constructedSource != null &&
-                constructedSource.OriginalDefinition == constructedTarget.OriginalDefinition)
+                TypeSymbol.Equals(constructedSource.OriginalDefinition, constructedTarget.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 if (constructedSource.IsInterface || constructedSource.IsDelegateType())
                 {
@@ -1894,7 +1894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while ((object)sourceBase != null)
             {
-                if (sourceBase.OriginalDefinition == target.OriginalDefinition)
+                if (TypeSymbol.Equals(sourceBase.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
                 {
                     ExactTypeArgumentInference(sourceBase, target, ref useSiteDiagnostics);
                     return true;
@@ -1964,7 +1964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
-            Debug.Assert(source.OriginalDefinition == target.OriginalDefinition);
+            Debug.Assert(TypeSymbol.Equals(source.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
 
             var typeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             var sourceTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
@@ -2144,7 +2144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var constructedTarget = target as NamedTypeSymbol;
 
             if ((object)constructedTarget != null &&
-                constructedSource.OriginalDefinition == target.OriginalDefinition)
+                TypeSymbol.Equals(constructedSource.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 if (constructedTarget.IsInterface || constructedTarget.IsDelegateType())
                 {
@@ -2195,7 +2195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var targetBase = target.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
             while ((object)targetBase != null)
             {
-                if (targetBase.OriginalDefinition == source.OriginalDefinition)
+                if (TypeSymbol.Equals(targetBase.OriginalDefinition, source.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
                 {
                     ExactTypeArgumentInference(source, targetBase, ref useSiteDiagnostics);
                     return true;
@@ -2256,7 +2256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
-            Debug.Assert(source.OriginalDefinition == target.OriginalDefinition);
+            Debug.Assert(TypeSymbol.Equals(source.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
 
             var typeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             var sourceTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
@@ -2644,13 +2644,13 @@ OuterBreak:
             NamedTypeSymbol matchingInterface = null;
             foreach (var currentInterface in interfaces)
             {
-                if (currentInterface.OriginalDefinition == target.OriginalDefinition)
+                if (TypeSymbol.Equals(currentInterface.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
                 {
                     if ((object)matchingInterface == null)
                     {
                         matchingInterface = currentInterface;
                     }
-                    else if (matchingInterface != currentInterface)
+                    else if (!TypeSymbol.Equals(matchingInterface, currentInterface, TypeCompareKind.ConsiderEverything2))
                     {
                         // Not unique. Bail out.
                         return default;

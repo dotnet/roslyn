@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldSyntax = F.Syntax;
             F.Syntax = syntax;
             var result = F.This();
-            Debug.Assert(frameClass == result.Type);
+            Debug.Assert(TypeSymbol.Equals(frameClass, result.Type, TypeCompareKind.ConsiderEverything2));
             F.Syntax = oldSyntax;
             return result;
         }
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var type = TypeMap.SubstituteType(local.Type.TypeSymbol).TypeSymbol;
                 var sacrificialTemp = F.SynthesizedLocal(type, refKind: RefKind.Ref);
-                Debug.Assert(type == replacement.Type);
+                Debug.Assert(TypeSymbol.Equals(type, replacement.Type, TypeCompareKind.ConsiderEverything2));
                 return F.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), F.AssignmentExpression(F.Local(sacrificialTemp), replacement, isRef: true));
             }
 

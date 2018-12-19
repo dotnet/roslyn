@@ -884,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol argumentType = (TypeSymbol)argument.Type;
             // Easy out (i.e. don't bother classifying conversion).
-            if (argumentType == parameter.Type.TypeSymbol)
+            if (TypeSymbol.Equals(argumentType, parameter.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 result = argument;
                 return true;

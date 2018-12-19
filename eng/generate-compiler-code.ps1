@@ -98,28 +98,23 @@ function Build-Tools() {
     $tfm = "netcoreapp2.1"
     $rid = "win-x64"
 
-    Push-Location (Join-Path $RepoRoot 'src\Tools\Source\CompilerGeneratorTools\Source')
-    try {
-        foreach ($item in $list) { 
-            $all = $item.Split(';')
-            $varName = $all[0]
-            $exeName = $all[1]
-            $proj = $all[2]
-            $fileName = [IO.Path]::GetFileNameWithoutExtension($proj)
-            Write-Host "Building $fileName"
-            Restore-Project $proj
-            Exec-Command $dotnet "publish /p:Configuration=$configuration /p:RuntimeIdentifier=$rid /v:m `"$proj`"" | Out-Null
+    $sourceDir = Join-Path $RepoRoot 'src\Tools\Source\CompilerGeneratorTools\Source'
+    foreach ($item in $list) { 
+        $all = $item.Split(';')
+        $varName = $all[0]
+        $exeName = $all[1]
+        $proj = Join-Path $sourceDir $all[2]
+        $fileName = [IO.Path]::GetFileNameWithoutExtension($proj)
+        Write-Host "Building $fileName"
 
-            $exePath = GetProjectOutputBinary "$exeName.exe" -configuration:$configuration -projectName:$fileName -tfm:$tfm -rid:$rid -published:$true
-            if (-not (Test-Path $exePath)) {
-                throw "Did not find exe after build: $exePath"
-            }
+        Exec-Command $dotnet "publish /p:Configuration=$configuration /p:RuntimeIdentifier=$rid /v:m `"$proj`"" | Out-Null
 
-            Set-Variable -Name $varName -Value $exePath -Scope Script
+        $exePath = GetProjectOutputBinary "$exeName.exe" -configuration:$configuration -projectName:$fileName -tfm:$tfm -rid:$rid -published:$true
+        if (-not (Test-Path $exePath)) {
+            throw "Did not find exe after build: $exePath"
         }
-    }
-    finally {
-        Pop-Location
+
+        Set-Variable -Name $varName -Value $exePath -Scope Script
     }
 }
 

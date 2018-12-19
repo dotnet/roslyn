@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static IEnumerable<CSharpAttributeData> GetAttributes(this Symbol @this, NamedTypeSymbol c)
         {
-            return @this.GetAttributes().Where(a => a.AttributeClass == c);
+            return @this.GetAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, c, TypeCompareKind.ConsiderEverything2));
         }
 
         public static IEnumerable<CSharpAttributeData> GetAttributes(this Symbol @this, string namespaceName, string typeName)
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static CSharpAttributeData GetAttribute(this Symbol @this, NamedTypeSymbol c)
         {
-            return @this.GetAttributes().Where(a => a.AttributeClass == c).First();
+            return @this.GetAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, c, TypeCompareKind.ConsiderEverything2)).First();
         }
 
         public static CSharpAttributeData GetAttribute(this Symbol @this, string namespaceName, string typeName)
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return expected.Equals(arg.Value);
                 case TypedConstantKind.Type:
                     var typeSym = arg.Value as TypeSymbol;
-                    if (typeSym == null)
+                    if ((object)typeSym == null)
                     {
                         return false;
                     }

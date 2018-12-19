@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // this.<>t__awaiter = $awaiterTemp
                     F.Assignment(
                     F.Field(F.This(), awaiterField),
-                    (awaiterField.Type.TypeSymbol == awaiterTemp.Type.TypeSymbol)
+                    (TypeSymbol.Equals(awaiterField.Type.TypeSymbol, awaiterTemp.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
                         ? F.Local(awaiterTemp)
                         : F.Convert(awaiterFieldType, F.Local(awaiterTemp))));
 
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // $this.<>t__awaiter = null;
                     F.Assignment(
                     F.Local(awaiterTemp),
-                    awaiterTemp.Type.TypeSymbol == awaiterField.Type.TypeSymbol
+                    TypeSymbol.Equals(awaiterTemp.Type.TypeSymbol, awaiterField.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2)
                         ? F.Field(F.This(), awaiterField)
                         : F.Convert(awaiterTemp.Type.TypeSymbol, F.Field(F.This(), awaiterField))));
 
