@@ -3776,9 +3776,9 @@ public struct MyStruct<T>
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                    // (8,27): error CS8370: Feature 'unmanaged generic structs' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    // (8,20): error CS8370: Feature 'unmanaged generic structs' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //         var size = sizeof(MyStruct<int>);
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>").WithArguments("unmanaged generic structs", "8.0").WithLocation(8, 27)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "sizeof(MyStruct<int>)").WithArguments("unmanaged generic structs", "8.0").WithLocation(8, 20)
                 );
         }
 
@@ -3798,9 +3798,9 @@ public struct MyStruct<T>
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                    // (8,27): error CS8370: Feature 'unmanaged generic structs' is not available in C# 7.3. Please use language version 8.0 or greater.
-                    //         var size = sizeof(MyStruct<int>);
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>").WithArguments("unmanaged generic structs", "8.0").WithLocation(8, 27)
+                    // (8,19): error CS8370: Feature 'unmanaged generic structs' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         var arr = stackalloc[] { new MyStruct<int>() };
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc[] { new MyStruct<int>() }").WithArguments("unmanaged generic structs", "8.0").WithLocation(8, 19)
                 );
         }
 

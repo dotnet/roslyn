@@ -1136,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (type.IsManagedType)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ManagedAddr, typeSyntax.Location, type);
+                    diagnostics.Add(ErrorCode.ERR_ManagedAddr, node.Location, type);
                     typeHasErrors = true;
                 }
                 else if (type.GetArity() != 0)
@@ -1145,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (unsupported)
                     {
                         // PROTOTYPE
-                        MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, typeSyntax.Location);
+                        MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, node.Location);
                         typeHasErrors = true;
                     }
                 }
