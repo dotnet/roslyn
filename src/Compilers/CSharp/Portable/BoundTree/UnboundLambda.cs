@@ -656,7 +656,7 @@ haveLambdaBodyAndBinders:
 
                 if ((object)other == null ||
                     other.ParameterTypes.Length != this.ParameterTypes.Length ||
-                    other.TaskLikeReturnTypeOpt != this.TaskLikeReturnTypeOpt)
+                    !TypeSymbol.Equals(other.TaskLikeReturnTypeOpt, this.TaskLikeReturnTypeOpt, TypeCompareKind.ConsiderEverything2))
                 {
                     return false;
                 }

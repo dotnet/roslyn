@@ -1008,6 +1008,45 @@ class Customer
 }
 ";
 
+        private const string s_preferExpressionBodyForLocalFunctions = @"
+using System;
+
+//[
+class Customer
+{
+    private int Age;
+
+    public int GetAge() 
+    {
+        return GetAgeLocal();
+        
+        int GetAgeLocal() => this.Age;
+    }
+}
+//]
+";
+
+        private const string s_preferBlockBodyForLocalFunctions = @"
+using System;
+
+//[
+class Customer
+{
+    private int Age;
+
+    public int GetAge()
+    {
+        return GetAgeLocal();
+        
+        int GetAgeLocal()
+        {
+            return this.Age;
+        }
+    }
+}
+//]
+";
+
         private static readonly string s_preferReadonly = $@"
 class Customer1
 {{
@@ -1510,6 +1549,13 @@ class C2
                 ServicesVSResources.Use_expression_body_for_lambdas,
                 enumValues,
                 new[] { s_preferBlockBodyForLambdas, s_preferExpressionBodyForLambdas, s_preferExpressionBodyForLambdas },
+                this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
+                CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions,
+                ServicesVSResources.Use_expression_body_for_local_functions,
+                enumValues,
+                new[] { s_preferBlockBodyForLocalFunctions, s_preferExpressionBodyForLocalFunctions, s_preferExpressionBodyForLocalFunctions },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
         }
 

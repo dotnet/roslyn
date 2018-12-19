@@ -518,7 +518,8 @@ End Namespace
                          WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource,
                          WellKnownType.System_Threading_Tasks_ValueTask_T,
                          WellKnownType.System_Threading_Tasks_ValueTask,
-                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder
+                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
+                         WellKnownType.System_Threading_CancellationToken
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -574,7 +575,8 @@ End Namespace
                          WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource,
                          WellKnownType.System_Threading_Tasks_ValueTask_T,
                          WellKnownType.System_Threading_Tasks_ValueTask,
-                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder
+                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
+                         WellKnownType.System_Threading_CancellationToken
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -645,7 +647,8 @@ End Namespace
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetResult,
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetStatus,
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__OnCompleted,
-                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor,
+                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken,
+                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue,
                          WellKnownMember.System_Threading_Tasks_ValueTask__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted,
@@ -776,7 +779,8 @@ End Namespace
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetResult,
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetStatus,
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__OnCompleted,
-                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor,
+                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken,
+                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue,
                          WellKnownMember.System_Threading_Tasks_ValueTask__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted,

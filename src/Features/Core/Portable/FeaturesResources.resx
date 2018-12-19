@@ -1595,4 +1595,10 @@ This version used in: {2}</value>
   <data name="Remove_unused_parameter_0_its_initial_value_is_never_used" xml:space="preserve">
     <value>Remove unused parameter '{0}', its initial value is never used</value>
   </data>
+  <data name="Use_block_body_for_local_functions" xml:space="preserve">
+    <value>Use block body for local functions</value>
+  </data>
+  <data name="Use_expression_body_for_local_functions" xml:space="preserve">
+    <value>Use expression body for local functions</value>
+  </data>
 </root>
