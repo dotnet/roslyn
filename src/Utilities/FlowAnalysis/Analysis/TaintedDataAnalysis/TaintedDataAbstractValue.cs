@@ -81,7 +81,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <returns>Tainted abstract value containing the super set of source origins.</returns>
         internal static TaintedDataAbstractValue MergeTainted(IEnumerable<TaintedDataAbstractValue> taintedValues)
         {
-            ImmutableHashSet<SymbolAccess>.Builder sourceOriginsBuilder = ImmutableHashSet.CreateBuilder<SymbolAccess>();
+            var sourceOriginsBuilder = PooledHashSet<SymbolAccess>.GetInstance();
             foreach (TaintedDataAbstractValue value in taintedValues)
             {
                 Debug.Assert(value.Kind == TaintedDataAbstractValueKind.Tainted);
@@ -91,7 +91,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             return new TaintedDataAbstractValue(
                 TaintedDataAbstractValueKind.Tainted,
-                sourceOriginsBuilder.ToImmutable());
+                sourceOriginsBuilder.ToImmutableAndFree());
         }
     }
 }

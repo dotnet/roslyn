@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private static ImmutableHashSet<CaptureId> CreateLValueFlowCaptures(ControlFlowGraph cfg)
         {
-            ImmutableHashSet<CaptureId>.Builder lvalueFlowCaptureIdBuilder = null;
+            var lvalueFlowCaptureIdBuilder = PooledHashSet<CaptureId>.GetInstance();
 #if DEBUG
             var rvalueFlowCaptureIds = new HashSet<CaptureId>();
 #endif
@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 if (flowCaptureReference.Parent is IAssignmentOperation assignment &&
                     assignment.Target == flowCaptureReference)
                 {
-                    lvalueFlowCaptureIdBuilder = lvalueFlowCaptureIdBuilder ?? ImmutableHashSet.CreateBuilder<CaptureId>();
                     lvalueFlowCaptureIdBuilder.Add(flowCaptureReference.Id);
                 }
 #if DEBUG
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
 #if DEBUG
-            if (lvalueFlowCaptureIdBuilder != null)
+            if (lvalueFlowCaptureIdBuilder.Count > 0)
             {
                 foreach (var captureId in lvalueFlowCaptureIdBuilder)
                 {
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 #endif
 
-            return lvalueFlowCaptureIdBuilder != null ? lvalueFlowCaptureIdBuilder.ToImmutable() : ImmutableHashSet<CaptureId>.Empty;
+            return lvalueFlowCaptureIdBuilder.ToImmutableAndFree();
         }
     }
 }

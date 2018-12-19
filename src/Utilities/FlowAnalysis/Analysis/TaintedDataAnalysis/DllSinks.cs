@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -14,7 +15,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         static DllSinks()
         {
-            ImmutableHashSet<SinkInfo>.Builder sinkInfosBuilder = ImmutableHashSet.CreateBuilder<SinkInfo>();
+            var sinkInfosBuilder = PooledHashSet<SinkInfo>.GetInstance();
 
             sinkInfosBuilder.AddSink(
                 WellKnownTypes.SystemReflectionAssembly,
@@ -50,7 +51,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ("Load", new[] { "assemblyStream" } ),
                 });
 
-            SinkInfos = sinkInfosBuilder.ToImmutable();
+            SinkInfos = sinkInfosBuilder.ToImmutableAndFree();
         }
     }
 }

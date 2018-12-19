@@ -55,7 +55,7 @@ namespace Analyzer.Utilities
 
         private static ImmutableHashSet<INamedTypeSymbol> GetDisposeOwnershipTransferLikelyTypes(Compilation compilation)
         {
-            var builder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
+            var builder = PooledHashSet<INamedTypeSymbol>.GetInstance();
             foreach (var typeName in s_disposeOwnershipTransferLikelyTypes)
             {
                 INamedTypeSymbol typeSymbol = compilation.GetTypeByMetadataName(typeName);
@@ -65,7 +65,7 @@ namespace Analyzer.Utilities
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         private void EnsureDisposableFieldsMap()

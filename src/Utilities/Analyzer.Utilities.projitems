@@ -26,7 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BasicBlockExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowConditionKindExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowGraphExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableHashSetBuilderExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\PooledHashSetExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationBlockAnalysisContextExtension.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AddressSharedEntitiesProvider.cs" />

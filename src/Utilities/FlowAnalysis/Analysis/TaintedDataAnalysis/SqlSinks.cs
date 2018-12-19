@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -16,7 +17,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         static SqlSinks()
         {
-            ImmutableHashSet<SinkInfo>.Builder sinkInfosBuilder = ImmutableHashSet.CreateBuilder<SinkInfo>();
+            var sinkInfosBuilder = PooledHashSet<SinkInfo>.GetInstance();
 
             sinkInfosBuilder.AddSink(
                 WellKnownTypes.SystemDataIDbCommand,
@@ -50,7 +51,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
 
-            SinkInfos = sinkInfosBuilder.ToImmutable();
+            SinkInfos = sinkInfosBuilder.ToImmutableAndFree();
         }
     }
 }

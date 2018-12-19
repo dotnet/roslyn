@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             }
 
             // Merge Literals
-            var builder = ImmutableHashSet.CreateBuilder<object>();
+            var builder = PooledHashSet<object>.GetInstance();
             foreach (var leftLiteral in LiteralValues)
             {
                 foreach (var rightLiteral in otherState.LiteralValues)
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 }
             }
 
-            ImmutableHashSet<object> mergedLiteralValues = builder.ToImmutable();
+            ImmutableHashSet<object> mergedLiteralValues = builder.ToImmutableAndFree();
             ValueContainsNonLiteralState mergedNonLiteralState = Merge(NonLiteralState, otherState.NonLiteralState);
 
             return Create(mergedLiteralValues, mergedNonLiteralState);

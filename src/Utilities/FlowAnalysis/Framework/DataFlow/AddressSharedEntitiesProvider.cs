@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             if (parameter.RefKind != RefKind.None &&
                 assignedValueOpt?.AnalysisEntityOpt != null)
             {
-                var addressSharedEntities = ImmutableHashSet.CreateBuilder<AnalysisEntity>();
+                var addressSharedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
                 addressSharedEntities.Add(analysisEntity);
                 addressSharedEntities.Add(assignedValueOpt.AnalysisEntityOpt);
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     }
                 }
 
-                var copyValue = new CopyAbstractValue(addressSharedEntities.ToImmutable());
+                var copyValue = new CopyAbstractValue(addressSharedEntities.ToImmutableAndFree());
                 foreach (var entity in addressSharedEntities)
                 {
                     _addressSharedEntitiesBuilder[entity] = copyValue;

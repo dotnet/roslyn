@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -17,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         static WebInputSources()
         {
-            ImmutableHashSet<SourceInfo>.Builder sourceInfosBuilder = ImmutableHashSet.CreateBuilder<SourceInfo>();
+            var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
 
             AddConcreteSource(
                 sourceInfosBuilder,
@@ -685,11 +686,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "Text"
                 },
                 taintedMethods: null);
-            SourceInfos = sourceInfosBuilder.ToImmutable();
+            SourceInfos = sourceInfosBuilder.ToImmutableAndFree();
         }
 
         private static void AddConcreteSource(
-            ImmutableHashSet<SourceInfo>.Builder builder, 
+            PooledHashSet<SourceInfo> builder, 
             string fullTypeName, 
             string[] taintedProperties,
             string[] taintedMethods)
@@ -698,7 +699,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         }
 
         private static void AddInterfaceSource(
-            ImmutableHashSet<SourceInfo>.Builder builder,
+            PooledHashSet<SourceInfo> builder,
             string fullTypeName,
             string[] taintedProperties,
             string[] taintedMethods)
@@ -707,7 +708,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         }
 
         private static void AddSource(
-            ImmutableHashSet<SourceInfo>.Builder builder,
+            PooledHashSet<SourceInfo> builder,
             string fullTypeName,
             bool isInterface,
             string[] taintedProperties,
