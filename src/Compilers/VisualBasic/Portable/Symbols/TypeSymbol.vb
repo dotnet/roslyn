@@ -298,23 +298,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return other.Is(Me)
         End Function
 
-        <Obsolete("Use TypeSymbol.Equals method.", True)>
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSybmol, TypeCompareKind) method.", True)>
         Public Overloads Shared Operator =(left As TypeSymbol, right As TypeSymbol) As Boolean
             Throw ExceptionUtilities.Unreachable
         End Operator
 
-        <Obsolete("Use TypeSymbol.Equals method.", True)>
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSybmol, TypeCompareKind) method.", True)>
         Public Overloads Shared Operator <>(left As TypeSymbol, right As TypeSymbol) As Boolean
             Throw ExceptionUtilities.Unreachable
         End Operator
 
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSybmol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator =(left As Symbol, right As TypeSymbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSybmol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator <>(left As Symbol, right As TypeSymbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSybmol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator =(left As TypeSymbol, right As Symbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSybmol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator <>(left As TypeSymbol, right As Symbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
         Public Overloads Shared Function Equals(left As TypeSymbol, right As TypeSymbol, comparison As TypeCompareKind) As Boolean
-            If comparison = TypeCompareKind.ConsiderEverything AndAlso right Is Nothing Then
-                Return left Is Nothing
+            If left Is Nothing Then
+                Return right Is Nothing
             End If
 
-            Return (comparison = TypeCompareKind.ConsiderEverything AndAlso left Is right) OrElse right.IsSameType(left, comparison)
-            Return True
+            Return left.IsSameType(right, comparison)
         End Function
 
         ''' <summary>

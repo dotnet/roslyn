@@ -2990,7 +2990,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If definedTypes.Length > 0 Then
                 Dim type = definedTypes(0)
-                If sym <> type Then
+                If Not Equals(TryCast(sym, TypeSymbol), type, TypeCompareKind.ConsiderEverything2) Then
                     Return CheckIfMemberNameIsDuplicate(sym, type, members, diagBag, includeKind:=True)
                 End If
             End If
