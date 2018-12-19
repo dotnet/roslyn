@@ -374,7 +374,7 @@ class Program
         }
 
         [Fact]
-        public async Task FixReturnType_Iterator()
+        public async Task FixReturnType_Iterator_Enumerable()
         {
             await TestInRegularAndScript1Async(
 NonNullTypes + @"
@@ -389,6 +389,28 @@ NonNullTypes + @"
 class Program
 {
     static System.Collections.Generic.IEnumerable<string?> M()
+    {
+        yield return null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixReturnType_Iterator_Enumerator()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    static System.Collections.Generic.IEnumerator<string> M()
+    {
+        yield return [|null|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    static System.Collections.Generic.IEnumerator<string?> M()
     {
         yield return null;
     }
