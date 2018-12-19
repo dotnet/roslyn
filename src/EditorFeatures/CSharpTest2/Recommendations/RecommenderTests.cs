@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             int position,
             bool absent,
             string insertText,
-            CSharpParseOptions options, 
+            CSharpParseOptions options,
             int? matchPriority)
         {
             text = text.Substring(0, position) + insertText + "/**/" + text.Substring(position);

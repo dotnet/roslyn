@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             var expression = expressionOrPattern as ExpressionSyntax
                 ?? (expressionOrPattern as ConstantPatternSyntax)?.Expression;
-            
+
             if (!(expression is TypeSyntax typeSyntax))
             {
                 return false;
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 // However note that if such a constant already exists, we do the right thing and do offer 'when'.
                 return typeSyntax.IsVar;
             }
-            
+
             return symbols.All(symbol => symbol is IAliasSymbol || symbol is ITypeSymbol);
         }
     }

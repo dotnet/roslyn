@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
         internal CodeAction TryGetCodeAction(
             PullMembersUpAnalysisResult result,
             Document contextDocument)
-        { 
+        {
             if (result.Destination.TypeKind == TypeKind.Interface)
             {
                 return new DocumentChangeAction(

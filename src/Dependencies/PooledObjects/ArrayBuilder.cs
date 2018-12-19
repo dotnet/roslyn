@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             return _builder.IndexOf(item);
         }
-        
+
         public int IndexOf(T item, IEqualityComparer<T> equalityComparer)
         {
             return _builder.IndexOf(item, 0, _builder.Count, equalityComparer);
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return _builder.IndexOf(item, startIndex, count);
         }
 
-        public int FindIndex(Predicate<T> match) 
+        public int FindIndex(Predicate<T> match)
             => FindIndex(0, this.Count, match);
 
         public int FindIndex(int startIndex, Predicate<T> match)

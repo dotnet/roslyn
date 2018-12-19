@@ -2633,13 +2633,19 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
   </data>
   <data name="ERR_AwaitForEachMissingMember" xml:space="preserve">
-    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
+    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</value>
   </data>
   <data name="ERR_ForEachMissingMemberWrongAsync" xml:space="preserve">
     <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</value>
   </data>
   <data name="ERR_AwaitForEachMissingMemberWrongAsync" xml:space="preserve">
     <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
+  </data>
+  <data name="ERR_PossibleAsyncIteratorWithoutYield" xml:space="preserve">
+    <value>The body of an async-iterator method must contain a 'yield' statement.</value>
+  </data>
+  <data name="ERR_PossibleAsyncIteratorWithoutYieldOrAwait" xml:space="preserve">
+    <value>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</value>
   </data>
   <data name="WRN_BadXMLRefParamType" xml:space="preserve">
     <value>Invalid type for parameter {0} in XML comment cref attribute: '{1}'</value>
@@ -4596,7 +4602,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               `default` (latest major version), or
                               `latest` (latest version, including minor versions),
                               or specific versions like `6` or `7.1`
--nullable[+|-]                Enable/disable Nullable Reference Types feature
+-nullable[+|-]                Specify nullable context option enable|disable.
+-nullable:{enable|disable|safeonly}
+                              Specify nullable context option enable|disable|safeonly.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -5401,6 +5409,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AnnotationDisallowedInObjectCreation" xml:space="preserve">
     <value>Cannot use a nullable reference type in object creation.</value>
   </data>
+  <data name="WRN_NullableValueTypeMayBeNull" xml:space="preserve">
+    <value>Nullable value type may be null.</value>
+  </data>
+  <data name="WRN_NullableValueTypeMayBeNull_Title" xml:space="preserve">
+    <value>Nullable value type may be null.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInTypeParameterConstraint" xml:space="preserve">
     <value>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</value>
   </data>
@@ -5420,10 +5434,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</value>
   </data>
   <data name="WRN_SuppressionOperatorNotReferenceType" xml:space="preserve">
-    <value>The suppression operator (!) can only be applied to reference types.</value>
+    <value>The suppression operator (!) can only be applied to reference types and nullable value types.</value>
   </data>
   <data name="WRN_SuppressionOperatorNotReferenceType_Title" xml:space="preserve">
-    <value>The suppression operator (!) can only be applied to reference types.</value>
+    <value>The suppression operator (!) can only be applied to reference types and nullable value types.</value>
   </data>
   <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</value>
@@ -5621,7 +5635,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
   <data name="ERR_NullableDirectiveQualifierExpected" xml:space="preserve">
-    <value>Expected enable or disable</value>
+    <value>Expected 'enable', 'safeonly', 'disable', or 'restore'</value>
   </data>
   <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
     <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
@@ -5631,5 +5645,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExpressionTreeCantContainNullCoalescingAssignment" xml:space="preserve">
     <value>An expression tree may not contain a null coalescing assignment</value>
+  </data>
+  <data name="ERR_BadNullableContextOption" xml:space="preserve">
+    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'safeonly'</value>
   </data>
 </root>

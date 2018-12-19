@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             // In this case, we would want to generate offer a member called 'Goo'.  however, if we have
             // something like "Goo < string >" then that's clearly something generic and we don't want
             // to offer to generate a member there.
-            var localRoot = identifierName.GetAncestor<StatementSyntax>() ?? 
+            var localRoot = identifierName.GetAncestor<StatementSyntax>() ??
                             identifierName.GetAncestor<MemberDeclarationSyntax>() ??
                             identifierName.SyntaxTree.GetRoot(cancellationToken);
 

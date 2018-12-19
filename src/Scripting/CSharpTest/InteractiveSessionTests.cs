@@ -1690,7 +1690,7 @@ new List<ArgumentException>()
                         // The script doesn't reference the assemblies explicitly.
                         AssertEx.SetEqual(new[] { "<implicit>", "<host>", "global" }, aliases);
                         break;
-                   
+
                     default:
                         if (name == corAssemblyName)
                         {
@@ -1704,7 +1704,7 @@ new List<ArgumentException>()
                             // available to the script (global alias).
                             AssertEx.SetEqual(new[] { "<host>", "global" }, aliases);
                         }
-                        
+
                         break;
                 }
             }
@@ -1718,7 +1718,7 @@ new List<ArgumentException>()
 typeof(Microsoft.CodeAnalysis.Scripting.Script)
 ";
             var scriptCompilation = CSharpScript.Create(
-                source, 
+                source,
                 ScriptOptions.Default.WithMetadataResolver(TestRuntimeMetadataReferenceResolver.Instance),
                 globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
 
@@ -1898,7 +1898,7 @@ i + j + k + l
 
             var globals = new StrongBox<CancellationTokenSource>();
             globals.Value = cancellationSource;
-            
+
             var s0 = CSharpScript.Create(@"
 int i = 1000;
 ", globalsType: globals.GetType());
@@ -1984,7 +1984,7 @@ int l = 4;
 int F() => i + j + k + l;
 ");
 
-            await Assert.ThrowsAsync<OperationCanceledException>(() => 
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
                 s3.RunAsync(globals, catchException: e => !(e is OperationCanceledException), cancellationToken: cancellationSource.Token));
         }
 

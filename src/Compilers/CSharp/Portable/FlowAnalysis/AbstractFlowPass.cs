@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// The method whose body is being analyzed, or the field whose initializer is being analyzed.
-        /// It is used for
-        /// references to method parameters. Thus, 'member' should not be used directly, but
+        /// May be a top-level member or a lambda or local function. It is used for
+        /// references to method parameters. Thus, '_symbol' should not be used directly, but
         /// 'MethodParameters', 'MethodThisParameter' and 'AnalyzeOutParameters(...)' should be used
         /// instead.
         /// </summary>
-        protected readonly Symbol _member;
+        protected readonly Symbol _symbol;
 
         /// <summary>
         /// The bound node of the method or initializer being analyzed.
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected AbstractFlowPass(
             CSharpCompilation compilation,
-            Symbol member,
+            Symbol symbol,
             BoundNode node,
             BoundNode firstInRegion = null,
             BoundNode lastInRegion = null,
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _labels = PooledDictionary<LabelSymbol, TLocalState>.GetInstance();
             this.Diagnostics = DiagnosticBag.GetInstance();
             this.compilation = compilation;
-            _member = member;
+            _symbol = symbol;
             this.methodMainNode = node;
             this.firstInRegion = firstInRegion;
             this.lastInRegion = lastInRegion;
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = _member as MethodSymbol;
+                var method = _symbol as MethodSymbol;
                 return (object)method == null ? ImmutableArray<ParameterSymbol>.Empty : method.Parameters;
             }
         }
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = _member as MethodSymbol;
+                var method = _symbol as MethodSymbol;
                 return (object)method == null ? null : method.ThisParameter;
             }
         }
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>true if the out parameters of the method should be analyzed</returns>
         protected bool ShouldAnalyzeOutParameters(out Location location)
         {
-            var method = _member as MethodSymbol;
+            var method = _symbol as MethodSymbol;
             if ((object)method == null || method.Locations.Length != 1)
             {
                 location = null;
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     var access = (BoundPropertyAccess)node;
 
-                    if (Binder.AccessingAutoPropertyFromConstructor(access, _member))
+                    if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol))
                     {
                         var backingField = (access.PropertySymbol as SourcePropertySymbol)?.BackingField;
                         if (backingField != null)
@@ -545,18 +545,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     goto default;
 
                 case BoundKind.FieldAccess:
-                {
-                    BoundFieldAccess node1 = (BoundFieldAccess)node;
-                    VisitFieldAccessInternal(node1.ReceiverOpt, node1.FieldSymbol);
-                    break;
-                }
+                    {
+                        BoundFieldAccess node1 = (BoundFieldAccess)node;
+                        VisitFieldAccessInternal(node1.ReceiverOpt, node1.FieldSymbol);
+                        break;
+                    }
 
                 case BoundKind.EventAccess:
-                {
-                    BoundEventAccess node1 = (BoundEventAccess)node;
-                    VisitFieldAccessInternal(node1.ReceiverOpt, node1.EventSymbol.AssociatedField);
-                    break;
-                }
+                    {
+                        BoundEventAccess node1 = (BoundEventAccess)node;
+                        VisitFieldAccessInternal(node1.ReceiverOpt, node1.EventSymbol.AssociatedField);
+                        break;
+                    }
 
                 case BoundKind.TupleLiteral:
                     ((BoundTupleExpression)node).VisitAllElements((x, self) => self.VisitLvalue(x), this);
@@ -859,35 +859,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (node.Kind)
                 {
                     case BoundKind.LabeledStatement:
-                    {
-                        var label = (BoundLabeledStatement)node;
-                        stateChangedAfterUse |= ResolveBranches(label.Label, label);
-                    }
-                    break;
+                        {
+                            var label = (BoundLabeledStatement)node;
+                            stateChangedAfterUse |= ResolveBranches(label.Label, label);
+                        }
+                        break;
                     case BoundKind.LabelStatement:
-                    {
-                        var label = (BoundLabelStatement)node;
-                        stateChangedAfterUse |= ResolveBranches(label.Label, label);
-                    }
-                    break;
+                        {
+                            var label = (BoundLabelStatement)node;
+                            stateChangedAfterUse |= ResolveBranches(label.Label, label);
+                        }
+                        break;
                     case BoundKind.SwitchSection:
-                    {
-                        var sec = (BoundSwitchSection)node;
-                        foreach (var label in sec.SwitchLabels)
                         {
-                            stateChangedAfterUse |= ResolveBranches(label.Label, sec);
+                            var sec = (BoundSwitchSection)node;
+                            foreach (var label in sec.SwitchLabels)
+                            {
+                                stateChangedAfterUse |= ResolveBranches(label.Label, sec);
+                            }
                         }
-                    }
-                    break;
+                        break;
                     case BoundKind.PatternSwitchSection:
-                    {
-                        var sec = (BoundPatternSwitchSection)node;
-                        foreach (var label in sec.SwitchLabels)
                         {
-                            stateChangedAfterUse |= ResolveBranches(label.Label, sec);
+                            var sec = (BoundPatternSwitchSection)node;
+                            foreach (var label in sec.SwitchLabels)
+                            {
+                                stateChangedAfterUse |= ResolveBranches(label.Label, sec);
+                            }
                         }
-                    }
-                    break;
+                        break;
                     default:
                         // there are no other kinds of labels
                         throw ExceptionUtilities.UnexpectedValue(node.Kind);
@@ -983,31 +983,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (pattern.Kind)
             {
                 case BoundKind.DeclarationPattern:
-                {
-                    var declPattern = (BoundDeclarationPattern)pattern;
-                    if (declPattern.IsVar || // var pattern always matches
-                        declPattern.DeclaredType?.Type?.IsValueType == true && declPattern.DeclaredType.Type == (object)expression.Type) // exact match
                     {
-                        return true;
+                        var declPattern = (BoundDeclarationPattern)pattern;
+                        if (declPattern.IsVar || // var pattern always matches
+                            declPattern.DeclaredType?.Type?.IsValueType == true && declPattern.DeclaredType.Type == (object)expression.Type) // exact match
+                        {
+                            return true;
+                        }
+                        Debug.Assert(!declPattern.IsVar);
+                        switch (expression.ConstantValue?.IsNull)
+                        {
+                            case true: return false;
+                            case false: return true;
+                            default: return null;
+                        }
                     }
-                    Debug.Assert(!declPattern.IsVar);
-                    switch (expression.ConstantValue?.IsNull)
-                    {
-                        case true: return false;
-                        case false: return true;
-                        default: return null;
-                    }
-                }
                 case BoundKind.ConstantPattern:
-                {
-                    var constPattern = (BoundConstantPattern)pattern;
-                    if (expression.ConstantValue == null || constPattern.ConstantValue == null)
                     {
-                        return null;
-                    }
+                        var constPattern = (BoundConstantPattern)pattern;
+                        if (expression.ConstantValue == null || constPattern.ConstantValue == null)
+                        {
+                            return null;
+                        }
 
-                    return Equals(expression.ConstantValue.Value, constPattern.ConstantValue.Value);
-                }
+                        return Equals(expression.ConstantValue.Value, constPattern.ConstantValue.Value);
+                    }
             }
 
             return null;
@@ -1651,6 +1651,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitStatement(finallyBlock); // this should generate no pending branches
         }
 
+        public override BoundNode VisitExtractedFinallyBlock(BoundExtractedFinallyBlock node)
+        {
+            return VisitBlock(node.FinallyBlock);
+        }
+
         public sealed override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             var result = VisitReturnStatementNoAdjust(node);
@@ -1737,7 +1742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _member);
+            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _symbol);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -1872,7 +1877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var property = node.PropertySymbol;
 
-            if (Binder.AccessingAutoPropertyFromConstructor(node, _member))
+            if (Binder.AccessingAutoPropertyFromConstructor(node, _symbol))
             {
                 var backingField = (property as SourcePropertySymbol)?.BackingField;
                 if (backingField != null)
@@ -2286,7 +2291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LoopTail(node);
             ResolveBreaks(breakState, node.BreakLabel);
 
-            if (((CommonForEachStatementSyntax)node.Syntax).AwaitKeyword != default)
+            if (AwaitUsingAndForeachAddsPendingBranch && ((CommonForEachStatementSyntax)node.Syntax).AwaitKeyword != default)
             {
                 PendingBranches.Add(new PendingBranch(node, this.State));
             }
@@ -2623,14 +2628,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitStatement(node.Body);
 
-            if (AwaitUsingAddsPendingBranch && node.AwaitOpt != null)
+            if (AwaitUsingAndForeachAddsPendingBranch && node.AwaitOpt != null)
             {
                 PendingBranches.Add(new PendingBranch(node, this.State));
             }
             return null;
         }
 
-        public abstract bool AwaitUsingAddsPendingBranch { get; }
+        public abstract bool AwaitUsingAndForeachAddsPendingBranch { get; }
 
         public override BoundNode VisitFixedStatement(BoundFixedStatement node)
         {

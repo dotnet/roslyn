@@ -159,6 +159,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                     GetExpressionBodyPreferenceEditorConfigString),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferExpressionBodiedLambdas)}")});
 
+        public static readonly Option<CodeStyleOption<ExpressionBodyPreference>> PreferExpressionBodiedLocalFunctions = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionBodiedMembers, nameof(PreferExpressionBodiedLocalFunctions),
+            defaultValue: NeverWithSilentEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                new EditorConfigStorageLocation<CodeStyleOption<ExpressionBodyPreference>>(
+                    "csharp_style_expression_bodied_local_functions",
+                    s => ParseExpressionBodyPreference(s, NeverWithSilentEnforcement),
+                    GetExpressionBodyPreferenceEditorConfigString),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferExpressionBodiedLocalFunctions)}")});
+
         public static readonly Option<CodeStyleOption<PreferBracesPreference>> PreferBraces = CreateOption(
             CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferBraces),
             defaultValue: UseBracesWithSilentEnforcement,

@@ -241,9 +241,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             scope.Dispose();
         }
 
+        public void ReorderSourceFiles(IEnumerable<string> filePaths)
+        {
+            _visualStudioProject.ReorderSourceFiles(filePaths.ToImmutableArrayOrEmpty());
+        }
+
         internal VisualStudioProject GetProject_TestOnly()
         {
             return _visualStudioProject;
+        }
+
+        public void AddAnalyzerConfigFile(string filePath)
+        {
+            // TODO: implement. Right now this exists to provide a stub for the project system work to be implemented against.
+        }
+
+        public void RemoveAnalyzerConfigFile(string filePath)
+        {
+            // TODO: implement. Right now this exists to provide a stub for the project system work to be implemented against.
         }
     }
 }

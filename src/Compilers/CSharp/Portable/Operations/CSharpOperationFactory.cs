@@ -361,19 +361,19 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (declaration.Kind)
             {
                 case BoundKind.LocalDeclaration:
-                {
-                    return ImmutableArray.Create(CreateVariableDeclaratorInternal((BoundLocalDeclaration)declaration, (declarationSyntax as VariableDeclarationSyntax)?.Variables[0] ?? declarationSyntax));
-                }
-                case BoundKind.MultipleLocalDeclarations:
-                {
-                    var multipleDeclaration = (BoundMultipleLocalDeclarations)declaration;
-                    var builder = ArrayBuilder<IVariableDeclaratorOperation>.GetInstance(multipleDeclaration.LocalDeclarations.Length);
-                    foreach (var decl in multipleDeclaration.LocalDeclarations)
                     {
-                        builder.Add((IVariableDeclaratorOperation)_nodeMap.GetOrAdd(decl, CreateVariableDeclaratorInternal(decl, decl.Syntax)));
+                        return ImmutableArray.Create(CreateVariableDeclaratorInternal((BoundLocalDeclaration)declaration, (declarationSyntax as VariableDeclarationSyntax)?.Variables[0] ?? declarationSyntax));
                     }
-                    return builder.ToImmutableAndFree();
-                }
+                case BoundKind.MultipleLocalDeclarations:
+                    {
+                        var multipleDeclaration = (BoundMultipleLocalDeclarations)declaration;
+                        var builder = ArrayBuilder<IVariableDeclaratorOperation>.GetInstance(multipleDeclaration.LocalDeclarations.Length);
+                        foreach (var decl in multipleDeclaration.LocalDeclarations)
+                        {
+                            builder.Add((IVariableDeclaratorOperation)_nodeMap.GetOrAdd(decl, CreateVariableDeclaratorInternal(decl, decl.Syntax)));
+                        }
+                        return builder.ToImmutableAndFree();
+                    }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(declaration.Kind);
             }
@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 if (boundOperand.Syntax == boundConversion.Syntax)
                 {
-                    if (boundOperand.Kind == BoundKind.ConvertedTupleLiteral && boundOperand.Type == boundConversion.Type)
+                    if (boundOperand.Kind == BoundKind.ConvertedTupleLiteral && TypeSymbol.Equals(boundOperand.Type, boundConversion.Type, TypeCompareKind.ConsiderEverything2))
                     {
                         // Erase this conversion, this is an artificial conversion added on top of BoundConvertedTupleLiteral
                         // in Binder.CreateTupleLiteralConversion
@@ -911,7 +911,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     if (nestedConversion.Syntax == nestedOperand.Syntax && nestedConversion.ExplicitCastInCode &&
                         nestedOperand.Kind == BoundKind.ConvertedTupleLiteral &&
-                        nestedConversion.Type != nestedOperand.Type)
+                        !TypeSymbol.Equals(nestedConversion.Type, nestedOperand.Type, TypeCompareKind.ConsiderEverything2))
                     {
                         // Let's erase the nested conversion, this is an artificial conversion added on top of BoundConvertedTupleLiteral
                         // in Binder.CreateTupleLiteralConversion.
@@ -1693,34 +1693,34 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (kind)
             {
                 case SyntaxKind.LocalDeclarationStatement:
-                {
-                    var statement = (LocalDeclarationStatementSyntax)node;
+                    {
+                        var statement = (LocalDeclarationStatementSyntax)node;
 
-                    // this happen for simple int i = 0;
-                    // var statement points to LocalDeclarationStatementSyntax
-                    varStatement = statement;
+                        // this happen for simple int i = 0;
+                        // var statement points to LocalDeclarationStatementSyntax
+                        varStatement = statement;
 
-                    varDeclaration = statement.Declaration;
-                    break;
-                }
+                        varDeclaration = statement.Declaration;
+                        break;
+                    }
                 case SyntaxKind.VariableDeclarator:
-                {
-                    // this happen for 'for loop' initializer
-                    // We generate a DeclarationGroup for this scenario to maintain tree shape consistency across IOperation.
-                    // var statement points to VariableDeclarationSyntax
-                    varStatement = node.Parent;
+                    {
+                        // this happen for 'for loop' initializer
+                        // We generate a DeclarationGroup for this scenario to maintain tree shape consistency across IOperation.
+                        // var statement points to VariableDeclarationSyntax
+                        varStatement = node.Parent;
 
-                    varDeclaration = node.Parent;
-                    break;
-                }
+                        varDeclaration = node.Parent;
+                        break;
+                    }
                 default:
-                {
-                    Debug.Fail($"Unexpected syntax: {kind}");
+                    {
+                        Debug.Fail($"Unexpected syntax: {kind}");
 
-                    // otherwise, they points to whatever bound nodes are pointing to.
-                    varStatement = varDeclaration = node;
-                    break;
-                }
+                        // otherwise, they points to whatever bound nodes are pointing to.
+                        varStatement = varDeclaration = node;
+                        break;
+                    }
             }
 
             bool multiVariableImplicit = boundLocalDeclaration.WasCompilerGenerated;

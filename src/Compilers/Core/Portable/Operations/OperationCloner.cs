@@ -112,21 +112,21 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitForLoop(IForLoopOperation operation, object argument)
         {
-            return new ForLoopOperation(VisitArray(operation.Before), Visit(operation.Condition), VisitArray(operation.AtLoopBottom), operation.Locals, operation.ConditionLocals, 
+            return new ForLoopOperation(VisitArray(operation.Before), Visit(operation.Condition), VisitArray(operation.AtLoopBottom), operation.Locals, operation.ConditionLocals,
                 operation.ContinueLabel, operation.ExitLabel, Visit(operation.Body), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForToLoop(IForToLoopOperation operation, object argument)
         {
-            return new ForToLoopOperation(operation.Locals, operation.IsChecked, ((BaseForToLoopOperation)operation).Info, operation.ContinueLabel, operation.ExitLabel, 
-                                          Visit(operation.LoopControlVariable), Visit(operation.InitialValue), Visit(operation.LimitValue), Visit(operation.StepValue), 
-                                          Visit(operation.Body), VisitArray(operation.NextVariables), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, 
+            return new ForToLoopOperation(operation.Locals, operation.IsChecked, ((BaseForToLoopOperation)operation).Info, operation.ContinueLabel, operation.ExitLabel,
+                                          Visit(operation.LoopControlVariable), Visit(operation.InitialValue), Visit(operation.LimitValue), Visit(operation.StepValue),
+                                          Visit(operation.Body), VisitArray(operation.NextVariables), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type,
                                           operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForEachLoop(IForEachLoopOperation operation, object argument)
         {
-            return new ForEachLoopOperation(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable), 
+            return new ForEachLoopOperation(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable),
                                             Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), ((BaseForEachLoopOperation)operation).Info,
                                             ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitCoalesce(ICoalesceOperation operation, object argument)
         {
             var coalesceOperation = (BaseCoalesceOperation)operation;
-            return new CoalesceOperation(Visit(operation.Value), Visit(operation.WhenNull), coalesceOperation.ConvertibleValueConversion, coalesceOperation.OwningSemanticModel, 
+            return new CoalesceOperation(Visit(operation.Value), Visit(operation.WhenNull), coalesceOperation.ConvertibleValueConversion, coalesceOperation.OwningSemanticModel,
                                           operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 

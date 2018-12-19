@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
 
             var splitter = StringSplitter.Create(
-                document, position, root, sourceText, 
+                document, position, root, sourceText,
                 useTabs, tabSize, indentStyle, cancellationToken);
             if (splitter == null)
             {
