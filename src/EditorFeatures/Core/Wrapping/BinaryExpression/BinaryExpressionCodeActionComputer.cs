@@ -52,10 +52,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                         await GetUnwrapCodeActionAsync().ConfigureAwait(false))));
 
             private Task<WrapItemsAction> GetWrapCodeActionAsync()
-                => TryCreateCodeActionAsync(
-                    GetWrapEdits(),
-                    FeaturesResources.Wrapping,
-                    FeaturesResources.Wrap_expression);
+                => TryCreateCodeActionAsync(GetWrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Wrap_expression);
+
+            private Task<WrapItemsAction> GetUnwrapCodeActionAsync()
+                => TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_expression);
 
             private ImmutableArray<Edit> GetWrapEdits()
             {
@@ -91,10 +91,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
 
                 return result.ToImmutableAndFree();
             }
-
-            private Task<WrapItemsAction> GetUnwrapCodeActionAsync()
-                => TryCreateCodeActionAsync(
-                    GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_expression);
 
             private ImmutableArray<Edit> GetUnwrapEdits()
             {
