@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
         {
             if (!(node is TBinaryExpressionSyntax binaryExpr))
             {
-                return default;
+                return null;
             }
 
             if (!IsLogicalExpression(binaryExpr))
             {
-                return default;
+                return null;
             }
 
             // Don't process this binary expression if it's in a parent logical expr.  We'll just
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
             // always starting at the topmost logical binary expr.
             if (IsLogicalExpression(binaryExpr.Parent))
             {
-                return default;
+                return null;
             }
 
             var exprsAndOperators = GetExpressionsAndOperators(binaryExpr);
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
 
             if (containsUnformattableContent)
             {
-                return default;
+                return null;
             }
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
