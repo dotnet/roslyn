@@ -1091,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NamedTypeSymbol containingType;
                     if (containingTypes.TryGetValue(contextBaseType.OriginalDefinition, out containingType))
                     {
-                        return containingType != contextBaseType;
+                        return !TypeSymbol.Equals(containingType, contextBaseType, TypeCompareKind.ConsiderEverything2);
                     }
 
                     contextBaseType = contextBaseType.BaseTypeNoUseSiteDiagnostics;
@@ -1382,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     sawArrayRankDifference = sawArrayRankDifference || xArrayType.Rank != yArrayType.Rank;
 
-                    bool elementTypesDiffer = xArrayType.ElementType.TypeSymbol != yArrayType.ElementType.TypeSymbol;
+                    bool elementTypesDiffer = !TypeSymbol.Equals(xArrayType.ElementType.TypeSymbol, yArrayType.ElementType.TypeSymbol, TypeCompareKind.ConsiderEverything2);
 
                     // You might expect that only unnamed-vs-unnamed would produce a warning, but
                     // dev11 reports unnamed-vs-anything.
@@ -1395,7 +1395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                 }
-                else if (xType != yType)
+                else if (!TypeSymbol.Equals(xType, yType, TypeCompareKind.ConsiderEverything2))
                 {
                     return false;
                 }

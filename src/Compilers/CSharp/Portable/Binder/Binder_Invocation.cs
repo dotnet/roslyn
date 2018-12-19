@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // error CS0029: Cannot implicitly convert type 'A' to 'B'
 
                             // Case 1: receiver is a restricted type, and method called is defined on a parent type
-                            if (call.ReceiverOpt.Type.IsRestrictedType() && call.Method.ContainingType != call.ReceiverOpt.Type)
+                            if (call.ReceiverOpt.Type.IsRestrictedType() && !TypeSymbol.Equals(call.Method.ContainingType, call.ReceiverOpt.Type, TypeCompareKind.ConsiderEverything2))
                             {
                                 SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, call.ReceiverOpt.Type, call.Method.ContainingType);
                                 Error(diagnostics, ErrorCode.ERR_NoImplicitConv, call.ReceiverOpt.Syntax, distinguisher.First, distinguisher.Second);
@@ -1497,7 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     type = returnType;
                 }
-                else if (type != returnType)
+                else if (!TypeSymbol.Equals(type, returnType, TypeCompareKind.ConsiderEverything2))
                 {
                     return null;
                 }

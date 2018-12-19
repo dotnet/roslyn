@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.MoveNextMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext, diagnostics, _syntax);
 
             Debug.Assert((object)builder.GetEnumeratorMethod == null ||
-                builder.GetEnumeratorMethod.ReturnType.TypeSymbol == this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator));
+                TypeSymbol.Equals(builder.GetEnumeratorMethod.ReturnType.TypeSymbol, this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator), TypeCompareKind.ConsiderEverything2));
 
             // We don't know the runtime type, so we will have to insert a runtime check for IDisposable (with a conditional call to IDisposable.Dispose).
             builder.NeedsDisposeMethod = true;
@@ -1284,7 +1284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         result = @interface;
                     }
-                    else if (@interface != result)
+                    else if (!TypeSymbol.Equals(@interface, result, TypeCompareKind.ConsiderEverything2))
                     {
                         foundMultiple = true;
                         return;

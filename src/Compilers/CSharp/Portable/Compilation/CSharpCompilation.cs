@@ -1435,7 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Global code is the entry point, ignore all other Mains.
                     var scriptClass = this.ScriptClass;
-                    if (scriptClass != null)
+                    if ((object)scriptClass != null)
                     {
                         // CONSIDER: we could use the symbol instead of just the name.
                         diagnostics.Add(ErrorCode.WRN_MainIgnored, NoLocation.Singleton, mainTypeName);
@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Global code is the entry point, ignore all other Mains.
                     var scriptClass = this.ScriptClass;
-                    if (scriptClass != null)
+                    if ((object)scriptClass != null)
                     {
                         foreach (var main in entryPointCandidates)
                         {
@@ -1640,8 +1640,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Early bail so we only even check things that are System.Threading.Tasks.Task(<T>)
-            if (!(namedType.ConstructedFrom == GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) ||
-                  namedType.ConstructedFrom == GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)))
+            if (!(TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task), TypeCompareKind.ConsiderEverything2) ||
+                  TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T), TypeCompareKind.ConsiderEverything2)))
             {
                 return false;
             }
@@ -3427,7 +3427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var sourceType = symbol as SourceMemberContainerTypeSymbol;
-                    if (sourceType != null)
+                    if ((object)sourceType != null)
                     {
                         _cache[sourceType.MergedDeclaration] = sourceType;
                     }

@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 if (boundOperand.Syntax == boundConversion.Syntax)
                 {
-                    if (boundOperand.Kind == BoundKind.ConvertedTupleLiteral && boundOperand.Type == boundConversion.Type)
+                    if (boundOperand.Kind == BoundKind.ConvertedTupleLiteral && TypeSymbol.Equals(boundOperand.Type, boundConversion.Type, TypeCompareKind.ConsiderEverything2))
                     {
                         // Erase this conversion, this is an artificial conversion added on top of BoundConvertedTupleLiteral
                         // in Binder.CreateTupleLiteralConversion
@@ -911,7 +911,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     if (nestedConversion.Syntax == nestedOperand.Syntax && nestedConversion.ExplicitCastInCode &&
                         nestedOperand.Kind == BoundKind.ConvertedTupleLiteral &&
-                        nestedConversion.Type != nestedOperand.Type)
+                        !TypeSymbol.Equals(nestedConversion.Type, nestedOperand.Type, TypeCompareKind.ConsiderEverything2))
                     {
                         // Let's erase the nested conversion, this is an artificial conversion added on top of BoundConvertedTupleLiteral
                         // in Binder.CreateTupleLiteralConversion.
