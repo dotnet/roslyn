@@ -1472,9 +1472,6 @@ This version used in: {2}</value>
   <data name="Replace_0_with_1" xml:space="preserve">
     <value>Replace '{0}' with '{1}' </value>
   </data>
-  <!--
-        protected override string Unwrap_list => FeaturesResources.Unwrap_parameter_list;
-    -->
   <data name="Align_wrapped_parameters" xml:space="preserve">
     <value>Align wrapped parameters</value>
   </data>
@@ -1582,9 +1579,6 @@ This version used in: {2}</value>
   </data>
   <data name="Wrap_expression" xml:space="preserve">
     <value>Wrap expression</value>
-  </data>
-  <data name="Wrap_expression_including_operators" xml:space="preserve">
-    <value>Wrap expression (including operators)</value>
   </data>
   <data name="Wrapping" xml:space="preserve">
     <value>Wrapping</value>

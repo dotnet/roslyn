@@ -507,5 +507,43 @@ BeginningOfLine,
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestUnderscoreName_End()
+        {
+            await TestEndOfLine(
+@"class C {
+    void Bar() {
+        if ([||]i is var _ && _ != null) {
+        }
+    }
+}",
+@"class C {
+    void Bar() {
+        if (i is var _ &&
+            _ != null) {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestUnderscoreName_Beginning()
+        {
+            await TestBeginningOfLine(
+@"class C {
+    void Bar() {
+        if ([||]i is var _ && _ != null) {
+        }
+    }
+}",
+@"class C {
+    void Bar() {
+        if (i is var _
+            && _ != null) {
+        }
+    }
+}");
+        }
     }
 }

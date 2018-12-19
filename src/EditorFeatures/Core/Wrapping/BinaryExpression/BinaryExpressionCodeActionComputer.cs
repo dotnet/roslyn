@@ -48,33 +48,20 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
             {
                 var actions = ArrayBuilder<WrapItemsAction>.GetInstance();
-
-                if (_preference == OperatorPlacementWhenWrappingPreference.EndOfLine)
-                {
-                    actions.Add(await GetWrapCodeActionAsync(includeOperators: false).ConfigureAwait(false));
-                }
-                else
-                {
-                    actions.Add(await GetWrapCodeActionAsync(includeOperators: true).ConfigureAwait(false));
-                }
-
+                actions.Add(await GetWrapCodeActionAsync().ConfigureAwait(false));
                 actions.Add(await GetUnwrapCodeActionAsync().ConfigureAwait(false));
 
                 return ImmutableArray.Create(new WrappingGroup(
                     isInlinable: true, actions.ToImmutableAndFree()));
             }
 
-            private Task<WrapItemsAction> GetWrapCodeActionAsync(bool includeOperators)
+            private Task<WrapItemsAction> GetWrapCodeActionAsync()
                 => TryCreateCodeActionAsync(
-                    GetWrapEdits(includeOperators),
+                    GetWrapEdits(),
                     FeaturesResources.Wrapping,
-                    includeOperators
-                        ? FeaturesResources.Wrap_expression_including_operators
-                        : FeaturesResources.Wrap_expression);
+                    FeaturesResources.Wrap_expression);
 
-            /// <param name="includeOperators">Whether or not the operator should be wrapped
-            /// to the next line as well, or if it should stay on the same line it started on.</param>
-            private ImmutableArray<Edit> GetWrapEdits(bool includeOperators)
+            private ImmutableArray<Edit> GetWrapEdits()
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
@@ -84,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                     var opToken = _exprsAndOperators[i].AsToken();
                     var right = _exprsAndOperators[i + 1].AsNode();
 
-                    if (includeOperators)
+                    if (_preference == OperatorPlacementWhenWrappingPreference.BeginningOfLine)
                     {
                         // convert: 
                         //      (a == b) && (c == d) to
