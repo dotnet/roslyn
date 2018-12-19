@@ -2140,8 +2140,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (operandType.GetArity() != 0)
                     {
-                        var supported = MessageID.IDS_FeatureUnmanagedGenericStructs.RequiredVersion() >= Compilation.LanguageVersion;
-                        if (!supported)
+                        var unsupported = Compilation.LanguageVersion < MessageID.IDS_FeatureUnmanagedGenericStructs.RequiredVersion();
+                        if (unsupported)
                         {
                             // PROTOTYPE
                             MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, node.Location);
