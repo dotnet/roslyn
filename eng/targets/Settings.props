@@ -91,20 +91,6 @@
     <VisualStudioDebuggerKey>$(VisualStudioKey)</VisualStudioDebuggerKey>
   </PropertyGroup>
 
-  <!-- Determine compiler toolset props file to use for this build -->
-  <PropertyGroup>
-    <_PackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</_PackageName>
-    <_PackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">Microsoft.NETCore.Compilers</_PackageName>
-    <_PackageVersion Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MicrosoftNetCompilersVersion)</_PackageVersion>
-    <_PackageVersion Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MicrosoftNETCoreCompilersVersion)</_PackageVersion>
-
-    <RoslynToolsetDirectory Condition="'$(BootstrapBuildPath)' == ''">$(NuGetPackageRoot)$(_PackageName.ToLower())\$(_PackageVersion)\</RoslynToolsetDirectory>
-    <RoslynToolsetDirectory Condition="'$(BootstrapBuildPath)' != ''">$(BootstrapBuildPath)</RoslynToolsetDirectory>
-    <RoslynToolsetDirectory Condition="!HasTrailingSlash('$(RoslynToolsetDirectory)')">$(RoslynToolsetDirectory)\</RoslynToolsetDirectory>
-
-    <RoslynToolsetPropsFilePath>$(RoslynToolsetDirectory)build\$(_PackageName).props</RoslynToolsetPropsFilePath>
-  </PropertyGroup>
-
   <!-- 
        Enable hard links for the build. This is not done by default due to fears about 
        inadvertently corrupting the NuGet cache (hard links in the output directory will
@@ -133,12 +119,24 @@
     <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
   </PropertyGroup>
 
-  <Import Project="$(RoslynToolsetPropsFilePath)" Condition="Exists('$(RoslynToolsetPropsFilePath)')" />
+  <!-- 
+    Bootstrapping compilers
+  -->
+  <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
+    <_CompilerPackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</_CompilerPackageName>
+    <_CompilerPackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">Microsoft.NETCore.Compilers</_CompilerPackageName>
+    <_BootstrapBuildDir>$([MSBuild]::EnsureTrailingSlash($(BootstrapBuildPath)))</_BootstrapBuildDir>
+  </PropertyGroup>
+
+  <Import Project="$(_BootstrapBuildDir)build\$(_CompilerPackageName).props" Condition="'$(BootstrapBuildPath)' != ''" />
 
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap"
-             AssemblyFile="$(RoslynToolsetDirectory)tools\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             AssemblyFile="$(_BootstrapBuildDir)tools\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
 
+  <!--
+    Analyzers
+  -->
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeQuality.Analyzers" Version="$(MicrosoftCodeQualityAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NetCore.Analyzers" Version="$(MicrosoftNetCoreAnalyzersVersion)" PrivateAssets="all" />
@@ -167,7 +165,7 @@
   </PropertyGroup>
 
   <!--
-    Language specifc settings
+    Language specific settings
   -->
   <Choose>
     <!-- VB specific settings -->

@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert((object)originalType == null ||
                 originalType.IsErrorType() ||
-                originalType == type.TypeSymbol);
+                TypeSymbol.Equals(originalType, type.TypeSymbol, TypeCompareKind.ConsiderEverything2));
 
             if (_lazyType.InterlockedInitialize(type))
             {

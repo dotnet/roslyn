@@ -147,6 +147,11 @@
         <target state="new">Use expression body for lambdas</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="new">Use expression body for local functions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
         <target state="new">Value assigned here is never used</target>

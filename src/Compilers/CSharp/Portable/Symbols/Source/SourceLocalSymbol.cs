@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert((object)originalType == null ||
                 originalType.IsErrorType() && newType.IsErrorType() ||
-                originalType == newType.TypeSymbol);
+                TypeSymbol.Equals(originalType, newType.TypeSymbol, TypeCompareKind.ConsiderEverything2));
 
             if ((object)originalType == null)
             {

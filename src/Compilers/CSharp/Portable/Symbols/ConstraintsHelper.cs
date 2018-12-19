@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxNode typeSyntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, // may be omitted in synthesized invocations
             Compilation currentCompilation,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(!type.IsTupleType);
@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // C# does not let you declare a type in which it would be possible for distinct base interfaces
         // to unify under some instantiations.  But such ill-formed classes can come in through
         // metadata and be instantiated in C#.  We check to see if that's happened.
-        private static bool HasDuplicateInterfaces(NamedTypeSymbol type, ConsList<Symbol> basesBeingResolved)
+        private static bool HasDuplicateInterfaces(NamedTypeSymbol type, ConsList<TypeSymbol> basesBeingResolved)
         {
             // PERF: avoid instantiating all interfaces here
             //       Ex: if class implements just IEnumerable<> and IComparable<> it cannot have conflicting implementations

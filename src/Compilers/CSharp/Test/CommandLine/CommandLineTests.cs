@@ -4278,75 +4278,292 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
         {
             var parsedArgs = DefaultParse(new[] { "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.False(parsedArgs.CompilationOptions.Nullable);
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'True' for C# 7.0. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "True", "7.0", "8.0").WithLocation(1, 1)
+                // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.0", "8.0").WithLocation(1, 1)
                 );
-            Assert.True(parsedArgs.CompilationOptions.Nullable);
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable-", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.False(parsedArgs.CompilationOptions.Nullable);
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'True' for C# 7.0. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "True", "7.0", "8.0").WithLocation(1, 1)
+                // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.0", "8.0").WithLocation(1, 1)
                 );
-            Assert.True(parsedArgs.CompilationOptions.Nullable);
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<text>' for 'nullable' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "nullable").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:yes", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'yes' for /nullable; must be 'disable', 'enable' or 'safeonly'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("yes").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:enable", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.0", "8.0").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:disable", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'Safeonly' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "SafeOnly", "7.0", "8.0").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.True(parsedArgs.CompilationOptions.Nullable);
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable-", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.False(parsedArgs.CompilationOptions.Nullable);
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.True(parsedArgs.CompilationOptions.Nullable);
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<text>' for 'nullable' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "nullable").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:yes", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'yes' for /nullable; must be 'disable', 'enable' or 'safeonly'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("yes").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:eNable", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:disablE", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:Safeonly", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", @"/nullable-", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable-", @"/nullable", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.True(parsedArgs.CompilationOptions.Nullable);
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", @"/nullable+", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", @"/nullable:", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<text>' for 'nullable' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "nullable").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", @"/nullable:YES", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'YES' for /nullable; must be 'disable', 'enable' or 'safeonly'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("YES").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", @"/nullable:disable", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", @"/nullable:enable", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", @"/nullable:safeonly", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", @"/nullable-", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.False(parsedArgs.CompilationOptions.Nullable);
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
-            parsedArgs = DefaultParse(new[] { @"/nullable:", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/nullable:"));
-            Assert.False(parsedArgs.CompilationOptions.Nullable);
+            parsedArgs = DefaultParse(new[] { @"/nullable+", @"/nullable", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable+", @"/nullable+", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable+", @"/nullable:", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<text>' for 'nullable' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "nullable").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable+", @"/nullable:YES", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'YES' for /nullable; must be 'disable', 'enable' or 'safeonly'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("YES").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable+", @"/nullable:disable", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable+", @"/nullable:enable", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable+", @"/nullable:safeonly", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable-", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable+", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable:", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<text>' for 'nullable' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "nullable").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable:YES", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'YES' for /nullable; must be 'disable', 'enable' or 'safeonly'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("YES").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable:disable", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable:enable", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable:safeonly", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:", "/langversion:7.3", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<text>' for 'nullable' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "nullable").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:yeS", "/langversion:7.3", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'yeS' for /nullable; must be 'disable', 'enable' or 'safeonly'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("yeS").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "True", "7.3", "8.0").WithLocation(1, 1)
+                // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "8.0").WithLocation(1, 1)
                 );
-            Assert.True(parsedArgs.CompilationOptions.Nullable);
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable-", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.False(parsedArgs.CompilationOptions.Nullable);
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "True", "7.3", "8.0").WithLocation(1, 1)
+                // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "8.0").WithLocation(1, 1)
                 );
-            Assert.True(parsedArgs.CompilationOptions.Nullable);
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:enable", "/langversion:7.3", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "8.0").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:disable", "/langversion:7.3", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", "/langversion:7.3", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'Safeonly' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "SafeOnly", "7.3", "8.0").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { "a.cs", "/langversion:8" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.False(parsedArgs.CompilationOptions.Nullable);
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { "a.cs", "/langversion:7.3" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.False(parsedArgs.CompilationOptions.Nullable);
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:""safeonly""", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:\""enable\""", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option '"enable"' for /nullable; must be 'disable', 'enable' or 'safeonly'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments(@"""enable""").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:\\disable\\", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option '\\disable\\' for /nullable; must be 'disable', 'enable' or 'safeonly'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments(@"\\disable\\").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:\\""enable\\""", "/langversion:8", "a.cs" }, WorkingDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option '\enable\' for /nullable; must be 'disable', 'enable' or 'safeonly'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments(@"\enable\").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
         }
 
         [Fact]

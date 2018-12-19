@@ -1,7 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="CannotCreateConstructedFromConstructed">
+        <source>Cannot create constructed generic type from another constructed generic type.</source>
+        <target state="new">Cannot create constructed generic type from another constructed generic type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotCreateConstructedFromNongeneric">
+        <source>Cannot create constructed generic type from non-generic type.</source>
+        <target state="new">Cannot create constructed generic type from non-generic type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</source>
         <target state="new">To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</target>
@@ -13,8 +23,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="new">Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</target>
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</source>
+        <target state="new">Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMemberWrongAsync">
@@ -27,9 +37,19 @@
         <target state="new">Cannot use a collection of dynamic type in an asynchronous foreach</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadGetAsyncEnumerator">
-        <source>Asynchronous foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</source>
-        <target state="new">Asynchronous foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</target>
+      <trans-unit id="ERR_BadNullableContextOption">
+        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'safeonly'</source>
+        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'safeonly'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CantUseInOrOutInArglist">
+        <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
+        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ConWithUnmanagedCon">
+        <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
+        <target state="new">Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -42,6 +62,11 @@
         <target state="new">Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExprCannotBeFixed">
+        <source>The given expression cannot be used in a fixed statement</source>
+        <target state="new">The given expression cannot be used in a fixed statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeCantContainNullCoalescingAssignment">
         <source>An expression tree may not contain a null coalescing assignment</source>
         <target state="new">An expression tree may not contain a null coalescing assignment</target>
@@ -50,6 +75,11 @@
       <trans-unit id="ERR_ExpressionTreeCantContainRefStruct">
         <source>Expression tree cannot contain value of ref struct or restricted type '{0}'.</source>
         <target state="new">Expression tree cannot contain value of ref struct or restricted type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
+        <source>An expression tree may not contain a tuple == or != operator</source>
+        <target state="new">An expression tree may not contain a tuple == or != operator</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureIsExperimental">
@@ -67,29 +97,39 @@
         <target state="new">foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InDynamicMethodArg">
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
+        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidObjectCreation">
+        <source>Invalid object creation</source>
+        <target state="new">Invalid object creation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidStackAllocArray">
+        <source>"Invalid rank specifier: expected ']'</source>
+        <target state="new">"Invalid rank specifier: expected ']'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
         <note />
       </trans-unit>
-      <trans-unit id="CannotCreateConstructedFromConstructed">
-        <source>Cannot create constructed generic type from another constructed generic type.</source>
-        <target state="new">Cannot create constructed generic type from another constructed generic type.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CannotCreateConstructedFromNongeneric">
-        <source>Cannot create constructed generic type from non-generic type.</source>
-        <target state="new">Cannot create constructed generic type from non-generic type.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MultipleIAsyncEnumOfT">
-        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
-        <target state="new">Asynchronous foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'</source>
-        <target state="new">'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'</target>
+      <trans-unit id="ERR_NewBoundWithUnmanaged">
+        <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
+        <target state="new">The 'new()' constraint cannot be used with the 'unmanaged' constraint</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
@@ -103,8 +143,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
-        <source>Expected enable or disable</source>
-        <target state="new">Expected enable or disable</target>
+        <source>Expected 'enable', 'safeonly', 'disable', or 'restore'</source>
+        <target state="new">Expected 'enable', 'safeonly', 'disable', or 'restore'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -147,6 +187,31 @@
         <target state="new">Unexpected character sequence '...'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TupleSizesMismatchForBinOps">
+        <source>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</source>
+        <target state="new">Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedBoundWithClass">
+        <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
+        <target state="new">'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintMustBeFirst">
+        <source>The 'unmanaged' constraint must come before any other constraints</source>
+        <target state="new">The 'unmanaged' constraint must come before any other constraints</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
+        <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
+        <target state="new">The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FTL_InvalidInputFileName">
+        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
+        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HDN_ExpressionIsProbablyNeverNull">
         <source>Expression is probably never null.</source>
         <target state="new">Expression is probably never null.</target>
@@ -182,19 +247,39 @@
         <target state="new">alternative interpolated verbatim strings</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureAsyncStreams">
-        <source>async streams</source>
-        <target state="new">async streams</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
         <source>coalescing assignment</source>
         <target state="new">coalescing assignment</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
+        <source>delegate generic type constraints</source>
+        <target state="new">delegate generic type constraints</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureEnumGenericTypeConstraint">
+        <source>enum generic type constraints</source>
+        <target state="new">enum generic type constraints</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
+        <source>declaration of expression variables in member initializers and queries</source>
+        <target state="new">declaration of expression variables in member initializers and queries</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensibleFixedStatement">
+        <source>extensible fixed statement</source>
+        <target state="new">extensible fixed statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
         <source>index operator</source>
         <target state="new">index operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
+        <source>indexing movable fixed buffers</source>
+        <target state="new">indexing movable fixed buffers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -212,9 +297,44 @@
         <target state="new">range operator</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefConditional">
+        <source>ref conditional expression</source>
+        <target state="new">ref conditional expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefFor">
+        <source>ref for-loop variables</source>
+        <target state="new">ref for-loop variables</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefForEach">
+        <source>ref foreach iteration variables</source>
+        <target state="new">ref foreach iteration variables</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefReassignment">
+        <source>ref reassignment</source>
+        <target state="new">ref reassignment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStackAllocInitializer">
+        <source>stackalloc initializer</source>
+        <target state="new">stackalloc initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureTupleEquality">
+        <source>tuple equality</source>
+        <target state="new">tuple equality</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
         <source>unconstrained type parameters in null coalescing operator</source>
         <target state="new">unconstrained type parameters in null coalescing operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
+        <source>unmanaged generic type constraints</source>
+        <target state="new">unmanaged generic type constraints</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
@@ -897,6 +1017,16 @@
         <target state="new">The suppression operator (!) can only be applied to reference types and nullable value types.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
+        <source>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
+        <target state="new">The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TupleBinopLiteralNameMismatch_Title">
+        <source>The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
+        <target state="new">The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
         <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
         <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
@@ -1459,7 +1589,7 @@
       </trans-unit>
       <trans-unit id="ERR_MethDelegateMismatch">
         <source>No overload for '{0}' matches delegate '{1}'</source>
-        <target state="translated">Hiçbir '{0}' aşırı yüklemesi '{1}' temsilcisiyle eşleşmiyor</target>
+        <target state="translated">Hiçbir '{0}' yeniden yüklemesi '{1}' temsilcisiyle eşleşmiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RetObjectRequired">
@@ -1994,12 +2124,12 @@
       </trans-unit>
       <trans-unit id="ERR_SealedNonOverride">
         <source>'{0}' cannot be sealed because it is not an override</source>
-        <target state="translated">'Bir geçersiz kılma olmadığından '{0}' mühürlenemiyor</target>
+        <target state="translated">'Bir geçersiz kılma olmadığından '{0}' korunamıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideSealed">
         <source>'{0}': cannot override inherited member '{1}' because it is sealed</source>
-        <target state="translated">'{0}': mühürlü olduğundan '{1}' devralınmış üyesi geçersiz kılınamaz</target>
+        <target state="translated">'{0}': korumalı olduğundan '{1}' devralınmış üyesi geçersiz kılınamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VoidError">
@@ -2394,7 +2524,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractSealedStatic">
         <source>'{0}': an abstract class cannot be sealed or static</source>
-        <target state="translated">'{0}': bir soyut sınıfı mühürlü veya statik olamaz</target>
+        <target state="translated">'{0}': bir soyut sınıfı korumalı veya statik olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AmbiguousXMLReference">
@@ -2529,7 +2659,7 @@
       </trans-unit>
       <trans-unit id="ERR_SealedStaticClass">
         <source>'{0}': a class cannot be both static and sealed</source>
-        <target state="translated">'{0}': bir sınıf hem statik hem mühürlü olamaz</target>
+        <target state="translated">'{0}': bir sınıf hem statik hem korumalı olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PrivateAbstractAccessor">
@@ -2728,7 +2858,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_AbstractAndSealed">
         <source>'{0}' cannot be both abstract and sealed</source>
-        <target state="translated">'{0}' hem soyut hem mühürlü olamaz</target>
+        <target state="translated">'{0}' hem soyut hem korumalı olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractNotVirtual">
@@ -2768,7 +2898,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_CantDeriveFromSealedType">
         <source>'{0}': cannot derive from sealed type '{1}'</source>
-        <target state="translated">'{0}': mühürlü '{1}' türünden türetilemiyor</target>
+        <target state="translated">'{0}': korumalı '{1}' türünden türetilemiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractInConcreteClass">
@@ -2943,7 +3073,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_NewVirtualInSealed">
         <source>'{0}' is a new virtual member in sealed class '{1}'</source>
-        <target state="translated">'{0}', '{1}' mühürlü sınıfındaki yeni sanal üyedir</target>
+        <target state="translated">'{0}', '{1}' korumalı sınıfındaki yeni sanal üyedir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyAddingAccessor">
@@ -3008,7 +3138,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
-        <target state="translated">Aşırı yüklenen kaydırma işlecinin ilk işleneninin türü kapsayan tür ile aynı, ikinci işlenenin türü de tamsayı olmalıdır</target>
+        <target state="translated">Tekrar yüklenen kaydırma işlecinin ilk işleneninin türü kapsayan tür ile aynı, ikinci işlenenin türü de tamsayı olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainOperators">
@@ -3243,7 +3373,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_MissingStructOffset">
         <source>'{0}': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
-        <target state="translated">'{0}': StructLayout(LayoutKind.Explicit) ile işaretlenen örnek alan türlerinin FieldOffset özniteliği olmalıdır</target>
+        <target state="needs-review-translation">'{0}': StructLayout(LayoutKind.Explicit) ile işaretlenen örnek alan türlerinin FieldOffset özniteliği olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExternMethodNoImplementation">
@@ -3258,12 +3388,12 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed">
         <source>'{0}': new protected member declared in sealed class</source>
-        <target state="translated">'{0}': yeni korunan üye mühürlü sınıfta belirtildi</target>
+        <target state="translated">'{0}': yeni korunan üye korumalı sınıfta belirtildi</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ProtectedInSealed_Title">
         <source>New protected member declared in sealed class</source>
-        <target state="translated">Mühürlü sınıfta bildirilen yeni korunan üye </target>
+        <target state="translated">Korumalı sınıfta bildirilen yeni korunan üye </target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByConditional">
@@ -3588,7 +3718,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_BadBoundType">
         <source>'{0}' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</source>
-        <target state="translated">'{0}' geçerli bir kısıtlama değil. Kısıtlama olarak kullanılan bir türün arabirim, mühürlü olmayan bir sınıf veya tür parametresi olması gerekir.</target>
+        <target state="translated">'{0}' geçerli bir kısıtlama değil. Kısıtlama olarak kullanılan bir türün arabirim, korumalı olmayan bir sınıf veya tür parametresi olması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpecialTypeAsBound">
@@ -3608,7 +3738,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">
         <source>Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</source>
-        <target state="translated">Geçersiz kısıtlama türü. Kısıtlama olarak kullanılan bir türün bir arabirim, mühürlü olmayan bir sınıf veya bir tür parametresi olması gerekir.</target>
+        <target state="translated">Geçersiz kısıtlama türü. Kısıtlama olarak kullanılan bir türün bir arabirim, korumalı olmayan bir sınıf veya bir tür parametresi olması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
@@ -4113,12 +4243,12 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_OvlUnaryOperatorExpected">
         <source>Overloadable unary operator expected</source>
-        <target state="translated">Aşırı yüklenebilir birli işleç bekleniyor</target>
+        <target state="translated">Yeniden yüklenebilir birli işleç bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OvlBinaryOperatorExpected">
         <source>Overloadable binary operator expected</source>
-        <target state="translated">Aşırı yüklenebilir ikili işleç bekleniyor</target>
+        <target state="translated">Yeniden yüklenebilir ikili işleç bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IntOverflow">
@@ -4218,7 +4348,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_OvlOperatorExpected">
         <source>Overloadable operator expected</source>
-        <target state="translated">Aşırı yüklenebilir işleç bekleniyor</target>
+        <target state="translated">Yeniden yüklenebilir işleç bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndRegionDirectiveExpected">
@@ -4372,7 +4502,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadArgCount">
         <source>No overload for method '{0}' takes {1} arguments</source>
-        <target state="translated">{0}' yöntemi için hiçbir aşırı yükleme {1} bağımsız değişken almaz</target>
+        <target state="translated">{0}' yöntemi için hiçbir tekrar yükleme {1} bağımsız değişken almaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgType">
@@ -4497,12 +4627,12 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadBinOpArgs">
         <source>Overloaded binary operator '{0}' takes two parameters</source>
-        <target state="translated">Aşırı yüklenmiş '{0}' ikili işleci iki parametre alır</target>
+        <target state="translated">Fazla yüklenmiş '{0}' ikili işleci iki parametre alır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadUnOpArgs">
         <source>Overloaded unary operator '{0}' takes one parameter</source>
-        <target state="translated">Aşırı yüklenmiş '{0}' tek işlem işleci bir parametre alır</target>
+        <target state="translated">Fazla yüklenmiş '{0}' tek işlem işleci bir parametre alır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoVoidParameter">
@@ -4687,7 +4817,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="translated">{0}' bir '{1}' ortak örnek tanımı içermediğinden veya erişilemez olduğundan foreach deyimi '{0}' türündeki değişkenlerde çalışamaz</target>
+        <target state="needs-review-translation">{0}' bir '{1}' ortak tanım içermediğinden veya erişilemez olduğundan foreach deyimi '{0}' türündeki değişkenlerde çalışamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
@@ -4932,7 +5062,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
         <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</source>
-        <target state="translated">Anonim metot, lambda ifadesi, sorgu ifadesi veya yerel işlev içinde '{0}' ref, out veya in parametresi kullanılamaz</target>
+        <target state="needs-review-translation">Anonim yöntem, lambda ifadesi veya sorgu ifadesi içinde '{0}' ref veya out parametresi kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalInnerUnsafe">
@@ -5202,7 +5332,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadPlatformType">
         <source>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64</source>
-        <target state="translated">/platform için geçersiz '{0}' seçeneği; anycpu, x86, Itanium, arm, arm64 veya x64 olmalıdır</target>
+        <target state="needs-review-translation">/platform için geçersiz '{0}' seçeneği; anycpu, x86, Itanium veya x64 olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
@@ -5647,7 +5777,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasWrongSignature">
         <source>The best overloaded method match for '{0}' has wrong signature for the initializer element. The initializable Add must be an accessible instance method.</source>
-        <target state="translated">{0}' ile en iyi eşleşen aşırı yüklenen yöntem, başlatıcı öğesi için yanlış imza içeriyor. Başlatılabilir Add, erişilebilir bir örnek yöntemi olmalıdır.</target>
+        <target state="translated">{0}' ile en iyi eşleşen tekrar yüklenen yöntem, başlatıcı öğesi için yanlış imza içeriyor. Başlatılabilir Add, erişilebilir bir örnek yöntemi olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionInitRequiresIEnumerable">
@@ -5672,7 +5802,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadInstanceArgType">
         <source>'{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' requires a receiver of type '{3}'</source>
-        <target state="translated">'{0}' bir '{1}' tanımı içermiyor ve en iyi genişletme yöntemi aşırı yüklemesi olan '{2}', '{3}' türünün bir alıcısını gerektiriyor</target>
+        <target state="translated">'{0}' bir '{1}' tanımı içermiyor ve en iyi genişletme yöntemi yeniden yüklemesi olan '{2}', '{3}' türünün bir alıcısını gerektiriyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryDuplicateRangeVariable">
@@ -5772,7 +5902,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_BadArgTypesForCollectionAdd">
         <source>The best overloaded Add method '{0}' for the collection initializer has some invalid arguments</source>
-        <target state="translated">Koleksiyon başlatıcısı için en iyi aşırı yüklenmiş Add yöntemi olan '{0}' bazı geçersiz bağımsız değişkenlere sahip</target>
+        <target state="translated">Koleksiyon başlatıcısı için en iyi Add yöntemi olan '{0}' bazı geçersiz bağımsız değişkenlere sahip</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByRefParameterInExpressionTree">
@@ -5792,7 +5922,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasParamModifiers">
         <source>The best overloaded method match '{0}' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.</source>
-        <target state="translated">Koleksiyon başlatıcı öğesi için en iyi aşırı yüklenmiş yöntem eşleşmesi olan '{0}' kullanılamıyor. Koleksiyon başlatıcı 'Add' yöntemleri ref veya out parametreleri içeremez.</target>
+        <target state="translated">Koleksiyon başlatıcı öğesi için en iyi yeniden yüklenmiş yöntem eşleşmesi olan '{0}' kullanılamıyor. Koleksiyon başlatıcı 'Add' yöntemleri ref veya out parametreleri içeremez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInvocableMemberCalled">
@@ -6080,7 +6210,7 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
       </trans-unit>
       <trans-unit id="WRN_CLS_OverloadUnnamed_Description">
         <source>This error occurs if you have an overloaded method that takes a jagged array and the only difference between the method signatures is the element type of the array. To avoid this error, consider using a rectangular array rather than a jagged array; use an additional parameter to disambiguate the function call; rename one or more of the overloaded methods; or, if CLS Compliance is not needed, remove the CLSCompliantAttribute attribute.</source>
-        <target state="translated">Bu hata, düzensiz bir dizi alan aşırı yüklü bir yönteminiz varsa ve yöntem imzaları arasındaki tek fark dizinin öğe türü ise oluşur. Bu hatadan kaçınmak için, düzensiz dizi yerine dikdörtgen dizi kullanmayı deneyin; işlev çağrısını netleştirmek için ek bir parametre kullanın; aşırı yüklü yöntemlerden birini veya birden fazlasını yeniden adlandırın ya da CLS Uyumluluğu gerekmiyorsa, CLSCompliantAttribute özniteliğini kaldırın.</target>
+        <target state="translated">Bu hata, basit bir dizi alan aşırı yüklü bir yönteminiz varsa ve yöntem imzaları arasındaki tek fark dizinin öğe türü ise oluşur. Bu hatadan kaçınmak için, basit dizi yerine dikdörtgen dizi kullanmayı deneyin; işlev çağrısını netleştirmek için ek bir parametre kullanın; aşırı yüklü yöntemlerden birini veya birden fazlasını yeniden adlandırın ya da CLS Uyumluluğu gerekmiyorsa, CLSCompliantAttribute özniteliğini kaldırın.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadIdentifier">
@@ -6597,7 +6727,7 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplCollisionOnRefOut">
         <source>Cannot inherit interface '{0}' with the specified type parameters because it causes method '{1}' to contain overloads which differ only on ref and out</source>
-        <target state="translated">{1}' yönteminin yalnızca ref ve out bakımından farklı aşırı yüklemeler içermesine neden olduğundan belirtilen tür parametreleriyle '{0}' arabirimi devralınamaz</target>
+        <target state="translated">{1}' yönteminin yalnızca ref ve out bakımından farklı tekrar yüklemeler içermesine neden olduğundan belirtilen tür parametreleriyle '{0}' arabirimi devralınamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParamsVariance">
@@ -6712,7 +6842,7 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
       </trans-unit>
       <trans-unit id="ERR_BadNamedArgument">
         <source>The best overload for '{0}' does not have a parameter named '{1}'</source>
-        <target state="translated">{0}' için en iyi aşırı yükleme, '{1}' adlı bir parametre içermiyor</target>
+        <target state="translated">{0}' için en iyi yeniden yükleme, '{1}' adlı bir parametre içermiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamedArgumentForDelegateInvoke">
@@ -7828,7 +7958,9 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
                               `default` (latest major version), or
                               `latest` (latest version, including minor versions),
                               or specific versions like `6` or `7.1`
--nullable[+|-]                Enable/disable Nullable Reference Types feature
+-nullable[+|-]                Specify nullable context option enable|disable.
+-nullable:{enable|disable|safeonly}
+                              Specify nullable context option enable|disable|safeonly.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -7903,7 +8035,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
  /doc:&lt;file&gt;                   Oluşturulacak XML Belgeleri dosyası
  /refout:&lt;file&gt;                Oluşturulacak başvuru derlemesi çıkışı
  /platform:&lt;string&gt;            Bu kodun üstünde çalışacağı platformları sınırlar: x86,
-                               Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                               Itanium, x64, arm, anycpu32bitpreferred, or
                                anycpu. Varsayılan anycpu.
 
                         - GİRİŞ DOSYALARI -
@@ -8012,19 +8144,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
  /errorendlocation             Her hatanın bitiş konumunun satır ve sütununu
                                göster
  /preferreduilang              Tercih edilen çıkış dilini belirtin.
- /nostdlib[+|-]                Standard kitaplığa (mscorlib.dll) başvurma
- /subsystemversion:&lt;string&gt;    Bu bütünleştirilmiş kodun alt sistem sürümünü belirtin
- /lib:&lt;file list&gt;              İçinde başvuruların aranacağı ek dizinleri
-                               belirtin
- /errorreport:&lt;string&gt;         İç derleyici hatalarının nasıl işleneceğini belirtin:
-                               prompt, send, queue veya none. Varsayılan:
-                               queue.
- /appconfig:&lt;file&gt;             Bütünleştirilmiş kod bağlama ayarlarını içeren bir uygulama
-                               yapılandırma dosyası belirtin
- /moduleassemblyname:&lt;string&gt;  Bu modülün parçası olacağı bütünleştirilmiş kodun
-                               adı
- /modulename:&lt;string&gt;          Kaynak modülün adını belirtin
-</target>
+ /nostdlib[+|-]           </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
@@ -9094,177 +9214,52 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_DefaultInSwitch">
         <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">'default' varsayılan sabit değeri bir case sabiti olarak geçerli değil. Uygun olan başka bir sabit değeri (ör. '0' veya 'null') kullanın. Varsayılan etiketi yazmak istediyseniz, 'case' olmadan 'default:' kullanın.</target>
+        <target state="new">A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
-        <target state="translated">'default' varsayılan sabit değeri bir desen olarak geçerli değil. Uygun olan başka bir sabit değeri (ör. '0' veya 'null') kullanın. Tüm öğeleri eşleştirmek için 'var _' atma desenini kullanın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InDynamicMethodArg">
-        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
-        <target state="translated">'in' değiştiricisine sahip bağımsız değişkenler dinamik olarak dağıtılan ifadelerde kullanılamaz.</target>
+        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
         <source>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</source>
-        <target state="translated">Bir özellikte 'System.Runtime.CompilerServices.FixedBuffer' özniteliğini kullanmayın</target>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion7_3">
         <source>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</source>
-        <target state="translated">'{0}' özelliği C# 7.3'te kullanılamaz. Lütfen {1} veya daha yüksek bir dil sürümü kullanın.</target>
+        <target state="new">Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable">
         <source>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</source>
-        <target state="translated">Otomatik özelliklerdeki alan hedefli öznitelikler, {0} dil sürümünde desteklenmez. Lütfen {1} veya daha yüksek bir dil sürümü kullanın.</target>
+        <target state="new">Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable_Title">
         <source>Field-targeted attributes on auto-properties are not supported in this version of the language.</source>
-        <target state="translated">Otomatik özelliklerdeki alan hedefli öznitelikler, bu dil sürümünde desteklenmez.</target>
+        <target state="new">Field-targeted attributes on auto-properties are not supported in this version of the language.</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureRefConditional">
-        <source>ref conditional expression</source>
-        <target state="translated">ref koşullu ifadesi</target>
+      <trans-unit id="IDS_FeatureAsyncStreams">
+        <source>async streams</source>
+        <target state="new">async streams</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
-        <target state="translated">'{0}' bir __arglist parametresine sahip olduğundan '{2}' türünde '{1}' arabirim üyesini uygulayamıyor.</target>
+      <trans-unit id="ERR_NoConvToIAsyncDisp">
+        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'</source>
+        <target state="new">'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureTupleEquality">
-        <source>tuple equality</source>
-        <target state="translated">demet eşitliği</target>
+      <trans-unit id="ERR_BadGetAsyncEnumerator">
+        <source>Asynchronous foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</source>
+        <target state="new">Asynchronous foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_TupleSizesMismatchForBinOps">
-        <source>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</source>
-        <target state="translated">== veya != işlecinin işleneni olarak kullanılan demet türlerinin kardinalitesi eşleşmelidir. Ancak bu işleç, solda {0} ve sağda {1} demet kardinalite türlerine sahip olmalıdır.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InvalidHashAlgorithmName">
-        <source>Invalid hash algorithm name: '{0}'</source>
-        <target state="translated">Geçersiz karma algoritması adı: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
-        <source>An expression tree may not contain a tuple == or != operator</source>
-        <target state="translated">İfade ağacı, demetin == veya != işlecini içeremez.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
-        <source>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
-        <target state="translated">Demetin == veya != işlecinin diğer tarafında farklı bir ad belirtildiğinden ya da bir ad belirtilmediğinden '{0}' demet öğesi adı yok sayıldı.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_TupleBinopLiteralNameMismatch_Title">
-        <source>The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
-        <target state="translated">Demetin == veya != işlecinin diğer tarafında farklı bir ad belirtildiğinden ya da bir ad belirtilmediğinden demet öğesi adı yok sayıldı.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnmanagedBoundWithClass">
-        <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
-        <target state="translated">'{0}': hem bir kısıtlama sınıfı hem de 'unmanaged' kısıtlaması belirtilemez</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureRefReassignment">
-        <source>ref reassignment</source>
-        <target state="translated">ref yeniden ataması</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureRefFor">
-        <source>ref for-loop variables</source>
-        <target state="translated">ref for-loop değişkenleri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureRefForEach">
-        <source>ref foreach iteration variables</source>
-        <target state="translated">ref foreach yineleme değişkenleri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureEnumGenericTypeConstraint">
-        <source>enum generic type constraints</source>
-        <target state="translated">enum genel tür kısıtlamaları</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
-        <source>delegate generic type constraints</source>
-        <target state="translated">delegate genel tür kısıtlamaları</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
-        <source>unmanaged generic type constraints</source>
-        <target state="translated">unmanaged genel tür kısıtlamaları</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NewBoundWithUnmanaged">
-        <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
-        <target state="translated">'new()' kısıtlaması, 'unmanaged' kısıtlamasıyla kullanılamaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnmanagedConstraintMustBeFirst">
-        <source>The 'unmanaged' constraint must come before any other constraints</source>
-        <target state="translated">'unmanaged' kısıtlaması diğer kısıtlamalardan önce gelmelidir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
-        <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="translated">'{0}' genel türü veya yönteminde '{1}' parametresi olarak kullanılabilmesi için '{2}' türünün, herhangi bir iç içe geçme düzeyindeki tüm alanlarla birlikte null yapılamayan bir değer türü olması gerekir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ConWithUnmanagedCon">
-        <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
-        <target state="translated">'{1}' tür parametresinde 'unmanaged' kısıtlaması olduğundan '{1}', '{0}' için kısıtlama olarak kullanılamaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureStackAllocInitializer">
-        <source>stackalloc initializer</source>
-        <target state="translated">stackalloc başlatıcı</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InvalidStackAllocArray">
-        <source>"Invalid rank specifier: expected ']'</source>
-        <target state="translated">"IGeçersiz sıra belirticisi: ']' bekleniyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
-        <source>declaration of expression variables in member initializers and queries</source>
-        <target state="translated">üye başlatıcılarda ve sorgularda ifade değişkenlerinin bildirimi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExprCannotBeFixed">
-        <source>The given expression cannot be used in a fixed statement</source>
-        <target state="translated">Belirtilen ifade, fixed deyiminde kullanılamıyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureExtensibleFixedStatement">
-        <source>extensible fixed statement</source>
-        <target state="translated">genişletilebilir fixed deyimi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
-        <source>indexing movable fixed buffers</source>
-        <target state="translated">taşınabilir sabit arabellekler dizine alınıyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InvalidObjectCreation">
-        <source>Invalid object creation</source>
-        <target state="translated">Geçersiz nesne oluşturma</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FTL_InvalidInputFileName">
-        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_CantUseInOrOutInArglist">
-        <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
-        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+      <trans-unit id="ERR_MultipleIAsyncEnumOfT">
+        <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
+        <target state="new">Asynchronous foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</target>
         <note />
       </trans-unit>
     </body>
