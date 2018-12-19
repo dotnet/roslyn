@@ -13,10 +13,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// <remarks>It's bad if tainted data reaches a sink.</remarks>
     internal sealed class SinkInfo : ITaintedDataInfo, IEquatable<SinkInfo>
     {
-        public SinkInfo(string fullTypeName, SinkKind sinkKind, bool isInterface, bool isAnyStringParameterInConstructorASink, ImmutableHashSet<string> sinkProperties, ImmutableDictionary<string, ImmutableHashSet<string>> sinkMethodParameters)
+        public SinkInfo(string fullTypeName, ImmutableHashSet<SinkKind> sinkKinds, bool isInterface, bool isAnyStringParameterInConstructorASink, ImmutableHashSet<string> sinkProperties, ImmutableDictionary<string, ImmutableHashSet<string>> sinkMethodParameters)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
-            SinkKind = sinkKind;
+            SinkKinds = sinkKinds ?? throw new ArgumentNullException(nameof(sinkKinds));
             IsInterface = isInterface;
             IsAnyStringParameterInConstructorASink = isAnyStringParameterInConstructorASink;
             SinkProperties = sinkProperties ?? throw new ArgumentNullException(nameof(sinkProperties));
@@ -31,7 +31,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Type of sink.
         /// </summary>
-        public SinkKind SinkKind { get; }
+        public ImmutableHashSet<SinkKind> SinkKinds { get; }
 
         /// <summary>
         /// Indicates this sink type is an interface.
@@ -58,7 +58,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return HashUtilities.Combine(this.SinkProperties,
                 HashUtilities.Combine(this.SinkMethodParameters,
                 HashUtilities.Combine(StringComparer.Ordinal.GetHashCode(this.FullTypeName),
-                HashUtilities.Combine(this.SinkKind.GetHashCode(),
+                HashUtilities.Combine(this.SinkKinds,
                 HashUtilities.Combine(this.IsInterface.GetHashCode(),
                 this.IsAnyStringParameterInConstructorASink.GetHashCode())))));
         }
@@ -73,7 +73,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             return other != null
                 && this.FullTypeName == other.FullTypeName
-                && this.SinkKind == other.SinkKind
+                && this.SinkKinds == other.SinkKinds
                 && this.IsInterface == other.IsInterface
                 && this.IsAnyStringParameterInConstructorASink == other.IsAnyStringParameterInConstructorASink
                 && this.SinkProperties == other.SinkProperties
