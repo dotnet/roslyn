@@ -3852,10 +3852,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Dim fullDecl = Me.GetFullDeclaration(declaration)
 
                 ' special handling for replacing at location of a sub-declaration
-                If fullDecl IsNot declaration Then
+                If fullDecl IsNot declaration AndAlso fullDecl.IsKind(newFullDecl.Kind) Then
 
                     ' try to replace inline if possible
-                    If fullDecl.IsKind(newFullDecl.Kind) AndAlso GetDeclarationCount(newFullDecl) = 1 Then
+                    If GetDeclarationCount(newFullDecl) = 1 Then
                         Dim newSubDecl = Me.GetSubDeclarations(newFullDecl)(0)
                         If AreInlineReplaceableSubDeclarations(declaration, newSubDecl) Then
                             Return MyBase.ReplaceNode(root, declaration, newSubDecl)

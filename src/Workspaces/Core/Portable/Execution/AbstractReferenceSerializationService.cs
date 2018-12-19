@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Execution
             throw ExceptionUtilities.UnexpectedValue(reference.GetType());
         }
 
-        public Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
+        public Checksum CreateChecksum(AnalyzerReference reference, bool usePathFromAssembly, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 switch (reference)
                 {
                     case AnalyzerFileReference file:
-                        WriteAnalyzerFileReferenceMvid(file, writer, cancellationToken);
+                        WriteAnalyzerFileReferenceMvid(file, writer, usePathFromAssembly, cancellationToken);
                         break;
 
                     case UnresolvedAnalyzerReference unresolved:
@@ -231,11 +231,22 @@ namespace Microsoft.CodeAnalysis.Execution
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        private void WriteAnalyzerFileReferenceMvid(AnalyzerFileReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        private void WriteAnalyzerFileReferenceMvid(
+            AnalyzerFileReference file, ObjectWriter writer, bool usePathFromAssembly, CancellationToken cancellationToken)
         {
             try
             {
-                using (var stream = new FileStream(reference.FullPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // use actual assembly path rather than one returned from reference.FullPath if asked (usePathFromAssembly)
+                // 2 can be different if analyzer loader used for the reference do something like shadow copying
+                // otherwise, use reference.FullPath. we use usePathFromAssembly == false for vsix installed analyzer dlls
+                // to make sure we don't load them up front and they don't get shadow copied.
+                // TryGetAnalyzerAssemblyPath will load the given assembly to find out actual location where CLR
+                // picked up the dll
+                var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
+
+                using (var stream = new FileStream(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
                 using (var peReader = new PEReader(stream))
                 {
                     var metadataReader = peReader.GetMetadataReader();
@@ -250,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 // we can't load the assembly analyzer file reference is pointing to.
                 // rather than crashing, handle it gracefully
-                WriteUnresolvedAnalyzerReferenceTo(reference, writer);
+                WriteUnresolvedAnalyzerReferenceTo(file, writer);
             }
         }
 

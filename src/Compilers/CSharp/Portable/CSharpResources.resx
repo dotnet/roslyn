@@ -3630,7 +3630,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</value>
   </data>
   <data name="ERR_BadAsyncReturn" xml:space="preserve">
-    <value>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, or IAsyncEnumerable&lt;T&gt;</value>
+    <value>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</value>
   </data>
   <data name="ERR_CantReturnVoid" xml:space="preserve">
     <value>Cannot return an expression of type 'void'</value>
@@ -4284,9 +4284,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_Text" xml:space="preserve">
     <value>&lt;text&gt;</value>
   </data>
-  <data name="IDS_InjectedDeclaration" xml:space="preserve">
-    <value>injected declaration</value>
-  </data>
   <data name="IDS_FeatureNullPropagatingOperator" xml:space="preserve">
     <value>null propagating operator</value>
   </data>
@@ -4640,6 +4637,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -errorendlocation             Output line and column of the end location of
                               each error
 -preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
 -nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
 -subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
 -lib:&lt;file list&gt;              Specify additional directories to search in for
@@ -5430,12 +5428,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</value>
   </data>
-  <data name="WRN_MissingNonNullTypesContext" xml:space="preserve">
-    <value>The suppression operator (!) should be used in code within a '#nullable' context.</value>
-  </data>
-  <data name="WRN_MissingNonNullTypesContext_Title" xml:space="preserve">
-    <value>The suppression operator (!) should be used in code within a '#nullable' context.</value>
-  </data>
   <data name="WRN_CantInferNullabilityOfMethodTypeArgs" xml:space="preserve">
     <value>The nullability of type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</value>
   </data>
@@ -5670,11 +5662,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
-  <data name="ERR_ExplicitNonNullTypesAttribute" xml:space="preserve">
-    <value>Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.</value>
-  </data>
   <data name="ERR_NullableDirectiveQualifierExpected" xml:space="preserve">
     <value>Expected enable or disable</value>
+  </data>
+  <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
+    <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
+  </data>
+  <data name="ERR_ElseCannotStartStatement" xml:space="preserve">
+    <value>'else' cannot start a statement.</value>
+  </data>
+  <data name="ERR_ExpressionTreeCantContainNullCoalescingAssignment" xml:space="preserve">
+    <value>An expression tree may not contain a null coalescing assignment</value>
   </data>
   <data name="ERR_SwitchGoverningExpressionRequiresParens" xml:space="preserve">
     <value>Parentheses are required around the switch governing expression.</value>

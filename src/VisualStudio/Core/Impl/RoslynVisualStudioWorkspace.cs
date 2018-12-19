@@ -29,15 +29,19 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly Lazy<ProjectCodeModelFactory> _projectCodeModelFactory;
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
-            : base(exportProvider, AsyncServiceProvider.GlobalProvider) // TODO: switch to the cleaner MEF import
+            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
+            Lazy<ProjectCodeModelFactory> projectCodeModelFactory,
+            [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
+            : base(exportProvider, asyncServiceProvider)
         {
             _streamingPresenters = streamingPresenters;
+            _projectCodeModelFactory = projectCodeModelFactory;
 
             foreach (var providerFactory in documentOptionsProviderFactories)
             {
@@ -52,28 +56,21 @@ namespace Microsoft.VisualStudio.LanguageServices
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-/*
-
-            var project = DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
+            var project = CurrentSolution.GetProject(documentId.ProjectId);
             if (project == null)
             {
                 throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
             }
 
-            var document = project.GetDocumentOrAdditionalDocument(documentId);
-            if (document == null)
+            var documentFilePath = GetFilePath(documentId);
+            if (documentFilePath == null)
             {
                 throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
             }
 
-            if (project.ProjectCodeModel != null)
-            {
-                return project.ProjectCodeModel.GetOrCreateFileCodeModel(document.FilePath);
-            }
+            IProjectCodeModel projectCodeModel = _projectCodeModelFactory.Value.GetProjectCodeModel(project.Id);
 
-    */
-
-            return null;
+            return projectCodeModel.GetOrCreateFileCodeModel(documentFilePath);
         }
 
         internal override IInvisibleEditor OpenInvisibleEditor(DocumentId documentId)

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// "this" parameter is captured if a reference to "this", "base" or an instance field is encountered.
     /// Variables used in finally also need to be captured if there is a yield in the corresponding try block.
     /// </remarks>
-    internal sealed class IteratorAndAsyncCaptureWalker : DataFlowPass
+    internal sealed class IteratorAndAsyncCaptureWalker : DefiniteAssignmentPass
     {
         // In Release builds we hoist only variables (locals and parameters) that are captured. 
         // This set will contain such variables after the bound tree is visited.

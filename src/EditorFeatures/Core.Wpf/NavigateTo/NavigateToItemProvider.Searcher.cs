@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 if (_searchCurrentDocument)
                 {
                     var documentService = _solution.Workspace.Services.GetService<IDocumentTrackingService>();
-                    var activeId = documentService.GetActiveDocument();
+                    var activeId = documentService.TryGetActiveDocument();
                     _currentDocument = activeId != null ? _solution.GetDocument(activeId) : null;
                 }
             }

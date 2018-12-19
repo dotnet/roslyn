@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : ImmutableArray<FinderLocation>.Empty;
 
             var indexerCrefReferences = symbol.IsIndexer
-                ? await FindIndexerCrefReferencesAsync(symbol, document, semanticModel, options, cancellationToken)
+                ? await FindIndexerCrefReferencesAsync(symbol, document, semanticModel, options, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<FinderLocation>.Empty;
 
             return nameReferences.Concat(forEachReferences)

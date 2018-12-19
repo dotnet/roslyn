@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         // the version of the workspace this solution is from
         private readonly int _workspaceVersion;
 
-        private readonly SolutionInfo _solutionInfo;
+        private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
         private readonly SolutionServices _solutionServices;
         private readonly IReadOnlyList<ProjectId> _projectIds;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
             BranchId branchId,
             int workspaceVersion,
             SolutionServices solutionServices,
-            SolutionInfo solutionInfo,
+            SolutionInfo.SolutionAttributes solutionAttributes,
             IEnumerable<ProjectId> projectIds,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis
         {
             _branchId = branchId;
             _workspaceVersion = workspaceVersion;
+            _solutionAttributes = solutionAttributes;
             _solutionServices = solutionServices;
             _projectIds = projectIds.ToImmutableReadOnlyListOrEmpty();
             _projectIdToProjectStateMap = idToProjectStateMap;
@@ -67,12 +68,6 @@ namespace Microsoft.CodeAnalysis
             _linkedFilesMap = linkedFilesMap;
             _dependencyGraph = dependencyGraph;
             _lazyLatestProjectVersion = lazyLatestProjectVersion;
-
-            // ownership of information on project has moved to solution state. clear out projectInfo the state is
-            // holding on. otherwise, these information will be held onto unnecesarily by solutionInfo even after
-            // the info has changed by ProjectState.
-            // we hold onto the info so that we don't need to duplicate all information info already has in the state
-            _solutionInfo = solutionInfo.WithProjects(ImmutableArray<ProjectInfo>.Empty);
 
             // when solution state is changed, we re-calcuate its checksum
             _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
@@ -82,12 +77,12 @@ namespace Microsoft.CodeAnalysis
 
         public SolutionState(
             Workspace workspace,
-            SolutionInfo info)
+            SolutionInfo.SolutionAttributes solutionAttributes)
             : this(
                 workspace.PrimaryBranchId,
                 workspaceVersion: 0,
                 solutionServices: new SolutionServices(workspace),
-                solutionInfo: info,
+                solutionAttributes: solutionAttributes,
                 projectIds: null,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
@@ -123,7 +118,7 @@ namespace Microsoft.CodeAnalysis
             return latestVersion;
         }
 
-        public SolutionInfo SolutionInfo => _solutionInfo;
+        public SolutionInfo.SolutionAttributes SolutionAttributes => _solutionAttributes;
 
         public ImmutableDictionary<ProjectId, ProjectState> ProjectStates => _projectIdToProjectStateMap;
 
@@ -152,17 +147,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The Id of the solution. Multiple solution instances may share the same Id.
         /// </summary>
-        public SolutionId Id => _solutionInfo.Id;
+        public SolutionId Id => _solutionAttributes.Id;
 
         /// <summary>
         /// The path to the solution file or null if there is no solution file.
         /// </summary>
-        public string FilePath => _solutionInfo.FilePath;
+        public string FilePath => _solutionAttributes.FilePath;
 
         /// <summary>
         /// The solution version. This equates to the solution file's version.
         /// </summary>
-        public VersionStamp Version => _solutionInfo.Version;
+        public VersionStamp Version => _solutionAttributes.Version;
 
         /// <summary>
         /// A list of all the ids for all the projects contained by the solution.
@@ -179,7 +174,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private SolutionState Branch(
-            SolutionInfo solutionInfo = null,
+            SolutionInfo.SolutionAttributes solutionAttributes = null,
             IEnumerable<ProjectId> projectIds = null,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap = null,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap = null,
@@ -189,7 +184,7 @@ namespace Microsoft.CodeAnalysis
         {
             var branchId = GetBranchId();
 
-            solutionInfo = solutionInfo ?? _solutionInfo;
+            solutionAttributes = solutionAttributes ?? _solutionAttributes;
             projectIds = projectIds ?? _projectIds;
             idToProjectStateMap = idToProjectStateMap ?? _projectIdToProjectStateMap;
             projectIdToTrackerMap = projectIdToTrackerMap ?? _projectIdToTrackerMap;
@@ -198,7 +193,7 @@ namespace Microsoft.CodeAnalysis
             lazyLatestProjectVersion = lazyLatestProjectVersion ?? _lazyLatestProjectVersion;
 
             if (branchId == _branchId &&
-                solutionInfo == _solutionInfo &&
+                solutionAttributes == _solutionAttributes &&
                 projectIds == _projectIds &&
                 idToProjectStateMap == _projectIdToProjectStateMap &&
                 projectIdToTrackerMap == _projectIdToTrackerMap &&
@@ -214,7 +209,7 @@ namespace Microsoft.CodeAnalysis
                 branchId,
                 _workspaceVersion,
                 _solutionServices,
-                solutionInfo,
+                solutionAttributes,
                 projectIds,
                 idToProjectStateMap,
                 projectIdToTrackerMap,
@@ -239,7 +234,7 @@ namespace Microsoft.CodeAnalysis
                 branchId,
                 workspaceVersion,
                 services,
-                _solutionInfo,
+                _solutionAttributes,
                 _projectIds,
                 _projectIdToProjectStateMap,
                 _projectIdToTrackerMap,
@@ -414,7 +409,7 @@ namespace Microsoft.CodeAnalysis
         private SolutionState AddProject(ProjectId projectId, ProjectState projectState)
         {
             // changed project list so, increment version.
-            var newSolutionInfo = _solutionInfo.WithVersion(this.Version.GetNewerVersion());
+            var newSolutionAttributes = _solutionAttributes.WithVersion(this.Version.GetNewerVersion());
 
             var newProjectIds = _projectIds.ToImmutableArray().Add(projectId);
             var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
@@ -428,7 +423,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var newState in newStateMap)
             {
                 foreach (var projectReference in newState.Value.ProjectReferences)
-                { 
+                {
                     if (projectReference.ProjectId == projectId)
                     {
                         newDependencyGraph = newDependencyGraph.WithAdditionalProjectReferences(newState.Key, ImmutableArray.Create(projectId));
@@ -436,12 +431,12 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
-            
+
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
             var newLinkedFilesMap = CreateLinkedFilesMapWithAddedProject(newStateMap[projectId]);
 
             return this.Branch(
-                solutionInfo: newSolutionInfo,
+                solutionAttributes: newSolutionAttributes,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
@@ -526,7 +521,7 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             // changed project list so, increment version.
-            var newSolutionInfo = _solutionInfo.WithVersion(this.Version.GetNewerVersion());
+            var newSolutionAttributes = _solutionAttributes.WithVersion(this.Version.GetNewerVersion());
 
             var newProjectIds = _projectIds.ToImmutableArray().Remove(projectId);
             var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
@@ -535,7 +530,7 @@ namespace Microsoft.CodeAnalysis
             var newLinkedFilesMap = CreateLinkedFilesMapWithRemovedProject(_projectIdToProjectStateMap[projectId]);
 
             return this.Branch(
-                solutionInfo: newSolutionInfo,
+                solutionAttributes: newSolutionAttributes,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap.Remove(projectId),
@@ -1133,7 +1128,7 @@ namespace Microsoft.CodeAnalysis
 
                 var newProjectState = oldProject.AddDocuments(newDocumentStatesForProject);
 
-                newSolutionState = newSolutionState.ForkProject(newProjectState, 
+                newSolutionState = newSolutionState.ForkProject(newProjectState,
                     CompilationTranslationAction.AddDocuments(newDocumentStatesForProject),
                     newLinkedFilesMap: CreateLinkedFilesMapWithAddedDocuments(newProjectState, documentInfosInProject.Select(d => d.Id)));
             }

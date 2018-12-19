@@ -1554,17 +1554,10 @@ namespace System
             {
             }
 
-            protected override void EnsureNonNullTypesAttributeExists()
-                => throw ExceptionUtilities.Unreachable;
-
-            protected override void EnsureEmbeddedAttributeExists()
-                => throw ExceptionUtilities.Unreachable;
-
-            protected override bool InjectedSymbolsAreFrozen
-                => true;
-
-            protected override ImmutableArray<NamedTypeSymbol> GetInjectedTypes(DiagnosticBag diagnostics)
-                => ImmutableArray<NamedTypeSymbol>.Empty;
+            internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
+            {
+                throw new NotImplementedException();
+            }
 
             AssemblyIdentity IAssemblyReference.Identity => ((IAssemblyReference)_builder).Identity;
 

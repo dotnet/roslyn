@@ -29,13 +29,13 @@ namespace RunTests
             ExtraArguments = extraArguments;
         }
 
-        internal AssemblyInfo(string assemblyPath, bool useHmtl)
+        internal AssemblyInfo(string assemblyPath, string targetFrameworkMoniker, string architecture, bool useHmtl)
         {
             AssemblyPath = assemblyPath;
             DisplayName = Path.GetFileName(assemblyPath);
 
             var suffix = useHmtl ? "html" : "xml";
-            ResultsFileName = $"{DisplayName}.{suffix}";
+            ResultsFileName = $"{DisplayName}_{targetFrameworkMoniker}_{architecture}.{suffix}";
             ExtraArguments = string.Empty;
         }
 
@@ -235,7 +235,7 @@ namespace RunTests
 
         public AssemblyInfo CreateAssemblyInfo(string assemblyPath)
         {
-            return new AssemblyInfo(assemblyPath, _options.UseHtml);
+            return new AssemblyInfo(assemblyPath, _options.TargetFrameworkMoniker, _options.Test64 ? "x64" : "x86", _options.UseHtml);
         }
 
         private static List<TypeInfo> GetTypeInfoList(string assemblyPath)

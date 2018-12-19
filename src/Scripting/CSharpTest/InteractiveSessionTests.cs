@@ -1598,9 +1598,9 @@ new List<ArgumentException>()
                 globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
 
             scriptCompilation.VerifyDiagnostics(
-                // (1,8): error CS0234: The type or namespace name 'Scripting' does not exist in the namespace 'Microsoft.CodeAnalysis' (are you missing an assembly reference?)
+                // (1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)
                 // nameof(Microsoft.CodeAnalysis.Scripting)
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Microsoft.CodeAnalysis.Scripting").WithArguments("Scripting", "Microsoft.CodeAnalysis").WithLocation(1, 8));
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Microsoft.CodeAnalysis").WithArguments("CodeAnalysis", "Microsoft").WithLocation(1, 8));
 
             string corAssemblyName = typeof(object).GetTypeInfo().Assembly.GetName().Name;
             string hostObjectAssemblyName = scriptCompilation.ScriptCompilationInfo.GlobalsType.GetTypeInfo().Assembly.GetName().Name;

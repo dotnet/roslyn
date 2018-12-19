@@ -125,7 +125,7 @@ ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 y)) (OperationK
   IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> x + y')
     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x + y')
       ReturnedValue: 
-        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
           Left: 
             IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
           Right: 
@@ -159,7 +159,7 @@ ILocalFunctionOperation (Symbol: System.Int32 Local3(System.Int32 p1)) (Operatio
   IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> x + Local2(p1)')
     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x + Local2(p1)')
       ReturnedValue: 
-        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + Local2(p1)')
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + Local2(p1)')
           Left: 
             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
           Right: 
@@ -200,7 +200,7 @@ ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 p1)) (Operation
             null
           Arguments(1):
               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument, Type: null) (Syntax: 'x + p1')
-                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + p1')
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + p1')
                   Left: 
                     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
                   Right: 
@@ -251,7 +251,7 @@ ILocalFunctionOperation (Symbol: System.Threading.Tasks.Task<System.Int32> Local
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return x + p1;')
       ReturnedValue: 
-        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + p1')
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + p1')
           Left: 
             IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
           Right: 
