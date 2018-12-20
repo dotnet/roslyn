@@ -136,14 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             }
 
             private int NormalizedWidth(ImmutableArray<SyntaxNodeOrToken> chunk)
-            {
-                var width = 0;
-                foreach (var syntax in chunk)
-                {
-                    width += syntax.IsNode ? syntax.AsNode().Width() : syntax.AsToken().Width();
-                }
-                return width;
-            }
+                => chunk.Sum(s => s.IsNode ? s.AsNode().Width() : s.AsToken().Width());
 
             private ImmutableArray<Edit> GetUnwrapEdits()
             {
