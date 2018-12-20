@@ -37,9 +37,23 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
         private class CallCodeActionComputer :
             AbstractCodeActionComputer<AbstractCallWrapper>
         {
+            /// <summary>
+            /// The chunks to normalize and wrap.  The first chunk will be normalized,
+            /// but not wrapped.  Successive chunks will be normalized and wrapped 
+            /// appropriately depending on if this is wrap-each or wrap-long.
+            /// </summary>
             private readonly ImmutableArray<CallChunk> _callChunks;
 
+            /// <summary>
+            /// Trivia to place before a call-chunk when it it wrapped.
+            /// </summary>
             private readonly SyntaxTriviaList _indentationTrivia;
+
+            /// <summary>
+            /// trivia to place at the end of a node prior to a chunk that is wrapped.
+            /// For C# this will just be a newline.  For VB this will include a line-
+            /// continuation character.
+            /// </summary>
             private readonly SyntaxTriviaList _newlineBeforeOperatorTrivia;
 
             public CallCodeActionComputer(
@@ -47,14 +61,18 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
                 Document document,
                 SourceText originalSourceText,
                 DocumentOptionSet options,
-                ImmutableArray<CallChunk> chunks,
+                ImmutableArray<CallChunk> callChunks,
                 CancellationToken cancellationToken)
                 : base(service, document, originalSourceText, options, cancellationToken)
             {
-                _callChunks = chunks;
+                _callChunks = callChunks;
 
                 var generator = SyntaxGenerator.GetGenerator(document);
-                var indentationString = OriginalSourceText.GetOffset(chunks[0].MemberChunks[0].DotToken.SpanStart)
+
+                // Both [0] indices are safe here.  We can only get here if we had more than
+                // two call-chunks to wrap.  And each call-chunk is required to have at least
+                // one member-name-chunk.
+                var indentationString = OriginalSourceText.GetOffset(callChunks[0].MemberChunks[0].DotToken.SpanStart)
                                                           .CreateIndentationString(UseTabs, TabSize);
 
                 _indentationTrivia = new SyntaxTriviaList(generator.Whitespace(indentationString));
@@ -92,6 +110,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
                 // that chunk.
                 var position = _indentationTrivia.FullSpan.Length + _callChunks[0].NormalizedLength();
 
+                // Now go through all subsequence call chunks and normalize them all.
+                // Also, wrap any we encounter if we go past the specified wrapping
+                // column
                 for (var i = 1; i < _callChunks.Length; i++)
                 {
                     var callChunk = _callChunks[i];
@@ -102,7 +123,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
                         // on the next line.
                         position = _indentationTrivia.FullSpan.Length;
 
-                        // First, add a newline before the very first member chunk.
+                        // First, add a newline at the end of the previous arglist, and then
+                        // indent the very first member chunk appropriately.
                         result.Add(Edit.UpdateBetween(
                             _callChunks[i - 1].ArgumentList, _newlineBeforeOperatorTrivia,
                             _indentationTrivia, callChunk.MemberChunks[0].DotToken));
@@ -135,11 +157,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
                 // Now, handle all successive call chunks.
                 for (var i = 1; i < _callChunks.Length; i++)
                 {
-                    var callChunk = _callChunks[i];
-
                     // In successive call chunks we want to delete all the spacing
-                    // in the member chunks.
-                    DeleteAllSpacesInCallChunk(result, callChunk);
+                    // in the member chunks unilaterally.
+                    DeleteAllSpacesInCallChunk(result, _callChunks[i]);
                 }
 
                 return result.ToImmutableAndFree();
