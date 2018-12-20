@@ -548,20 +548,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return pointsToAbstractValue;
             }
 
-            public override PointsToAbstractValue VisitIsPattern(IIsPatternOperation operation, object argument)
-            {
-                // TODO: Handle patterns
-                // https://github.com/dotnet/roslyn-analyzers/issues/1571
-                return base.VisitIsPattern(operation, argument);
-            }
-
-            public override PointsToAbstractValue VisitDeclarationPattern(IDeclarationPatternOperation operation, object argument)
-            {
-                // TODO: Handle patterns
-                // https://github.com/dotnet/roslyn-analyzers/issues/1571
-                return base.VisitDeclarationPattern(operation, argument);
-            }
-
             public override PointsToAbstractValue VisitInterpolatedString(IInterpolatedStringOperation operation, object argument)
             {
                 var _ = base.VisitInterpolatedString(operation, argument);
@@ -730,16 +716,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 {
                     if (TryInferConversion(operation, out bool alwaysSucceed, out bool alwaysFail))
                     {
-                        Debug.Assert(!alwaysSucceed || !alwaysFail);
-                        if (alwaysFail)
-                        {
-                            value = value.MakeNull();
-                        }
-                        else if (operation.IsTryCast && !alwaysSucceed)
-                        {
-                            // TryCast which may or may not succeed.
-                            value = value.MakeMayBeNull();
-                        }
+                        value = InferConversionCommon(alwaysSucceed, alwaysFail, value, operation.IsTryCast);
                     }
                     else
                     {
@@ -748,6 +725,39 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
 
                 return value;
+            }
+
+            public override PointsToAbstractValue GetAssignedValueForPattern(IIsPatternOperation operation, PointsToAbstractValue operandValue)
+            {
+                if (operandValue.NullState == NullAbstractValue.NotNull)
+                {
+                    if (TryInferConversion(operation, out bool alwaysSucceed, out bool alwaysFail))
+                    {
+                        return InferConversionCommon(alwaysSucceed, alwaysFail, operandValue, isTryCast: true);
+                    }
+                    else
+                    {
+                        return operandValue.MakeMayBeNull();
+                    }
+                }
+
+                return base.GetAssignedValueForPattern(operation, operandValue);
+            }
+
+            private static PointsToAbstractValue InferConversionCommon(bool alwaysSucceed, bool alwaysFail, PointsToAbstractValue operandValue, bool isTryCast)
+            {
+                Debug.Assert(!alwaysSucceed || !alwaysFail);
+                if (alwaysFail)
+                {
+                    return operandValue.MakeNull();
+                }
+                else if (isTryCast && !alwaysSucceed)
+                {
+                    // TryCast which may or may not succeed.
+                    return operandValue.MakeMayBeNull();
+                }
+
+                return operandValue;
             }
 
             public override PointsToAbstractValue VisitFlowCapture(IFlowCaptureOperation operation, object argument)

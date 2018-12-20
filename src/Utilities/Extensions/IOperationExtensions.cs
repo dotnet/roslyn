@@ -578,5 +578,10 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsWithinLambdaOrLocalFunction(this IOperation operation)
             => operation.GetAncestor<IAnonymousFunctionOperation>(OperationKind.AnonymousFunction) != null ||
                operation.GetAncestor<ILocalFunctionOperation>(OperationKind.LocalFunction) != null;
+
+        public static ITypeSymbol GetPatternType(this IPatternOperation pattern)
+            => pattern is IDeclarationPatternOperation declarationPattern ?
+                ((ILocalSymbol)declarationPattern.DeclaredSymbol).Type :
+                pattern.Type;
     }
 }

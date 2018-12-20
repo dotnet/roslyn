@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
@@ -342,26 +343,49 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             {
                 var operandValue = Visit(operation.Operand, argument);
 
+                if (TryInferConversion(operation, out bool alwaysSucceed, out bool alwaysFail) &&
+                    ConversionAlwaysSucceeds(alwaysSucceed, alwaysFail, operation.IsTryCast, operation.Type))
+                {
+                    return operandValue;
+                }
+
+                return CopyAbstractValue.Unknown;
+            }
+
+            public override CopyAbstractValue GetAssignedValueForPattern(IIsPatternOperation operation, CopyAbstractValue operandValue)
+            {
                 if (TryInferConversion(operation, out bool alwaysSucceed, out bool alwaysFail))
                 {
-                    Debug.Assert(!alwaysSucceed || !alwaysFail);
-                    
-                    // Flow the copy value of the operand to the converted operation if conversion may succeed.
-                    if (!alwaysFail)
+                    var targetType = operation.Pattern.GetPatternType();
+                    if (ConversionAlwaysSucceeds(alwaysSucceed, alwaysFail, isTryCast: true, targetType: targetType))
                     {
-                        // For try cast, also ensure conversion always succeeds before flowing copy value.
-                        // TODO: For direct cast, we should check if conversion is implicit.
-                        // For now, we only flow values for reference type direct cast conversions.
-                        if (operation.IsTryCast && alwaysSucceed ||
-                            !operation.IsTryCast && operation.Type.IsReferenceType)
-                        {
-                            return operandValue;
-                        }
+                        return operandValue;
                     }
                 }
 
                 return CopyAbstractValue.Unknown;
             }
+
+            private static bool ConversionAlwaysSucceeds(bool alwaysSucceed, bool alwaysFail, bool isTryCast, ITypeSymbol targetType)
+            {
+                Debug.Assert(!alwaysSucceed || !alwaysFail);
+
+                // Flow the copy value of the operand to the converted operation if conversion may succeed.
+                if (!alwaysFail)
+                {
+                    // For try cast, also ensure conversion always succeeds before flowing copy value.
+                    // TODO: For direct cast, we should check if conversion is implicit.
+                    // For now, we only flow values for reference type direct cast conversions.
+                    if (isTryCast && alwaysSucceed ||
+                        !isTryCast && targetType.IsReferenceType)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
             #endregion
         }
     }

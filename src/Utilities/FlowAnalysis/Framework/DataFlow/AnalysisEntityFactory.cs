@@ -217,6 +217,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     type = variableDeclarator.Symbol.Type;
                     break;
 
+                case IDeclarationPatternOperation declarationPattern:
+                    symbolOpt = declarationPattern.DeclaredSymbol;
+                    type = ((ILocalSymbol)symbolOpt).Type;
+                    break;
+
                 default:
                     break;
             }

@@ -736,18 +736,40 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return false;
             }
 
+            return TryInferConversion(operation.Operand, operation.Type, operation.IsTryCast, operation, out alwaysSucceed, out alwaysFail);
+        }
+
+        protected bool TryInferConversion(IIsPatternOperation operation, out bool alwaysSucceed, out bool alwaysFail)
+        {
+            var targetType = operation.Pattern.GetPatternType();
+            return TryInferConversion(operation.Value, targetType, isTryCast: true,
+                operation: operation, alwaysSucceed: out alwaysSucceed, alwaysFail: out alwaysFail);
+        }
+
+        private bool TryInferConversion(
+            IOperation sourceOperand,
+            ITypeSymbol targetType,
+            bool isTryCast,
+            IOperation operation,
+            out bool alwaysSucceed,
+            out bool alwaysFail)
+        {
+            // For direct cast, we assume the cast will always succeed.
+            alwaysSucceed = !isTryCast;
+            alwaysFail = false;
+
             // Bail out for throw expression conversion.
-            if (operation.Operand.Kind == OperationKind.Throw)
+            if (sourceOperand.Kind == OperationKind.Throw)
             {
                 return true;
             }
 
             // Analyze if cast might always succeed or fail based on points to analysis result.
-            var pointsToValue = GetPointsToAbstractValue(operation.Operand);
+            var pointsToValue = GetPointsToAbstractValue(sourceOperand);
             if (pointsToValue.Kind == PointsToAbstractValueKind.KnownLocations)
             {
                 // Bail out if we have a possible null location for direct cast.
-                if (!operation.IsTryCast && pointsToValue.Locations.Any(location => location.IsNull))
+                if (!isTryCast && pointsToValue.Locations.Any(location => location.IsNull))
                 {
                     return true;
                 }
@@ -755,12 +777,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // Infer if a cast will always fail.
                 // We are currently bailing out if an interface or type parameter is involved.
                 bool IsInterfaceOrTypeParameter(ITypeSymbol type) => type.TypeKind == TypeKind.Interface || type.TypeKind == TypeKind.TypeParameter;
-                if (!IsInterfaceOrTypeParameter(operation.Type) &&
+                if (!IsInterfaceOrTypeParameter(targetType) &&
                     pointsToValue.Locations.All(location => location.IsNull ||
                         location.IsNoLocation ||
                         (!IsInterfaceOrTypeParameter(location.LocationTypeOpt) &&
-                         !operation.Type.DerivesFrom(location.LocationTypeOpt) &&
-                         !location.LocationTypeOpt.DerivesFrom(operation.Type))))
+                         !targetType.DerivesFrom(location.LocationTypeOpt) &&
+                         !location.LocationTypeOpt.DerivesFrom(targetType))))
                 {
                     if (PredicateAnalysis)
                     {
@@ -768,7 +790,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
 
                     // We only set the alwaysFail flag for TryCast as direct casts that are guaranteed to fail will throw an exception and subsequent code will not execute.
-                    if (operation.IsTryCast)
+                    if (isTryCast)
                     {
                         alwaysFail = true;
                     }
@@ -776,8 +798,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 else
                 {
                     // Infer if a TryCast will always succeed.
-                    if (operation.IsTryCast &&
-                        pointsToValue.Locations.All(location => location.IsNoLocation || !location.IsNull && location.LocationTypeOpt.DerivesFrom(operation.Type)))
+                    if (isTryCast &&
+                        pointsToValue.Locations.All(location => location.IsNoLocation || !location.IsNull && location.LocationTypeOpt.DerivesFrom(targetType)))
                     {
                         // TryCast which is guaranteed to succeed, and potentially can be changed to DirectCast.
                         if (PredicateAnalysis)
@@ -828,7 +850,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 operation.Kind == OperationKind.IsNull ||
                 operation.Kind == OperationKind.Invocation ||
                 operation.Kind == OperationKind.Argument ||
-                operation.Kind == OperationKind.FlowCaptureReference);
+                operation.Kind == OperationKind.FlowCaptureReference ||
+                operation.Kind == OperationKind.IsPattern);
 
             if (FlowBranchConditionKind == ControlFlowConditionKind.None || !IsRootOfCondition())
             {
@@ -975,6 +998,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 case IIsNullOperation isNullOperation:
                     // Predicate analysis for null checks.
                     predicateValueKind = SetValueForIsNullComparisonOperator(isNullOperation.Operand, equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue, targetAnalysisData: targetAnalysisData);
+                    break;
+
+                case IIsPatternOperation isPatternOperation:
+                    // Predicate analysis for "is pattern" checks:
+                    //  1. Non-null value check for declaration pattern, i.e. "c is D d"
+                    //  2. Equality value check for constant pattern, i.e. "x is 1"
+                    if (isPatternOperation.Pattern.Kind == OperationKind.DeclarationPattern)
+                    {
+                        predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Pattern, equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse, targetAnalysisData: targetAnalysisData);
+                    }
+                    else if (isPatternOperation.Pattern.Kind == OperationKind.ConstantPattern)
+                    {
+                        predicateValueKind = SetValueForEqualsOrNotEqualsComparisonOperator(isPatternOperation.Value, isPatternOperation.Pattern,
+                            equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue, isReferenceEquality: false, targetAnalysisData: targetAnalysisData);
+                    }
+                    else
+                    {
+                        Debug.Fail($"Unknown pattern kind '{isPatternOperation.Kind}'");
+                        predicateValueKind = PredicateValueKind.Unknown;
+                    }
+
                     break;
 
                 case IBinaryOperation binaryOperation:
@@ -2406,6 +2450,35 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var value = Visit(operation.ReturnedValue, argument);
             ProcessReturnValue(operation.ReturnedValue);
             return value;
+        }
+
+        public virtual TAbstractAnalysisValue GetAssignedValueForPattern(IIsPatternOperation operation, TAbstractAnalysisValue operandValue)
+        {
+            return operandValue;
+        }
+
+        public sealed override TAbstractAnalysisValue VisitIsPattern(IIsPatternOperation operation, object argument)
+        {
+            // "c is D d" OR "x is 1"
+            var operandValue = Visit(operation.Value, argument);
+            var _ = Visit(operation.Pattern, argument);
+
+            var patternValue = GetAssignedValueForPattern(operation, operandValue);
+
+            if (operation.Pattern is IDeclarationPatternOperation declarationPattern)
+            {
+                SetAbstractValueForAssignment(
+                    target: operation.Pattern,
+                    assignedValueOperation: operation.Value,
+                    assignedValue: patternValue);
+            }
+
+            if (PredicateAnalysis)
+            {
+                PerformPredicateAnalysis(operation);
+            }
+
+            return ValueDomain.UnknownOrMayBeValue;
         }
 
         #region Overrides for lowered IOperations
