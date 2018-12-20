@@ -203,58 +203,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Check that two nullable annotations are "compatible", which means they could be the same. Return the
         /// nullable annotation to be used as a result. Also returns through <paramref name="hadNullabilityMismatch"/>
         /// whether the caller should report a warning because there was an actual mismatch (e.g. nullable vs non-nullable).
+        /// This uses the invariant merging rules.
         /// </summary>
-        public static NullableAnnotation EnsureCompatible<T>(this NullableAnnotation a, NullableAnnotation b, T type, Func<T, bool> isPossiblyNullableReferenceTypeTypeParameter, out bool hadNullabilityMismatch)
+        public static NullableAnnotation EnsureCompatible(this NullableAnnotation a, NullableAnnotation b, out bool hadNullabilityMismatch)
         {
             Debug.Assert(a.IsSpeakable());
             Debug.Assert(b.IsSpeakable());
 
-            hadNullabilityMismatch = false;
-            if (a == b)
+            hadNullabilityMismatch = (a == NullableAnnotation.Annotated && b == NullableAnnotation.NotAnnotated) ||
+                (a == NullableAnnotation.NotAnnotated && b == NullableAnnotation.Annotated);
+
+            if (a == NullableAnnotation.NotAnnotated || b == NullableAnnotation.NotAnnotated)
             {
-                return a;
+                return NullableAnnotation.NotAnnotated;
             }
 
-            if (a.IsAnyNullable() && b.IsAnyNullable())
+            if (a == NullableAnnotation.Annotated || b == NullableAnnotation.Annotated)
             {
                 return NullableAnnotation.Annotated;
             }
 
-            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
-            // If either candidate is "oblivious" - result is the nullability of the other candidate
-            // Otherwise - we declare a mismatch and result is not nullable.
-
-            if (a == NullableAnnotation.Unknown)
-            {
-                return b;
-            }
-
-            if (b == NullableAnnotation.Unknown)
-            {
-                return a;
-            }
-
-            // At this point we know that either nullability of both sides is significantly different NotNullable vs. Nullable,
-            // or we are dealing with different flavors of not nullable for both candidates
-            if ((a == NullableAnnotation.NotAnnotated && b == NullableAnnotation.NotNullable) ||
-                (b == NullableAnnotation.NotAnnotated && a == NullableAnnotation.NotNullable))
-            {
-                if (!isPossiblyNullableReferenceTypeTypeParameter(type))
-                {
-                    // For this type both not nullable annotations are equivalent and therefore match.
-                    return NullableAnnotation.NotAnnotated;
-                }
-
-                // We are dealing with different flavors of not nullable for a possibly nullable reference type parameter,
-                // we don't have a reliable way to merge them since one of them can actually represent a nullable type.
-            }
-            else
-            {
-                Debug.Assert(a.IsAnyNullable() != b.IsAnyNullable());
-            }
-
-            hadNullabilityMismatch = true;
-            return NullableAnnotation.NotAnnotated;
+            return NullableAnnotation.Unknown;
         }
     }
 
@@ -529,13 +498,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case VarianceKind.Out:
                     return a.JoinForFixingLowerBounds(b);
                 case VarianceKind.None:
-                    return a.EnsureCompatible(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate, out hadNullabilityMismatch);
+                    return a.EnsureCompatible(b, out hadNullabilityMismatch);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(variance);
             }
         }
-
-        private readonly static Func<TypeSymbol, bool> _IsPossiblyNullableReferenceTypeTypeParameterDelegate = type => type.IsPossiblyNullableReferenceTypeTypeParameter();
 
         public TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithModifiers(this, customModifiers);

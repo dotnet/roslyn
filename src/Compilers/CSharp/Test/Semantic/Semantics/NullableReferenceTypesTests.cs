@@ -64270,10 +64270,10 @@ partial class Program
         }
 
         [Fact]
-        public void TestEnsureCompatible_IsPossiblyNullableReferenceTypeTypeParameterTrue()
+        public void TestEnsureCompatible()
         {
             var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated };
-            Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.EnsureCompatible<string>(inputs[i], inputs[j], null, _ => true, out _);
+            Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.EnsureCompatible(inputs[i], inputs[j], out _);
 
             var expected = new NullableAnnotation[3, 3]
             {
@@ -64289,7 +64289,7 @@ partial class Program
         public void TestEnsureCompatible_IsPossiblyNullableReferenceTypeTypeParameterTrue_HadNullabilityMismatch()
         {
             var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated };
-            Func<int, int, bool> getResult = (i, j) => { NullableAnnotationExtensions.EnsureCompatible<string>(inputs[i], inputs[j], null, _ => true, out var hadNullabilityMismatch); return hadNullabilityMismatch; };
+            Func<int, int, bool> getResult = (i, j) => { NullableAnnotationExtensions.EnsureCompatible(inputs[i], inputs[j], out var hadNullabilityMismatch); return hadNullabilityMismatch; };
 
             var expected = new bool[3, 3]
             {
@@ -64298,78 +64298,7 @@ partial class Program
                 { true,  false, false },
             };
 
-            AssertEqual(expected, getResult, inputs.Length);
-        }
-
-        [Fact]
-        public void TestEnsureCompatible_IsPossiblyNullableReferenceTypeTypeParameterFalse()
-        {
-            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated };
-            Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.EnsureCompatible<string>(inputs[i], inputs[j], null, _ => false, out _);
-
-            var expected = new NullableAnnotation[3, 3]
-            {
-                { NullableAnnotation.Annotated,    NullableAnnotation.Annotated,    NullableAnnotation.NotAnnotated  },
-                { NullableAnnotation.Annotated,    NullableAnnotation.Unknown,      NullableAnnotation.NotAnnotated  },
-                { NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated  },
-            };
-
-            AssertEqual(expected, getResult, inputs.Length);
-        }
-
-        [Fact]
-        public void TestEnsureCompatible_IsPossiblyNullableReferenceTypeTypeParameterFalse_HadNullabilityMismatch()
-        {
-            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated };
-            Func<int, int, bool> getResult = (i, j) => { NullableAnnotationExtensions.EnsureCompatible<string>(inputs[i], inputs[j], null, _ => false, out var hadNullabilityMismatch); return hadNullabilityMismatch; };
-
-            var expected = new bool[3, 3]
-            {
-                { false, false, true   },
-                { false, false, false  },
-                { true,  false, false  },
-            };
-
-            AssertEqual(expected, getResult, inputs.Length);
-        }
-
-        private static void AssertEqual(bool[,] expected, Func<int, int, bool> getResult, int size)
-        {
-            bool mismatch = false;
-            for (int i = 0; i < size; i++)
-            {
-                for (int j = 0; j < size; j++)
-                {
-                    if (expected[i, j] != getResult(i, j))
-                    {
-                        mismatch = true;
-                    }
-                }
-            }
-
-            if (mismatch)
-            {
-                var builder = new StringBuilder();
-                builder.AppendLine("Actual result: ");
-                for (int i = 0; i < size; i++)
-                {
-                    builder.Append("{ ");
-                    for (int j = 0; j < size; j++)
-                    {
-                        string resultWithComma = getResult(i, j) ? "true" : "false";
-                        if (j < size - 1)
-                        {
-                            resultWithComma += ",";
-                        }
-
-                        builder.Append($"{resultWithComma,-7:G}");
-
-                    }
-                    builder.AppendLine("},");
-                }
-
-                Assert.True(false, builder.ToString());
-            }
+            AssertEx.Equal(expected, getResult, inputs.Length);
         }
 
         private static void AssertEqual(NullableAnnotation[,] expected, Func<int, int, NullableAnnotation> getResult, int size)
@@ -64495,8 +64424,8 @@ partial class Program
                     {
                         foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
                         {
-                            var leftFirst = a.EnsureCompatible(b, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w1a).EnsureCompatible(c, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w1b);
-                            var rightFirst = a.EnsureCompatible(b.EnsureCompatible(c, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w2a), isPossiblyNullableReferenceTypeTypeParameter, identity, out var w2b);
+                            var leftFirst = a.EnsureCompatible(b, out var w1a).EnsureCompatible(c, out var w1b);
+                            var rightFirst = a.EnsureCompatible(b.EnsureCompatible(c, out var w2a), out var w2b);
                             Assert.Equal(leftFirst, rightFirst);
                             Assert.Equal(w1a | w1b, w2a | w2b);
                         }
@@ -64578,8 +64507,8 @@ partial class Program
                 {
                     foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
                     {
-                        var leftFirst = a.EnsureCompatible(b, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w1);
-                        var rightFirst = b.EnsureCompatible(a, isPossiblyNullableReferenceTypeTypeParameter, identity, out var w2);
+                        var leftFirst = a.EnsureCompatible(b, out var w1);
+                        var rightFirst = b.EnsureCompatible(a, out var w2);
                         Assert.Equal(leftFirst, rightFirst);
                         Assert.Equal(w1, w2);
                     }

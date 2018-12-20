@@ -674,5 +674,47 @@ namespace Roslyn.Test.Utilities
                 checker?.Invoke((TException)e);
             }
         }
+
+        public static void Equal(bool[,] expected, Func<int, int, bool> getResult, int size)
+        {
+            bool mismatch = false;
+            for (int i = 0; i < size; i++)
+            {
+                for (int j = 0; j < size; j++)
+                {
+                    if (expected[i, j] != getResult(i, j))
+                    {
+                        mismatch = true;
+                    }
+                }
+            }
+
+            if (mismatch)
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine("Actual result: ");
+                for (int i = 0; i < size; i++)
+                {
+                    builder.Append("{ ");
+                    for (int j = 0; j < size; j++)
+                    {
+                        string resultWithComma = getResult(i, j) ? "true" : "false";
+                        if (j < size - 1)
+                        {
+                            resultWithComma += ",";
+                        }
+
+                        builder.Append($"{resultWithComma,-6:G}");
+                        if (j < size - 1)
+                        {
+                            builder.Append(' ');
+                        }
+                    }
+                    builder.AppendLine("},");
+                }
+
+                Assert.True(false, builder.ToString());
+            }
+        }
     }
 }
