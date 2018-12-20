@@ -48,17 +48,14 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
         where TBaseArgumentListSyntax : SyntaxNode
     {
         private readonly ISyntaxFactsService _syntaxFacts;
-        private readonly int _dotTokenKind;
-        private readonly int _questionTokenKind;
+        private readonly int _dotToken;
+        private readonly int _questionToken;
 
-        protected AbstractChainedExpressionWrapper(
-            ISyntaxFactsService syntaxFacts,
-            int dotTokenKind,
-            int questionTokenKind)
+        protected AbstractChainedExpressionWrapper(ISyntaxFactsService syntaxFacts)
         {
             _syntaxFacts = syntaxFacts;
-            _dotTokenKind = dotTokenKind;
-            _questionTokenKind = questionTokenKind;
+            _dotToken = syntaxFacts.SyntaxKinds.DotToken;
+            _questionToken = syntaxFacts.SyntaxKinds.QuestionToken;
         }
 
         /// <summary>
@@ -203,11 +200,12 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
         {
             for (var i = index; i < pieces.Count; i++)
             {
-                if (IsToken(_dotTokenKind, pieces, i) &&
+                if (IsToken(_dotToken, pieces, i) &&
                     IsNode<TNameSyntax>(pieces, i + 1) &&
                     IsNode<TBaseArgumentListSyntax>(pieces, i + 2))
                 {
-                    if (firstChunk || !IsToken(_questionTokenKind, pieces, i - 1))
+                    if (firstChunk ||
+                        !IsToken(_questionToken, pieces, i - 1))
                     {
                         return i;
                     }

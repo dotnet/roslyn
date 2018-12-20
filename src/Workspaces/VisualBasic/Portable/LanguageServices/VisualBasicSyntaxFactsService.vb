@@ -5,8 +5,6 @@ Imports System.Composition
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
@@ -16,13 +14,16 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    <ExportLanguageServiceFactory(GetType(ISyntaxFactsService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicSyntaxFactsServiceFactory
-        Implements ILanguageServiceFactory
+    Friend Class VisualBasicSyntaxKindsService
+        Inherits AbstractSyntaxKindsService
 
-        Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return VisualBasicSyntaxFactsService.Instance
-        End Function
+        Public Shared ReadOnly Instance As New VisualBasicSyntaxKindsService()
+
+        Private Sub New()
+        End Sub
+
+        Public Overrides ReadOnly Property DotToken As Integer = SyntaxKind.DotToken
+        Public Overrides ReadOnly Property QuestionToken As Integer = SyntaxKind.QuestionToken
     End Class
 
     Friend Class VisualBasicSyntaxFactsService
@@ -57,6 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SyntaxFactory.ElasticCarriageReturnLineFeed
             End Get
         End Property
+
+        Public ReadOnly Property SyntaxKinds As ISyntaxKindsService = VisualBasicSyntaxKindsService.Instance Implements ISyntaxFactsService.SyntaxKinds
 
         Protected Overrides ReadOnly Property DocumentationCommentService As IDocumentationCommentService
             Get

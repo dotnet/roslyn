@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxTrivia ElasticMarker { get; }
         SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
 
+        ISyntaxKindsService SyntaxKinds { get; }
+
         bool SupportsIndexingInitializer(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
 

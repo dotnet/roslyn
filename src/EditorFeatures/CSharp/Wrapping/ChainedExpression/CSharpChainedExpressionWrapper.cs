@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.ChainedExpression
         AbstractChainedExpressionWrapper<NameSyntax, BaseArgumentListSyntax>
     {
         public CSharpChainedExpressionWrapper()
-            : base(CSharpSyntaxFactsService.Instance, (int)SyntaxKind.DotToken, (int)SyntaxKind.QuestionToken)
+            : base(CSharpSyntaxFactsService.Instance)
         {
         }
 

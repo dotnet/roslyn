@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.ChainedExpression
         Inherits AbstractChainedExpressionWrapper(Of NameSyntax, ArgumentListSyntax)
 
         Public Sub New()
-            MyBase.New(VisualBasicSyntaxFactsService.Instance, SyntaxKind.DotToken, SyntaxKind.QuestionToken)
+            MyBase.New(VisualBasicSyntaxFactsService.Instance)
         End Sub
 
         Protected Overrides Function GetNewLineBeforeOperatorTrivia(newLine As SyntaxTriviaList) As SyntaxTriviaList

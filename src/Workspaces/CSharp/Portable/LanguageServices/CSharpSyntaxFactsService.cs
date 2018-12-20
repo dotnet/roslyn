@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxTrivia ElasticCarriageReturnLineFeed
             => SyntaxFactory.ElasticCarriageReturnLineFeed;
 
+        public ISyntaxKindsService SyntaxKinds { get; } = CSharpSyntaxKindsService.Instance;
+
         protected override IDocumentationCommentService DocumentationCommentService
             => CSharpDocumentationCommentService.Instance;
 
