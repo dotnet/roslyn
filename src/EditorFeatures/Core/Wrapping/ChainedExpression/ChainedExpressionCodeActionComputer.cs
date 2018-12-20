@@ -88,13 +88,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             // Pass 0 as the wrapping column as we effectively always want to wrap each chunk
             // Not just when the chunk would go past the wrapping column.
             private Task<WrapItemsAction> GetWrapCodeActionAsync()
-                => TryCreateCodeActionAsync(GetWrapEdits(wrappingColumn: 0), FeaturesResources.Wrapping, FeaturesResources.Wrap_calls);
+                => TryCreateCodeActionAsync(GetWrapEdits(wrappingColumn: 0), FeaturesResources.Wrapping, FeaturesResources.Wrap_call_chain);
 
             private Task<WrapItemsAction> GetUnwrapCodeActionAsync()
-                => TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_calls);
+                => TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_call_chain);
 
             private Task<WrapItemsAction> GetWrapLongCodeActionAsync()
-                => TryCreateCodeActionAsync(GetWrapEdits(WrappingColumn), FeaturesResources.Wrapping, FeaturesResources.Wrap_long_calls);
+                => TryCreateCodeActionAsync(GetWrapEdits(WrappingColumn), FeaturesResources.Wrapping, FeaturesResources.Wrap_long_call_chain);
 
             private ImmutableArray<Edit> GetWrapEdits(int wrappingColumn)
             {

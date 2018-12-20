@@ -3762,11 +3762,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unwrap calls.
+        ///   Looks up a localized string similar to Unwrap call chain.
         /// </summary>
-        internal static string Unwrap_calls {
+        internal static string Unwrap_call_chain {
             get {
-                return ResourceManager.GetString("Unwrap calls", resourceCulture);
+                return ResourceManager.GetString("Unwrap_call_chain", resourceCulture);
             }
         }
         
@@ -4458,11 +4458,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Wrap calls.
+        ///   Looks up a localized string similar to Wrap call chain.
         /// </summary>
-        internal static string Wrap_calls {
+        internal static string Wrap_call_chain {
             get {
-                return ResourceManager.GetString("Wrap_calls", resourceCulture);
+                return ResourceManager.GetString("Wrap_call_chain", resourceCulture);
             }
         }
         
@@ -4503,11 +4503,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Wrap long calls.
+        ///   Looks up a localized string similar to Wrap long call chain.
         /// </summary>
-        internal static string Wrap_long_calls {
+        internal static string Wrap_long_call_chain {
             get {
-                return ResourceManager.GetString("Wrap_long_calls", resourceCulture);
+                return ResourceManager.GetString("Wrap_long_call_chain", resourceCulture);
             }
         }
         
