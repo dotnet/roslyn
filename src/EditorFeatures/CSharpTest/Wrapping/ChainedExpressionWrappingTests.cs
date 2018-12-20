@@ -53,6 +53,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestGenericNames()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        [||]the.quick.brown<int>().fox.jumped<string, bool>();
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown<int>().fox
+                 .jumped<string, bool>();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestElementAccess()
         {
             await TestAllWrappingCasesAsync(

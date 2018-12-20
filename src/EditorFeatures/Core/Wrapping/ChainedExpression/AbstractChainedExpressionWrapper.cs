@@ -257,14 +257,17 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             // 5. `?`.  i.e. `.M(...)?. ...` or `.M(...)?[...]`
             //      '5' handles both the ConditionalAccess and MemberBinding cases below.
 
-            if (_syntaxFacts.IsAnyMemberAccessExpression(node) ||
-                _syntaxFacts.IsInvocationExpression(node) ||
-                _syntaxFacts.IsElementAccessExpression(node) ||
-                _syntaxFacts.IsPostfixUnaryExpression(node) ||
-                _syntaxFacts.IsConditionalAccessExpression(node) ||
-                _syntaxFacts.IsMemberBindingExpression(node))
+            if (node != null)
             {
-                return true;
+                if (_syntaxFacts.IsAnyMemberAccessExpression(node) ||
+                    _syntaxFacts.IsInvocationExpression(node) ||
+                    _syntaxFacts.IsElementAccessExpression(node) ||
+                    _syntaxFacts.IsPostfixUnaryExpression(node) ||
+                    _syntaxFacts.IsConditionalAccessExpression(node) ||
+                    _syntaxFacts.IsMemberBindingExpression(node))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -276,59 +279,33 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
         /// </summary>
         private void BreakIntoPieces(SyntaxNode node, ArrayBuilder<SyntaxNodeOrToken> pieces)
         {
+            // Ignore null nodes, they are never relevant when building up the sequence of
+            // pieces in this chained expression.
             if (node is null)
             {
                 return;
             }
 
-            // Keep in sync with IsChainPart
-            if (_syntaxFacts.IsAnyMemberAccessExpression(node))
-            {
-                _syntaxFacts.GetPartsOfMemberAccessExpression(
-                    node, out var expression, out var operatorToken, out var name);
-                BreakIntoPieces(expression, pieces);
-                pieces.Add(operatorToken);
-                pieces.Add(name);
-            }
-            else if (_syntaxFacts.IsMemberBindingExpression(node))
-            {
-                _syntaxFacts.GetPartsOfMemberBindingExpression(
-                    node, out var dotToken, out var name);
-                pieces.Add(dotToken);
-                pieces.Add(name);
-            }
-            else if (_syntaxFacts.IsInvocationExpression(node))
-            {
-                _syntaxFacts.GetPartsOfInvocationExpression(
-                    node, out var expression, out var argumentList);
-                BreakIntoPieces(expression, pieces);
-                pieces.Add(argumentList);
-            }
-            else if (_syntaxFacts.IsElementAccessExpression(node))
-            {
-                _syntaxFacts.GetPartsOfElementAccessExpression(
-                    node, out var expression, out var argumentList);
-                BreakIntoPieces(expression, pieces);
-                pieces.Add(argumentList);
-            }
-            else if (_syntaxFacts.IsPostfixUnaryExpression(node))
-            {
-                _syntaxFacts.GetPartsOfPostfixUnaryExpression(
-                    node, out var operand, out var operatorToken);
-                BreakIntoPieces(operand, pieces);
-                pieces.Add(operatorToken);
-            }
-            else if (_syntaxFacts.IsConditionalAccessExpression(node))
-            {
-                _syntaxFacts.GetPartsOfConditionalAccessExpression(
-                    node, out var expression, out var questionToken, out var whenNotNull);
-                BreakIntoPieces(expression, pieces);
-                pieces.Add(questionToken);
-                BreakIntoPieces(whenNotNull, pieces);
-            }
-            else
+            // We've hit some node that can't be decomposed further (like an argument list,
+            // or name node).  Just add directly to the pieces list.
+            if (!IsChainPart(node))
             {
                 pieces.Add(node);
+                return;
+            }
+
+            // For everything else that is a chain part, just decompose into its constituent 
+            // parts and add to the pieces array.
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (child.IsNode)
+                {
+                    BreakIntoPieces(child.AsNode(), pieces);
+                }
+                else
+                {
+                    pieces.Add(child.AsToken());
+                }
             }
         }
     }
