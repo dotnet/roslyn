@@ -580,8 +580,19 @@ namespace Analyzer.Utilities.Extensions
                operation.GetAncestor<ILocalFunctionOperation>(OperationKind.LocalFunction) != null;
 
         public static ITypeSymbol GetPatternType(this IPatternOperation pattern)
-            => pattern is IDeclarationPatternOperation declarationPattern ?
-                ((ILocalSymbol)declarationPattern.DeclaredSymbol).Type :
-                pattern.Type;
+        {
+            switch (pattern)
+            {
+                case IDeclarationPatternOperation declarationPattern:
+                    return ((ILocalSymbol)declarationPattern.DeclaredSymbol).Type;
+
+                case IConstantPatternOperation constantPattern:
+                    return constantPattern.Value.Type;
+
+                default:
+                    Debug.Fail($"Unhandled pattern kind '{pattern.Kind}'");
+                    return null;
+            }
+        }
     }
 }

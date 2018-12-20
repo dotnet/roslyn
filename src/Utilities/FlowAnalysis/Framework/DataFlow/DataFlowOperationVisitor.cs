@@ -774,6 +774,38 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return true;
                 }
 
+                // Handle is pattern operations with constant pattern.
+                if (operation is IIsPatternOperation patternOperation &&
+                    patternOperation.Pattern is IConstantPatternOperation constantPattern)
+                {
+                    if (constantPattern.Value.ConstantValue.HasValue)
+                    {
+                        if (constantPattern.Value.ConstantValue.Value == null)
+                        {
+                            switch (pointsToValue.NullState)
+                            {
+                                case NullAbstractValue.Null:
+                                    alwaysSucceed = true;
+                                    break;
+
+                                case NullAbstractValue.NotNull:
+                                    alwaysFail = true;
+                                    break;
+                            }
+                        }
+
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                if (targetType == null)
+                {
+                    Debug.Fail($"Unexpected 'null' target type for '{operation.Syntax.ToString()}'");
+                    return false;
+                }
+
                 // Infer if a cast will always fail.
                 // We are currently bailing out if an interface or type parameter is involved.
                 bool IsInterfaceOrTypeParameter(ITypeSymbol type) => type.TypeKind == TypeKind.Interface || type.TypeKind == TypeKind.TypeParameter;
@@ -1008,9 +1040,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     {
                         predicateValueKind = SetValueForIsNullComparisonOperator(isPatternOperation.Pattern, equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse, targetAnalysisData: targetAnalysisData);
                     }
-                    else if (isPatternOperation.Pattern.Kind == OperationKind.ConstantPattern)
+                    else if (isPatternOperation.Pattern is IConstantPatternOperation constantPattern)
                     {
-                        predicateValueKind = SetValueForEqualsOrNotEqualsComparisonOperator(isPatternOperation.Value, isPatternOperation.Pattern,
+                        predicateValueKind = SetValueForEqualsOrNotEqualsComparisonOperator(isPatternOperation.Value, constantPattern.Value,
                             equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue, isReferenceEquality: false, targetAnalysisData: targetAnalysisData);
                     }
                     else

@@ -729,7 +729,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             public override PointsToAbstractValue GetAssignedValueForPattern(IIsPatternOperation operation, PointsToAbstractValue operandValue)
             {
-                if (operandValue.NullState == NullAbstractValue.NotNull)
+                if (operandValue.NullState == NullAbstractValue.NotNull &&
+                    ShouldBeTracked(operation.Value.Type))
                 {
                     if (TryInferConversion(operation, out bool alwaysSucceed, out bool alwaysFail))
                     {
