@@ -3755,7 +3755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var name = (NameSyntax)this.Visit(node.Name);
       var dotToken = this.VisitToken(node.DotToken);
-      return node.Update(name, dotToken);
+      return node.Update(name, dotToken, node.DiscardedExplicitEventName);
     }
 
     public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node)
@@ -9039,7 +9039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new ExplicitInterfaceSpecifierSyntax instance.</summary>
-    public static ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier(NameSyntax name, SyntaxToken dotToken)
+    public static ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier(NameSyntax name, SyntaxToken dotToken, string discardedExplicitEventName)
     {
       if (name == null)
         throw new ArgumentNullException(nameof(name));
@@ -9050,14 +9050,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException("dotToken");
       }
-      return (ExplicitInterfaceSpecifierSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ExplicitInterfaceSpecifier(name == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)dotToken.Node).CreateRed();
+      return (ExplicitInterfaceSpecifierSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ExplicitInterfaceSpecifier(name == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)dotToken.Node, discardedExplicitEventName).CreateRed();
     }
 
 
     /// <summary>Creates a new ExplicitInterfaceSpecifierSyntax instance.</summary>
-    public static ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier(NameSyntax name)
+    public static ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier(NameSyntax name, string discardedExplicitEventName)
     {
-      return SyntaxFactory.ExplicitInterfaceSpecifier(name, SyntaxFactory.Token(SyntaxKind.DotToken));
+      return SyntaxFactory.ExplicitInterfaceSpecifier(name, SyntaxFactory.Token(SyntaxKind.DotToken), discardedExplicitEventName);
     }
 
     /// <summary>Creates a new MethodDeclarationSyntax instance.</summary>

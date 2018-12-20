@@ -3022,8 +3022,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class or struct</source>
-        <target state="translated">'{0}': açık arabirim bildirimi yalnızca bir sınıf veya yapı birimi içinde bildirilebilir</target>
+        <source>'{0}{1}': explicit interface declaration can only be declared in a class or struct</source>
+        <target state="needs-review-translation">'{0}': açık arabirim bildirimi yalnızca bir sınıf veya yapı birimi içinde bildirilebilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">

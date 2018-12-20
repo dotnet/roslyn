@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax GenerateExplicitInterfaceSpecifier()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ExplicitInterfaceSpecifier(GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.DotToken));
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ExplicitInterfaceSpecifier(GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.DotToken), new string());
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.MethodDeclarationSyntax GenerateMethodDeclaration()
@@ -2890,6 +2890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.NotNull(node.Name);
             Assert.Equal(SyntaxKind.DotToken, node.DotToken.Kind);
+            Assert.Equal(new string(), node.DiscardedExplicitEventName);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -9808,7 +9809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static ExplicitInterfaceSpecifierSyntax GenerateExplicitInterfaceSpecifier()
         {
-            return SyntaxFactory.ExplicitInterfaceSpecifier(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.DotToken));
+            return SyntaxFactory.ExplicitInterfaceSpecifier(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.DotToken), new string());
         }
         
         private static MethodDeclarationSyntax GenerateMethodDeclaration()
@@ -11947,7 +11948,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.NotNull(node.Name);
             Assert.Equal(SyntaxKind.DotToken, node.DotToken.Kind());
-            var newNode = node.WithName(node.Name).WithDotToken(node.DotToken);
+            Assert.Equal(new string(), node.DiscardedExplicitEventName);
+            var newNode = node.WithName(node.Name).WithDotToken(node.DotToken).WithDiscardedExplicitEventName(node.DiscardedExplicitEventName);
             Assert.Equal(node, newNode);
         }
         

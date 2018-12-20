@@ -3264,6 +3264,7 @@
     <Field Name="DotToken" Type="SyntaxToken">
       <Kind Name="DotToken"/>
     </Field>
+    <Field Name="DiscardedExplicitEventName" Type="string"/>
   </Node>
   <AbstractNode Name="BaseMethodDeclarationSyntax" Base="MemberDeclarationSyntax">
     <TypeComment>

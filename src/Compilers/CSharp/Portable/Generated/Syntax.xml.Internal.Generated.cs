@@ -23748,8 +23748,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
   {
     internal readonly NameSyntax name;
     internal readonly SyntaxToken dotToken;
+    internal readonly string discardedExplicitEventName;
 
-    internal ExplicitInterfaceSpecifierSyntax(SyntaxKind kind, NameSyntax name, SyntaxToken dotToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal ExplicitInterfaceSpecifierSyntax(SyntaxKind kind, NameSyntax name, SyntaxToken dotToken, string discardedExplicitEventName, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         this.SlotCount = 2;
@@ -23757,10 +23758,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.name = name;
         this.AdjustFlagsAndWidth(dotToken);
         this.dotToken = dotToken;
+        this.discardedExplicitEventName = discardedExplicitEventName;
     }
 
 
-    internal ExplicitInterfaceSpecifierSyntax(SyntaxKind kind, NameSyntax name, SyntaxToken dotToken, SyntaxFactoryContext context)
+    internal ExplicitInterfaceSpecifierSyntax(SyntaxKind kind, NameSyntax name, SyntaxToken dotToken, string discardedExplicitEventName, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
@@ -23769,10 +23771,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.name = name;
         this.AdjustFlagsAndWidth(dotToken);
         this.dotToken = dotToken;
+        this.discardedExplicitEventName = discardedExplicitEventName;
     }
 
 
-    internal ExplicitInterfaceSpecifierSyntax(SyntaxKind kind, NameSyntax name, SyntaxToken dotToken)
+    internal ExplicitInterfaceSpecifierSyntax(SyntaxKind kind, NameSyntax name, SyntaxToken dotToken, string discardedExplicitEventName)
         : base(kind)
     {
         this.SlotCount = 2;
@@ -23780,10 +23783,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.name = name;
         this.AdjustFlagsAndWidth(dotToken);
         this.dotToken = dotToken;
+        this.discardedExplicitEventName = discardedExplicitEventName;
     }
 
     public NameSyntax Name { get { return this.name; } }
     public SyntaxToken DotToken { get { return this.dotToken; } }
+    public string DiscardedExplicitEventName { get { return this.discardedExplicitEventName; } }
 
     internal override GreenNode GetSlot(int index)
     {
@@ -23810,11 +23815,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         visitor.VisitExplicitInterfaceSpecifier(this);
     }
 
-    public ExplicitInterfaceSpecifierSyntax Update(NameSyntax name, SyntaxToken dotToken)
+    public ExplicitInterfaceSpecifierSyntax Update(NameSyntax name, SyntaxToken dotToken, string discardedExplicitEventName)
     {
         if (name != this.Name || dotToken != this.DotToken)
         {
-            var newNode = SyntaxFactory.ExplicitInterfaceSpecifier(name, dotToken);
+            var newNode = SyntaxFactory.ExplicitInterfaceSpecifier(name, dotToken, discardedExplicitEventName);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -23829,12 +23834,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
     {
-         return new ExplicitInterfaceSpecifierSyntax(this.Kind, this.name, this.dotToken, diagnostics, GetAnnotations());
+         return new ExplicitInterfaceSpecifierSyntax(this.Kind, this.name, this.dotToken, this.discardedExplicitEventName, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new ExplicitInterfaceSpecifierSyntax(this.Kind, this.name, this.dotToken, GetDiagnostics(), annotations);
+         return new ExplicitInterfaceSpecifierSyntax(this.Kind, this.name, this.dotToken, this.discardedExplicitEventName, GetDiagnostics(), annotations);
     }
 
     internal ExplicitInterfaceSpecifierSyntax(ObjectReader reader)
@@ -23853,6 +23858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          AdjustFlagsAndWidth(dotToken);
          this.dotToken = dotToken;
       }
+      this.discardedExplicitEventName = (string)reader.ReadString();
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -23860,6 +23866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       base.WriteTo(writer);
       writer.WriteValue(this.name);
       writer.WriteValue(this.dotToken);
+      writer.WriteString(this.discardedExplicitEventName);
     }
 
     static ExplicitInterfaceSpecifierSyntax()
@@ -37580,7 +37587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       var name = (NameSyntax)this.Visit(node.Name);
       var dotToken = (SyntaxToken)this.Visit(node.DotToken);
-      return node.Update(name, dotToken);
+      return node.Update(name, dotToken, node.DiscardedExplicitEventName);
     }
 
     public override CSharpSyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node)
@@ -43134,7 +43141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return new EventFieldDeclarationSyntax(SyntaxKind.EventFieldDeclaration, attributeLists.Node, modifiers.Node, eventKeyword, declaration, semicolonToken, this.context);
     }
 
-    public ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier(NameSyntax name, SyntaxToken dotToken)
+    public ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier(NameSyntax name, SyntaxToken dotToken, string discardedExplicitEventName)
     {
 #if DEBUG
       if (name == null)
@@ -43150,17 +43157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ExplicitInterfaceSpecifier, name, dotToken, this.context, out hash);
-      if (cached != null) return (ExplicitInterfaceSpecifierSyntax)cached;
-
-      var result = new ExplicitInterfaceSpecifierSyntax(SyntaxKind.ExplicitInterfaceSpecifier, name, dotToken, this.context);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new ExplicitInterfaceSpecifierSyntax(SyntaxKind.ExplicitInterfaceSpecifier, name, dotToken, discardedExplicitEventName, this.context);
     }
 
     public MethodDeclarationSyntax MethodDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
@@ -50220,7 +50217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return new EventFieldDeclarationSyntax(SyntaxKind.EventFieldDeclaration, attributeLists.Node, modifiers.Node, eventKeyword, declaration, semicolonToken);
     }
 
-    public static ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier(NameSyntax name, SyntaxToken dotToken)
+    public static ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier(NameSyntax name, SyntaxToken dotToken, string discardedExplicitEventName)
     {
 #if DEBUG
       if (name == null)
@@ -50236,17 +50233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ExplicitInterfaceSpecifier, name, dotToken, out hash);
-      if (cached != null) return (ExplicitInterfaceSpecifierSyntax)cached;
-
-      var result = new ExplicitInterfaceSpecifierSyntax(SyntaxKind.ExplicitInterfaceSpecifier, name, dotToken);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new ExplicitInterfaceSpecifierSyntax(SyntaxKind.ExplicitInterfaceSpecifier, name, dotToken, discardedExplicitEventName);
     }
 
     public static MethodDeclarationSyntax MethodDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)

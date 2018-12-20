@@ -3022,8 +3022,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class or struct</source>
-        <target state="translated">'„{0}”: jawna deklaracja interfejsu może występować tylko w klasie lub strukturze</target>
+        <source>'{0}{1}': explicit interface declaration can only be declared in a class or struct</source>
+        <target state="needs-review-translation">'„{0}”: jawna deklaracja interfejsu może występować tylko w klasie lub strukturze</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">

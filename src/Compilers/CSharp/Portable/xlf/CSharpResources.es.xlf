@@ -3022,8 +3022,8 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class or struct</source>
-        <target state="translated">'{0}': la declaración explícita de la interfaz solo se puede declarar en una clase o una estructura</target>
+        <source>'{0}{1}': explicit interface declaration can only be declared in a class or struct</source>
+        <target state="needs-review-translation">'{0}': la declaración explícita de la interfaz solo se puede declarar en una clase o una estructura</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">

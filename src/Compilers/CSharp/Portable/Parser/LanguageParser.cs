@@ -2325,8 +2325,7 @@ parse_member_name:;
                 ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt;
                 SyntaxToken identifierOrThisOpt;
                 TypeParameterListSyntax typeParameterListOpt;
-                
-                this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, out string _, isEvent: false);
+                this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, isEvent: false);
 
                 // First, check if we got absolutely nothing.  If so, then 
                 // We need to consume a bad member and try again.
@@ -4002,9 +4001,8 @@ tryAgain:
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt;
             SyntaxToken identifierOrThisOpt;
             TypeParameterListSyntax typeParameterList;
-            string discardedExplicitEventName;
 
-            this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterList, out discardedExplicitEventName, isEvent: true);
+            this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterList, isEvent: true);
 
             // If we got an explicitInterfaceOpt but not an identifier, then we're in the special
             // case for ERR_ExplicitEventFieldImpl (see ParseMemberName for details).
@@ -4013,7 +4011,7 @@ tryAgain:
                 Debug.Assert(typeParameterList == null, "Exit condition of ParseMemberName in this scenario");
 
                 // No need for a diagnostic, ParseMemberName has already added one.
-                var missingIdentifier = CreateMissingIdentifierToken().WithAnnotationsGreen(new SyntaxAnnotation[] { new SyntaxAnnotation("value", discardedExplicitEventName) });
+                var missingIdentifier = CreateMissingIdentifierToken();
 
                 var missingAccessorList =
                     _syntaxFactory.AccessorList(
@@ -5576,13 +5574,11 @@ tryAgain:
             out ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt,
             out SyntaxToken identifierOrThisOpt,
             out TypeParameterListSyntax typeParameterListOpt,
-            out string discardedExplicitEventName,
             bool isEvent)
         {
             identifierOrThisOpt = null;
             explicitInterfaceOpt = null;
             typeParameterListOpt = null;
-            discardedExplicitEventName = null;
 
             if (!IsPossibleMemberName())
             {
@@ -5718,9 +5714,8 @@ tryAgain:
 
                         explicitInterfaceOpt = _syntaxFactory.ExplicitInterfaceSpecifier(
                             explicitInterfaceName,
-                            AddError(separator, ErrorCode.ERR_ExplicitEventFieldImpl));
-
-                        discardedExplicitEventName = identifierOrThisOpt.ToString();
+                            AddError(separator, ErrorCode.ERR_ExplicitEventFieldImpl),
+                            identifierOrThisOpt.ToString());
 
                         Debug.Assert(beforeIdentifierPointSet);
                         Reset(ref beforeIdentifierPoint);
@@ -5731,7 +5726,7 @@ tryAgain:
                     }
                     else
                     {
-                        explicitInterfaceOpt = _syntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceName, separator);
+                        explicitInterfaceOpt = _syntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceName, separator, null);
                     }
                 }
             }
@@ -6924,7 +6919,7 @@ tryAgain:
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt;
             SyntaxToken identifierOrThisOpt;
             TypeParameterListSyntax typeParameterListOpt;
-            this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, out string _, isEvent: false);
+            this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, isEvent: false);
 
             if (explicitInterfaceOpt == null && identifierOrThisOpt == null && typeParameterListOpt == null)
             {

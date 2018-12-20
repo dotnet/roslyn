@@ -906,10 +906,10 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("abstract").WithLocation(6, 37),
                 // (6,37): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
                 //     abstract event System.Action I2.P10;
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "").WithArguments("I1.P10").WithLocation(6, 37),
-                // (6,37): error CS0065: 'I1.P10': event property must have both add and remove accessors
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "").WithArguments("I1.", "P10").WithLocation(6, 37),
+                // (6,37): error CS0065: 'I1.': event property must have both add and remove accessors
                 //     abstract event System.Action I2.P10;
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("I1.P10").WithLocation(6, 37));
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("I1.").WithLocation(6, 37));
         }
 
         [Fact]

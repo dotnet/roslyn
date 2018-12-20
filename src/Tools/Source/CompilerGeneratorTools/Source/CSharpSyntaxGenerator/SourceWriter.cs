@@ -388,6 +388,8 @@ namespace CSharpSyntaxGenerator
             {
                 case "bool":
                     return "WriteBoolean";
+                case "string":
+                    return "WriteString";
                 default:
                     throw new InvalidOperationException(string.Format("Type '{0}' not supported for object reader serialization.", type));
             }
@@ -399,6 +401,8 @@ namespace CSharpSyntaxGenerator
             {
                 case "bool":
                     return "ReadBoolean";
+                case "string":
+                    return "ReadString";
                 default:
                     throw new InvalidOperationException(string.Format("Type '{0}' not supported for object reader serialization.", type));
             }
@@ -793,6 +797,7 @@ namespace CSharpSyntaxGenerator
             if (nd.Name != "SkippedTokensTriviaSyntax" &&
                 nd.Name != "DocumentationCommentTriviaSyntax" &&
                 nd.Name != "IncompleteMemberSyntax" &&
+                nd.Name != "ExplicitInterfaceSpecifierSyntax" &&
                 valueFields.Count + nodeFields.Count <= 3)
             {
                 //int hash;

@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (containingTypeKind != TypeKind.Class && containingTypeKind != TypeKind.Struct)
             {
-                diagnostics.Add(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, memberLocation, implementingMember);
+                diagnostics.Add(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, memberLocation, implementingMember, explicitInterfaceSpecifierSyntax.DiscardedExplicitEventName);
                 return null;
             }
 

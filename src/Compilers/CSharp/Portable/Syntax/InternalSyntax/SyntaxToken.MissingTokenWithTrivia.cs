@@ -37,26 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 get { return string.Empty; }
             }
 
-            public override string ValueText
-            {
-                get
-                {
-                    if (this.ContainsAnnotations)
-                    {
-                        SyntaxAnnotation[] annotations = this.GetAnnotations();
-                        foreach (SyntaxAnnotation annotation in annotations)
-                        {
-                            if (annotation.Kind.Equals("value"))
-                            {
-                                return annotation.Data;
-                            }
-                        }
-                    }
-                    return string.Empty;
-                }
-
-            }
-
             public override object Value
             {
                 get

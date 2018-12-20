@@ -15231,6 +15231,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)this.Green).dotToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
+    public string DiscardedExplicitEventName { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)this.Green).DiscardedExplicitEventName; } }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -15258,11 +15260,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitExplicitInterfaceSpecifier(this);
     }
 
-    public ExplicitInterfaceSpecifierSyntax Update(NameSyntax name, SyntaxToken dotToken)
+    public ExplicitInterfaceSpecifierSyntax Update(NameSyntax name, SyntaxToken dotToken, string discardedExplicitEventName)
     {
         if (name != this.Name || dotToken != this.DotToken)
         {
-            var newNode = SyntaxFactory.ExplicitInterfaceSpecifier(name, dotToken);
+            var newNode = SyntaxFactory.ExplicitInterfaceSpecifier(name, dotToken, discardedExplicitEventName);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -15274,12 +15276,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public ExplicitInterfaceSpecifierSyntax WithName(NameSyntax name)
     {
-        return this.Update(name, this.DotToken);
+        return this.Update(name, this.DotToken, this.DiscardedExplicitEventName);
     }
 
     public ExplicitInterfaceSpecifierSyntax WithDotToken(SyntaxToken dotToken)
     {
-        return this.Update(this.Name, dotToken);
+        return this.Update(this.Name, dotToken, this.DiscardedExplicitEventName);
+    }
+
+    public ExplicitInterfaceSpecifierSyntax WithDiscardedExplicitEventName(string discardedExplicitEventName)
+    {
+        return this.Update(this.Name, this.DotToken, discardedExplicitEventName);
     }
   }
 
