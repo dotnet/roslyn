@@ -53,23 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task TestWithEnoughChunks()
-        {
-            await TestAllWrappingCasesAsync(
-@"class C {
-    void Bar() {
-        [||]the.quick.brown().fox.jumped();
-    }
-}",
-@"class C {
-    void Bar() {
-        the.quick.brown()
-           .fox.jumped();
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestElementAccess()
         {
             await TestAllWrappingCasesAsync(
@@ -157,6 +140,89 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
     void Bar() {
         the.quick.brown()
            .fox.jumped().over;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TrailingLongWrapping1()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        [||]the.quick.brown().fox.jumped().over.the().lazy().dog();
+    }
+}",
+GetIndentionColumn(35),
+@"class C {
+    void Bar() {
+        the.quick.brown()
+           .fox.jumped()
+           .over.the()
+           .lazy()
+           .dog();
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown()
+           .fox.jumped()
+           .over.the().lazy()
+           .dog();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TrailingLongWrapping2()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        [||]the.quick.brown().fox.jumped().over.the().lazy().dog();
+    }
+}",
+GetIndentionColumn(40),
+@"class C {
+    void Bar() {
+        the.quick.brown()
+           .fox.jumped()
+           .over.the()
+           .lazy()
+           .dog();
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown().fox.jumped()
+           .over.the().lazy().dog();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TrailingLongWrapping3()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        [||]the.quick.brown().fox.jumped().over.the().lazy().dog();
+    }
+}",
+GetIndentionColumn(60),
+@"class C {
+    void Bar() {
+        the.quick.brown()
+           .fox.jumped()
+           .over.the()
+           .lazy()
+           .dog();
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown().fox.jumped().over.the().lazy()
+           .dog();
     }
 }");
         }

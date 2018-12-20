@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
                 for (var i = 1; i < _callChunks.Length; i++)
                 {
                     var callChunk = _callChunks[i];
-                    var wrapChunk = position + callChunk.NormalizedLength() > wrappingColumn;
+                    var wrapChunk = position + callChunk.NormalizedLength() >= wrappingColumn;
                     if (wrapChunk)
                     {
                         // we're wrapping.  So our position is reset to the indentation
