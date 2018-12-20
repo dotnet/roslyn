@@ -3762,6 +3762,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unwrap calls.
+        /// </summary>
+        internal static string Unwrap_calls {
+            get {
+                return ResourceManager.GetString("Unwrap calls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unwrap expression.
         /// </summary>
         internal static string Unwrap_expression {
@@ -4445,6 +4454,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Warning_Method_overrides_symbol_from_metadata {
             get {
                 return ResourceManager.GetString("Warning_Method_overrides_symbol_from_metadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap calls.
+        /// </summary>
+        internal static string Wrap_calls {
+            get {
+                return ResourceManager.GetString("Wrap_calls", resourceCulture);
             }
         }
         

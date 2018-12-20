@@ -6,11 +6,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
 {
-    internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> : AbstractSyntaxWrapper
+    internal abstract partial class AbstractBinaryExpressionWrapper : AbstractSyntaxWrapper
+    {
+        /// <summary>
+        /// Get's the language specific trivia that should be inserted before an operator if the
+        /// user wants to wrap the operator to the next line.  For C# this is a simple newline-trivia.
+        /// For VB, this will be a line-continuation char (<c>_</c>), followed by a newline.
+        /// </summary>
+        public abstract SyntaxTriviaList GetNewLineBeforeOperatorTrivia(SyntaxTriviaList newLine);
+    }
+
+    internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> : AbstractBinaryExpressionWrapper
         where TBinaryExpressionSyntax : SyntaxNode
     {
         private readonly ISyntaxFactsService _syntaxFacts;
@@ -23,13 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
             _syntaxFacts = syntaxFacts;
             _precedenceService = precedenceService;
         }
-
-        /// <summary>
-        /// Get's the language specific trivia that should be inserted before an operator if the
-        /// user wants to wrap the operator to the next line.  For C# this is a simple newline-trivia.
-        /// For VB, this will be a line-continuation char (<c>_</c>), followed by a newline.
-        /// </summary>
-        protected abstract SyntaxTriviaList GetNewLineBeforeOperatorTrivia(SyntaxTriviaList newLine);
 
         public sealed override async Task<ICodeActionComputer> TryCreateComputerAsync(
             Document document, int position, SyntaxNode node, CancellationToken cancellationToken)

@@ -11,37 +11,38 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
+namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
 {
-    internal partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax>
+    internal abstract partial class AbstractCallWrapper<
+            TExpressionSyntax,
+            TNameSyntax,
+            TMemberAccessExpressionSyntax,
+            TInvocationExpressionSyntax,
+            TElementAccessExpressionSyntax,
+            TBaseArgumentListSyntax>
     {
-        private class BinaryExpressionCodeActionComputer : 
-            AbstractCodeActionComputer<AbstractBinaryExpressionWrapper>
+        private class CallCodeActionComputer :
+            AbstractCodeActionComputer<AbstractCallWrapper>
         {
-            private readonly ImmutableArray<SyntaxNodeOrToken> _exprsAndOperators;
-            private readonly OperatorPlacementWhenWrappingPreference _preference;
+            private readonly ImmutableArray<Chunk> _chunks;
 
-            private readonly SyntaxTriviaList _indentationTrivia;
             private readonly SyntaxTriviaList _newlineBeforeOperatorTrivia;
 
-            public BinaryExpressionCodeActionComputer(
-                AbstractBinaryExpressionWrapper service,
+            public CallCodeActionComputer(
+                AbstractCallWrapper service,
                 Document document,
                 SourceText originalSourceText,
                 DocumentOptionSet options,
-                TBinaryExpressionSyntax binaryExpression,
-                ImmutableArray<SyntaxNodeOrToken> exprsAndOperators,
+                ImmutableArray<Chunk> chunks,
                 CancellationToken cancellationToken)
                 : base(service, document, originalSourceText, options, cancellationToken)
             {
-                _exprsAndOperators = exprsAndOperators;
-                _preference = options.GetOption(CodeStyleOptions.OperatorPlacementWhenWrapping);
+                _chunks = chunks;
 
                 var generator = SyntaxGenerator.GetGenerator(document);
-                var indentationString = OriginalSourceText.GetOffset(binaryExpression.Span.Start)
+                var indentationString = OriginalSourceText.GetOffset(chunks[0].DotToken.SpanStart)
                                                           .CreateIndentationString(UseTabs, TabSize);
 
-                _indentationTrivia = new SyntaxTriviaList(generator.Whitespace(indentationString));
                 _newlineBeforeOperatorTrivia = service.GetNewLineBeforeOperatorTrivia(NewLineTrivia);
             }
 
@@ -52,10 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                         await GetUnwrapCodeActionAsync().ConfigureAwait(false))));
 
             private Task<WrapItemsAction> GetWrapCodeActionAsync()
-                => TryCreateCodeActionAsync(GetWrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Wrap_expression);
+                => TryCreateCodeActionAsync(GetWrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Wrap_calls);
 
             private Task<WrapItemsAction> GetUnwrapCodeActionAsync()
-                => TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_expression);
+                => TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_calls);
 
             private ImmutableArray<Edit> GetWrapEdits()
             {
@@ -96,11 +97,19 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
-                for (int i = 0; i < _exprsAndOperators.Length - 1; i++)
+                foreach (var chunk in _chunks)
                 {
-                    result.Add(Edit.UpdateBetween(
-                        _exprsAndOperators[i], SingleWhitespaceTrivia,
-                        NoTrivia, _exprsAndOperators[i + 1]));
+                    if (chunk.ExpressionOpt != null)
+                    {
+                        result.Add(Edit.DeleteBetween(chunk.ExpressionOpt, chunk.DotToken));
+                    }
+
+                    result.Add(Edit.DeleteBetween(chunk.DotToken, chunk.Name));
+
+                    if (chunk.ArgumentListOpt != null)
+                    {
+                        result.Add(Edit.DeleteBetween(chunk.Name, chunk.ArgumentListOpt));
+                    }
                 }
 
                 return result.ToImmutableAndFree();

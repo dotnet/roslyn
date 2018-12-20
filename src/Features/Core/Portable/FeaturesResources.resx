@@ -1598,4 +1598,10 @@ This version used in: {2}</value>
   <data name="Use_expression_body_for_local_functions" xml:space="preserve">
     <value>Use expression body for local functions</value>
   </data>
+  <data name="Unwrap calls" xml:space="preserve">
+    <value>Unwrap calls</value>
+  </data>
+  <data name="Wrap_calls" xml:space="preserve">
+    <value>Wrap calls</value>
+  </data>
 </root>
