@@ -67,32 +67,32 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     return AnalysisResult.Failure;
                 }
 
-                if (!sections.Any(section => IsDefaultSwitchLabel(section.Labels[0])))
+                // If there's no "default" case, we look at the next statement.
+                // For instance, it could be a "return" statement which we'll use
+                // as the default case in the switch expression.
+                var nextStatementAnalysis = sections.Any(section => IsDefaultSwitchLabel(section.Labels[0]))
+                    ? AnalysisResult.Neutral
+                    : AnalyzeNextStatement(switchStatement.GetNextStatement());
+                if (nextStatementAnalysis.IsFailure)
                 {
-                    // If there's no "default" case, we look at the next statement.
-                    // For instance, it could be a "return" statement which we'll use
-                    // as the default case in the switch expression.
-                    if (!CanMoveNextStatementToSwitchExpression(switchStatement.GetNextStatement()))
-                    {
-                        return AnalysisResult.Failure;
-                    }
-
-                    shouldRemoveNextStatement = true;
+                    return AnalysisResult.Failure;
                 }
 
-                return Aggregate(sections, (result, section) => result.Intersect(AnalyzeSwitchSection(section)));
+                // Using "Success" which considers both "return" and "throw" but excludes neutral result.
+                shouldRemoveNextStatement = nextStatementAnalysis.Success;
+
+                // We do need to intersect the next statement analysis result to catch possible
+                // arm kind mismatch, e.g. a "return" after a non-exhaustive assignment switch.
+                return nextStatementAnalysis.Intersect(
+                    Aggregate(sections, (result, section) => result.Intersect(AnalyzeSwitchSection(section))));
             }
 
-            private bool CanMoveNextStatementToSwitchExpression(StatementSyntax nextStatement)
+            private AnalysisResult AnalyzeNextStatement(StatementSyntax nextStatement)
             {
                 // Only the following "throw" and "return" can be moved into the switch expression.
-                if (!nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement))
-                {
-                    return false;
-                }
-
-                var result = Visit(nextStatement);
-                return !result.IsFailure;
+                return nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement) 
+                    ? Visit(nextStatement) 
+                    : AnalysisResult.Failure;
             }
 
             private AnalysisResult AnalyzeSwitchSection(SwitchSectionSyntax section)

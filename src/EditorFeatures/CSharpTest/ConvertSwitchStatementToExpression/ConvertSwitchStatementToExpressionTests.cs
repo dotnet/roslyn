@@ -348,6 +348,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingOnNextStatementMismatch()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    int M(int i)
+    {
+        int j = 0;
+        [||]switch (i)
+        {
+            case 1:
+                j = 4;
+                break;
+            case 2:
+                j = 5;
+                break;
+            case 3:
+                j = 6;
+                break;
+        }
+        return j;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestSingleAssignment_Compound()
         {
             await TestInRegularAndScriptAsync(
