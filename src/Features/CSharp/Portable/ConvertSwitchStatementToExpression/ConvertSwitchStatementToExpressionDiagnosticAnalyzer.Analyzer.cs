@@ -11,13 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
     {
         private sealed class Analyzer : CSharpSyntaxVisitor<AnalysisResult>
         {
+            private static readonly Analyzer s_instance = new Analyzer();
+
             private Analyzer()
             {
             }
 
-            public static bool CanConvertToSwitchExpression(SyntaxNode node)
+            public static AnalysisResult Analyze(SyntaxNode node,  out bool shouldRemoveNextStatement)
             {
-                return new Analyzer().Visit(node).Success;
+                return s_instance.AnalyzeSwitchStatement((SwitchStatementSyntax)node, out shouldRemoveNextStatement);
             }
 
             private static bool IsDefaultSwitchLabel(SwitchLabelSyntax node)
@@ -50,39 +52,54 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public override AnalysisResult VisitSwitchStatement(SwitchStatementSyntax node)
             {
+                return AnalyzeSwitchStatement(node, out _);
+            }
+
+            private AnalysisResult AnalyzeSwitchStatement(SwitchStatementSyntax switchStatement, out bool shouldRemoveNextStatement)
+            {
+                shouldRemoveNextStatement = false;
+
                 // Fail if the switch statement is empty or any of sections have more than one "case" label.
                 // Once we have "or" patterns, we can relax this to accept multi-case sections.
-                var sections = node.Sections;
+                var sections = switchStatement.Sections;
                 if (sections.Count == 0 || sections.Any(section => section.Labels.Count != 1))
                 {
                     return AnalysisResult.Failure;
                 }
 
-                return AnalysisResult.Match(
+                if (!sections.Any(section => IsDefaultSwitchLabel(section.Labels[0])))
+                {
                     // If there's no "default" case, we look at the next statement.
-                    // For instance, it could be a "return" statement which we'll use 
+                    // For instance, it could be a "return" statement which we'll use
                     // as the default case in the switch expression.
-                    sections.Any(section => IsDefaultSwitchLabel(section.Labels[0]))
-                        ? AnalysisResult.Neutral
-                        : AnalyzeNextStatement(node.GetNextStatement()),
-                    // Iterate over all sections and match section bodies to
-                    // see if they are all convertible to a switch arm's expression.
-                    Aggregate(sections, (result, section) => AnalysisResult.Match(result, AnalyzeSwitchSection(section))));
+                    if (!CanMoveNextStatementToSwitchExpression(switchStatement.GetNextStatement()))
+                    {
+                        return AnalysisResult.Failure;
+                    }
+
+                    shouldRemoveNextStatement = true;
+                }
+
+                return Aggregate(sections, (result, section) => result.Intersect(AnalyzeSwitchSection(section)));
             }
 
-            private AnalysisResult AnalyzeNextStatement(StatementSyntax nextStatement)
+            private bool CanMoveNextStatementToSwitchExpression(StatementSyntax nextStatement)
             {
                 // Only the following "throw" and "return" can be moved into the switch expression.
-                return nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement)
-                    ? Visit(nextStatement)
-                    : AnalysisResult.Failure;
+                if (!nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement))
+                {
+                    return false;
+                }
+
+                var result = Visit(nextStatement);
+                return !result.IsFailure;
             }
 
             private AnalysisResult AnalyzeSwitchSection(SwitchSectionSyntax section)
             {
                 // This is a switch section body. Here we "combine" the result, since there could be
                 // compatible statements like the ending `break;` with some other assignments.
-                return Aggregate(section.Statements, (result, node) => AnalysisResult.Combine(result, Visit(node)));
+                return Aggregate(section.Statements, (result, node) => result.Union(Visit(node)));
             }
 
             private static AnalysisResult Aggregate<T>(SyntaxList<T> nodes, Func<AnalysisResult, T, AnalysisResult> func)
@@ -105,9 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public override AnalysisResult VisitAssignmentExpression(AssignmentExpressionSyntax node)
             {
-                return node.IsKind(SyntaxKind.SimpleAssignmentExpression)
-                    ? AnalysisResult.Assignment(node.Left)
-                    : AnalysisResult.Failure;
+                return AnalysisResult.Assignment(node.Kind(), node.Left);
             }
 
             public override AnalysisResult VisitBreakStatement(BreakStatementSyntax node)
@@ -130,9 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             public override AnalysisResult VisitThrowStatement(ThrowStatementSyntax node)
             {
                 // A "throw" statement can be converted to a throw expression.
-                // Gives Neutral result because it's valid for any kind of switch expression.
                 // Gives Failure if Expression is null because a throw expression needs one.
-                return node.Expression is null ? AnalysisResult.Failure : AnalysisResult.Neutral;
+                return node.Expression is null ? AnalysisResult.Failure : AnalysisResult.Throw;
             }
 
             public override AnalysisResult DefaultVisit(SyntaxNode node)

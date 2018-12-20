@@ -18,10 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         private sealed class Rewriter : CSharpSyntaxVisitor<ExpressionSyntax>
         {
             private readonly ArrayBuilder<ExpressionSyntax> _assignmentTargets;
+            private readonly bool _isAllThrowStatements;
 
-            private Rewriter()
+            private Rewriter(bool isAllThrowStatements)
             {
                 _assignmentTargets = ArrayBuilder<ExpressionSyntax>.GetInstance();
+                _isAllThrowStatements = isAllThrowStatements;
             }
 
             private void Free()
@@ -29,28 +31,37 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 _assignmentTargets.Free();
             }
 
-            public static StatementSyntax Rewrite(SwitchStatementSyntax node, SemanticModel semanticModel, SyntaxEditor editor)
+            public static StatementSyntax Rewrite(
+                SwitchStatementSyntax switchStatement, SemanticModel semanticModel, SyntaxEditor editor,
+                SyntaxKind nodeToGenerate, bool shouldMoveNextStatementToSwitchExpression)
             {
-                var rewriter = new Rewriter();
-                var switchExpression = rewriter.VisitSwitchStatement(node);
-                var generateDeclaration = rewriter.TryRemoveVariableDeclarators(node, semanticModel, editor);
-                var finalStatement = rewriter.GetFinalStatement(switchExpression, generateDeclaration);
+                var rewriter = new Rewriter(isAllThrowStatements: nodeToGenerate == SyntaxKind.ThrowStatement);
+
+                // Rewrite the switch statement as a switch expression.
+                var switchExpression = rewriter.RewriteSwitchStatement(switchStatement,
+                    allowMoveNextStatementToSwitchExpression: shouldMoveNextStatementToSwitchExpression);
+
+                // Only on simple assignments we attempt to remove variable declarators.
+                var isSimpleAssignment = nodeToGenerate == SyntaxKind.SimpleAssignmentExpression;
+                var generateDeclaration = isSimpleAssignment && rewriter.TryRemoveVariableDeclarators(switchStatement, semanticModel, editor);
+
+                // Generate the final statement to wrap the switch expression, e.g. a "return" or an assignment.
+                var finalStatement = rewriter.GetFinalStatement(switchExpression, nodeToGenerate, generateDeclaration);
                 rewriter.Free();
                 return finalStatement;
             }
 
-            private bool TryRemoveVariableDeclarators(SwitchStatementSyntax node, SemanticModel semanticModel, SyntaxEditor editor)
+            private bool TryRemoveVariableDeclarators(SwitchStatementSyntax switchStatement, SemanticModel semanticModel, SyntaxEditor editor)
             {
-                // Try to remove the varaiable declarator only if these are simple identifiers.
-                if (_assignmentTargets.Count == 0 ||
-                    !_assignmentTargets.All(target => target.IsKind(SyntaxKind.IdentifierName)))
+                Debug.Assert(_assignmentTargets.Count > 0);
+
+                // Try to remove variable declarator only if these are simple identifiers.
+                if (!_assignmentTargets.All(target => target.IsKind(SyntaxKind.IdentifierName)))
                 {
                     return false;
                 }
 
-                var symbols = _assignmentTargets.Select(target => semanticModel.GetSymbolInfo(target).Symbol);
-                // If all variables are local and data does not flows in for any of them, 
-                // we can assign the switch expression directly to a variable declaration.
+                var symbols = _assignmentTargets.SelectAsArray((target, model) => model.GetSymbolInfo(target).Symbol, semanticModel);
                 foreach (var symbol in symbols)
                 {
                     if (symbol == null)
@@ -69,59 +80,81 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                         return false;
                     }
 
-                    var declarator = (VariableDeclaratorSyntax)syntaxReferences[0].GetSyntax();
+                    if (!(syntaxReferences[0].GetSyntax() is VariableDeclaratorSyntax declarator))
+                    {
+                        return false;
+                    }
+
                     if (declarator.Initializer != null)
                     {
                         return false;
                     }
 
-                    var dataFlow = semanticModel.AnalyzeDataFlow(
-                        declarator.GetAncestor<StatementSyntax>(),
-                        node.GetPreviousStatement());
+                    var symbolName = symbol.Name;
+                    var declaratorSpanStart = declarator.SpanStart;
+                    var switchStatementSpanStart = switchStatement.SpanStart;
 
-                    if (!dataFlow.Succeeded)
+                    // Check for uses before the switch expression.
+                    foreach (var descendentNode in declarator.GetAncestor<BlockSyntax>().DescendantNodes())
                     {
-                        return false;
-                    }
+                        var nodeSpanStart = descendentNode.SpanStart;
+                        if (nodeSpanStart <= declaratorSpanStart)
+                        {
+                            // We haven't yet reached the declarator node.
+                            continue;
+                        }
 
-                    if (dataFlow.ReadInside.Contains(symbol) ||
-                        dataFlow.WrittenInside.Contains(symbol))
-                    {
-                        return false;
+                        if (nodeSpanStart >= switchStatementSpanStart)
+                        {
+                            // We've reached the switch statement.
+                            break;
+                        }
+
+                        if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName) &&
+                            identifierName.Identifier.ValueText == symbolName &&
+                            symbol.Equals(semanticModel.GetSymbolInfo(identifierName).Symbol))
+                        {
+                            // The variable is being used outside the switch statement.
+                            return false;
+                        }
                     }
                 }
 
                 foreach (var symbol in symbols)
                 {
+                    // Safe to remove all declarator nodes.
                     editor.RemoveNode(symbol.DeclaringSyntaxReferences[0].GetSyntax());
                 }
 
                 return true;
             }
 
-            private StatementSyntax GetFinalStatement(ExpressionSyntax switchExpression, bool generateDeclaration)
+            private StatementSyntax GetFinalStatement(ExpressionSyntax switchExpression, SyntaxKind nodeToGenerate, bool generateDeclaration)
             {
-                if (_assignmentTargets.Count == 0)
+                switch (nodeToGenerate)
                 {
-                    return ReturnStatement(switchExpression);
+                    case SyntaxKind.ReturnStatement:
+                        return ReturnStatement(switchExpression);
+                    case SyntaxKind.ThrowStatement:
+                        return ThrowStatement(switchExpression);
                 }
 
-                if (generateDeclaration)
-                {
-                    return GenerateVariableDeclaration(switchExpression);
-                }
+                Debug.Assert(SyntaxFacts.IsAssignmentExpression(nodeToGenerate));
+                Debug.Assert(_assignmentTargets.Count > 0);
 
-                return GenerateSimpleAssignment(switchExpression);
+                return generateDeclaration
+                    ? GenerateVariableDeclaration(switchExpression)
+                    : GenerateAssignment(switchExpression, nodeToGenerate);
             }
 
-            private ExpressionStatementSyntax GenerateSimpleAssignment(ExpressionSyntax switchExpression)
+            private ExpressionStatementSyntax GenerateAssignment(ExpressionSyntax switchExpression, SyntaxKind assignmentKind)
             {
                 var assignmentLeft = _assignmentTargets.Count == 1
                     ? _assignmentTargets[0]
                     : TupleExpression(SeparatedList(_assignmentTargets.Select(Argument)));
 
                 return ExpressionStatement(
-                    AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+                    AssignmentExpression(assignmentKind,
                         left: assignmentLeft,
                         right: switchExpression));
             }
@@ -176,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             public override ExpressionSyntax VisitAssignmentExpression(AssignmentExpressionSyntax node)
             {
                 // Make sure assignments are under the same switch section
-                // to avoid adding dupliacted nodes.
+                // to avoid adding duplicated nodes.
                 if (_assignmentTargets.Count == 0 || 
                     _assignmentTargets[0].Parent.Parent.Parent == node.Parent.Parent)
                 {
@@ -221,17 +254,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public override ExpressionSyntax VisitSwitchStatement(SwitchStatementSyntax node)
             {
+                return RewriteSwitchStatement(node);
+            }
+
+            private ExpressionSyntax RewriteSwitchStatement(SwitchStatementSyntax node, bool allowMoveNextStatementToSwitchExpression = true)
+            {
                 var switchArms = node.Sections
                     // The default label must come last in the switch expression.
                     .OrderBy(section => section.Labels[0].IsKind(SyntaxKind.DefaultSwitchLabel))
                     .SelectAsArray(GetSwitchExpressionArm);
 
-                var nextStatement = node.GetNextStatement();
-                if (nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement))
+                // This is possibly false only on the top-level switch statement. 
+                // On nested nodes, if there's a subsequent statement, it is most definitely a
+                // "return" or "throw" which is already validated in the analysis phase.
+                if (allowMoveNextStatementToSwitchExpression)
                 {
-                    // If there's another statement, it should be a "return" or "throw"
-                    // statement which is already validated in the analysis phase.
-                    switchArms = switchArms.Add(SwitchExpressionArm(DiscardPattern(), Visit(nextStatement)));
+                    var nextStatement = node.GetNextStatement();
+                    if (nextStatement != null)
+                    {
+                        Debug.Assert(nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement));
+                        switchArms = switchArms.Add(SwitchExpressionArm(DiscardPattern(), Visit(nextStatement)));
+                    }
                 }
 
                 return SwitchExpression(node.Expression, SeparatedList(switchArms));
@@ -246,7 +289,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             public override ExpressionSyntax VisitThrowStatement(ThrowStatementSyntax node)
             {
                 Debug.Assert(node.Expression != null);
-                return ThrowExpression(node.Expression);
+                // If this is an all-throw switch statement, we return the expression rather than
+                // creating a throw expression so we can wrap the switch expression inside a throw expression.
+                return _isAllThrowStatements ? node.Expression : ThrowExpression(node.Expression);
             }
 
             public override ExpressionSyntax VisitExpressionStatement(ExpressionStatementSyntax node)

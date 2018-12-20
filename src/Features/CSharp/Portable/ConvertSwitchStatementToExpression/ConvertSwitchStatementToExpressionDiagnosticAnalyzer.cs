@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
+    using Constants = ConvertSwitchStatementToExpressionConstants;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
@@ -22,19 +25,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var switchStatement = context.Node;
-            if (switchStatement.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+            if (switchStatement.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
             {
                 return;
             }
 
-            if (!Analyzer.CanConvertToSwitchExpression(switchStatement))
+            var analysisResult = Analyzer.Analyze(switchStatement, out var shouldRemoveNextStatement);
+            if (!analysisResult.Success)
             {
                 return;
             }
 
             context.ReportDiagnostic(Diagnostic.Create(Descriptor,
                 // Report the diagnostic on the "switch" keyword.
-                switchStatement.GetFirstToken().GetLocation()));
+                location: switchStatement.GetFirstToken().GetLocation(),
+                additionalLocations: new[] { switchStatement.GetLocation() },
+                properties: ImmutableDictionary<string, string>.Empty
+                    .Add(Constants.NodeToGenerateKey, ((int)analysisResult.GetSyntaxKind()).ToString())
+                    .Add(Constants.ShouldRemoveNextStatementKey, shouldRemoveNextStatement.ToString())));
         }
 
         public override bool OpenFileOnly(Workspace workspace)

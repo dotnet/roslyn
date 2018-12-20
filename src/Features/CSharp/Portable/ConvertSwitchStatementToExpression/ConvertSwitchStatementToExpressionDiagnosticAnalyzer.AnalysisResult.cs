@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -8,99 +9,107 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
     internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyzer
     {
-        private enum AnalysisResultKind
-        {
-            // Note: default(AnalysisResult) should yield a
-            // failure if we ever reached that in the visitor.
-            Failure = 0,
-
-            // Note: we will use this for either a "throw" statement
-            // or as the insignificant part of a combination, thus we
-            // named it "Neutral" rather than "Throw" to avoid confusion.
-            Neutral,
-
-            Break,
-            Return,
-            Assignment,
-        }
-
         private readonly struct AnalysisResult
         {
-            private readonly AnalysisResultKind _kind;
+            // Note: default(AnalysisResult) should yield a
+            // failure if we ever reached that in the visitor
+            private const SyntaxKind FailureKind = SyntaxKind.None;
+            private const SyntaxKind NeutralKind = unchecked((SyntaxKind)(-1));
 
+            private readonly SyntaxKind _syntaxKind;
             // Holds assignment target expressions in each switch
             // section to ensure that they are all the same.
             private readonly ImmutableArray<ExpressionSyntax> _assignmentTargets;
 
-            private AnalysisResult(AnalysisResultKind kind, ImmutableArray<ExpressionSyntax> assignmentTargets = default)
+            private AnalysisResult(SyntaxKind syntaxKind, ImmutableArray<ExpressionSyntax> assignmentTargets = default)
             {
-                _kind = kind;
+                _syntaxKind = syntaxKind;
                 _assignmentTargets = assignmentTargets;
             }
 
-            public static AnalysisResult Failure => new AnalysisResult(AnalysisResultKind.Failure);
-            public static AnalysisResult Return => new AnalysisResult(AnalysisResultKind.Return);
-            public static AnalysisResult Break => new AnalysisResult(AnalysisResultKind.Break);
-            public static AnalysisResult Neutral => new AnalysisResult(AnalysisResultKind.Neutral);
-            public static AnalysisResult Assignment(ImmutableArray<ExpressionSyntax> targets) => new AnalysisResult(AnalysisResultKind.Assignment, targets);
-            public static AnalysisResult Assignment(ExpressionSyntax target) => new AnalysisResult(AnalysisResultKind.Assignment, ImmutableArray.Create(target));
+            public static AnalysisResult Failure => new AnalysisResult(FailureKind);
+            public static AnalysisResult Neutral => new AnalysisResult(NeutralKind);
+            public static AnalysisResult Return => new AnalysisResult(SyntaxKind.ReturnStatement);
+            public static AnalysisResult Break => new AnalysisResult(SyntaxKind.BreakStatement);
+            public static AnalysisResult Throw => new AnalysisResult(SyntaxKind.ThrowStatement);
 
-            public bool IsFailure => _kind == AnalysisResultKind.Failure;
-            public bool IsBreak => _kind == AnalysisResultKind.Break;
-            public bool IsReturn => _kind == AnalysisResultKind.Return;
-            public bool IsNeutral => _kind == AnalysisResultKind.Neutral;
-            public bool IsAssignment => _kind == AnalysisResultKind.Assignment;
-
-            public bool Success => IsReturn || IsAssignment;
-
-            public override string ToString() => _kind.ToString();
-
-            public static AnalysisResult Combine(AnalysisResult left, AnalysisResult right)
+            public AnalysisResult WithAdditionalAssignmentTargets(ImmutableArray<ExpressionSyntax> targets)
             {
-                if (left.IsAssignment)
+                Debug.Assert(IsAssignment);
+                return new AnalysisResult(_syntaxKind, _assignmentTargets.Concat(targets));
+            }
+
+            public SyntaxKind GetSyntaxKind()
+            {
+                Debug.Assert(this.Success);
+                return _syntaxKind;
+            }
+
+            public static AnalysisResult Assignment(SyntaxKind syntaxKind, ExpressionSyntax target)
+            {
+                Debug.Assert(SyntaxFacts.IsAssignmentExpression(syntaxKind));
+                return new AnalysisResult(syntaxKind, ImmutableArray.Create(target));
+            }
+
+            public bool IsFailure => _syntaxKind == FailureKind;
+            public bool IsNeutral => _syntaxKind == NeutralKind || IsThrow;
+            public bool IsBreak => _syntaxKind == SyntaxKind.BreakStatement;
+            public bool IsThrow => _syntaxKind == SyntaxKind.ThrowStatement;
+            public bool IsReturn => _syntaxKind == SyntaxKind.ReturnStatement;
+            public bool IsAssignment => SyntaxFacts.IsAssignmentExpression(_syntaxKind);
+
+            public bool Success => IsReturn || IsThrow || IsAssignment;
+
+            public override string ToString() => _syntaxKind.ToString();
+
+            public bool Equals(AnalysisResult other) => _syntaxKind == other._syntaxKind;
+
+            public AnalysisResult Union(AnalysisResult other)
+            {
+                if (this.IsAssignment)
                 {
-                    // Assignment can be followed by another assignment
-                    if (right.IsAssignment)
+                    // Assignment can be followed by another assignment if it's not compound.
+                    if (_syntaxKind == SyntaxKind.SimpleAssignmentExpression && this.Equals(other))
                     {
-                        return Assignment(left._assignmentTargets.Concat(right._assignmentTargets));
+                        return this.WithAdditionalAssignmentTargets(other._assignmentTargets);
                     }
 
                     // Assignment can be followed by a "break" statement
-                    if (right.IsBreak)
+                    if (other.IsBreak)
                     {
-                        return left;
+                        return this;
                     }
                 }
 
-                return Common(left, right);
+                return Common(this, other);
             }
 
-            public static AnalysisResult Match(AnalysisResult left, AnalysisResult right)
+            public AnalysisResult Intersect(AnalysisResult other)
             {
-                if (left.IsAssignment && right.IsAssignment)
+                if (this.IsAssignment && this.Equals(other))
                 {
                     // Assignments only match if they have the same set of targets
-                    if (left._assignmentTargets.SequenceEqual(right._assignmentTargets,
+                    if (_assignmentTargets.SequenceEqual(other._assignmentTargets,
                         (leftNode, rightNode) => leftNode.IsEquivalentTo(rightNode)))
                     {
-                        return left;
+                        return this;
                     }
 
                     return Failure;
                 }
 
-                // "break" alone can't be traslated to an expression
-                if (left.IsBreak || right.IsBreak)
+                // "break" alone can't be translated to an expression
+                if (this.IsBreak || other.IsBreak)
                 {
                     return Failure;
                 }
 
-                return Common(left, right);
+                return Common(this, other);
             }
 
             private static AnalysisResult Common(AnalysisResult left, AnalysisResult right)
             {
-                // This can also happen on the Combine method when a non-exhastive
+                // This can also happen on the "Union" method when a non-exhaustive
                 // "switch" statement is followed by a "return" statement.
                 if (left.IsReturn && right.IsReturn)
                 {

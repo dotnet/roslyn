@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
+    using Constants = ConvertSwitchStatementToExpressionConstants;
+
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
@@ -35,36 +38,46 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
         protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
-            var spans = ArrayBuilder<TextSpan>.GetInstance();
-            foreach (var diagnostic in diagnostics)
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var spans = ArrayBuilder<TextSpan>.GetInstance(diagnostics.Length);
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan);
-                if (spans.Any((span, nodeSpan) => span.Contains(nodeSpan), node.Span))
+                foreach (var diagnostic in diagnostics)
                 {
-                    // Skip nested switch expressions in case of a fix-all operation.
-                    continue;
-                }
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                spans.Add(node.Span);
+                    var properties = diagnostic.Properties;
+                    var nodeToGenerate = (SyntaxKind)int.Parse(properties[Constants.NodeToGenerateKey]);
+                    var shouldRemoveNextStatement = bool.Parse(properties[Constants.ShouldRemoveNextStatementKey]);
 
-                var switchStatement = (SwitchStatementSyntax)node;
-                editor.ReplaceNode(switchStatement,
-                    Rewriter.Rewrite(switchStatement, semanticModel, editor).WithAdditionalAnnotations(Formatter.Annotation));
+                    var span = diagnostic.AdditionalLocations[0].SourceSpan;
+                    if (spans.Any((s, nodeSpan) => s.Contains(nodeSpan), span))
+                    {
+                        // Skip nested switch expressions in case of a fix-all operation.
+                        continue;
+                    }
 
-                var nextStatement = switchStatement.GetNextStatement();
-                if (nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement) &&
-                    // e.g. not unreachable which means we had a non-exhastive switch
-                    !nextStatement.ContainsDiagnostics)
-                {
-                    // Already morphed into the top-level switch expression.
-                    editor.RemoveNode(nextStatement);
+                    spans.Add(span);
+
+                    var switchStatement = (SwitchStatementSyntax)editor.OriginalRoot.FindNode(span);
+                    editor.ReplaceNode(switchStatement,
+                        Rewriter.Rewrite(switchStatement, semanticModel, editor,
+                            nodeToGenerate, shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement)
+                        .WithAdditionalAnnotations(Formatter.Annotation));
+
+                    if (shouldRemoveNextStatement)
+                    {
+                        // Already morphed into the top-level switch expression.
+                        var nextStatement = switchStatement.GetNextStatement();
+                        Debug.Assert(nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement));
+                        editor.RemoveNode(nextStatement);
+                    }
                 }
             }
-
-            spans.Free();
+            finally
+            {
+                spans.Free();
+            }
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
