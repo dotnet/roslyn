@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         /// <summary>
         /// Test purpose only
         /// </summary>
-        public AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService service)
+        protected AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService service)
         {
             _service = service;
         }
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             var nestedCodeAction = new CodeActionWithNestedActions(
                 string.Format(FeaturesResources.Pull_0_up, selectedMember.ToNameDisplayString()),
-                allActions, true);
+                allActions, isInlinable: true);
             context.RegisterRefactoring(nestedCodeAction);
         }
 

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             private readonly Document _document;
             private readonly IPullMemberUpOptionsService _service;
 
-            public override string Title => string.Format(FeaturesResources.More_option_to_pull_0_up, _selectedMember.ToDisplayString());
+            public override string Title => FeaturesResources.Pull_members_up;
 
             internal PullMemberUpWithDialogCodeAction(
                 Document document,

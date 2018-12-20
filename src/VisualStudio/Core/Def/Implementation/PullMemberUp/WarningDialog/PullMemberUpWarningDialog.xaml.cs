@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
 
         public string PullMembersUpTitle => ServicesVSResources.Pull_Members_Up;
 
-        public string TextTitle => ServicesVSResources.Review_problems_below_Click_finish_to_proceed_pull_up;
+        public string TextTitle => ServicesVSResources.Review_problems_below;
 
         public string FoundProblem => ServicesVSResources.Found_problems_colon;
 

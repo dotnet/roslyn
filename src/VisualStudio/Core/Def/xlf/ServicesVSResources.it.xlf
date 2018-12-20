@@ -177,9 +177,9 @@
         <target state="translated">Reimposta il mapping dei tasti predefinito di Visual Studio</target>
         <note />
       </trans-unit>
-      <trans-unit id="Review_problems_below_Click_finish_to_proceed_pull_up">
-        <source>Review problems below. Click Finish to proceed pull up.</source>
-        <target state="new">Review problems below. Click Finish to proceed pull up.</target>
+      <trans-unit id="Review_problems_below">
+        <source>Review problems below.</source>
+        <target state="new">Review problems below.</target>
         <note />
       </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">

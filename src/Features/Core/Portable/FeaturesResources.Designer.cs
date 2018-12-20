@@ -2535,15 +2535,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to More option to pull {0} up.
-        /// </summary>
-        internal static string More_option_to_pull_0_up {
-            get {
-                return ResourceManager.GetString("More_option_to_pull_0_up", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Move declaration near reference.
         /// </summary>
         internal static string Move_declaration_near_reference {
@@ -2929,6 +2920,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Pull_0_up {
             get {
                 return ResourceManager.GetString("Pull_0_up", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull_members_up.
+        /// </summary>
+        internal static string Pull_members_up {
+            get {
+                return ResourceManager.GetString("Pull_members_up", resourceCulture);
             }
         }
         
