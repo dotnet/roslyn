@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (!nullCheckOnCopy)
             {
                 Debug.Assert(receiverTemp == null);
-                // receiver may be used as target of a struct call (if T happens to be a sruct)
+                // receiver may be used as target of a struct call (if T happens to be a struct)
                 receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained);
                 Debug.Assert(receiverTemp == null || receiver.IsDefaultValue());
             }

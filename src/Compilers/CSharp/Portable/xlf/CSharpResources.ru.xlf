@@ -98,8 +98,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
-        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
-        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
+        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">

@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' True if the method itself Is excluded from code covarage instrumentation.
+        ''' True if the method itself Is excluded from code coverage instrumentation.
         ''' True for source methods marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         ''' </summary>
         Friend Overridable ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
