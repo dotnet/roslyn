@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     {
                         return this;
                     }
+
+                    return Failure;
                 }
 
                 return Common(this, other);
