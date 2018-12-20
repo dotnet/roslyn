@@ -15,7 +15,7 @@ namespace Roslyn.Test.Utilities
 
         public override void Dispose()
         {
-            // Dipose shall not throw
+            // Dispose shall not throw
         }
 
         public override void CloseMethod()
