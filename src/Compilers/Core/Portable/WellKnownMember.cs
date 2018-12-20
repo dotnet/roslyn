@@ -456,6 +456,8 @@ namespace Microsoft.CodeAnalysis
         System_Range__FromStart,
         System_Range__All,
 
+        System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
+
         System_IAsyncDisposable__DisposeAsync,
         System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
         System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync,
@@ -471,7 +473,12 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult,
         System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus,
         System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted,
-        System_Threading_Tasks_ValueTask_T__ctor,
+        System_Threading_Tasks_Sources_IValueTaskSource__GetResult,
+        System_Threading_Tasks_Sources_IValueTaskSource__GetStatus,
+        System_Threading_Tasks_Sources_IValueTaskSource__OnCompleted,
+        System_Threading_Tasks_ValueTask_T__ctorSourceAndToken,
+        System_Threading_Tasks_ValueTask_T__ctorValue,
+        System_Threading_Tasks_ValueTask__ctor,
 
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create,
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete,
@@ -480,5 +487,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
 
         Count
+
+        // Remember to update the AllWellKnownTypeMembers tests when making changes here
     }
 }

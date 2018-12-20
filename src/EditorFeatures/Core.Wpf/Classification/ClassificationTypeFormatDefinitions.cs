@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
-        [ExcludeFromCodeCoverage] 
+        [ExcludeFromCodeCoverage]
         private class RegexCommentFormatDefinition : ClassificationFormatDefinition
         {
             private RegexCommentFormatDefinition()

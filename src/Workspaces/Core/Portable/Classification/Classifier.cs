@@ -67,13 +67,13 @@ namespace Microsoft.CodeAnalysis.Classification
             CancellationToken cancellationToken = default)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
- 
+
             return await GetClassifiedSymbolDisplayPartsAsync(
                 semanticModel, textSpan,
                 document.Project.Solution.Workspace,
                 cancellationToken).ConfigureAwait(false);
         }
- 
+
         internal static async Task<ImmutableArray<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
             SemanticModel semanticModel, TextSpan textSpan, Workspace workspace,
             CancellationToken cancellationToken = default)
@@ -83,12 +83,12 @@ namespace Microsoft.CodeAnalysis.Classification
 
             return ConvertClassificationsToParts(sourceText, textSpan.Start, classifiedSpans);
         }
- 
+
         internal static ImmutableArray<SymbolDisplayPart> ConvertClassificationsToParts(
             SourceText sourceText, int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans)
         {
             var parts = ArrayBuilder<SymbolDisplayPart>.GetInstance();
- 
+
             foreach (var span in classifiedSpans)
             {
                 // If there is space between this span and the last one, then add a space.
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 {
                     parts.AddRange(Space());
                 }
- 
+
                 var kind = GetClassificationKind(span.ClassificationType);
                 if (kind != null)
                 {
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     startPosition = span.TextSpan.End;
                 }
             }
- 
+
             return parts.ToImmutableAndFree();
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             yield return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, new string(' ', count));
         }
- 
+
         private static SymbolDisplayPartKind? GetClassificationKind(string type)
         {
             switch (type)

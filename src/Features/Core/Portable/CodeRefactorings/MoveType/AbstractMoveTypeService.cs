@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 {
                     var typeName = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken).Name;
                     return TypeMatchesDocumentName(
-                        typeDeclaration, typeName, state.DocumentNameWithoutExtension, 
+                        typeDeclaration, typeName, state.DocumentNameWithoutExtension,
                         semanticModel, cancellationToken);
                 });
         }

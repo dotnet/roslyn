@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(body != null);
             Debug.Assert(method != null);
-            Debug.Assert(stateMachineType != null);
+            Debug.Assert((object)stateMachineType != null);
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.diagnostics = diagnostics;
 
             this.F = new SyntheticBoundNodeFactory(method, body.Syntax, compilationState, diagnostics);
-            Debug.Assert(F.CurrentType == method.ContainingType);
+            Debug.Assert(TypeSymbol.Equals(F.CurrentType, method.ContainingType, TypeCompareKind.ConsiderEverything2));
             Debug.Assert(F.Syntax == body.Syntax);
         }
 

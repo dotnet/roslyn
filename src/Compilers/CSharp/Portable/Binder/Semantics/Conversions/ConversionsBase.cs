@@ -2619,7 +2619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             NamedTypeSymbol typeSymbol = source.OriginalDefinition;
-            if (typeSymbol != destination.OriginalDefinition)
+            if (!TypeSymbol.Equals(typeSymbol, destination.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 return ThreeState.False;
             }
@@ -2979,7 +2979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (var type = t.EffectiveBaseClass(ref useSiteDiagnostics); (object)type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
                 {
-                    if (type == source)
+                    if (TypeSymbol.Equals(type, source, TypeCompareKind.ConsiderEverything2))
                     {
                         return true;
                     }
@@ -3038,7 +3038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (source.OriginalDefinition != destination.OriginalDefinition)
+            if (!TypeSymbol.Equals(source.OriginalDefinition, destination.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 return false;
             }

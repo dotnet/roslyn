@@ -1,0 +1,318 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <!--
+    Roslyn version
+  -->
+  <PropertyGroup>
+    <VersionPrefix>3.0.0</VersionPrefix>
+    <PreReleaseVersionLabel>beta2</PreReleaseVersionLabel>
+    <SemanticVersioningV1>true</SemanticVersioningV1>
+
+    <!-- 
+      By default the assembly version in official builds is "$(VersionPrefix).0".
+      When building servicing set AssemblyVersion property to a fixed value to avoid updating binding redirects in VS.
+      Keep the setting conditional. The toolset sets the assembly version to 42.42.42.42 if not set explicitly.
+    -->
+    <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(VersionPrefix).0</AssemblyVersion>
+  </PropertyGroup>
+  
+  <!-- 
+    Dependency versions
+  -->
+  <PropertyGroup>
+    <!-- Versions used by several individual references below -->
+    <RoslynDiagnosticsNugetPackageVersion>2.6.2-beta2</RoslynDiagnosticsNugetPackageVersion>
+    <CodeStyleLayerCodeAnalysisVersion>2.8.2</CodeStyleLayerCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisTestingVersion>1.0.0-beta1-63310-01</MicrosoftCodeAnalysisTestingVersion>
+    <CodeStyleAnalyzerVersion>2.11.0-beta2-63603-03</CodeStyleAnalyzerVersion>
+
+    <BasicUndoVersion>0.9.3</BasicUndoVersion>
+    <BenchmarkDotNetVersion>0.11.1</BenchmarkDotNetVersion>
+    <CommandLineParserVersion>2.0.273-beta</CommandLineParserVersion>
+    <EnvDTEVersion>8.0.2</EnvDTEVersion>
+    <EnvDTE80Version>8.0.0</EnvDTE80Version>
+    <FakeSignVersion>0.9.2</FakeSignVersion>
+    <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
+    <ICSharpCodeDecompilerVersion>4.0.0.4285-beta1</ICSharpCodeDecompilerVersion>
+    <MicrosoftBuildVersion>15.1.548</MicrosoftBuildVersion>
+    <MicrosoftBuildFrameworkVersion>15.1.548</MicrosoftBuildFrameworkVersion>
+    <MicrosoftBuildLocatorVersion>1.0.13</MicrosoftBuildLocatorVersion>
+    <MicrosoftBuildRuntimeVersion>15.1.548</MicrosoftBuildRuntimeVersion>
+    <MicrosoftBuildTasksCoreVersion>15.1.548</MicrosoftBuildTasksCoreVersion>
+    <MicrosoftCodeAnalysisAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
+    <MicrosoftCodeAnalysisBuildTasksVersion>2.0.0-rc2-61102-09</MicrosoftCodeAnalysisBuildTasksVersion>
+    <MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>
+    <MicrosoftCodeAnalysisCSharpCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisCSharpCodeStyleVersion>
+    <MicrosoftCodeAnalysisElfieVersion>0.10.6</MicrosoftCodeAnalysisElfieVersion>
+    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.14</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
+    <MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>
+    <MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>
+    <MicrosoftCodeQualityAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeQualityAnalyzersVersion>
+    <SystemCompositionVersion>1.0.31</SystemCompositionVersion>
+    <MicrosoftCSharpVersion>4.3.0</MicrosoftCSharpVersion>
+    <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
+    <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>
+    <MicrosoftDiaSymReaderVersion>1.3.0</MicrosoftDiaSymReaderVersion>
+    <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta1-63314-01</MicrosoftDiaSymReaderConverterVersion>
+    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-63314-01</MicrosoftDiaSymReaderConverterXmlVersion>
+    <MicrosoftDiaSymReaderNativeVersion>1.7.0</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderPortablePdbVersion>1.5.0</MicrosoftDiaSymReaderPortablePdbVersion>
+    <MicrosoftDotNetIBCMergeVersion>4.7.2-alpha-00001</MicrosoftDotNetIBCMergeVersion>
+    <MicrosoftDotNetVersionToolsVersion>1.0.27-prerelease-01811-02</MicrosoftDotNetVersionToolsVersion>
+    <MicrosoftExtensionsDependencyInjectionVersion>2.1.1</MicrosoftExtensionsDependencyInjectionVersion>
+    <MicrosoftExtensionsLoggingVersion>2.1.1</MicrosoftExtensionsLoggingVersion>
+    <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
+    <MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>15.8.27812-alpha</MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>
+    <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
+    <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-63011-01</MicrosoftMetadataVisualizerVersion>
+    <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
+    <MicrosoftNetCompilersVersion>2.9.0-beta7-63018-03</MicrosoftNetCompilersVersion>
+    <MicrosoftNetCoreAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftNetCoreAnalyzersVersion>
+    <MicrosoftNetCoreILAsmVersion>2.0.0</MicrosoftNetCoreILAsmVersion>
+    <MicrosoftNETCoreCompilersVersion>2.9.0-beta7-63018-03</MicrosoftNETCoreCompilersVersion>
+    <MicrosoftNETCorePlatformsVersion>2.1.0</MicrosoftNETCorePlatformsVersion>
+    <MicrosoftNETCoreRuntimeCoreCLRVersion>2.0.0</MicrosoftNETCoreRuntimeCoreCLRVersion>
+     <!-- Using a private build of Microsoft.Net.Test.SDK to work around issue https://github.com/Microsoft/vstest/issues/1764 -->	
+    <MicrosoftNETTestSdkVersion>15.9.0-dev2</MicrosoftNETTestSdkVersion>
+    <MicrosoftServiceHubClientVersion>1.3.23</MicrosoftServiceHubClientVersion>
+    <MicrosoftTplDataflowVersion>4.5.24</MicrosoftTplDataflowVersion>
+    <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>   
+    <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
+    <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.8.27812-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
+    <MicrosoftVisualStudioCodingConventionsVersion>1.1.20180503.2</MicrosoftVisualStudioCodingConventionsVersion>
+    <MicrosoftVisualStudioComponentModelHostVersion>15.7.27703</MicrosoftVisualStudioComponentModelHostVersion>
+    <MicrosoftVisualStudioCompositionVersion>15.5.23</MicrosoftVisualStudioCompositionVersion>
+    <MicrosoftVisualStudioCoreUtilityVersion>15.8.414-preview</MicrosoftVisualStudioCoreUtilityVersion>
+    <MicrosoftVisualStudioDebuggerEngineVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerEngineVersion>
+    <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerMetadataVersion>
+    <MicrosoftVisualStudioDebuggerUIInterfacesVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
+    <MicrosoftVisualStudioDesignerInterfacesVersion>1.1.4322</MicrosoftVisualStudioDesignerInterfacesVersion>
+    <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>15.8.27812-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
+    <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.17</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
+    <MicrosoftVisualStudioEditorVersion>15.8.414-preview</MicrosoftVisualStudioEditorVersion>
+    <MicrosoftVisualStudioGraphModelVersion>15.8.27812-alpha</MicrosoftVisualStudioGraphModelVersion>
+    <MicrosoftVisualStudioImageCatalogVersion>15.0.26730-alpha</MicrosoftVisualStudioImageCatalogVersion>
+    <MicrosoftVisualStudioImagingVersion>15.8.27828</MicrosoftVisualStudioImagingVersion>
+    <MicrosoftVisualStudioInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioInteractiveWindowVersion>
+    <MicrosoftVisualStudioLanguageVersion>15.8.414-preview</MicrosoftVisualStudioLanguageVersion>
+    <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.8.27812-alpha</MicrosoftVisualStudioLanguageCallHierarchyVersion>
+    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.8.414-preview</MicrosoftVisualStudioLanguageIntellisenseVersion>
+    <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>15.8.414-preview</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
+    <MicrosoftVisualStudioLanguageStandardClassificationVersion>15.8.414-preview</MicrosoftVisualStudioLanguageStandardClassificationVersion>
+    <MicrosoftVisualStudioOLEInteropVersion>7.10.6071</MicrosoftVisualStudioOLEInteropVersion>
+    <MicrosoftVisualStudioPlatformVSEditorVersion>15.8.414-preview</MicrosoftVisualStudioPlatformVSEditorVersion>
+    <MicrosoftVisualStudioProgressionCodeSchemaVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCodeSchemaVersion>
+    <MicrosoftVisualStudioProgressionCommonVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCommonVersion>
+    <MicrosoftVisualStudioProgressionInterfacesVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionInterfacesVersion>
+    <MicrosoftVisualStudioProjectSystemVersion>15.3.178-pre-g209fb07c2e</MicrosoftVisualStudioProjectSystemVersion>
+    <MicrosoftVisualStudioProjectSystemManagedVersion>2.3.6152103</MicrosoftVisualStudioProjectSystemManagedVersion>
+    <MicrosoftVisualStudioRemoteControlVersion>14.0.249-master2E2DC10C</MicrosoftVisualStudioRemoteControlVersion>
+    <MicrosoftVisualStudioSDKAnalyzersVersion>15.7.7</MicrosoftVisualStudioSDKAnalyzersVersion>
+    <MicrosoftVisualStudioSetupConfigurationInteropVersion>1.15.103</MicrosoftVisualStudioSetupConfigurationInteropVersion>
+    <MicrosoftVisualStudioShell150Version>15.8.27828</MicrosoftVisualStudioShell150Version>
+    <MicrosoftVisualStudioShellFrameworkVersion>15.8.27828</MicrosoftVisualStudioShellFrameworkVersion>
+    <MicrosoftVisualStudioShellDesignVersion>15.7.27703</MicrosoftVisualStudioShellDesignVersion>
+    <MicrosoftVisualStudioShellImmutable100Version>15.0.25415</MicrosoftVisualStudioShellImmutable100Version>
+    <MicrosoftVisualStudioShellImmutable110Version>15.0.25415</MicrosoftVisualStudioShellImmutable110Version>
+    <MicrosoftVisualStudioShellInteropVersion>7.10.6072</MicrosoftVisualStudioShellInteropVersion>
+    <MicrosoftVisualStudioShellInterop100Version>10.0.30320</MicrosoftVisualStudioShellInterop100Version>
+    <MicrosoftVisualStudioShellInterop110Version>11.0.61031</MicrosoftVisualStudioShellInterop110Version>
+    <MicrosoftVisualStudioShellInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioShellInterop121DesignTimeVersion>
+    <MicrosoftVisualStudioShellInterop157DesignTimeVersion>15.7.1</MicrosoftVisualStudioShellInterop157DesignTimeVersion>
+    <MicrosoftVisualStudioShellInterop80Version>8.0.50728</MicrosoftVisualStudioShellInterop80Version>
+    <MicrosoftVisualStudioTelemetryVersion>15.8.27812-alpha</MicrosoftVisualStudioTelemetryVersion>
+    <MicrosoftVisualStudioTemplateWizardInterfaceVersion>8.0.0.0-alpha</MicrosoftVisualStudioTemplateWizardInterfaceVersion>
+    <MicrosoftVisualStudioTextDataVersion>15.8.414-preview</MicrosoftVisualStudioTextDataVersion>
+    <MicrosoftVisualStudioTextInternalVersion>15.8.414-preview</MicrosoftVisualStudioTextInternalVersion>
+    <MicrosoftVisualStudioTextLogicVersion>15.8.414-preview</MicrosoftVisualStudioTextLogicVersion>
+    <MicrosoftVisualStudioTextUIVersion>15.8.414-preview</MicrosoftVisualStudioTextUIVersion>
+    <MicrosoftVisualStudioTextUIWpfVersion>15.8.414-preview</MicrosoftVisualStudioTextUIWpfVersion>
+    <MicrosoftVisualStudioTextManagerInteropVersion>7.10.6071</MicrosoftVisualStudioTextManagerInteropVersion>
+    <MicrosoftVisualStudioTextManagerInterop100Version>10.0.30320</MicrosoftVisualStudioTextManagerInterop100Version>
+    <MicrosoftVisualStudioTextManagerInterop120Version>12.0.30110</MicrosoftVisualStudioTextManagerInterop120Version>
+    <MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>
+    <MicrosoftVisualStudioThreadingAnalyzersVersion>15.8.168</MicrosoftVisualStudioThreadingAnalyzersVersion>
+    <MicrosoftVisualStudioThreadingVersion>15.8.99-rc</MicrosoftVisualStudioThreadingVersion>
+    <MicrosoftVisualStudioValidationVersion>15.3.23</MicrosoftVisualStudioValidationVersion>
+    <MicrosoftVisualStudioVsInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioVsInteractiveWindowVersion>
+    <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
+    <MSBuildStructuredLoggerVersion>2.0.61</MSBuildStructuredLoggerVersion>
+    <MDbgVersion>0.1.0</MDbgVersion>
+    <MonoOptionsVersion>4.4.0</MonoOptionsVersion>
+    <MoqVersion>4.7.99</MoqVersion>
+    <NerdbankFullDuplexStreamVersion>1.0.1</NerdbankFullDuplexStreamVersion>
+    <NewtonsoftJsonVersion>9.0.1</NewtonsoftJsonVersion>
+    <NuGetVisualStudioVersion>4.0.0-rc-2048</NuGetVisualStudioVersion>
+    <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
+    <RestSharpVersion>105.2.3</RestSharpVersion>
+    <RoslynDependenciesOptimizationDataVersion>2.11.0-beta3.20181005.1</RoslynDependenciesOptimizationDataVersion>
+    <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
+    <RoslynToolsVSIXExpInstallerVersion>1.0.0-beta2-63222-01</RoslynToolsVSIXExpInstallerVersion>
+    <RoslynToolsOptProfVersion>1.0.0-beta3.18524.2</RoslynToolsOptProfVersion>
+    <RoslynOptProfRunSettingsGeneratorVersion>1.0.0-beta3.18610.1</RoslynOptProfRunSettingsGeneratorVersion>
+    <RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>4.3.0</RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>
+    <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
+    <StreamJsonRpcVersion>1.3.23</StreamJsonRpcVersion>
+    <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
+    <SystemCommandLineExperimentalVersion>0.1.0-alpha-63227-01</SystemCommandLineExperimentalVersion>
+    <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
+    <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
+    <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
+    <SystemIOPipesAccessControlVersion>4.3.0</SystemIOPipesAccessControlVersion>
+    <SystemMemoryVersion>4.5.1</SystemMemoryVersion>
+    <SystemReflectionMetadataVersion>1.6.0</SystemReflectionMetadataVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>4.5.0</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemTextEncodingCodePagesVersion>4.5.0</SystemTextEncodingCodePagesVersion>
+    <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
+    <SystemThreadingTasksDataflowVersion>4.5.24</SystemThreadingTasksDataflowVersion>
+    <!-- We need System.ValueTuple assembly version at least 4.0.3.0 on net47 to make F5 work against Dev15 - see https://github.com/dotnet/roslyn/issues/29705 -->
+    <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
+    <SystemThreadingTasksExtensionsVersion>4.5.0</SystemThreadingTasksExtensionsVersion>
+    <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
+    <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
+    <MicrosoftVSSDKBuildToolsVersion>15.8.68-develop-g109a00ff</MicrosoftVSSDKBuildToolsVersion>
+    <VSLangProjVersion>7.0.3301</VSLangProjVersion>
+    <VSLangProj140Version>14.0.25030</VSLangProj140Version>
+    <VSLangProj2Version>7.0.5001</VSLangProj2Version>
+    <VSLangProj80Version>8.0.50728</VSLangProj80Version>
+    <VsWebsiteInteropVersion>8.0.50727</VsWebsiteInteropVersion>
+    <vswhereVersion>2.4.1</vswhereVersion>
+    <xunitVersion>2.4.1-pre.build.4059</xunitVersion>
+    <xunitanalyzersVersion>0.10.0</xunitanalyzersVersion>
+    <xunitassertVersion>$(xunitVersion)</xunitassertVersion>
+    <xunitextensibilitycoreVersion>$(xunitVersion)</xunitextensibilitycoreVersion>
+    <xunitrunnerconsoleVersion>2.4.1-pre.build.4059</xunitrunnerconsoleVersion>
+    <xunitrunnerwpfVersion>1.0.51</xunitrunnerwpfVersion>
+    <xunitrunnervisualstudioVersion>$(xunitVersion)</xunitrunnervisualstudioVersion>
+    <xunitextensibilityexecutionVersion>$(xunitVersion)</xunitextensibilityexecutionVersion>
+
+    <!--
+      The CodeStyle layer depends on a prior stable release of the CodeAnalysis assemblies so the NuGet packages
+      produced by the build can be installed in projects building with those older releases.
+    -->
+    <MicrosoftCodeAnalysisCommonFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisCommonFixedVersion>
+    <MicrosoftCodeAnalysisWorkspacesCommonFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisWorkspacesCommonFixedVersion>
+    <MicrosoftCodeAnalysisCSharpFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpFixedVersion>
+    <MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion>
+    <MicrosoftCodeAnalysisVisualBasicFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisVisualBasicFixedVersion>
+    <MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>$(CodeStyleLayerCodeAnalysisVersion)</MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion>
+  </PropertyGroup>
+
+  <!-- 
+    The following packages are considered implementation details and will not be included 
+    in the list of dependencies of Roslyn packages. They won't flow as package references 
+    to the projects that reference Roslyn packages.
+  -->
+  <ItemGroup>
+    <PrivateVisualStudioPackage Include="EnvDTE"/>
+    <PrivateVisualStudioPackage Include="EnvDTE80"/>
+    <PrivateVisualStudioPackage Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime"/>
+    <PrivateVisualStudioPackage Include="Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime"/>
+    <PrivateVisualStudioPackage Include="Microsoft.MSXML"/>
+    <PrivateVisualStudioPackage Include="Microsoft.ServiceHub.Client"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.ComponentModelHost"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.CodingConventions"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.CoreUtility"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Debugger.Engine"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Debugger.UI.Interfaces"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Designer.Interfaces"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Editor"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.GraphModel"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.InteractiveWindow"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.ImageCatalog"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Imaging"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.CallHierarchy"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.Intellisense"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.StandardClassification"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.OLE.Interop"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.CodeSchema"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.Common"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.Interfaces"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.RemoteControl"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.15.0"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Design"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Framework"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Immutable.10.0"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.9.0"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.10.0"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.11.0"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.7.DesignTime"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Telemetry"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Text.Data"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Text.Logic"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Text.UI"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Text.UI.Wpf"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.10.0"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.12.0"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Utilities"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VSSDK.BuildTools"/>
+    <PrivateVisualStudioPackage Include="Newtonsoft.Json"/>
+    <PrivateVisualStudioPackage Include="NuGet.VisualStudio"/>
+    <PrivateVisualStudioPackage Include="StreamJsonRpc"/>
+    <PrivateVisualStudioPackage Include="VSLangProj"/>
+    <PrivateVisualStudioPackage Include="VSLangProj2"/>
+    <PrivateVisualStudioPackage Include="VSLangProj80"/>
+    <PrivateVisualStudioPackage Include="VSLangProj140"/>
+    <PrivateVisualStudioPackage Include="VsWebsite.Interop"/>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <UsingToolPdbConverter>true</UsingToolPdbConverter>
+    <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
+    <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
+    <UsingToolVSSDK>true</UsingToolVSSDK>
+    <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
+    <UsingToolIbcOptimization>true</UsingToolIbcOptimization>
+    <UsingToolXliff>true</UsingToolXliff>
+    <UsingToolXUnit>true</UsingToolXUnit>
+
+    <!-- 
+      Use compilers in Microsoft.NET.Compilers package unless we are building with bootstrapped compilers.
+      Allows to dogfood the latest compiler features.
+    -->
+    <UsingToolMicrosoftNetCompilers Condition="'$(BootstrapBuildPath)' == ''">true</UsingToolMicrosoftNetCompilers>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RestoreSources>
+      $(RestoreSources);
+      https://api.nuget.org/v3/index.json;
+      https://dotnet.myget.org/F/dotnet-coreclr/api/v3/index.json;
+      https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
+      https://dotnet.myget.org/F/dotnet-corefxtestdata/api/v3/index.json;
+      https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json;
+      https://dotnet.myget.org/F/symreader/api/v3/index.json;
+      https://dotnet.myget.org/F/symreader-portable/api/v3/index.json;
+      https://dotnet.myget.org/F/symreader-converter/api/v3/index.json;
+      https://dotnet.myget.org/F/symreader-native/api/v3/index.json;
+      https://dotnet.myget.org/F/metadata-tools/api/v3/index.json;
+      https://dotnet.myget.org/F/interactive-window/api/v3/index.json;
+      https://dotnet.myget.org/F/roslyn-master-nightly/api/v3/index.json;
+      https://dotnet.myget.org/F/roslyn-tools/api/v3/index.json;
+      https://dotnet.myget.org/F/roslyn-analyzers/api/v3/index.json;
+      https://dotnet.myget.org/F/roslyn/api/v3/index.json;
+      https://dotnet.myget.org/F/sourcelink/api/v3/index.json;
+      https://myget.org/F/vs-devcore/api/v3/index.json;
+      https://myget.org/F/vs-editor/api/v3/index.json;
+      https://vside.myget.org/F/vssdk/api/v3/index.json;
+      https://vside.myget.org/F/vs-impl/api/v3/index.json;
+      https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
+      https://dotnet.myget.org/F/system-commandline/api/v3/index.json;
+    </RestoreSources>
+  </PropertyGroup>
+
+</Project>

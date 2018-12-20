@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node, bool used)
         {
-            Debug.Assert(node.Right.Type == node.Operator.RightType);
+            Debug.Assert(TypeSymbol.Equals(node.Right.Type, node.Operator.RightType, TypeCompareKind.ConsiderEverything2));
             BoundExpression loweredRight = VisitExpression(node.Right);
 
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();

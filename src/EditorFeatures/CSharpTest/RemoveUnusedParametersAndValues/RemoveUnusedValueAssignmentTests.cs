@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
@@ -2645,6 +2646,37 @@ class C
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UseInLambda_PassedAsArgument_02(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    public C(bool flag)
+    {
+        Flag = flag;
+    }
+
+    public bool Flag { get; }
+    public static bool M()
+    {
+        bool flag = true;
+        var c = Create(() => flag);
+
+        M2(c);
+        [|flag|] = false;
+        return M2(c);
+    }
+
+    private static C Create(Func<bool> isFlagTrue) { return new C(isFlagTrue()); }
+    private static bool M2(C c) => c.Flag;
+}", optionName);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_PassedAsArgument(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2716,6 +2748,78 @@ class C
     }
 
     void M2(MyAction a) => a();
+}", optionName);
+        }
+
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UnusedInExpressionTree_PassedAsArgument(string optionName)
+        {
+            // Currently we bail out of analysis in presence of expression trees.
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1()
+    {
+        object [|p|] = null;
+        M2(x => x.M3());
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3() { return 0; }
+}", optionName);
+        }
+
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ReadInExpressionTree_PassedAsArgument(string optionName)
+        {
+            // Currently we bail out of analysis in presence of expression trees.
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1()
+    {
+        object [|p|] = null;
+        M2(x => x.M3(p));
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3(object o) { return 0; }
+}", optionName);
+        }
+
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task OnlyWrittenInExpressionTree_PassedAsArgument(string optionName)
+        {
+            // Currently we bail out of analysis in presence of expression trees.
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1()
+    {
+        object [|p|] = null;
+        M2(x => x.M3(out p));
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3(out object o) { o = null; return 0; }
 }", optionName);
         }
 
@@ -4603,7 +4707,7 @@ $@"class C
     bool M2(out int x) {{ x = 0; return true; }}
     int M3() => 0;
 }}");
-            }
+        }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
@@ -5776,6 +5880,44 @@ $@"class C
         return true;
     }
 }", options: PreferDiscard);
+        }
+
+        [WorkItem(31583, "https://github.com/dotnet/roslyn/issues/31583")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task MissingImports(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        List<int> [|x|] = null;
+    }
+}", optionName);
+        }
+
+        [WorkItem(31583, "https://github.com/dotnet/roslyn/issues/31583")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UsedAssignment_ConditionalPreprocessorDirective(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#define DEBUG
+
+class C
+{
+    int M()
+    {
+        int [|x|] = 0;
+#if DEBUG
+        x = 1;
+#endif
+        return x;
+    }
+}", optionName);
         }
     }
 }

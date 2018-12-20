@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (isVar)
                 {
                     diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, this.ErrorLocation, this);
-                    type = TypeSymbolWithAnnotations.Create(binder.NonNullTypesContext, binder.CreateErrorType("var"));
+                    type = TypeSymbolWithAnnotations.Create(binder.CreateErrorType("var"));
                 }
 
                 SetType(compilation, diagnostics, type);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert((object)originalType == null ||
                 originalType.IsErrorType() ||
-                originalType == type.TypeSymbol);
+                TypeSymbol.Equals(originalType, type.TypeSymbol, TypeCompareKind.ConsiderEverything2));
 
             if (_lazyType.InterlockedInitialize(type))
             {

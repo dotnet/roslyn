@@ -18,7 +18,7 @@
     </contentFiles>
   </metadata>
   <files>
-    <file src="SourcePackages\Microsoft.CodeAnalysis.PooledObjects.Package\Microsoft.CodeAnalysis.PooledObjects.props" target="build" />
+    <file src="$SourcePackagePropsFilePath$" target="build" />
     <file src="$ProjectDirectory$\**\*.cs" target="contentFiles/cs/netstandard1.3" />
     <file src="$ProjectDirectory$\**\*.cs" target="contentFiles/cs/net45" />
   </files>

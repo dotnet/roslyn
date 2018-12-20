@@ -2,6 +2,16 @@ Nullable Reference Types
 =========
 Reference types may be nullable, non-nullable, or null-oblivious (abbreviated here as `?`, `!`, and `~`).
 
+## Setting project level nullable context
+
+Project level nullable context can be set by using "nullable" command line switch:
+-nullable[+|-]                        Specify nullable context option enable|disable.
+-nullable:{enable|disable|safeonly}   Specify nullable context option enable|disable|safeonly.
+
+Through msbuild the context could be set by supplying an argument for a "NullableContextOptions" parameter of Csc build task.
+Accepted values are "enable", "disable", "safeonly", or null (for the default nullable context according to the compiler).
+The Microsoft.CSharp.Core.targets passes value of msbuild property named "NullableContextOptions" for that parameter.
+
 ## Annotations
 In source, nullable reference types are annotated with `?`.
 ```c#

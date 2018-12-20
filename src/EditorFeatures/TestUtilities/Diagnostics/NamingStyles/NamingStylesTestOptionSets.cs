@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                     new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction)),
                 accessibilityList: default,
                 ImmutableArray.Create(new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsAsync)));
- 
+
             var namingStyle = new NamingStyle(
                 Guid.NewGuid(),
                 capitalizationScheme: Capitalization.PascalCase,
@@ -556,19 +556,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 prefix: "",
                 suffix: "Async",
                 wordSeparator: "");
- 
+
             var namingRule = new SerializableNamingRule()
             {
                 SymbolSpecificationID = symbolSpecification.ID,
                 NamingStyleID = namingStyle.ID,
                 EnforcementLevel = ReportDiagnostic.Error
             };
- 
+
             var info = new NamingStylePreferences(
                 ImmutableArray.Create(symbolSpecification),
                 ImmutableArray.Create(namingStyle),
                 ImmutableArray.Create(namingRule));
- 
+
             return info;
         }
     }

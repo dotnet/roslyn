@@ -226,6 +226,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             public void ExtendToInclude(BasicBlockBuilder block)
             {
+                Debug.Assert(block != null);
                 Debug.Assert((Kind != ControlFlowRegionKind.FilterAndHandler &&
                               Kind != ControlFlowRegionKind.TryAndCatch &&
                               Kind != ControlFlowRegionKind.TryAndFinally) ||
@@ -312,7 +313,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 CaptureIds?.Sort((x, y) => x.Value.CompareTo(y.Value));
 
                 var result = new ControlFlowRegion(Kind, FirstBlock.Ordinal, LastBlock.Ordinal, subRegions,
-                                                   Locals, 
+                                                   Locals,
                                                    LocalFunctions?.SelectAsArray(((IMethodSymbol, ILocalFunctionOperation) tuple) => tuple.Item1) ?? default,
                                                    CaptureIds?.ToImmutable() ?? default,
                                                    ExceptionType,
@@ -372,13 +373,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 }
             }
 
-            private sealed class AnonymousFunctionsMapBuilder : 
+            private sealed class AnonymousFunctionsMapBuilder :
                 OperationVisitor<(ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion region, int ordinal)>.Builder map, ControlFlowRegion region), IOperation>
             {
                 public static readonly AnonymousFunctionsMapBuilder Instance = new AnonymousFunctionsMapBuilder();
 
                 public override IOperation VisitFlowAnonymousFunction(
-                    IFlowAnonymousFunctionOperation operation, 
+                    IFlowAnonymousFunctionOperation operation,
                     (ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion region, int ordinal)>.Builder map, ControlFlowRegion region) argument)
                 {
                     argument.map.Add(operation, (argument.region, argument.map.Count));
@@ -391,7 +392,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 }
 
                 public override IOperation DefaultVisit(
-                    IOperation operation, 
+                    IOperation operation,
                     (ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion region, int ordinal)>.Builder map, ControlFlowRegion region) argument)
                 {
                     foreach (IOperation child in operation.Children)

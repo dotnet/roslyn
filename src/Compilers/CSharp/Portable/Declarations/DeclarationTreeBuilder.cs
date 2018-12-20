@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SingleNamespaceOrTypeDeclaration VisitDelegateDeclaration(DelegateDeclarationSyntax node)
         {
             var declFlags = node.AttributeLists.Any()
-                ? SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes 
+                ? SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes
                 : SingleTypeDeclaration.TypeDeclarationFlags.None;
 
             var diagnostics = DiagnosticBag.GetInstance();

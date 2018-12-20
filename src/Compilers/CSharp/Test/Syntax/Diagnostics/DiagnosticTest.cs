@@ -282,6 +282,7 @@ class X
                         case ErrorCode.WRN_SuppressionOperatorNotReferenceType:
                         case ErrorCode.WRN_NullAsNonNullable:
                         case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
+                        case ErrorCode.WRN_NullableValueTypeMayBeNull:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                         case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                         case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:

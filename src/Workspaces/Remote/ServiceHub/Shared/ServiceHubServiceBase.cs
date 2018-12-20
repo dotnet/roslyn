@@ -253,12 +253,12 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (!cancellationToken.IsCancellationRequested)
             {
-                LogException(ex);    
+                LogException(ex);
             }
 
             return false;
         }
-        
+
         protected void LogException(Exception ex)
         {
             LogError("Exception: " + ex.ToString());
