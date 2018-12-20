@@ -694,6 +694,83 @@ class Derived : Base, Interface
         }
 
         [Fact]
+        public void TestSupressOverrideNotExpectedErrorWhenMethodParameterTypeNotFound()
+        {
+            var text = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    public override void Method0(String x) { }
+    public override void Method1(string x, String y) { }
+    public override void Method2(String[] x) { }
+    public override void Method3(System.Func<String> x) { }
+    public override void Method4((string a, String b) x) { }
+    public override void Method5(System.Func<(string a, String[] b)> x) { }
+    public override void Method6(Outer<String>.Inner<string> x) { }
+    public override void Method7(Outer<string>.Inner<String> x) { }
+    public override void Method8(String? x) { }
+}
+
+class Outer<T>
+{
+    public class Inner<U>{}
+}
+";
+            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 8, Column = 34},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 9, Column = 44},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 10, Column = 34},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 11, Column = 46},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 12, Column = 45},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 13, Column = 57},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 14, Column = 40},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 15, Column = 54},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 16, Column = 34},
+            });
+        }
+
+        [Fact]
+        public void TestSupressOverrideNotExpectedErrorWhenIndexerParameterTypeNotFound()
+        {
+            var text = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    public override int this[String x] => 0;
+    public override int this[string x, String y] => 0;
+    public override int this[String[] x] => 0;
+    public override int this[System.Func<String> x] => 0;
+    public override int this[(string a, String b) x] => 0;
+    public override int this[System.Func<(string a, String[] b)> x] => 0;
+    public override int this[Outer<String>.Inner<string> x] => 0;
+    public override int this[Outer<string>.Inner<String> x] => 0;
+    public override int this[String? x] => 0;
+}
+
+class Outer<T>
+{
+    public class Inner<U>{}
+}
+";
+            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 8, Column = 30},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 9, Column = 40},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 10, Column = 30},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 11, Column = 42},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 12, Column = 41},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 13, Column = 53},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 14, Column = 36},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 15, Column = 50},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 16, Column = 30},
+            });
+        }
+        [Fact]
         public void TestOverrideSealedMethod()
         {
             var text = @"
