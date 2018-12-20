@@ -191,23 +191,21 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
                 // After that first member chunk, remove all whitespace between the
                 // other member chunks and between the arg list.
 
-                var firstCallChunk = _callChunks[0];
-
                 // For the very first name chunk in .A.B.C (i.e. `.A` just remove the spaces
                 // between the dot and the name.
-                var firstMemberChunk = firstCallChunk.MemberChunks[0];
+                var firstMemberChunk = callChunk.MemberChunks[0];
                 result.Add(Edit.DeleteBetween(firstMemberChunk.DotToken, firstMemberChunk.Name));
 
                 // For all subsequence name chunks in .A.B.C (i.e. `.B.C`) remove any spaces between
                 // the chunk and the last chunk, and between the dot and the name.
-                for (var i = 1; i < firstCallChunk.MemberChunks.Length; i++)
+                for (var i = 1; i < callChunk.MemberChunks.Length; i++)
                 {
-                    var memberChunk = firstCallChunk.MemberChunks[i];
+                    var memberChunk = callChunk.MemberChunks[i];
                     DeleteSpacesInMemberChunk(result, memberChunk);
                 }
 
                 // and then any whitespace before the first arg list and between the rest.
-                DeleteSpacesInArgumentLists(result, firstCallChunk);
+                DeleteSpacesInArgumentLists(result, callChunk);
             }
 
             private static void DeleteSpacesInMemberChunk(ArrayBuilder<Edit> result, MemberChunk memberChunk)

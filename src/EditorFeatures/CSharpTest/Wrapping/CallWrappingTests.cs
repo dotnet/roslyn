@@ -55,5 +55,63 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestElementAccess()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        [||]the.quick.brown[1, 2, 3].fox.jumped[1][2][3];
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown[1, 2, 3]
+           .fox.jumped[1][2][3];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestUnwrap()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        [||]the.quick.brown[1, 2, 3]
+           .fox.jumped[1][2][3];
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown[1, 2, 3].fox.jumped[1][2][3];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestWrapAndUnwrap()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        [||]the.quick.
+                brown[1, 2, 3]
+           .fox.jumped[1][2][3];
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown[1, 2, 3]
+           .fox.jumped[1][2][3];
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown[1, 2, 3].fox.jumped[1][2][3];
+    }
+}");
+        }
     }
 }
