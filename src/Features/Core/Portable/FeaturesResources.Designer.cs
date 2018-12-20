@@ -4503,6 +4503,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Wrap long calls.
+        /// </summary>
+        internal static string Wrap_long_calls {
+            get {
+                return ResourceManager.GetString("Wrap_long_calls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Wrap long parameter list.
         /// </summary>
         internal static string Wrap_long_parameter_list {

@@ -1410,6 +1410,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsCharacterLiteral(SyntaxToken token)
             => token.Kind() == SyntaxKind.CharacterLiteralToken;
 
+        public void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
+        {
+            var invocation = (InvocationExpressionSyntax)node;
+            expression = invocation.Expression;
+            argumentList = invocation.ArgumentList;
+        }
+
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
             => GetArgumentsOfArgumentList((invocationExpression as InvocationExpressionSyntax)?.ArgumentList);
 
@@ -1545,13 +1552,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode memberAccessExpression)
             => ((MemberAccessExpressionSyntax)memberAccessExpression).Name;
 
-        public SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode memberAccessExpression)
-            => ((MemberAccessExpressionSyntax)memberAccessExpression).OperatorToken;
-
-        public void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode name)
+        public void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode name)
         {
             var memberAccess = (MemberAccessExpressionSyntax)node;
             expression = memberAccess.Expression;
+            operatorToken = memberAccess.OperatorToken;
             name = memberAccess.Name;
         }
 

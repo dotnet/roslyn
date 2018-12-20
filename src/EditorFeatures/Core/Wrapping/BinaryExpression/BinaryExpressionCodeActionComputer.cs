@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
 {
     internal partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax>
     {
-        private class BinaryExpressionCodeActionComputer : 
+        private class BinaryExpressionCodeActionComputer :
             AbstractCodeActionComputer<AbstractBinaryExpressionWrapper>
         {
             private readonly ImmutableArray<SyntaxNodeOrToken> _exprsAndOperators;

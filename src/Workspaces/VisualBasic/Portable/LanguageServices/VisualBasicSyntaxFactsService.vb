@@ -1482,10 +1482,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(memberAccessExpression, MemberAccessExpressionSyntax).Name
         End Function
 
-        Public Function GetOperatorTokenOfMemberAccessExpression(memberAccessExpression As SyntaxNode) As SyntaxToken Implements ISyntaxFactsService.GetOperatorTokenOfMemberAccessExpression
-            Return DirectCast(memberAccessExpression, MemberAccessExpressionSyntax).OperatorToken
-        End Function
-
         Public Function GetIdentifierOfSimpleName(node As SyntaxNode) As SyntaxToken Implements ISyntaxFactsService.GetIdentifierOfSimpleName
             Return DirectCast(node, SimpleNameSyntax).Identifier
         End Function
@@ -1534,10 +1530,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsExpressionOfMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfMemberAccessExpression
             Return node IsNot Nothing AndAlso TryCast(node.Parent, MemberAccessExpressionSyntax)?.Expression Is node
-        End Function
-
-        Public Function GetExpressionOfInvocationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfInvocationExpression
-            Return DirectCast(node, InvocationExpressionSyntax).Expression
         End Function
 
         Public Function GetExpressionOfAwaitExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfAwaitExpression
@@ -1632,9 +1624,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, UnaryExpressionSyntax).OperatorToken
         End Function
 
-        Public Sub GetPartsOfMemberAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef name As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfMemberAccessExpression
+        Public Sub GetPartsOfMemberAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef name As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfMemberAccessExpression
             Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
             expression = memberAccess.Expression
+            operatorToken = memberAccess.OperatorToken
             name = memberAccess.Name
         End Sub
 
@@ -1867,5 +1860,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function SpansPreprocessorDirective(nodes As IEnumerable(Of SyntaxNode)) As Boolean Implements ISyntaxFactsService.SpansPreprocessorDirective
             Return nodes.SpansPreprocessorDirective()
         End Function
+
+        Public Sub GetPartsOfInvocationExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef argumentList As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfInvocationExpression
+            Dim invocation = DirectCast(node, InvocationExpressionSyntax)
+            expression = invocation.Expression
+            argumentList = invocation.ArgumentList
+        End Sub
     End Class
 End Namespace

@@ -1,5 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
 {
     internal abstract partial class AbstractCallWrapper<
@@ -10,23 +16,45 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
         TElementAccessExpressionSyntax,
         TBaseArgumentListSyntax>
     {
-        private readonly struct Chunk
+        private readonly struct MemberChunk
+        {
+            public readonly SyntaxToken DotToken;
+            public readonly TNameSyntax Name;
+
+            public MemberChunk(SyntaxToken dotToken, TNameSyntax name)
+            {
+                DotToken = dotToken;
+                Name = name;
+            }
+
+            /// <summary>
+            /// The length this chunk will be once all unnecessary whitespace has been
+            /// removed from it.
+            /// </summary>
+            public int NormalizedLength()
+                => DotToken.Width() + Name.Width();
+        }
+
+        private readonly struct CallChunk
         {
             // Optional as VB allows an initial dotted expression starting with <dot>
             // in a `with` block.
-            public readonly TExpressionSyntax ExpressionOpt;
-            public readonly SyntaxToken DotToken;
-            public readonly TNameSyntax Name;
-            // Optional when we just have a member access expression along the way.
-            public readonly TBaseArgumentListSyntax ArgumentListOpt;
+            public readonly ImmutableArray<MemberChunk> MemberChunks;
+            public readonly TBaseArgumentListSyntax ArgumentList;
 
-            public Chunk(TExpressionSyntax expressionOpt, SyntaxToken dotToken, TNameSyntax name, TBaseArgumentListSyntax argumentListOpt)
+            public CallChunk(ImmutableArray<MemberChunk> memberChunks, TBaseArgumentListSyntax argumentList)
             {
-                ExpressionOpt = expressionOpt;
-                DotToken = dotToken;
-                Name = name;
-                ArgumentListOpt = argumentListOpt;
+                Debug.Assert(memberChunks.Length > 0);
+                MemberChunks = memberChunks;
+                ArgumentList = argumentList;
             }
+
+            /// <summary>
+            /// The length this chunk will be once all unnecessary whitespace has been
+            /// removed from it.
+            /// </summary>
+            public int NormalizedLength()
+                => MemberChunks.Sum(c => c.NormalizedLength()) + ArgumentList.Width();
         }
     }
 }

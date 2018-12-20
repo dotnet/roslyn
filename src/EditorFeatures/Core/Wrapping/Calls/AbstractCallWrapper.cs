@@ -25,15 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
     /// <summary>
     /// Finds and wraps code of the form:
     /// <c>
-    ///     expr.M1(...).P1.M2(...).P2.I1[...]
+    ///     expr.P1.M1(...).P2.M2(...).P3.I1[...]
     /// </c>
     /// 
     /// into
     /// 
     /// <c>
-    ///     expr.M1(...).P1
-    ///         .M2(...).P2
-    ///         .I1[...]
+    ///     expr.P1.M1(...)
+    ///         .P2.M2(...)
+    ///         .P3.I1[...]
     /// </c>
     /// </summary>
     internal abstract partial class AbstractCallWrapper<
@@ -92,26 +92,29 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             // i.e. if we only have `this.Goo(...)` there's nothing to wrap.  However, we can
             // wrap when we have `this.Goo(...).Bar(...)`.  Grab the chunks of `.Name(...)` as
             // that's what we're going to be wrapping/aligning.
-            // 
 
-            var chunks = GetChunks(node);
-            if (chunks.Length <= 1)
+            var callChunks = GetCallChunks(node);
+            if (callChunks.Length <= 1)
             {
                 return null;
             }
 
-            foreach (var chunk in chunks)
+            // If any of these chunk parts are unformattable, then we don't want to offer anything
+            // here as we may make formatting worse for this construct.
+            foreach (var callChunk in callChunks)
             {
-                // If any of these chunk parts are unformattable, then we don't want to offer anything
-                // here as we may make formatting worse for this construct.
-                var containsUnformattableContent = await ContainsUnformattableContentAsync(
-                    document, new SyntaxNodeOrToken[] { chunk.DotToken, chunk.Name }, cancellationToken).ConfigureAwait(false);
-
-                if (!containsUnformattableContent && chunk.ArgumentListOpt != null)
+                foreach (var memberChunk in callChunk.MemberChunks)
                 {
-                    containsUnformattableContent = await ContainsUnformattableContentAsync(
-                    document, new SyntaxNodeOrToken[] { chunk.ArgumentListOpt }, cancellationToken).ConfigureAwait(false);
+                    var memberContainsUnformattableContent = await ContainsUnformattableContentAsync(
+                       document, new SyntaxNodeOrToken[] { memberChunk.DotToken, memberChunk.Name }, cancellationToken).ConfigureAwait(false);
+                    if (memberContainsUnformattableContent)
+                    {
+                        return null;
+                    }
                 }
+
+                var containsUnformattableContent = await ContainsUnformattableContentAsync(
+                        document, new SyntaxNodeOrToken[] { callChunk.ArgumentList }, cancellationToken).ConfigureAwait(false);
 
                 if (containsUnformattableContent)
                 {
@@ -122,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             return new CallCodeActionComputer(
-                this, document, sourceText, options, chunks, cancellationToken);
+                this, document, sourceText, options, callChunks, cancellationToken);
         }
 
         private bool IsInvocationOrElementAccessExpression(
@@ -161,30 +164,30 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             return false;
         }
 
-        private ImmutableArray<Chunk> GetChunks(SyntaxNode node)
+        private ImmutableArray<CallChunk> GetCallChunks(SyntaxNode node)
         {
-            var chunks = ArrayBuilder<Chunk>.GetInstance();
+            var chunks = ArrayBuilder<CallChunk>.GetInstance();
             AddChunks(node, chunks);
             return chunks.ToImmutableAndFree();
         }
 
-        private void AddChunks(SyntaxNode node, ArrayBuilder<Chunk> chunks)
+        private void AddChunks(SyntaxNode node, ArrayBuilder<CallChunk> chunks)
         {
             if (IsInvocationOrElementAccessExpression(node, out var expression, out var argumentList) &&
-                expression is TMemberAccessExpressionSyntax memberAccess)
+                expression is TMemberAccessExpressionSyntax)
             {
-                _syntaxFacts.GetPartsOfMemberAccessExpression(
-                    node, out var left, out var operatorToken, out var name);
-                chunks.Add(new Chunk((TExpressionSyntax)left, operatorToken, (TNameSyntax)name, argumentList));
+                var memberChunks = ArrayBuilder<MemberChunk>.GetInstance();
+                var current = (TExpressionSyntax)expression;
+                while (current is TMemberAccessExpressionSyntax memberAccess)
+                {
+                    _syntaxFacts.GetPartsOfMemberAccessExpression(
+                        current, out var left, out var operatorToken, out var name);
+                    memberChunks.Insert(0, new MemberChunk(operatorToken, (TNameSyntax)name));
+                    current = (TExpressionSyntax)left;
+                }
 
-                AddChunks(left, chunks);
-            }
-            else if (node is TMemberAccessExpressionSyntax memberAccessExpression)
-            {
-                _syntaxFacts.GetPartsOfMemberAccessExpression(
-                    memberAccessExpression, out var left, out var operatorToken, out var name);
-                chunks.Add(new Chunk((TExpressionSyntax)left, operatorToken, (TNameSyntax)name, argumentListOpt: null));
-                AddChunks(left, chunks);
+                AddChunks(current, chunks);
+                chunks.Add(new CallChunk(memberChunks.ToImmutableAndFree(), argumentList));
             }
         }
     }

@@ -252,6 +252,11 @@
         <target state="new">Replace '{0}' with '{1}' </target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap calls">
+        <source>Unwrap calls</source>
+        <target state="new">Unwrap calls</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
         <target state="new">Unwrap all arguments</target>
@@ -342,6 +347,11 @@
         <target state="new">Use range operator</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_calls">
+        <source>Wrap calls</source>
+        <target state="new">Wrap calls</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
         <target state="new">Wrap every argument</target>
@@ -360,6 +370,11 @@
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="new">Wrap long argument list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_calls">
+        <source>Wrap long calls</source>
+        <target state="new">Wrap long calls</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">

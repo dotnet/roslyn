@@ -1604,4 +1604,7 @@ This version used in: {2}</value>
   <data name="Wrap_calls" xml:space="preserve">
     <value>Wrap calls</value>
   </data>
+  <data name="Wrap_long_calls" xml:space="preserve">
+    <value>Wrap long calls</value>
+  </data>
 </root>

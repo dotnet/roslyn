@@ -3,13 +3,20 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression;
+using Microsoft.CodeAnalysis.Editor.Wrapping.Call;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
+namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.Call
 {
-    internal class CSharpBinaryExpressionWrapper : AbstractBinaryExpressionWrapper<BinaryExpressionSyntax>
+    internal class CSharpCallWrapper : AbstractCallWrapper<
+        ExpressionSyntax,
+        NameSyntax,
+        MemberAccessExpressionSyntax,
+        InvocationExpressionSyntax,
+        ElementAccessExpressionSyntax,
+        BaseArgumentListSyntax>
     {
-        public CSharpBinaryExpressionWrapper()
-            : base(CSharpSyntaxFactsService.Instance, CSharpPrecedenceService.Instance)
+        public CSharpCallWrapper()
+            : base(CSharpSyntaxFactsService.Instance)
         {
         }
 
