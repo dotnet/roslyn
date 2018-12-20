@@ -194,7 +194,14 @@ namespace CSharpSyntaxGenerator
                     }
                     first = false;
 
-                    Write("new {0}()", field.Type);
+                    if (field.Type.Equals("string"))
+                    {
+                        Write("null");
+                    }
+                    else
+                    {
+                        Write("new {0}()", field.Type);
+                    }
                 }
 
                 WriteLine(");");
@@ -273,7 +280,14 @@ namespace CSharpSyntaxGenerator
 
                 foreach (var field in valueFields)
                 {
-                    WriteLine("Assert.Equal(new {0}(), node.{1});", field.Type, field.Name);
+                    if (field.Type.Equals("string"))
+                    {
+                        WriteLine("Assert.Equal(null, node.{1});", field.Type, field.Name);
+                    }
+                    else
+                    {
+                        WriteLine("Assert.Equal(new {0}(), node.{1});", field.Type, field.Name);
+                    }
                     if (!isGreen)
                     {
                         withStat += string.Format(".With{0}(node.{0})", field.Name);
