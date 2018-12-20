@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool Equals(object obj) => obj is BoundDagTemp other && this.Equals(other);
         public bool Equals(BoundDagTemp other)
         {
-            return other != (object)null && this.Type == other.Type && object.Equals(this.Source, other.Source) && this.Index == other.Index;
+            return other != (object)null && this.Type.Equals(other.Type, TypeCompareKind.AllIgnoreOptions) && object.Equals(this.Source, other.Source) && this.Index == other.Index;
         }
         public override int GetHashCode()
         {

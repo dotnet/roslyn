@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindTypeOrAliasOrKeyword(((IdentifierNameSyntax)syntax).Identifier, syntax, diagnostics, out isKeyword);
         }
 
-        private Symbol BindTypeOrAliasOrKeyword(SyntaxToken identifier, SyntaxNode syntax, DiagnosticBag diagnostics, out bool isKeyword)
+        private NamespaceOrTypeOrAliasSymbolWithAnnotations BindTypeOrAliasOrKeyword(SyntaxToken identifier, SyntaxNode syntax, DiagnosticBag diagnostics, out bool isKeyword)
         {
             // Keywords can only be IdentifierNameSyntax
             var identifierValueText = identifier.ValueText;
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             lookupResult.Free();
 
-            return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(IsNullableEnabled(syntax.Identifier), symbol);
+            return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(IsNullableEnabled(identifier), symbol);
         }
 
         // Binds the given expression syntax as Type.

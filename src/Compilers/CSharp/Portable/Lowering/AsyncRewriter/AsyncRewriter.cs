@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method.IsIAsyncEnumeratorReturningAsync(compilation);
             if (isAsyncEnumerableOrEnumerator && !method.IsIterator)
             {
-                bool containsAwait = AwaitDetector.ContainsAwait(body);
+                bool containsAwait = AwaitDetector.ContainsAwait(bodyWithAwaitLifted);
                 diagnostics.Add(containsAwait ? ErrorCode.ERR_PossibleAsyncIteratorWithoutYield : ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait,
                     method.Locations[0], method.ReturnType);
 
                 stateMachineType = null;
-                return body;
+                return bodyWithAwaitLifted;
             }
 
             // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.

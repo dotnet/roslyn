@@ -862,15 +862,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         break;
-                    case BoundKind.PatternSwitchSection:
-                        {
-                            var sec = (BoundPatternSwitchSection)node;
-                            foreach (var label in sec.SwitchLabels)
-                            {
-                                stateChangedAfterUse |= ResolveBranches(label.Label, sec);
-                            }
-                        }
-                        break;
                     default:
                         // there are no other kinds of labels
                         throw ExceptionUtilities.UnexpectedValue(node.Kind);
