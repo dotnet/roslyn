@@ -221,7 +221,26 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.CallExpression
             {
                 _syntaxFacts.GetPartsOfMemberAccessExpression(
                     node, out var left, out var operatorToken, out var name);
-                memberChunks.Add(new MemberChunk(operatorToken, (TNameSyntax)name));
+
+                // We could have a leading member without an 'left' side before
+                // the dot.  This happens in vb 'with' statements.  In that case
+                // we don't want to consider this part the one to align with. i.e.
+                // we don't want to generate:
+                //
+                //      with goo
+                //          .bar.baz()
+                //          .quux()
+                //
+                // We want to generate:
+                //
+                //      with goo
+                //          .bar.baz()
+                //              .quux()
+                if (left != null)
+                {
+                    memberChunks.Add(new MemberChunk(operatorToken, (TNameSyntax)name));
+                }
+
                 node = left;
             }
 
