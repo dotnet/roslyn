@@ -5,13 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.ChainedExpression
     Friend Class VisualBasicChainedExpressionWrapper
-        Inherits AbstractChainedExpressionWrapper(Of
-        ExpressionSyntax,
-        NameSyntax,
-        MemberAccessExpressionSyntax,
-        InvocationExpressionSyntax,
-        InvocationExpressionSyntax,
-        ArgumentListSyntax)
+        Inherits AbstractChainedExpressionWrapper(Of NameSyntax, ArgumentListSyntax)
 
         Public Sub New()
             MyBase.New(VisualBasicSyntaxFactsService.Instance, SyntaxKind.DotToken, SyntaxKind.QuestionToken)

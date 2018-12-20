@@ -6,13 +6,8 @@ using Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.ChainedExpression
 {
-    internal class CSharpChainedExpressionWrapper : AbstractChainedExpressionWrapper<
-        ExpressionSyntax,
-        NameSyntax,
-        MemberAccessExpressionSyntax,
-        InvocationExpressionSyntax,
-        ElementAccessExpressionSyntax,
-        BaseArgumentListSyntax>
+    internal class CSharpChainedExpressionWrapper :
+        AbstractChainedExpressionWrapper<NameSyntax, BaseArgumentListSyntax>
     {
         public CSharpChainedExpressionWrapper()
             : base(CSharpSyntaxFactsService.Instance, (int)SyntaxKind.DotToken, (int)SyntaxKind.QuestionToken)

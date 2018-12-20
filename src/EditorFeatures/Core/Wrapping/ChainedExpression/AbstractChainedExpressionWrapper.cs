@@ -20,59 +20,41 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
     }
 
     /// <summary>
-    /// Finds and wraps code of the form:
+    /// Finds and wraps 'chained' expressions.  For the purpose of this feature, a chained
+    /// expression is built out of 'chunks' where each chunk is of the form
+    ///
     /// <c>
-    ///     expr.P1.M1(...).P2.M2(...).P3.I1[...]
+    ///     . name (arglist) remainder
     /// </c>
     /// 
-    /// into
+    /// So, if there are two or more of these like:
     /// 
     /// <c>
-    ///     expr.P1.M1(...)
-    ///         .P2.M2(...)
-    ///         .P3.I1[...]
+    ///     . name1 (arglist1) remainder1 . name2 (arglist2) remainder2
     /// </c>
     /// 
-    /// Note: for the sake of simplicity, from now on, every time we talk about a CallExpression,
-    /// it means either an InvocationExpression or an ElementAccessExpression.
-    /// 
-    /// The way this wrapper works is breaking up a long dotted call expression into 'call-chunks'
-    /// of the form `.P1.P2.P3.M(...)`  i.e. a *non-empty* sequence of dot-and-name pairs
-    /// followed by one or more ArgumentLists.  In this example the sequence is considered:
+    /// Then this will be wrapped such that the dots align like so:
     /// 
     /// <c>
-    ///     .P1  .P2  .P3  .M  (...)
+    ///     . name1 (arglist1) remainder1
+    ///     . name2 (arglist2) remainder2
     /// </c>
     /// 
-    /// Note there are *multiple* call-chunks then the first is allowed to have any
-    /// expression prior to `.P1`, whereas all the rest just point to the prior chunk.
-    /// i.e.  `expr.P1.M().P2.N()` contains the two chunks:
+    /// Note: for the sake of simplicity, (arglist) is used both for the argument list of
+    /// an InvocationExpression and an ElementAccessExpression.
     /// 
-    /// <c>
-    ///     .P1  .M  ()    // and
-    ///     .P2  .N  ()
-    /// </c>
+    /// 'remainder' is all the postfix expression that can follow `. name (arglist)`.  i.e.
+    /// member-access expressions, conditional-access expressions, etc.  Effectively, anything
+    /// the language allows at this point as long as it doesn't start another 'chunk' itself.
     /// 
-    /// If an expression can be broken into multiple chunks it is eligible for 
-    /// normalized wrapping.  Normalized wrapping works by taking each chunk and
-    /// removing any unnecessary whitespace between the individual call-chunks and
-    /// between the last call-chunk and the arglists.  It then takes each call-chunk 
-    /// and aligns the first dot of all of them if performing 'wrap all'.  If performing
-    /// 'wrap long', then the wrapping only occurs if the current call-chunk's end
-    /// would go past the preferred wrapping column
+    /// This approach gives an intuitive wrapping algorithm that matches the common way
+    /// many wrap dotted invocations, while also effectively not limiting the wrapper to
+    /// only simple forms like `.a(...).b(...).c(...)`.  
     /// </summary>
     internal abstract partial class AbstractChainedExpressionWrapper<
-        TExpressionSyntax,
         TNameSyntax,
-        TMemberAccessExpressionSyntax,
-        TInvocationExpressionSyntax,
-        TElementAccessExpressionSyntax,
         TBaseArgumentListSyntax> : AbstractChainedExpressionWrapper
-        where TExpressionSyntax : SyntaxNode
-        where TNameSyntax : TExpressionSyntax
-        where TMemberAccessExpressionSyntax : TExpressionSyntax
-        where TInvocationExpressionSyntax : TExpressionSyntax
-        where TElementAccessExpressionSyntax : TExpressionSyntax
+        where TNameSyntax : SyntaxNode
         where TBaseArgumentListSyntax : SyntaxNode
     {
         private readonly ISyntaxFactsService _syntaxFacts;
@@ -320,115 +302,5 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
                 pieces.Add(node);
             }
         }
-
-        //private bool IsCallExpression(SyntaxNode node)
-        //    => IsCallExpression(node, out _, out _);
-
-        //private bool IsCallExpression(
-        //    SyntaxNode node, out TExpressionSyntax expression, out TBaseArgumentListSyntax argumentList)
-        //{
-        //    if (IsCallExpressionWorker(
-        //            node, out var expressionNode, out var argumentListNode))
-        //    {
-        //        expression = (TExpressionSyntax)expressionNode;
-        //        argumentList = (TBaseArgumentListSyntax)argumentListNode;
-        //        return true;
-        //    }
-
-        //    expression = null;
-        //    argumentList = null;
-        //    return false;
-        //}
-
-        //private bool IsCallExpressionWorker(
-        //    SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
-        //{
-        //    if (node is TInvocationExpressionSyntax)
-        //    {
-        //        _syntaxFacts.GetPartsOfInvocationExpression(node, out expression, out argumentList);
-        //        return true;
-        //    }
-
-        //    if (node is TElementAccessExpressionSyntax)
-        //    {
-        //        _syntaxFacts.GetPartsOfElementAccessExpression(node, out expression, out argumentList);
-        //        return true;
-        //    }
-
-        //    expression = null;
-        //    argumentList = null;
-        //    return false;
-        //}
-
-        //private ImmutableArray<CallChunk> GetCallChunks(SyntaxNode node)
-        //{
-        //    var chunks = ArrayBuilder<CallChunk>.GetInstance();
-        //    AddChunks(node, chunks);
-        //    return chunks.ToImmutableAndFree();
-        //}
-
-        //private void AddChunks(SyntaxNode node, ArrayBuilder<CallChunk> chunks)
-        //{
-        //    var argumentLists = ArrayBuilder<TBaseArgumentListSyntax>.GetInstance();
-        //    var memberChunks = ArrayBuilder<MemberChunk>.GetInstance();
-
-        //    // Walk downwards, consuming argument lists.
-        //    // Note: because of how we walk down, the arg lists will be reverse order.
-        //    // We take care of that below.
-        //    while (IsCallExpression(node, out var expression, out var argumentList))
-        //    {
-        //        argumentLists.Add(argumentList);
-        //        node = expression;
-        //    }
-
-        //    // Walk down the left side eating up `.Name` member-chunks.
-        //    // Note: because of how we walk down, the member chunks will be reverse order.
-        //    // We take care of that below.
-        //    while (node is TMemberAccessExpressionSyntax memberAccess)
-        //    {
-        //        _syntaxFacts.GetPartsOfMemberAccessExpression(
-        //            node, out var left, out var operatorToken, out var name);
-
-        //        // We could have a leading member without an 'left' side before
-        //        // the dot.  This happens in vb 'with' statements.  In that case
-        //        // we don't want to consider this part the one to align with. i.e.
-        //        // we don't want to generate:
-        //        //
-        //        //      with goo
-        //        //          .bar.baz()
-        //        //          .quux()
-        //        //
-        //        // We want to generate:
-        //        //
-        //        //      with goo
-        //        //          .bar.baz()
-        //        //              .quux()
-        //        if (left != null)
-        //        {
-        //            memberChunks.Add(new MemberChunk(operatorToken, (TNameSyntax)name));
-        //        }
-
-        //        node = left;
-        //    }
-
-        //    // Had to have at least one argument list and at least one member chunk.
-        //    if (argumentLists.Count == 0 || memberChunks.Count == 0)
-        //    {
-        //        argumentLists.Free();
-        //        memberChunks.Free();
-        //        return;
-        //    }
-
-        //    // Recurse and see if we can pull out any more chunks prior to the
-        //    // first `.Name` member-chunk we found.
-        //    AddChunks(node, chunks);
-
-        //    memberChunks.ReverseContents();
-        //    argumentLists.ReverseContents();
-
-        //    // now, create a call-chunk from the member-chunks and arg-lists we matched against.
-        //    chunks.Add(new CallChunk(
-        //        memberChunks.ToImmutableAndFree(), argumentLists.ToImmutableAndFree()));
-        //}
     }
 }

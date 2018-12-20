@@ -17,12 +17,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
 {
     internal abstract partial class AbstractChainedExpressionWrapper<
-            TExpressionSyntax,
-            TNameSyntax,
-            TMemberAccessExpressionSyntax,
-            TInvocationExpressionSyntax,
-            TElementAccessExpressionSyntax,
-            TBaseArgumentListSyntax>
+        TNameSyntax,
+        TBaseArgumentListSyntax>
     {
         /// <summary>
         /// Responsible for actually computing the set of potential wrapping options
