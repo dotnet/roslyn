@@ -52,6 +52,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestReturnAndThrow()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    int M(int i)
+    {
+        [||]switch (i)
+        {
+            case 1:
+                return 4;
+            default: 
+                throw null;
+            case 2:
+                return 5;
+            case 3:
+                return 6;
+        }
+    }
+}",
+@"class Program
+{
+    int M(int i)
+    {
+        return i switch
+        {
+            1 => 4,
+            2 => 5,
+            3 => 6,
+            _ => throw null
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestAssignmnet_Array()
         {
             await TestInRegularAndScriptAsync(
