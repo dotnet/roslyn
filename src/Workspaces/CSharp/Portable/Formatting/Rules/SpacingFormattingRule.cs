@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // Put a space between the type and a positional pattern
+            // Case: Between type name and opening parenthesis of a positional pattern
             // ex: `e is Type ( /*positional*/ )`
             if (currentToken.IsKind(SyntaxKind.OpenParenToken) &&
                 currentParentKind == SyntaxKindEx.DeconstructionPatternClause)
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 if (recursivePatternType != null)
                 {
-                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                    return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceAfterMethodCallName);
                 }
             }
 

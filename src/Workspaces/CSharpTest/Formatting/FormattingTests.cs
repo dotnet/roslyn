@@ -5096,7 +5096,7 @@ P2 : 2, P3: 3
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatRecursivePattern_SpaceBetweenTypeAndPositionalSubpattern()
+        public async Task FormatRecursivePattern_NoSpaceBetweenTypeAndPositionalSubpattern()
         {
             var code = @"class C
 {
@@ -5107,7 +5107,7 @@ _ = this is  C( 1 , 2 ){}  ; }
 {
     void M()
     {
-        _ = this is C (1, 2) { };
+        _ = this is C(1, 2) { };
     }
 }";
             // a space separates the type, the positional pattern and the properties pattern
@@ -5235,7 +5235,7 @@ _ = this is (1, 2)
     {
         _ = this is (1, 2)
         {
-        M ();
+        M();
     }
 }
 }";

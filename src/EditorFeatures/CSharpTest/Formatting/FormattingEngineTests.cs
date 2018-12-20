@@ -1970,6 +1970,41 @@ class MyClass
             await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
         }
 
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
+        public async Task PositionalPattern()
+        {
+            var code = @"[|
+class MyClass
+{
+    void MyMethod()
+    {
+        var point = new Point (3, 4);
+        if (point is Point (3, 4) _
+            && point is Point{x: 3, y: 4} _)
+        {
+        }
+    }
+}
+|]";
+            var expected = @"
+class MyClass
+{
+    void MyMethod()
+    {
+        var point = new Point(3, 4);
+        if (point is Point(3, 4) _
+            && point is Point { x: 3, y: 4 } _)
+        {
+        }
+    }
+}
+";
+
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
+        }
+
         private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code))
