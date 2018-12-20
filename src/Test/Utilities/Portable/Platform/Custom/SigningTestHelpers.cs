@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if !NETSTANDARD2_0
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,8 +13,11 @@ namespace Roslyn.Test.Utilities
 {
     internal static class SigningTestHelpers
     {
+        // TODO: rename this to match naming conventions.
         public static readonly StrongNameProvider s_defaultDesktopProvider =
             new DesktopStrongNameProvider(ImmutableArray<string>.Empty, null, new VirtualizedStrongNameFileSystem());
+
+        public static readonly StrongNameProvider DefaultDesktopStrongNameProvider = s_defaultDesktopProvider;
 
         public static readonly StrongNameProvider s_defaultPortableProvider =
             new PortableStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem(), null);
@@ -114,5 +116,3 @@ namespace Roslyn.Test.Utilities
         }
     }
 }
-
-#endif
