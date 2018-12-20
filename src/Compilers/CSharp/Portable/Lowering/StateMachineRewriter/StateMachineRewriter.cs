@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 managedThreadId = MakeCurrentThreadId();
 
-                var thenBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+                var thenBuilder = ArrayBuilder<BoundStatement>.GetInstance(4);
                 thenBuilder.Add(
                     // this.state = {initialState};
                     F.Assignment(F.Field(F.This(), stateField), F.Literal(initialState)));

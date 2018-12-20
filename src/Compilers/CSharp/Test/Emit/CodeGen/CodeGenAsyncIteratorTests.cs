@@ -145,7 +145,7 @@ class C
         return CapturedRandom.Next(50, 100);
     }
 }");
-            CompileAndVerify(comp, verify: Verification.Skipped);
+            CompileAndVerify(comp);
         }
 
         [Fact]
