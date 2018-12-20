@@ -57,7 +57,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             await TestInRegularAndScriptAsync(
 @"class Program
 {
-    var array = new int[1];
+    int[] array = new int[1];
+
+    int M(int i)
+    {
+        [||]switch (i)
+        {
+            case 1:
+                array[0] = 4;
+                break;
+            case 2:
+                array[0] = 5;
+                break;
+            case 3:
+                array[0] = 6;
+                break;
+            default:
+                array[0] = 7;
+                break;
+        }
+    }
+}",
+@"class Program
+{
+    int[] array = new int[1];
+
+    int M(int i)
+    {
+        array[0] = i switch
+        {
+            1 => 4,
+            2 => 5,
+            3 => 6,
+            _ => 7
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingOnDifferentIndexerArgs()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    int[] array = new int[1];
+
     int M(int i)
     {
         [||]switch (i)
@@ -66,29 +111,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 array[1] = 4;
                 break;
             case 2:
-                array[1] = 5;
+                array[2] = 5;
                 break;
             case 3:
-                array[1] = 6;
+                array[2] = 6;
                 break;
             default:
-                array[1] = 7;
+                array[2] = 7;
                 break;
         }
     }
-}",
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingOnQualifiedName()
+        {
+            await TestMissingAsync(
 @"class Program
 {
-    var array = new int[1];
+    int[] array = new int[1];
+
     int M(int i)
     {
-        array[1] = i switch
+        [||]switch (i)
         {
-            1 => 4,
-            2 => 5,
-            3 => 6,
-            _ => 7
-        };
+            case 1:
+                this.array[2] = 4;
+                break;
+            case 2:
+                array[2] = 5;
+                break;
+            case 3:
+                array[2] = 6;
+                break;
+            default:
+                array[2] = 7;
+                break;
+        }
     }
 }");
         }
@@ -183,9 +243,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestMissingOnAllThrow()
+        public async Task TestAllThrow()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     void M(int i)
@@ -195,8 +255,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             case 1:
                 throw null;
             default:
-                throw null;
+                throw new Exception();
         }
+    }
+}",
+@"class Program
+{
+    void M(int i)
+    {
+        throw i switch
+        {
+            1 => null,
+            _ => new Exception()
+        };
     }
 }");
         }
@@ -230,6 +301,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
     void M(int i)
     {
         var j = i switch
+        {
+            1 => 4,
+            2 => 5,
+            3 => 6,
+            _ => throw null
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestSingleAssignment_Compound()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    void M(int i)
+    {
+        int j = 0;
+        [||]switch (i)
+        {
+            case 1:
+                j += 4;
+                break;
+            case 2:
+                j += 5;
+                break;
+            case 3:
+                j += 6;
+                break;
+        }
+        throw null;
+    }
+}",
+@"class Program
+{
+    void M(int i)
+    {
+        int j = 0;
+        j += i switch
         {
             1 => 4,
             2 => 5,
@@ -283,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestMultiSingleAssignment()
+        public async Task TestMultiAssignment()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -320,6 +431,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             3 => (8, 9),
             _ => throw null
         };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMiissingOnMultiCompoundAssignment()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    void M(int i)
+    {
+        int j = 0, k = 0;
+        [||]switch (i)
+        {
+            case 1:
+                j += 4;
+                k += 5;
+                break;
+            case 2:
+                j += 6;
+                k += 7;
+                break;
+            case 3:
+                j += 8;
+                k += 9;
+                break;
+        }
+        throw null;
     }
 }");
         }

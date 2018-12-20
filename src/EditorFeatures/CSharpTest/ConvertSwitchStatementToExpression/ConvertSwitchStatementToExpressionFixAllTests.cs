@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
     public partial class ConvertSwitchStatementToExpressionTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestNested()
+        public async Task TestNested_01()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestNested2()
+        public async Task TestNested_02()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -269,6 +269,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 var v => 0
             },
             _ => throw null
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestNested_03()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    System.Action<int> M(int i, int j)
+    {
+        {|FixAllInDocument:switch|} (i)
+        {
+            default:
+                return () =>
+                {
+                    switch (j)
+                    {
+                        default:
+                            return 3;
+                    }
+                };
+        }
+    }
+}",
+@"class Program
+{
+    System.Action<int> M(int i, int j)
+    {
+        return i switch
+        {
+            _ => () =>
+                {
+                    switch (j)
+                    {
+                        default:
+                            return 3;
+                    }
+                }
         };
     }
 }");
