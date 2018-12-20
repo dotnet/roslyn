@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitBlock(BoundBlock node)
         {
+            var builder = ArrayBuilder<BoundStatement>.GetInstance();
+            VisitStatementSubList(builder, node.Statements);
+
             if (!this.Instrument || (node != _rootStatement && (node.WasCompilerGenerated || node.Syntax.Kind() != SyntaxKind.Block)))
             {
-                return node.Update(node.Locals, node.LocalFunctions, VisitStatementSubList(node.Statements));
+                return node.Update(node.Locals, node.LocalFunctions, builder.ToImmutableAndFree());
             }
-
-            var builder = ArrayBuilder<BoundStatement>.GetInstance();
-            builder.AddRange(VisitStatementSubList(node.Statements));
 
             LocalSymbol synthesizedLocal;
             BoundStatement prologue = _instrumenter.CreateBlockPrologue(node, out synthesizedLocal);
@@ -42,15 +42,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Visit a partial list of statements that possibly contain using declarations
         /// </summary>
+        /// <param name="builder">The array builder to append statements to</param>
         /// <param name="statements">The list of statements to visit</param>
         /// <param name="startIndex">The index of the <paramref name="statements"/> to begin visiting at</param>
         /// <returns>An <see cref="ImmutableArray{T}"/> of <see cref="BoundStatement"/></returns>
-        public ImmutableArray<BoundStatement> VisitStatementSubList(ImmutableArray<BoundStatement> statements, int startIndex = 0)
+        public void VisitStatementSubList(ArrayBuilder<BoundStatement> builder, ImmutableArray<BoundStatement> statements, int startIndex = 0)
         {
-            var builder = ArrayBuilder<BoundStatement>.GetInstance();
             for (int i = startIndex; i < statements.Length; i++)
             {
-                BoundStatement statement = (BoundStatement)VisitPossibleUsingDeclaration(statements[i], statements, i, out var replacedUsingDeclarations);
+                BoundStatement statement = VisitPossibleUsingDeclaration(statements[i], statements, i, out var replacedUsingDeclarations);
                 if (statement != null)
                 {
                     builder.Add(statement);
@@ -61,31 +61,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
             }
-            return builder.ToImmutableAndFree();
         }
 
         /// <summary>
         /// Visits a node that is possibly a <see cref="BoundUsingLocalDeclarations"/>
         /// </summary>
         /// <param name="node">The node to visit</param>
-        /// <param name="statements">A list of statements that follow this node</param>
-        /// <param name="startIndex">The startIndex of statements</param>
+        /// <param name="statements">All statements in the block containing this node</param>
+        /// <param name="statementIndex">The current statement being visited in <paramref name="statements"/></param>
         /// <param name="replacedLocalDeclarations">Set to true if this visited a <see cref="BoundUsingLocalDeclarations"/> node</param>
-        /// <returns></returns>
-        public BoundNode VisitPossibleUsingDeclaration(BoundStatement node, ImmutableArray<BoundStatement> statements, int startIndex, out bool replacedLocalDeclarations)
+        /// <returns>A <see cref="BoundStatement"/></returns>
+        /// <remarks>
+        /// The node being visited is not necessarily equal to statements[startIndex]. 
+        /// When traversing down a set of labels, we set node to the label.body and recurse, but statements[startIndex] still refers to the original parent label 
+        /// as we haven't actually moved down the original statement list
+        /// </remarks>
+        public BoundStatement VisitPossibleUsingDeclaration(BoundStatement node, ImmutableArray<BoundStatement> statements, int statementIndex, out bool replacedLocalDeclarations)
         {
             switch (node.Kind)
             {
                 case BoundKind.LabeledStatement:
                     var labelStatement = (BoundLabeledStatement)node;
-                    return MakeLabeledStatement(labelStatement, (BoundStatement)VisitPossibleUsingDeclaration(labelStatement.Body, statements, startIndex, out replacedLocalDeclarations));
+                    return MakeLabeledStatement(labelStatement, VisitPossibleUsingDeclaration(labelStatement.Body, statements, statementIndex, out replacedLocalDeclarations));
                 case BoundKind.UsingLocalDeclarations:
-                    var usingDeclarations = (BoundUsingLocalDeclarations)node;
+                    // visit everything after this node 
+                    ArrayBuilder<BoundStatement> builder = ArrayBuilder<BoundStatement>.GetInstance();
+                    VisitStatementSubList(builder, statements, statementIndex + 1);
+                    // make a using declaration with the visited statements as its body
                     replacedLocalDeclarations = true;
-                    return MakeLocalUsingDeclarationStatement(usingDeclarations, VisitStatementSubList(statements, startIndex + 1));
+                    return MakeLocalUsingDeclarationStatement((BoundUsingLocalDeclarations)node, builder.ToImmutableAndFree());
                 default:
                     replacedLocalDeclarations = false;
-                    return Visit(node);
+                    return (BoundStatement) Visit(node);
             }
         }
 

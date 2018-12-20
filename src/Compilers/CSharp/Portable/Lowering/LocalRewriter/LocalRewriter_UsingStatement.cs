@@ -35,14 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? (BoundBlock)rewrittenBody
                 : BoundBlock.SynthesizedNoLocals(node.Syntax, rewrittenBody);
 
-            SyntaxToken awaitKeyword = node.Syntax.Kind() == SyntaxKind.UsingStatement ? ((UsingStatementSyntax)node.Syntax).AwaitKeyword : default;
-
             if (node.ExpressionOpt != null)
             {
                 return MakeExpressionUsingStatement(node, tryBlock);
             }
             else
             {
+                SyntaxToken awaitKeyword = node.Syntax.Kind() == SyntaxKind.UsingStatement ? ((UsingStatementSyntax)node.Syntax).AwaitKeyword : default;
                 return MakeDeclarationUsingStatement(node.Syntax,
                                                      tryBlock,
                                                      node.Locals,

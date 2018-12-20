@@ -168,7 +168,38 @@ class C
         }
 
         [Fact]
-        public void DissallowGoToAccrossUsingDeclarationsComplexTest()
+        public void DisallowGoToBackwardsAcrossUsingDeclarationsWithMultipleLabels()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        label1: 
+        label2:
+        label3:
+        using var x = (IDisposable)null;
+
+        goto label3; // disallowed
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,9): warning CS0164: This label has not been referenced
+                //         label1: 
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label1").WithLocation(7, 9),
+                // (8,9): warning CS0164: This label has not been referenced
+                //         label2:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label2").WithLocation(8, 9),
+                // (10,9): error CS8641: A goto target within the same block can not cross a using declaration.
+                //         goto label3; // disallowed
+                Diagnostic(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, "goto label3;").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void DisallowGoToAcrossUsingDeclarationsComplexTest()
         {
             var source = @"
 using System;
