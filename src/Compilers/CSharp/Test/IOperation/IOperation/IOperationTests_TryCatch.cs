@@ -646,7 +646,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
             Expression: 
               IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
             Pattern: 
-              IDeclarationPatternOperation (Declared Symbol: System.String s) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string s')
+              IDeclarationPatternOperation (Declared Symbol: System.String s, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string s')
         Handler: 
           IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 
@@ -694,7 +694,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
             Expression: 
               IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
             Pattern: 
-              IDeclarationPatternOperation (Declared Symbol: System.String s) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string s')
+              IDeclarationPatternOperation (Declared Symbol: System.String s, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string s')
         Handler: 
           IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 

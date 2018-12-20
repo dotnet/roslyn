@@ -16,6 +16,13 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IDeclarationPatternOperation : IPatternOperation
     {
         /// <summary>
+        /// True if the pattern is of a form that accepts null.
+        /// For example, in C# the pattern `var x` will match a null input,
+        /// while the pattern `string x` will not.
+        /// </summary>
+        bool AcceptsNull { get; }
+
+        /// <summary>
         /// Symbol declared by the pattern.
         /// </summary>
         ISymbol DeclaredSymbol { get; }

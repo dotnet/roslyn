@@ -7913,11 +7913,13 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class DeclarationPatternOperation : Operation, IDeclarationPatternOperation
     {
-        public DeclarationPatternOperation(ISymbol declaredSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.DeclarationPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        public DeclarationPatternOperation(ISymbol declaredSymbol, bool acceptsNull, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(OperationKind.DeclarationPattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
         {
+            AcceptsNull = acceptsNull;
             DeclaredSymbol = declaredSymbol;
         }
+        public bool AcceptsNull { get; }
         /// <summary>
         /// Symbol declared by the pattern.
         /// </summary>
@@ -7940,15 +7942,38 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
     /// <summary>
-    /// Represents a C# declaration pattern.
+    /// Represents a C# recursive pattern.
     /// </summary>
-    internal sealed partial class RecursivePattern : Operation, IRecursivePatternOperation
+    internal sealed partial class RecursivePatternOperation : Operation, IRecursivePatternOperation
     {
-        public RecursivePattern(ISymbol declaredSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.DeclarationPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        public RecursivePatternOperation(ITypeSymbol matchedType, ISymbol deconstructSymbol, ImmutableArray<IPatternOperation> deconstructionSubpatterns, ImmutableArray<(ISymbol, IPatternOperation)> propertySubpatterns, ISymbol declaredSymbol, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+                    base(OperationKind.RecursivePattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
         {
+            MatchedType = matchedType;
+            DeconstructSymbol = deconstructSymbol;
+            DeconstructionSubpatterns = deconstructionSubpatterns;
+            PropertySubpatterns = propertySubpatterns;
             DeclaredSymbol = declaredSymbol;
         }
+        /// <summary>
+        /// The (explicit or implicit) type accepted for the recursive pattern.
+        /// </summary>
+        public ITypeSymbol MatchedType { get; }
+        /// <summary>
+        /// The Deconstruct symbol, if any, used for the deconstruction subpatterns.
+        /// </summary>
+        public ISymbol DeconstructSymbol { get; }
+        /// <summary>
+        /// If there is a positional subpattern, this contains the patterns contained within it.
+        /// If there is no positional subpattern, this is a default immutable array.
+        /// </summary>
+        public ImmutableArray<IPatternOperation> DeconstructionSubpatterns { get; }
+        /// <summary>
+        /// If there is a property subpattern, this contains the
+        /// <see cref="ISymbol"/>/<see cref="IPatternOperation"/> pairs within it.
+        /// If there is no property subpattern, this is a default immutable array.
+        /// </summary>
+        public ImmutableArray<(ISymbol, IPatternOperation)> PropertySubpatterns { get; }
         /// <summary>
         /// Symbol declared by the pattern.
         /// </summary>
@@ -7957,7 +7982,20 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                yield break;
+                if (!DeconstructionSubpatterns.IsDefault)
+                {
+                    foreach (var p in DeconstructionSubpatterns)
+                    {
+                        yield return p;
+                    }
+                }
+                if (!PropertySubpatterns.IsDefault)
+                {
+                    foreach (var p in PropertySubpatterns)
+                    {
+                        yield return p.Item2;
+                    }
+                }
             }
         }
         public override void Accept(OperationVisitor visitor)

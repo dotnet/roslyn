@@ -47,7 +47,13 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation
         {
             // clone the array
-            return nodes.SelectAsArray(n => Visit(n));
+            return nodes.IsDefault ? default : nodes.SelectAsArray(n => Visit(n));
+        }
+
+        private ImmutableArray<(U, T)> VisitArray<U, T>(ImmutableArray<(U, T)> nodes) where T : IOperation
+        {
+            // clone the array
+            return nodes.IsDefault ? default : nodes.SelectAsArray(n => (n.Item1, Visit(n.Item2)));
         }
 
         public override IOperation VisitBlock(IBlockOperation operation, object argument)
@@ -524,12 +530,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, object argument)
         {
-            return new DeclarationPatternOperation(operation.DeclaredSymbol, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new DeclarationPatternOperation(operation.DeclaredSymbol, operation.AcceptsNull, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
         public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, object argument)
         {
-            return new RecursivePattern(operation.DeclaredSymbol, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new RecursivePatternOperation(operation.MatchedType, operation.DeconstructSymbol, VisitArray(operation.DeconstructionSubpatterns), VisitArray(operation.PropertySubpatterns), operation.DeclaredSymbol, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, object argument)

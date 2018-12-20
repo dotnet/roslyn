@@ -1837,21 +1837,29 @@ namespace Microsoft.CodeAnalysis.Operations
                 variable = ((BoundDiscardExpression)boundDeclarationPattern.VariableAccess).ExpressionSymbol;
             }
 
+            bool acceptsNull = boundDeclarationPattern.IsVar;
             SyntaxNode syntax = boundDeclarationPattern.Syntax;
-            ITypeSymbol type = null;
-            Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundDeclarationPattern.WasCompilerGenerated;
-            return new DeclarationPatternOperation(variable, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new DeclarationPatternOperation(variable, acceptsNull, _semanticModel, syntax, isImplicit);
         }
 
         private IRecursivePatternOperation CreateBoundRecursivePatternOperation(BoundRecursivePattern boundRecursivePattern)
         {
+            ITypeSymbol matchedType = boundRecursivePattern.DeclaredType?.Type ?? boundRecursivePattern.InputType;
             ISymbol variable = boundRecursivePattern.Variable;
+            ISymbol deconstructSymbol = boundRecursivePattern.DeconstructMethod;
+            if (variable == null && boundRecursivePattern.VariableAccess?.Kind == BoundKind.DiscardExpression)
+            {
+                variable = ((BoundDiscardExpression)boundRecursivePattern.VariableAccess).ExpressionSymbol;
+            }
+
             SyntaxNode syntax = boundRecursivePattern.Syntax;
-            ITypeSymbol type = null;
-            Optional<object> constantValue = default(Optional<object>);
+            ImmutableArray<IPatternOperation> deconstructionSubpatterns = boundRecursivePattern.Deconstruction.IsDefault ? default :
+                boundRecursivePattern.Deconstruction.SelectAsArray(p => (IPatternOperation)Create(p.Pattern));
+            ImmutableArray<(ISymbol, IPatternOperation)> propertySubpatterns = boundRecursivePattern.Properties.IsDefault ? default :
+                boundRecursivePattern.Properties.SelectAsArray(p => ((ISymbol)p.Symbol, (IPatternOperation)Create(p.Pattern)));
             bool isImplicit = boundRecursivePattern.WasCompilerGenerated;
-            return new RecursivePattern(variable, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new RecursivePatternOperation(matchedType, deconstructSymbol, deconstructionSubpatterns, propertySubpatterns, variable, _semanticModel, syntax, isImplicit);
         }
 
         private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)

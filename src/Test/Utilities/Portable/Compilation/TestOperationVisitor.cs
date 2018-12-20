@@ -1122,6 +1122,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.Children);
         }
 
+        public override void VisitRecursivePattern(IRecursivePatternOperation operation)
+        {
+            Assert.Equal(OperationKind.RecursivePattern, operation.Kind);
+
+            if (!((operation.Syntax as CSharp.Syntax.RecursivePatternSyntax)?.Designation).IsKind(CSharp.SyntaxKind.DiscardDesignation))
+            {
+                Assert.NotNull(operation.DeclaredSymbol);
+            }
+
+            IEnumerable<IOperation> children = Enumerable.Empty<IOperation>();
+            if (!operation.DeconstructionSubpatterns.IsDefault)
+            {
+                children = children.Concat(operation.DeconstructionSubpatterns);
+            }
+            if (!operation.PropertySubpatterns.IsDefault)
+            {
+                children = children.Concat(operation.PropertySubpatterns.Select(x => x.Item2));
+            }
+
+            AssertEx.Equal(children, operation.Children);
+        }
+
         public override void VisitIsPattern(IIsPatternOperation operation)
         {
             Assert.Equal(OperationKind.IsPattern, operation.Kind);
