@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
 
         private bool IsDecomposableChainPart(SyntaxNode node)
         {
-            // This is the effective set of language constructs that can can 'chain' 
+            // This is the effective set of language constructs that can 'chain' 
             // off of a call `.M(...)`.  They are:
             //
             // 1. `.Name` or `->Name`.  i.e. `.M(...).Name`
