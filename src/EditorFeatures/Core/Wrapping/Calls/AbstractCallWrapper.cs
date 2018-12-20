@@ -35,6 +35,34 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
     ///         .P2.M2(...)
     ///         .P3.I1[...]
     /// </c>
+    /// 
+    /// Note: for the sake of simplicity, from now on, every time an invocation is 
+    /// referred to, it means either an InvocationExpression or an ElementAccessExpression.
+    /// 
+    /// The way this wrapper works is breaking up a long dotted expression into 'call-chunks'
+    /// of the form `.P1.P2.P3.M(...)`  i.e. a *non-empty* sequence of dot-and-name pairs
+    /// followed by an ArgumentList.  In this example the sequence is considered:
+    /// 
+    /// <c>
+    ///     .P1  .P2  .P3  .M  (...)
+    /// </c>
+    /// 
+    /// Note there are *multiple* call-chunks then the first is allowed to have any
+    /// expression prior to `.P1`, whereas all the rest just point to the prior chunk.
+    /// i.e.  `expr.P1.M().P2.N()` contains the two chunks:
+    /// 
+    /// <c>
+    ///     .P1  .M  ()    // and
+    ///     .P2  .N  ()
+    /// </c>
+    /// 
+    /// If an expression can be broken into multiple chunks it is eligible for 
+    /// normalized wrapping.  Normalized wrapping works by taking each chunk and
+    /// removing any unnecessary whitespace between the individual call-chunks and
+    /// between the last call-chunk and the arglist.  It then takes each call-chunk 
+    /// and aligns the first dot of all of them if performing 'wrap all'.  If performing
+    /// 'wrap long', then the wrapping only occurs if the current call-chunk's end
+    /// would go past the preferred wrapping column
     /// </summary>
     internal abstract partial class AbstractCallWrapper<
         TExpressionSyntax,
@@ -62,13 +90,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             Document document, int position, SyntaxNode node, CancellationToken cancellationToken)
         {
             // has to either be `expr(...)` or `expr[...]`
-            if (!IsInvocationOrElementAccessExpression(node, out var expression, out var argumentList))
+            if (!IsInvocationOrElementAccessExpression(node, out var left, out var argumentList))
             {
                 return null;
             }
 
             // has to either be `expr.Name(...)` or `expr.Name[...]`
-            if (!(expression is TMemberAccessExpressionSyntax memberAccess))
+            if (!(left is TMemberAccessExpressionSyntax memberAccess))
             {
                 return null;
             }
@@ -85,8 +113,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             {
                 return null;
             }
-
-            _syntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out _, out var memberName);
 
             // Now, this is only worth wrapping if we have something below us we could align to
             // i.e. if we only have `this.Goo(...)` there's nothing to wrap.  However, we can
@@ -122,6 +148,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
                 }
             }
 
+            // Looks good.  Crate the action computer which will actually determine
+            // the set of wrapping options to provide.
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             return new CallCodeActionComputer(
@@ -173,11 +201,14 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
 
         private void AddChunks(SyntaxNode node, ArrayBuilder<CallChunk> chunks)
         {
+            // To be a chunk, it has to be of the form `expr.Name(...)`
             if (IsInvocationOrElementAccessExpression(node, out var expression, out var argumentList) &&
                 expression is TMemberAccessExpressionSyntax)
             {
+                // Walk down the left side eating up `.Name` member-chunks.
                 var memberChunks = ArrayBuilder<MemberChunk>.GetInstance();
-                var current = (TExpressionSyntax)expression;
+
+                var current = expression;
                 while (current is TMemberAccessExpressionSyntax memberAccess)
                 {
                     _syntaxFacts.GetPartsOfMemberAccessExpression(
@@ -186,7 +217,11 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
                     current = (TExpressionSyntax)left;
                 }
 
+                // Recurse and see if we can pull out any more chunks prior to the
+                // first `.Name` member-chunk we found.
                 AddChunks(current, chunks);
+
+                // now, create a call-chunk from the member-chunks and arg-list we matched against.
                 chunks.Add(new CallChunk(memberChunks.ToImmutableAndFree(), argumentList));
             }
         }

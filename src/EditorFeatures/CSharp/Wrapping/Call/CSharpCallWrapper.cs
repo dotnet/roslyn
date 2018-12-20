@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression;
 using Microsoft.CodeAnalysis.Editor.Wrapping.Call;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.Call
