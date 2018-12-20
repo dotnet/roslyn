@@ -77,13 +77,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         async t =>
                         {
                             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
-                            stateMachine.UpdateTrackingSessionIfRenamable();
+
+                            // While we are still recomputing IsRenamableIdentifier, we skip queueing continuations.
+                            // Now, we should reanalyze what we previously skipped.
+                            CheckNewIdentifier(stateMachine, _trackingSpan.TextBuffer.CurrentSnapshot);
                         },
                         _cancellationToken,
                         TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
                         TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
-
-                    QueueUpdateToStateMachine(stateMachine, _isRenamableIdentifierTask);
                 }
                 else
                 {
@@ -117,6 +118,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             internal void CheckNewIdentifier(StateMachine stateMachine, ITextSnapshot snapshot)
             {
                 AssertIsForeground();
+
+                // If we conclusively know the original identifier couldn't be renamed, there's nothing further for us to do.
+                // If text is typed while we're still determining the answer, we won't process them, but we'll call this again
+                // in our original continuation of _isRenameableIdentifierTask we started in the constructor.
+                if (!IsDefinitelyRenamableIdentifier())
+                {
+                    return;
+                }
+
+                // We call this whenever we have a new snapshot, which means we need to reraise this since
+                // the tracking span has changed.
+                stateMachine.OnTrackingSessionUpdated(this);
 
                 _newIdentifierBindsTask = _isRenamableIdentifierTask.SafeContinueWithFromAsync(
                     async t => t.Result != TriggerIdentifierKind.NotRenamable &&

@@ -106,24 +106,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     SnapshotSpan trackingSpanInNewSnapshot = this.TrackingSession.TrackingSpan.GetSpan(e.After);
                     if (trackingSpanInNewSnapshot.Contains(change.NewSpan))
                     {
-                        // Continuing an existing tracking session. If there may have been a tag
-                        // showing, then update the tags.
-                        UpdateTrackingSessionIfRenamable();
+                        this.TrackingSession.CheckNewIdentifier(this, _buffer.CurrentSnapshot);
                     }
                     else
                     {
                         StartTrackingSession(e);
                     }
-                }
-            }
-
-            public void UpdateTrackingSessionIfRenamable()
-            {
-                AssertIsForeground();
-                if (this.TrackingSession.IsDefinitelyRenamableIdentifier())
-                {
-                    this.TrackingSession.CheckNewIdentifier(this, _buffer.CurrentSnapshot);
-                    TrackingSessionUpdated();
                 }
             }
 
