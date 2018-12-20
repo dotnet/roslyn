@@ -2649,6 +2649,25 @@ struct S<T>
         }
 
         [Fact]
+        public void IsManagedType_GenericStruct_ErrorTypeArg()
+        {
+            var text = @"
+class C<U>
+{
+    S<Widget> f1;
+}
+
+struct S<T>
+{
+    T field;
+}
+";
+            var compilation = CreateCompilation(text);
+            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            Assert.True(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
+        }
+
+        [Fact]
         public void IsManagedType_NonEmptyStruct()
         {
             var text = @"
