@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
     internal abstract partial class AbstractCallWrapper : AbstractSyntaxWrapper
     {
         /// <summary>
-        /// Get's the language specific trivia that should be inserted before an operator if the
+        /// Gets the language specific trivia that should be inserted before an operator if the
         /// user wants to wrap the operator to the next line.  For C# this is a simple newline-trivia.
         /// For VB, this will be a line-continuation char (<c>_</c>), followed by a newline.
         /// </summary>
