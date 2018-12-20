@@ -53,6 +53,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestWithEnoughChunks()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        [||]the.quick.brown().fox.jumped();
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown()
+           .fox.jumped();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestElementAccess()
         {
             await TestAllWrappingCasesAsync(
@@ -123,6 +140,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
     void Bar() {
         the().quick.brown[1, 2, 3]
              .fox.jumped[1][2][3];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TrailingNonCallIsNotWrapped()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        [||]the.quick.brown().fox.jumped().over;
+    }
+}",
+@"class C {
+    void Bar() {
+        the.quick.brown()
+           .fox.jumped().over;
     }
 }");
         }
