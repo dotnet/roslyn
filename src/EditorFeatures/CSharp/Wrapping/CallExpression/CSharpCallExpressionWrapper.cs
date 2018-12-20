@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.CallExpression
         BaseArgumentListSyntax>
     {
         public CSharpCallExpressionWrapper()
-            : base(CSharpSyntaxFactsService.Instance)
+            : base(CSharpSyntaxFactsService.Instance, (int)SyntaxKind.DotToken, (int)SyntaxKind.QuestionToken)
         {
         }
 

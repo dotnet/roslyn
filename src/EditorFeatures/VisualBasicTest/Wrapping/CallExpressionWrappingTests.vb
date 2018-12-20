@@ -41,8 +41,8 @@ end class")
 end class",
 "class C
     sub Bar()
-        the.quick.brown() _
-           .fox.jumped()
+        the.quick.brown().fox _
+                 .jumped()
     end sub
 end class")
         End Function
@@ -57,8 +57,8 @@ end class")
 end class",
 "class C
     sub Bar()
-        the.quick.brown() _
-           .fox.jumped(,)
+        the.quick.brown().fox _
+                 .jumped(,)
     end sub
 end class")
         End Function
@@ -68,8 +68,8 @@ end class")
             Await TestAllWrappingCasesAsync(
 "class C
     sub Bar()
-        [||]the.quick.brown(1, 2, 3) _
-           .fox.jumped(1)(2)(3)
+        [||]the.quick.brown(1, 2, 3).fox _
+                 .jumped(1)(2)(3)
     end sub
 end class",
 "class C
@@ -91,8 +91,8 @@ end class")
 end class",
 "class C
     sub Bar()
-        the.quick.brown(1, 2, 3) _
-           .fox.jumped(1)(2)(3)
+        the.quick.brown(1, 2, 3).fox _
+                 .jumped(1)(2)(3)
     end sub
 end class",
 "class C
@@ -112,8 +112,8 @@ end class")
 end class",
 "class C
     sub Bar()
-        the().quick.brown(1, 2, 3) _
-             .fox.jumped(1)(2)(3)
+        the().quick.brown(1, 2, 3).fox _
+                   .jumped(1)(2)(3)
     end sub
 end class")
         End Function
@@ -128,8 +128,8 @@ end class")
 end class",
 "class C
     sub Bar()
-        dim y = the.quick.brown() _
-                   .fox.jumped().over
+        dim y = the.quick.brown().fox _
+                         .jumped().over
     end sub
 end class")
         End Function
@@ -145,19 +145,19 @@ end class",
 GetIndentionColumn(35),
 "class C
     sub Bar()
-        the.quick.brown() _
-           .fox.jumped() _
-           .over.the() _
-           .lazy() _
-           .dog()
+        the.quick.brown().fox _
+                 .jumped().over _
+                 .the() _
+                 .lazy() _
+                 .dog()
     end sub
 end class",
 "class C
     sub Bar()
-        the.quick.brown() _
-           .fox.jumped() _
-           .over.the().lazy() _
-           .dog()
+        the.quick.brown().fox _
+                 .jumped().over _
+                 .the().lazy() _
+                 .dog()
     end sub
 end class")
         End Function
@@ -173,17 +173,18 @@ end class",
 GetIndentionColumn(40),
 "class C
     sub Bar()
-        the.quick.brown() _
-           .fox.jumped() _
-           .over.the() _
-           .lazy() _
-           .dog()
+        the.quick.brown().fox _
+                 .jumped().over _
+                 .the() _
+                 .lazy() _
+                 .dog()
     end sub
 end class",
 "class C
     sub Bar()
-        the.quick.brown().fox.jumped() _
-           .over.the().lazy().dog()
+        the.quick.brown().fox _
+                 .jumped().over.the() _
+                 .lazy().dog()
     end sub
 end class")
         End Function
@@ -199,23 +200,43 @@ end class",
 GetIndentionColumn(60),
 "class C
     sub Bar()
-        the.quick.brown() _
-           .fox.jumped() _
-           .over.the() _
-           .lazy() _
-           .dog()
+        the.quick.brown().fox _
+                 .jumped().over _
+                 .the() _
+                 .lazy() _
+                 .dog()
     end sub
 end class",
 "class C
     sub Bar()
         the.quick.brown().fox.jumped().over.the().lazy() _
-           .dog()
+                 .dog()
     end sub
 end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
         Public Async Function TestAlignToSecondDotInWith() As Task
+            Await TestAllWrappingCasesAsync(
+"class C
+    sub Bar()
+        with goo
+            [||].the().quick.brown().fox.jumped(,)
+        end with
+    end sub
+end class",
+"class C
+    sub Bar()
+        with goo
+            .the().quick.brown().fox _
+                        .jumped(,)
+        end with
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestAlignToThirdDotInWith() As Task
             Await TestAllWrappingCasesAsync(
 "class C
     sub Bar()
@@ -227,8 +248,8 @@ end class",
 "class C
     sub Bar()
         with goo
-            .the.quick.brown() _
-                .fox.jumped(,)
+            .the.quick.brown().fox _
+                      .jumped(,)
         end with
     end sub
 end class")

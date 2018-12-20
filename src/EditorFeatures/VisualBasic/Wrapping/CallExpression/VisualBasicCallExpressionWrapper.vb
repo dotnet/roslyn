@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.CallExpression
         ArgumentListSyntax)
 
         Public Sub New()
-            MyBase.New(VisualBasicSyntaxFactsService.Instance)
+            MyBase.New(VisualBasicSyntaxFactsService.Instance, SyntaxKind.DotToken, SyntaxKind.QuestionToken)
         End Sub
 
         Public Overrides Function GetNewLineBeforeOperatorTrivia(newLine As SyntaxTriviaList) As SyntaxTriviaList

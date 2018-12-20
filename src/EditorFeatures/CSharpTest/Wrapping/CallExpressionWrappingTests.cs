@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }",
 @"class C {
     void Bar() {
-        the.quick.brown()
-           .fox.jumped();
+        the.quick.brown().fox
+                 .jumped();
     }
 }");
         }
@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }",
 @"class C {
     void Bar() {
-        the.quick.brown[1, 2, 3]
-           .fox.jumped[1][2][3];
+        the.quick.brown[1, 2, 3].fox
+                 .jumped[1][2][3];
     }
 }");
         }
@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
             await TestAllWrappingCasesAsync(
 @"class C {
     void Bar() {
-        [||]the.quick.brown[1, 2, 3]
-           .fox.jumped[1][2][3];
+        [||]the.quick.brown[1, 2, 3].fox
+                 .jumped[1][2][3];
     }
 }",
 @"class C {
@@ -99,8 +99,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }",
 @"class C {
     void Bar() {
-        the.quick.brown[1, 2, 3]
-           .fox.jumped[1][2][3];
+        the.quick.brown[1, 2, 3].fox
+                 .jumped[1][2][3];
     }
 }",
 @"class C {
@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }",
 @"class C {
     void Bar() {
-        the().quick.brown[1, 2, 3]
-             .fox.jumped[1][2][3];
+        the().quick.brown[1, 2, 3].fox
+                   .jumped[1][2][3];
     }
 }");
         }
@@ -138,8 +138,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }",
 @"class C {
     void Bar() {
-        the.quick.brown()
-           .fox.jumped().over;
+        the.quick.brown().fox
+                 .jumped().over;
     }
 }");
         }
@@ -156,19 +156,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 GetIndentionColumn(35),
 @"class C {
     void Bar() {
-        the.quick.brown()
-           .fox.jumped()
-           .over.the()
-           .lazy()
-           .dog();
+        the.quick.brown().fox
+                 .jumped().over
+                 .the()
+                 .lazy()
+                 .dog();
     }
 }",
 @"class C {
     void Bar() {
-        the.quick.brown()
-           .fox.jumped()
-           .over.the().lazy()
-           .dog();
+        the.quick.brown().fox
+                 .jumped().over
+                 .the().lazy()
+                 .dog();
     }
 }");
         }
@@ -185,17 +185,18 @@ GetIndentionColumn(35),
 GetIndentionColumn(40),
 @"class C {
     void Bar() {
-        the.quick.brown()
-           .fox.jumped()
-           .over.the()
-           .lazy()
-           .dog();
+        the.quick.brown().fox
+                 .jumped().over
+                 .the()
+                 .lazy()
+                 .dog();
     }
 }",
 @"class C {
     void Bar() {
-        the.quick.brown().fox.jumped()
-           .over.the().lazy().dog();
+        the.quick.brown().fox
+                 .jumped().over.the()
+                 .lazy().dog();
     }
 }");
         }
@@ -212,17 +213,86 @@ GetIndentionColumn(40),
 GetIndentionColumn(60),
 @"class C {
     void Bar() {
-        the.quick.brown()
-           .fox.jumped()
-           .over.the()
-           .lazy()
-           .dog();
+        the.quick.brown().fox
+                 .jumped().over
+                 .the()
+                 .lazy()
+                 .dog();
     }
 }",
 @"class C {
     void Bar() {
         the.quick.brown().fox.jumped().over.the().lazy()
-           .dog();
+                 .dog();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInConditionalAccess()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        the?.[||]quick.brown().fox.jumped();
+    }
+}",
+@"class C {
+    void Bar() {
+        the?.quick.brown().fox
+                  .jumped();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInConditionalAccess2()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        the?.[||]quick.brown()?.fox.jumped();
+    }
+}",
+@"class C {
+    void Bar() {
+        the?.quick.brown()?.fox
+                  .jumped();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInConditionalAccess3()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        the?.[||]quick.brown()?.fox().jumped();
+    }
+}",
+@"class C {
+    void Bar() {
+        the?.quick.brown()?.fox()
+                  .jumped();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInConditionalAccess4()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        [||]the?.quick().brown()?.fox().jumped();
+    }
+}",
+@"class C {
+    void Bar() {
+        the?.quick()
+            .brown()?.fox()
+            .jumped();
     }
 }");
         }

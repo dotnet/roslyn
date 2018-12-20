@@ -173,8 +173,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         public static void GetPartsOfMemberAccessExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node, out SyntaxNode expression, out SyntaxNode name)
-        {
-            syntaxFacts.GetPartsOfMemberAccessExpression(node, out expression, out _, out name);
-        }
+            => syntaxFacts.GetPartsOfMemberAccessExpression(node, out expression, out _, out name);
+
+        public static void GetPartsOfConditionalAccessExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node, out SyntaxNode expression, out SyntaxNode whenNotNull)
+            => syntaxFacts.GetPartsOfConditionalAccessExpression(node, out expression, out _, out whenNotNull);
     }
 }

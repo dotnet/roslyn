@@ -1,68 +1,68 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿//// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+//using System;
+//using System.Collections.Immutable;
+//using System.Diagnostics;
+//using System.Linq;
+//using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Editor.Wrapping.CallExpression
-{
-    internal abstract partial class AbstractCallExpressionWrapper<
-        TExpressionSyntax,
-        TNameSyntax,
-        TMemberAccessExpressionSyntax,
-        TInvocationExpressionSyntax,
-        TElementAccessExpressionSyntax,
-        TBaseArgumentListSyntax>
-    {
-        /// <summary>
-        /// A single `.Name` piece of a call-chunk like `.P1.P2.P3(...)`
-        /// </summary>
-        private readonly struct MemberChunk
-        {
-            public readonly SyntaxToken DotToken;
-            public readonly TNameSyntax Name;
+//namespace Microsoft.CodeAnalysis.Editor.Wrapping.CallExpression
+//{
+//    internal abstract partial class AbstractCallExpressionWrapper<
+//        TExpressionSyntax,
+//        TNameSyntax,
+//        TMemberAccessExpressionSyntax,
+//        TInvocationExpressionSyntax,
+//        TElementAccessExpressionSyntax,
+//        TBaseArgumentListSyntax>
+//    {
+//        /// <summary>
+//        /// A single `.Name` piece of a call-chunk like `.P1.P2.P3(...)`
+//        /// </summary>
+//        private readonly struct MemberChunk
+//        {
+//            public readonly SyntaxToken DotToken;
+//            public readonly TNameSyntax Name;
 
-            public MemberChunk(SyntaxToken dotToken, TNameSyntax name)
-            {
-                DotToken = dotToken;
-                Name = name;
-            }
+//            public MemberChunk(SyntaxToken dotToken, TNameSyntax name)
+//            {
+//                DotToken = dotToken;
+//                Name = name;
+//            }
 
-            /// <summary>
-            /// The length this name chunk will be once all unnecessary whitespace has been
-            /// removed from it.
-            /// </summary>
-            public int NormalizedLength()
-                => DotToken.Width() + Name.Width();
-        }
+//            /// <summary>
+//            /// The length this name chunk will be once all unnecessary whitespace has been
+//            /// removed from it.
+//            /// </summary>
+//            public int NormalizedLength()
+//                => DotToken.Width() + Name.Width();
+//        }
 
-        /// <summary>
-        /// A full chunk of complex dotted call expression that we want to be
-        /// able to wrap as a single unit.  It will have the form: `.P1.P2.P3(...)(...)`
-        /// </summary>
-        private readonly struct CallChunk
-        {
-            public readonly ImmutableArray<MemberChunk> MemberChunks;
-            public readonly ImmutableArray<TBaseArgumentListSyntax> ArgumentLists;
+//        /// <summary>
+//        /// A full chunk of complex dotted call expression that we want to be
+//        /// able to wrap as a single unit.  It will have the form: `.P1.P2.P3(...)(...)`
+//        /// </summary>
+//        private readonly struct CallChunk
+//        {
+//            public readonly ImmutableArray<MemberChunk> MemberChunks;
+//            public readonly ImmutableArray<TBaseArgumentListSyntax> ArgumentLists;
 
-            public CallChunk(
-                ImmutableArray<MemberChunk> memberChunks,
-                ImmutableArray<TBaseArgumentListSyntax> argumentLists)
-            {
-                Debug.Assert(memberChunks.Length > 0);
-                Debug.Assert(argumentLists.Length > 0);
-                MemberChunks = memberChunks;
-                ArgumentLists = argumentLists;
-            }
+//            public CallChunk(
+//                ImmutableArray<MemberChunk> memberChunks,
+//                ImmutableArray<TBaseArgumentListSyntax> argumentLists)
+//            {
+//                Debug.Assert(memberChunks.Length > 0);
+//                Debug.Assert(argumentLists.Length > 0);
+//                MemberChunks = memberChunks;
+//                ArgumentLists = argumentLists;
+//            }
 
-            /// <summary>
-            /// The length this call chunk will be once all unnecessary whitespace has been
-            /// removed from it.
-            /// </summary>
-            public int NormalizedLength()
-                => MemberChunks.Sum(c => c.NormalizedLength()) + ArgumentLists.Sum(a => a.Width());
-        }
-    }
-}
+//            /// <summary>
+//            /// The length this call chunk will be once all unnecessary whitespace has been
+//            /// removed from it.
+//            /// </summary>
+//            public int NormalizedLength()
+//                => MemberChunks.Sum(c => c.NormalizedLength()) + ArgumentLists.Sum(a => a.Width());
+//        }
+//    }
+//}

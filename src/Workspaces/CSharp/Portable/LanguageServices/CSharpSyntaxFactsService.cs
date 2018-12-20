@@ -617,11 +617,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node is ConditionalAccessExpressionSyntax;
 
         public void GetPartsOfConditionalAccessExpression(
-            SyntaxNode node, out SyntaxNode expression, out SyntaxNode whenNotNull)
+            SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode whenNotNull)
         {
             var conditionalAccess = (ConditionalAccessExpressionSyntax)node;
             expression = conditionalAccess.Expression;
+            operatorToken = conditionalAccess.OperatorToken;
             whenNotNull = conditionalAccess.WhenNotNull;
+        }
+
+        public bool IsPostfixUnaryExpression(SyntaxNode node)
+            => node is PostfixUnaryExpressionSyntax;
+
+        public void GetPartsOfPostfixUnaryExpression(SyntaxNode node, out SyntaxNode operand, out SyntaxToken operatorToken)
+        {
+            var expression = (PostfixUnaryExpressionSyntax)node;
+            operand = expression.Operand;
+            operatorToken = expression.OperatorToken;
+        }
+
+        public bool IsMemberBindingExpression(SyntaxNode node)
+            => node is MemberBindingExpressionSyntax;
+
+        public void GetPartsOfMemberBindingExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode name)
+        {
+            var memberBinding = (MemberBindingExpressionSyntax)node;
+            operatorToken = memberBinding.OperatorToken;
+            name = memberBinding.Name;
         }
 
         public bool IsPointerMemberAccessExpression(SyntaxNode node)
