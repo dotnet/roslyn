@@ -245,11 +245,11 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             // This is the effective set of language constructs that can can 'chain' 
             // off of a call `.M(...)`.  They are:
             //
-            // 1. `.Name` or `->Name`.  i.e. `.M(...)`
-            // 2. `(...)`.  i.e. `.M(...)(...)`
-            // 3. `[...]`.  i.e. `.M(...)[...]`
-            // 4. `++`, `--`, `!`.  i.e. `.M(...)++`
-            // 5. `?`.  i.e. `.M(...)?. ...` or `.M(...)?[...]`
+            // 1. `.Name` or `->Name`.  i.e. `.M(...).Name`
+            // 2. `(...)`.              i.e. `.M(...)(...)`
+            // 3. `[...]`.              i.e. `.M(...)[...]`
+            // 4. `++`, `--`, `!`.      i.e. `.M(...)++`
+            // 5. `?`.                  i.e. `.M(...)?. ...` or `.M(...)?[...]`
             //      '5' handles both the ConditionalAccess and MemberBinding cases below.
 
             if (node != null)
