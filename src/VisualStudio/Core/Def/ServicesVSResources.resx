@@ -1165,11 +1165,11 @@ I agree to all of the foregoing:</value>
   <data name="_0_will_be_changed_to_abstract" xml:space="preserve">
     <value>{0} will be changed to abstract.</value>
   </data>
-  <data name="_0_will_be_changed_to_non_static_since_1_is_an_interface" xml:space="preserve">
-    <value>{0} will be changed to non-static since {1} is an interface.</value>
+  <data name="_0_will_be_changed_to_non_static" xml:space="preserve">
+    <value>{0} will be changed to non-static.</value>
   </data>
-  <data name="_0_will_be_changed_to_public_since_1_is_an_interface" xml:space="preserve">
-    <value>{0} will be changed to public since {1} is an interface.</value>
+  <data name="_0_will_be_changed_to_public" xml:space="preserve">
+    <value>{0} will be changed to public.</value>
   </data>
   <data name="Calculating_dependents" xml:space="preserve">
     <value>Calculating dependents</value>

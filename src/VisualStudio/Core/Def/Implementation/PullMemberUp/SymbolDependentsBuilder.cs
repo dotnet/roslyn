@@ -16,10 +16,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         private readonly ImmutableHashSet<ISymbol> _membersInType;
         private readonly Document _document;
 
-        internal SymbolDependentsBuilder(ImmutableArray<ISymbol> membersInType, Document document)
+        internal SymbolDependentsBuilder(Document document, ImmutableArray<ISymbol> membersInType)
         {
-            _membersInType = membersInType.ToImmutableHashSet();
             _document = document;
+            _membersInType = membersInType.ToImmutableHashSet();
             _dependents = new HashSet<ISymbol>();
         }
 
@@ -27,17 +27,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             return _membersInType.ToImmutableDictionary(
                 member => member,
-                member => FindMemberDependentsAsync(member, _document, cancellationToken));
+                member => FindMemberDependentsAsync(_document, member, cancellationToken));
         }
 
         private async Task<ImmutableArray<ISymbol>> FindMemberDependentsAsync(
+            Document document,
             ISymbol member,
-            Document contextDocument,
             CancellationToken cancellationToken)
         {
             var tasks = member.DeclaringSyntaxReferences.Select(@ref => @ref.GetSyntaxAsync(cancellationToken));
             var syntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
-            var compilation = await contextDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var operation in syntaxes.Select(syntax => compilation.GetSemanticModel(syntax.SyntaxTree).GetOperation(syntax, cancellationToken)))
             {

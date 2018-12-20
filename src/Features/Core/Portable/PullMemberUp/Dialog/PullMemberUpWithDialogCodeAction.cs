@@ -32,14 +32,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             public override object GetOptions(CancellationToken cancellationToken)
             {
                 var pullMemberUpOptionService = _service ?? _document.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
-                return pullMemberUpOptionService.GetPullMemberUpOptions(_selectedMember, _document);
+                return pullMemberUpOptionService.GetPullMemberUpOptions(_document, _selectedMember);
             }
             
             protected async override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
                 if (options is PullMembersUpAnalysisResult result)
                 {
-                    var changedSolution = await MembersPuller.Instance.PullMembersUpAsync(result, _document, cancellationToken).ConfigureAwait(false);
+                    var changedSolution = await MembersPuller.Instance.PullMembersUpAsync(_document, result, cancellationToken).ConfigureAwait(false);
                     return new CodeActionOperation[1] { new ApplyChangesOperation(changedSolution) };
                 }
                 else

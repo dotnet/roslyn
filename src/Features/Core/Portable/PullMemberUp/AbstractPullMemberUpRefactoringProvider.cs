@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             var allActions = allDestinations.SelectAsArray(
-                destination => MembersPuller.Instance.TryComputeCodeAction(context.Document, selectedMember, destination)).
+                destination => MembersPuller.Instance.TryComputeCodeAction(document, selectedMember, destination)).
                 WhereAsArray(action => action != null).
-                Concat(new PullMemberUpWithDialogCodeAction(context.Document, selectedMember, this));
+                Concat(new PullMemberUpWithDialogCodeAction(document, selectedMember, this));
 
             var nestedCodeAction = new CodeActionWithNestedActions(
                 string.Format(FeaturesResources.Pull_0_up, selectedMember.ToNameDisplayString()),
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 ? containingType.GetBaseTypes().ToImmutableArray()
                 : containingType.AllInterfaces.Concat(containingType.GetBaseTypes()).ToImmutableArray();
 
-            return allDestinations.WhereAsArray(destination => MemberAndDestinationValidator.IsDestinationValid(destination, solution, cancellationToken));
+            return allDestinations.WhereAsArray(destination => MemberAndDestinationValidator.IsDestinationValid(solution, destination, cancellationToken));
         }
     }
 }

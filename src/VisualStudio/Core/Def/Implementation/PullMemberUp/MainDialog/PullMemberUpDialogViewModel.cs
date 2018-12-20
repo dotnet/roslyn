@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
 {
-    internal class PullMemberUpViewModel : AbstractNotifyPropertyChanged
+    internal class PullMemberUpDialogViewModel : AbstractNotifyPropertyChanged
     {
         public ImmutableArray<PullMemberUpSymbolViewModel> Members { get; set; }
 
@@ -73,11 +73,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
         private readonly CancellationToken CancellationToken;
 
-        internal PullMemberUpViewModel(
-            ImmutableArray<BaseTypeTreeNodeViewModel> destinations,
-            ImmutableArray<PullMemberUpSymbolViewModel> members,
-            ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap,
+        internal PullMemberUpDialogViewModel(
             IWaitIndicator waitIndicator,
+            ImmutableArray<PullMemberUpSymbolViewModel> members,
+            ImmutableArray<BaseTypeTreeNodeViewModel> destinations,
+            ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap,
             CancellationToken cancellationToken)
         {
             Destinations = destinations;
@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                         title: ServicesVSResources.Pull_Members_Up, 
                         message: ServicesVSResources.Calculating_dependents, 
                         allowCancel: true,
-                        showProgress: false,
+                        showProgress: true,
                         context =>
                         {
                             DependentsMap[member.MemberSymbol].Wait(context.CancellationToken);

@@ -99,20 +99,20 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} will be changed to non-static since {1} is an interface..
+        ///   Looks up a localized string similar to {0} will be changed to non-static..
         /// </summary>
-        internal static string _0_will_be_changed_to_non_static_since_1_is_an_interface {
+        internal static string _0_will_be_changed_to_non_static {
             get {
-                return ResourceManager.GetString("_0_will_be_changed_to_non_static_since_1_is_an_interface", resourceCulture);
+                return ResourceManager.GetString("_0_will_be_changed_to_non_static", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} will be changed to public since {1} is an interface..
+        ///   Looks up a localized string similar to {0} will be changed to public..
         /// </summary>
-        internal static string _0_will_be_changed_to_public_since_1_is_an_interface {
+        internal static string _0_will_be_changed_to_public {
             get {
-                return ResourceManager.GetString("_0_will_be_changed_to_public_since_1_is_an_interface", resourceCulture);
+                return ResourceManager.GetString("_0_will_be_changed_to_public", resourceCulture);
             }
         }
         

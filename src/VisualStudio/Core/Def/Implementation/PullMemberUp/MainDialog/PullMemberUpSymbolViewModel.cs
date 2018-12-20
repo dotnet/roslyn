@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         /// </summary>
         public string Accessibility => MemberSymbol.DeclaredAccessibility.ToString();
 
-        public PullMemberUpSymbolViewModel(ISymbol selectedMember, ISymbol symbol, IGlyphService glyphService) : base(symbol, glyphService)
+        public PullMemberUpSymbolViewModel(IGlyphService glyphService, ISymbol selectedMember, ISymbol symbol) : base(symbol, glyphService)
         {
             // The member user selected will be checked at the begining.
             IsChecked = SymbolEquivalenceComparer.Instance.Equals(selectedMember, symbol);

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
 {
     internal static class MemberAndDestinationValidator
     {
-        internal static bool IsDestinationValid(INamedTypeSymbol destination, Solution solution, CancellationToken cancellationToken)
+        internal static bool IsDestinationValid(Solution solution, INamedTypeSymbol destination, CancellationToken cancellationToken)
         {
             if (destination == null)
             {

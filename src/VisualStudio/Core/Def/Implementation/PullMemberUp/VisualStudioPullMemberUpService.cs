@@ -28,16 +28,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             _waitIndicator = waitIndicator;
         }
 
-        public PullMembersUpAnalysisResult GetPullMemberUpOptions(ISymbol selectedMember, Document document)
+        public PullMembersUpAnalysisResult GetPullMemberUpOptions(Document document, ISymbol selectedMember)
         {
             var membersInType = selectedMember.ContainingType.GetMembers().
                 WhereAsArray(member => MemberAndDestinationValidator.IsMemeberValid(member));
-            var memberViewModels = membersInType.SelectAsArray(member => new PullMemberUpSymbolViewModel(selectedMember, member, _glyphService));
+            var memberViewModels = membersInType.SelectAsArray(member => new PullMemberUpSymbolViewModel( _glyphService, selectedMember, member));
 
             using (var cts = new CancellationTokenSource())
             {
-                var baseTypeRootViewModel = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(selectedMember.ContainingType, document.Project.Solution, _glyphService, cts.Token);
-                var dependentsBuilder = new SymbolDependentsBuilder(membersInType, document);
+                var baseTypeRootViewModel = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(
+                    _glyphService,
+                    document.Project.Solution,
+                    selectedMember.ContainingType,
+                    cts.Token).BaseTypeNodes;
+                var dependentsBuilder = new SymbolDependentsBuilder(document, membersInType);
                 var dependentsMap = dependentsBuilder.CreateDependentsMap(cts.Token);
 
                 // Finding the dependents of all members will be expensive, so start an new background thread calculates it.
@@ -49,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                     }
                 }, cts.Token);
 
-                var viewModel = new PullMemberUpViewModel(baseTypeRootViewModel.BaseTypeNodes, memberViewModels, dependentsMap, _waitIndicator, cts.Token);
+                var viewModel = new PullMemberUpDialogViewModel(_waitIndicator,  memberViewModels, baseTypeRootViewModel, dependentsMap, cts.Token);
                 var dialog = new PullMemberUpDialog(viewModel);
                 var result = dialog.ShowModal();
 

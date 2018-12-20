@@ -299,7 +299,7 @@ class MyClass : Level1BaseClass
             Return member
         End Function
 
-        Private Async Function GetViewModelAsync(markup As XElement, languageName As String) As Task(Of PullMemberUpViewModel)
+        Private Async Function GetViewModelAsync(markup As XElement, languageName As String) As Task(Of PullMemberUpDialogViewModel)
             Dim workspaceXml =
             <Workspace>
                 <Project Language=<%= languageName %> CommonReferences="true">
@@ -318,15 +318,15 @@ class MyClass : Level1BaseClass
                 Dim cts = New CancellationTokenSource()
                 Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
                 Dim memberSymbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
-                Dim baseTypeTree = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(memberSymbol.ContainingType, workspaceDoc.Project.Solution, glyphService:=Nothing, cts.Token)
+                Dim baseTypeTree = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(glyphService:=Nothing, workspaceDoc.Project.Solution, memberSymbol.ContainingType, cts.Token)
                 Dim validMembers = memberSymbol.ContainingType.GetMembers().WhereAsArray(Function(member) MemberAndDestinationValidator.IsMemeberValid(member))
-                Dim membersViewModel = validMembers.SelectAsArray(Function(member) New PullMemberUpSymbolViewModel(memberSymbol, member, glyphService:=Nothing))
-                Dim dependentsBuilder = New SymbolDependentsBuilder(validMembers, workspaceDoc)
-                Return New PullMemberUpViewModel(
-                baseTypeTree.BaseTypeNodes,
-                membersViewModel,
-                dependentsBuilder.CreateDependentsMap(cts.Token),
+                Dim membersViewModel = validMembers.SelectAsArray(Function(member) New PullMemberUpSymbolViewModel(glyphService:=Nothing, memberSymbol, member))
+                Dim dependentsBuilder = New SymbolDependentsBuilder(workspaceDoc, validMembers)
+                Return New PullMemberUpDialogViewModel(
                 workspace.GetService(Of IWaitIndicator),
+                membersViewModel,
+                baseTypeTree.BaseTypeNodes,
+                dependentsBuilder.CreateDependentsMap(cts.Token),
                 cts.Token)
             End Using
         End Function

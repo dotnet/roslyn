@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         public string Namespace => string.Format(ServicesVSResources.Namespace_0,
             MemberSymbol.ContainingNamespace?.ToDisplayString() ?? ServicesVSResources.Namespace_global);
 
-        private BaseTypeTreeNodeViewModel(INamedTypeSymbol node, IGlyphService glyphService) : base(node, glyphService)
+        private BaseTypeTreeNodeViewModel(IGlyphService glyphService, INamedTypeSymbol node) : base(node, glyphService)
         {
         }
 
@@ -38,12 +38,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         /// Use breadth first search to create the inheritance tree. Only non-generated types in the solution will be included in the tree.
         /// </summary>
         internal static BaseTypeTreeNodeViewModel CreateBaseTypeTree(
-            INamedTypeSymbol root,
-            Solution solution,
             IGlyphService glyphService,
+            Solution solution,
+            INamedTypeSymbol root,
             CancellationToken cancellationToken)
         {
-            var rootTreeNode = new BaseTypeTreeNodeViewModel(root, glyphService) { IsChecked = false, IsExpanded = true};
+            var rootTreeNode = new BaseTypeTreeNodeViewModel(glyphService, root) { IsChecked = false, IsExpanded = true};
             var queue = new Queue<BaseTypeTreeNodeViewModel>();
             queue.Enqueue(rootTreeNode);
             while (queue.Any())
@@ -52,8 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                 var currentTypeSymbol = currentTreeNode.MemberSymbol as INamedTypeSymbol;
 
                 currentTreeNode.BaseTypeNodes = currentTypeSymbol.Interfaces.Concat(currentTypeSymbol.BaseType).
-                    WhereAsArray(baseType => MemberAndDestinationValidator.IsDestinationValid(baseType, solution, cancellationToken)).
-                    SelectAsArray(baseType => new BaseTypeTreeNodeViewModel(baseType, glyphService) { IsChecked = false, IsExpanded = true });
+                    WhereAsArray(baseType => MemberAndDestinationValidator.IsDestinationValid(solution, baseType, cancellationToken)).
+                    SelectAsArray(baseType => new BaseTypeTreeNodeViewModel(glyphService, baseType) { IsChecked = false, IsExpanded = true });
 
                 foreach (var node in currentTreeNode.BaseTypeNodes)
                 {

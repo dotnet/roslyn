@@ -39,9 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
         public string SpinnerToolTip => ServicesVSResources.Calculating_dependents;
 
-        internal PullMemberUpViewModel ViewModel { get; }
+        internal PullMemberUpDialogViewModel ViewModel { get; }
 
-        internal PullMemberUpDialog(PullMemberUpViewModel pullMemberUpViewModel)
+        internal PullMemberUpDialog(PullMemberUpDialogViewModel pullMemberUpViewModel)
         {
             ViewModel = pullMemberUpViewModel;
             DataContext = pullMemberUpViewModel;

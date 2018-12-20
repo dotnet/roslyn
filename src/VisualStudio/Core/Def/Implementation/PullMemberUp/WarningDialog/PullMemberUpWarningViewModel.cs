@@ -33,13 +33,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
                 if (result.ChangeOriginalToPublic)
                 {
                     Logger.Log(FunctionId.PullMembersUpWarning_ChangeOriginToPublic);
-                    warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_public_since_1_is_an_interface, result.Member.ToDisplayString(), analysisResult.Destination.ToDisplayString()));
+                    warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_public, result.Member.ToDisplayString()));
                 }
 
                 if (result.ChangeOriginalToNonStatic)
                 {
                     Logger.Log(FunctionId.PullMembersUpWarning_ChangeOriginToNonStatic);
-                    warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_non_static_since_1_is_an_interface, result.Member.ToDisplayString(), analysisResult.Destination.ToDisplayString()));
+                    warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_non_static, result.Member.ToDisplayString()));
                 }
             }
 
