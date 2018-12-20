@@ -26,10 +26,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public DefaultPointsToValueGenerator DefaultPointsToValueGenerator { get; }
 
             protected override PointsToAbstractValue GetDefaultValue(AnalysisEntity analysisEntity) => DefaultPointsToValueGenerator.GetOrCreateDefaultValue(analysisEntity);
+
             protected override bool CanSkipNewEntry(AnalysisEntity analysisEntity, PointsToAbstractValue value)
                 => value.Kind == PointsToAbstractValueKind.Unknown ||
                     !DefaultPointsToValueGenerator.IsTrackedEntity(analysisEntity) ||
                     value == GetDefaultValue(analysisEntity);
+
+            protected override void AssertValidEntryForMergedMap(AnalysisEntity analysisEntity, PointsToAbstractValue value)
+            {
+                PointsToAnalysisData.AssertValidPointsToAnalysisKeyValuePair(analysisEntity, value);
+            }
+
+            protected override void AssertValidAnalysisData(CorePointsToAnalysisData map)
+            {
+                PointsToAnalysisData.AssertValidPointsToAnalysisData(map);
+            }
 
             public CorePointsToAnalysisData MergeCoreAnalysisDataForBackEdge(
                 PointsToAnalysisData forwardEdgeAnalysisData,

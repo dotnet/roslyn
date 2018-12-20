@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
@@ -124,6 +125,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 sourceCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
                 targetCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
                 Debug.Assert(ReferenceEquals(sourceCopyAnalysisData, targetCopyAnalysisData) || fromPredicate);
+                Debug.Assert(tryGetAddressSharedCopyValue != null);
 
                 // Don't track entities if do not know about it's instance location.
                 if (analysisEntity.HasUnknownInstanceLocation)
@@ -159,11 +161,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                             CopyAbstractValue newValueForEntitiesInOldSet = addressSharedCopyValue != null ?
                                 existingValue.WithEntitiesRemoved(addressSharedCopyValue.AnalysisEntities) :
                                 existingValue.WithEntityRemoved(analysisEntity);
-                            foreach (var entityToUpdate in newValueForEntitiesInOldSet.AnalysisEntities)
-                            {
-                                Debug.Assert(newValueForEntitiesInOldSet.AnalysisEntities.Contains(entityToUpdate));
-                                targetCopyAnalysisData.SetAbstactValue(entityToUpdate, newValueForEntitiesInOldSet, isEntityBeingAssigned: false);
-                            }
+                            targetCopyAnalysisData.SetAbstactValueForEntities(newValueForEntitiesInOldSet, entityBeingAssigned: analysisEntity);
                         }
                     }
                 }
@@ -194,12 +192,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 }
 
                 var newValue = new CopyAbstractValue(newAnalysisEntities);
-                foreach (var entityToUpdate in newAnalysisEntities)
-                {
-                    Debug.Assert(newValue.AnalysisEntities.Count > 0);
-                    Debug.Assert(newValue.AnalysisEntities.Contains(entityToUpdate));
-                    targetCopyAnalysisData.SetAbstactValue(entityToUpdate, newValue, isEntityBeingAssigned: entityToUpdate == analysisEntity);
-                }
+                targetCopyAnalysisData.SetAbstactValueForEntities(newValue, entityBeingAssigned: analysisEntity);
 
                 targetCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
             }
@@ -342,26 +335,60 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             {
                 var operandValue = Visit(operation.Operand, argument);
 
+                if (TryInferConversion(operation, out bool alwaysSucceed, out bool alwaysFail) &&
+                    ConversionAlwaysSucceeds(alwaysSucceed, alwaysFail, operation.IsTryCast, operation.Type))
+                {
+                    return operandValue;
+                }
+
+                return CopyAbstractValue.Unknown;
+            }
+
+            public override CopyAbstractValue GetAssignedValueForPattern(IIsPatternOperation operation, CopyAbstractValue operandValue)
+            {
                 if (TryInferConversion(operation, out bool alwaysSucceed, out bool alwaysFail))
                 {
-                    Debug.Assert(!alwaysSucceed || !alwaysFail);
-                    
-                    // Flow the copy value of the operand to the converted operation if conversion may succeed.
-                    if (!alwaysFail)
+                    var targetType = operation.Pattern.GetPatternType();
+                    if (ConversionAlwaysSucceeds(alwaysSucceed, alwaysFail, isTryCast: true, targetType: targetType))
                     {
-                        // For try cast, also ensure conversion always succeeds before flowing copy value.
-                        // TODO: For direct cast, we should check if conversion is implicit.
-                        // For now, we only flow values for reference type direct cast conversions.
-                        if (operation.IsTryCast && alwaysSucceed ||
-                            !operation.IsTryCast && operation.Type.IsReferenceType)
-                        {
-                            return operandValue;
-                        }
+                        return operandValue;
                     }
                 }
 
                 return CopyAbstractValue.Unknown;
             }
+
+            private static bool ConversionAlwaysSucceeds(bool alwaysSucceed, bool alwaysFail, bool isTryCast, ITypeSymbol targetType)
+            {
+                Debug.Assert(!alwaysSucceed || !alwaysFail);
+
+                // Flow the copy value of the operand to the converted operation if conversion may succeed.
+                if (!alwaysFail)
+                {
+                    // For try cast, also ensure conversion always succeeds before flowing copy value.
+                    // TODO: For direct cast, we should check if conversion is implicit.
+                    // For now, we only flow values for reference type direct cast conversions.
+                    if (isTryCast && alwaysSucceed ||
+                        !isTryCast && targetType.IsReferenceType)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            protected override CopyAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
+            {
+                var value = base.VisitAssignmentOperation(operation, argument);
+                if (AnalysisEntityFactory.TryCreate(operation.Target, out var analysisEntity))
+                {
+                    return GetAbstractValue(analysisEntity);
+                }
+
+                return value;
+            }
+
             #endregion
         }
     }

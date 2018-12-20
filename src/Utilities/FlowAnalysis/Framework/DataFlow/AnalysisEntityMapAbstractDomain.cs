@@ -19,10 +19,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected abstract TValue GetDefaultValue(AnalysisEntity analysisEntity);
         protected abstract bool CanSkipNewEntry(AnalysisEntity analysisEntity, TValue value);
 
+        protected abstract void AssertValidEntryForMergedMap(AnalysisEntity analysisEntity, TValue value);
+        protected virtual void AssertValidAnalysisData(IDictionary<AnalysisEntity, TValue> map)
+        {
+#if DEBUG
+            foreach (var kvp in map)
+            {
+                AssertValidEntryForMergedMap(kvp.Key, kvp.Value);
+            }
+#endif
+        }
+
         public override IDictionary<AnalysisEntity, TValue> Merge(IDictionary<AnalysisEntity, TValue> map1, IDictionary<AnalysisEntity, TValue> map2)
         {
             Debug.Assert(map1 != null);
+            AssertValidAnalysisData(map1);
             Debug.Assert(map2 != null);
+            AssertValidAnalysisData(map2);
 
             TValue GetMergedValueForEntityPresentInOneMap(AnalysisEntity key, TValue value)
             {
@@ -44,6 +57,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     TValue mergedValue = GetMergedValueForEntityPresentInOneMap(key1, value1);
                     Debug.Assert(!map2.ContainsKey(key1));
                     Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
+                    AssertValidEntryForMergedMap(key1, mergedValue);
                     resultMap.Add(key1, mergedValue);
                     continue;
                 }
@@ -64,6 +78,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                     if (key1.InstanceLocation.Equals(key2.InstanceLocation))
                     {
+                        AssertValidEntryForMergedMap(key1, mergedValue);
                         resultMap[key1] = mergedValue;
                     }
                     else
@@ -112,6 +127,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             newKeys.Add(mergedKey);
                         }
 
+                        AssertValidEntryForMergedMap(mergedKey, mergedValue);
                         resultMap[mergedKey] = mergedValue;
                     }
                 }
@@ -120,6 +136,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     TValue mergedValue = GetMergedValueForEntityPresentInOneMap(key1, value1);
                     Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
+                    AssertValidEntryForMergedMap(key1, mergedValue);
                     resultMap.Add(key1, mergedValue);
                 }
             }
@@ -132,6 +149,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     TValue mergedValue = GetMergedValueForEntityPresentInOneMap(key2, value2);
                     Debug.Assert(ValueDomain.Compare(value2, mergedValue) <= 0);
+                    AssertValidEntryForMergedMap(key2, mergedValue);
                     resultMap.Add(key2, mergedValue);
                 }
             }
@@ -148,6 +166,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             Debug.Assert(Compare(map1, resultMap) <= 0);
             Debug.Assert(Compare(map2, resultMap) <= 0);
+            AssertValidAnalysisData(resultMap);
 
             return resultMap;
         }

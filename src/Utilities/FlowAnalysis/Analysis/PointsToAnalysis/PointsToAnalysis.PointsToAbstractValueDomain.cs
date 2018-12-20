@@ -77,11 +77,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
                 else if (value1.Kind == PointsToAbstractValueKind.Invalid)
                 {
-                    result = value2;
+                    result = value2.Kind == PointsToAbstractValueKind.Undefined ?
+                        PointsToAbstractValue.Unknown :
+                        value2;
                 }
                 else if (value2.Kind == PointsToAbstractValueKind.Invalid)
                 {
-                    result = value1;
+                    result = value1.Kind == PointsToAbstractValueKind.Undefined ?
+                        PointsToAbstractValue.Unknown :
+                        value1;
                 }
                 else if (value1.Kind == PointsToAbstractValueKind.Undefined)
                 {

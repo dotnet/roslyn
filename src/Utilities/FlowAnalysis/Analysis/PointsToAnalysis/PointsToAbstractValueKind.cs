@@ -45,20 +45,4 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         /// </summary>
         Unknown,
     }
-
-    internal static class PointsToAbstractValueExtensions
-    {
-        public static bool IsInvalidOrUndefined(this PointsToAbstractValueKind kind)
-        {
-            switch (kind)
-            {
-                case PointsToAbstractValueKind.Invalid:
-                case PointsToAbstractValueKind.Undefined:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
-    }
 }

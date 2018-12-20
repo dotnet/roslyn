@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly Func<CaptureId, bool> _getIsLValueFlowCapture;
         private readonly AnalysisEntity _interproceduralThisOrMeInstanceForCallerOpt;
         private readonly ImmutableStack<IOperation> _interproceduralCallStackOpt;
+        private readonly Func<IOperation, AnalysisEntity> _interproceduralGetAnalysisEntityForFlowCaptureOpt;
 
         public AnalysisEntityFactory(
             ControlFlowGraph controlFlowGraph,
@@ -37,7 +38,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             AnalysisEntity interproceduralInvocationInstanceOpt,
             AnalysisEntity interproceduralThisOrMeInstanceForCallerOpt,
             ImmutableStack<IOperation> interproceduralCallStackOpt,
-            ImmutableDictionary<ISymbol, PointsToAbstractValue> interproceduralCapturedVariablesMapOpt)
+            ImmutableDictionary<ISymbol, PointsToAbstractValue> interproceduralCapturedVariablesMapOpt,
+            Func<IOperation, AnalysisEntity> interproceduralGetAnalysisEntityForFlowCaptureOpt)
         {
             _controlFlowGraph = controlFlowGraph;
             _getPointsToAbstractValueOpt = getPointsToAbstractValueOpt;
@@ -45,6 +47,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _getIsLValueFlowCapture = getIsLValueFlowCapture;
             _interproceduralThisOrMeInstanceForCallerOpt = interproceduralThisOrMeInstanceForCallerOpt;
             _interproceduralCallStackOpt = interproceduralCallStackOpt;
+            _interproceduralGetAnalysisEntityForFlowCaptureOpt = interproceduralGetAnalysisEntityForFlowCaptureOpt;
 
             _analysisEntityMap = new Dictionary<IOperation, AnalysisEntity>();
             _captureIdEntityMap = new Dictionary<CaptureId, AnalysisEntity>();
@@ -191,11 +194,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return TryCreate(argument.Value, out analysisEntity);
 
                 case IFlowCaptureOperation flowCapture:
-                    analysisEntity = GetOrCreateForFlowCapture(flowCapture.Id, flowCapture.Value.Type);
+                    analysisEntity = GetOrCreateForFlowCapture(flowCapture.Id, flowCapture.Value.Type, flowCapture);
+                    Debug.Assert(analysisEntity.Type == null || analysisEntity.Type.Equals(flowCapture.Value.Type));
                     break;
 
                 case IFlowCaptureReferenceOperation flowCaptureReference:
-                    analysisEntity = GetOrCreateForFlowCapture(flowCaptureReference.Id, flowCaptureReference.Type);
+                    analysisEntity = GetOrCreateForFlowCapture(flowCaptureReference.Id, flowCaptureReference.Type, flowCaptureReference);
+                    Debug.Assert(analysisEntity.Type == null || analysisEntity.Type.Equals(flowCaptureReference.Type));
                     break;
 
                 case IDeclarationExpressionOperation declarationExpression:
@@ -215,6 +220,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 case IVariableDeclaratorOperation variableDeclarator:
                     symbolOpt = variableDeclarator.Symbol;
                     type = variableDeclarator.Symbol.Type;
+                    break;
+
+                case IDeclarationPatternOperation declarationPattern:
+                    symbolOpt = declarationPattern.DeclaredSymbol;
+                    type = ((ILocalSymbol)symbolOpt).Type;
                     break;
 
                 default:
@@ -286,8 +296,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public bool TryGetForFlowCapture(CaptureId captureId, out AnalysisEntity analysisEntity)
             => _captureIdEntityMap.TryGetValue(captureId, out analysisEntity);
 
-        private AnalysisEntity GetOrCreateForFlowCapture(CaptureId captureId, ITypeSymbol type)
+        public bool TryGetForInterproceduralAnalysis(IOperation operation, out AnalysisEntity analysisEntity)
+            => _analysisEntityMap.TryGetValue(operation, out analysisEntity);
+
+        private AnalysisEntity GetOrCreateForFlowCapture(CaptureId captureId, ITypeSymbol type, IOperation flowCaptureOrReference)
         {
+            var interproceduralFlowCaptureEntityOpt = _interproceduralGetAnalysisEntityForFlowCaptureOpt?.Invoke(flowCaptureOrReference);
+            if (interproceduralFlowCaptureEntityOpt != null)
+            {
+                Debug.Assert(!_controlFlowGraph.DescendantOperations().Contains(flowCaptureOrReference));
+                Debug.Assert(_interproceduralCallStackOpt.Last().Descendants().Contains(flowCaptureOrReference));
+                return interproceduralFlowCaptureEntityOpt;
+            }
+
+            Debug.Assert(_controlFlowGraph.DescendantOperations().Contains(flowCaptureOrReference));
             if (!_captureIdEntityMap.TryGetValue(captureId, out var entity))
             {
                 entity = AnalysisEntity.Create(captureId, type, _controlFlowGraph, _getIsLValueFlowCapture(captureId));
