@@ -3756,7 +3756,10 @@ public class MyClass
                 .VerifyDiagnostics(
                     // (12,16): error CS8370: Feature 'unmanaged generic structs' is not available in C# 7.3. Please use language version 8.0 or greater.
                     //         fixed (MyStruct<int>* ptr = &c.ms)
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>*").WithArguments("unmanaged generic structs", "8.0").WithLocation(12, 16)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>*").WithArguments("unmanaged generic structs", "8.0").WithLocation(12, 16),
+                    // (12,37): error CS8370: Feature 'unmanaged generic structs' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         fixed (MyStruct<int>* ptr = &c.ms)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&c.ms").WithArguments("unmanaged generic structs", "8.0").WithLocation(12, 37)
                 );
         }
 
