@@ -1,14 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
 {
@@ -41,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
     /// 
     /// The way this wrapper works is breaking up a long dotted expression into 'call-chunks'
     /// of the form `.P1.P2.P3.M(...)`  i.e. a *non-empty* sequence of dot-and-name pairs
-    /// followed by an ArgumentList.  In this example the sequence is considered:
+    /// followed by one or more ArgumentLists.  In this example the sequence is considered:
     /// 
     /// <c>
     ///     .P1  .P2  .P3  .M  (...)
@@ -59,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
     /// If an expression can be broken into multiple chunks it is eligible for 
     /// normalized wrapping.  Normalized wrapping works by taking each chunk and
     /// removing any unnecessary whitespace between the individual call-chunks and
-    /// between the last call-chunk and the arglist.  It then takes each call-chunk 
+    /// between the last call-chunk and the arglists.  It then takes each call-chunk 
     /// and aligns the first dot of all of them if performing 'wrap all'.  If performing
     /// 'wrap long', then the wrapping only occurs if the current call-chunk's end
     /// would go past the preferred wrapping column
@@ -90,26 +86,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             Document document, int position, SyntaxNode node, CancellationToken cancellationToken)
         {
             // has to either be `expr(...)` or `expr[...]`
-            if (!IsInvocationOrElementAccessExpression(node, out var left, out var argumentList))
+            if (!IsInvocationOrElementAccessExpression(node))
             {
                 return null;
             }
 
-            // has to either be `expr.Name(...)` or `expr.Name[...]`
-            if (!(left is TMemberAccessExpressionSyntax memberAccess))
-            {
-                return null;
-            }
-
-            // Don't process this invocation expression if it's contained in some higher member
-            // access+invocation expression.  We'll take care of this when we hit the parent.
-            var current = node;
-            while (current.Parent is TMemberAccessExpressionSyntax)
-            {
-                current = current.Parent;
-            }
-
-            if (IsInvocationOrElementAccessExpression(current.Parent, out _, out _))
+            // Has to be the topmost invocation/element-access.
+            if (IsInvocationOrElementAccessExpression(node.Parent))
             {
                 return null;
             }
@@ -118,9 +101,21 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             // i.e. if we only have `this.Goo(...)` there's nothing to wrap.  However, we can
             // wrap when we have `this.Goo(...).Bar(...)`.  Grab the chunks of `.Name(...)` as
             // that's what we're going to be wrapping/aligning.
-
             var callChunks = GetCallChunks(node);
             if (callChunks.Length <= 1)
+            {
+                return null;
+            }
+
+            // Don't process this invocation expression if it's contained in some higher member
+            // call-chunk expression.  We'll take care of this when we hit the parent.
+            var current = node;
+            while (current.Parent is TMemberAccessExpressionSyntax)
+            {
+                current = current.Parent;
+            }
+
+            if (IsInvocationOrElementAccessExpression(current.Parent))
             {
                 return null;
             }
@@ -131,20 +126,23 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             {
                 foreach (var memberChunk in callChunk.MemberChunks)
                 {
-                    var memberContainsUnformattableContent = await ContainsUnformattableContentAsync(
+                    var unformattable = await ContainsUnformattableContentAsync(
                        document, new SyntaxNodeOrToken[] { memberChunk.DotToken, memberChunk.Name }, cancellationToken).ConfigureAwait(false);
-                    if (memberContainsUnformattableContent)
+                    if (unformattable)
                     {
                         return null;
                     }
                 }
 
-                var containsUnformattableContent = await ContainsUnformattableContentAsync(
-                        document, new SyntaxNodeOrToken[] { callChunk.ArgumentList }, cancellationToken).ConfigureAwait(false);
-
-                if (containsUnformattableContent)
+                foreach (var argumentList in callChunk.ArgumentLists)
                 {
-                    return null;
+                    var unformattable = await ContainsUnformattableContentAsync(
+                        document, new SyntaxNodeOrToken[] { argumentList }, cancellationToken).ConfigureAwait(false);
+
+                    if (unformattable)
+                    {
+                        return null;
+                    }
                 }
             }
 
@@ -155,6 +153,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             return new CallCodeActionComputer(
                 this, document, sourceText, options, callChunks, cancellationToken);
         }
+
+        private bool IsInvocationOrElementAccessExpression(SyntaxNode node)
+            => IsInvocationOrElementAccessExpression(node, out _, out _);
 
         private bool IsInvocationOrElementAccessExpression(
             SyntaxNode node, out TExpressionSyntax expression, out TBaseArgumentListSyntax argumentList)
@@ -201,29 +202,47 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
 
         private void AddChunks(SyntaxNode node, ArrayBuilder<CallChunk> chunks)
         {
-            // To be a chunk, it has to be of the form `expr.Name(...)`
-            if (IsInvocationOrElementAccessExpression(node, out var expression, out var argumentList) &&
-                expression is TMemberAccessExpressionSyntax)
+            var argumentLists = ArrayBuilder<TBaseArgumentListSyntax>.GetInstance();
+            var memberChunks = ArrayBuilder<MemberChunk>.GetInstance();
+
+            // Walk downwards, consuming argument lists.
+            // Note: because of how we walk down, the arg lists will be reverse order.
+            // We take care of that below.
+            while (IsInvocationOrElementAccessExpression(node, out var expression, out var argumentList))
             {
-                // Walk down the left side eating up `.Name` member-chunks.
-                var memberChunks = ArrayBuilder<MemberChunk>.GetInstance();
-
-                var current = expression;
-                while (current is TMemberAccessExpressionSyntax memberAccess)
-                {
-                    _syntaxFacts.GetPartsOfMemberAccessExpression(
-                        current, out var left, out var operatorToken, out var name);
-                    memberChunks.Insert(0, new MemberChunk(operatorToken, (TNameSyntax)name));
-                    current = (TExpressionSyntax)left;
-                }
-
-                // Recurse and see if we can pull out any more chunks prior to the
-                // first `.Name` member-chunk we found.
-                AddChunks(current, chunks);
-
-                // now, create a call-chunk from the member-chunks and arg-list we matched against.
-                chunks.Add(new CallChunk(memberChunks.ToImmutableAndFree(), argumentList));
+                argumentLists.Add(argumentList);
+                node = expression;
             }
+
+            // Walk down the left side eating up `.Name` member-chunks.
+            // Note: because of how we walk down, the member chunks will be reverse order.
+            // We take care of that below.
+            while (node is TMemberAccessExpressionSyntax memberAccess)
+            {
+                _syntaxFacts.GetPartsOfMemberAccessExpression(
+                    node, out var left, out var operatorToken, out var name);
+                memberChunks.Add(new MemberChunk(operatorToken, (TNameSyntax)name));
+                node = left;
+            }
+
+            // Had to have at least one argument list and at least one member chunk.
+            if (argumentLists.Count == 0 || memberChunks.Count == 0)
+            {
+                argumentLists.Free();
+                memberChunks.Free();
+                return;
+            }
+
+            // Recurse and see if we can pull out any more chunks prior to the
+            // first `.Name` member-chunk we found.
+            AddChunks(node, chunks);
+
+            memberChunks.ReverseContents();
+            argumentLists.ReverseContents();
+
+            // now, create a call-chunk from the member-chunks and arg-lists we matched against.
+            chunks.Add(new CallChunk(
+                memberChunks.ToImmutableAndFree(), argumentLists.ToImmutableAndFree()));
         }
     }
 }

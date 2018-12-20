@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             private readonly ImmutableArray<CallChunk> _callChunks;
 
             /// <summary>
-            /// Trivia to place before a call-chunk when it it wrapped.
+            /// Trivia to place before a call-chunk when it is wrapped.
             /// </summary>
             private readonly SyntaxTriviaList _indentationTrivia;
 
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
                         // First, add a newline at the end of the previous arglist, and then
                         // indent the very first member chunk appropriately.
                         result.Add(Edit.UpdateBetween(
-                            _callChunks[i - 1].ArgumentList, _newlineBeforeOperatorTrivia,
+                            _callChunks[i - 1].ArgumentLists.Last(), _newlineBeforeOperatorTrivia,
                             _indentationTrivia, callChunk.MemberChunks[0].DotToken));
 
                         // Now, delete all the remaining spaces in this call chunk.
@@ -172,8 +172,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
                     DeleteSpacesInMemberChunk(result, memberChunk);
                 }
 
-                // and then any whitespace before the arg list.
-                DeleteSpacesBeforeArgumentList(result, callChunk);
+                // and then any whitespace before the first arg list and between the rest.
+                DeleteSpacesInArgumentLists(result, callChunk);
             }
 
             /// <summary>
@@ -206,7 +206,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
                     DeleteSpacesInMemberChunk(result, memberChunk);
                 }
 
-                DeleteSpacesBeforeArgumentList(result, firstCallChunk);
+                // and then any whitespace before the first arg list and between the rest.
+                DeleteSpacesInArgumentLists(result, firstCallChunk);
             }
 
             private static void DeleteSpacesInMemberChunk(ArrayBuilder<Edit> result, MemberChunk memberChunk)
@@ -215,8 +216,19 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
                 result.Add(Edit.DeleteBetween(memberChunk.DotToken, memberChunk.Name));
             }
 
-            private static void DeleteSpacesBeforeArgumentList(ArrayBuilder<Edit> result, CallChunk callChunk)
-                => result.Add(Edit.DeleteBetween(callChunk.MemberChunks.Last().Name, callChunk.ArgumentList));
+            private static void DeleteSpacesInArgumentLists(ArrayBuilder<Edit> result, CallChunk callChunk)
+            {
+                var argumentLists = callChunk.ArgumentLists;
+
+                // Delete the whitespace between the last member name chunk and the first arg list.
+                result.Add(Edit.DeleteBetween(callChunk.MemberChunks.Last().Name, argumentLists[0]));
+
+                // Now delete the whitespace between each arglist.
+                for (var i = 1; i < argumentLists.Length; i++)
+                {
+                    result.Add(Edit.DeleteBetween(argumentLists[i - 1], argumentLists[i]));
+                }
+            }
         }
     }
 }
