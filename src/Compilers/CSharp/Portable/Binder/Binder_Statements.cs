@@ -751,17 +751,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!(expr.Type is null));
             Debug.Assert(expr.Type.IsValueType && expr.Type.IsByRefLikeType); // pattern dispose lookup is only valid on ref structs
 
-            var result = FindPatternMethodRelaxed(expr,
-                                                  hasAwait ? WellKnownMemberNames.DisposeAsyncMethodName : WellKnownMemberNames.DisposeMethodName,
-                                                  syntaxNode,
-                                                  diagnostics,
-                                                  out var disposeMethod);
+            var result = PerformPatternMethodLookup(expr,
+                                                    hasAwait ? WellKnownMemberNames.DisposeAsyncMethodName : WellKnownMemberNames.DisposeMethodName,
+                                                    syntaxNode,
+                                                    diagnostics,
+                                                    out var disposeMethod);
 
             if ((!hasAwait && disposeMethod?.ReturnsVoid == false) 
                 || (hasAwait && disposeMethod?.ReturnType.TypeSymbol.IsNonGenericTaskType(Compilation) == false) 
                 || result == PatternLookupResult.NotAMethod)
             {
-                ReportPatternWarning(diagnostics, expr.Type, disposeMethod, syntaxNode, MessageID.IDS_Disposable);
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                if (this.IsAccessible(disposeMethod, ref useSiteDiagnostics))
+                {
+                    diagnostics.Add(ErrorCode.WRN_PatternBadSignature, syntaxNode.Location, expr.Type, MessageID.IDS_Disposable.Localize(), disposeMethod);
+                }
+
+                diagnostics.Add(syntaxNode, useSiteDiagnostics);
                 disposeMethod = null;
             }
 
@@ -1311,7 +1317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             const string methodName = "GetPinnableReference";
 
-            var result = FindPatternMethodRelaxed(initializer, methodName, initializer.Syntax, additionalDiagnostics, out var patternMethodSymbol);
+            var result = PerformPatternMethodLookup(initializer, methodName, initializer.Syntax, additionalDiagnostics, out var patternMethodSymbol);
 
             if (patternMethodSymbol is null)
             {
@@ -3232,82 +3238,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Perform a lookup for the specified method on the specified type, stopping at the first resolved symbol.
-        /// Perform overload resolution on the lookup results.
-        /// </summary>
-        /// <param name="patternType">Type to search.</param>
-        /// <param name="methodName">Method to search for.</param>
-        /// <param name="syntaxExpr">The expression for which lookup is being performed</param>
-        /// <param name="lookupResult">Passed in for reusability.</param>
-        /// <param name="warningsOnly">True if failures should result in warnings; false if they should result in errors.</param>
-        /// <param name="diagnostics">Populated with binding diagnostics.</param>
-        /// <param name="syntaxTree">The tree this lookup is being performed on.</param>
-        /// <param name="messageID">The ID of the message to use when reporting diagnostics</param>
-        /// <returns>The desired method or null.</returns>
-        /// <remarks>This is the pre C# 8.0 resolution behavior, originally implemented for GetEnumerator/MoveNext</remarks>
-        internal MethodSymbol FindPatternMethodStrict(TypeSymbol patternType, string methodName, LookupResult lookupResult,
-                                                      SyntaxNode syntaxExpr, bool warningsOnly, DiagnosticBag diagnostics,
-                                                      SyntaxTree syntaxTree, MessageID messageID)
-        {
-            Debug.Assert(lookupResult.IsClear);
-
-            // Not using LookupOptions.MustBeInvocableMember because we don't want the corresponding lookup error.
-            // We filter out non-methods below.
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupMembersInType(
-                lookupResult,
-                patternType,
-                methodName,
-                arity: 0,
-                basesBeingResolved: null,
-                options: LookupOptions.Default,
-                originalBinder: this,
-                diagnose: false,
-                useSiteDiagnostics: ref useSiteDiagnostics);
-
-            diagnostics.Add(syntaxExpr, useSiteDiagnostics);
-
-            if (!lookupResult.IsMultiViable)
-            {
-                ReportPatternMemberLookupDiagnostics(lookupResult, patternType, methodName, syntaxExpr, warningsOnly, diagnostics, messageID);
-                return null;
-            }
-
-            ArrayBuilder<MethodSymbol> candidateMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-
-            foreach (Symbol member in lookupResult.Symbols)
-            {
-                if (member.Kind != SymbolKind.Method)
-                {
-                    candidateMethods.Free();
-
-                    if (warningsOnly)
-                    {
-                        ReportPatternWarning(diagnostics, patternType, member, syntaxExpr, messageID);
-                    }
-
-                    return null;
-                }
-
-                MethodSymbol method = (MethodSymbol)member;
-
-                // SPEC VIOLATION: The spec says we should apply overload resolution, but Dev10 uses
-                // some custom logic in ExpressionBinder.BindGrpToParams.  The biggest difference
-                // we've found (so far) is that it only considers methods with zero parameters
-                // (i.e. doesn't work with "params" or optional parameters).
-                if (!method.Parameters.Any())
-                {
-                    candidateMethods.Add(method);
-                }
-            }
-
-            MethodSymbol patternMethod = PerformPatternOverloadResolution(patternType, candidateMethods, syntaxExpr, warningsOnly, diagnostics, syntaxTree, messageID);
-            candidateMethods.Free();
-
-            return patternMethod;
-        }
-
-        /// <summary>
         /// Perform a lookup for the specified method on the specified expression by attempting to invoke it 
         /// </summary>
         /// <param name="receiver">The expression to perform pattern lookup on</param>
@@ -3316,8 +3246,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="diagnostics">Populated with binding diagnostics.</param>
         /// <param name="result">The method symbol that was looked up, or null</param>
         /// <returns>A <see cref="PatternLookupResult"/> value with the outcome of the lookup</returns>
-        internal PatternLookupResult FindPatternMethodRelaxed(BoundExpression receiver, string methodName,
-                                                              SyntaxNode syntaxNode, DiagnosticBag diagnostics, out MethodSymbol result)
+        internal PatternLookupResult PerformPatternMethodLookup(BoundExpression receiver, string methodName,
+                                                                SyntaxNode syntaxNode, DiagnosticBag diagnostics, out MethodSymbol result)
                                                        
         {
             // PROTOTYPE: try and resolve the method using binding 
@@ -3387,129 +3317,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 bindingDiagnostics.Free();
-            }
-        }
-
-        /// <summary>
-        /// The overload resolution portion of FindPatternMethod.
-        /// </summary>
-        private MethodSymbol PerformPatternOverloadResolution(
-            TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods,
-            SyntaxNode syntaxExpression, bool warningsOnly, DiagnosticBag diagnostics,
-            SyntaxTree syntaxTree, MessageID messageID)
-        {
-            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
-            AnalyzedArguments arguments = AnalyzedArguments.GetInstance();
-            OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            // We create a dummy receiver of the invocation so MethodInvocationOverloadResolution knows it was invoked from an instance, not a type
-            var dummyReceiver = new BoundImplicitReceiver(syntaxExpression, patternType);
-            this.OverloadResolution.MethodInvocationOverloadResolution(
-                methods: candidateMethods,
-                typeArguments: typeArguments,
-                receiver: dummyReceiver,
-                arguments: arguments,
-                result: overloadResolutionResult,
-                useSiteDiagnostics: ref useSiteDiagnostics);
-            diagnostics.Add(syntaxExpression, useSiteDiagnostics);
-
-            MethodSymbol result = null;
-
-            if (overloadResolutionResult.Succeeded)
-            {
-                result = overloadResolutionResult.ValidResult.Member;
-
-                if (result.IsStatic || result.DeclaredAccessibility != Accessibility.Public)
-                {
-                    if (warningsOnly)
-                    {
-                        diagnostics.Add(ErrorCode.WRN_PatternStaticOrInaccessible, syntaxExpression.Location, patternType, messageID.Localize(), result);
-                    }
-
-                    result = null;
-                }
-                else if (result.CallsAreOmitted(syntaxTree))
-                {
-                    // Calls to this method are omitted in the current syntax tree, i.e it is either a partial method with no implementation part OR a conditional method whose condition is not true in this source file.
-                    // We don't want to allow this case, see StatementBinder::bindPatternToMethod.
-                    result = null;
-                }
-            }
-            else if (overloadResolutionResult.Results.Length > 1)
-            {
-                if (warningsOnly)
-                {
-                    diagnostics.Add(ErrorCode.WRN_PatternIsAmbiguous, syntaxExpression.Location, patternType, messageID.Localize(),
-                        overloadResolutionResult.Results[0].Member, overloadResolutionResult.Results[1].Member);
-                }
-            }
-
-            overloadResolutionResult.Free();
-            arguments.Free();
-            typeArguments.Free();
-
-            return result;
-        }
-
-        private void ReportPatternWarning(DiagnosticBag diagnostics, TypeSymbol patternType, Symbol patternMemberCandidate, SyntaxNode expression, MessageID messageID)
-        {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (this.IsAccessible(patternMemberCandidate, ref useSiteDiagnostics))
-            {
-                diagnostics.Add(ErrorCode.WRN_PatternBadSignature, expression.Location, patternType, messageID.Localize(), patternMemberCandidate);
-            }
-
-            diagnostics.Add(expression, useSiteDiagnostics);
-        }
-
-        /// <summary>
-        /// Report appropriate diagnostics when lookup of a pattern member (i.e. GetEnumerator, Current, or MoveNext) fails.
-        /// </summary>
-        /// <param name="lookupResult">Failed lookup result.</param>
-        /// <param name="patternType">Type in which member was looked up.</param>
-        /// <param name="memberName">Name of looked up member.</param>
-        /// <param name="warningsOnly">True if failures should result in warnings; false if they should result in errors.</param>
-        /// <param name="diagnostics">Populated appropriately.</param>
-        internal void ReportPatternMemberLookupDiagnostics(
-            LookupResult lookupResult, TypeSymbol patternType,
-            string memberName, SyntaxNode expression,
-            bool warningsOnly, DiagnosticBag diagnostics,
-            MessageID messageID)
-        { 
-            if (lookupResult.Symbols.Any())
-            {
-                if (warningsOnly)
-                {
-                    ReportPatternWarning(diagnostics, patternType, lookupResult.Symbols.First(), expression, messageID);
-                }
-                else
-                {
-                    lookupResult.Clear();
-
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    this.LookupMembersInType(
-                        lookupResult,
-                        patternType,
-                        memberName,
-                        arity: 0,
-                        basesBeingResolved: null,
-                        options: LookupOptions.Default,
-                        originalBinder: this,
-                        diagnose: true,
-                        useSiteDiagnostics: ref useSiteDiagnostics);
-
-                    diagnostics.Add(expression, useSiteDiagnostics);
-
-                    if (lookupResult.Error != null)
-                    {
-                        diagnostics.Add(lookupResult.Error, expression.Location);
-                    }
-                }
-            }
-            else if (!warningsOnly)
-            {
-                diagnostics.Add(ErrorCode.ERR_NoSuchMember, expression.Location, patternType, memberName);
             }
         }
     }
