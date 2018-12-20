@@ -84,7 +84,7 @@ namespace Microsoft.DiaSymReader
             }
             catch
             {
-                // Dipose shall not throw
+                // Dispose shall not throw
             }
 
             _disposed = true;
