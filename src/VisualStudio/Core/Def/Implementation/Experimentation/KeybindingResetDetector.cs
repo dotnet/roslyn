@@ -157,10 +157,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             // make sure all state machine change work is serialized so that cancellation
             // doesn't mess the state up.   
-            _lastTask = _lastTask.ContinueWith(async _ =>
+            _lastTask = _lastTask.ContinueWith(_ =>
             {
-                await UpdateStateMachineWorkerAsync(cancellationToken).ConfigureAwait(false);
-            }, cancellationToken, TaskContinuationOptions.LazyCancellation, TaskScheduler.Default).Unwrap();
+                UpdateStateMachineWorkerAsync(cancellationToken).ConfigureAwait(false);
+            }, cancellationToken, TaskContinuationOptions.LazyCancellation, TaskScheduler.Default);
         }
 
         private async Task UpdateStateMachineWorkerAsync(CancellationToken cancellationToken)
@@ -174,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 currentStatus = await IsReSharperRunningAsync(lastStatus, cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch(OperationCanceledException)
+            catch (OperationCanceledException)
             {
                 return;
             }
@@ -195,15 +195,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                         // N->E or S->E. If ReSharper was just installed and is enabled, reset NeedsReset.
                         options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
                     }
+
+                    else if (currentStatus == ReSharperStatus.Suspended && _isFirstRun)
+                    {
+                        // S->VS closed and restarted. If ReSharper was suspended and the user closed and reopened VS, we want to reset the gold bar.
+                        options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, true);
+                    }
+
                     // Else is N->N, N->S, S->N, S->S. N->S can occur if the user suspends ReSharper, then disables
                     // the extension, then reenables the extension. We will show the gold bar after the switch
                     // if there is still a pending show.
-
-                    // If ReSharper was suspended and the user closed and reopened VS, we want to reset the gold bar
-                    else if (currentStatus == ReSharperStatus.Suspended && _isFirstRun)
-                    {
-                        options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, true);
-                    }
 
                     break;
                 case ReSharperStatus.Enabled:
@@ -263,7 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         /// <summary>
         /// Returns true if ReSharper is installed, enabled, and not suspended.  
         /// </summary>
-        private async Task<ReSharperStatus> IsReSharperRunningAsync(ReSharperStatus lastStatus, CancellationToken cancellationToken)
+        private async ValueTask<ReSharperStatus> IsReSharperRunningAsync(ReSharperStatus lastStatus, CancellationToken cancellationToken)
         {
             // Quick exit if resharper is either uninstalled or not enabled
             if (!_resharperExtensionInstalledAndEnabled)
@@ -273,39 +274,57 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             await EnsureOleCommandTargetAsync().ConfigureAwait(false);
 
-            var cmds = new OLECMD[1];
-            cmds[0].cmdID = ResumeId;
-            cmds[0].cmdf = 0;
+            var cmds_suspend = new OLECMD[1];
+            cmds_suspend[0].cmdID = SuspendId;
+            cmds_suspend[0].cmdf = 0;
 
-            for (var count = 0; count < 10; count++)
+            var cmds_resume = new OLECMD[1];
+            cmds_resume[0].cmdID = ResumeId;
+            cmds_resume[0].cmdf = 0;
+
+            // poll until either suspend or resume botton is available, or until operation is canceled
+            while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var hr = await QueryStatusOnUIThreadAsync().ConfigureAwait(false);
-                if (ErrorHandler.Failed(hr))
+                var hr_suspend = await QueryStatusAsync(cmds_suspend).ConfigureAwait(false);
+                var hr_resume = await QueryStatusAsync(cmds_resume).ConfigureAwait(false);
+
+                // In the case of an error when attempting to get the status, pretend that ReSharper isn't enabled. We also
+                // shut down monitoring so we don't keep hitting this.
+                if (ErrorHandler.Failed(hr_suspend))
                 {
-                    // In the case of an error when attempting to get the status, pretend that ReSharper isn't enabled. We also
-                    // shut down monitoring so we don't keep hitting this.
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr_suspend));
                     await ShutdownAsync().ConfigureAwait(false);
 
                     return ReSharperStatus.NotInstalledOrDisabled;
                 }
 
-                // When ReSharper is suspended, the ReSharper_Resume command has the Enabled | Supported flags. 
-                if (((OLECMDF)cmds[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED))
+                else if (ErrorHandler.Failed((hr_resume)))
+                {
+                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr_resume));
+                    await ShutdownAsync().ConfigureAwait(false);
+
+                    return ReSharperStatus.NotInstalledOrDisabled;
+                }
+
+                // When ReSharper is suspended, the ReSharper_Resume command is Enabled and not Invisible
+                if (((OLECMDF)cmds_resume[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED) && !((OLECMDF)cmds_resume[0].cmdf).HasFlag(OLECMDF.OLECMDF_INVISIBLE))
                 {
                     return ReSharperStatus.Suspended;
+                }
+
+                // When ReSharper is running, the ReSharper_Suspend command is Enabled and not Invisible
+                if (((OLECMDF)cmds_suspend[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED) && !((OLECMDF)cmds_suspend[0].cmdf).HasFlag(OLECMDF.OLECMDF_INVISIBLE))
+                {
+                    return ReSharperStatus.Enabled;
                 }
 
                 //otherwise sleep for a bit and check again
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken).ConfigureAwait(false);
             }
 
-            // If resume button doesn't become active within a reasonable amount of time, assume ReSharper is Enabled
-            return ReSharperStatus.Enabled;
-
-            async Task<int> QueryStatusOnUIThreadAsync()
+            async Task<int> QueryStatusAsync(OLECMD[] cmds)
             {
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -363,8 +382,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
         private void NeverShowAgain()
         {
-            AssertIsForeground();
-
             _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeverShowAgain, true)
                                                    .WithChangedOption(KeybindingResetOptions.NeedsReset, false);
             KeybindingsResetLogger.Log("NeverShowAgain");
