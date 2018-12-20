@@ -122,7 +122,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public TaintedDataSymbolMap<SinkInfo> SinkInfos { get; }
 
-        protected override void ComputeHashCodePartsSpecific(ImmutableArray<int>.Builder builder)
+        protected override void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder)
         {
             builder.Add(SourceInfos.GetHashCode());
             builder.Add(SanitizerInfos.GetHashCode());

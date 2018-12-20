@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using Analyzer.Utilities.Extensions;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
@@ -57,6 +58,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             var pointsToAnalysis = new PointsToAnalysis(analysisDomain, operationVisitor);
             return pointsToAnalysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
         }
+
+        public static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType();
+
+        public static bool ShouldBeTracked(AnalysisEntity analysisEntity)
+            => ShouldBeTracked(analysisEntity.Type) || analysisEntity.IsLValueFlowCaptureEntity || analysisEntity.IsThisOrMeInstance;
 
         [Conditional("DEBUG")]
         public static void AssertValidPointsToAnalysisData(PointsToAnalysisData data)

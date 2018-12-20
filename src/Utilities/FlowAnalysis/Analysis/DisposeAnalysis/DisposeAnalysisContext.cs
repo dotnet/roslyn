@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         public ImmutableHashSet<INamedTypeSymbol> DisposeOwnershipTransferLikelyTypes { get; }
         public bool TrackInstanceFields { get; }
 
-        protected override void ComputeHashCodePartsSpecific(ImmutableArray<int>.Builder builder)
+        protected override void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder)
         {
             builder.Add(TrackInstanceFields.GetHashCode());
             builder.Add(HashUtilities.Combine(DisposeOwnershipTransferLikelyTypes));

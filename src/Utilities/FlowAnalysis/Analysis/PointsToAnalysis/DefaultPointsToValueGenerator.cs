@@ -33,6 +33,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 {
                     return PointsToAbstractValue.NoLocation;
                 }
+                else if (analysisEntity.HasUnknownInstanceLocation)
+                {
+                    return PointsToAbstractValue.Unknown;
+                }
 
                 value = PointsToAbstractValue.Create(AbstractLocation.CreateAnalysisEntityDefaultLocation(analysisEntity), mayBeNull: true);
                 _defaultPointsToValueMapBuilder.Add(analysisEntity, value);

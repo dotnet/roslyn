@@ -4,20 +4,15 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
-    using CopyAnalysisDomain = PredicatedAnalysisDataDomain<CopyAnalysisData, CopyAbstractValue>;
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
-    using InterproceduralCopyAnalysisData = InterproceduralAnalysisData<CopyAnalysisData, CopyAnalysisContext, CopyAbstractValue>;
-    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToAnalysis.PointsToBlockAnalysisResult, PointsToAnalysis.PointsToAbstractValue>;
 
     /// <summary>
     /// Dataflow analysis to track <see cref="AnalysisEntity"/> instances that share the same value.
     /// </summary>
     internal partial class CopyAnalysis : ForwardDataFlowAnalysis<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyBlockAnalysisResult, CopyAbstractValue>
     {
-        private static readonly CopyAnalysisDomain s_AnalysisDomain = new CopyAnalysisDomain(CoreCopyAnalysisDataDomain.Instance);
-
         private CopyAnalysis(CopyDataFlowOperationVisitor operationVisitor)
-            : base(s_AnalysisDomain, operationVisitor)
+            : base(operationVisitor.AnalysisDomain, operationVisitor)
         {
         }
 
@@ -43,12 +38,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             var operationVisitor = new CopyDataFlowOperationVisitor(analysisContext);
             var copyAnalysis = new CopyAnalysis(operationVisitor);
             return copyAnalysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
-        }
-
-        [Conditional("DEBUG")]
-        public static void AssertValidCopyAnalysisData(CopyAnalysisData data)
-        {
-            data.AssertValidCopyAnalysisData();
         }
 
         internal override CopyAnalysisResult ToResult(CopyAnalysisContext analysisContext, CopyAnalysisResult dataFlowAnalysisResult) => dataFlowAnalysisResult;

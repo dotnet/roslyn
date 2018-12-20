@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -15,11 +16,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         /// </summary>
         private sealed class CoreCopyAnalysisDataDomain : MapAbstractDomain<AnalysisEntity, CopyAbstractValue>
         {
-            public static readonly CoreCopyAnalysisDataDomain Instance = new CoreCopyAnalysisDataDomain(CopyAbstractValueDomain.Default);
+            Func<AnalysisEntity, CopyAbstractValue> _getDefaultCopyValue;
 
-            private CoreCopyAnalysisDataDomain(AbstractValueDomain<CopyAbstractValue> valueDomain)
-            : base(valueDomain)
+            public CoreCopyAnalysisDataDomain(AbstractValueDomain<CopyAbstractValue> valueDomain, Func<AnalysisEntity, CopyAbstractValue> getDefaultCopyValue)
+                : base(valueDomain)
             {
+                _getDefaultCopyValue = getDefaultCopyValue;
             }
 
             public override CoreCopyAnalysisData Merge(CoreCopyAnalysisData map1, CoreCopyAnalysisData map2)
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     }
                     else
                     {
-                        mergedValue = GetDefaultValue(key);
+                        mergedValue = _getDefaultCopyValue(key);
                     }
 
                     result.Add(key, mergedValue);
@@ -54,14 +56,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 {
                     if (!result.ContainsKey(kvp.Key))
                     {
-                        result.Add(kvp.Key, GetDefaultValue(kvp.Key));
+                        result.Add(kvp.Key, _getDefaultCopyValue(kvp.Key));
                     }
                 }
 
                 CopyAnalysisData.AssertValidCopyAnalysisData(result);
                 return result;
-
-                CopyAbstractValue GetDefaultValue(AnalysisEntity analysisEntity) => new CopyAbstractValue(analysisEntity);
             }
         }
     }

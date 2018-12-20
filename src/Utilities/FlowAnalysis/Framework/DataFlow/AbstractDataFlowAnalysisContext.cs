@@ -100,9 +100,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected abstract void ComputeHashCodePartsSpecific(ImmutableArray<int>.Builder builder);
+        protected abstract void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder);
 
-        protected sealed override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
+        protected sealed override void ComputeHashCodeParts(ArrayBuilder<int> builder)
         {
             builder.Add(ValueDomain.GetHashCode());
             builder.Add(OwningSymbol.GetHashCode());

@@ -199,7 +199,7 @@ namespace Roslyn.Diagnostics.Analyzers
                             .GroupBy(d => d.Location.SourceTree);
 
                     var newSymbolNames = new List<string>();
-                    var symbolNamesToRemoveBuilder = ImmutableHashSet.CreateBuilder<string>();
+                    var symbolNamesToRemoveBuilder = PooledHashSet<string>.GetInstance();
 
                     foreach (IGrouping<SyntaxTree, Diagnostic> grouping in groupedDiagnostics)
                     {
@@ -231,7 +231,7 @@ namespace Roslyn.Diagnostics.Analyzers
                         }
                     }
 
-                    var symbolNamesToRemove = symbolNamesToRemoveBuilder.ToImmutable();
+                    var symbolNamesToRemove = symbolNamesToRemoveBuilder.ToImmutableAndFree();
 
                     // We shouldn't be attempting to remove any symbol name, while also adding it.
                     Debug.Assert(newSymbolNames.All(newSymbolName => !symbolNamesToRemove.Contains(newSymbolName)));

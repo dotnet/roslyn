@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public Func<IOperation, TAbstractAnalysisValue> GetCachedAbstractValueFromCaller { get; }
         public Func<IMethodSymbol, ControlFlowGraph> GetInterproceduralControlFlowGraph { get; }
 
-        protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
+        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
         {
             builder.Add(InitialAnalysisData.GetHashCodeOrDefault());
             AddHashCodeParts(InvocationInstanceOpt, builder);
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private static void AddHashCodeParts(
             (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? instanceAndPointsToValueOpt,
-            ImmutableArray<int>.Builder builder)
+            ArrayBuilder<int> builder)
         {
             if (instanceAndPointsToValueOpt.HasValue)
             {

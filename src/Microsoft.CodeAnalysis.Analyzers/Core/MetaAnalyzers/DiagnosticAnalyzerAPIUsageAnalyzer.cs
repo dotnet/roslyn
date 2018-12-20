@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private ImmutableHashSet<INamedTypeSymbol> GetUsedNamedTypes(INamedTypeSymbol namedType, Compilation compilation, CancellationToken cancellationToken, ref bool hasAccessToTypeFromWorkspaceAssemblies)
         {
-            var builder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
+            var builder = PooledHashSet<INamedTypeSymbol>.GetInstance();
             foreach (var decl in namedType.DeclaringSyntaxReferences)
             {
                 var syntax = decl.GetSyntax(cancellationToken);
@@ -230,10 +230,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 } while (nodesToProcess.Count != 0);
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
-        private static void AddUsedNamedTypeCore(ITypeSymbol typeOpt, ImmutableHashSet<INamedTypeSymbol>.Builder builder, ref bool hasAccessToTypeFromWorkspaceAssemblies)
+        private static void AddUsedNamedTypeCore(ITypeSymbol typeOpt, PooledHashSet<INamedTypeSymbol> builder, ref bool hasAccessToTypeFromWorkspaceAssemblies)
         {
             if (typeOpt is INamedTypeSymbol usedType &&
                 usedType.TypeKind != TypeKind.Error)

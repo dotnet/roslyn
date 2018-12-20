@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public PointsToAbstractValue InstanceLocation { get; }
         public TAbstractAnalysisValue Value { get; }
 
-        protected override void ComputeHashCodeParts(ImmutableArray<int>.Builder builder)
+        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
         {
             builder.Add(Operation.GetHashCode());
             builder.Add(AnalysisEntityOpt.GetHashCodeOrDefault());

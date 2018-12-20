@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -13,7 +14,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         static PrimitiveTypeConverterSanitizers()
         {
-            ImmutableHashSet<SanitizerInfo>.Builder builder = ImmutableHashSet.CreateBuilder<SanitizerInfo>();
+            var builder = PooledHashSet<SanitizerInfo>.GetInstance();
 
             string[] parseMethods = new string[] { "Parse", "TryParse" };
 
@@ -83,11 +84,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "TryParseInt64"
                 });
 
-            SanitizerInfos = builder.ToImmutable();
+            SanitizerInfos = builder.ToImmutableAndFree();
         }
 
         private static void AddConcreteSanitizer(
-            ImmutableHashSet<SanitizerInfo>.Builder builder,
+            PooledHashSet<SanitizerInfo> builder,
             string fullTypeName,
             bool isConstructorSanitizing,
             string[] sanitizingMethods)

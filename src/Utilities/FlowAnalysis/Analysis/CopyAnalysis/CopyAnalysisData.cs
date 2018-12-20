@@ -24,16 +24,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         public CopyAnalysisData(CoreCopyAnalysisData fromData)
             : base(fromData)
         {
+            AssertValidCopyAnalysisData();
         }
 
         private CopyAnalysisData(CopyAnalysisData fromData)
             : base(fromData)
         {
+            AssertValidCopyAnalysisData();
         }
 
         private CopyAnalysisData(CopyAnalysisData data1, CopyAnalysisData data2, MapAbstractDomain<AnalysisEntity, CopyAbstractValue> coreDataAnalysisDomain)
             : base(data1, data2, coreDataAnalysisDomain)
         {
+            AssertValidCopyAnalysisData();
         }
 
         public override AnalysisEntityBasedPredicateAnalysisData<CopyAbstractValue> Clone() => new CopyAnalysisData(this);
@@ -44,9 +47,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         public override AnalysisEntityBasedPredicateAnalysisData<CopyAbstractValue> WithMergedData(AnalysisEntityBasedPredicateAnalysisData<CopyAbstractValue> data, MapAbstractDomain<AnalysisEntity, CopyAbstractValue> coreDataAnalysisDomain)
         {
             Debug.Assert(IsReachableBlockData || !data.IsReachableBlockData);
-            var mergedData = new CopyAnalysisData(this, (CopyAnalysisData)data, coreDataAnalysisDomain);
-            mergedData.AssertValidCopyAnalysisData();
-            return mergedData;
+            return new CopyAnalysisData(this, (CopyAnalysisData)data, coreDataAnalysisDomain);
         }
 
         public void SetAbstactValue(AnalysisEntity key, CopyAbstractValue value, bool isEntityBeingAssigned)
@@ -162,19 +163,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
         public override void Reset(Func<AnalysisEntity, CopyAbstractValue, CopyAbstractValue> getResetValue)
         {
+            this.AssertValidCopyAnalysisData();
             base.Reset(getResetValue);
             this.AssertValidCopyAnalysisData();
         }
 
         [Conditional("DEBUG")]
-        public void AssertValidCopyAnalysisData()
+        public void AssertValidCopyAnalysisData(Func<AnalysisEntity, CopyAbstractValue> tryGetDefaultCopyValueOpt = null, bool initializingParameters = false)
         {
-            AssertValidCopyAnalysisData(CoreAnalysisData);
-            AssertValidPredicatedAnalysisData(map => AssertValidCopyAnalysisData(map));
+            AssertValidCopyAnalysisData(CoreAnalysisData, tryGetDefaultCopyValueOpt, initializingParameters);
+            AssertValidPredicatedAnalysisData(map => AssertValidCopyAnalysisData(map, tryGetDefaultCopyValueOpt, initializingParameters));
         }
 
         [Conditional("DEBUG")]
-        public static void AssertValidCopyAnalysisData(CoreCopyAnalysisData map)
+        public static void AssertValidCopyAnalysisData(
+            CoreCopyAnalysisData map,
+            Func<AnalysisEntity, CopyAbstractValue> tryGetDefaultCopyValueOpt = null,
+            bool initializingParameters = false)
         {
             foreach (var kvp in map)
             {
@@ -185,13 +190,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     AssertValidCopyAnalysisEntity(analysisEntity);
                     Debug.Assert(map[analysisEntity] == kvp.Value);
                 }
+
+                // Validate consistency for all address shared values, if we are not in
+                // the middle of initializing parameter input values with address shared entities.
+                if (!initializingParameters)
+                {
+                    var defaultCopyValueOpt = tryGetDefaultCopyValueOpt?.Invoke(kvp.Key);
+                    if (defaultCopyValueOpt != null)
+                    {
+                        foreach (var defaultCopyValyeEntity in defaultCopyValueOpt.AnalysisEntities)
+                        {
+                            Debug.Assert(kvp.Value.AnalysisEntities.Contains(defaultCopyValyeEntity));
+                            Debug.Assert(map.ContainsKey(defaultCopyValyeEntity));
+                        }
+                    }
+                }
             }
         }
 
         [Conditional("DEBUG")]
         private static void AssertValidCopyAnalysisEntity(AnalysisEntity analysisEntity)
         {
-            Debug.Assert(!analysisEntity.HasUnknownInstanceLocationWithEmptyLocations, "Don't track entities if do not know about it's instance location");
+            Debug.Assert(!analysisEntity.HasUnknownInstanceLocation, "Don't track entities if do not know about it's instance location");
         }
     }
 }

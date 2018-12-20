@@ -5,14 +5,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.Extensions
 {
-    internal static class ImmutableHashSetBuilderExtensions
+    internal static class PooledHashSetExtensions
     {
         // Just to make hardcoding SinkInfos more convenient.
         public static void AddSinkInfo(
-            this ImmutableHashSet<SinkInfo>.Builder builder,
+            this PooledHashSet<SinkInfo> builder,
             string fullTypeName,
             SinkKind sinkKind,
             bool isInterface,
@@ -31,7 +32,7 @@ namespace Analyzer.Utilities.Extensions
 
         // Just to make hardcoding SinkInfos more convenient.
         public static void AddSinkInfo(
-            this ImmutableHashSet<SinkInfo>.Builder builder,
+            this PooledHashSet<SinkInfo> builder,
             string fullTypeName,
             IEnumerable<SinkKind> sinkKinds,
             bool isInterface,
@@ -56,7 +57,7 @@ namespace Analyzer.Utilities.Extensions
 
         // Just to make hardcoding SourceInfos more convenient.
         public static void AddSourceInfo(
-            this ImmutableHashSet<SourceInfo>.Builder builder,
+            this PooledHashSet<SourceInfo> builder,
             string fullTypeName,
             bool isInterface,
             string[] taintedProperties,

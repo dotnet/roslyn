@@ -7,8 +7,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// </summary>
     internal enum NullAbstractValue
     {
-        Undefined,
         Invalid,
+        Undefined,
         Null,
         NotNull,
         MaybeNull

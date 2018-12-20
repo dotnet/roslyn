@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -18,7 +19,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         static WebInputSources()
         {
-            ImmutableHashSet<SourceInfo>.Builder sourceInfosBuilder = ImmutableHashSet.CreateBuilder<SourceInfo>();
+            var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
 
             sourceInfosBuilder.AddSourceInfo(
                 WellKnownTypes.SystemWebHttpCookie,
@@ -686,7 +687,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "Text"
                 },
                 taintedMethods: null);
-            SourceInfos = sourceInfosBuilder.ToImmutable();
+            SourceInfos = sourceInfosBuilder.ToImmutableAndFree();
         }
     }
 }

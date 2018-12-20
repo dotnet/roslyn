@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -15,7 +16,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         static WebOutputSinks()
         {
             // TODO paulming: Review why InformationDisclosure and XSS sinks are different.
-            ImmutableHashSet<SinkInfo>.Builder builder = ImmutableHashSet.CreateBuilder<SinkInfo>();
+            var builder = PooledHashSet<SinkInfo>.GetInstance();
 
             SinkKind[] sinkKinds = new SinkKind[] { SinkKind.InformationDisclosure, SinkKind.XSS };
 
@@ -559,7 +560,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
 
-            SinkInfos = builder.ToImmutable();
+            SinkInfos = builder.ToImmutableAndFree();
         }
     }
 }

@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -17,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         static InformationDisclosureSources()
         {
-            ImmutableHashSet<SourceInfo>.Builder builder = ImmutableHashSet.CreateBuilder<SourceInfo>();
+            var builder = PooledHashSet<SourceInfo>.GetInstance();
 
             builder.AddSourceInfo(
                 WellKnownTypes.SystemException,
@@ -30,7 +31,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "ToString",
                 });
 
-            SourceInfos = builder.ToImmutable();
+            SourceInfos = builder.ToImmutableAndFree();
         }
     }
 }

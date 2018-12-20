@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private ImmutableHashSet<INamedTypeSymbol> GetWellKnownCollectionTypes()
         {
-            var builder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
+            var builder = PooledHashSet<INamedTypeSymbol>.GetInstance();
             var iCollection = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemCollectionsICollection);
             if (iCollection != null)
             {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 builder.Add(genericIReadOnlyCollection);
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
     }
 }
