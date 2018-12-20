@@ -624,14 +624,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract bool IsManagedType { get; }
 
-        internal bool ContainsNullableReferenceTypes()
+        internal bool NeedsNullableAttribute()
         {
-            return TypeSymbolWithAnnotations.ContainsNullableReferenceTypes(typeWithAnnotationsOpt: default, typeOpt: this);
+            return TypeSymbolWithAnnotations.NeedsNullableAttribute(typeWithAnnotationsOpt: default, typeOpt: this);
         }
 
-        internal abstract void AddNullableTransforms(ArrayBuilder<bool> transforms);
+        internal abstract void AddNullableTransforms(ArrayBuilder<byte> transforms);
 
-        internal abstract bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result);
+        internal abstract bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result);
 
         internal abstract TypeSymbol SetUnknownNullabilityForReferenceTypes();
 

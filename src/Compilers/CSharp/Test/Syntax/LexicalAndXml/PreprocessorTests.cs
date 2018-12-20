@@ -260,6 +260,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             Assert.Equal(exp.Text, setting.ValueText);
                             Assert.True(setting.Kind() == SyntaxKind.EnableKeyword || setting.Kind() == SyntaxKind.DisableKeyword);
                         }
+                        Assert.Equal(SyntaxKind.NullableKeyword, nn.DirectiveNameToken.Kind());
+                        Assert.True(SyntaxFacts.IsPreprocessorDirective(SyntaxKind.NullableDirectiveTrivia));
+                        Assert.True(SyntaxFacts.IsPreprocessorKeyword(SyntaxKind.NullableKeyword));
                         break;
                     default:
                         if (null != exp.Text)

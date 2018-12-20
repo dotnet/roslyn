@@ -65,6 +65,7 @@
          DefineConstants="$(DefineConstants)"
          DelaySign="$(DelaySign)"
          DisabledWarnings="$(NoWarn)"
+         DisableSdkPath="$(DisableSdkPath)"
          DocumentationFile="@(DocFileItem)"
          EmbedAllSources="$(EmbedAllSources)"
          EmbeddedFiles="@(EmbeddedFiles)"

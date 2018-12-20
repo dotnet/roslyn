@@ -72,9 +72,9 @@
         <target state="new">The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitNonNullTypesAttribute">
-        <source>Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.</source>
-        <target state="new">Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.</target>
+      <trans-unit id="ERR_ElseCannotStartStatement">
+        <source>'else' cannot start a statement.</source>
+        <target state="new">'else' cannot start a statement.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -85,6 +85,16 @@
       <trans-unit id="ERR_ExprCannotBeFixed">
         <source>The given expression cannot be used in a fixed statement</source>
         <target state="new">The given expression cannot be used in a fixed statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeCantContainNullCoalescingAssignment">
+        <source>An expression tree may not contain a null coalescing assignment</source>
+        <target state="new">An expression tree may not contain a null coalescing assignment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeCantContainRefStruct">
+        <source>Expression tree cannot contain value of ref struct or restricted type '{0}'.</source>
+        <target state="new">Expression tree cannot contain value of ref struct or restricted type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
@@ -405,11 +415,6 @@
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
         <source>unmanaged generic type constraints</source>
         <target state="new">unmanaged generic type constraints</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_InjectedDeclaration">
-        <source>injected declaration</source>
-        <target state="new">injected declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
@@ -862,11 +867,6 @@
         <target state="new">Do not use '_' to refer to the type in an is-type expression.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_MissingNonNullTypesContext">
-        <source>The suppression operator (!) should be used in code within a '#nullable' context.</source>
-        <target state="new">The suppression operator (!) should be used in code within a '#nullable' context.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
         <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' context.</target>
@@ -875,11 +875,6 @@
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
         <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' context.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_MissingNonNullTypesContext_Title">
-        <source>The suppression operator (!) should be used in code within a '#nullable' context.</source>
-        <target state="new">The suppression operator (!) should be used in code within a '#nullable' context.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoBestNullabilityArrayElements">
@@ -6564,7 +6559,7 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
-        <source>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, or IAsyncEnumerable&lt;T&gt;</source>
+        <source>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</source>
         <target state="needs-review-translation">Zaman uyumsuz bir yöntemin dönüş türü void, Task ve Task&lt;T&gt; olmalıdır&gt;</target>
         <note />
       </trans-unit>
@@ -8124,6 +8119,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
 -errorendlocation             Output line and column of the end location of
                               each error
 -preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
 -nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
 -subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
 -lib:&lt;file list&gt;              Specify additional directories to search in for

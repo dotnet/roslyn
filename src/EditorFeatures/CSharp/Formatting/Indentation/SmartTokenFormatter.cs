@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             _root = root;
         }
 
-        public Task<IList<TextChange>> FormatRangeAsync(
+        public IList<TextChange> FormatRange(
             Workspace workspace, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(startToken.Kind() == SyntaxKind.None || startToken.Kind() == SyntaxKind.EndOfFileToken);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 smartTokenformattingRules = (new NoLineChangeFormattingRule()).Concat(_formattingRules);
             }
 
-            return Formatter.GetFormattedTextChangesAsync(_root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, workspace, _optionSet, smartTokenformattingRules, cancellationToken);
+            return Formatter.GetFormattedTextChanges(_root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, workspace, _optionSet, smartTokenformattingRules, cancellationToken);
         }
 
         private bool CloseBraceOfTryOrDoBlock(SyntaxToken endToken)
@@ -111,9 +111,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 }
             }
 
-            return await Formatter.GetFormattedTextChangesAsync(_root,
+            return Formatter.GetFormattedTextChanges(_root,
                 new TextSpan[] { TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition) },
-                workspace, _optionSet, smartTokenformattingRules, cancellationToken).ConfigureAwait(false);
+                workspace, _optionSet, smartTokenformattingRules, cancellationToken);
         }
 
         private class NoLineChangeFormattingRule : AbstractFormattingRule

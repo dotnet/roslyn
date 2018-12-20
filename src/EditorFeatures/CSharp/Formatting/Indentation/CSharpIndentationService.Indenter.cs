@@ -35,7 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             {
             }
 
-            protected override IndentationResult? GetDesiredIndentationWorker(
+            public override bool ShouldUseFormatterIfAvailable()
+                => ShouldUseSmartTokenFormatterInsteadOfIndenter(
+                    Rules, Root, LineToBeIndented, OptionSet, CancellationToken);
+
+            protected override IndentationResult GetDesiredIndentationWorker(
                 SyntaxToken token, TextLine previousLine, int lastNonWhitespacePosition)
             {
                 // okay, now check whether the text we found is trivia or actual token.
@@ -56,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                         return IndentFromStartOfLine(0);
                     }
 
-                    var trivia = Tree.GetRoot(CancellationToken).FindTrivia(firstNonWhitespacePosition.Value, findInsideTrivia: true);
+                    var trivia = Root.FindTrivia(firstNonWhitespacePosition.Value, findInsideTrivia: true);
                     if (trivia.Kind() == SyntaxKind.None || this.LineToBeIndented.LineNumber > previousLine.LineNumber + 1)
                     {
                         // If the token belongs to the next statement and is also the first token of the statement, then it means the user wants
@@ -106,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 }
             }
 
-            private IndentationResult? GetIndentationBasedOnToken(SyntaxToken token)
+            private IndentationResult GetIndentationBasedOnToken(SyntaxToken token)
             {
                 Contract.ThrowIfNull(Tree);
                 Contract.ThrowIfTrue(token.Kind() == SyntaxKind.None);
@@ -254,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 }
             }
 
-            private IndentationResult? GetIndentationFromCommaSeparatedList(SyntaxToken token)
+            private IndentationResult GetIndentationFromCommaSeparatedList(SyntaxToken token)
             {
                 var node = token.Parent;
                 switch (node)
@@ -276,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 return GetDefaultIndentationFromToken(token);
             }
 
-            private IndentationResult? GetIndentationFromCommaSeparatedList<T>(SeparatedSyntaxList<T> list, SyntaxToken token) where T : SyntaxNode
+            private IndentationResult GetIndentationFromCommaSeparatedList<T>(SeparatedSyntaxList<T> list, SyntaxToken token) where T : SyntaxNode
             {
                 var index = list.GetWithSeparators().IndexOf(token);
                 if (index < 0)
@@ -302,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 return GetDefaultIndentationFromTokenLine(token, additionalSpace: 0);
             }
 
-            private IndentationResult? GetDefaultIndentationFromToken(SyntaxToken token)
+            private IndentationResult GetDefaultIndentationFromToken(SyntaxToken token)
             {
                 if (IsPartOfQueryExpression(token))
                 {
@@ -312,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 return GetDefaultIndentationFromTokenLine(token);
             }
 
-            private IndentationResult? GetIndentationForQueryExpression(SyntaxToken token)
+            private IndentationResult GetIndentationForQueryExpression(SyntaxToken token)
             {
                 // find containing non terminal node
                 var queryExpressionClause = GetQueryExpressionClause(token);
@@ -402,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 return queryExpression != null;
             }
 
-            private IndentationResult? GetDefaultIndentationFromTokenLine(SyntaxToken token, int? additionalSpace = null)
+            private IndentationResult GetDefaultIndentationFromTokenLine(SyntaxToken token, int? additionalSpace = null)
             {
                 var spaceToAdd = additionalSpace ?? this.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language);
 

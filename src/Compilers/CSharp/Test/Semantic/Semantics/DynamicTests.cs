@@ -2626,14 +2626,14 @@ class C : List<int>
     {	
 		var z = new C()         //-typeExpression: C
 		{
-			{ d },              //-fieldAccess: dynamic
-                                //-implicitReceiver: C
+			{ d },              //-implicitReceiver: C
+                                //-fieldAccess: dynamic
                                 //-dynamicCollectionElementInitializer: dynamic
 
-			{ d, d, d },        //-fieldAccess: dynamic
+			{ d, d, d },        //-implicitReceiver: C
                                 //-fieldAccess: dynamic
                                 //-fieldAccess: dynamic
-                                //-implicitReceiver: C
+                                //-fieldAccess: dynamic
                                 //-dynamicCollectionElementInitializer: dynamic
 
 		};                      //-collectionInitializerExpression: C

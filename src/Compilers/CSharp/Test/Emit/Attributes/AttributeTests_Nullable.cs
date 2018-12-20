@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public sealed class NullableAttribute : Attribute
     {
-        public NullableAttribute() { }
-        public NullableAttribute(bool[] b) { }
+        public NullableAttribute(byte a) { }
+        public NullableAttribute(byte[] b) { }
     }
 }
 class C
@@ -54,8 +54,8 @@ class C
 {
     public sealed class NullableAttribute : Attribute
     {
-        public NullableAttribute() { }
-        public NullableAttribute(bool[] b) { }
+        public NullableAttribute(byte a) { }
+        public NullableAttribute(byte[] b) { }
     }
 }";
             var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
@@ -78,7 +78,7 @@ class C
 {
     public sealed class NullableAttribute : Attribute
     {
-        public NullableAttribute(bool[] b) { }
+        public NullableAttribute(byte[] b) { }
     }
 }
 class C
@@ -87,6 +87,9 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics(
+                // (5,34): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //         public NullableAttribute(byte[] b) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "byte[] b").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(5, 34),
                 // (10,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     static void F(object? x, object?[] y) { }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object? x").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 19),
@@ -137,6 +140,9 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics(
+                // (5,34): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //         public NullableAttribute(string[] b) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "string[] b").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(5, 34),
                 // (10,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     static void F(object? x, object?[] y) { }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object? x").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(10, 19),
@@ -146,7 +152,7 @@ class C
         }
 
         [Fact]
-        public void NullableAttribute_MissingBoolean()
+        public void NullableAttribute_MissingByte()
         {
             var source0 =
 @"namespace System
@@ -174,8 +180,8 @@ class C
                 // (3,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     object? F() => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 11),
-                // error CS0518: Predefined type 'System.Boolean' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1));
+                // error CS0518: Predefined type 'System.Byte' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1));
         }
 
         [Fact]
@@ -187,7 +193,7 @@ class C
     public class Object { }
     public abstract class ValueType { }
     public struct Void { }
-    public struct Boolean { }
+    public struct Byte { }
 }";
             var comp0 = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular7);
             var ref0 = comp0.EmitToImageReference();
@@ -206,6 +212,8 @@ class C
                 //     object? F() => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 11),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1));
         }
 
@@ -219,6 +227,7 @@ class C
     public abstract class ValueType { }
     public struct Void { }
     public struct Boolean { }
+    public struct Byte { }
     public class Attribute
     {
         static Attribute() { }
@@ -241,6 +250,8 @@ class C
                 // (3,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     object? F() => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 11),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
@@ -350,7 +361,7 @@ class C
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var assembly = module.ContainingAssembly;
-                Assert.Null(assembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NullableAttribute"));
+                Assert.NotNull(assembly.GetTypeByMetadataName("System.Runtime.CompilerServices.NullableAttribute"));
             });
         }
 
@@ -423,7 +434,7 @@ public class B2 : A<object?>
                 AssertNoNullableAttribute(type.GetAttributes());
                 type = module.ContainingAssembly.GetTypeByMetadataName("B1");
                 AssertNoNullableAttribute(type.BaseType().GetAttributes());
-                AssertNoNullableAttribute(type.GetAttributes());
+                AssertNullableAttribute(type.GetAttributes());
                 type = module.ContainingAssembly.GetTypeByMetadataName("B2");
                 AssertNoNullableAttribute(type.BaseType().GetAttributes());
                 AssertNullableAttribute(type.GetAttributes());
@@ -473,10 +484,10 @@ public class B : I<object?>
                 var reader = assembly.GetMetadataReader();
                 var typeDef = GetTypeDefinitionByName(reader, "A");
                 var interfaceImpl = reader.GetInterfaceImplementation(typeDef.GetInterfaceImplementations().Single());
-                AssertAttributes(reader, interfaceImpl.GetCustomAttributes());
+                AssertAttributes(reader, interfaceImpl.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
                 typeDef = GetTypeDefinitionByName(reader, "B");
                 interfaceImpl = reader.GetInterfaceImplementation(typeDef.GetInterfaceImplementations().Single());
-                AssertAttributes(reader, interfaceImpl.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
+                AssertAttributes(reader, interfaceImpl.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
             });
             var source2 =
 @"class C
@@ -530,7 +541,7 @@ public class B : I<(object X, object? Y)>
                 interfaceImpl = reader.GetInterfaceImplementation(typeDef.GetInterfaceImplementations().Single());
                 AssertAttributes(reader, interfaceImpl.GetCustomAttributes(),
                     "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
-                    "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
+                    "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
             });
 
             var source2 =
@@ -577,11 +588,11 @@ public class D<T> where T : A
                 var typeDef = GetTypeDefinitionByName(reader, "C`1");
                 var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
                 var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
-                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor()");
+                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte)");
                 typeDef = GetTypeDefinitionByName(reader, "D`1");
                 typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
                 constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
-                AssertAttributes(reader, constraint.GetCustomAttributes());
+                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte)");
             });
 
             var source2 =
@@ -690,11 +701,11 @@ public class C<T> where T : A<object>
                 var typeDef = GetTypeDefinitionByName(reader, "B`1");
                 var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
                 var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
-                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
+                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
                 typeDef = GetTypeDefinitionByName(reader, "C`1");
                 typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
                 constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
-                AssertAttributes(reader, constraint.GetCustomAttributes());
+                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte)");
             });
 
             var source2 =
@@ -749,7 +760,7 @@ public class C<T> where T : A<object>
                 var typeDef = GetTypeDefinitionByName(reader, "C`2");
                 var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[1]);
                 var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
-                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor()");
+                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte)");
             });
 
             var source2 =
@@ -1278,6 +1289,12 @@ class C : I<(object X, object? Y)>
 }";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
+                // (3,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     object this[object x, object? y] => throw new System.NotImplementedException();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 5),
+                // (3,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     object this[object x, object? y] => throw new System.NotImplementedException();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object x").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 17),
                 // (3,27): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     object this[object x, object? y] => throw new System.NotImplementedException();
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object? y").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 27));
@@ -1295,7 +1312,14 @@ class C : I<(object X, object? Y)>
             comp.VerifyEmitDiagnostics(
                 // (3,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     public static object? operator+(C a, C b) => null;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 19));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 19),
+                // (3,37): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     public static object? operator+(C a, C b) => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C a").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 37),
+                // (3,42): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     public static object? operator+(C a, C b) => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C b").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 42)
+                );
         }
 
         [Fact]
@@ -1308,6 +1332,12 @@ class C : I<(object X, object? Y)>
 }";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
+                // (3,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     public static object operator+(C a, object?[] b) => a;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 19),
+                // (3,36): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     public static object operator+(C a, object?[] b) => a;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C a").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 36),
                 // (3,41): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     public static object operator+(C a, object?[] b) => a;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?[] b").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 41));
@@ -1380,6 +1410,12 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
+                // (1,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                // delegate void D<T>(T t);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T t").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 20),
+                // (4,22): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //     static void F<T>(D<T> d)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "D<T> d").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(4, 22),
                 // (9,12): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //         F((object? o) => { });
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object? o").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(9, 12));
@@ -1420,7 +1456,10 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (5,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //         void L(object? x, object y) { }
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object? x").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(5, 16));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object? x").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(5, 16),
+                // (5,27): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //         void L(object? x, object y) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object y").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(5, 27));
         }
 
         [Fact]
@@ -1444,18 +1483,18 @@ class C
                 var customAttributes = field.GetCustomAttributes();
                 AssertAttributes(reader, customAttributes,
                     "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
-                    "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
+                    "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
                 var customAttribute = reader.GetCustomAttribute(customAttributes.ElementAt(1));
-                AssertEx.Equal(ImmutableArray.Create(false, false, true, false, true, false, false, false, false, true, false, true), reader.ReadBoolArray(customAttribute.Value));
+                AssertEx.Equal(ImmutableArray.Create<byte>(0, 0, 2, 0, 2, 0, 0, 0, 0, 2, 0, 2), reader.ReadByteArray(customAttribute.Value));
 
                 // Long tuple
                 field = fieldDefs.Single(f => reader.StringComparer.Equals(f.Name, "Long"));
                 customAttributes = field.GetCustomAttributes();
                 AssertAttributes(reader, customAttributes,
                     "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
-                    "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
+                    "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
                 customAttribute = reader.GetCustomAttribute(customAttributes.ElementAt(1)); 
-                AssertEx.Equal(ImmutableArray.Create(false, true, false, true, false, true, false, true, false, false, true), reader.ReadBoolArray(customAttribute.Value));
+                AssertEx.Equal(ImmutableArray.Create<byte>(0, 2, 0, 2, 0, 2, 0, 2, 0, 0, 2), reader.ReadByteArray(customAttribute.Value));
             });
 
             var source2 =
@@ -1547,20 +1586,20 @@ public class B<T> :
                 var reader = assembly.GetMetadataReader();
                 var typeDef = GetTypeDefinitionByName(reader, "B`1");
                 // Base type
-                checkAttributesNoDynamic(typeDef.GetCustomAttributes(), addOne: true); // add one for A<T>
+                checkAttributesNoDynamic(typeDef.GetCustomAttributes(), addOne: 0); // add one for A<T>
                 // Interface implementation
                 var interfaceImpl = reader.GetInterfaceImplementation(typeDef.GetInterfaceImplementations().Single());
-                checkAttributesNoDynamic(interfaceImpl.GetCustomAttributes(), addOne: true); // add one for I<T>
+                checkAttributesNoDynamic(interfaceImpl.GetCustomAttributes(), addOne: 0); // add one for I<T>
                 // Type parameter constraint type
                 var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
                 var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
-                checkAttributesNoDynamic(constraint.GetCustomAttributes(), addOne: true); // add one for A<T>
+                checkAttributesNoDynamic(constraint.GetCustomAttributes(), addOne: 1); // add one for A<T>
                 // Field type
                 var field = typeDef.GetFields().Select(f => reader.GetFieldDefinition(f)).Single(f => reader.StringComparer.Equals(f.Name, "Field"));
                 checkAttributes(field.GetCustomAttributes());
                 // Event type
                 var @event = typeDef.GetEvents().Select(e => reader.GetEventDefinition(e)).Single(e => reader.StringComparer.Equals(e.Name, "Event"));
-                checkAttributes(@event.GetCustomAttributes(), addOne: true); // add one for EventHandler<T>
+                checkAttributes(@event.GetCustomAttributes(), addOne: 1); // add one for EventHandler<T>
                 // Method return type and parameter type
                 var method = typeDef.GetMethods().Select(m => reader.GetMethodDefinition(m)).Single(m => reader.StringComparer.Equals(m.Name, "Method"));
                 var parameters = method.GetParameters().Select(p => reader.GetParameter(p)).ToArray();
@@ -1570,32 +1609,31 @@ public class B<T> :
                 var property = typeDef.GetProperties().Select(p => reader.GetPropertyDefinition(p)).Single(p => reader.StringComparer.Equals(p.Name, "Property"));
                 checkAttributes(property.GetCustomAttributes());
 
-                void checkAttributes(CustomAttributeHandleCollection customAttributes, bool addOne = false)
+                void checkAttributes(CustomAttributeHandleCollection customAttributes, byte? addOne = null)
                 {
                     AssertAttributes(reader, customAttributes,
                         "MemberReference:Void System.Runtime.CompilerServices.DynamicAttribute..ctor(Boolean[])",
                         "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
-                        "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
-                    checkAttribute(reader.GetCustomAttribute(customAttributes.ElementAt(0)), addOne);
+                        "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
                     checkAttribute(reader.GetCustomAttribute(customAttributes.ElementAt(2)), addOne);
                 }
 
-                void checkAttributesNoDynamic(CustomAttributeHandleCollection customAttributes, bool addOne = false)
+                void checkAttributesNoDynamic(CustomAttributeHandleCollection customAttributes, byte? addOne = null)
                 {
                     AssertAttributes(reader, customAttributes,
                         "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
-                        "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
+                        "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
                     checkAttribute(reader.GetCustomAttribute(customAttributes.ElementAt(1)), addOne);
                 }
 
-                void checkAttribute(CustomAttribute customAttribute, bool addOne)
+                void checkAttribute(CustomAttribute customAttribute, byte? addOne)
                 {
-                    var expectedBits = ImmutableArray.Create(false, true, false, false, true, false, true, false, true, false, false, true);
-                    if (addOne)
+                    var expectedBits = ImmutableArray.Create<byte>(0, 2, 0, 1, 2, 1, 2, 1, 2, 1, 0, 2);
+                    if (addOne.HasValue)
                     {
-                        expectedBits = ImmutableArray.Create(false).Concat(expectedBits);
+                        expectedBits = ImmutableArray.Create(addOne.GetValueOrDefault()).Concat(expectedBits);
                     }
-                    AssertEx.Equal(expectedBits, reader.ReadBoolArray(customAttribute.Value));
+                    AssertEx.Equal(expectedBits, reader.ReadByteArray(customAttribute.Value));
                 }
             });
 

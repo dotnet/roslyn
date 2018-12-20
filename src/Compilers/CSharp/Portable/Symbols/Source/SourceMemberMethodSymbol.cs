@@ -1206,11 +1206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                // NonNullTypesAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNonNullTypesAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -1623,8 +1618,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            AddSynthesizedNonNullTypesAttributeForMember(ref attributes);
-
             bool isAsync = this.IsAsync;
             bool isIterator = this.IsIterator;
 
@@ -1643,13 +1636,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type),
                     TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
 
-                if (isAsync)
+                if (isAsync && isIterator)
+                {
+                    AddSynthesizedAttribute(ref attributes,
+                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
+                            ImmutableArray.Create(arg)));
+                }
+                else if (isAsync)
                 {
                     AddSynthesizedAttribute(ref attributes,
                         compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
                             ImmutableArray.Create(arg)));
                 }
-                if (isIterator)
+                else if (isIterator)
                 {
                     AddSynthesizedAttribute(ref attributes,
                         compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor,

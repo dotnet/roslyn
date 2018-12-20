@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                     return null;
                 }
 
-                var activeDocument = documentTrackingService.GetActiveDocument();
+                var activeDocument = documentTrackingService.TryGetActiveDocument();
                 if (activeDocument != null)
                 {
                     if (scope == CallHierarchySearchScope.CurrentProject)

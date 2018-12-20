@@ -1,15 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Composition
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
-    <ExportFormattingRule(ElasticTriviaFormattingRule.Name, LanguageNames.VisualBasic), [Shared]>
-    <ExtensionOrder(After:=StructuredTriviaFormattingRule.Name)>
     Friend Class ElasticTriviaFormattingRule
         Inherits BaseFormattingRule
         Friend Const Name As String = "VisualBasic Elastic Trivia Formatting Rule"
