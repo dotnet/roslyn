@@ -1141,13 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (type.GetArity() != 0)
                 {
-                    var unsupported = Compilation.LanguageVersion < MessageID.IDS_FeatureUnmanagedGenericStructs.RequiredVersion();
-                    if (unsupported)
-                    {
-                        // PROTOTYPE
-                        MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, node.Location);
-                        typeHasErrors = true;
-                    }
+                    MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, node.Location);
                 }
             }
 
@@ -3252,13 +3246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (elementType.TypeSymbol.GetArity() != 0)
                 {
-                    var unsupported = Compilation.LanguageVersion < MessageID.IDS_FeatureUnmanagedGenericStructs.RequiredVersion();
-                    if (unsupported)
-                    {
-                        // PROTOTYPE
-                        MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, elementTypeSyntax.Location);
-                        hasErrors = true;
-                    }
+                    MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, elementTypeSyntax.Location);
                 }
             }
 
