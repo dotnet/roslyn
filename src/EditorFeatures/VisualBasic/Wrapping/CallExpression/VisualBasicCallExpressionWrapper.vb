@@ -1,11 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Editor.Wrapping.Call
+Imports Microsoft.CodeAnalysis.Editor.Wrapping.CallExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.Call
-    Friend Class VisualBasicCallWrapper
-        Inherits AbstractCallWrapper(Of
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.CallExpression
+    Friend Class VisualBasicCallExpressionWrapper
+        Inherits AbstractCallExpressionWrapper(Of
         ExpressionSyntax,
         NameSyntax,
         MemberAccessExpressionSyntax,

@@ -6,9 +6,9 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
+namespace Microsoft.CodeAnalysis.Editor.Wrapping.CallExpression
 {
-    internal abstract partial class AbstractCallWrapper<
+    internal abstract partial class AbstractCallExpressionWrapper<
         TExpressionSyntax,
         TNameSyntax,
         TMemberAccessExpressionSyntax,

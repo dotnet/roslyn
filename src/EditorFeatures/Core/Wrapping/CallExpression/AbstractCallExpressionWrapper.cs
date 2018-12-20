@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
+namespace Microsoft.CodeAnalysis.Editor.Wrapping.CallExpression
 {
-    internal abstract partial class AbstractCallWrapper : AbstractSyntaxWrapper
+    internal abstract partial class AbstractCallExpressionWrapper : AbstractSyntaxWrapper
     {
         /// <summary>
         /// Gets the language specific trivia that should be inserted before an operator if the
@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
     ///         .P3.I1[...]
     /// </c>
     /// 
-    /// Note: for the sake of simplicity, from now on, every time an invocation is 
-    /// referred to, it means either an InvocationExpression or an ElementAccessExpression.
+    /// Note: for the sake of simplicity, from now on, every time we talk about a CallExpression,
+    /// it means either an InvocationExpression or an ElementAccessExpression.
     /// 
-    /// The way this wrapper works is breaking up a long dotted expression into 'call-chunks'
+    /// The way this wrapper works is breaking up a long dotted call expression into 'call-chunks'
     /// of the form `.P1.P2.P3.M(...)`  i.e. a *non-empty* sequence of dot-and-name pairs
     /// followed by one or more ArgumentLists.  In this example the sequence is considered:
     /// 
@@ -60,13 +60,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
     /// 'wrap long', then the wrapping only occurs if the current call-chunk's end
     /// would go past the preferred wrapping column
     /// </summary>
-    internal abstract partial class AbstractCallWrapper<
+    internal abstract partial class AbstractCallExpressionWrapper<
         TExpressionSyntax,
         TNameSyntax,
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TElementAccessExpressionSyntax,
-        TBaseArgumentListSyntax> : AbstractCallWrapper
+        TBaseArgumentListSyntax> : AbstractCallExpressionWrapper
         where TExpressionSyntax : SyntaxNode
         where TNameSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
     {
         private readonly ISyntaxFactsService _syntaxFacts;
 
-        protected AbstractCallWrapper(
+        protected AbstractCallExpressionWrapper(
             ISyntaxFactsService syntaxFacts)
         {
             _syntaxFacts = syntaxFacts;
@@ -86,13 +86,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             Document document, int position, SyntaxNode node, CancellationToken cancellationToken)
         {
             // has to either be `expr(...)` or `expr[...]`
-            if (!IsInvocationOrElementAccessExpression(node))
+            if (!IsCallExpression(node))
             {
                 return null;
             }
 
             // Has to be the topmost invocation/element-access.
-            if (IsInvocationOrElementAccessExpression(node.Parent))
+            if (IsCallExpression(node.Parent))
             {
                 return null;
             }
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
                 return null;
             }
 
-            // Don't process this invocation expression if it's contained in some higher member
+            // Don't process this call expression if it's contained in some higher member
             // call-chunk expression.  We'll take care of this when we hit the parent.
             var current = node;
             while (current.Parent is TMemberAccessExpressionSyntax)
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
                 current = current.Parent;
             }
 
-            if (IsInvocationOrElementAccessExpression(current.Parent))
+            if (IsCallExpression(current.Parent))
             {
                 return null;
             }
@@ -150,17 +150,17 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             // the set of wrapping options to provide.
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return new CallCodeActionComputer(
+            return new CallExpressionCodeActionComputer(
                 this, document, sourceText, options, callChunks, cancellationToken);
         }
 
-        private bool IsInvocationOrElementAccessExpression(SyntaxNode node)
-            => IsInvocationOrElementAccessExpression(node, out _, out _);
+        private bool IsCallExpression(SyntaxNode node)
+            => IsCallExpression(node, out _, out _);
 
-        private bool IsInvocationOrElementAccessExpression(
+        private bool IsCallExpression(
             SyntaxNode node, out TExpressionSyntax expression, out TBaseArgumentListSyntax argumentList)
         {
-            if (IsInvocationOrElementAccessExpressionWorker(
+            if (IsCallExpressionWorker(
                     node, out var expressionNode, out var argumentListNode))
             {
                 expression = (TExpressionSyntax)expressionNode;
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             return false;
         }
 
-        private bool IsInvocationOrElementAccessExpressionWorker(
+        private bool IsCallExpressionWorker(
             SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
         {
             if (node is TInvocationExpressionSyntax)
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             // Walk downwards, consuming argument lists.
             // Note: because of how we walk down, the arg lists will be reverse order.
             // We take care of that below.
-            while (IsInvocationOrElementAccessExpression(node, out var expression, out var argumentList))
+            while (IsCallExpression(node, out var expression, out var argumentList))
             {
                 argumentLists.Add(argumentList);
                 node = expression;
