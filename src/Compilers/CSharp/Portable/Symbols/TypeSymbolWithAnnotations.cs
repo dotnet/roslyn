@@ -476,8 +476,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal TypeSymbolWithAnnotations MergeNullability(TypeSymbolWithAnnotations other, VarianceKind variance, out bool hadNullabilityMismatch)
         {
-            TypeSymbol typeSymbol = other.TypeSymbol;
-            NullableAnnotation nullableAnnotation = MergeNullableAnnotation(typeSymbol, NullableAnnotation, other.NullableAnnotation, variance, out bool hadTopLevelMismatch);
+            // There is no loss of information from applying AsSpeakable, because we've called AsSpeakable to adjust top-level nullability in relevant callers,
+            // and other callers don't produce this combination (you can't get a nested unspeakable type during nullability analysis).
+            Debug.Assert(this.NullableAnnotation != NullableAnnotation.NotNullable || !this.TypeSymbol.IsTypeParameterDisallowingAnnotation());
+            Debug.Assert(other.NullableAnnotation != NullableAnnotation.NotNullable || !other.TypeSymbol.IsTypeParameterDisallowingAnnotation());
+
+            TypeSymbolWithAnnotations speakableThis = this.AsSpeakable();
+            TypeSymbolWithAnnotations speakableOther = other.AsSpeakable();
+
+            TypeSymbol typeSymbol = speakableOther.TypeSymbol;
+            NullableAnnotation nullableAnnotation = MergeNullableAnnotation(speakableThis.NullableAnnotation, speakableOther.NullableAnnotation, variance, out bool hadTopLevelMismatch);
             TypeSymbol type = TypeSymbol.MergeNullability(typeSymbol, variance, out bool hadNestedMismatch);
             Debug.Assert((object)type != null);
             hadNullabilityMismatch = hadTopLevelMismatch | hadNestedMismatch;
@@ -488,8 +496,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Merges nullability.
         /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict.
         /// </summary>
-        private static NullableAnnotation MergeNullableAnnotation(TypeSymbol type, NullableAnnotation a, NullableAnnotation b, VarianceKind variance, out bool hadNullabilityMismatch)
+        private static NullableAnnotation MergeNullableAnnotation(NullableAnnotation a, NullableAnnotation b, VarianceKind variance, out bool hadNullabilityMismatch)
         {
+            Debug.Assert(a.IsSpeakable());
+            Debug.Assert(b.IsSpeakable());
+
             hadNullabilityMismatch = false;
             switch (variance)
             {
