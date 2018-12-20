@@ -72,7 +72,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 IsControlStatementKind(token.Parent.Kind)
         End Function
 
-
         ''' <summary>
         ''' Determine if the kind represents a control keyword
         ''' </summary>
@@ -110,7 +109,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Case Else
                     Return False
             End Select
-
         End Function
 
         ''' <summary>

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// <summary>
         /// Additive classifications types supply additional context to other classifications.
         /// </summary>
-        public static ImmutableList<string> AdditiveTypeNames { get; } = ImmutableList.Create(StaticSymbol);
+        public static ImmutableArray<string> AdditiveTypeNames { get; } = ImmutableArray.Create(StaticSymbol);
 
         public const string Comment = "comment";
         public const string ExcludedCode = "excluded code";

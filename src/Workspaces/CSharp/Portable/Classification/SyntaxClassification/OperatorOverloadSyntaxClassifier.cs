@@ -40,21 +40,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static TextSpan GetOperatorTokenSpan(SyntaxNode syntax)
         {
-            if (syntax is AssignmentExpressionSyntax assignmentExpression)
+            switch (syntax)
             {
-                return assignmentExpression.OperatorToken.Span;
-            }
-            else if (syntax is BinaryExpressionSyntax binaryExpression)
-            {
-                return binaryExpression.OperatorToken.Span;
-            }
-            else if (syntax is PrefixUnaryExpressionSyntax prefixUnaryExpression)
-            {
-                return prefixUnaryExpression.OperatorToken.Span;
-            }
-            else if (syntax is PostfixUnaryExpressionSyntax postfixUnaryExpression)
-            {
-                return postfixUnaryExpression.OperatorToken.Span;
+                case AssignmentExpressionSyntax assignmentExpression:
+                    return assignmentExpression.OperatorToken.Span;
+                case BinaryExpressionSyntax binaryExpression:
+                    return binaryExpression.OperatorToken.Span;
+                case PrefixUnaryExpressionSyntax prefixUnaryExpression:
+                    return prefixUnaryExpression.OperatorToken.Span;
+                case PostfixUnaryExpressionSyntax postfixUnaryExpression:
+                    return postfixUnaryExpression.OperatorToken.Span;
             }
 
             return default;
