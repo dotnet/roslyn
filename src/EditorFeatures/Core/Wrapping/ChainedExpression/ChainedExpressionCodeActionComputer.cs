@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
     {
         /// <summary>
         /// Responsible for actually computing the set of potential wrapping options
-        /// for complex call expressions.  The three options we offer are basically
-        /// 1. wrap-each. Each call-chunk will be wrapped and aligned with the first).
-        /// 2. wrap-long. The same as '1', except a call-chunk will only be wrapped
+        /// for chained expressions.  The three options we offer are basically
+        /// 1. wrap-each. Each chunk will be wrapped and aligned with the first chunk.
+        /// 2. wrap-long. The same as '1', except a chunk will only be wrapped
         ///    if it would go past the preferred wrapping column.
-        /// 3. Unwrap.  All the call-chunks will be placed on a single line.
+        /// 3. Unwrap.  All the chunks will be placed on a single line.
         /// 
         /// Note: These three options are always computed and returned.  The caller
         /// is the one that ends up eliminating any if they would be redundant.  i.e.
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             private readonly ImmutableArray<ImmutableArray<SyntaxNodeOrToken>> _chunks;
 
             /// <summary>
-            /// Trivia to place before a call-chunk when it is wrapped.
+            /// Trivia to place before a chunk when it is wrapped.
             /// </summary>
             private readonly SyntaxTriviaList _indentationTrivia;
 
@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
 
                 var generator = SyntaxGenerator.GetGenerator(document);
 
-                // Both [0] indices are safe here.  We can only get here if we had more than
-                // two call-chunks to wrap.  And each call-chunk is required to have at least
-                // one member-name-chunk.
+                // Both [0][0] indices are safe here.  We can only get here if we had more than
+                // two chunks to wrap.  And each chunk is required to have at least three elements
+                // (i.e. `. name (arglist)`).
                 var indentationString = OriginalSourceText.GetOffset(chunks[0][0].SpanStart)
                                                           .CreateIndentationString(UseTabs, TabSize);
 
@@ -105,6 +105,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
                 DeleteAllSpacesInChunk(result, firstChunk);
                 var position = _indentationTrivia.FullSpan.Length + NormalizedWidth(firstChunk);
 
+                // Now, go to each subsequent chunk.  If keeping it on the current line would
+                // cause us to go past the requested wrapping column, then wrap it and proceed.
                 for (var i = 1; i < _chunks.Length; i++)
                 {
                     var chunk = _chunks[i];
@@ -130,48 +132,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
                     position += NormalizedWidth(chunk);
                 }
 
-                //// Deal with the first chunk (it has special behavior because we
-                //// don't want to delete any trivia directly before it).
-                //DeleteAllButLeadingSpacesInCallChunk(result, _callChunks[0]);
-
-                //// The position we're currently at.  If adding the next chunk would
-                //// make us go past our preferred wrapping column, then we will wrap 
-                //// that chunk.
-                //var position = _indentationTrivia.FullSpan.Length + _callChunks[0].NormalizedLength();
-
-                //// Now go through all subsequence call chunks and normalize them all.
-                //// Also, wrap any we encounter if we go past the specified wrapping
-                //// column
-                //for (var i = 1; i < _callChunks.Length; i++)
-                //{
-                //    var callChunk = _callChunks[i];
-                //    var wrapChunk = position + callChunk.NormalizedLength() >= wrappingColumn;
-                //    if (wrapChunk)
-                //    {
-                //        // we're wrapping.  So our position is reset to the indentation
-                //        // on the next line.
-                //        position = _indentationTrivia.FullSpan.Length;
-
-                //        // First, add a newline at the end of the previous arglist, and then
-                //        // indent the very first member chunk appropriately.
-                //        result.Add(Edit.UpdateBetween(
-                //            _callChunks[i - 1].ArgumentLists.Last(), _newlineBeforeOperatorTrivia,
-                //            _indentationTrivia, callChunk.MemberChunks[0].DotToken));
-
-                //        // Now, delete all the remaining spaces in this call chunk.
-                //        DeleteAllButLeadingSpacesInCallChunk(result, callChunk);
-                //    }
-                //    else
-                //    {
-                //        // not wrapping.  So just clean up this next call chunk by
-                //        // deleting all spaces.
-                //        DeleteAllSpacesInCallChunk(result, callChunk);
-                //    }
-
-                //    // Update position based on this chunk we just fixed up.
-                //    position += callChunk.NormalizedLength();
-                //}
-
                 return result.ToImmutableAndFree();
             }
 
@@ -189,21 +149,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
+                // Flatten all the chunks into one long list.  Then delete all the spaces
+                // between each piece in that full list.
                 var flattened = _chunks.SelectMany(c => c).ToImmutableArray();
-
                 DeleteAllSpacesInChunk(result, flattened);
-
-                //// Deal with the first chunk (it has special behavior because we
-                //// don't want to delete any trivia directly before it).
-                //DeleteAllButLeadingSpacesInCallChunk(result, _callChunks[0]);
-
-                //// Now, handle all successive call chunks.
-                //for (var i = 1; i < _callChunks.Length; i++)
-                //{
-                //    // In successive call chunks we want to delete all the spacing
-                //    // in the member chunks unilaterally.
-                //    DeleteAllSpacesInCallChunk(result, _callChunks[i]);
-                //}
 
                 return result.ToImmutableAndFree();
             }
@@ -211,74 +160,11 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             private static void DeleteAllSpacesInChunk(
                 ArrayBuilder<Edit> result, ImmutableArray<SyntaxNodeOrToken> chunk)
             {
-                for (int i = 1; i < chunk.Length; i++)
+                for (var i = 1; i < chunk.Length; i++)
                 {
                     result.Add(Edit.DeleteBetween(chunk[i - 1], chunk[i]));
                 }
             }
-
-            //private static void DeleteAllSpacesInCallChunk(ArrayBuilder<Edit> result, CallChunk callChunk)
-            //{
-            //    foreach (var memberChunk in callChunk.MemberChunks)
-            //    {
-            //        DeleteSpacesInMemberChunk(result, memberChunk);
-            //    }
-
-            //    // and then any whitespace before the first arg list and between the rest.
-            //    DeleteSpacesInArgumentLists(result, callChunk);
-            //}
-
-            ///// <summary>
-            ///// Removes all whitespace in the spaces between the elements of this chunk.
-            ///// However no edits will be made before the the first dot in the first member
-            ///// chunk of this call chunk.  This is useful for the very first call chunk or
-            ///// any callchunk we're explicitly wrapping.
-            ///// </summary>
-            //private void DeleteAllButLeadingSpacesInCallChunk(ArrayBuilder<Edit> result, CallChunk callChunk)
-            //{
-            //    // For the very first member chunk we have, don't make any edits prior 
-            //    // to it.  This is the chunk that contains the dot that we are aligning 
-            //    // all wrapping to.  It should never be touched.
-            //    //
-            //    // After that first member chunk, remove all whitespace between the
-            //    // other member chunks and between the arg list.
-
-            //    // For the very first name chunk in .A.B.C (i.e. `.A` just remove the spaces
-            //    // between the dot and the name.
-            //    var firstMemberChunk = callChunk.MemberChunks[0];
-            //    result.Add(Edit.DeleteBetween(firstMemberChunk.DotToken, firstMemberChunk.Name));
-
-            //    // For all subsequence name chunks in .A.B.C (i.e. `.B.C`) remove any spaces between
-            //    // the chunk and the last chunk, and between the dot and the name.
-            //    for (var i = 1; i < callChunk.MemberChunks.Length; i++)
-            //    {
-            //        var memberChunk = callChunk.MemberChunks[i];
-            //        DeleteSpacesInMemberChunk(result, memberChunk);
-            //    }
-
-            //    // and then any whitespace before the first arg list and between the rest.
-            //    DeleteSpacesInArgumentLists(result, callChunk);
-            //}
-
-            //private static void DeleteSpacesInMemberChunk(ArrayBuilder<Edit> result, MemberChunk memberChunk)
-            //{
-            //    result.Add(Edit.DeleteBetween(memberChunk.DotToken.GetPreviousToken(), memberChunk.DotToken));
-            //    result.Add(Edit.DeleteBetween(memberChunk.DotToken, memberChunk.Name));
-            //}
-
-            //private static void DeleteSpacesInArgumentLists(ArrayBuilder<Edit> result, CallChunk callChunk)
-            //{
-            //    var argumentLists = callChunk.ArgumentLists;
-
-            //    // Delete the whitespace between the last member name chunk and the first arg list.
-            //    result.Add(Edit.DeleteBetween(callChunk.MemberChunks.Last().Name, argumentLists[0]));
-
-            //    // Now delete the whitespace between each arglist.
-            //    for (var i = 1; i < argumentLists.Length; i++)
-            //    {
-            //        result.Add(Edit.DeleteBetween(argumentLists[i - 1], argumentLists[i]));
-            //    }
-            //}
         }
     }
 }

@@ -74,22 +74,26 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
         public sealed override async Task<ICodeActionComputer> TryCreateComputerAsync(
             Document document, int position, SyntaxNode node, CancellationToken cancellationToken)
         {
-            // We have to be on a chain part.
+            // We have to be on a chain part.  If not, there's nothing to do here at all.
             if (!IsChainPart(node))
             {
                 return null;
             }
 
-            // Has to be the topmost chain part.
+            // Has to be the topmost chain part.  If we're not on the topmost, then just
+            // bail out here.  Our caller will continue walking upwards until it hits the 
+            // topmost node.
             if (IsChainPart(node.Parent))
             {
                 return null;
             }
 
-            // Now, this is only worth wrapping if we have something below us we could align to
+            // We're at the top of something that looks like it could be part of a chained
+            // expression.  Break it into the individual chunks.  We need to have at least
+            // two chunks or this to be worth wrapping.
+            //
             // i.e. if we only have `this.Goo(...)` there's nothing to wrap.  However, we can
-            // wrap when we have `this.Goo(...).Bar(...)`.  Grab the chunks of `.Name(...)` as
-            // that's what we're going to be wrapping/aligning.
+            // wrap when we have `this.Goo(...).Bar(...)`.
             var chunks = GetChainChunks(node);
             if (chunks.Length <= 1)
             {
@@ -121,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             // First, just take the topmost chain node and break into the individual
             // nodes and tokens we want to treat as individual elements.  i.e. an 
             // element that would be kept together.  For example, the arg-list of an
-            // invocation is an element we do not want to ever break-up/wrap.
+            // invocation is an element we do not want to ever break-up/wrap. 
             var pieces = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
             BreakIntoPieces(node, pieces);
 
@@ -148,6 +152,24 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             // starts with `.Foo().Bar().Baz()` then the chunks would be `.Bar()` and `.Baz()`.
             // However, if we had `this.Foo().Bar().Baz()` then the chunks would be `.Foo()`
             // `.Bar()` and `.Baz()`.
+            //
+            // Note: the only way to get the `.Foo().Bar().Baz()` case today is in VB in
+            // a 'with' statement.  if we have that, we don't want to wrap it into:
+            //
+            //  <c>
+            //  with ...
+            //      .Foo()
+            //      .Bar()
+            //      .Baz()
+            //  <c>
+            //
+            // Instead, we want to create
+            //
+            //  <c>
+            //  with ...
+            //      .Foo().Bar()
+            //            .Baz()
+            //  <c>
             var currentChunkStart = FindNextChunkStart(pieces, firstChunk: true, index: 1);
             if (currentChunkStart < 0)
             {
@@ -166,6 +188,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
                     return;
                 }
 
+                // Had a chunk after this one.  Record the current chunk, move to the start
+                // of the next one, and then keep going.
                 chunks.Add(GetSubRange(pieces, currentChunkStart, end: nextChunkStart));
                 currentChunkStart = nextChunkStart;
             }
@@ -193,30 +217,21 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
                 }
             }
 
+            // Couldn't find the start of another chunk.
             return -1;
         }
 
         private bool IsNode<TNode>(ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
-        {
-            if (index < pieces.Count)
-            {
-                var piece = pieces[index];
-                return piece.IsNode && piece.AsNode() is TNode;
-            }
-
-            return false;
-        }
+            => index < pieces.Count &&
+               pieces[index] is var piece &&
+               piece.IsNode &&
+               piece.AsNode() is TNode;
 
         private bool IsToken(int tokenKind, ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
-        {
-            if (index < pieces.Count)
-            {
-                var piece = pieces[index];
-                return piece.IsToken && piece.AsToken().RawKind == tokenKind;
-            }
-
-            return false;
-        }
+            => index < pieces.Count &&
+               pieces[index] is var piece &&
+               piece.IsToken &&
+               piece.AsToken().RawKind == tokenKind;
 
         private ImmutableArray<SyntaxNodeOrToken> GetSubRange(
             ArrayBuilder<SyntaxNodeOrToken> pieces, int start, int end)
@@ -232,6 +247,16 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
 
         private bool IsChainPart(SyntaxNode node)
         {
+            // This is the effective set of language constructs that can can 'chain' 
+            // off of a call `.M(...)`.  They are:
+            //
+            // 1. `.Name` or `->Name`.  i.e. `.M(...)`
+            // 2. `(...)`.  i.e. `.M(...)(...)`
+            // 3. `[...]`.  i.e. `.M(...)[...]`
+            // 4. `++`, `--`, `!`.  i.e. `.M(...)++`
+            // 5. `?`.  i.e. `.M(...)?. ...` or `.M(...)?[...]`
+            //      '5' handles both the ConditionalAccess and MemberBinding cases below.
+
             if (_syntaxFacts.IsAnyMemberAccessExpression(node) ||
                 _syntaxFacts.IsInvocationExpression(node) ||
                 _syntaxFacts.IsElementAccessExpression(node) ||
@@ -245,6 +270,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             return false;
         }
 
+        /// <summary>
+        /// Recursively walks down 'node' breaking it into the individual tokens and nodes
+        /// we want to look for chunks in. 
+        /// </summary>
         private void BreakIntoPieces(SyntaxNode node, ArrayBuilder<SyntaxNodeOrToken> pieces)
         {
             if (node is null)
