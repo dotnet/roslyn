@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             // element that would be kept together.  For example, the arg-list of an
             // invocation is an element we do not want to ever break-up/wrap. 
             var pieces = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
-            BreakIntoPieces(node, pieces);
+            Decompose(node, pieces);
 
             // Now that we have the pieces, find 'chunks' similar to the form:
             //
@@ -271,10 +271,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
         }
 
         /// <summary>
-        /// Recursively walks down 'node' breaking it into the individual tokens and nodes
-        /// we want to look for chunks in. 
+        /// Recursively walks down 'node' decomposing it into the individual tokens and 
+        /// nodes we want to look for chunks in. 
         /// </summary>
-        private void BreakIntoPieces(SyntaxNode node, ArrayBuilder<SyntaxNodeOrToken> pieces)
+        private void Decompose(SyntaxNode node, ArrayBuilder<SyntaxNodeOrToken> pieces)
         {
             // Ignore null nodes, they are never relevant when building up the sequence of
             // pieces in this chained expression.
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             {
                 if (child.IsNode)
                 {
-                    BreakIntoPieces(child.AsNode(), pieces);
+                    Decompose(child.AsNode(), pieces);
                 }
                 else
                 {
