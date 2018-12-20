@@ -8308,7 +8308,7 @@ tryAgain:
                 TypeSyntax type;
                 LocalFunctionStatementSyntax localFunction;
                 this.ParseLocalDeclaration(variables,
-                    allowLocalFunctions: true,
+                    allowLocalFunctions: usingKeyword == default,
                     mods: mods.ToList(),
                     type: out type,
                     localFunction: out localFunction);

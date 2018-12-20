@@ -656,7 +656,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, awaitOpt, declarations, hasErrors);
         }
 
-
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
             var typeSyntax = node.Declaration.Type.SkipRef(out _);
