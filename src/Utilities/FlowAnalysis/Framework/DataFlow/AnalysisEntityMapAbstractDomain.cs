@@ -127,7 +127,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             newKeys.Add(mergedKey);
                         }
 
-
                         AssertValidEntryForMergedMap(mergedKey, mergedValue);
                         resultMap[mergedKey] = mergedValue;
                     }
