@@ -480,6 +480,28 @@ class C
         }
 
         [Fact]
+        public void UsingVariableFromAwaitExpression()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+class C
+{
+    static Task<IDisposable> GetDisposable()
+    {
+        return Task.FromResult<IDisposable>(null);
+    }
+
+    static async Task Main()
+    {
+        using IDisposable x = await GetDisposable();
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UsingVariableFromAsyncExpression()
         {
             var source = @"
@@ -571,6 +593,43 @@ class C2
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingDeclarationWithAwaitsInAsync()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+class C2 : IDisposable
+{
+    public string ID { get; set; }
+    public void Dispose()
+    {
+        Console.Write($""Dispose {ID}; "");
+    }
+}
+class C
+{
+    static async Task<IDisposable> GetDisposable(string id)
+    {
+        await Task.Yield();
+        return new C2(){ ID = id };
+    }
+
+    static async Task Main()
+    {
+        using IDisposable x = await GetDisposable(""c1"");
+        await Task.Yield();
+        Console.Write(""after c1; "");
+        using IDisposable y = await GetDisposable(""c2"");
+        Console.Write(""after c2; "");
+    }
+}
+";
+            var compilation = CreateCompilationWithTasksExtensions(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: "after c1; after c2; Dispose c2; Dispose c1; ");
         }
     }
 }
