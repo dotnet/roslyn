@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly ImmutableDictionary<IOperation, PredicateValueKind>.Builder _predicateValueKindCacheBuilder;
         private readonly HashSet<IArgumentOperation> _pendingArgumentsToReset;
         private readonly List<IArgumentOperation> _pendingArgumentsToPostProcess;
-        private readonly HashSet<AnalysisEntity> _flowCaptureReferencesWithPredicatedData;
         private readonly HashSet<IOperation> _visitedFlowBranchConditions;
         private readonly HashSet<IOperation> _returnValueOperationsOpt;
         private ImmutableDictionary<IParameterSymbol, AnalysisEntity> _lazyParameterEntities;
@@ -141,7 +140,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _predicateValueKindCacheBuilder = ImmutableDictionary.CreateBuilder<IOperation, PredicateValueKind>();
             _pendingArgumentsToReset = new HashSet<IArgumentOperation>();
             _pendingArgumentsToPostProcess = new List<IArgumentOperation>();
-            _flowCaptureReferencesWithPredicatedData = new HashSet<AnalysisEntity>();
             _visitedFlowBranchConditions = new HashSet<IOperation>();
             _returnValueOperationsOpt = OwningSymbol is IMethodSymbol method && !method.ReturnsVoid ? new HashSet<IOperation>() : null;
             _interproceduralResultsBuilder = ImmutableDictionary.CreateBuilder<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>>();
@@ -191,7 +189,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 interproceduralInvocationInstanceOpt: interproceduralInvocationInstanceOpt,
                 interproceduralThisOrMeInstanceForCallerOpt: analysisContext.InterproceduralAnalysisDataOpt?.ThisOrMeInstanceForCallerOpt?.Instance,
                 interproceduralCallStackOpt: analysisContext.InterproceduralAnalysisDataOpt?.CallStack,
-                interproceduralCapturedVariablesMapOpt: analysisContext.InterproceduralAnalysisDataOpt?.CapturedVariablesMap);
+                interproceduralCapturedVariablesMapOpt: analysisContext.InterproceduralAnalysisDataOpt?.CapturedVariablesMap,
+                interproceduralGetAnalysisEntityForFlowCaptureOpt: analysisContext.InterproceduralAnalysisDataOpt?.GetAnalysisEntityForFlowCapture);
         }
 
         public override int GetHashCode() => HashUtilities.Combine(GetType().GetHashCode(), DataFlowAnalysisContext.GetHashCode());
@@ -263,26 +262,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return CurrentAnalysisData;
         }
 
-#pragma warning disable CA1801  // Parameter is used in DEBUG configuration.
+        [Conditional("DEBUG")]
         private void AfterVisitRoot(IOperation operation)
-#pragma warning restore CA1801
         {
-            if (PredicateAnalysis)
-            {
-                // Perf: Stop tracking predicated data for flow captures after the first reference.
-                foreach (AnalysisEntity flowCaptureEntity in _flowCaptureReferencesWithPredicatedData)
-                {
-                    Debug.Assert(HasPredicatedDataForEntity(flowCaptureEntity));
-                    StopTrackingPredicatedData(flowCaptureEntity);
-                }
-
-                _flowCaptureReferencesWithPredicatedData.Clear();
-            }
-
-#if DEBUG
             Debug.Assert(_pendingArgumentsToReset.Count == 0);
             Debug.Assert(_pendingArgumentsToPostProcess.Count == 0);
-            Debug.Assert(_flowCaptureReferencesWithPredicatedData.Count == 0);
 
             // Ensure that we visited and cached values for all operation descendants.
             foreach (var descendant in operation.DescendantsAndSelf())
@@ -290,7 +274,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // GetState will throw an InvalidOperationException if the visitor did not visit the operation or cache it's abstract value.
                 var _ = GetCachedAbstractValue(descendant);
             }
-#endif
         }
 
         public void OnStartBlockAnalysis(BasicBlock block, TAnalysisData input)
@@ -556,6 +539,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected virtual void OnLeavingRegion(ControlFlowRegion region)
         {
+            if (PredicateAnalysis)
+            {
+                foreach (var captureId in region.CaptureIds)
+                {
+                    if (AnalysisEntityFactory.TryGetForFlowCapture(captureId, out var analysisEntity) &&
+                        HasPredicatedDataForEntity(analysisEntity))
+                    {
+                        StopTrackingPredicatedData(analysisEntity);
+                    }
+                }
+            }
         }
 
         private bool IsContractCheckArgument(IArgumentOperation operation)
@@ -1595,7 +1589,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     ImmutableStack.CreateRange(_interproceduralCallStack),
                     newMethodsBeingAnalyzed,
                     getCachedAbstractValueFromCaller: GetCachedAbstractValue,
-                    getInterproceduralControlFlowGraph: GetInterproceduralControlFlowGraph);
+                    getInterproceduralControlFlowGraph: GetInterproceduralControlFlowGraph,
+                    getAnalysisEntityForFlowCapture: GetAnalysisEntityForFlowCapture);
 
                 (AnalysisEntity, PointsToAbstractValue)? GetInvocationInstance()
                 {
@@ -1687,6 +1682,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                         return builder.ToImmutable();
                     }
+                }
+
+                AnalysisEntity GetAnalysisEntityForFlowCapture(IOperation operation)
+                {
+                    switch (operation.Kind)
+                    {
+                        case OperationKind.FlowCapture:
+                        case OperationKind.FlowCaptureReference:
+                            if (AnalysisEntityFactory.TryGetForInterproceduralAnalysis(operation, out var analysisEntity) &&
+                                originalOperation.Descendants().Contains(operation))
+                            {
+                                return analysisEntity;
+                            }
+
+                            break;
+                    }
+
+                    return null;
                 }
             }
         }
@@ -1913,7 +1926,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 PerformPredicateAnalysis(operation);
                 Debug.Assert(HasPredicatedDataForEntity(flowCaptureReferenceEntity));
-                _flowCaptureReferencesWithPredicatedData.Add(flowCaptureReferenceEntity);
             }
         }
 

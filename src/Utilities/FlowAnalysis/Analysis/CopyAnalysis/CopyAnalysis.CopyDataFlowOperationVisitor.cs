@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 sourceCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
                 targetCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
                 Debug.Assert(ReferenceEquals(sourceCopyAnalysisData, targetCopyAnalysisData) || fromPredicate);
+                Debug.Assert(tryGetAddressSharedCopyValue != null);
 
                 // Don't track entities if do not know about it's instance location.
                 if (analysisEntity.HasUnknownInstanceLocation)
@@ -160,11 +161,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                             CopyAbstractValue newValueForEntitiesInOldSet = addressSharedCopyValue != null ?
                                 existingValue.WithEntitiesRemoved(addressSharedCopyValue.AnalysisEntities) :
                                 existingValue.WithEntityRemoved(analysisEntity);
-                            foreach (var entityToUpdate in newValueForEntitiesInOldSet.AnalysisEntities)
-                            {
-                                Debug.Assert(newValueForEntitiesInOldSet.AnalysisEntities.Contains(entityToUpdate));
-                                targetCopyAnalysisData.SetAbstactValue(entityToUpdate, newValueForEntitiesInOldSet, isEntityBeingAssigned: false);
-                            }
+                            targetCopyAnalysisData.SetAbstactValueForEntities(newValueForEntitiesInOldSet, entityBeingAssigned: analysisEntity);
                         }
                     }
                 }
@@ -195,12 +192,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 }
 
                 var newValue = new CopyAbstractValue(newAnalysisEntities);
-                foreach (var entityToUpdate in newAnalysisEntities)
-                {
-                    Debug.Assert(newValue.AnalysisEntities.Count > 0);
-                    Debug.Assert(newValue.AnalysisEntities.Contains(entityToUpdate));
-                    targetCopyAnalysisData.SetAbstactValue(entityToUpdate, newValue, isEntityBeingAssigned: entityToUpdate == analysisEntity);
-                }
+                targetCopyAnalysisData.SetAbstactValueForEntities(newValue, entityBeingAssigned: analysisEntity);
 
                 targetCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
             }
@@ -384,6 +376,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 }
 
                 return false;
+            }
+
+            protected override CopyAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
+            {
+                var value = base.VisitAssignmentOperation(operation, argument);
+                if (AnalysisEntityFactory.TryCreate(operation.Target, out var analysisEntity))
+                {
+                    return GetAbstractValue(analysisEntity);
+                }
+
+                return value;
             }
 
             #endregion

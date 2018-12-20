@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableStack<IOperation> callStack,
             ImmutableHashSet<TAnalysisContext> methodsBeingAnalyzed,
             Func<IOperation, TAbstractAnalysisValue> getCachedAbstractValueFromCaller,
-            Func<IMethodSymbol, ControlFlowGraph> getInterproceduralControlFlowGraph)
+            Func<IMethodSymbol, ControlFlowGraph> getInterproceduralControlFlowGraph,
+            Func<IOperation, AnalysisEntity> getAnalysisEntityForFlowCapture)
         {
             Debug.Assert(initialAnalysisData != null);
             Debug.Assert(!arguments.IsDefault);
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(methodsBeingAnalyzed != null);
             Debug.Assert(getCachedAbstractValueFromCaller != null);
             Debug.Assert(getInterproceduralControlFlowGraph != null);
+            Debug.Assert(getAnalysisEntityForFlowCapture != null);
 
             InitialAnalysisData = initialAnalysisData;
             InvocationInstanceOpt = invocationInstanceOpt;
@@ -54,6 +56,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             MethodsBeingAnalyzed = methodsBeingAnalyzed;
             GetCachedAbstractValueFromCaller = getCachedAbstractValueFromCaller;
             GetInterproceduralControlFlowGraph = getInterproceduralControlFlowGraph;
+            GetAnalysisEntityForFlowCapture = getAnalysisEntityForFlowCapture;
         }
 
         public TAnalysisData InitialAnalysisData { get; }
@@ -66,6 +69,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public ImmutableHashSet<TAnalysisContext> MethodsBeingAnalyzed { get; }
         public Func<IOperation, TAbstractAnalysisValue> GetCachedAbstractValueFromCaller { get; }
         public Func<IMethodSymbol, ControlFlowGraph> GetInterproceduralControlFlowGraph { get; }
+        public Func<IOperation, AnalysisEntity> GetAnalysisEntityForFlowCapture { get; }
 
         protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
         {

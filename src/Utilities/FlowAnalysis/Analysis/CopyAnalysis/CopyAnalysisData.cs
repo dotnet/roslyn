@@ -50,23 +50,39 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             return new CopyAnalysisData(this, (CopyAnalysisData)data, coreDataAnalysisDomain);
         }
 
-        public void SetAbstactValue(AnalysisEntity key, CopyAbstractValue value, bool isEntityBeingAssigned)
+        /// <summary>
+        /// Updates the the copy values for all entities that are part of the given <paramref name="copyValue"/> set,
+        /// i.e. <see cref="CopyAbstractValue.AnalysisEntities"/>.
+        /// We do not support the <see cref="SetAbstractValue(AnalysisEntity, CopyAbstractValue)"/> overload
+        /// that updates copy value for each individual entity.
+        /// </summary>
+        public void SetAbstactValueForEntities(CopyAbstractValue copyValue, AnalysisEntity entityBeingAssigned)
         {
-            // If we have any predicate data, and we are changing the copy value for an assigment,
-            // we need to drop all the predicate data based on this entity,
-            // i.e. we need to remove all predicated values for this key and
-            // also remove data predicated by the true/false value of this key, if any.
-            if (HasPredicatedData && isEntityBeingAssigned)
+            foreach (var entity in copyValue.AnalysisEntities)
             {
-                RemoveEntries(key);
-            }
+                // If we have any predicate data based on the previous value of this entity,
+                // and we are changing the copy value for an assigment (i.e. entity == entityBeingAssigned),
+                // we need to drop all the predicate data based on this entity.
+                if (entity == entityBeingAssigned && HasPredicatedDataForEntity(entity))
+                {
+                    StopTrackingPredicatedData(entity);
+                }
 
-            CoreAnalysisData[key] = value;
+                // Remove all predicated values for this entity as we are going to set
+                // a new value in CoreAnalysisData below, which is non-predicated.
+                if (HasPredicatedData)
+                {
+                    RemoveEntriesInPredicatedData(entity);
+                }
+
+                // Finally, set the value in the core analysis data.
+                CoreAnalysisData[entity] = copyValue;
+            }
         }
 
         public override void SetAbstractValue(AnalysisEntity key, CopyAbstractValue value)
         {
-            throw new NotSupportedException("Use the other overload of SetAbstactValue");
+            throw new NotSupportedException("Use SetAbstactValueForEntities API");
         }
 
         protected override void RemoveEntryInPredicatedData(AnalysisEntity key, CoreCopyAnalysisData predicatedData)
