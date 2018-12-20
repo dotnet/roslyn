@@ -69,9 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
         public bool ThreeStateEnable { get => _threeStateEnable; set => SetProperty(ref _threeStateEnable, value, nameof(ThreeStateEnable)); }
 
-        public readonly IWaitIndicator WaitIndicator;
+        private readonly IWaitIndicator WaitIndicator;
 
-        public readonly CancellationToken CancellationToken;
+        private readonly CancellationToken CancellationToken;
 
         internal PullMemberUpViewModel(
             ImmutableArray<BaseTypeTreeNodeViewModel> destinations,
@@ -158,21 +158,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
                 if (waitResult == WaitIndicatorResult.Completed)
                 {
-                    var memberToSelected = dependentsTask.Result.SelectAsArray(symbol => SymbolToMemberViewMap[symbol]);
-                    SelectMembers(memberToSelected);
+                    var membersToSelected = dependentsTask.Result.SelectAsArray(symbol => SymbolToMemberViewMap[symbol]);
+                    SelectMembers(membersToSelected);
                 }
             }
-        }
-
-        private void SelectMembers(ImmutableArray<PullMemberUpSymbolViewModel> memberViewModels)
-        {
-            foreach (var member in memberViewModels.WhereAsArray(viewModel => viewModel.IsCheckable))
-            {
-                member.IsChecked = true;
-            }
-
-            CheckAndSetStateOfSelectAllCheckBox();
-            EnableOrDisableOkButton();
         }
 
         internal void DeSelectAllMembers()
@@ -180,6 +169,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             foreach (var member in Members.WhereAsArray(viewModel => viewModel.IsCheckable))
             {
                 member.IsChecked = false;
+            }
+
+            CheckAndSetStateOfSelectAllCheckBox();
+            EnableOrDisableOkButton();
+        }
+
+        private void SelectMembers(ImmutableArray<PullMemberUpSymbolViewModel> memberViewModels)
+        {
+            foreach (var member in memberViewModels.WhereAsArray(viewModel => viewModel.IsCheckable))
+            {
+                member.IsChecked = true;
             }
 
             CheckAndSetStateOfSelectAllCheckBox();
