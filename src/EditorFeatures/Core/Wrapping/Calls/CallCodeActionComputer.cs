@@ -3,7 +3,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -22,6 +21,19 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             TElementAccessExpressionSyntax,
             TBaseArgumentListSyntax>
     {
+        /// <summary>
+        /// Responsible for actually computing the set of potential wrapping options
+        /// for complex call expressions.  The three options we offer are basically
+        /// 1. wrap-each. Each call-chunk will be wrapped and aligned with the first).
+        /// 2. wrap-long. The same as '1', except a call-chunk will only be wrapped
+        ///    if it would go past the preferred wrapping column.
+        /// 3. Unwrap.  All the call-chunks will be placed on a single line.
+        /// 
+        /// Note: These three options are always computed and returned.  The caller
+        /// is the one that ends up eliminating any if they would be redundant.  i.e.
+        /// if wrap-long produces the same results as wrap-each, then the caller will
+        /// filter it out.
+        /// </summary>
         private class CallCodeActionComputer :
             AbstractCodeActionComputer<AbstractCallWrapper>
         {

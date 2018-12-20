@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
         TElementAccessExpressionSyntax,
         TBaseArgumentListSyntax>
     {
+        /// <summary>
+        /// A single `.Name` piece of a call-chunk like `.P1.P2.P3(...)`
+        /// </summary>
         private readonly struct MemberChunk
         {
             public readonly SyntaxToken DotToken;
@@ -28,17 +31,19 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             }
 
             /// <summary>
-            /// The length this chunk will be once all unnecessary whitespace has been
+            /// The length this name chunk will be once all unnecessary whitespace has been
             /// removed from it.
             /// </summary>
             public int NormalizedLength()
                 => DotToken.Width() + Name.Width();
         }
 
+        /// <summary>
+        /// A full chunk of complex dotted call expression that we want to be
+        /// able to wrap as a single unit.  It will have the form: `.P1.P2.P3(...)`
+        /// </summary>
         private readonly struct CallChunk
         {
-            // Optional as VB allows an initial dotted expression starting with <dot>
-            // in a `with` block.
             public readonly ImmutableArray<MemberChunk> MemberChunks;
             public readonly TBaseArgumentListSyntax ArgumentList;
 
@@ -50,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.Call
             }
 
             /// <summary>
-            /// The length this chunk will be once all unnecessary whitespace has been
+            /// The length this call chunk will be once all unnecessary whitespace has been
             /// removed from it.
             /// </summary>
             public int NormalizedLength()
