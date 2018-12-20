@@ -14,9 +14,9 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Wrapping.CallExpression
+namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
 {
-    internal abstract partial class AbstractCallExpressionWrapper<
+    internal abstract partial class AbstractChainedExpressionWrapper<
             TExpressionSyntax,
             TNameSyntax,
             TMemberAccessExpressionSyntax,
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.CallExpression
         /// filter it out.
         /// </summary>
         private class CallExpressionCodeActionComputer :
-            AbstractCodeActionComputer<AbstractCallExpressionWrapper>
+            AbstractCodeActionComputer<AbstractChainedExpressionWrapper>
         {
             /// <summary>
             /// The chunks to normalize and wrap.  The first chunk will be normalized,
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.CallExpression
             private readonly SyntaxTriviaList _newlineBeforeOperatorTrivia;
 
             public CallExpressionCodeActionComputer(
-                AbstractCallExpressionWrapper service,
+                AbstractChainedExpressionWrapper service,
                 Document document,
                 SourceText originalSourceText,
                 DocumentOptionSet options,

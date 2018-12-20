@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Editor.Wrapping.CallExpression
+namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
 {
-    internal abstract partial class AbstractCallExpressionWrapper : AbstractSyntaxWrapper
+    internal abstract partial class AbstractChainedExpressionWrapper : AbstractSyntaxWrapper
     {
         /// <summary>
         /// Gets the language specific trivia that should be inserted before an operator if the
@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.CallExpression
     /// 'wrap long', then the wrapping only occurs if the current call-chunk's end
     /// would go past the preferred wrapping column
     /// </summary>
-    internal abstract partial class AbstractCallExpressionWrapper<
+    internal abstract partial class AbstractChainedExpressionWrapper<
         TExpressionSyntax,
         TNameSyntax,
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TElementAccessExpressionSyntax,
-        TBaseArgumentListSyntax> : AbstractCallExpressionWrapper
+        TBaseArgumentListSyntax> : AbstractChainedExpressionWrapper
         where TExpressionSyntax : SyntaxNode
         where TNameSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.CallExpression
         private readonly int _dotTokenKind;
         private readonly int _questionTokenKind;
 
-        protected AbstractCallExpressionWrapper(
+        protected AbstractChainedExpressionWrapper(
             ISyntaxFactsService syntaxFacts,
             int dotTokenKind,
             int questionTokenKind)

@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 {
-    public class CallExpressionWrappingTests : AbstractWrappingTests
+    public class ChainedExpressionWrappingTests : AbstractWrappingTests
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpWrappingCodeRefactoringProvider();

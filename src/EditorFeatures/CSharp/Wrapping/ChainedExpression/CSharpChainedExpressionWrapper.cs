@@ -2,11 +2,11 @@
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Wrapping.CallExpression;
+using Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.CallExpression
+namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.ChainedExpression
 {
-    internal class CSharpCallExpressionWrapper : AbstractCallExpressionWrapper<
+    internal class CSharpChainedExpressionWrapper : AbstractChainedExpressionWrapper<
         ExpressionSyntax,
         NameSyntax,
         MemberAccessExpressionSyntax,
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.CallExpression
         ElementAccessExpressionSyntax,
         BaseArgumentListSyntax>
     {
-        public CSharpCallExpressionWrapper()
+        public CSharpChainedExpressionWrapper()
             : base(CSharpSyntaxFactsService.Instance, (int)SyntaxKind.DotToken, (int)SyntaxKind.QuestionToken)
         {
         }
