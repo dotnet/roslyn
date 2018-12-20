@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var typeArgumentsA = typeA.TypeArgumentsNoUseSiteDiagnostics;
                     var typeArgumentsB = typeB.TypeArgumentsNoUseSiteDiagnostics;
-                    allTypeParameters.AddRange(definition.TypeParameters);
+                    allTypeParameters.AddRange(typeParameters);
                     for (int i = 0; i < typeArgumentsA.Length; i++)
                     {
                         TypeSymbolWithAnnotations typeArgumentA = typeArgumentsA[i];
