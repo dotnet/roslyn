@@ -1867,22 +1867,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             expression = invocation.Expression
             argumentList = invocation.ArgumentList
         End Sub
-
-        Public Function IsPostfixUnaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsPostfixUnaryExpression
-            ' Does not exist in VB.
-            Return False
-        End Function
-
-        Public Sub GetPartsOfPostfixUnaryExpression(node As SyntaxNode, ByRef operand As SyntaxNode, ByRef operatorToken As SyntaxToken) Implements ISyntaxFactsService.GetPartsOfPostfixUnaryExpression
-            Throw ExceptionUtilities.UnexpectedValue(node.Kind())
-        End Sub
-
-        Public Function IsMemberBindingExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsMemberBindingExpression
-            Return False
-        End Function
-
-        Public Sub GetPartsOfMemberBindingExpression(node As SyntaxNode, ByRef dotToken As SyntaxToken, ByRef name As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfMemberBindingExpression
-            Throw ExceptionUtilities.UnexpectedValue(node.Kind())
-        End Sub
     End Class
 End Namespace
