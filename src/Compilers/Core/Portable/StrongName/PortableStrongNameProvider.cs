@@ -14,6 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    // TODO: delete this
     internal sealed class PortableStrongNameProvider : StrongNameProvider
     {
         private readonly DesktopStrongNameProvider _provider;
@@ -30,9 +31,9 @@ namespace Microsoft.CodeAnalysis
 
         internal override StrongNameFileSystem FileSystem => _provider.FileSystem;
 
-        internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider)
+        internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, bool hasCounterSignature, CommonMessageProvider messageProvider)
         {
-            return _provider.CreateKeys(keyFilePath, keyContainerName, messageProvider);
+            return _provider.CreateKeys(keyFilePath, keyContainerName, hasCounterSignature, messageProvider);
         }
 
         internal override void SignPeBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey)

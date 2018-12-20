@@ -101,9 +101,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _modules = moduleBuilder.ToImmutableAndFree()
 
             If Not compilation.Options.CryptoPublicKey.IsEmpty Then
+                ' TODO: this Is suspicious.When it's set here it's never re-computed hence it will never get the private
+                ' key. This appears to be what Is used for emit though. Need to follow up on this.
                 ' Private key Is Not necessary for assembly identity, only when emitting.  For this reason, the private key can remain null.
-                Dim privateKey As RSAParameters? = Nothing
-                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey, MessageProvider.Instance)
+                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey:=Nothing, hasCounterSignature:=False, MessageProvider.Instance)
             End If
         End Sub
 
@@ -1679,7 +1680,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
+            Dim hasCounterSignature = Not String.IsNullOrEmpty(SignatureKey)
+            keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, hasCounterSignature, MessageProvider.Instance)
             Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
         End Sub
 

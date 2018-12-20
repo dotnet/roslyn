@@ -137,9 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!compilation.Options.CryptoPublicKey.IsEmpty)
             {
+                // TODO: this is suspicious. When it's set here it's never re-computed hence it will never get the private
+                // key. This appears to be what is used for emit though. Need to follow up on this.
                 // Private key is not necessary for assembly identity, only when emitting.  For this reason, the private key can remain null.
-                RSAParameters? privateKey = null;
-                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey, MessageProvider.Instance);
+                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey: null, hasCounterSignature: false, MessageProvider.Instance);
             }
         }
 
@@ -503,7 +504,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
+            var hasCounterSignature = !string.IsNullOrEmpty(this.SignatureKey);
+            return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, hasCounterSignature, MessageProvider.Instance);
         }
 
         // A collection of assemblies to which we were granted internals access by only checking matches for assembly name

@@ -1657,11 +1657,13 @@ namespace Microsoft.CodeAnalysis
         ///   1. By directly signing the <see cref="PEBuilder"/>
         ///   2. Write the unsigned PE to disk and use CLR COM APIs to sign.
         /// The preferred method is #1 as it's more efficient and more resilient (no reliance on %TEMP%). But 
-        /// we must continue to support #2 as it's the only way to access private keys stored in a key 
-        /// container.
+        /// we must continue to support #2 as it's the only way to do the following:
+        ///   - Access private keys stored in a key 
+        ///   - Do proper counter signature verification for AssemblySignatureKey attributes
         /// </summary>
         internal bool SignUsingBuilder =>
             string.IsNullOrEmpty(StrongNameKeys.KeyContainer) &&
+            !StrongNameKeys.HasCounterSignature &&
             !_features.ContainsKey("UseLegacyStrongNameProvider");
 
         /// <summary>

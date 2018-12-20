@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 throw ThrownException;
             }
 
-            internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider) =>
-                _underlyingProvider.CreateKeys(keyFilePath, keyContainerName, messageProvider);
+            internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, bool hasSignatureKey, CommonMessageProvider messageProvider) =>
+                _underlyingProvider.CreateKeys(keyFilePath, keyContainerName, hasSignatureKey, messageProvider);
 
             internal override void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream) =>
                 _underlyingProvider.SignStream(keys, inputStream, outputStream);
