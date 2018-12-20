@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.BinaryExpression
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.Call
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.SeparatedSyntaxList
 Imports Microsoft.CodeAnalysis.Editor.Wrapping
 
@@ -16,7 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping
             ImmutableArray.Create(Of ISyntaxWrapper)(
                 New VisualBasicArgumentWrapper(),
                 New VisualBasicParameterWrapper(),
-                New VisualBasicBinaryExpressionWrapper())
+                New VisualBasicBinaryExpressionWrapper(),
+                New VisualBasicCallWrapper())
 
         Public Sub New()
             MyBase.New(s_wrappers)
