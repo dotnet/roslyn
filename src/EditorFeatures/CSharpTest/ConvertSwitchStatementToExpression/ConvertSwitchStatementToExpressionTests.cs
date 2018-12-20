@@ -436,6 +436,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingOnUnorderedMultiAssignmnet()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    void M(int i)
+    {
+        int j, k;
+        [||]switch (i)
+        {
+            case 1:
+                j = 4;
+                k = 5;
+                break;
+            case 2:
+                k = 7;
+                j = 6;
+                break;
+            case 3:
+                j = 8;
+                k = 9;
+                break;
+        }
+        throw null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingONMultiCaseSection()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    void M(int i)
+    {
+        int j, k;
+        [||]switch (i)
+        {
+            case 1:
+            case 2:
+                j = 4;
+                k = 5;
+                break;
+        }
+        throw null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMiissingOnMultiCompoundAssignment()
         {
             await TestMissingAsync(
