@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             Document document, int position, SyntaxNode node, CancellationToken cancellationToken)
         {
             // We have to be on a chain part.  If not, there's nothing to do here at all.
-            if (!IsChainPart(node))
+            if (!IsDecomposableChainPart(node))
             {
                 return null;
             }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             // Has to be the topmost chain part.  If we're not on the topmost, then just
             // bail out here.  Our caller will continue walking upwards until it hits the 
             // topmost node.
-            if (IsChainPart(node.Parent))
+            if (IsDecomposableChainPart(node.Parent))
             {
                 return null;
             }
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             return result.ToImmutableAndFree();
         }
 
-        private bool IsChainPart(SyntaxNode node)
+        private bool IsDecomposableChainPart(SyntaxNode node)
         {
             // This is the effective set of language constructs that can can 'chain' 
             // off of a call `.M(...)`.  They are:
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
 
             // We've hit some node that can't be decomposed further (like an argument list,
             // or name node).  Just add directly to the pieces list.
-            if (!IsChainPart(node))
+            if (!IsDecomposableChainPart(node))
             {
                 pieces.Add(node);
                 return;
