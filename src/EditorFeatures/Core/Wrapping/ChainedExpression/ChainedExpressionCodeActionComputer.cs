@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
         /// filter it out.
         /// </summary>
         private class CallExpressionCodeActionComputer :
-            AbstractCodeActionComputer<AbstractChainedExpressionWrapper>
+            AbstractCodeActionComputer<AbstractChainedExpressionWrapper<TNameSyntax, TBaseArgumentListSyntax>>
         {
             /// <summary>
             /// The chunks to normalize and wrap.  The first chunk will be normalized,
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             private readonly SyntaxTriviaList _newlineBeforeOperatorTrivia;
 
             public CallExpressionCodeActionComputer(
-                AbstractChainedExpressionWrapper service,
+                AbstractChainedExpressionWrapper<TNameSyntax, TBaseArgumentListSyntax> service,
                 Document document,
                 SourceText originalSourceText,
                 DocumentOptionSet options,

@@ -625,6 +625,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             whenNotNull = conditionalAccess.WhenNotNull;
         }
 
+        public bool IsPostfixUnaryExpression(SyntaxNode node)
+            => node is PostfixUnaryExpressionSyntax;
+
+        public bool IsMemberBindingExpression(SyntaxNode node)
+            => node is MemberBindingExpressionSyntax;
+
         public bool IsPointerMemberAccessExpression(SyntaxNode node)
             => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.PointerMemberAccessExpression;
 

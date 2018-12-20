@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.ChainedExpression
         {
         }
 
-        public override SyntaxTriviaList GetNewLineBeforeOperatorTrivia(SyntaxTriviaList newLine)
+        protected override SyntaxTriviaList GetNewLineBeforeOperatorTrivia(SyntaxTriviaList newLine)
             => newLine;
     }
 }

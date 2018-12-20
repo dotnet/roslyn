@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.ChainedExpression
             MyBase.New(VisualBasicSyntaxFactsService.Instance, SyntaxKind.DotToken, SyntaxKind.QuestionToken)
         End Sub
 
-        Public Overrides Function GetNewLineBeforeOperatorTrivia(newLine As SyntaxTriviaList) As SyntaxTriviaList
+        Protected Overrides Function GetNewLineBeforeOperatorTrivia(newLine As SyntaxTriviaList) As SyntaxTriviaList
             Return newLine.InsertRange(0, {SyntaxFactory.WhitespaceTrivia(" "), SyntaxFactory.LineContinuationTrivia("_")})
         End Function
     End Class

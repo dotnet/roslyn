@@ -9,16 +9,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
 {
-    internal abstract partial class AbstractChainedExpressionWrapper : AbstractSyntaxWrapper
-    {
-        /// <summary>
-        /// Gets the language specific trivia that should be inserted before an operator if the
-        /// user wants to wrap the operator to the next line.  For C# this is a simple newline-trivia.
-        /// For VB, this will be a line-continuation char (<c>_</c>), followed by a newline.
-        /// </summary>
-        public abstract SyntaxTriviaList GetNewLineBeforeOperatorTrivia(SyntaxTriviaList newLine);
-    }
-
     /// <summary>
     /// Finds and wraps 'chained' expressions.  For the purpose of this feature, a chained
     /// expression is built out of 'chunks' where each chunk is of the form
@@ -53,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
     /// </summary>
     internal abstract partial class AbstractChainedExpressionWrapper<
         TNameSyntax,
-        TBaseArgumentListSyntax> : AbstractChainedExpressionWrapper
+        TBaseArgumentListSyntax> : AbstractSyntaxWrapper
         where TNameSyntax : SyntaxNode
         where TBaseArgumentListSyntax : SyntaxNode
     {
@@ -70,6 +60,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
             _dotTokenKind = dotTokenKind;
             _questionTokenKind = questionTokenKind;
         }
+
+        /// <summary>
+        /// Gets the language specific trivia that should be inserted before an operator if the
+        /// user wants to wrap the operator to the next line.  For C# this is a simple newline-trivia.
+        /// For VB, this will be a line-continuation char (<c>_</c>), followed by a newline.
+        /// </summary>
+        protected abstract SyntaxTriviaList GetNewLineBeforeOperatorTrivia(SyntaxTriviaList newLine);
 
         public sealed override async Task<ICodeActionComputer> TryCreateComputerAsync(
             Document document, int position, SyntaxNode node, CancellationToken cancellationToken)

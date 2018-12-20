@@ -1867,5 +1867,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             expression = invocation.Expression
             argumentList = invocation.ArgumentList
         End Sub
+
+        Public Function IsPostfixUnaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsPostfixUnaryExpression
+            ' Does not exist in VB.
+            Return False
+        End Function
+
+        Public Function IsMemberBindingExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsMemberBindingExpression
+            ' Does not exist in VB.
+            Return False
+        End Function
     End Class
 End Namespace

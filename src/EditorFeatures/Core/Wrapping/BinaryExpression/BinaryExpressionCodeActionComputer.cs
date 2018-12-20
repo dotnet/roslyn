@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
     internal partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax>
     {
         private class BinaryExpressionCodeActionComputer :
-            AbstractCodeActionComputer<AbstractBinaryExpressionWrapper>
+            AbstractCodeActionComputer<AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax>>
         {
             private readonly ImmutableArray<SyntaxNodeOrToken> _exprsAndOperators;
             private readonly OperatorPlacementWhenWrappingPreference _preference;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
             private readonly SyntaxTriviaList _newlineBeforeOperatorTrivia;
 
             public BinaryExpressionCodeActionComputer(
-                AbstractBinaryExpressionWrapper service,
+                AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> service,
                 Document document,
                 SourceText originalSourceText,
                 DocumentOptionSet options,

@@ -212,6 +212,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsConditionalAccessExpression(SyntaxNode node);
         void GetPartsOfConditionalAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode whenNotNull);
 
+        bool IsMemberBindingExpression(SyntaxNode node);
+        bool IsPostfixUnaryExpression(SyntaxNode node);
+
         bool IsParenthesizedExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
 
