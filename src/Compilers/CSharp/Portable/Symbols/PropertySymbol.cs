@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Indicates whether or not the property returns a readonly reference
         /// </summary>
-        public bool ReturnsByRefReadonly { get { return this.RefKind == RefKind.RefReadOnly ; } }
+        public bool ReturnsByRefReadonly { get { return this.RefKind == RefKind.RefReadOnly; } }
 
         /// <summary>
         /// Gets the ref kind of the property.
@@ -168,15 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// True if this symbol has a special name (metadata flag SpecialName is set).
         /// </summary>
         internal abstract bool HasSpecialName { get; }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                Debug.Assert(IsDefinition);
-                return ContainingType?.NonNullTypes;
-            }
-        }
 
         /// <summary>
         /// The 'get' accessor of the property, or null if the property is write-only.
@@ -521,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // This checks if the property have the same definition and the type parameters on the containing types have been
             // substituted in the same way.
-            return this.ContainingType == other.ContainingType && ReferenceEquals(this.OriginalDefinition, other.OriginalDefinition);
+            return TypeSymbol.Equals(this.ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything2) && ReferenceEquals(this.OriginalDefinition, other.OriginalDefinition);
         }
 
         public override int GetHashCode()

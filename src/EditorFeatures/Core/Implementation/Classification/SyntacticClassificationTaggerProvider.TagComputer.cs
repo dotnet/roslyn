@@ -258,8 +258,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             private IEnumerable<ITagSpan<IClassificationTag>> GetTags<TClassificationService>(
-                NormalizedSnapshotSpanCollection spans, 
-                HostLanguageServices languageServices, 
+                NormalizedSnapshotSpanCollection spans,
+                HostLanguageServices languageServices,
                 IClassificationDelegationService<TClassificationService> delegationService) where TClassificationService : class, ILanguageService
             {
                 var classificationService = languageServices.GetService<TClassificationService>();

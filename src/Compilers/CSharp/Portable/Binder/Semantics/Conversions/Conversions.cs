@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // An interpolated string expression may be converted to the types
             // System.IFormattable and System.FormattableString
-            return (destination == Compilation.GetWellKnownType(WellKnownType.System_IFormattable) ||
-                    destination == Compilation.GetWellKnownType(WellKnownType.System_FormattableString))
+            return (TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_IFormattable), TypeCompareKind.ConsiderEverything2) ||
+                    TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_FormattableString), TypeCompareKind.ConsiderEverything2))
                 ? Conversion.InterpolatedString : Conversion.NoConversion;
         }
 
@@ -238,9 +238,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // which will cause some error to be reported.  That's sufficient (i.e. no need to specifically report its absence here).
                     parameter = new SignatureOnlyParameterSymbol(
                         TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), customModifiers: parameter.Type.CustomModifiers), parameter.RefCustomModifiers, parameter.IsParams, parameter.RefKind);
-            }
+                }
 
-            analyzedArguments.Arguments.Add(new BoundParameter(syntax, parameter) { WasCompilerGenerated = true });
+                analyzedArguments.Arguments.Add(new BoundParameter(syntax, parameter) { WasCompilerGenerated = true });
                 analyzedArguments.RefKinds.Add(parameter.RefKind);
             }
         }
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (sourceExpression.Syntax.IsVariableDeclarationInitialization())
             {
                 Debug.Assert((object)sourceExpression.Type == null);
-                Debug.Assert(sourceExpression.ElementType != null);
+                Debug.Assert((object)sourceExpression.ElementType != null);
 
                 var sourceAsPointer = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(sourceExpression.ElementType));
                 var pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);

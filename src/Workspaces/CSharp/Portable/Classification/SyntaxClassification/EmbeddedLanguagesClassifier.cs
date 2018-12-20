@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
     internal class EmbeddedLanguagesClassifier : AbstractEmbeddedLanguagesClassifier
     {
-        public EmbeddedLanguagesClassifier() 
+        public EmbeddedLanguagesClassifier()
             : base(CSharpEmbeddedLanguagesProvider.Instance)
         {
         }

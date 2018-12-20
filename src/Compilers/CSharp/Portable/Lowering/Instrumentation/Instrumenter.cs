@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.DoStatement);
-            return ifConditionGotoStart; 
+            return ifConditionGotoStart;
         }
 
         public virtual BoundStatement InstrumentWhileStatementConditionalGotoStartOrBreak(BoundWhileStatement original, BoundStatement ifConditionGotoStart)

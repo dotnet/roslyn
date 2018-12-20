@@ -3,6 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
@@ -773,6 +774,52 @@ aeu";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableEnable()
+        {
+            var code = @"#nullable enable";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("enable"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableEnableWithComment()
+        {
+            var code = @"#nullable enable //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("enable"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableDisable()
+        {
+            var code = @"#nullable disable";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("disable"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableDisableWithComment()
+        {
+            var code = @"#nullable disable //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("disable"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaChecksum1()
         {
             await TestAsync(
@@ -838,6 +885,20 @@ aeu";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(30783, "https://github.com/dotnet/roslyn/issues/30783")]
+        public async Task PP_PragmaWarningDisableAllWithComment()
+        {
+            var code = @"#pragma warning disable //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("pragma"),
+                PPKeyword("warning"),
+                PPKeyword("disable"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaWarningRestoreOne()
         {
             var code = @"#pragma warning restore 100";
@@ -861,6 +922,20 @@ aeu";
                 PPKeyword("warning"),
                 PPKeyword("restore"),
                 Number("100"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(30783, "https://github.com/dotnet/roslyn/issues/30783")]
+        public async Task PP_PragmaWarningRestoreAllWithComment()
+        {
+            var code = @"#pragma warning restore //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("pragma"),
+                PPKeyword("warning"),
+                PPKeyword("restore"),
                 Comment("//Goo"));
         }
 
@@ -997,7 +1072,7 @@ aeu";
         [Fact]
         public async Task UnderscoreInAssignment()
         {
-            await TestInMethodAsync(code: @"int _; _ = 1;" ,
+            await TestInMethodAsync(code: @"int _; _ = 1;",
                 expected: Classifications(Keyword("int"), Local("_"), Punctuation.Semicolon, Identifier("_"), Operators.Equals,
                     Number("1"), Punctuation.Semicolon));
         }

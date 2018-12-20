@@ -88,9 +88,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
+        protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
+        protected abstract bool IsIfConditionalDirective(SyntaxNode node);
         protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
         protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
-        
+
         /// <summary>
         /// Indicates if the given expression statement operation has an explicit "Call" statement syntax indicating explicit discard.
         /// For example, VB "Call" statement.

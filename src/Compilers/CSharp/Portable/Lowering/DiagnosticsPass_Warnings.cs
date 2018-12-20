@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol baseType = fieldAccess.FieldSymbol.ContainingType;
                 while ((object)baseType != null)
                 {
-                    if (baseType == marshalByRefType)
+                    if (TypeSymbol.Equals(baseType, marshalByRefType, TypeCompareKind.ConsiderEverything2))
                     {
                         return true;
                     }
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsInterlockedAPI(Symbol method)
         {
             var interlocked = _compilation.GetWellKnownType(WellKnownType.System_Threading_Interlocked);
-            if ((object)interlocked != null && interlocked == method.ContainingType)
+            if ((object)interlocked != null && TypeSymbol.Equals(interlocked, method.ContainingType, TypeCompareKind.ConsiderEverything2))
                 return true;
 
             return false;
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ThisReference:
                 case BoundKind.PreviousSubmissionReference:
                 case BoundKind.HostObjectMemberReference:
-                    Debug.Assert(expr1.Type == expr2.Type);
+                    Debug.Assert(TypeSymbol.Equals(expr1.Type, expr2.Type, TypeCompareKind.ConsiderEverything2));
                     return true;
                 default:
                     return false;
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MethodSymbol op = sym as MethodSymbol;
                     if ((object)op == null || op.MethodKind != MethodKind.UserDefinedOperator) continue;
                     var parameters = op.GetParameters();
-                    if (parameters.Length == 2 && parameters[0].Type.TypeSymbol == t && parameters[1].Type.TypeSymbol == t)
+                    if (parameters.Length == 2 && TypeSymbol.Equals(parameters[0].Type.TypeSymbol, t, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(parameters[1].Type.TypeSymbol, t, TypeCompareKind.ConsiderEverything2))
                     {
                         type = t;
                         return true;
@@ -865,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (right.Kind == BoundKind.Conversion)
             {
                 var conversion = (BoundConversion)right;
-                switch(conversion.ConversionKind)
+                switch (conversion.ConversionKind)
                 {
                     case ConversionKind.Deconstruction:
                     case ConversionKind.ImplicitTupleLiteral:

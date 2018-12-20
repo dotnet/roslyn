@@ -8591,7 +8591,7 @@ namespace ConsoleApplication30
             var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
 
             var comp2 = CompileAndVerify(s2,
-                options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, 
+                options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails,
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
                 expectedOutput: "TrueFalse").Compilation;
 

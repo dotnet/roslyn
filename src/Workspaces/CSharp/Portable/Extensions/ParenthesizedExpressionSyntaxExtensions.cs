@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // case (x) when y: -> case x when y:
-            if (node.IsParentKind(SyntaxKind.ConstantPattern) && 
+            if (node.IsParentKind(SyntaxKind.ConstantPattern) &&
                 node.Parent.IsParentKind(SyntaxKind.CasePatternSwitchLabel))
             {
                 return true;
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         parentBinaryExpression.Right == node)
                     {
                         return !node.IsSafeToChangeAssociativity(
-                            node.Expression, parentBinaryExpression.Left, 
+                            node.Expression, parentBinaryExpression.Left,
                             parentBinaryExpression.Right, semanticModel);
                     }
 
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 if (expression.IsKind(
                         SyntaxKind.UnaryMinusExpression,
-                        SyntaxKind.UnaryPlusExpression, 
+                        SyntaxKind.UnaryPlusExpression,
                         SyntaxKind.PointerIndirectionExpression,
                         SyntaxKind.AddressOfExpression))
                 {

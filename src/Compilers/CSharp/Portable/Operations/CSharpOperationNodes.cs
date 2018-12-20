@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<BoundExpression> arguments;
             ImmutableArray<BoundAnonymousPropertyDeclaration> declarations;
 
-            switch(_anonymousObjectCreation)
+            switch (_anonymousObjectCreation)
             {
                 case BoundAnonymousObjectCreationExpression anonymousObjectCreationExpression:
                     arguments = anonymousObjectCreationExpression.Arguments;

@@ -8,6 +8,7 @@
     <TargetFramework>netstandard1.3</TargetFramework>
     <RootNamespace></RootNamespace>
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
+    <PackageId>Microsoft.CodeAnalysis.VisualBasic.CodeStyle.NewNameSinceWeReferenceTheAnalyzersAndNuGetCannotFigureItOut</PackageId>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Extensions\SyntaxTokenExtensions_SharedWithCodeStyle.vb" Link="Formatting\SyntaxTokenExtensions_SharedWithCodeStyle.vb" />

@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // Get the source symbol if possible
                 var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, _cancellationToken).ConfigureAwait(false) ?? symbol;
 
-                if (sourceSymbol.Kind == SymbolKind.Field && 
+                if (sourceSymbol.Kind == SymbolKind.Field &&
                     ((IFieldSymbol)sourceSymbol).ContainingType.IsTupleType &&
                     sourceSymbol.IsImplicitlyDeclared)
                 {

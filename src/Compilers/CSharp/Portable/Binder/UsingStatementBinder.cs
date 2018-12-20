@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion classifyConversion(bool fromExpression, TypeSymbol targetInterface, ref HashSet<DiagnosticInfo> diag)
             {
-                return fromExpression?
+                return fromExpression ?
                     originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref diag) :
                     originalBinder.Conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref diag);
             }

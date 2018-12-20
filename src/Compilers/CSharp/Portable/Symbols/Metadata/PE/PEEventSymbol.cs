@@ -163,15 +163,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (isWindowsRuntimeEvent)
                 {
                     NamedTypeSymbol eventRegistrationTokenTable_T = ((PEModuleSymbol)(this.ContainingModule)).EventRegistrationTokenTable_T;
-                    if (eventRegistrationTokenTable_T == candidateAssociatedFieldType.OriginalDefinition &&
-                        _eventType.TypeSymbol == ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol)
+                    if (TypeSymbol.Equals(eventRegistrationTokenTable_T, candidateAssociatedFieldType.OriginalDefinition, TypeCompareKind.ConsiderEverything2) &&
+                        TypeSymbol.Equals(_eventType.TypeSymbol, ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol, TypeCompareKind.ConsiderEverything2))
                     {
                         return candidateAssociatedField;
                     }
                 }
                 else
                 {
-                    if (candidateAssociatedFieldType == _eventType.TypeSymbol)
+                    if (TypeSymbol.Equals(candidateAssociatedFieldType, _eventType.TypeSymbol, TypeCompareKind.ConsiderEverything2))
                     {
                         return candidateAssociatedField;
                     }
@@ -196,10 +196,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // does not check whether the containing type is a WinRT type -
                 // it was a design goal to accept any events of this form.
                 return
-                    _addMethod.ReturnType.TypeSymbol == token &&
+                    TypeSymbol.Equals(_addMethod.ReturnType.TypeSymbol, token, TypeCompareKind.ConsiderEverything2) &&
                     _addMethod.ParameterCount == 1 &&
                     _removeMethod.ParameterCount == 1 &&
-                    _removeMethod.Parameters[0].Type.TypeSymbol == token;
+                    TypeSymbol.Equals(_removeMethod.Parameters[0].Type.TypeSymbol, token, TypeCompareKind.ConsiderEverything2);
             }
         }
 
@@ -472,14 +472,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
         }
     }
 }

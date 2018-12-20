@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (project.SupportsCompilation && HasReferenceTo(sourceAssembly, sourceProject, project, cancellationToken))
                 {
                     var hasInternalsAccess = await HasInternalsAccessAsync(
-                        sourceAssembly, internalsVisibleToMap, 
+                        sourceAssembly, internalsVisibleToMap,
                         sourceAssemblySymbolKey, project, cancellationToken).ConfigureAwait(false);
 
                     dependentProjects.Add(new DependentProject(project.Id, hasInternalsAccess));
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<bool> HasInternalsAccessAsync(
-            IAssemblySymbol sourceAssembly, Lazy<HashSet<string>> internalsVisibleToMap, 
+            IAssemblySymbol sourceAssembly, Lazy<HashSet<string>> internalsVisibleToMap,
             SymbolKey sourceAssemblySymbolKey, Project project, CancellationToken cancellationToken)
         {
             if (internalsVisibleToMap.Value.Contains(project.AssemblyName) &&
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// as the value of this function.  Otherwise 'null' is returned.
         /// </summary>
         private static T? GetAssemblyReferenceType<T>(
-            this Project project, 
+            this Project project,
             Func<IAssemblySymbol, T?> predicate) where T : struct
         {
             // If the project we're looking at doesn't even support compilations, then there's no 

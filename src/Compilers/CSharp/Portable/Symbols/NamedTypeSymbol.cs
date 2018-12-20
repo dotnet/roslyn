@@ -617,9 +617,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal abstract NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved);
+        internal abstract NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved);
 
-        internal abstract ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved);
+        internal abstract ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved);
 
         public override int GetHashCode()
         {
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // symbols.  Therefore this code may not behave correctly if 'this' is List<int>
             // where List`1 is a missing metadata type symbol, and other is similarly List<int>
             // but for a reference-distinct List`1.
-            if (thisOriginalDefinition != otherOriginalDefinition)
+            if (!TypeSymbol.Equals(thisOriginalDefinition, otherOriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 return false;
             }
@@ -962,19 +962,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parameters in the type.</param>
         public NamedTypeSymbol Construct(params TypeSymbol[] typeArguments)
         {
-            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass an explicit context.
-            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, NonNullTypesNullContext.Instance);
-        }
-
-        /// <summary>
-        /// Returns a constructed type given its type arguments.
-        /// </summary>
-        /// <param name="nonNullTypesContext">This context indicates how to interpret un-annotated types.</param>
-        /// <param name="typeArguments">The immediate type arguments to be replaced for type
-        /// parameters in the type.</param>
-        public NamedTypeSymbol Construct(INonNullTypesContext nonNullTypesContext, params TypeSymbol[] typeArguments)
-        {
-            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, nonNullTypesContext);
+            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass TypeSymbolWithAnnotations[] instead of TypeSymbol[].
+            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false);
         }
 
         /// <summary>
@@ -982,10 +971,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="typeArguments">The immediate type arguments to be replaced for type
         /// parameters in the type.</param>
-        public NamedTypeSymbol Construct(ImmutableArray<TypeSymbol> typeArguments, INonNullTypesContext nonNullTypesContext = null)
+        public NamedTypeSymbol Construct(ImmutableArray<TypeSymbol> typeArguments)
         {
-            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass an explicit context.
-            return ConstructWithoutModifiers(typeArguments, false, nonNullTypesContext ?? NonNullTypesNullContext.Instance);
+            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass ImmutableArray<TypeSymbolWithAnnotations> instead of ImmutableArray<TypeSymbol>.
+            return ConstructWithoutModifiers(typeArguments, false);
         }
 
         /// <summary>
@@ -994,8 +983,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="typeArguments"></param>
         public NamedTypeSymbol Construct(IEnumerable<TypeSymbol> typeArguments)
         {
-            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass an explicit context.
-            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, NonNullTypesNullContext.Instance);
+            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass IEnumerable<TypeSymbolWithAnnotations> instead of IEnumerable<TypeSymbol>.
+            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false);
         }
 
         /// <summary>
@@ -1025,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsErrorType = type => !type.IsNull && type.IsErrorType();
 
-        private NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> typeArguments, bool unbound, INonNullTypesContext nonNullTypesContext)
+        private NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> typeArguments, bool unbound)
         {
             ImmutableArray<TypeSymbolWithAnnotations> modifiedArguments;
 
@@ -1035,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                modifiedArguments = typeArguments.SelectAsArray((t, c) => t == null ? default : TypeSymbolWithAnnotations.Create(c, t), nonNullTypesContext);
+                modifiedArguments = typeArguments.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t));
             }
 
             return Construct(modifiedArguments, unbound);
@@ -1406,15 +1395,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                Debug.Assert(IsDefinition);
-                return ((Symbol)ContainingType ?? base.ContainingModule)?.NonNullTypes;
-            }
-        }
-
         /// <summary>
         /// Marshalling charset of string data fields within the type (string formatting flags in metadata).
         /// </summary>
@@ -1520,12 +1500,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         levelsOfNesting++;
                         typeToCheck = ((NamedTypeSymbol)typeToCheck).TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].TypeSymbol;
                     }
-                    while (typeToCheck.OriginalDefinition == this.OriginalDefinition && !typeToCheck.IsDefinition);
+                    while (TypeSymbol.Equals(typeToCheck.OriginalDefinition, this.OriginalDefinition, TypeCompareKind.ConsiderEverything2) && !typeToCheck.IsDefinition);
 
                     if (typeToCheck.IsTupleType)
                     {
                         var underlying = typeToCheck.TupleUnderlyingType;
-                        if (underlying.Arity == TupleTypeSymbol.RestPosition && underlying.OriginalDefinition != this.OriginalDefinition)
+                        if (underlying.Arity == TupleTypeSymbol.RestPosition && !TypeSymbol.Equals(underlying.OriginalDefinition, this.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
                         {
                             tupleCardinality = 0;
                             return false;

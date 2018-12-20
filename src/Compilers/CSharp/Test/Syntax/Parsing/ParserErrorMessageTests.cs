@@ -4795,7 +4795,7 @@ unsafe public class Test
                 Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15)
             );
         }
-        
+
         [Fact]
         public void CS1674ERR_StackAllocInUsing1()
         {

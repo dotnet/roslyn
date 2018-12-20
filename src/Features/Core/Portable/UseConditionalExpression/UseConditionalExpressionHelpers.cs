@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public static readonly SyntaxAnnotation SpecializedFormattingAnnotation = new SyntaxAnnotation();
 
         public static bool CanConvert(
-            ISyntaxFactsService syntaxFacts, IConditionalOperation ifOperation, 
+            ISyntaxFactsService syntaxFacts, IConditionalOperation ifOperation,
             IOperation whenTrue, IOperation whenFalse)
         {
             // Will likely screw things up if the if directive spans any preprocessor directives.

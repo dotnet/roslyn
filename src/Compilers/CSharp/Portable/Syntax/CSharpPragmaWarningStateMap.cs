@@ -153,30 +153,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 else
                 {
                     var currentNullableDirective = (NullableDirectiveTriviaSyntax)currentDirective;
-                    PragmaWarningState directiveState;
+                    PragmaWarningState safetyState;
+                    PragmaWarningState nonSafetyState;
 
                     switch (currentNullableDirective.SettingToken.Kind())
                     {
                         case SyntaxKind.DisableKeyword:
-                            directiveState = PragmaWarningState.Disabled;
+                            safetyState = PragmaWarningState.Disabled;
+                            nonSafetyState = PragmaWarningState.Disabled;
                             break;
+
                         case SyntaxKind.EnableKeyword:
-                            directiveState = PragmaWarningState.Enabled;
+                            safetyState = PragmaWarningState.Enabled;
+                            nonSafetyState = PragmaWarningState.Enabled;
                             break;
+
+                        case SyntaxKind.SafeOnlyKeyword:
+                            safetyState = PragmaWarningState.Enabled;
+                            nonSafetyState = PragmaWarningState.Disabled;
+                            break;
+
+                        case SyntaxKind.RestoreKeyword:
+                            safetyState = PragmaWarningState.Default;
+                            nonSafetyState = PragmaWarningState.Default;
+                            break;
+
                         default:
                             throw ExceptionUtilities.UnexpectedValue(currentNullableDirective.SettingToken.Kind());
                     }
 
-                    // Update the state of this error code with the current directive state
-                    var builder = ArrayBuilder<KeyValuePair<string, PragmaWarningState>>.GetInstance(ErrorFacts.NullableFlowAnalysisWarnings.Count); 
-
-                    foreach (string id in ErrorFacts.NullableFlowAnalysisWarnings)
-                    {
-                        builder.Add(new KeyValuePair<string, PragmaWarningState>(id, directiveState));
-                    }
+                    var builder = ArrayBuilder<KeyValuePair<string, PragmaWarningState>>.GetInstance(ErrorFacts.NullableFlowAnalysisSafetyWarnings.Count + ErrorFacts.NullableFlowAnalysisNonSafetyWarnings.Count);
+                    // Update the state of the error codes with the current directive state
+                    addNewStates(safetyState, ErrorFacts.NullableFlowAnalysisSafetyWarnings);
+                    addNewStates(nonSafetyState, ErrorFacts.NullableFlowAnalysisNonSafetyWarnings);
 
                     accumulatedSpecificWarningState = accumulatedSpecificWarningState.SetItems(builder);
                     builder.Free();
+
+                    void addNewStates(PragmaWarningState directiveState, ImmutableHashSet<string> warnings)
+                    {
+                        foreach (string id in warnings)
+                        {
+                            builder.Add(new KeyValuePair<string, PragmaWarningState>(id, directiveState));
+                        }
+                    }
                 }
 
                 current = new WarningStateMapEntry(currentDirective.Location.SourceSpan.End, accumulatedGeneralWarningState, accumulatedSpecificWarningState);

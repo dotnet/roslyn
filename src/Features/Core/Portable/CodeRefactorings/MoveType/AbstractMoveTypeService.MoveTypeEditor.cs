@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // Make the type chain above the type we're moving 'partial'.  
                 // However, keep all the attributes on these types as theses are the 
                 // original attributes and we don't want to mess with them. 
-                AddPartialModifiersToTypeChain(documentEditor, 
+                AddPartialModifiersToTypeChain(documentEditor,
                     removeAttributesAndComments: false, removeTypeInheritance: false);
                 documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     var symbol = (ITypeSymbol)State.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, CancellationToken);
                     if (!semanticFacts.IsPartial(symbol, CancellationToken))
                     {
-                        documentEditor.SetModifiers(node, 
+                        documentEditor.SetModifiers(node,
                             documentEditor.Generator.GetModifiers(node) | DeclarationModifiers.Partial);
                     }
 
