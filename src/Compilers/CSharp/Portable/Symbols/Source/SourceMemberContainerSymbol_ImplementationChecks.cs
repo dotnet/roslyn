@@ -745,7 +745,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                             {
-                                diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.TypeSymbol);
+                                // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
+                                if (overridingMemberType.TypeSymbol.VisitType((typeSymbol, unused1, unused2) => typeSymbol.IsErrorType(), (object)null) == null)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.TypeSymbol);
+                                }
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
@@ -789,7 +793,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // Ignore custom modifiers because this diagnostic is based on the C# semantics.
                             if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                             {
-                                diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.TypeSymbol);
+                                // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
+                                if (overridingMemberType.TypeSymbol.VisitType((typeSymbol, unused1, unused2) => typeSymbol.IsErrorType(), (object)null) == null)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.TypeSymbol);
+                                }
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
@@ -819,8 +827,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else if (!overridingMethod.ReturnType.Equals(overriddenMethod.ReturnType, TypeCompareKind.AllIgnoreOptions))
                             {
-                                // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
-                                diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType.TypeSymbol);
+                                // if the Return type is or contains an error type, the return type must be fixed before the override can be found, so suppress error
+                                if (overridingMethod.ReturnType.TypeSymbol.VisitType((typeSymbol, unused1, unused2) => typeSymbol.IsErrorType(), (object)null) == null)
+                                {
+                                    // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
+                                    diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType.TypeSymbol);
+                                }
                             }
                             else if (overriddenMethod.IsRuntimeFinalizer())
                             {

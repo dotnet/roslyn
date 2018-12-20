@@ -711,7 +711,7 @@ class Derived : Base
     public override void Method5(System.Func<(string a, String[] b)> x) { }
     public override void Method6(Outer<String>.Inner<string> x) { }
     public override void Method7(Outer<string>.Inner<String> x) { }
-    public override void Method8(String? x) { }
+    public override void Method8(Int? x) { }
 }
 
 class Outer<T>
@@ -750,7 +750,7 @@ class Derived : Base
     public override int this[System.Func<(string a, String[] b)> x] => 0;
     public override int this[Outer<String>.Inner<string> x] => 0;
     public override int this[Outer<string>.Inner<String> x] => 0;
-    public override int this[String? x] => 0;
+    public override int this[Int? x] => 0;
 }
 
 class Outer<T>
@@ -770,6 +770,225 @@ class Outer<T>
                 new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 16, Column = 30},
             });
         }
+
+        [Fact]
+        public void TestSupressCantChangeReturnTypeErrorWhenMethodReturnTypeNotFound()
+        {
+            var text = @"
+abstract class Base
+{
+    public abstract void Method0();
+    public abstract void Method1();
+    public abstract void Method2();
+    public abstract void Method3();
+    public abstract void Method4();
+    public abstract void Method5();
+    public abstract void Method6();
+    public abstract void Method7();
+}
+
+class Derived : Base
+{
+    public override String Method0() => null;
+    public override String[] Method1() => null;
+    public override System.Func<String> Method2() => null;
+    public override (string a, String b) Method3() => (null, null);
+    public override System.Func<(string a, String[] b)> Method4() => null;
+    public override Outer<String>.Inner<string> Method5() => null;
+    public override Outer<string>.Inner<String> Method6() => null;
+    public override Int? Method7() => null;
+}
+
+class Outer<T>
+{
+    public class Inner<U> { }
+}
+";
+            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 16, Column = 21},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 17, Column = 21},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 18, Column = 33},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 19, Column = 32},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 20, Column = 44},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 21, Column = 27},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 22, Column = 41},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 23, Column = 21},
+            });
+        }
+
+        [Fact]
+        public void TestSupressCantChangeTypeErrorWhenPropertyTypeNotFound()
+        {
+            var text = @"
+abstract class Base
+{
+    public abstract int Property0 { get; }
+    public abstract int Property1 { get; }
+    public abstract int Property2 { get; }
+    public abstract int Property3 { get; }
+    public abstract int Property4 { get; }
+    public abstract int Property5 { get; }
+    public abstract int Property6 { get; }
+    public abstract int Property7 { get; }
+}
+
+class Derived : Base
+{
+    public override String Property0 => null;
+    public override String[] Property1 => null;
+    public override System.Func<String> Property2 => null;
+    public override (string a, String b) Property3 => (null, null);
+    public override System.Func<(string a, String[] b)> Property4 => null;
+    public override Outer<String>.Inner<string> Property5 => null;
+    public override Outer<string>.Inner<String> Property6 => null;
+    public override Int? Property7 => null;
+}
+
+class Outer<T>
+{
+    public class Inner<U> { }
+}
+";
+            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 16, Column = 21},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 17, Column = 21},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 18, Column = 33},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 19, Column = 32},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 20, Column = 44},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 21, Column = 27},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 22, Column = 41},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 23, Column = 21},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+            });
+        }
+        
+        [Fact]
+        public void TestSupressCantChangeTypeErrorWhenIndexerTypeNotFound()
+        {
+            var text = @"
+abstract class Base
+{
+    public abstract int this[int index] { get; }
+}
+
+class Derived : Base
+{
+    public override String this[int index] => null;
+    public override String[] this[int index] => null;
+    public override System.Func<String> this[int index] => null;
+    public override (string a, String b) this[int index] => (null, null);
+    public override System.Func<(string a, String[] b)> this[int index] => null;
+    public override Outer<String>.Inner<string> this[int index] => null;
+    public override Outer<string>.Inner<String> this[int index] => null;
+    public override Int? this[int index] => null;
+}
+
+class Outer<T>
+{
+    public class Inner<U> { }
+}
+";
+            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 9, Column = 21},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 10, Column = 21},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 11, Column = 33},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 12, Column = 32},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 13, Column = 44},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 14, Column = 27},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 15, Column = 41},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 16, Column = 21},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 7, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_MemberAlreadyExists, Line = 10, Column = 30},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_MemberAlreadyExists, Line = 11, Column = 41},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_MemberAlreadyExists, Line = 12, Column = 42},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_MemberAlreadyExists, Line = 13, Column = 57},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_MemberAlreadyExists, Line = 14, Column = 49},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_MemberAlreadyExists, Line = 15, Column = 49},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_MemberAlreadyExists, Line = 16, Column = 26},
+            });
+        }
+
+        [Fact]
+        public void TestSupressCantChangeTypeErrorWhenEventTypeNotFound()
+        {
+            var text = @"
+abstract class Base
+{
+    public abstract event System.Action Event0;
+    public abstract event System.Action Event1;
+    public abstract event System.Action Event2;
+    public abstract event System.Action Event3;
+    public abstract event System.Action Event4;
+    public abstract event System.Action Event5;
+    public abstract event System.Action Event6;
+    public abstract event System.Action Event7;
+}
+
+class Derived : Base
+{
+    public override event String Event0;
+    public override event String[] Event1;
+    public override event System.Func<String> Event2;
+    public override event (string a, String b) Event3;
+    public override event System.Func<(string a, String[] b)> Event4;
+    public override event Outer<String>.Inner<string> Event5;
+    public override event Outer<string>.Inner<String> Event6;
+    public override event Int? Event7;
+}
+
+class Outer<T>
+{
+	public class Inner<U> { }
+}
+";
+            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 16, Column = 27},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 17, Column = 27},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 18, Column = 39},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 19, Column = 38},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 20, Column = 50},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 21, Column = 33},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 22, Column = 47},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_SingleTypeNameNotFound, Line = 23, Column = 27},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_UnimplementedAbstractMethod, Line = 14, Column = 7},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_EventNotDelegate, Line = 17, Column = 36},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_EventNotDelegate, Line = 19, Column = 48},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_EventNotDelegate, Line = 21, Column = 55},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_EventNotDelegate, Line = 22, Column = 55},
+                new ErrorDescription {Code = (int) ErrorCode.ERR_EventNotDelegate, Line = 23, Column = 32},
+                new ErrorDescription {Code = (int) ErrorCode.WRN_UnreferencedEvent, Line = 16, Column = 34, IsWarning = true},
+                new ErrorDescription {Code = (int) ErrorCode.WRN_UnreferencedEvent, Line = 17, Column = 36, IsWarning = true},
+                new ErrorDescription {Code = (int) ErrorCode.WRN_UnreferencedEvent, Line = 18, Column = 47, IsWarning = true},
+                new ErrorDescription {Code = (int) ErrorCode.WRN_UnreferencedEvent, Line = 19, Column = 48, IsWarning = true},
+                new ErrorDescription {Code = (int) ErrorCode.WRN_UnreferencedEvent, Line = 20, Column = 63, IsWarning = true},
+                new ErrorDescription {Code = (int) ErrorCode.WRN_UnreferencedEvent, Line = 21, Column = 55, IsWarning = true},
+                new ErrorDescription {Code = (int) ErrorCode.WRN_UnreferencedEvent, Line = 22, Column = 55, IsWarning = true},
+                new ErrorDescription {Code = (int) ErrorCode.WRN_UnreferencedEvent, Line = 23, Column = 32, IsWarning = true},
+            });
+        }
+
         [Fact]
         public void TestOverrideSealedMethod()
         {
