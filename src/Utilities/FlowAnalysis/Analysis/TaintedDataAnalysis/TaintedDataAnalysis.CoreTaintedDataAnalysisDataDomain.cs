@@ -27,7 +27,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             protected override void AssertValidEntryForMergedMap(AnalysisEntity analysisEntity, TaintedDataAbstractValue value)
             {
-                Debug.Assert(value.Kind == TaintedDataAbstractValueKind.Tainted);
             }
         }
     }
