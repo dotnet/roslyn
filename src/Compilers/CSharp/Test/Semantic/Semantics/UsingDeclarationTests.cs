@@ -533,50 +533,27 @@ class C
         }
 
         [Fact]
-        public void UsingVariableFromAsyncExpression()
-        {
-            var source = @"
-using System;
-using System.Threading.Tasks;
-class C
-{
-    static async Task<IDisposable> GetDisposable()
-    {
-        await Task.CompletedTask;
-        return null;
-    }
-
-    static async Task Main()
-    {
-        using IDisposable x = await GetDisposable();
-    }
-}
-";
-            CreateCompilation(source).VerifyDiagnostics();
-        }
-
-        [Fact]
         public void UsingVariableInSwitchCase()
         {
             var source = @"
 using System;
 class C1 : IDisposable
+{
+    public void Dispose() { }
+}
+class C2
+{
+    public static void Main()
     {
-        public void Dispose() { }
-    }
-    class C2
-    {
-        public static void Main()
+        int x = 5;
+        switch (x)
         {
-            int x = 5;
-            switch (x)
-            {
-                case 5:
-                    using C1 o1 = new C1();
-                    break;
-            }
+            case 5:
+                using C1 o1 = new C1();
+                break;
         }
-    }";
+    }
+}";
             CreateCompilation(source).VerifyDiagnostics(
                 // (15,21): error CS8389: A using variable cannot be used directly within a switch section (consider using braces). 
                 //                     using C1 o1 = new C1();
@@ -602,28 +579,9 @@ class C2
 }";
             CreateCompilation(source).VerifyDiagnostics(
               // (11,15): error CS0819: Implicitly-typed variables cannot have multiple declarators
-              //         using (var c1 = new C1(), c2 = new C2())
+              //         using var c1 = new C1(), c2 = new C2();
               Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, "var c1 = new C1(), c2 = new C2()").WithLocation(11, 15)
             );
-        }
-
-        [Fact]
-        public void UsingVariableDiscardIsValid()
-        {
-            var source = @"
-using System;
-class C1 : IDisposable
-{
-    public void Dispose() { Console.Write(""Disposed""); }
-}
-class C2
-{
-    public static void Main()
-    {
-        using var _ = new C1();
-    }
-}";
-            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
