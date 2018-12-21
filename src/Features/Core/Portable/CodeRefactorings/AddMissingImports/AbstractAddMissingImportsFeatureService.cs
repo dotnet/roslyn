@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var newText = text.WithChanges(orderedTextInserts);
             var newDocument = newProject.GetDocument(document.Id).WithText(newText);
 
-            // When imports are added to a code file that has no previous imports extra
+            // When imports are added to a code file that has no previous imports, extra
             // newlines are generated between each import because the fix is expecting to
             // separate the imports from the rest of the code file. We need to format the
             // imports to remove these extra newlines.
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             // Since imports can be added at both the CompilationUnit and the Namespace level,
             // format each span individually so that we can retain each newline that was intended
-            // separate the import section from the other content.
+            // to separate the import section from the other content.
             foreach (var insertSpan in insertSpans)
             {
                 newDocument = await CleanUpNewLinesAsync(newDocument, insertSpan, languageFormatter, options, cancellationToken).ConfigureAwait(false);
@@ -230,9 +230,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             return (projectChanges, textChanges);
         }
 
-        class CleanUpNewLinesFormatter : AbstractFormattingRule
+        private sealed class CleanUpNewLinesFormatter : AbstractFormattingRule
         {
-            private SourceText _text;
+            private readonly SourceText _text;
 
             public CleanUpNewLinesFormatter(SourceText text)
             {
