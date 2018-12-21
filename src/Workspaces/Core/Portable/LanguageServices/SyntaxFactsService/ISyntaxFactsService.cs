@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// <summary>
         /// A block that has no semantics other than introducing a new scope. That is only C# BlockSyntax.
         /// </summary>
-        bool IsPureBlock(SyntaxNode node);
+        bool IsScopeBlock(SyntaxNode node);
 
         /// <summary>
         /// A node that contains a list of statements. In C#, this is BlockSyntax and SwitchSectionSyntax.
