@@ -495,8 +495,8 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="lambdaOrLocalFunction">Method symbol for the lambda or local function.</param>
         public static ImmutableHashSet<ISymbol> GetCaptures(this IOperation operation, IMethodSymbol lambdaOrLocalFunction)
         {
-            Debug.Assert(operation is IAnonymousFunctionOperation anonymousFunction && anonymousFunction.Symbol == lambdaOrLocalFunction ||
-                         operation is ILocalFunctionOperation localFunction && localFunction.Symbol == lambdaOrLocalFunction);
+            Debug.Assert(operation is IAnonymousFunctionOperation anonymousFunction && anonymousFunction.Symbol.OriginalDefinition.ReturnTypeAndParametersAreSame(lambdaOrLocalFunction.OriginalDefinition) ||
+                         operation is ILocalFunctionOperation localFunction && localFunction.Symbol.OriginalDefinition.Equals(lambdaOrLocalFunction.OriginalDefinition));
 
             lambdaOrLocalFunction = lambdaOrLocalFunction.OriginalDefinition;
 
