@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     d = this.WithName(d, interfaceMemberName);
                 }
 
-                return WithInterfaceSpecifier(d, SyntaxFactory.ExplicitInterfaceSpecifier((NameSyntax)interfaceTypeName, null));
+                return WithInterfaceSpecifier(d, SyntaxFactory.ExplicitInterfaceSpecifier((NameSyntax)interfaceTypeName, ""));
             });
         }
 
@@ -1985,7 +1985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private ExplicitInterfaceSpecifierSyntax CreateExplicitInterfaceSpecifier(ImmutableArray<IMethodSymbol> explicitInterfaceImplementations)
             => SyntaxFactory.ExplicitInterfaceSpecifier(
-                explicitInterfaceImplementations[0].ContainingType.GenerateNameSyntax(), null);
+                explicitInterfaceImplementations[0].ContainingType.GenerateNameSyntax(), "");
 
         public override SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode> types)
         {

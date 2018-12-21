@@ -2159,14 +2159,13 @@ class C<T> : System.Attribute { }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (3,20): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M"),
+                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(3, 20),
                 // (3,20): error CS0751: A partial method must be declared within a partial class or partial struct
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M"),
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(3, 20),
                 // (3,20): error CS0541: 'I.M()': explicit interface declaration can only be declared in a class or struct
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("I.M()")
-                );
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("I.M()", "").WithLocation(3, 20));
         }
 
         [WorkItem(545208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545208")]

@@ -9393,13 +9393,12 @@ public class Clx
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (12,19): error CS0541: 'x.IFace2.P': explicit interface declaration can only be declared in a class or struct
+                // (12,19): error CS0541: 'IFace2.P': explicit interface declaration can only be declared in a class or struct
                 //         int IFace.P { set; } //CS0541
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P").WithArguments("x.IFace2.P"),
-                // (11,20): error CS0541: 'x.IFace2.F()': explicit interface declaration can only be declared in a class or struct
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P").WithArguments("x.IFace2.P", "").WithLocation(12, 19),
+                // (11,20): error CS0541: 'IFace2.F()': explicit interface declaration can only be declared in a class or struct
                 //         void IFace.F();   // CS0541
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "F").WithArguments("x.IFace2.F()")
-                );
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "F").WithArguments("x.IFace2.F()", "").WithLocation(11, 20));
         }
 
         [Fact]

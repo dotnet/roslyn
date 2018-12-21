@@ -5726,7 +5726,7 @@ tryAgain:
                     }
                     else
                     {
-                        explicitInterfaceOpt = _syntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceName, separator, null);
+                        explicitInterfaceOpt = _syntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceName, separator, "");
                     }
                 }
             }

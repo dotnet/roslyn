@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return null;
             }
 
-            return SyntaxFactory.ExplicitInterfaceSpecifier(name, null);
+            return SyntaxFactory.ExplicitInterfaceSpecifier(name, "");
         }
 
         public static CodeGenerationDestination GetDestination(SyntaxNode destination)
