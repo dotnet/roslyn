@@ -1469,8 +1469,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _value;
 
-        internal CSharpLazyConstantPatternOperation(CSharpOperationFactory operationFactory, BoundNode value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(semanticModel, syntax, isImplicit)
+        internal CSharpLazyConstantPatternOperation(ITypeSymbol inputType, CSharpOperationFactory operationFactory, BoundNode value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(inputType, semanticModel, syntax, isImplicit)
         {
             _operationFactory = operationFactory;
             _value = value;

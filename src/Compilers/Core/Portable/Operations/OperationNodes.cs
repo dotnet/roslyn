@@ -7835,9 +7835,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseConstantPatternOperation : Operation, IConstantPatternOperation
     {
-        protected BaseConstantPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+        protected BaseConstantPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
             base(OperationKind.ConstantPattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
         {
+            InputType = inputType;
         }
 
         public override IEnumerable<IOperation> Children
@@ -7854,6 +7855,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Constant value of the pattern.
         /// </summary>
         public abstract IOperation Value { get; }
+
+        public ITypeSymbol InputType { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConstantPattern(this);
@@ -7869,8 +7873,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class ConstantPatternOperation : BaseConstantPatternOperation, IConstantPatternOperation
     {
-        public ConstantPatternOperation(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(semanticModel, syntax, isImplicit)
+        public ConstantPatternOperation(ITypeSymbol inputType, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(inputType, semanticModel, syntax, isImplicit)
         {
             Value = SetParentOperation(value, this);
         }
@@ -7885,8 +7889,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazyConstantPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(semanticModel, syntax, isImplicit)
+        public LazyConstantPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(inputType, semanticModel, syntax, isImplicit)
         {
         }
 
@@ -7913,13 +7917,15 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class DeclarationPatternOperation : Operation, IDeclarationPatternOperation
     {
-        public DeclarationPatternOperation(ISymbol declaredSymbol, bool acceptsNull, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+        public DeclarationPatternOperation(ITypeSymbol inputType, ITypeSymbol matchedType, ISymbol declaredSymbol, bool matchesNull, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
             base(OperationKind.DeclarationPattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
         {
-            AcceptsNull = acceptsNull;
+            InputType = inputType;
+            MatchedType = matchedType;
             DeclaredSymbol = declaredSymbol;
+            MatchesNull = matchesNull;
         }
-        public bool AcceptsNull { get; }
+        public bool MatchesNull { get; }
         /// <summary>
         /// Symbol declared by the pattern.
         /// </summary>
@@ -7931,6 +7937,11 @@ namespace Microsoft.CodeAnalysis.Operations
                 return Array.Empty<IOperation>();
             }
         }
+
+        public ITypeSymbol MatchedType { get; }
+
+        public ITypeSymbol InputType { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitDeclarationPattern(this);
@@ -7946,37 +7957,21 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class RecursivePatternOperation : Operation, IRecursivePatternOperation
     {
-        public RecursivePatternOperation(ITypeSymbol matchedType, ISymbol deconstructSymbol, ImmutableArray<IPatternOperation> deconstructionSubpatterns, ImmutableArray<(ISymbol, IPatternOperation)> propertySubpatterns, ISymbol declaredSymbol, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+        public RecursivePatternOperation(ITypeSymbol inputType, ITypeSymbol matchedType, ISymbol deconstructSymbol, ImmutableArray<IPatternOperation> deconstructionSubpatterns, ImmutableArray<(ISymbol, IPatternOperation)> propertySubpatterns, ISymbol declaredSymbol, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
                     base(OperationKind.RecursivePattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
         {
+            InputType = inputType;
             MatchedType = matchedType;
             DeconstructSymbol = deconstructSymbol;
             DeconstructionSubpatterns = deconstructionSubpatterns;
             PropertySubpatterns = propertySubpatterns;
             DeclaredSymbol = declaredSymbol;
         }
-        /// <summary>
-        /// The (explicit or implicit) type accepted for the recursive pattern.
-        /// </summary>
+        public ITypeSymbol InputType { get; }
         public ITypeSymbol MatchedType { get; }
-        /// <summary>
-        /// The Deconstruct symbol, if any, used for the deconstruction subpatterns.
-        /// </summary>
         public ISymbol DeconstructSymbol { get; }
-        /// <summary>
-        /// If there is a positional subpattern, this contains the patterns contained within it.
-        /// If there is no positional subpattern, this is a default immutable array.
-        /// </summary>
         public ImmutableArray<IPatternOperation> DeconstructionSubpatterns { get; }
-        /// <summary>
-        /// If there is a property subpattern, this contains the
-        /// <see cref="ISymbol"/>/<see cref="IPatternOperation"/> pairs within it.
-        /// If there is no property subpattern, this is a default immutable array.
-        /// </summary>
         public ImmutableArray<(ISymbol, IPatternOperation)> PropertySubpatterns { get; }
-        /// <summary>
-        /// Symbol declared by the pattern.
-        /// </summary>
         public ISymbol DeclaredSymbol { get; }
         public override IEnumerable<IOperation> Children
         {
@@ -7998,6 +7993,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
         }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitRecursivePattern(this);
@@ -8874,15 +8870,18 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed class DiscardOperation : Operation, IDiscardOperation, IPatternOperation
     {
-        public DiscardOperation(IDiscardSymbol discardSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public DiscardOperation(ITypeSymbol inputType, IDiscardSymbol discardSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.Discard, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            InputType = inputType;
             DiscardSymbol = discardSymbol;
         }
 
         public IDiscardSymbol DiscardSymbol { get; }
 
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+
+        public ITypeSymbol InputType { get; }
 
         public override void Accept(OperationVisitor visitor)
         {

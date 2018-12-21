@@ -6,9 +6,11 @@ Microsoft.CodeAnalysis.OperationKind.FromEndIndex = 100 -> Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.OperationKind.MethodBody = 88 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Range = 99 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.RecursivePattern = 103 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.Operations.IDeclarationPatternOperation.AcceptsNull.get -> bool
 Microsoft.CodeAnalysis.OperationKind.TupleBinary = 87 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Unary = 31 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.IDeclarationPatternOperation.MatchedType.get -> Microsoft.CodeAnalysis.ITypeSymbol
+Microsoft.CodeAnalysis.Operations.IDeclarationPatternOperation.MatchesNull.get -> bool
+Microsoft.CodeAnalysis.Operations.IPatternOperation.InputType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation
 Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation.DeclaredSymbol.get -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation.DeconstructSymbol.get -> Microsoft.CodeAnalysis.ISymbol

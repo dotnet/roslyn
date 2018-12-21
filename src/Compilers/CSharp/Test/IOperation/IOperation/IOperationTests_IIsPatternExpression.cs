@@ -634,7 +634,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]
         [Fact]
-        public void IsPattern_NoControlFlow()
+        public void IsPattern_NoControlFlow_01()
         {
             string source = @"
 class C
@@ -643,7 +643,70 @@ class C
     /*<bind>*/{
         b = x is var y;
         b2 = x2 is 1;
-        b3 = x3 is (1, 2) { Item1: var z } p;
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32? y]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = x is var y;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = x is var y')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is var y')
+                      Expression: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
+                      Pattern: 
+                        IDeclarationPatternOperation (Declared Symbol: System.Int32? y, AcceptsNull: True) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
+
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b2 = x2 is 1;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b2 = x2 is 1')
+                  Left: 
+                    IParameterReferenceOperation: b2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b2')
+                  Right: 
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x2 is 1')
+                      Expression: 
+                        IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x2')
+                      Pattern: 
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
+                          Value: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_NoControlFlow_02()
+        {
+            string source = @"
+class C
+{
+    void M((int X, int Y)? x, bool b)
+    /*<bind>*/{
+        b = x is (1, 2) { Item1: var z } p;
     }/*</bind>*/
 }
 ";

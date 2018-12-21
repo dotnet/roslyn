@@ -1738,7 +1738,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IDeclarationPatternOperation));
             LogSymbol(operation.DeclaredSymbol, " (Declared Symbol");
-            LogConstant((object)operation.AcceptsNull, ", AcceptsNull");
+            LogConstant((object)operation.MatchesNull, ", AcceptsNull");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
         }

@@ -1826,7 +1826,8 @@ namespace Microsoft.CodeAnalysis.Operations
             BoundNode value = boundConstantPattern.Value;
             SyntaxNode syntax = boundConstantPattern.Syntax;
             bool isImplicit = boundConstantPattern.WasCompilerGenerated;
-            return new CSharpLazyConstantPatternOperation(this, value, _semanticModel, syntax, isImplicit);
+            TypeSymbol inputType = boundConstantPattern.InputType;
+            return new CSharpLazyConstantPatternOperation(inputType, this, value, _semanticModel, syntax, isImplicit);
         }
 
         private IDeclarationPatternOperation CreateBoundDeclarationPatternOperation(BoundDeclarationPattern boundDeclarationPattern)
@@ -1837,10 +1838,12 @@ namespace Microsoft.CodeAnalysis.Operations
                 variable = ((BoundDiscardExpression)boundDeclarationPattern.VariableAccess).ExpressionSymbol;
             }
 
+            ITypeSymbol inputType = boundDeclarationPattern.InputType;
             bool acceptsNull = boundDeclarationPattern.IsVar;
+            ITypeSymbol matchedType = acceptsNull ? null : boundDeclarationPattern.DeclaredType.Type;
             SyntaxNode syntax = boundDeclarationPattern.Syntax;
             bool isImplicit = boundDeclarationPattern.WasCompilerGenerated;
-            return new DeclarationPatternOperation(variable, acceptsNull, _semanticModel, syntax, isImplicit);
+            return new DeclarationPatternOperation(inputType, matchedType, variable, acceptsNull, _semanticModel, syntax, isImplicit);
         }
 
         private IRecursivePatternOperation CreateBoundRecursivePatternOperation(BoundRecursivePattern boundRecursivePattern)
@@ -1853,13 +1856,14 @@ namespace Microsoft.CodeAnalysis.Operations
                 variable = ((BoundDiscardExpression)boundRecursivePattern.VariableAccess).ExpressionSymbol;
             }
 
+            TypeSymbol inputType = boundRecursivePattern.InputType;
             SyntaxNode syntax = boundRecursivePattern.Syntax;
-            ImmutableArray<IPatternOperation> deconstructionSubpatterns = boundRecursivePattern.Deconstruction.IsDefault ? default :
+            ImmutableArray<IPatternOperation> deconstructionSubpatterns =
                 boundRecursivePattern.Deconstruction.SelectAsArray(p => (IPatternOperation)Create(p.Pattern));
-            ImmutableArray<(ISymbol, IPatternOperation)> propertySubpatterns = boundRecursivePattern.Properties.IsDefault ? default :
+            ImmutableArray<(ISymbol, IPatternOperation)> propertySubpatterns =
                 boundRecursivePattern.Properties.SelectAsArray(p => ((ISymbol)p.Symbol, (IPatternOperation)Create(p.Pattern)));
             bool isImplicit = boundRecursivePattern.WasCompilerGenerated;
-            return new RecursivePatternOperation(matchedType, deconstructSymbol, deconstructionSubpatterns, propertySubpatterns, variable, _semanticModel, syntax, isImplicit);
+            return new RecursivePatternOperation(inputType, matchedType, deconstructSymbol, deconstructionSubpatterns, propertySubpatterns, variable, _semanticModel, syntax, isImplicit);
         }
 
         private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)
@@ -1939,12 +1943,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundDiscardExpressionOperation(BoundDiscardExpression boundNode)
         {
-            return new DiscardOperation((IDiscardSymbol)boundNode.ExpressionSymbol,
-                                        _semanticModel,
-                                        boundNode.Syntax,
-                                        boundNode.Type,
-                                        ConvertToOptional(boundNode.ConstantValue),
-                                        isImplicit: boundNode.WasCompilerGenerated);
+            return new DiscardOperation(
+                inputType: null,
+                (IDiscardSymbol)boundNode.ExpressionSymbol,
+                _semanticModel,
+                boundNode.Syntax,
+                boundNode.Type,
+                ConvertToOptional(boundNode.ConstantValue),
+                isImplicit: boundNode.WasCompilerGenerated);
         }
 
         private IOperation CreateFromEndIndexExpressionOperation(BoundFromEndIndexExpression boundIndex)
@@ -1975,12 +1981,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundDiscardPatternOperation(BoundDiscardPattern boundNode)
         {
-            return new DiscardOperation(boundNode.DiscardSymbol,
-                                        _semanticModel,
-                                        boundNode.Syntax,
-                                        boundNode.InputType,
-                                        null,
-                                        isImplicit: boundNode.WasCompilerGenerated);
+            return new DiscardOperation(
+                boundNode.InputType,
+                boundNode.DiscardSymbol,
+                _semanticModel,
+                boundNode.Syntax,
+                boundNode.InputType,
+                null,
+                isImplicit: boundNode.WasCompilerGenerated);
         }
     }
 }
