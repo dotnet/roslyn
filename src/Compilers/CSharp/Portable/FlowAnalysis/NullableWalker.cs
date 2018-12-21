@@ -1723,9 +1723,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 => !(operandType is null) && (!operandType.IsValueType || operandType.IsNullableType());
         }
 
-        private void MarkSlotsAsNotNullable(ArrayBuilder<int> slots, ref LocalState stateToUpdate)
+        private static void MarkSlotsAsNotNullable(ArrayBuilder<int> slots, ref LocalState stateToUpdate)
         {
-            Debug.Assert(IsConditionalState);
             if (slots is null)
             {
                 return;
@@ -4581,8 +4580,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Split();
                 MarkSlotsAsNotNullable(slotBuilder, ref StateWhenTrue);
-                slotBuilder.Free();
             }
+            slotBuilder?.Free();
 
             SetResult(node);
             return result;
