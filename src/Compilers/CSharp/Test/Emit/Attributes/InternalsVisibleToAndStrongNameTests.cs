@@ -943,7 +943,7 @@ public class Test
                 syntaxTrees: new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(s) },
                 references: new[] { MscorlibRef_v4_0_30316_17626 },
                 assemblyName: "Paul",
-                options: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithStrongNameProvider(s_defaultDesktopProvider));
+                options: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithStrongNameProvider(DefaultDesktopStrongNameProvider));
             other.VerifyDiagnostics();
 
             var requestor = CreateCompilation(

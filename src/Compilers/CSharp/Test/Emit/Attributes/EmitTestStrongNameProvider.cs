@@ -149,7 +149,7 @@ class C
 {
     public static void Main(string[] args) { }
 }";
-            var testProvider = new StrongNameProviderWithBadInputStream(s_defaultDesktopProvider);
+            var testProvider = new StrongNameProviderWithBadInputStream(DefaultDesktopStrongNameProvider);
             var options = TestOptions.DebugExe
                 .WithStrongNameProvider(testProvider)
                 .WithCryptoKeyContainer("RoslynTestContainer");

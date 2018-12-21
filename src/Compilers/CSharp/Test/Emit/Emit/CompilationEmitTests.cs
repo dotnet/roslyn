@@ -1524,9 +1524,8 @@ comp => comp.VerifyDiagnostics(
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void RefAssembly_StrongNameProvider()
         {
-            var signedDllOptions = TestOptions.ReleaseDll.
-                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                 WithStrongNameProvider(s_defaultDesktopProvider);
+            var signedDllOptions = TestOptions.SigningReleaseDll.
+                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile);
 
             var comp = CreateCompilation("public class C{}", options: signedDllOptions);
 
@@ -1543,9 +1542,8 @@ comp => comp.VerifyDiagnostics(
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void RefAssembly_StrongNameProvider_Arm64()
         {
-            var signedDllOptions = TestOptions.ReleaseDll.
+            var signedDllOptions = TestOptions.SigningReleaseDll.
                  WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                 WithStrongNameProvider(s_defaultDesktopProvider).
                  WithPlatform(Platform.Arm64).
                  WithDeterministic(true);
 
@@ -1564,10 +1562,9 @@ comp => comp.VerifyDiagnostics(
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void RefAssembly_StrongNameProviderAndDelaySign()
         {
-            var signedDllOptions = TestOptions.ReleaseDll
+            var signedDllOptions = TestOptions.SigningReleaseDll
                 .WithCryptoKeyFile(SigningTestHelpers.KeyPairFile)
-                .WithDelaySign(true)
-                .WithStrongNameProvider(s_defaultDesktopProvider);
+                .WithDelaySign(true);
 
             var comp = CreateCompilation("public class C{}", options: signedDllOptions);
 
