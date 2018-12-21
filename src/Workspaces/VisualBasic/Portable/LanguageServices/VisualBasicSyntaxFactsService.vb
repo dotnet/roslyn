@@ -270,10 +270,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Kind() = SyntaxKind.ReturnStatement
         End Function
 
-        Public Function IsStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStatement
-            Return TypeOf node Is StatementSyntax
-        End Function
-
         Public Function IsExecutableStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExecutableStatement
             Return TypeOf node Is ExecutableStatementSyntax
         End Function
