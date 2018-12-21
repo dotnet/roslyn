@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Text
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -7,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Public Partial Class VisualBasicSyntaxTree
+    Partial Public Class VisualBasicSyntaxTree
 
         ''' <summary>
         ''' A SyntaxTree is a tree of nodes that represents an entire file of VB
@@ -23,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _isMyTemplate As Boolean
             Private ReadOnly _encodingOpt As Encoding
             Private ReadOnly _checksumAlgorithm As SourceHashAlgorithm
+            Private ReadOnly _diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic)
 
             Private _lazyText As SourceText
 
@@ -36,7 +38,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            options As VisualBasicParseOptions,
                            syntaxRoot As VisualBasicSyntaxNode,
                            isMyTemplate As Boolean,
+                           diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic),
                            Optional cloneRoot As Boolean = True)
+
 
                 Debug.Assert(syntaxRoot IsNot Nothing)
                 Debug.Assert(options IsNot Nothing)
@@ -50,6 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _root = If(cloneRoot, Me.CloneNodeAsRoot(syntaxRoot), syntaxRoot)
                 _hasCompilationUnitRoot = (syntaxRoot.Kind = SyntaxKind.CompilationUnit)
                 _isMyTemplate = isMyTemplate
+
+                _diagnosticOptions = If(diagnosticOptions, EmptyDiagnosticOptions)
             End Sub
 
             Public Overrides ReadOnly Property FilePath As String
@@ -115,6 +121,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property DiagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic)
+                Get
+                    Return _diagnosticOptions
+                End Get
+            End Property
+
             ''' <summary>
             ''' Get a reference to the given node.
             ''' </summary>
@@ -123,18 +135,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function WithRootAndOptions(root As SyntaxNode, options As ParseOptions) As SyntaxTree
-                If Me._root Is root AndAlso Me._options Is options Then
+                If _root Is root AndAlso _options Is options Then
                     Return Me
                 End If
 
                 Return New ParsedSyntaxTree(
                     Nothing,
-                    Me._encodingOpt,
-                    Me._checksumAlgorithm,
-                    Me._path,
+                    _encodingOpt,
+                    _checksumAlgorithm,
+                    _path,
                     DirectCast(options, VisualBasicParseOptions),
                     DirectCast(root, VisualBasicSyntaxNode),
-                    Me._isMyTemplate)
+                    _isMyTemplate,
+                    _diagnosticOptions,
+                    cloneRoot:=True)
             End Function
 
             Public Overrides Function WithFilePath(path As String) As SyntaxTree
@@ -143,13 +157,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Return New ParsedSyntaxTree(
-                    Me._lazyText,
-                    Me._encodingOpt,
-                    Me._checksumAlgorithm,
+                    _lazyText,
+                    _encodingOpt,
+                    _checksumAlgorithm,
                     path,
-                    Me._options,
-                    Me._root,
-                    Me._isMyTemplate)
+                    _options,
+                    _root,
+                    _isMyTemplate,
+                    _diagnosticOptions,
+                    cloneRoot:=True)
+            End Function
+
+            Public Overrides Function WithDiagnosticOptions(options As ImmutableDictionary(Of String, ReportDiagnostic)) As SyntaxTree
+                If options Is Nothing Then
+                    options = EmptyDiagnosticOptions
+                End If
+
+                If ReferenceEquals(_diagnosticOptions, options) Then
+                    Return Me
+                End If
+
+                Return New ParsedSyntaxTree(_lazyText,
+                                            _encodingOpt,
+                                            _checksumAlgorithm,
+                                            _path,
+                                            _options,
+                                            _root,
+                                            _isMyTemplate,
+                                            options,
+                                            cloneRoot:=True)
             End Function
         End Class
     End Class
