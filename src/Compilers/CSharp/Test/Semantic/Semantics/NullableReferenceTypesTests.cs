@@ -9698,6 +9698,35 @@ public class C
         }
 
         [Fact]
+        public void NotNullWhenFalse_Nested()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(string? s)
+    {
+        if (MyIsNullOrEmpty(s?.ToString()))
+        {
+            s.ToString(); // warn
+        }
+        else
+        {
+            s.ToString();
+        }
+    }
+    public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+}
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
         [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
         public void NotNullWhenFalse_EqualsTrue_InErrorInvocation()
         {
@@ -11059,6 +11088,35 @@ public class C
         }
 
         [Fact]
+        public void NotNullWhenTrue_Nested()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(string? s)
+    {
+        if (IsNotNull(s?.ToString()))
+        {
+            s.ToString();
+        }
+        else
+        {
+            s.ToString(); // warn
+        }
+    }
+    public static bool IsNotNull([NotNullWhenTrue] string? value) => throw null;
+}
+", NotNullWhenTrueAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
         public void NotNullWhenTrue_WithNotNullWhenFalse_WithVoidReturn()
         {
             // When both NotNullWhenTrue and NotNullWhenFalse are applied, it's the same as EnsuresNotNull,
@@ -11091,6 +11149,26 @@ class C
     void Main(C? c)
     {
         MyAssert(c != null);
+        c.ToString();
+    }
+
+    void MyAssert([AssertsTrue] bool condition) => throw null;
+}
+", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AssertsTrue_NotNull_Nested()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(C? c)
+    {
+        MyAssert(c?.ToString() != null);
         c.ToString();
     }
 
@@ -12570,6 +12648,25 @@ public class C
             c.VerifyDiagnostics();
 
             VerifyAnnotationsAndMetadata(c, "C.ThrowIfNull", None, EnsuresNotNull);
+        }
+
+        [Fact]
+        public void EnsuresNotNull_Nested()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+public class C
+{
+    void Main(string? s)
+    {
+        ThrowIfNull(s?.ToString());
+        s.ToString(); // ok
+    }
+    public static void ThrowIfNull([EnsuresNotNull] string? s) => throw null;
+}
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics();
         }
 
         [Fact]

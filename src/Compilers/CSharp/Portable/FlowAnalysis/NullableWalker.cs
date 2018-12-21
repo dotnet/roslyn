@@ -1726,6 +1726,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void MarkSlotsAsNotNullable(ArrayBuilder<int> slots, ref LocalState stateToUpdate)
         {
             Debug.Assert(IsConditionalState);
+            if (slots is null)
+            {
+                return;
+            }
+
             foreach (int slot in slots)
             {
                 stateToUpdate[slot] = NullableAnnotation.NotNullable;
@@ -2526,6 +2531,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(annotations.Length == arguments.Length);
             Debug.Assert(_disableDiagnostics);
 
+            // prepare slots for expressions and sub-expressions that we'll want to mark as non-null
+            var allSlots = ArrayBuilder<ArrayBuilder<int>>.GetInstance(arguments.Length);
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                FlowAnalysisAnnotations annotation = annotations[i];
+                bool notNullWhenTrue = (annotation & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
+                bool notNullWhenFalse = (annotation & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
+
+                ArrayBuilder<int> slotsForArgument = null;
+                if (notNullWhenTrue || notNullWhenFalse)
+                {
+                    slotsForArgument = ArrayBuilder<int>.GetInstance();
+                    GetSlotsToMarkAsNotNullable(arguments[i], slotsForArgument);
+                }
+                allSlots.Add(slotsForArgument);
+            }
+
             for (int i = 0; i < arguments.Length; i++)
             {
                 FlowAnalysisAnnotations annotation = annotations[i];
@@ -2567,29 +2589,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                int slot = MakeSlot(argument);
-                if (slot <= 0)
-                {
-                    continue;
-                }
-
                 bool notNullWhenTrue = (annotation & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
                 bool notNullWhenFalse = (annotation & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
-                // The WhenTrue/False states correspond to the invocation returning true/false
-                bool wasPreviouslySplit = this.IsConditionalState;
-                if (notNullWhenTrue || notNullWhenFalse) Split();
-                if (notNullWhenTrue)
+                if (notNullWhenTrue || notNullWhenFalse)
                 {
-                    this.StateWhenTrue[slot] = NullableAnnotation.NotNullable;
-                }
-                if (notNullWhenFalse)
-                {
-                    this.StateWhenFalse[slot] = NullableAnnotation.NotNullable;
-                    if (notNullWhenTrue && !wasPreviouslySplit) Unsplit();
+                    // The WhenTrue/False states correspond to the invocation returning true/false
+                    bool wasPreviouslySplit = this.IsConditionalState;
+                    Split();
+
+                    if (notNullWhenTrue)
+                    {
+                        MarkSlotsAsNotNullable(allSlots?[i], ref StateWhenTrue);
+                    }
+                    if (notNullWhenFalse)
+                    {
+                        MarkSlotsAsNotNullable(allSlots?[i], ref StateWhenFalse);
+                        if (notNullWhenTrue && !wasPreviouslySplit) Unsplit();
+                    }
                 }
             }
 
             _resultType = _invalidType;
+
+            foreach (var slotsForArgument in allSlots)
+            {
+                slotsForArgument?.Free();
+            }
+            allSlots.Free();
 
             // Evaluate an argument, potentially producing a split state.
             // Then unsplit it based on [AssertsTrue] or [AssertsFalse] attributes, or default Unsplit otherwise.
