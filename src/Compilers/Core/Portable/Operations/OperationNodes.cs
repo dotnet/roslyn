@@ -7985,19 +7985,14 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                if (!DeconstructionSubpatterns.IsDefault)
+                foreach (var p in DeconstructionSubpatterns)
                 {
-                    foreach (var p in DeconstructionSubpatterns)
-                    {
-                        yield return p;
-                    }
+                    yield return p;
                 }
-                if (!PropertySubpatterns.IsDefault)
+
+                foreach (var p in PropertySubpatterns)
                 {
-                    foreach (var p in PropertySubpatterns)
-                    {
-                        yield return p.Item2;
-                    }
+                    yield return p.Item2;
                 }
             }
         }

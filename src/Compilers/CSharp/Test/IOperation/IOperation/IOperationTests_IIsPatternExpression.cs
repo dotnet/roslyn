@@ -639,7 +639,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             string source = @"
 class C
 {
-    void M(int? x, bool b, int x2, bool b2, (int X, int Y)? x3, bool b3)
+    void M(int? x, bool b, int x2, bool b2)
     /*<bind>*/{
         b = x is var y;
         b2 = x2 is 1;
