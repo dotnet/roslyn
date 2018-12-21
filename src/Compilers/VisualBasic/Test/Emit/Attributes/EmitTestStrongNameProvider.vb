@@ -38,8 +38,8 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
             Throw ThrownException
         End Function
 
-        Friend Overrides Function CreateKeys(keyFilePath As String, keyContainerName As String, messageProvider As CommonMessageProvider) As StrongNameKeys
-            Return _underlyingProvider.CreateKeys(keyFilePath, keyContainerName, messageProvider)
+        Friend Overrides Function CreateKeys(keyFilePath As String, keyContainerName As String, hasCounterSigature As Boolean, messageProvider As CommonMessageProvider) As StrongNameKeys
+            Return _underlyingProvider.CreateKeys(keyFilePath, keyContainerName, hasCounterSigature, messageProvider)
         End Function
 
         Friend Overrides Sub SignStream(keys As StrongNameKeys, inputStream As Stream, outputStream As Stream)
