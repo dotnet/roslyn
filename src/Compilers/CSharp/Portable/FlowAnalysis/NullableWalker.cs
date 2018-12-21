@@ -4491,6 +4491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             var result = base.VisitAwaitExpression(node);
+            CheckPossibleNullReceiver(node.Expression);
             if (node.Type.IsValueType || node.HasErrors || (object)node.AwaitableInfo.GetResult == null)
             {
                 SetResult(node);

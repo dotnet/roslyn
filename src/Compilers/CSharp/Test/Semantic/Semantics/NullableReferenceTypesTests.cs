@@ -28279,6 +28279,91 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
         }
 
         [Fact]
+        public void Await_ProduceResultTypeFromTask()
+        {
+            var source = @"
+class C
+{
+    async void M()
+    {
+        var x = await Async();
+        x.ToString();
+    }
+    System.Threading.Tasks.Task<string?> Async() => throw null;
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void Await_CheckNullReceiver()
+        {
+            var source = @"
+class C
+{
+    async void M()
+    {
+        await Async();
+    }
+    System.Threading.Tasks.Task<string>? Async() => throw null;
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,15): warning CS8602: Possible dereference of a null reference.
+                //         await Async();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Async()").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
+        public void Await_UpdateExpression()
+        {
+            var source = @"
+class C
+{
+    async void M(System.Threading.Tasks.Task<string>? task)
+    {
+        await task; // warn
+        await task;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,15): warning CS8602: Possible dereference of a null reference.
+                //         await task; // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "task").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
+        public void Await_LearnFromNullTest()
+        {
+            var source = @"
+class C
+{
+    System.Threading.Tasks.Task<string>? M() => throw null;
+    async System.Threading.Tasks.Task M2(C? c)
+    {
+        await c?.M(); // warn
+        c.ToString(); // cascading
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,15): warning CS8602: Possible dereference of a null reference.
+                //         await c?.M(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c?.M()").WithLocation(7, 15),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         c.ToString(); // cascading
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
         public void NoPiaObjectCreation_01()
         {
             string pia = @"
