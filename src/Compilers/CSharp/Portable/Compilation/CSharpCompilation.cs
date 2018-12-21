@@ -2352,7 +2352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (syntaxTree is null)
             {
                 // Don't freeze the compilation if we're getting
-                // diagnositcs for a single tree
+                // diagnostics for a single tree
                 _declarationDiagnosticsFrozen = true;
 
                 // Also freeze generated attribute flags.

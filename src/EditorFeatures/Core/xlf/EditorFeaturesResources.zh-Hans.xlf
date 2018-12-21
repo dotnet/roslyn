@@ -57,6 +57,16 @@
         <target state="new">Invalid characters in assembly name</target>
         <note />
       </trans-unit>
+      <trans-unit id="Keyword_Control">
+        <source>Keyword - Control</source>
+        <target state="new">Keyword - Control</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_Overloaded">
+        <source>Operator - Overloaded</source>
+        <target state="new">Operator - Overloaded</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Paste_Tracking">
         <source>Paste Tracking</source>
         <target state="new">Paste Tracking</target>
@@ -75,6 +85,66 @@
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
         <target state="new">String - Escape Character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Static">
+        <source>Symbol - Static</source>
+        <target state="new">Symbol - Static</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Constants">
+        <source>User Members - Constants</source>
+        <target state="new">User Members - Constants</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Enum_Members">
+        <source>User Members - Enum Members</source>
+        <target state="new">User Members - Enum Members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Events">
+        <source>User Members - Events</source>
+        <target state="new">User Members - Events</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Extension_Methods">
+        <source>User Members - Extension Methods</source>
+        <target state="new">User Members - Extension Methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Fields">
+        <source>User Members - Fields</source>
+        <target state="new">User Members - Fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Labels">
+        <source>User Members - Labels</source>
+        <target state="new">User Members - Labels</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Locals">
+        <source>User Members - Locals</source>
+        <target state="new">User Members - Locals</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Methods">
+        <source>User Members - Methods</source>
+        <target state="new">User Members - Methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Namespaces">
+        <source>User Members - Namespaces</source>
+        <target state="new">User Members - Namespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Parameters">
+        <source>User Members - Parameters</source>
+        <target state="new">User Members - Parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Properties">
+        <source>User Members - Properties</source>
+        <target state="new">User Members - Properties</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">

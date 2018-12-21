@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class EditorFeaturesResources {
@@ -1170,6 +1170,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Keyword - Control.
+        /// </summary>
+        internal static string Keyword_Control {
+            get {
+                return ResourceManager.GetString("Keyword_Control", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Light bulb session is already dismissed..
         /// </summary>
         internal static string Light_bulb_session_is_already_dismissed {
@@ -1301,6 +1310,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Not_a_source_error_line_column_unavailable {
             get {
                 return ResourceManager.GetString("Not_a_source_error_line_column_unavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operator - Overloaded.
+        /// </summary>
+        internal static string Operator_Overloaded {
+            get {
+                return ResourceManager.GetString("Operator_Overloaded", resourceCulture);
             }
         }
         
@@ -1756,6 +1774,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Symbol - Static.
+        /// </summary>
+        internal static string Symbol_Static {
+            get {
+                return ResourceManager.GetString("Symbol_Static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Text Buffer Change.
         /// </summary>
         internal static string Text_Buffer_Change {
@@ -1905,6 +1932,105 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Updating_files {
             get {
                 return ResourceManager.GetString("Updating_files", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Constants.
+        /// </summary>
+        internal static string User_Members_Constants {
+            get {
+                return ResourceManager.GetString("User_Members_Constants", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Enum Members.
+        /// </summary>
+        internal static string User_Members_Enum_Members {
+            get {
+                return ResourceManager.GetString("User_Members_Enum_Members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Events.
+        /// </summary>
+        internal static string User_Members_Events {
+            get {
+                return ResourceManager.GetString("User_Members_Events", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Extension Methods.
+        /// </summary>
+        internal static string User_Members_Extension_Methods {
+            get {
+                return ResourceManager.GetString("User_Members_Extension_Methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Fields.
+        /// </summary>
+        internal static string User_Members_Fields {
+            get {
+                return ResourceManager.GetString("User_Members_Fields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Labels.
+        /// </summary>
+        internal static string User_Members_Labels {
+            get {
+                return ResourceManager.GetString("User_Members_Labels", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Locals.
+        /// </summary>
+        internal static string User_Members_Locals {
+            get {
+                return ResourceManager.GetString("User_Members_Locals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Methods.
+        /// </summary>
+        internal static string User_Members_Methods {
+            get {
+                return ResourceManager.GetString("User_Members_Methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Namespaces.
+        /// </summary>
+        internal static string User_Members_Namespaces {
+            get {
+                return ResourceManager.GetString("User_Members_Namespaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Parameters.
+        /// </summary>
+        internal static string User_Members_Parameters {
+            get {
+                return ResourceManager.GetString("User_Members_Parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Properties.
+        /// </summary>
+        internal static string User_Members_Properties {
+            get {
+                return ResourceManager.GetString("User_Members_Properties", resourceCulture);
             }
         }
         

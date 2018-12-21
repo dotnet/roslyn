@@ -49,8 +49,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbol.ContainingType.Accept(this.NotFirstVisitor);
                 AddPunctuation(SyntaxKind.DotToken);
             }
-
-            builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, symbol.Name));
+            
+            if (symbol.ContainingType.TypeKind == TypeKind.Enum)
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.EnumMemberName, symbol, symbol.Name));
+            }
+            else if (symbol.IsConst)
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, symbol.Name));
+            }
+            else
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, symbol.Name));
+            }
 
             if (this.isFirstSymbolVisited &&
                 format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeConstantValue) &&
@@ -339,10 +350,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case MethodKind.Ordinary:
                 case MethodKind.DelegateInvoke:
-                case MethodKind.ReducedExtension:
                 case MethodKind.LocalFunction:
                     //containing type will be the delegate type, name will be Invoke
                     builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
+                    break;
+                case MethodKind.ReducedExtension:
+                    // Note: Extension methods invoked off of their static class will be tagged as methods.
+                    //       This behavior matches the semantic classification done in NameSyntaxClassifier.
+                    builder.Add(CreatePart(SymbolDisplayPartKind.ExtensionMethodName, symbol, symbol.Name));
                     break;
                 case MethodKind.PropertyGet:
                 case MethodKind.PropertySet:
