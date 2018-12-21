@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
 
-            if (!MemberAndDestinationValidator.IsMemeberValid(selectedMember))
+            if (!MemberAndDestinationValidator.IsMemberValid(selectedMember))
             {
                 return;
             }

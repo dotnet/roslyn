@@ -16,16 +16,25 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             }
 
             // Check destination is class or interface since destination could be ErrorTypeSymbol
-            var isDestinationInterfaceOrClass = destination.TypeKind == TypeKind.Interface || destination.TypeKind == TypeKind.Class;
+            if (destination.TypeKind != TypeKind.Interface && destination.TypeKind != TypeKind.Class)
+            {
+                return false;
+            }
 
             // Don't provide any refactoring option if the destination is not in source.
             // If the destination is generated code, also don't provide refactoring since we can't make sure if we will break it.
-            var isDestinationInSourceAndNotGeneratedCode = destination.Locations.
-                Any(location => location.IsInSource && !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
-            return destination.DeclaringSyntaxReferences.Length != 0 && isDestinationInterfaceOrClass && isDestinationInSourceAndNotGeneratedCode;
+            var isDestinationInSourceAndNotGeneratedCode = 
+                destination.DeclaringSyntaxReferences.Length > 0 &&
+                destination.Locations.Any(location => location.IsInSource && !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
+            if (!isDestinationInSourceAndNotGeneratedCode)
+            {
+                return false;
+            }
+
+            return true;
         }
 
-        internal static bool IsMemeberValid(ISymbol member)
+        internal static bool IsMemberValid(ISymbol member)
         {
             // Static, abstract and accessiblity are not checked here but in PullMemberUpAnalyzer.cs since there are
             // two refactoring options provided for pull members up,

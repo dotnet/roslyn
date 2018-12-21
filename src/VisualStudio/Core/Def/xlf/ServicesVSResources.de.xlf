@@ -43,8 +43,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Calculating_dependents">
-        <source>Calculating dependents</source>
-        <target state="new">Calculating dependents</target>
+        <source>Calculating dependents...</source>
+        <target state="new">Calculating dependents...</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -82,9 +82,9 @@
         <target state="translated">In anderen Operatoren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Interface_can_not_have_field">
-        <source>Interface can not have field.</source>
-        <target state="new">Interface can not have field.</target>
+      <trans-unit id="Interface_cannot_have_field">
+        <source>Interface cannot have field.</source>
+        <target state="new">Interface cannot have field.</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
@@ -115,11 +115,6 @@
       <trans-unit id="Namespace_0">
         <source>Namespace: {0}</source>
         <target state="new">Namespace: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Namespace_global">
-        <source>Namespace: global</source>
-        <target state="new">Namespace: global</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">

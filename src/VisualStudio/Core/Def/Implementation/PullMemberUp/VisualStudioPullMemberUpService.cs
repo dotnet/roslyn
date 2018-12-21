@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PullMemberUp;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
 using Roslyn.Utilities;
@@ -31,8 +32,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         public PullMembersUpAnalysisResult GetPullMemberUpOptions(Document document, ISymbol selectedMember)
         {
             var membersInType = selectedMember.ContainingType.GetMembers().
-                WhereAsArray(member => MemberAndDestinationValidator.IsMemeberValid(member));
-            var memberViewModels = membersInType.SelectAsArray(member => new PullMemberUpSymbolViewModel( _glyphService, selectedMember, member));
+                WhereAsArray(member => MemberAndDestinationValidator.IsMemberValid(member));
+            var memberViewModels = membersInType.
+                SelectAsArray(member => 
+                    new PullMemberUpSymbolViewModel(_glyphService, member)
+                    {
+                        // The member user selected will be checked at the begining.
+                        IsChecked = SymbolEquivalenceComparer.Instance.Equals(selectedMember, member),
+                        MakeAbstract = false,
+                        IsCheckable = true
+                    });
 
             using (var cts = new CancellationTokenSource())
             {
@@ -53,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                     }
                 }, cts.Token);
 
-                var viewModel = new PullMemberUpDialogViewModel(_waitIndicator,  memberViewModels, baseTypeRootViewModel, dependentsMap, cts.Token);
+                var viewModel = new PullMemberUpDialogViewModel(_waitIndicator,  memberViewModels, baseTypeRootViewModel, dependentsMap);
                 var dialog = new PullMemberUpDialog(viewModel);
                 var result = dialog.ShowModal();
 

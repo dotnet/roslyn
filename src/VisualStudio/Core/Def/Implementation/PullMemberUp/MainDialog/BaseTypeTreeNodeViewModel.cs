@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         /// Content of the tooltip.
         /// </summary>
         public string Namespace => string.Format(ServicesVSResources.Namespace_0,
-            MemberSymbol.ContainingNamespace?.ToDisplayString() ?? ServicesVSResources.Namespace_global);
+            MemberSymbol.ContainingNamespace?.ToDisplayString() ?? "global" );
 
         private BaseTypeTreeNodeViewModel(IGlyphService glyphService, INamedTypeSymbol node) : base(node, glyphService)
         {
@@ -49,9 +49,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             while (queue.Any())
             {
                 var currentTreeNode = queue.Dequeue();
-                var currentTypeSymbol = currentTreeNode.MemberSymbol as INamedTypeSymbol;
+                var currentTypeSymbol = (INamedTypeSymbol)currentTreeNode.MemberSymbol;
 
-                currentTreeNode.BaseTypeNodes = currentTypeSymbol.Interfaces.Concat(currentTypeSymbol.BaseType).
+                currentTreeNode.BaseTypeNodes = currentTypeSymbol.Interfaces.
+                    Concat(currentTypeSymbol.BaseType).
                     WhereAsArray(baseType => MemberAndDestinationValidator.IsDestinationValid(solution, baseType, cancellationToken)).
                     SelectAsArray(baseType => new BaseTypeTreeNodeViewModel(glyphService, baseType) { IsChecked = false, IsExpanded = true });
 

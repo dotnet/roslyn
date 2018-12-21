@@ -12,13 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
     internal partial class PullMemberUpWarningDialog : DialogWindow
     {
         public string Back => ServicesVSResources.Back;
-
         public string Finish => ServicesVSResources.Finish;
-
         public string PullMembersUpTitle => ServicesVSResources.Pull_Members_Up;
-
         public string TextTitle => ServicesVSResources.Review_problems_below;
-
         public string FoundProblem => ServicesVSResources.Found_problems_colon;
 
         internal PullMemberUpWarningDialog(PullMemberUpWarningViewModel viewModel)

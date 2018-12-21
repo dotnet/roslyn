@@ -39,9 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             var syntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            foreach (var operation in syntaxes.Select(syntax => compilation.GetSemanticModel(syntax.SyntaxTree).GetOperation(syntax, cancellationToken)))
+            foreach (var syntax in syntaxes)
             {
-                Visit(operation);
+                Visit(compilation.GetSemanticModel(syntax.SyntaxTree).GetOperation(syntax, cancellationToken));
             }
 
             return _dependents.ToImmutableArray();

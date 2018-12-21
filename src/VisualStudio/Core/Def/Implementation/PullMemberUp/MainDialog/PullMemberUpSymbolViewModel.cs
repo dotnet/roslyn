@@ -2,7 +2,6 @@
 
 using System.Windows;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using static Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface.ExtractInterfaceDialogViewModel;
 
@@ -35,12 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         /// </summary>
         public string Accessibility => MemberSymbol.DeclaredAccessibility.ToString();
 
-        public PullMemberUpSymbolViewModel(IGlyphService glyphService, ISymbol selectedMember, ISymbol symbol) : base(symbol, glyphService)
+        public PullMemberUpSymbolViewModel(IGlyphService glyphService, ISymbol symbol) : base(symbol, glyphService)
         {
-            // The member user selected will be checked at the begining.
-            IsChecked = SymbolEquivalenceComparer.Instance.Equals(selectedMember, symbol);
-            MakeAbstract = false;
-            IsCheckable = true;
         }
     }
 }

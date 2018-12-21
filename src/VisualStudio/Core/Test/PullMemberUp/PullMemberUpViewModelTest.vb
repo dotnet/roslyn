@@ -76,7 +76,7 @@ class MyClass : Level1BaseClass, Level1Interface
             viewModel.SelectAllMembers()
 
             Assert.True(viewModel.SelectAllCheckBoxState)
-            Assert.True(Not viewModel.ThreeStateEnable)
+            Assert.False(viewModel.ThreeStateEnable)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
@@ -107,8 +107,8 @@ class MyClass : Level1BaseClass, Level1Interface
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
             viewModel.DeSelectAllMembers()
 
-            Assert.True(Not viewModel.SelectAllCheckBoxState)
-            Assert.True(Not viewModel.ThreeStateEnable)
+            Assert.False(viewModel.SelectAllCheckBoxState)
+            Assert.False(viewModel.ThreeStateEnable)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
@@ -154,7 +154,7 @@ class MyClass : Level1BaseClass, Level1Interface
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
-        Public Async Function TestPullMemberUp_SelectClassEnbaleFieldCheckbox() As Task
+        Public Async Function TestPullMemberUp_SelectClassEnableFieldCheckbox() As Task
             Dim markUp = <Text><![CDATA[
 interface Level2Interface
 {
@@ -187,9 +187,11 @@ class MyClass : Level1BaseClass, Level1Interface
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
             Dim baseTypeTree = viewModel.Destinations()
 
+            ' First select an interface, all checkbox will be disable as the previous test.
             Assert.Equal("Level1Interface", baseTypeTree(0).MemberName)
             viewModel.SelectedDestination = baseTypeTree(0)
 
+            ' Second select a class, check all checkboxs will be resumed.
             Assert.Equal("Level1BaseClass", baseTypeTree(1).MemberName)
             viewModel.SelectedDestination = baseTypeTree(1)
             For Each member In viewModel.Members.Where(Function(memberViewModel) memberViewModel.MemberSymbol.IsKind(SymbolKind.Field))
@@ -278,7 +280,7 @@ class MyClass : Level1BaseClass
             Dim baseTypeTree = viewModel.Destinations()
             viewModel.SelectDependents()
 
-            'Dependents of Goo
+            ' Dependents of Goo
             Assert.True(FindMemberByName("Goo()", viewModel.Members).IsChecked)
             Assert.True(FindMemberByName("e", viewModel.Members).IsChecked)
             Assert.True(FindMemberByName("What", viewModel.Members).IsChecked)
@@ -286,7 +288,7 @@ class MyClass : Level1BaseClass
             Assert.True(FindMemberByName("Nested1()", viewModel.Members).IsChecked)
             Assert.True(FindMemberByName("gravitational", viewModel.Members).IsChecked)
 
-            'Not the depenents of Goo
+            ' Not the depenents of Goo
             Assert.False(FindMemberByName("i", viewModel.Members).IsChecked)
             Assert.False(FindMemberByName("FooEvent", viewModel.Members).IsChecked)
         End Function
@@ -303,7 +305,7 @@ class MyClass : Level1BaseClass
             Dim workspaceXml =
             <Workspace>
                 <Project Language=<%= languageName %> CommonReferences="true">
-                    <Document><%= markup.NormalizedValue.Replace(vbCrLf, vbLf) %></Document>
+                    <Document><%= markup.Value %></Document>
                 </Project>
             </Workspace>
 
@@ -311,23 +313,22 @@ class MyClass : Level1BaseClass
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
                 If (Not doc.CursorPosition.HasValue) Then
-                    Assert.True(False, "Missing caret location in document.")
+                    Throw New ArgumentException("Missing caret location in document.")
                 End If
 
                 Dim tree = Await workspaceDoc.GetSyntaxTreeAsync()
-                Dim cts = New CancellationTokenSource()
                 Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
                 Dim memberSymbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
-                Dim baseTypeTree = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(glyphService:=Nothing, workspaceDoc.Project.Solution, memberSymbol.ContainingType, cts.Token)
-                Dim validMembers = memberSymbol.ContainingType.GetMembers().WhereAsArray(Function(member) MemberAndDestinationValidator.IsMemeberValid(member))
-                Dim membersViewModel = validMembers.SelectAsArray(Function(member) New PullMemberUpSymbolViewModel(glyphService:=Nothing, memberSymbol, member))
+                Dim baseTypeTree = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(glyphService:=Nothing, workspaceDoc.Project.Solution, memberSymbol.ContainingType, CancellationToken.None)
+                Dim validMembers = memberSymbol.ContainingType.GetMembers().WhereAsArray(Function(member) MemberAndDestinationValidator.IsMemberValid(member))
+                Dim membersViewModel = validMembers.SelectAsArray(
+                    Function(member) New PullMemberUpSymbolViewModel(glyphService:=Nothing, member) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
                 Dim dependentsBuilder = New SymbolDependentsBuilder(workspaceDoc, validMembers)
                 Return New PullMemberUpDialogViewModel(
-                workspace.GetService(Of IWaitIndicator),
-                membersViewModel,
-                baseTypeTree.BaseTypeNodes,
-                dependentsBuilder.CreateDependentsMap(cts.Token),
-                cts.Token)
+                    workspace.GetService(Of IWaitIndicator),
+                    membersViewModel,
+                    baseTypeTree.BaseTypeNodes,
+                    dependentsBuilder.CreateDependentsMap(CancellationToken.None))
             End Using
         End Function
 

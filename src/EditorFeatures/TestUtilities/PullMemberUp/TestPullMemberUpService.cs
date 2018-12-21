@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
 
         public PullMembersUpAnalysisResult GetPullMemberUpOptions(Document document, ISymbol selectedNodeSymbol)
         {
-            var members = selectedNodeSymbol.ContainingType.GetMembers().Where(member => MemberAndDestinationValidator.IsMemeberValid(member));
+            var members = selectedNodeSymbol.ContainingType.GetMembers().Where(member => MemberAndDestinationValidator.IsMemberValid(member));
 
             var selectedMember = SelectedMembers == null
                 ? members.Select(member => (member, false))

@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
@@ -17,10 +16,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
     internal class PullMemberUpDialogViewModel : AbstractNotifyPropertyChanged
     {
         public ImmutableArray<PullMemberUpSymbolViewModel> Members { get; set; }
-
         public ImmutableArray<BaseTypeTreeNodeViewModel> Destinations { get; set; }
-
         private BaseTypeTreeNodeViewModel _selectedDestination;
+        public ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> DependentsMap;
+        public ImmutableDictionary<ISymbol, PullMemberUpSymbolViewModel> SymbolToMemberViewMap { get; }
+        private bool _okButtonEnabled;
+        public bool OkButtonEnabled { get => _okButtonEnabled; set => SetProperty(ref _okButtonEnabled, value, nameof(OkButtonEnabled)); }
+        private bool? _selectAllCheckBoxState;
+        public bool? SelectAllCheckBoxState { get => _selectAllCheckBoxState; set => SetProperty(ref _selectAllCheckBoxState, value, nameof(SelectAllCheckBoxState)); }
+        private bool _threeStateEnable;
+        public bool ThreeStateEnable { get => _threeStateEnable; set => SetProperty(ref _threeStateEnable, value, nameof(ThreeStateEnable)); }
+        private readonly IWaitIndicator _waitIndicator;
 
         public BaseTypeTreeNodeViewModel SelectedDestination
         {
@@ -53,39 +59,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             }
         }
 
-        public ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> DependentsMap;
-
-        public ImmutableDictionary<ISymbol, PullMemberUpSymbolViewModel> SymbolToMemberViewMap { get; }
-
-        private bool _okButtonEnabled;
-
-        public bool OkButtonEnabled { get => _okButtonEnabled; set => SetProperty(ref _okButtonEnabled, value, nameof(OkButtonEnabled)); }
-
-        private bool? _selectAllCheckBoxState;
-
-        public bool? SelectAllCheckBoxState { get => _selectAllCheckBoxState; set => SetProperty(ref _selectAllCheckBoxState, value, nameof(SelectAllCheckBoxState)); }
-
-        private bool _threeStateEnable;
-
-        public bool ThreeStateEnable { get => _threeStateEnable; set => SetProperty(ref _threeStateEnable, value, nameof(ThreeStateEnable)); }
-
-        private readonly IWaitIndicator WaitIndicator;
-
-        private readonly CancellationToken CancellationToken;
-
         internal PullMemberUpDialogViewModel(
             IWaitIndicator waitIndicator,
             ImmutableArray<PullMemberUpSymbolViewModel> members,
             ImmutableArray<BaseTypeTreeNodeViewModel> destinations,
-            ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap,
-            CancellationToken cancellationToken)
+            ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap)
         {
             Destinations = destinations;
             DependentsMap = dependentsMap;
             Members = members;
             SymbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.MemberSymbol);
-            WaitIndicator = waitIndicator;
-            CancellationToken = cancellationToken;
+            _waitIndicator = waitIndicator;
         }
 
         internal PullMembersUpAnalysisResult CreateAnaysisResult()
@@ -97,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                     makeAbstract: memberSymbolView.MakeAbstract));
 
             var result = PullMembersUpAnalysisBuilder.BuildAnalysisResult(
-                SelectedDestination.MemberSymbol as INamedTypeSymbol,
+                (INamedTypeSymbol)SelectedDestination.MemberSymbol,
                 selectedOptionFromDialog);
             return result;
         }
@@ -146,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             foreach (var member in checkedMembers)
             {
                 var dependentsTask = DependentsMap[member.MemberSymbol];
-                var waitResult = WaitIndicator.Wait(
+                var waitResult = _waitIndicator.Wait(
                         title: ServicesVSResources.Pull_Members_Up, 
                         message: ServicesVSResources.Calculating_dependents, 
                         allowCancel: true,

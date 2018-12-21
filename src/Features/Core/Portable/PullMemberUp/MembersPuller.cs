@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         }
 
         /// <summary>
-        /// Return the CodeAction to pull selectedMember up to destinationType. If the pulling will cause error,
+        /// Return the CodeAction to pull <paramref name="selectedMember"/> up to destinationType. If the pulling will cause error,
         /// it will return null.
         /// </summary>
         public CodeAction TryComputeCodeAction(
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             if (result.PullUpOperationCausesError ||
                 IsSelectedMemberDeclarationAlreadyInDestination(selectedMember, destination))
             {
-                return default;
+                return null;
             }
 
             return new SolutionChangeAction(
@@ -72,11 +72,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         private IMethodSymbol FilterGetterOrSetter(IMethodSymbol getterOrSetter)
         {
-            // Filter the non-public getter/setter since the propery is going to pull up to an interface
+            // We are pulling a public property, it could have a public getter/setter but 
+            // the other getter/setter is not.
+            // In this scenario, only the public getter/setter
+            // will be add to the destination interface.
             return getterOrSetter?.DeclaredAccessibility == Accessibility.Public ? getterOrSetter : null;
         }
 
-        private IMethodSymbol CreatePublicGetterAndSetter(IPropertySymbol containingProperty, IMethodSymbol getterOrSetter)
+        private IMethodSymbol CreatePublicGetterAndSetter(IMethodSymbol getterOrSetter)
         {
             // Create a public getter/setter since user is trying to pull a non-public property to an interface.
             // If getterOrSetter is null, it means this property doesn't have a getter/setter, so just don't generate it.
@@ -107,15 +110,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                             return CodeGenerationSymbolFactory.CreatePropertySymbol(
                                 propertySymbol,
                                 accessibility: Accessibility.Public,
-                                getMethod: CreatePublicGetterAndSetter(propertySymbol, propertySymbol.GetMethod),
-                                setMethod: CreatePublicGetterAndSetter(propertySymbol, propertySymbol.SetMethod));
+                                getMethod: CreatePublicGetterAndSetter(propertySymbol.GetMethod),
+                                setMethod: CreatePublicGetterAndSetter(propertySymbol.SetMethod));
                         }
                         else
                         {
-                            // We are pulling a public property, it could have a public getter/setter but 
-                            // the other getter/setter is not.
-                            // In this scenario, only the public getter/setter
-                            // will be add to the destination interface.
+                            // We are pulling a public property, filter the non-public getter/setter.
                             return CodeGenerationSymbolFactory.CreatePropertySymbol(
                                 propertySymbol,
                                 getMethod: FilterGetterOrSetter(propertySymbol.GetMethod),

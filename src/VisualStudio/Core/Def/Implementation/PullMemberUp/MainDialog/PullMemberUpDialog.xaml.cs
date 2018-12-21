@@ -11,32 +11,21 @@ using Microsoft.VisualStudio.PlatformUI;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
 {
     /// <summary>
-    /// Interaction logic for PullhMemberUpDialog.xaml
+    /// Interaction logic for PullMemberUpDialog.xaml
     /// </summary>
     internal partial class PullMemberUpDialog : DialogWindow
     {
         public string OK => ServicesVSResources.OK;
-
         public string Cancel => ServicesVSResources.Cancel;
-
         public string PullMembersUpTitle => ServicesVSResources.Pull_Members_Up;
-
         public string SelectMembers => ServicesVSResources.Select_members_colon;
-
         public string SelectDestination => ServicesVSResources.Select_destination_colon;
-
         public string Description => ServicesVSResources.Select_destination_and_members_to_pull_up;
-
         public string SelectPublic => ServicesVSResources.Select_Public;
-
         public string SelectDependents => ServicesVSResources.Select_Dependents;
-
         public string Members => ServicesVSResources.Members;
-
         public string MakeAbstract => ServicesVSResources.Make_abstract;
-
-        public string InterfaceCannotHaveField => ServicesVSResources.Interface_can_not_have_field;
-
+        public string InterfaceCannotHaveField => ServicesVSResources.Interface_cannot_have_field;
         public string SpinnerToolTip => ServicesVSResources.Calculating_dependents;
 
         internal PullMemberUpDialogViewModel ViewModel { get; }
@@ -48,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             InitializeComponent();
         }
 
-        private void OK_Button_Click(object sender, RoutedEventArgs e)
+        private void OKButton_Click(object sender, RoutedEventArgs e)
         {
             var result = ViewModel.CreateAnaysisResult();
             if (result.PullUpOperationCausesError)
@@ -71,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             return warningDialog.ShowModal().GetValueOrDefault();
         }
 
-        private void Cancel_Button_Click(object sender, RoutedEventArgs e) => DialogResult = false;
+        private void CancelButton_Click(object sender, RoutedEventArgs e) => DialogResult = false;
 
         private void SelecDependentsButton_Click(object sender, RoutedEventArgs e)
         {

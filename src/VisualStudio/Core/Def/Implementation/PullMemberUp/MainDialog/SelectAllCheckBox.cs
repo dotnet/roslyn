@@ -16,11 +16,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             // click the checkbox will then trigger select all, then in checked state(true).
             if (IsChecked == false)
             {
-                IsChecked = IsThreeState ? null : true as bool?;
+                IsChecked = IsThreeState ? null : (bool?)true;
             }
             else
             {
-                IsChecked = new bool?(!IsChecked.HasValue);  
+                IsChecked = !IsChecked.HasValue;  
             }
         }
     }

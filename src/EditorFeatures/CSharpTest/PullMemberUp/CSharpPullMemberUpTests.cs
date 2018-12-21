@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
     public class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpPullMemberUpCodeRefactoringProvider(parameters.fixProviderData as IPullMemberUpOptionsService);
+            => new CSharpPullMemberUpCodeRefactoringProvider((IPullMemberUpOptionsService)parameters.fixProviderData);
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions) => FlattenActions(actions);
 
-        #region quick action
+        #region Quick Action
 
         private async Task TestQuickActionNotProvidedAsync(
             string initialMarkup,
@@ -1524,7 +1524,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestWithPullMemberDialogAsync(testText, expected, index : 1);
+            await TestWithPullMemberDialogAsync(testText, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]

@@ -22,8 +22,8 @@
              HasHelpButton="True"
              Title="{Binding ElementName=dialog, Path=PullMembersUpTitle}">
     <Window.Resources>
-        <Thickness x:Key="okAndCancelButtonPadding">9, 2, 9, 2</Thickness>
-        <Thickness x:Key="selectDependantsButtonPadding">2, 4, 4, 2</Thickness>
+        <Thickness x:Key="OkAndCancelButtonPadding">9, 2, 9, 2</Thickness>
+        <Thickness x:Key="SelectDependantsButtonPadding">2, 4, 4, 2</Thickness>
         <sys:Double x:Key="ButtonWidth">75</sys:Double>
         <sys:Double x:Key="ButtonHeight">23</sys:Double>
         <Style x:Key="LibraryTreeViewItemStyle"
@@ -74,7 +74,7 @@
             x:Name="DestinationSelectionGroupBox"
             MinHeight="130"
             Header="{Binding ElementName=dialog, Path=SelectDestination}">
-                <TreeView x:Uid="PullDestinationTreeView"
+            <TreeView x:Uid="PullDestinationTreeView"
                           x:Name="Destination"
                           MinHeight="100"
                           MinWidth="360"
@@ -83,8 +83,8 @@
                           ItemsSource="{Binding Destinations}"
                           ItemContainerStyle="{StaticResource LibraryTreeViewItemStyle}"
                           SelectedItemChanged="Destination_SelectedItemChanged">
-                    <TreeView.ItemTemplate>
-                        <HierarchicalDataTemplate
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate
                             ItemsSource="{Binding BaseTypeNodes}"
                             DataType="{x:Type self:BaseTypeTreeNodeViewModel}">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -94,8 +94,8 @@
                                 ToolTip="{Binding Namespace}"/>
                         </StackPanel>
                     </HierarchicalDataTemplate>
-                    </TreeView.ItemTemplate>
-                </TreeView>
+                </TreeView.ItemTemplate>
+            </TreeView>
         </GroupBox>
         <GroupBox
             Header="{Binding ElementName=dialog, Path=SelectMembers}"
@@ -211,7 +211,7 @@
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
-                    <StackPanel
+                <StackPanel
                         Grid.Column="1"
                         Orientation="Vertical"
                         VerticalAlignment="Top"
@@ -219,49 +219,49 @@
                         Margin="0, 4, 0, 0"
                         Width="Auto"
                         MaxWidth="130">
-                        <vs:DialogButton
+                    <vs:DialogButton
                             x:Name="SelecDependentsButton"
-                            Padding="{StaticResource ResourceKey=selectDependantsButtonPadding}"
+                            Padding="{StaticResource ResourceKey=SelectDependantsButtonPadding}"
                             Content="{Binding ElementName=dialog, Path=SelectDependents}"
                             Click="SelecDependentsButton_Click"
                             Margin="2, 2, 2, 7"
                             Width= "Auto"
                             Height="Auto"/>
-                        <vs:DialogButton
+                    <vs:DialogButton
                             x:Name="SelectPublicButton"
                             Content="{Binding ElementName=dialog, Path=SelectPublic}"
                             Margin="2, 0, 2, 0"
                             Click="SelectPublic_Click"
-                            Padding="{StaticResource ResourceKey=selectDependantsButtonPadding}"
+                            Padding="{StaticResource ResourceKey=SelectDependantsButtonPadding}"
                             Width= "Auto"
                             Height="Auto"/>
-                    </StackPanel>
-                </Grid>
-            </GroupBox>
-            <StackPanel
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+        <StackPanel
                 Grid.Row="3"
                 Margin="0, 18, 0, 0"
                 HorizontalAlignment="Right"
                 Orientation="Horizontal">
-                    <vs:DialogButton 
+            <vs:DialogButton 
                         x:Uid="OKButton"
-                        Click="OK_Button_Click"
+                        Click="OKButton_Click"
                         IsDefault="True"
                         Margin="3, 0, 0, 0"
                         IsEnabled="{Binding OkButtonEnabled, UpdateSourceTrigger=PropertyChanged}"
-                        Padding ="{StaticResource ResourceKey=okAndCancelButtonPadding}"
+                        Padding ="{StaticResource ResourceKey=OkAndCancelButtonPadding}"
                         Content="{Binding OK, ElementName=dialog}"
                         Width="{StaticResource ResourceKey=ButtonWidth}"
                         Height="{StaticResource ResourceKey=ButtonHeight}"/>
-                    <vs:DialogButton
+            <vs:DialogButton
                         x:Uid="CancelButton"
-                        Click="Cancel_Button_Click"
+                        Click="CancelButton_Click"
                         IsCancel="True"
-                        Padding="{StaticResource ResourceKey=okAndCancelButtonPadding}"
+                        Padding="{StaticResource ResourceKey=OkAndCancelButtonPadding}"
                         Margin="7, 0, 4, 0"
                         Content="{Binding Cancel, ElementName=dialog}"
                         Width= "{StaticResource ResourceKey=ButtonWidth}"
                         Height="{StaticResource ResourceKey=ButtonHeight}"/>
-            </StackPanel>
+        </StackPanel>
     </Grid>
 </vs:DialogWindow>

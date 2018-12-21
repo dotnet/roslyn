@@ -452,7 +452,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Calculating dependents.
+        ///   Looks up a localized string similar to Calculating dependents....
         /// </summary>
         internal static string Calculating_dependents {
             get {
@@ -1353,11 +1353,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Interface can not have field..
+        ///   Looks up a localized string similar to Interface cannot have field..
         /// </summary>
-        internal static string Interface_can_not_have_field {
+        internal static string Interface_cannot_have_field {
             get {
-                return ResourceManager.GetString("Interface_can_not_have_field", resourceCulture);
+                return ResourceManager.GetString("Interface_cannot_have_field", resourceCulture);
             }
         }
         
@@ -1619,15 +1619,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Namespace_0 {
             get {
                 return ResourceManager.GetString("Namespace_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Namespace: global.
-        /// </summary>
-        internal static string Namespace_global {
-            get {
-                return ResourceManager.GetString("Namespace_global", resourceCulture);
             }
         }
         
