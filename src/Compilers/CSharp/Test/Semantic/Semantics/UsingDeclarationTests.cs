@@ -557,7 +557,7 @@ class C2
             CreateCompilation(source).VerifyDiagnostics(
                 // (15,21): error CS8389: A using variable cannot be used directly within a switch section (consider using braces). 
                 //                     using C1 o1 = new C1();
-                Diagnostic(ErrorCode.ERR_UsingVarInSwitchCase, "using C1 o1 = new C1();").WithLocation(15, 21)
+                Diagnostic(ErrorCode.ERR_UsingVarInSwitchCase, "using C1 o1 = new C1();").WithLocation(15, 17)
             );
         }
 
