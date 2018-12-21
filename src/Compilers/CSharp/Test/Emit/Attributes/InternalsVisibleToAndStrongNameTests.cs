@@ -57,9 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Naming Tests
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(529419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529419")]
-        public void AssemblyKeyFileAttributeNotExistFile()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void AssemblyKeyFileAttributeNotExistFile(CSharpParseOptions parseOptions)
         {
             string source = @"
 using System;
@@ -80,19 +81,21 @@ public class Test
             // Diagnostic(ErrorCode.WRN_UseSwitchInsteadOfAttribute).WithArguments(@"/keyfile", "AssemblyKeyFile"),
             // Diagnostic(ErrorCode.WRN_UseSwitchInsteadOfAttribute).WithArguments(@"/keycontainer", "AssemblyKeyName")
             var c = CreateCompilation(source,
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()));
+                options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()),
+                parseOptions: parseOptions);
 
             c.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("MyKey.snk", CodeAnalysisResources.FileNotFound));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PubKeyFromKeyFileAttribute()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PubKeyFromKeyFileAttribute(CSharpParseOptions parseOptions)
         {
             var x = s_keyPairFile;
             string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", x, @""")] public class C {}");
 
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll);
+            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll, parseOptions: parseOptions);
             other.VerifyDiagnostics();
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
 
@@ -113,8 +116,9 @@ public class Test
             });
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PubKeyFromKeyFileAttribute_AssemblyKeyFileResolver()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PubKeyFromKeyFileAttribute_AssemblyKeyFileResolver(CSharpParseOptions parseOptions)
         {
             string keyFileDir = Path.GetDirectoryName(s_keyPairFile);
             string keyFileName = Path.GetFileName(s_keyPairFile);
@@ -123,7 +127,7 @@ public class Test
             var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs");
 
             // verify failure with default assembly key file resolver
-            var comp = CreateCompilation(syntaxTree, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(syntaxTree, options: TestOptions.ReleaseDll, parseOptions: parseOptions);
             comp.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(keyFileName, "Assembly signing not supported."));
 
@@ -141,8 +145,9 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PubKeyFromKeyFileAttribute_AssemblyKeyFileResolver_RelativeToCurrentParent()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PubKeyFromKeyFileAttribute_AssemblyKeyFileResolver_RelativeToCurrentParent(CSharpParseOptions parseOptions)
         {
             string keyFileDir = Path.GetDirectoryName(s_keyPairFile);
             string keyFileName = Path.GetFileName(s_keyPairFile);
@@ -151,7 +156,7 @@ public class Test
             var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs");
 
             // verify failure with default assembly key file resolver
-            var comp = CreateCompilation(syntaxTree, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(syntaxTree, options: TestOptions.ReleaseDll, parseOptions: parseOptions);
             comp.VerifyDiagnostics(
                 // error CS7027: Error extracting public key from file '..\KeyPairFile.snk' -- File not found.
                 Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(@"..\" + keyFileName, "Assembly signing not supported."));
@@ -169,8 +174,9 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void SigningNotAvailable001()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void SigningNotAvailable001(CSharpParseOptions parseOptions)
         {
             string keyFileDir = Path.GetDirectoryName(s_keyPairFile);
             string keyFileName = Path.GetFileName(s_keyPairFile);
@@ -182,7 +188,12 @@ public class Test
                 .WithStrongNameProvider(GetProviderWithPath(PathUtilities.CombineAbsoluteAndRelativePaths(keyFileDir, @"TempSubDir\")));
 
             // verify failure
-            var comp = CSharpCompilation.Create(GetUniqueName(), new[] { syntaxTree }, new[] { MscorlibRef }, options: options);
+            var comp = CreateCompilation(
+                assemblyName: GetUniqueName(),
+                source: new[] { syntaxTree },
+                references: new[] { MscorlibRef },
+                options: options,
+                parseOptions: parseOptions);
 
             var provider = (DesktopStrongNameProvider)comp.Options.StrongNameProvider;
 
@@ -197,13 +208,14 @@ public class Test
             );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PubKeyFromKeyContainerAttribute()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PubKeyFromKeyContainerAttribute(CSharpParseOptions parseOptions)
         {
             var x = s_keyPairFile;
             string s = @"[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll);
+            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll, parseOptions: parseOptions);
             other.VerifyDiagnostics();
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
 
@@ -224,18 +236,20 @@ public class Test
             });
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PubKeyFromKeyFileOptions()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PubKeyFromKeyFileOptions(CSharpParseOptions parseOptions)
         {
             string s = "public class C {}";
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile));
+            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
 
             other.VerifyDiagnostics();
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PubKeyFromKeyFileOptions_ReferenceResolver()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PubKeyFromKeyFileOptions_ReferenceResolver(CSharpParseOptions parseOptions)
         {
             string keyFileDir = Path.GetDirectoryName(s_keyPairFile);
             string keyFileName = Path.GetFileName(s_keyPairFile);
@@ -244,7 +258,7 @@ public class Test
             var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs");
 
             // verify failure with default resolver
-            var comp = CreateCompilation(s, options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(keyFileName));
+            var comp = CreateCompilation(s, options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(keyFileName), parseOptions: parseOptions);
 
             comp.VerifyDiagnostics(
                 // error CS7027: Error extracting public key from file 'KeyPairFile.snk' -- File not found.
@@ -263,18 +277,21 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PubKeyFromKeyFileOptionsJustPublicKey()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PubKeyFromKeyFileOptionsJustPublicKey(CSharpParseOptions parseOptions)
         {
             string s = "public class C {}";
             var other = CreateCompilation(s,
-                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true));
+                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true),
+                parseOptions: parseOptions);
             other.VerifyDiagnostics();
             Assert.True(ByteSequenceComparer.Equals(TestResources.General.snPublicKey.AsImmutableOrNull(), other.Assembly.Identity.PublicKey));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PubKeyFromKeyFileOptionsJustPublicKey_ReferenceResolver()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PubKeyFromKeyFileOptionsJustPublicKey_ReferenceResolver(CSharpParseOptions parseOptions)
         {
             string publicKeyFileDir = Path.GetDirectoryName(s_publicKeyFile);
             string publicKeyFileName = Path.GetFileName(s_publicKeyFile);
@@ -284,7 +301,8 @@ public class Test
 
             // verify failure with default resolver
             var comp = CreateCompilation(s,
-                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(publicKeyFileName).WithDelaySign(true));
+                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(publicKeyFileName).WithDelaySign(true),
+                parseOptions: parseOptions);
 
             comp.VerifyDiagnostics(
                 // error CS7027: Error extracting public key from file 'PublicKeyFile.snk' -- File not found.
@@ -305,11 +323,12 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PubKeyFileNotFoundOptions()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PubKeyFileNotFoundOptions(CSharpParseOptions parseOptions)
         {
             string s = "public class C {}";
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll.WithCryptoKeyFile("goo"));
+            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll.WithCryptoKeyFile("goo"), parseOptions: parseOptions);
 
             other.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("goo", CodeAnalysisResources.FileNotFound));
@@ -317,13 +336,14 @@ public class Test
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PubKeyFileBogusOptions()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PubKeyFileBogusOptions(CSharpParseOptions parseOptions)
         {
             var tempFile = Temp.CreateFile().WriteAllBytes(new byte[] { 1, 2, 3, 4 });
             string s = "public class C {}";
 
-            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll.WithCryptoKeyFile(tempFile.Path));
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll.WithCryptoKeyFile(tempFile.Path), parseOptions: parseOptions);
 
             //TODO check for specific error
             Assert.NotEmpty(other.GetDiagnostics());
@@ -331,11 +351,12 @@ public class Test
         }
 
         [WorkItem(5662, "https://github.com/dotnet/roslyn/issues/5662")]
-        [ConditionalFact(typeof(IsEnglishLocal), typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PubKeyContainerBogusOptions()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PubKeyContainerBogusOptions(CSharpParseOptions parseOptions)
         {
             string s = "public class C {}";
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll.WithCryptoKeyContainer("goo"));
+            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll.WithCryptoKeyContainer("goo"), parseOptions: parseOptions);
 
             // error CS7028: Error signing output with public key from container 'goo' -- Keyset does not exist (Exception from HRESULT: 0x80090016)
             var err = other.GetDiagnostics().Single();
@@ -348,56 +369,61 @@ public class Test
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void KeyFileAttributeOptionConflict()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void KeyFileAttributeOptionConflict(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyFile(""bogus"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile));
+            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
 
             other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_CmdOptionConflictsSource).WithArguments("CryptoKeyFile", "System.Reflection.AssemblyKeyFileAttribute"));
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void KeyContainerAttributeOptionConflict()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void KeyContainerAttributeOptionConflict(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyName(""bogus"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll.WithCryptoKeyContainer("RoslynTestContainer"));
+            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll.WithCryptoKeyContainer("RoslynTestContainer"), parseOptions: parseOptions);
 
             other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_CmdOptionConflictsSource).WithArguments("CryptoKeyContainer", "System.Reflection.AssemblyKeyNameAttribute"));
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void KeyFileAttributeEmpty()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void KeyFileAttributeEmpty(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyFile("""")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll);
+            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll, parseOptions: parseOptions);
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
             other.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void KeyContainerEmpty()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void KeyContainerEmpty(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyName("""")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll);
+            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll, parseOptions: parseOptions);
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
             other.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PublicKeyFromOptions_DelaySigned()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PublicKeyFromOptions_DelaySigned(CSharpParseOptions parseOptions)
         {
             string source = @"
 [assembly: System.Reflection.AssemblyDelaySign(true)]
 public class C {}";
 
-            var c = CreateCompilation(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey));
+            var c = CreateCompilation(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey), parseOptions: parseOptions);
             c.VerifyDiagnostics();
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, c.Assembly.Identity.PublicKey));
 
@@ -409,9 +435,10 @@ public class C {}";
             Assert.Equal(CorFlags.ILOnly, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
-        public void PublicKeyFromOptions_PublicSign()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PublicKeyFromOptions_PublicSign(CSharpParseOptions parseOptions)
         {
             // attributes are ignored
             string source = @"
@@ -420,7 +447,7 @@ public class C {}";
 public class C {}
 ";
 
-            var c = CreateCompilation(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey).WithPublicSign(true));
+            var c = CreateCompilation(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey).WithPublicSign(true), parseOptions: parseOptions);
             c.VerifyDiagnostics(
                 // warning CS7103: Attribute 'System.Reflection.AssemblyKeyNameAttribute' is ignored when public signing is specified.
                 Diagnostic(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning).WithArguments("System.Reflection.AssemblyKeyNameAttribute").WithLocation(1, 1),
@@ -436,14 +463,14 @@ public class C {}
             AssertEx.Equal(identity.PublicKey, s_publicKey);
             Assert.Equal(CorFlags.ILOnly | CorFlags.StrongNameSigned, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
 
-            c = CreateCompilation(source, options: TestOptions.SigningReleaseModule.WithCryptoPublicKey(s_publicKey).WithPublicSign(true));
+            c = CreateCompilation(source, options: TestOptions.SigningReleaseModule.WithCryptoPublicKey(s_publicKey).WithPublicSign(true), parseOptions: parseOptions);
 
             c.VerifyDiagnostics(
                 // error CS8201: Public signing is not supported for netmodules.
                 Diagnostic(ErrorCode.ERR_PublicSignNetModule).WithLocation(1, 1)
             );
 
-            c = CreateCompilation(source, options: TestOptions.SigningReleaseModule.WithCryptoKeyFile(s_publicKeyFile).WithPublicSign(true));
+            c = CreateCompilation(source, options: TestOptions.SigningReleaseModule.WithCryptoKeyFile(s_publicKeyFile).WithPublicSign(true), parseOptions: parseOptions);
 
             c.VerifyDiagnostics(
                 // error CS7091: Attribute 'System.Reflection.AssemblyKeyFileAttribute' given in a source file conflicts with option 'CryptoKeyFile'.
@@ -467,15 +494,16 @@ public class C {}
             );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
-        public void KeyFileFromAttributes_PublicSign()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void KeyFileFromAttributes_PublicSign(CSharpParseOptions parseOptions)
         {
             string source = @"
 [assembly: System.Reflection.AssemblyKeyFile(""test.snk"")]
 public class C {}
 ";
-            var c = CreateCompilation(source, options: TestOptions.ReleaseDll.WithPublicSign(true));
+            var c = CreateCompilation(source, options: TestOptions.ReleaseDll.WithPublicSign(true), parseOptions: parseOptions);
             c.VerifyDiagnostics(
                 // warning CS7103: Attribute 'System.Reflection.AssemblyKeyFileAttribute' is ignored when public signing is specified.
                 Diagnostic(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning).WithArguments("System.Reflection.AssemblyKeyFileAttribute").WithLocation(1, 1),
@@ -486,15 +514,16 @@ public class C {}
             Assert.True(c.Options.PublicSign);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
-        public void KeyContainerFromAttributes_PublicSign()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void KeyContainerFromAttributes_PublicSign(CSharpParseOptions parseOptions)
         {
             string source = @"
 [assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")]
 public class C {}
 ";
-            var c = CreateCompilation(source, options: TestOptions.ReleaseDll.WithPublicSign(true));
+            var c = CreateCompilation(source, options: TestOptions.ReleaseDll.WithPublicSign(true), parseOptions: parseOptions);
             c.VerifyDiagnostics(
                 // warning CS7103: Attribute 'System.Reflection.AssemblyKeyNameAttribute' is ignored when public signing is specified.
                 Diagnostic(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning).WithArguments("System.Reflection.AssemblyKeyNameAttribute").WithLocation(1, 1),
@@ -519,15 +548,17 @@ public class C {}
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void SnkFile_PublicSign()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void SnkFile_PublicSign(CSharpParseOptions parseOptions)
         {
             var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
 
             var comp = CreateCompilation("public class C{}",
                 options: TestOptions.ReleaseDll
                     .WithCryptoKeyFile(snk.Path)
-                    .WithPublicSign(true));
+                    .WithPublicSign(true),
+                parseOptions: parseOptions);
 
             comp.VerifyDiagnostics();
 
@@ -539,15 +570,17 @@ public class C {}
             VerifySignedBitSetAfterEmit(comp);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PublicKeyFile_PublicSign()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PublicKeyFile_PublicSign(CSharpParseOptions parseOptions)
         {
             var pubKeyFile = Temp.CreateFile().WriteAllBytes(TestResources.General.snPublicKey);
 
             var comp = CreateCompilation("public class C {}",
                 options: TestOptions.ReleaseDll
                     .WithCryptoKeyFile(pubKeyFile.Path)
-                    .WithPublicSign(true));
+                    .WithPublicSign(true),
+                parseOptions: parseOptions);
 
             comp.VerifyDiagnostics();
 
@@ -559,8 +592,9 @@ public class C {}
             VerifySignedBitSetAfterEmit(comp);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PublicSign_DelaySignAttribute()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PublicSign_DelaySignAttribute(CSharpParseOptions parseOptions)
         {
             var pubKeyFile = Temp.CreateFile().WriteAllBytes(TestResources.General.snPublicKey);
 
@@ -569,7 +603,8 @@ public class C {}
 public class C {}",
                 options: TestOptions.ReleaseDll
                     .WithCryptoKeyFile(pubKeyFile.Path)
-                    .WithPublicSign(true));
+                    .WithPublicSign(true),
+                parseOptions: parseOptions);
 
             comp.VerifyDiagnostics(
     // warning CS1616: Option 'PublicSign' overrides attribute 'System.Reflection.AssemblyDelaySignAttribute' given in a source file or added module
@@ -583,13 +618,15 @@ public class C {}",
             VerifySignedBitSetAfterEmit(comp);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void KeyContainerNoSNProvider_PublicSign()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void KeyContainerNoSNProvider_PublicSign(CSharpParseOptions parseOptions)
         {
             var comp = CreateCompilation("public class C {}",
                 options: TestOptions.ReleaseDll
                     .WithCryptoKeyContainer("roslynTestContainer")
-                    .WithPublicSign(true));
+                    .WithPublicSign(true),
+                parseOptions: parseOptions);
 
             comp.VerifyDiagnostics(
     // error CS7102: Compilation options 'PublicSign' and 'CryptoKeyContainer' can't both be specified at the same time.
@@ -598,13 +635,15 @@ public class C {}",
     Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void KeyContainerDesktopProvider_PublicSign()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void KeyContainerDesktopProvider_PublicSign(CSharpParseOptions parseOptions)
         {
             var comp = CreateCompilation("public class C {}",
                 options: TestOptions.SigningReleaseDll
                     .WithCryptoKeyContainer("roslynTestContainer")
-                    .WithPublicSign(true));
+                    .WithPublicSign(true),
+                parseOptions: parseOptions);
 
             comp.VerifyDiagnostics(
     // error CS7102: Compilation options 'PublicSign' and 'CryptoKeyContainer' can't both be specified at the same time.
@@ -618,8 +657,9 @@ public class C {}",
             Assert.NotNull(comp.Options.CryptoKeyContainer);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PublicSignAndDelaySign()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PublicSignAndDelaySign(CSharpParseOptions parseOptions)
         {
             var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
 
@@ -627,7 +667,8 @@ public class C {}",
                 options: TestOptions.ReleaseDll
                     .WithPublicSign(true)
                     .WithDelaySign(true)
-                    .WithCryptoKeyFile(snk.Path));
+                    .WithCryptoKeyFile(snk.Path),
+                parseOptions: parseOptions);
 
             comp.VerifyDiagnostics(
     // error CS7102: Compilation options 'PublicSign' and 'DelaySign' can't both be specified at the same time.
@@ -637,8 +678,9 @@ public class C {}",
             Assert.True(comp.Options.DelaySign);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PublicSignAndDelaySignFalse()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PublicSignAndDelaySignFalse(CSharpParseOptions parseOptions)
         {
             var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
 
@@ -646,7 +688,8 @@ public class C {}",
                 options: TestOptions.ReleaseDll
                     .WithPublicSign(true)
                     .WithDelaySign(false)
-                    .WithCryptoKeyFile(snk.Path));
+                    .WithCryptoKeyFile(snk.Path),
+                parseOptions: parseOptions);
 
             comp.VerifyDiagnostics();
 
@@ -654,12 +697,13 @@ public class C {}",
             Assert.False(comp.Options.DelaySign);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PublicSignNoKey()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PublicSignNoKey(CSharpParseOptions parseOptions)
         {
             var comp = CreateCompilation("public class C {}",
-                options: TestOptions.ReleaseDll
-                    .WithPublicSign(true));
+                options: TestOptions.ReleaseDll.WithPublicSign(true),
+                parseOptions: parseOptions);
 
             comp.VerifyDiagnostics(
     // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
@@ -668,15 +712,17 @@ public class C {}",
             Assert.True(comp.Assembly.PublicKey.IsDefaultOrEmpty);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void PublicKeyFromOptions_InvalidCompilationOptions()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void PublicKeyFromOptions_InvalidCompilationOptions(CSharpParseOptions parseOptions)
         {
             string source = @"public class C {}";
 
             var c = CreateCompilation(source, options: TestOptions.SigningReleaseDll.
                 WithCryptoPublicKey(ImmutableArray.Create<byte>(1, 2, 3)).
                 WithCryptoKeyContainer("roslynTestContainer").
-                WithCryptoKeyFile("file.snk"));
+                WithCryptoKeyFile("file.snk"),
+                parseOptions: parseOptions);
 
             c.VerifyDiagnostics(
                 // error CS7102: Compilation options 'CryptoPublicKey' and 'CryptoKeyFile' can't both be specified at the same time.
@@ -691,13 +737,14 @@ public class C {}",
 
         #region IVT Access Checking
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IVTBasicCompilation()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTBasicCompilation(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
             public class C { internal void Goo() {} }";
 
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll, assemblyName: "Paul");
+            var other = CreateCompilation(s, options: TestOptions.SigningReleaseDll, assemblyName: "Paul", parseOptions: parseOptions);
 
             var c = CreateCompilation(
     @"public class A
@@ -712,7 +759,8 @@ public class C {}",
 }",
                 new[] { new CSharpCompilationReference(other) },
                 assemblyName: "WantsIVTAccessButCantHave",
-                options: TestOptions.SigningReleaseDll);
+                options: TestOptions.SigningReleaseDll,
+                parseOptions: parseOptions);
 
             //compilation should not succeed, and internals should not be imported.
             c.VerifyDiagnostics(
@@ -740,13 +788,14 @@ public class C {}",
             Assert.Empty(c2.GetDiagnostics());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IVTBasicMetadata()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTBasicMetadata(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
             public class C { internal void Goo() {} }";
 
-            var otherStream = CreateCompilation(s, options: TestOptions.SigningReleaseDll).EmitToStream();
+            var otherStream = CreateCompilation(s, options: TestOptions.SigningReleaseDll, parseOptions: parseOptions).EmitToStream();
 
             var c = CreateCompilation(
     @"public class A
@@ -761,7 +810,8 @@ public class C {}",
 }",
             references: new[] { AssemblyMetadata.CreateFromStream(otherStream, leaveOpen: true).GetReference() },
             assemblyName: "WantsIVTAccessButCantHave",
-            options: TestOptions.SigningReleaseDll);
+            options: TestOptions.SigningReleaseDll,
+            parseOptions: parseOptions);
 
             //compilation should not succeed, and internals should not be imported.
             c.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Goo").WithArguments("C", "Goo"));
@@ -781,20 +831,23 @@ public class C {}",
 }",
                 new[] { MetadataReference.CreateFromStream(otherStream) },
                 assemblyName: "WantsIVTAccess",
-                options: TestOptions.SigningReleaseDll);
+                options: TestOptions.SigningReleaseDll,
+                parseOptions: parseOptions);
 
             Assert.Empty(c2.GetDiagnostics());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IVTSigned()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTSigned(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
             public class C { internal void Goo() {} }";
 
             var other = CreateCompilation(s,
                 options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
-                assemblyName: "Paul");
+                assemblyName: "Paul",
+                parseOptions: parseOptions);
 
             other.VerifyDiagnostics();
 
@@ -811,18 +864,20 @@ public class C {}",
 }",
                 new MetadataReference[] { new CSharpCompilationReference(other) },
                 TestOptions.SigningReleaseDll.WithCryptoKeyContainer("roslynTestContainer"),
-                assemblyName: "John");
+                assemblyName: "John",
+                parseOptions: parseOptions);
 
             Assert.Empty(requestor.GetDiagnostics());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IVTNotBothSigned_CStoCS()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTNotBothSigned_CStoCS(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
             public class C { internal void Goo() {} }";
 
-            var other = CreateCompilation(s, assemblyName: "Paul", options: TestOptions.SigningReleaseDll);
+            var other = CreateCompilation(s, assemblyName: "Paul", options: TestOptions.SigningReleaseDll, parseOptions: parseOptions);
             other.VerifyDiagnostics();
 
             var requestor = CreateCompilation(
@@ -838,7 +893,8 @@ public class C {}",
 }",
                 references: new[] { new CSharpCompilationReference(other) },
                 assemblyName: "John",
-                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile));
+                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
+                parseOptions: parseOptions);
 
             // We allow John to access Paul's internal Goo even though strong-named John should not be referencing weak-named Paul.
             // Paul has, after all, specifically granted access to John.
@@ -848,8 +904,9 @@ public class C {}",
             requestor.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void CS0281Method()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void CS0281Method(CSharpParseOptions parseOptions)
         {
             var friendClass = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -862,7 +919,7 @@ public class PublicClass
     private static void PrivateMethod() { }
     internal protected static void InternalProtectedMethod() { }
     private protected static void PrivateProtectedMethod() { }
-}", assemblyName: "Paul");
+}", assemblyName: "Paul", parseOptions: parseOptions);
 
             string cs0281 = @"
 
@@ -877,7 +934,7 @@ public class Test
         PublicClass.PrivateProtectedMethod();
 	}
 }";
-            var other = CreateCompilation(cs0281, references: new[] { friendClass.EmitToImageReference() }, assemblyName: "cs0281", options: TestOptions.SigningReleaseDll);
+            var other = CreateCompilation(cs0281, references: new[] { friendClass.EmitToImageReference() }, assemblyName: "cs0281", options: TestOptions.SigningReleaseDll, parseOptions: parseOptions);
             other.VerifyDiagnostics(
                     // (7,15): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
                     // 		PublicClass.InternalMethod();
@@ -897,8 +954,9 @@ public class Test
                     );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void CS0281Class()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void CS0281Class(CSharpParseOptions parseOptions)
         {
             var friendClass = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -909,7 +967,7 @@ internal class FriendClass
     public static void MyMethod() 
     {
     }
-}", assemblyName: "Paul");
+}", assemblyName: "Paul", parseOptions: parseOptions);
 
             string cs0281 = @"
 
@@ -920,7 +978,7 @@ public class Test
 		FriendClass.MyMethod ();
 	}
 }";
-            var other = CreateCompilation(cs0281, references: new[] { friendClass.EmitToImageReference() }, assemblyName: "cs0281", options: TestOptions.SigningReleaseDll);
+            var other = CreateCompilation(cs0281, references: new[] { friendClass.EmitToImageReference() }, assemblyName: "cs0281", options: TestOptions.SigningReleaseDll, parseOptions: parseOptions);
 
             // (7, 3): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('')
             // does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
@@ -930,8 +988,9 @@ public class Test
             );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IVTNotBothSigned_VBtoCS()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTNotBothSigned_VBtoCS(CSharpParseOptions parseOptions)
         {
             string s = @"<assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")>
             Public Class C
@@ -959,7 +1018,8 @@ public class Test
 }",
                 references: new[] { MetadataReference.CreateFromImage(other.EmitToArray()) },
                 assemblyName: "John",
-                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile));
+                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
+                parseOptions: parseOptions);
 
             // We allow John to access Paul's internal Goo even though strong-named John should not be referencing weak-named Paul.
             // Paul has, after all, specifically granted access to John.
@@ -969,15 +1029,17 @@ public class Test
             requestor.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IVTDeferredSuccess()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTDeferredSuccess(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
             internal class CAttribute : System.Attribute { public CAttribute() {} }";
 
             var other = CreateCompilation(s,
                 assemblyName: "Paul",
-                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile));
+                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
+                parseOptions: parseOptions);
 
             other.VerifyDiagnostics();
 
@@ -990,21 +1052,24 @@ public class A
 }",
                 new[] { new CSharpCompilationReference(other) },
                 assemblyName: "John",
-                options: TestOptions.SigningReleaseDll);
+                options: TestOptions.SigningReleaseDll,
+                parseOptions: parseOptions);
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
             Assert.Empty(requestor.GetDiagnostics());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IVTDeferredFailSignMismatch()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTDeferredFailSignMismatch(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
             internal class CAttribute : System.Attribute { public CAttribute() {} }";
 
             var other = CreateCompilation(s,
                 assemblyName: "Paul",
-                options: TestOptions.SigningReleaseDll); //not signed. cryptoKeyFile: KeyPairFile,
+                options: TestOptions.SigningReleaseDll,
+                parseOptions: parseOptions); //not signed. cryptoKeyFile: KeyPairFile,
 
             other.VerifyDiagnostics();
 
@@ -1024,8 +1089,9 @@ public class A
                 Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" }));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IVTDeferredFailKeyMismatch()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTDeferredFailKeyMismatch(CSharpParseOptions parseOptions)
         {
             //key is wrong in the first digit. correct key starts with 0
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=10240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
@@ -1033,7 +1099,8 @@ public class A
 
             var other = CreateCompilation(s,
                 options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
-                assemblyName: "Paul");
+                assemblyName: "Paul",
+                parseOptions: parseOptions);
 
             other.VerifyDiagnostics();
 
@@ -1046,7 +1113,8 @@ public class A
 }",
             new MetadataReference[] { new CSharpCompilationReference(other) },
             assemblyName: "John",
-             options: TestOptions.SigningReleaseDll);
+             options: TestOptions.SigningReleaseDll,
+             parseOptions: parseOptions);
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
             requestor.VerifyDiagnostics(
@@ -1059,15 +1127,17 @@ public class A
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IVTSuccessThroughIAssembly()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTSuccessThroughIAssembly(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
             internal class CAttribute : System.Attribute { public CAttribute() {} }";
 
             var other = CreateCompilation(s,
                 assemblyName: "Paul",
-                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile));
+                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
+                parseOptions: parseOptions);
 
             other.VerifyDiagnostics();
 
@@ -1080,14 +1150,16 @@ public class A
 }",
                 new MetadataReference[] { new CSharpCompilationReference(other) },
                 options: TestOptions.SigningReleaseDll,
-                assemblyName: "John");
+                assemblyName: "John",
+                parseOptions: parseOptions);
 
             Assert.True(((IAssemblySymbol)other.Assembly).GivesAccessTo(requestor.Assembly));
             Assert.Empty(requestor.GetDiagnostics());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IVTDeferredFailKeyMismatchIAssembly()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTDeferredFailKeyMismatchIAssembly(CSharpParseOptions parseOptions)
         {
             //key is wrong in the first digit. correct key starts with 0
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=10240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
@@ -1095,7 +1167,8 @@ public class A
 
             var other = CreateCompilation(s,
                 options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
-                assemblyName: "Paul");
+                assemblyName: "Paul",
+                parseOptions: parseOptions);
 
             other.VerifyDiagnostics();
 
@@ -1109,7 +1182,8 @@ public class A
 }",
                 new MetadataReference[] { new CSharpCompilationReference(other) },
                 TestOptions.SigningReleaseDll,
-                assemblyName: "John");
+                assemblyName: "John",
+                parseOptions: parseOptions);
 
             Assert.False(((IAssemblySymbol)other.Assembly).GivesAccessTo(requestor.Assembly));
             requestor.VerifyDiagnostics(
@@ -1123,15 +1197,17 @@ public class A
         }
 
         [WorkItem(820450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820450")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IVTGivesAccessToUsingDifferentKeys()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTGivesAccessToUsingDifferentKeys(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
             namespace ClassLibrary1 { internal class Class1 { } } ";
 
             var giver = CreateCompilation(s,
                 assemblyName: "Paul",
-                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(SigningTestHelpers.KeyPairFile2));
+                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(SigningTestHelpers.KeyPairFile2),
+                parseOptions: parseOptions);
 
             giver.VerifyDiagnostics();
 
@@ -1148,7 +1224,8 @@ namespace ClassLibrary2
 }",
                 new MetadataReference[] { new CSharpCompilationReference(giver) },
                 options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
-                assemblyName: "John");
+                assemblyName: "John",
+                parseOptions: parseOptions);
 
             Assert.True(((IAssemblySymbol)giver.Assembly).GivesAccessTo(requestor.Assembly));
             Assert.Empty(requestor.GetDiagnostics());
@@ -1157,8 +1234,9 @@ namespace ClassLibrary2
 
         #region IVT instantiations
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IVTHasCulture()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTHasCulture(CSharpParseOptions parseOptions)
         {
             var other = CreateCompilation(
             @"
@@ -1168,13 +1246,14 @@ public class C
 {
   static void Goo() {}
 }
-", options: TestOptions.SigningReleaseDll);
+", options: TestOptions.SigningReleaseDll, parseOptions: parseOptions);
 
             other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendAssemblyBadArgs, @"InternalsVisibleTo(""WantsIVTAccess, Culture=neutral"")").WithArguments("WantsIVTAccess, Culture=neutral"));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IVTNoKey()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTNoKey(CSharpParseOptions parseOptions)
         {
             var other = CreateCompilation(
             @"
@@ -1184,7 +1263,7 @@ public class C
 {
   static void Main() {}
 }
-", options: TestOptions.SigningReleaseExe.WithCryptoKeyFile(s_keyPairFile));
+", options: TestOptions.SigningReleaseExe.WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
 
             other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendAssemblySNReq, @"InternalsVisibleTo(""WantsIVTAccess"")").WithArguments("WantsIVTAccess"));
         }
@@ -1193,8 +1272,9 @@ public class C
 
         #region Signing
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void MaxSizeKey()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void MaxSizeKey(CSharpParseOptions parseOptions)
         {
             var pubKey = TestResources.General.snMaxSizePublicKeyString;
             string pubKeyToken = "1540923db30520b2";
@@ -1213,8 +1293,8 @@ internal class C
         Console.WriteLine(""Called M"");
     }}
 }}",
-                options: TestOptions.SigningReleaseDll
-                         .WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile));
+                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile),
+                parseOptions: parseOptions);
 
             comp.VerifyEmitDiagnostics();
 
@@ -1232,28 +1312,29 @@ class D
     }
 }";
             var comp2 = CreateCompilation(src,
-references: new[] { comp.ToMetadataReference() },
-assemblyName: "MaxSizeComp2",
-options: TestOptions.SigningReleaseExe
-        .WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile));
+                references: new[] { comp.ToMetadataReference() },
+                assemblyName: "MaxSizeComp2",
+                options: TestOptions.SigningReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile),
+                parseOptions: parseOptions);
 
             CompileAndVerify(comp2, expectedOutput: "Called M");
             Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey);
             Assert.Equal<byte>(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken);
 
             var comp3 = CreateCompilation(src,
-references: new[] { comp.EmitToImageReference() },
-assemblyName: "MaxSizeComp2",
-options: TestOptions.SigningReleaseExe
-        .WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile));
+                references: new[] { comp.EmitToImageReference() },
+                assemblyName: "MaxSizeComp2",
+                options: TestOptions.SigningReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile),
+                parseOptions: parseOptions);
 
             CompileAndVerify(comp3, expectedOutput: "Called M");
             Assert.Equal(TestResources.General.snMaxSizePublicKey, comp3.Assembly.Identity.PublicKey);
             Assert.Equal<byte>(pubKeyTokenBytes, comp3.Assembly.Identity.PublicKeyToken);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void SignIt()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void SignIt(CSharpParseOptions parseOptions)
         {
             var other = CreateCompilation(
             @"
@@ -1261,7 +1342,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile));
+      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -1354,12 +1435,13 @@ public class Z
         }
 
         [WorkItem(5665, "https://github.com/dotnet/roslyn/issues/5665")]
-        [ConditionalFact(typeof(IsEnglishLocal), typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void SignModuleKeyContainerBogus()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void SignModuleKeyContainerBogus(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyName(""bogus"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseModule);
+            var other = CreateCompilation(s, options: TestOptions.SigningReleaseModule, parseOptions: parseOptions);
             //shouldn't have an error. The attribute's contents are checked when the module is added.
             var reference = other.EmitToImageReference();
 
@@ -1376,8 +1458,9 @@ public class Z
             Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void SignModuleKeyFileBogus()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void SignModuleKeyFileBogus(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyFile(""bogus"")] public class C {}";
 
@@ -1388,7 +1471,7 @@ public class Z
 
             s = @"class D {}";
 
-            other = CreateCompilation(s, new[] { reference }, TestOptions.SigningReleaseDll);
+            other = CreateCompilation(s, new[] { reference }, TestOptions.SigningReleaseDll, parseOptions: parseOptions);
             other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("bogus", CodeAnalysisResources.FileNotFound));
         }
 
@@ -1448,14 +1531,15 @@ public class C {}";
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void SignModuleKeyContainerCmdLine_2()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void SignModuleKeyContainerCmdLine_2(CSharpParseOptions parseOptions)
         {
             string s = @"
 [assembly: System.Reflection.AssemblyKeyName(""bogus"")]
 public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseModule.WithCryptoKeyContainer("roslynTestContainer"));
+            var other = CreateCompilation(s, options: TestOptions.SigningReleaseModule.WithCryptoKeyContainer("roslynTestContainer"), parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);
@@ -1504,13 +1588,14 @@ public class C {}";
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void SignRefAssemblyKeyFileCmdLine()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void SignRefAssemblyKeyFileCmdLine(CSharpParseOptions parseOptions)
         {
             string s = "public class C {}";
 
             var options = TestOptions.SigningDebugDll.WithCryptoKeyFile(s_keyPairFile);
-            var other = CreateCompilation(s, options: options);
+            var other = CreateCompilation(s, options: options, parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             var refStrm = new MemoryStream();
@@ -1543,13 +1628,14 @@ public class C {}";
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void SignModuleKeyFileCmdLine_2()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void SignModuleKeyFileCmdLine_2(CSharpParseOptions parseOptions)
         {
             var x = s_keyPairFile;
             string s = @"[assembly: System.Reflection.AssemblyKeyFile(""bogus"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.SigningReleaseModule.WithCryptoKeyFile(s_keyPairFile));
+            var other = CreateCompilation(s, options: TestOptions.SigningReleaseModule.WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);
@@ -1559,8 +1645,9 @@ public class C {}";
                 Diagnostic(ErrorCode.ERR_CmdOptionConflictsSource).WithArguments("System.Reflection.AssemblyKeyFileAttribute", "CryptoKeyFile"));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void SignItWithOnlyPublicKey()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void SignItWithOnlyPublicKey(CSharpParseOptions parseOptions)
         {
             var other = CreateCompilation(
             @"
@@ -1568,7 +1655,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile));
+      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile), parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             var emitResult = other.Emit(outStrm);
@@ -1578,13 +1665,15 @@ public class C
 
             var assembly = CreateCompilation("",
                 references: new[] { other.EmitToImageReference() },
-                options: TestOptions.SigningReleaseDll);
+                options: TestOptions.SigningReleaseDll,
+                parseOptions: parseOptions);
 
             assembly.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_SignButNoPrivateKey).WithArguments(s_publicKeyFile));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void DelaySignItWithOnlyPublicKey()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void DelaySignItWithOnlyPublicKey(CSharpParseOptions parseOptions)
         {
             var other = CreateCompilation(
                 @"
@@ -1592,7 +1681,7 @@ public class C
 public class C
 {
   static void Goo() {}
-}", options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile));
+}", options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile), parseOptions: parseOptions);
 
             using (var outStrm = new MemoryStream())
             {
@@ -1601,8 +1690,9 @@ public class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void DelaySignButNoKey()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void DelaySignButNoKey(CSharpParseOptions parseOptions)
         {
             var other = CreateCompilation(
                 @"
@@ -1611,7 +1701,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll);
+      options: TestOptions.SigningReleaseDll, parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             var emitResult = other.Emit(outStrm);
@@ -1622,8 +1712,9 @@ public class C
             Assert.True(emitResult.Success);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void SignInMemory()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void SignInMemory(CSharpParseOptions parseOptions)
         {
             var other = CreateCompilation(
                 @"
@@ -1631,14 +1722,15 @@ public class C
 {
   static void Goo() {}
 }",
-    options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile));
+    options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
             var outStrm = new MemoryStream();
             var emitResult = other.Emit(outStrm);
             Assert.True(emitResult.Success);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void DelaySignConflict()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void DelaySignConflict(CSharpParseOptions parseOptions)
         {
             var other = CreateCompilation(
                 @"
@@ -1646,7 +1738,7 @@ public class C
 public class C
 {
   static void Goo() {}
-}", options: TestOptions.SigningReleaseDll.WithDelaySign(false));
+}", options: TestOptions.SigningReleaseDll.WithDelaySign(false), parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             //shouldn't get any key warning.
@@ -1655,8 +1747,9 @@ public class C
             Assert.True(emitResult.Success);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void DelaySignNoConflict()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void DelaySignNoConflict(CSharpParseOptions parseOptions)
         {
             var other = CreateCompilation(
                 @"
@@ -1664,7 +1757,7 @@ public class C
 public class C
 {
   static void Goo() {}
-}", options: TestOptions.SigningReleaseDll.WithDelaySign(true).WithCryptoKeyFile(s_keyPairFile));
+}", options: TestOptions.SigningReleaseDll.WithDelaySign(true).WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             //shouldn't get any key warning.
@@ -1717,8 +1810,9 @@ public class C
 
         [WorkItem(545720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545720")]
         [WorkItem(530050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530050")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void InvalidAssemblyName()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void InvalidAssemblyName(CSharpParseOptions parseOptions)
         {
             var il = @"
 .assembly extern mscorlib { }
@@ -1748,7 +1842,7 @@ class Derived : Base
 
             var ilRef = CompileIL(il, prependDefaultHeader: false);
 
-            var comp = CreateCompilation(csharp, new[] { ilRef }, assemblyName: "asm2", options: TestOptions.SigningReleaseDll);
+            var comp = CreateCompilation(csharp, new[] { ilRef }, assemblyName: "asm2", options: TestOptions.SigningReleaseDll, parseOptions: parseOptions);
             comp.VerifyDiagnostics(
                 // NOTE: dev10 reports WRN_InvalidAssemblyName, but Roslyn won't (DevDiv #15099).
                 // (2,17): error CS0122: 'Base' is inaccessible due to its protection level
@@ -1758,8 +1852,9 @@ class Derived : Base
         }
 
         [WorkItem(546331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546331")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IvtVirtualCall1()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IvtVirtualCall1(CSharpParseOptions parseOptions)
         {
             var source1 = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""asm2"")]
@@ -1805,15 +1900,15 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.SigningReleaseDll, assemblyName: "asm1");
+            var comp1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.SigningReleaseDll, assemblyName: "asm1", parseOptions: parseOptions);
             comp1.VerifyDiagnostics();
             var ref1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateCompilationWithMscorlib45(source2, new[] { ref1 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm2");
+            var comp2 = CreateCompilationWithMscorlib45(source2, new[] { ref1 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm2", parseOptions: parseOptions);
             comp2.VerifyDiagnostics();
             var ref2 = new CSharpCompilationReference(comp2);
 
-            var comp3 = CreateCompilationWithMscorlib45(source3, new[] { SystemCoreRef, ref1, ref2 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm3");
+            var comp3 = CreateCompilationWithMscorlib45(source3, new[] { SystemCoreRef, ref1, ref2 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm3", parseOptions: parseOptions);
             comp3.VerifyDiagnostics();
 
             // Note: calls B.M, not A.M, since asm1 is not accessible.
@@ -1864,8 +1959,9 @@ public class C : B
         }
 
         [WorkItem(546331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546331")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IvtVirtualCall2()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IvtVirtualCall2(CSharpParseOptions parseOptions)
         {
             var source1 = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""asm2"")]
@@ -1922,19 +2018,19 @@ public class D : C
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.SigningReleaseDll, assemblyName: "asm1");
+            var comp1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.SigningReleaseDll, assemblyName: "asm1", parseOptions: parseOptions);
             comp1.VerifyDiagnostics();
             var ref1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateCompilationWithMscorlib45(source2, new[] { ref1 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm2");
+            var comp2 = CreateCompilationWithMscorlib45(source2, new[] { ref1 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm2", parseOptions: parseOptions);
             comp2.VerifyDiagnostics();
             var ref2 = new CSharpCompilationReference(comp2);
 
-            var comp3 = CreateCompilationWithMscorlib45(source3, new[] { ref1, ref2 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm3");
+            var comp3 = CreateCompilationWithMscorlib45(source3, new[] { ref1, ref2 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm3", parseOptions: parseOptions);
             comp3.VerifyDiagnostics();
             var ref3 = new CSharpCompilationReference(comp3);
 
-            var comp4 = CreateCompilationWithMscorlib45(source4, new[] { SystemCoreRef, ref1, ref2, ref3 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm4");
+            var comp4 = CreateCompilationWithMscorlib45(source4, new[] { SystemCoreRef, ref1, ref2, ref3 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm4", parseOptions: parseOptions);
             comp4.VerifyDiagnostics();
 
             // Note: calls C.M, not A.M, since asm2 is not accessible (stops search).
@@ -1984,8 +2080,9 @@ public class D : C
 }");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void IvtVirtual_ParamsAndDynamic()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IvtVirtual_ParamsAndDynamic(CSharpParseOptions parseOptions)
         {
             var source1 = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""asm2"")]
@@ -2085,7 +2182,8 @@ public class C : B
 
             var comp1 = CreateCompilation(source1,
                 options: TestOptions.SigningReleaseDll,
-                assemblyName: "asm1");
+                assemblyName: "asm1",
+                parseOptions: parseOptions);
 
             comp1.VerifyDiagnostics();
             var ref1 = new CSharpCompilationReference(comp1);
@@ -2095,7 +2193,8 @@ public class C : B
             var comp3 = CreateCompilation(source3,
                 new[] { ref1, ref2 },
                 options: TestOptions.SigningReleaseDll,
-                assemblyName: "asm3");
+                assemblyName: "asm3",
+                parseOptions: parseOptions);
 
             comp3.VerifyDiagnostics(
                 // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'B.F(int[])'
@@ -2106,15 +2205,16 @@ public class C : B
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[1]").WithArguments("a", "B.this[int, int[]]").WithLocation(10, 17));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(529779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")]
-        public void Bug529779_1()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void Bug529779_1(CSharpParseOptions parseOptions)
         {
             CSharpCompilation unsigned = CreateCompilation(
     @"
 public class C1
 {}
-", options: TestOptions.SigningReleaseDll, assemblyName: "Unsigned");
+", options: TestOptions.SigningReleaseDll, assemblyName: "Unsigned", parseOptions: parseOptions);
 
             CSharpCompilation other = CreateCompilation(
     @"
@@ -2126,22 +2226,23 @@ public class C
         System.Console.WriteLine(x);
     }
 }
-", options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile));
+", options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
 
             CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), new CSharpCompilationReference(unsigned) })).VerifyDiagnostics();
 
             CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) })).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(529779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529779")]
-        public void Bug529779_2()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void Bug529779_2(CSharpParseOptions parseOptions)
         {
             CSharpCompilation unsigned = CreateCompilation(
     @"
 public class C1
 {}
-", options: TestOptions.SigningReleaseDll, assemblyName: "Unsigned");
+", options: TestOptions.SigningReleaseDll, assemblyName: "Unsigned", parseOptions: parseOptions);
 
             CSharpCompilation other = CreateCompilation(
     @"
@@ -2153,7 +2254,7 @@ public class C
         System.Console.WriteLine(x);
     }
 }
-", options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile));
+", options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions: parseOptions);
 
             var comps = new[] {other.WithReferences(new []{other.References.ElementAt(0), new CSharpCompilationReference(unsigned)}),
                             other.WithReferences(new []{other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) })};
@@ -2209,8 +2310,9 @@ e29df38b5c72727c1333f32001949a0a0e2c10f8af0a344300ab2123052840cb16e30176c7281810
         }
 #endif
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void AssemblySignatureKeyAttribute_1()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void AssemblySignatureKeyAttribute_1(CSharpParseOptions parseOptions)
         {
             var other = CreateEmptyCompilation(
             @"
@@ -2222,7 +2324,9 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), references: new[] { MscorlibRef_v4_0_30316_17626 });
+                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
+                references: new[] { MscorlibRef_v4_0_30316_17626 },
+                parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2235,8 +2339,9 @@ public class C
             Assert.True(IsFileFullSigned(tempFile));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void AssemblySignatureKeyAttribute_2()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void AssemblySignatureKeyAttribute_2(CSharpParseOptions parseOptions)
         {
             var other = CreateEmptyCompilation(
             @"
@@ -2248,7 +2353,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), references: new[] { MscorlibRef_v4_0_30316_17626 });
+      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2263,8 +2368,9 @@ public class C
             }
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal), typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void AssemblySignatureKeyAttribute_3()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void AssemblySignatureKeyAttribute_3(CSharpParseOptions parseOptions)
         {
             var source = @"
 [assembly: System.Reflection.AssemblySignatureKeyAttribute(
@@ -2278,7 +2384,7 @@ public class C
 
             var options = TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile);
 
-            var other = CreateEmptyCompilation(source, options: options, references: new[] { MscorlibRef_v4_0_30316_17626 });
+            var other = CreateEmptyCompilation(source, options: options, references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2292,8 +2398,9 @@ public class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void AssemblySignatureKeyAttribute_4()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void AssemblySignatureKeyAttribute_4(CSharpParseOptions parseOptions)
         {
             var other = CreateEmptyCompilation(
             @"
@@ -2305,7 +2412,9 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 });
+                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true),
+                references: new[] { MscorlibRef_v4_0_30316_17626 },
+                parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2321,8 +2430,9 @@ public class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void AssemblySignatureKeyAttribute_5()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void AssemblySignatureKeyAttribute_5(CSharpParseOptions parseOptions)
         {
             var other = CreateEmptyCompilation(
             @"
@@ -2334,7 +2444,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 });
+      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2345,8 +2455,9 @@ public class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void AssemblySignatureKeyAttribute_6()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void AssemblySignatureKeyAttribute_6(CSharpParseOptions parseOptions)
         {
             var other = CreateEmptyCompilation(
             @"
@@ -2358,7 +2469,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 });
+      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2374,8 +2485,9 @@ public class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void AssemblySignatureKeyAttribute_7()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void AssemblySignatureKeyAttribute_7(CSharpParseOptions parseOptions)
         {
             var other = CreateEmptyCompilation(
             @"
@@ -2387,7 +2499,7 @@ public class C
 {
   static void Goo() {}
 }",
-      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 });
+      options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true), references: new[] { MscorlibRef_v4_0_30316_17626 }, parseOptions: parseOptions);
 
             var tempFile = Temp.CreateFile();
 
@@ -2399,8 +2511,9 @@ public class C
         }
 
         [WorkItem(781312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/781312")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void Bug781312()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void Bug781312(CSharpParseOptions parseOptions)
         {
             var ca = CreateCompilation(
     @"
@@ -2410,7 +2523,7 @@ internal class A
 {
     public int Value = 3;
 }
-", options: TestOptions.SigningReleaseDll, assemblyName: "Bug769840_A");
+", options: TestOptions.SigningReleaseDll, assemblyName: "Bug769840_A", parseOptions: parseOptions);
 
             CompileAndVerify(ca);
 
@@ -2425,14 +2538,16 @@ internal class B
 }",
                 options: TestOptions.SigningReleaseModule,
                 assemblyName: "Bug781312_B",
-                references: new[] { new CSharpCompilationReference(ca) });
+                references: new[] { new CSharpCompilationReference(ca) },
+                parseOptions: parseOptions);
 
             CompileAndVerify(cb, verify: Verification.Fails).Diagnostics.Verify();
         }
 
         [WorkItem(1072350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072350")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void Bug1072350()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void Bug1072350(CSharpParseOptions parseOptions)
         {
             const string sourceA = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""X "")]
@@ -2450,16 +2565,17 @@ class B
     }
 }";
 
-            var ca = CreateCompilation(sourceA, options: TestOptions.ReleaseDll, assemblyName: "ClassLibrary2");
+            var ca = CreateCompilation(sourceA, options: TestOptions.ReleaseDll, assemblyName: "ClassLibrary2", parseOptions: parseOptions);
             CompileAndVerify(ca);
 
-            var cb = CreateCompilation(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca) });
+            var cb = CreateCompilation(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca) }, parseOptions: parseOptions);
             CompileAndVerify(cb, expectedOutput: "42").Diagnostics.Verify();
         }
 
         [WorkItem(1072339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072339")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void Bug1072339()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void Bug1072339(CSharpParseOptions parseOptions)
         {
             const string sourceA = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""x"")]
@@ -2477,20 +2593,21 @@ class B
     }
 }";
 
-            var ca = CreateCompilation(sourceA, options: TestOptions.ReleaseDll, assemblyName: "ClassLibrary2");
+            var ca = CreateCompilation(sourceA, options: TestOptions.ReleaseDll, assemblyName: "ClassLibrary2", parseOptions: parseOptions);
             CompileAndVerify(ca);
 
-            var cb = CreateCompilation(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca) });
+            var cb = CreateCompilation(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca) }, parseOptions: parseOptions);
             CompileAndVerify(cb, expectedOutput: "42").Diagnostics.Verify();
         }
 
         [WorkItem(1095618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095618")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void Bug1095618()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void Bug1095618(CSharpParseOptions parseOptions)
         {
             const string source = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000"")]";
 
-            var ca = CreateCompilation(source);
+            var ca = CreateCompilation(source, parseOptions: parseOptions);
             ca.VerifyDiagnostics(
                 // (1,12): warning CS1700: Assembly reference 'System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000' is invalid and cannot be resolved
                 // [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000")]
@@ -2504,42 +2621,46 @@ class B
             });
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
-        public void ConsistentErrorMessageWhenProvidingNullKeyFile()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void ConsistentErrorMessageWhenProvidingNullKeyFile(CSharpParseOptions parseOptions)
         {
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: null);
-            var compilation = CreateCompilation(string.Empty, options: options).VerifyDiagnostics();
+            var compilation = CreateCompilation(string.Empty, options: options, parseOptions: parseOptions).VerifyDiagnostics();
 
             VerifySignedBitSetAfterEmit(compilation, expectedToBeSigned: false);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
-        public void ConsistentErrorMessageWhenProvidingEmptyKeyFile()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void ConsistentErrorMessageWhenProvidingEmptyKeyFile(CSharpParseOptions parseOptions)
         {
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: string.Empty);
-            var compilation = CreateCompilation(string.Empty, options: options).VerifyDiagnostics();
+            var compilation = CreateCompilation(string.Empty, options: options, parseOptions: parseOptions).VerifyDiagnostics();
 
             VerifySignedBitSetAfterEmit(compilation, expectedToBeSigned: false);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
-        public void ConsistentErrorMessageWhenProvidingNullKeyFile_PublicSign()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void ConsistentErrorMessageWhenProvidingNullKeyFile_PublicSign(CSharpParseOptions parseOptions)
         {
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: null, publicSign: true);
-            CreateCompilation(string.Empty, options: options).VerifyDiagnostics(
+            CreateCompilation(string.Empty, options: options, parseOptions: parseOptions).VerifyDiagnostics(
                 // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
                 Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
-        public void ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign(CSharpParseOptions parseOptions)
         {
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile: string.Empty, publicSign: true);
-            CreateCompilation(string.Empty, options: options).VerifyDiagnostics(
+            CreateCompilation(string.Empty, options: options, parseOptions: parseOptions).VerifyDiagnostics(
                 // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
                 Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
         }
