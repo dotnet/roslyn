@@ -2577,7 +2577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool notNullWhenFalse = (annotation & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
                 // The WhenTrue/False states correspond to the invocation returning true/false
                 bool wasPreviouslySplit = this.IsConditionalState;
-                Split();
+                if (notNullWhenTrue || notNullWhenFalse) Split();
                 if (notNullWhenTrue)
                 {
                     this.StateWhenTrue[slot] = NullableAnnotation.NotNullable;
