@@ -15,7 +15,7 @@ Note: these steps assume the remote `origin` points to the official [roslyn repo
 ```
 
 ## Adding branch to Azure Pipelines
-The following files need to be editted in order for GitHub to trigger Azure Pipelines Test runs on PRs:
+The following files need to be edited in order for GitHub to trigger Azure Pipelines Test runs on PRs:
 
 - [azure-pipelines.yml](https://github.com/dotnet/roslyn/blob/master/azure-pipelines.yml)
 - [azure-pipelines-integration.yml](https://github.com/dotnet/roslyn/blob/master/azure-pipelines-integration.yml)
