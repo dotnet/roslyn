@@ -18830,7 +18830,7 @@ BC41009: The tuple element name 'c' is ignored because a different name or no na
 
         <Fact>
         <WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")>
-        Public Sub NullCoalesingOperatorWithTupleNames()
+        Public Sub NullCoalescingOperatorWithTupleNames()
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Tuples">

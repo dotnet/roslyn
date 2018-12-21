@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 Imports Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping.SeparatedSyntaxList
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.SeparatedSyntaxList
     Friend MustInherit Class AbstractVisualBasicSeparatedSyntaxListWrapper(
         Of TListSyntax As SyntaxNode, TListItemSyntax As SyntaxNode)
         Inherits AbstractSeparatedSyntaxListWrapper(Of TListSyntax, TListItemSyntax)

@@ -12,6 +12,11 @@
         <target state="new">All methods</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_colon">
+        <source>Allow:</source>
+        <target state="new">Allow:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">Sempre para esclarecimento</target>

@@ -4476,15 +4476,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Wrap expression (including operators).
-        /// </summary>
-        internal static string Wrap_expression_including_operators {
-            get {
-                return ResourceManager.GetString("Wrap_expression_including_operators", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Wrap long argument list.
         /// </summary>
         internal static string Wrap_long_argument_list {
@@ -4499,6 +4490,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Wrap_long_parameter_list {
             get {
                 return ResourceManager.GetString("Wrap_long_parameter_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrapping.
+        /// </summary>
+        internal static string Wrapping {
+            get {
+                return ResourceManager.GetString("Wrapping", resourceCulture);
             }
         }
         
