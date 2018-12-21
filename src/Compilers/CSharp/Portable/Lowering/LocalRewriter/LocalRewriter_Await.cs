@@ -15,8 +15,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression VisitAwaitExpression(BoundAwaitExpression node, bool used)
         {
+            return RewriteAwaitExpression((BoundExpression)base.VisitAwaitExpression(node), used);
+        }
+
+        private BoundExpression RewriteAwaitExpression(SyntaxNode syntax, BoundExpression rewrittenExpression, AwaitableInfo awaitableInfo, TypeSymbol type, bool used)
+        {
+            return RewriteAwaitExpression(new BoundAwaitExpression(syntax, rewrittenExpression, awaitableInfo, type) { WasCompilerGenerated = true }, used);
+        }
+
+        /// <summary>
+        /// Lower an await expression that has already had its components rewritten.
+        /// </summary>
+        private BoundExpression RewriteAwaitExpression(BoundExpression rewrittenAwait, bool used)
+        {
             _sawAwait = true;
-            var rewrittenAwait = (BoundExpression)base.VisitAwaitExpression(node);
             if (!used)
             {
                 // Await expression is already at the statement level.
@@ -29,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // level (i.e. into the enclosing statement list).
             _needsSpilling = true;
             return new BoundSpillSequence(
-                syntax: node.Syntax,
+                syntax: rewrittenAwait.Syntax,
                 locals: ImmutableArray<LocalSymbol>.Empty,
                 sideEffects: ImmutableArray<BoundStatement>.Empty,
                 value: rewrittenAwait,

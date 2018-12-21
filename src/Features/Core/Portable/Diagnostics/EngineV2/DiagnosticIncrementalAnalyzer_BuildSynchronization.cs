@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);
                 }
 
-                if (PreferLiveErrorsOnOpenedFiles(workspace))
+                // if we have updated errors, refresh open files
+                if (map.Count > 0 && PreferLiveErrorsOnOpenedFiles(workspace))
                 {
                     // enqueue re-analysis of open documents.
                     this.Owner.Reanalyze(workspace, documentIds: workspace.GetOpenDocumentIds(), highPriority: true);
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // errors from build shouldn't have any span set.
                 // this is debug check since it gets data from us only not from third party unlike one in compiler
                 // that checks span for third party reported diagnostics
-                Contract.Requires(!diagnostic.HasTextSpan);
+                Debug.Assert(!diagnostic.HasTextSpan);
             }
         }
 
@@ -86,9 +87,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             using (var poolObject = SharedPools.Default<HashSet<string>>().GetPooledObject())
             {
-                // we can't distinguish locals and non locals from build diagnostics nor determine right snapshot version for the build.
-                // so we put everything in as semantic local with default version. this lets us to replace those to live diagnostics when needed easily.
-                var version = VersionStamp.Default;
                 var lookup = diagnostics.ToLookup(d => d.Id);
 
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
@@ -97,16 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
                     var liveDiagnostics = MergeDiagnostics(ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object), GetDiagnostics(oldAnalysisData.GetResult(stateSet.Analyzer)));
 
-                    var group = liveDiagnostics.GroupBy(d => d.DocumentId);
-                    var result = new DiagnosticAnalysisResult(
-                        project.Id,
-                        version,
-                        documentIds: group.Where(g => g.Key != null).Select(g => g.Key).ToImmutableHashSet(),
-                        syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                        semanticLocals: group.Where(g => g.Key != null).ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray()),
-                        nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                        others: group.Where(g => g.Key == null).SelectMany(g => g).ToImmutableArrayOrEmpty(),
-                        fromBuild: true);
+                    var result = DiagnosticAnalysisResult.CreateFromBuild(project, liveDiagnostics);
 
                     builder.Add(stateSet.Analyzer, result);
                 }

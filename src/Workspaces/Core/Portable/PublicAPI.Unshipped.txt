@@ -1,16 +1,29 @@
-Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.get -> Microsoft.CodeAnalysis.ReportDiagnostic
-Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.set -> void
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameExpression(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol namespaceOrTypeSymbol) -> Microsoft.CodeAnalysis.SyntaxNode
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexAlternation = "regex - alternation" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexAnchor = "regex - anchor" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexCharacterClass = "regex - character class" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexComment = "regex - comment" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexGrouping = "regex - grouping" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexOtherEscape = "regex - other escape" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexQuantifier = "regex - quantifier" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexSelfEscapedCharacter = "regex - self escaped character" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexText = "regex - text" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.StringEscapeCharacter = "string - escape character" -> string
 const Microsoft.CodeAnalysis.WorkspaceKind.MSBuild = "MSBuildWorkspace" -> string
+Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.get -> Microsoft.CodeAnalysis.ReportDiagnostic
+Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.set -> void
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.INamespaceOrTypeSymbol symbol) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.FileTextLoader
 Microsoft.CodeAnalysis.FileTextLoader.DefaultEncoding.get -> System.Text.Encoding
 Microsoft.CodeAnalysis.FileTextLoader.FileTextLoader(string path, System.Text.Encoding defaultEncoding) -> void
 Microsoft.CodeAnalysis.FileTextLoader.Path.get -> string
 Microsoft.CodeAnalysis.ProjectChanges.GetChangedDocuments(bool onlyGetDocumentsWithTextChanges) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
+Microsoft.CodeAnalysis.Solution.AddDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentInfos) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Workspace.OnDocumentsAdded(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentInfos) -> void
 Microsoft.CodeAnalysis.Workspace.OnOutputRefFilePathChanged(Microsoft.CodeAnalysis.ProjectId projectId, string outputFilePath) -> void
 override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
+override Microsoft.CodeAnalysis.Options.OptionKey.ToString() -> string
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Project project, string pattern, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Project project, string pattern, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Solution solution, string pattern, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>

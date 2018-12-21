@@ -1,0 +1,222 @@
+<!-- All Rights Reserved. Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project DefaultTargets="Execute" TreatAsLocalProperty="RepoRoot">
+  <!--
+
+  Required parameters:
+    RepoRoot                        Repository root.
+    Projects                        List of projects to build. Semicolon separated, may include globs.
+
+  Optional parameters:
+    Configuration                   Build configuration: "Debug", "Release", etc.
+
+    DotNetRestoreSourcePropsPath    Overrides of ResourceSources (list of NuGet feeds to download dependencies from)
+    DotNetBuildFromSource           Building the entire stack from source with no external dependencies.
+    DotNetBuildOffline              Building without access to NuGet servers.
+    DotNetOutputBlobFeedDir         Directory to publish Source Build assets to (packages, symbol pacakges, installers, etc.).
+    DotNetPublishToBlobFeed         Publish assets to blob feed using DotNetPublishBlobFeedUrl and DotNetPublishBlobFeedKey.
+    DotNetPublishBlobFeedUrl        Target feed URL, or empty if not publishing to Azure blob feed.
+    DotNetPublishBlobFeedKey        Azure blob feed account key.
+    DotNetSymbolServerTokenMsdl     Personal access token for MSDL symbol server. Available from variable group DotNet-Symbol-Publish.
+    DotNetSymbolServerTokenSymWeb   Personal access token for SymWeb symbol server. Available from variable group DotNet-Symbol-Publish.
+    DotNetSymbolExpirationInDays    Symbol expiration time in days (defaults to 10 years).
+    DotNetSignType                  Specifies the signing type: 'real' (default), 'test'.
+
+    ContinuousIntegrationBuild      "true" when building on a CI server (PR build or official build)
+    Restore                         "true" to restore toolset and solution
+    Build                           "true" to build solution
+    Rebuild                         "true" to rebuild solution
+    Deploy                          "true" to deploy assets (e.g. VSIXes)
+    Test                            "true" to run tests
+    IntegrationTest                 "true" to run integration tests
+    PerformanceTest                 "true" to run performance tests
+    Pack                            "true" to build NuGet packages and VS insertion manifests
+    Sign                            "true" to sign built binaries
+    Publish                         "true" to publish artifacts (e.g. symbols)
+    
+    Workaround for https://github.com/NuGet/Home/issues/4695
+    QuietRestore                    "true" to suppress Restore output.
+    QuietRestoreBinaryLog           "true" to produce binary log for Restore.
+  -->
+
+  <!--
+    Default values.
+  -->
+  <ItemGroup>
+    <ProjectToBuild Include="$(Projects)"/>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <_RepoRootOriginal>$(RepoRoot)</_RepoRootOriginal>
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(RepoRoot)/'))</RepoRoot>
+
+    <_RemoveProps>Projects;Restore;QuietRestore;QuietRestoreBinaryLog;Build;Rebuild;Deploy;Test;IntegrationTest;PerformanceTest;Pack;Sign;Publish;Execute</_RemoveProps>
+  </PropertyGroup>
+
+  <Import Project="RepoLayout.props"/>
+
+  <!-- Allow for repo specific Build properties such as the list of Projects to build -->
+  <Import Project="$(RepositoryEngineeringDir)Build.props" Condition="Exists('$(RepositoryEngineeringDir)Build.props')" />
+
+  <PropertyGroup>
+    <_PublishToBlobStorage>false</_PublishToBlobStorage>
+    <_PublishToBlobStorage Condition="'$(DotNetPublishToBlobFeed)' == 'true'">true</_PublishToBlobStorage>
+
+    <_DotNetOutputBlobFeedDir>$(DotNetOutputBlobFeedDir)</_DotNetOutputBlobFeedDir>
+    <_DotNetOutputBlobFeedDir Condition="'$(_DotNetOutputBlobFeedDir)' != '' and !HasTrailingSlash('$(_DotNetOutputBlobFeedDir)')">$(_DotNetOutputBlobFeedDir)\</_DotNetOutputBlobFeedDir>
+  </PropertyGroup>
+
+  <Target Name="Execute">
+    <Error Text="Property 'Projects' must be specified" Condition="'$(Projects)' == ''"/>
+    <Error Text="Property 'RepoRoot' must be specified" Condition="'$(_RepoRootOriginal)' == ''"/>
+    <Error Text="File 'global.json' must exist in directory specified by RepoRoot: '$(_RepoRootOriginal)'" Condition="'$(_RepoRootOriginal)' != '' and !Exists('$(RepoRoot)global.json')"/>
+
+    <PropertyGroup>
+      <_MSBuildCmd Condition="'$(MSBuildRuntimeType)' != 'Core'">"$(MSBuildBinPath)\MSBuild.exe" /nodeReuse:false</_MSBuildCmd>
+      <_MSBuildCmd Condition="'$(MSBuildRuntimeType)' == 'Core'">"$(DotNetTool)" msbuild</_MSBuildCmd>
+    </PropertyGroup>
+
+    <PropertyGroup>
+      <_QuietRestore>false</_QuietRestore>
+      <_QuietRestore Condition="'$(ContinuousIntegrationBuild)' != 'true' and '$(QuietRestore)' == 'true'">true</_QuietRestore>
+
+      <!--
+        Do not restore toolset tools when building from source.
+        The tools are not needed and not all of them are actually available.
+      -->
+      <_RestoreTools>false</_RestoreTools>
+      <_RestoreTools Condition="'$(Restore)' == 'true' and '$(DotNetBuildFromSource)' != 'true'">true</_RestoreTools>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_SolutionBuildTargets Include="Rebuild" Condition="'$(Rebuild)' == 'true'" />
+      <_SolutionBuildTargets Include="Build" Condition="'$(Build)' == 'true' and '$(Rebuild)' != 'true'" />
+      <!-- Deploy target is set up to chain after Build so that F5 in VS works. -->
+      <_SolutionBuildTargets Include="Test" Condition="'$(Test)' == 'true'" />
+      <!-- Pack before running integration and performance tests so that these tests can test packages produced by the repo. -->
+      <_SolutionBuildTargets Include="Pack" Condition="'$(Pack)' == 'true'" />
+      <_SolutionBuildTargets Include="IntegrationTest" Condition="'$(IntegrationTest)' == 'true'" />
+      <_SolutionBuildTargets Include="PerformanceTest" Condition="'$(PerformanceTest)' == 'true'" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_CommonProps Include="Configuration=$(Configuration)"/>
+      <_CommonProps Include="ContinuousIntegrationBuild=$(ContinuousIntegrationBuild)"/>
+      <_CommonProps Include="RepoRoot=$(RepoRoot)"/>
+      <_CommonProps Include="VersionsPropsPath=$(VersionsPropsPath)"/>
+      <!--
+        When building from source we suppress restore for projects that set ExcludeFromSourceBuild=true.
+        NuGet Restore task reports a warning for such projects, which we suppress here.
+      -->
+      <_CommonProps Include="DisableWarnForInvalidRestoreProjects=true" Condition="'$(DotNetBuildFromSource)' == 'true'"/>
+
+      <!--
+        C++ projects expect VCTargetsPath property to be set. MSBuild generates this property to solution 
+        metaproject when solution is build directly, but doesn't do so when the solution is built using MSBuild task. 
+      -->
+      <_CommonProps Include="VCTargetsPath=$([MSBuild]::ValueOrDefault('$(VCTargetsPath)', '$([MSBuild]::GetVsInstallRoot())\Common7\IDE\VC\VCTargets\'))" Condition="'$(MSBuildRuntimeType)' != 'Core'"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="$(_RestoreTools)">
+      <_RestoreToolsProps Include="@(_CommonProps)"/>
+      <_RestoreToolsProps Include="BaseIntermediateOutputPath=$(ArtifactsToolsetDir)Common"/>
+      <_RestoreToolsProps Include="ExcludeRestorePackageImports=true"/>
+      <_RestoreToolsProps Include="PublishingToBlobStorage=$(_PublishToBlobStorage)"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <_PublishProps Include="@(_CommonProps)"/>
+      <_PublishProps Include="AzureFeedUrl=$(DotNetPublishBlobFeedUrl)" Condition="$(_PublishToBlobStorage)" />
+      <_PublishProps Include="AzureAccountKey=$(DotNetPublishBlobFeedKey)" Condition="$(_PublishToBlobStorage)" />
+      <_PublishProps Include="DotNetOutputBlobFeedDir=$(_DotNetOutputBlobFeedDir)" Condition="'$(_DotNetOutputBlobFeedDir)' != ''" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_SolutionBuildProps Include="@(_CommonProps)"/>
+      <_SolutionBuildProps Include="__DeployProjectOutput=$(Deploy)" Condition="'$(Deploy)' != ''"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <_SolutionBuildPropsArgs Include="@(_SolutionBuildProps->'/p:%(Identity)\')" Condition="$([MSBuild]::ValueOrDefault(%(_SolutionBuildProps.Identity), '').EndsWith('\'))" />
+      <_SolutionBuildPropsArgs Include="@(_SolutionBuildProps->'/p:%(Identity)')" Condition="!$([MSBuild]::ValueOrDefault(%(_SolutionBuildProps.Identity), '').EndsWith('\'))" />
+      <_RestoreToolsPropArgs Include="@(_RestoreToolsProps->'/p:%(Identity)\')" Condition="$([MSBuild]::ValueOrDefault(%(_RestoreToolsProps.Identity), '').EndsWith('\'))" />
+      <_RestoreToolsPropArgs Include="@(_RestoreToolsProps->'/p:%(Identity)')" Condition="!$([MSBuild]::ValueOrDefault(%(_RestoreToolsProps.Identity), '').EndsWith('\'))" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_SolutionBuildPropsCmdLine>"@(_SolutionBuildPropsArgs, '" "')"</_SolutionBuildPropsCmdLine>
+      <_RestoreToolsPropsCmdLine>"@(_RestoreToolsPropArgs, '" "')"</_RestoreToolsPropsCmdLine>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(QuietRestoreBinaryLog)' == 'true'">
+      <_SolutionBuildPropsCmdLine>$(_SolutionBuildPropsCmdLine) /bl:"$(ArtifactsLogDir)RestoreRepoTools.binlog"</_SolutionBuildPropsCmdLine>
+      <_RestoreToolsPropsCmdLine>$(_RestoreToolsPropsCmdLine) /bl:"$(ArtifactsLogDir)Restore.binlog"</_RestoreToolsPropsCmdLine>
+    </PropertyGroup>
+
+    <!--
+      Workaround for https://github.com/NuGet/Home/issues/4695.
+      We launch a new msbuild process to restore.
+    -->
+    <Message Text="Restoring packages ..." Importance="high" Condition="'$(Restore)' == 'true' and '$(_QuietRestore)' == 'true'" />
+
+    <MakeDir Directories="$(ArtifactsLogDir)" Condition="'$(Restore)' == 'true' and '$(_QuietRestore)' == 'true'" />
+
+    <Exec Command='$(_MSBuildCmd) "$(MSBuildProjectDirectory)\Tools.proj" /nologo /m /v:quiet /t:Restore $(_RestoreToolsPropsCmdLine)'
+          Condition="'$(_RestoreTools)' == 'true' and '$(_QuietRestore)' == 'true'" StandardOutputImportance="normal" />
+
+    <Exec Command='$(_MSBuildCmd) "@(ProjectToBuild)" /nologo /m /v:quiet /t:Restore $(_SolutionBuildPropsCmdLine) /p:__BuildPhase=SolutionRestore'
+          Condition="'$(Restore)' == 'true' and '$(_QuietRestore)' == 'true'" StandardOutputImportance="normal" />
+
+    <!--
+      Restore built-in tools.
+    -->
+    <MSBuild Projects="Tools.proj"
+             Targets="Restore"
+             Properties="@(_RestoreToolsProps)"
+             Condition="'$(_RestoreTools)' == 'true' and '$(_QuietRestore)' != 'true'"/>
+
+    <!--
+      Run solution restore separately from the other targets, in a different build phase.
+      Since restore brings in new .props and .targets files we need to rerun evaluation.
+
+      Note: msbuild caches the metaproject for the solution (see https://github.com/Microsoft/msbuild/issues/1695)
+      We invalidate the cache by changing the value of __BuildPhase property.
+    -->
+    <MSBuild Projects="@(ProjectToBuild)"
+             Properties="@(_SolutionBuildProps);__BuildPhase=SolutionRestore"
+             RemoveProperties="$(_RemoveProps)"
+             Targets="Restore"
+             BuildInParallel="true"
+             Condition="'$(Restore)' == 'true' and '$(_QuietRestore)' != 'true'"/>
+
+    <!--
+      Build solution.
+    -->
+    <MSBuild Projects="@(ProjectToBuild)"
+             Properties="@(_SolutionBuildProps);__BuildPhase=SolutionBuild"
+             RemoveProperties="$(_RemoveProps)"
+             Targets="@(_SolutionBuildTargets)"
+             BuildInParallel="true"
+             Condition="'@(_SolutionBuildTargets)' != ''" />
+
+    <MSBuild Projects="AfterSolutionBuild.proj"
+             Properties="@(_CommonProps)"
+             Targets="@(_SolutionBuildTargets)"/>
+
+    <!--
+      Sign artifacts.
+    -->
+    <MSBuild Projects="Sign.proj"
+             Properties="@(_CommonProps)"
+             Targets="Sign"
+             Condition="'$(Sign)' == 'true'"/>
+
+    <MSBuild Projects="AfterSigning.proj"
+             Properties="@(_CommonProps)"
+             Targets="@(_SolutionBuildTargets)"/>
+
+    <MSBuild Projects="Publish.proj"
+             Properties="@(_PublishProps)"
+             Targets="Publish"
+             Condition="'$(Publish)' == 'true'"/>
+  </Target>
+</Project>

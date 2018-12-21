@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodBody = methodBody;
             _spansBuilder = ArrayBuilder<SourceSpan>.GetInstance();
             TypeSymbol payloadElementType = methodBodyFactory.SpecialType(SpecialType.System_Boolean);
-            _payloadType = ArrayTypeSymbol.CreateCSharpArray(methodBodyFactory.Compilation.Assembly, payloadElementType);
+            _payloadType = ArrayTypeSymbol.CreateCSharpArray(methodBodyFactory.Compilation.Assembly, TypeSymbolWithAnnotations.Create(payloadElementType));
             _diagnostics = diagnostics;
             _debugDocumentProvider = debugDocumentProvider;
             _methodBodyFactory = methodBodyFactory;
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 const int analysisKind = 0;
 
                 ArrayTypeSymbol modulePayloadType =
-                    ArrayTypeSymbol.CreateCSharpArray(_methodBodyFactory.Compilation.Assembly, _payloadType);
+                    ArrayTypeSymbol.CreateCSharpArray(_methodBodyFactory.Compilation.Assembly, TypeSymbolWithAnnotations.Create(_payloadType));
 
                 // Synthesize the initialization of the instrumentation payload array, using concurrency-safe code:
                 //
@@ -433,14 +433,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public override BoundStatement InstrumentPatternSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
         {
-            return AddDynamicAnalysis(original, base.InstrumentPatternSwitchStatement(original, rewritten));
+            return AddDynamicAnalysis(original, base.InstrumentSwitchStatement(original, rewritten));
         }
 
-        public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
+        public override BoundStatement InstrumentSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
-            ifConditionGotoBody = base.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
+            ifConditionGotoBody = base.InstrumentSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
             WhenClauseSyntax whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
             Debug.Assert(whenClause != null);
 

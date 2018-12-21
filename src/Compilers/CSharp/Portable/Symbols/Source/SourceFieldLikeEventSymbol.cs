@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceFieldLikeEventSymbol : SourceEventSymbol
     {
         private readonly string _name;
-        private readonly TypeSymbol _type;
+        private readonly TypeSymbolWithAnnotations _type;
         private readonly SourceEventFieldSymbol _associatedField;
         private readonly SynthesizedFieldLikeEventAccessorSymbol _addMethod;
         private readonly SynthesizedFieldLikeEventAccessorSymbol _removeMethod;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // overridden/implemented event, so there are no conflicts.)  This is unnecessary for implicit 
             // implementations because, if the custom modifiers don't match, we'll insert bridge methods 
             // for the accessors (explicit implementations that delegate to the implicit implementations) 
-            // with the correct custom modifiers (see SourceNamedTypeSymbol.ImplementInterfaceMember).
+            // with the correct custom modifiers (see SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation).
 
             // If this event is an override, we may need to copy custom modifiers from
             // the overridden event (so that the runtime will recognize it as an override).
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _name; }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { return _type; }
         }

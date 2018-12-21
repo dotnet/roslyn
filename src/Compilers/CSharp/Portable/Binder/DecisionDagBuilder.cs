@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<RemainingTestsForCase>.GetInstance(switchSections.Length);
             foreach (BoundSwitchSection section in switchSections)
             {
-                foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
+                foreach (BoundSwitchLabel label in section.SwitchLabels)
                 {
                     if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
                     {
@@ -285,8 +285,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundRecursivePattern recursive:
                     MakeTestsAndBindings(input, recursive, tests, bindings);
                     break;
+                case BoundITuplePattern iTuple:
+                    MakeTestsAndBindings(input, iTuple, tests, bindings);
+                    break;
                 default:
                     throw new NotImplementedException(pattern.Kind.ToString());
+            }
+        }
+
+        private void MakeTestsAndBindings(
+            BoundDagTemp input,
+            BoundITuplePattern pattern,
+            ArrayBuilder<BoundDagTest> tests,
+            ArrayBuilder<BoundPatternBinding> bindings)
+        {
+            var syntax = pattern.Syntax;
+            var patternLength = pattern.Subpatterns.Length;
+            var objectType = this._compilation.GetSpecialType(SpecialType.System_Object);
+            var getLengthProperty = (PropertySymbol)pattern.GetLengthMethod.AssociatedSymbol;
+            Debug.Assert(getLengthProperty.Type.SpecialType == SpecialType.System_Int32);
+            var getItemProperty = (PropertySymbol)pattern.GetItemMethod.AssociatedSymbol;
+            var iTupleType = getLengthProperty.ContainingType;
+            Debug.Assert(iTupleType.Name == "ITuple");
+
+            tests.Add(new BoundDagTypeTest(syntax, iTupleType, input));
+            var valueAsITupleEvaluation = new BoundDagTypeEvaluation(syntax, iTupleType, input);
+            tests.Add(valueAsITupleEvaluation);
+            var valueAsITuple = new BoundDagTemp(syntax, iTupleType, valueAsITupleEvaluation, 0);
+
+            var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, valueAsITuple);
+            tests.Add(lengthEvaluation);
+            var lengthTemp = new BoundDagTemp(syntax, this._compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation, 0);
+            tests.Add(new BoundDagValueTest(syntax, ConstantValue.Create(patternLength), lengthTemp));
+
+            for (int i = 0; i < patternLength; i++)
+            {
+                var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, i, valueAsITuple);
+                tests.Add(indexEvaluation);
+                var indexTemp = new BoundDagTemp(syntax, objectType, indexEvaluation, 0);
+                MakeTestsAndBindings(indexTemp, pattern.Subpatterns[i].Pattern, tests, bindings);
             }
         }
 
@@ -418,14 +455,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BoundPattern pattern = recursive.Deconstruction[i].Pattern;
                         SyntaxNode syntax = pattern.Syntax;
-                        var output = new BoundDagTemp(syntax, method.Parameters[i + extensionExtra].Type, evaluation, i);
+                        var output = new BoundDagTemp(syntax, method.Parameters[i + extensionExtra].Type.TypeSymbol, evaluation, i);
                         MakeTestsAndBindings(output, pattern, tests, bindings);
                     }
+                }
+                else if (Binder.IsZeroElementTupleType(inputType))
+                {
+                    // Work around https://github.com/dotnet/roslyn/issues/20648: The compiler's internal APIs such as `declType.IsTupleType`
+                    // do not correctly treat the non-generic struct `System.ValueTuple` as a tuple type.  We explicitly perform the tests
+                    // required to identify it.  When that bug is fixed we should be able to remove this if statement.
+
+                    // nothing to do, as there are no tests for the zero elements of this tuple
                 }
                 else if (inputType.IsTupleType)
                 {
                     ImmutableArray<FieldSymbol> elements = inputType.TupleElements;
-                    ImmutableArray<TypeSymbol> elementTypes = inputType.TupleElementTypes;
+                    ImmutableArray<TypeSymbolWithAnnotations> elementTypes = inputType.TupleElementTypes;
                     int count = Math.Min(elementTypes.Length, recursive.Deconstruction.Length);
                     for (int i = 0; i < count; i++)
                     {
@@ -434,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         FieldSymbol field = elements[i];
                         var evaluation = new BoundDagFieldEvaluation(syntax, field, input); // fetch the ItemN field
                         tests.Add(evaluation);
-                        var output = new BoundDagTemp(syntax, field.Type, evaluation, index: 0);
+                        var output = new BoundDagTemp(syntax, field.Type.TypeSymbol, evaluation, index: 0);
                         MakeTestsAndBindings(output, pattern, tests, bindings);
                     }
                 }
@@ -471,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     tests.Add(evaluation);
-                    var output = new BoundDagTemp(pattern.Syntax, symbol.GetTypeOrReturnType(), evaluation, index: 0);
+                    var output = new BoundDagTemp(pattern.Syntax, symbol.GetTypeOrReturnType().TypeSymbol, evaluation, index: 0);
                     MakeTestsAndBindings(output, pattern, tests, bindings);
                 }
             }

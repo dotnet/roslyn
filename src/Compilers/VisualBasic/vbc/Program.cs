@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 
         private static int MainCore(string[] args)
         {
-#if NET46
+#if NET472
             var loader = new DesktopAnalyzerAssemblyLoader();
 #else
             var loader = new CoreClrAnalyzerAssemblyLoader();

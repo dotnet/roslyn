@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
+    <Identity Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
     <DisplayName>Roslyn Language Services</DisplayName>
     <Description>C# and VB.NET language services for Visual Studio.</Description>
     <PackageId>Microsoft.CodeAnalysis.VisualStudio.Setup</PackageId>
@@ -13,11 +13,10 @@
     <InstallationTarget Version="[15.0,]" Id="Microsoft.VisualStudio.VSWinExpress" />
   </Installation>
   <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.7.2,)" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.Workspaces.dll" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.Workspaces.Desktop.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.EditorFeatures.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.Features.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.CSharp.Features.dll" />
@@ -59,7 +58,7 @@
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="XamlVisualStudio" Path="|XamlVisualStudio|" />
   </Assets>
   <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
-    <Prerequisite Id="Microsoft.DiaSymReader.Native" Version="[15.0,16.0)" DisplayName="Windows PDB reader/writer" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,17.0)" DisplayName="Visual Studio core editor" />
+    <Prerequisite Id="Microsoft.DiaSymReader.Native" Version="[15.0,17.0)" DisplayName="Windows PDB reader/writer" />
   </Prerequisites>
 </PackageManifest>

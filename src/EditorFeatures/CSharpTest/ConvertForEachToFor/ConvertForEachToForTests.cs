@@ -917,7 +917,7 @@ class List : IList
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29740"), Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task ImmutableArray()
         {
             var text = @"

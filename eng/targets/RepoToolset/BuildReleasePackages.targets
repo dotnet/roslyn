@@ -1,0 +1,32 @@
+<!-- All Rights Reserved. Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(NuGetPackageRoot)roslyntools.nugetrepack.buildtasks\$(RoslynToolsNuGetRepackVersion)\tools\net472\RoslynTools.NuGetRepack.BuildTasks.dll</_NuGetRepackAssembly>
+    <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)roslyntools.nugetrepack.buildtasks\$(RoslynToolsNuGetRepackVersion)\tools\netcoreapp2.1\RoslynTools.NuGetRepack.BuildTasks.dll</_NuGetRepackAssembly>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Roslyn.Tools.UpdatePackageVersionTask" AssemblyFile="$(_NuGetRepackAssembly)" />
+
+  <Target Name="PackageReleasePackages" AfterTargets="Pack" Condition="'$(DotNetFinalVersionKind)' == ''">
+    <Message Text="Building release versions of NuGet packages" Importance="high" />
+
+    <Error Text="PreReleaseVersionLabel must be non-empty when using NuGet Repack tool." Condition="'$(PreReleaseVersionLabel)' == ''" />
+    
+    <ItemGroup>
+      <_BuiltPackages Include="$(ArtifactsShippingPackagesDir)*.nupkg" />
+    </ItemGroup>
+
+    <!-- Force references among packages to use exact versions (see https://github.com/NuGet/Home/issues/7213) -->
+    <Roslyn.Tools.UpdatePackageVersionTask VersionKind="release" Packages="@(_BuiltPackages)" OutputDirectory="$(ArtifactsPackagesDir)Release" AllowPreReleaseDependencies="true" ExactVersions="true" />
+    <Roslyn.Tools.UpdatePackageVersionTask VersionKind="prerelease" Packages="@(_BuiltPackages)" OutputDirectory="$(ArtifactsPackagesDir)PreRelease" ExactVersions="true"/>
+
+    <!-- Rewrite the version ranges of per-build pre-release packages (see https://github.com/NuGet/Home/issues/7213) -->
+    <Roslyn.Tools.UpdatePackageVersionTask Packages="@(_BuiltPackages)" OutputDirectory="$(ArtifactsShippingPackagesDir)" ExactVersions="true"/>
+  </Target>
+
+</Project>

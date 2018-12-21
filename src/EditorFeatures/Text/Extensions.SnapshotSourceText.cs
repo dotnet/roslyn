@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -33,11 +34,6 @@ namespace Microsoft.CodeAnalysis.Text
 
             private readonly Encoding _encodingOpt;
             private readonly TextBufferContainer _containerOpt;
-
-            private SnapshotSourceText(ITextBufferCloneService textBufferCloneServiceOpt, ITextSnapshot editorSnapshot) :
-                this(textBufferCloneServiceOpt, editorSnapshot, TextBufferContainer.From(editorSnapshot.TextBuffer))
-            {
-            }
 
             private SnapshotSourceText(ITextBufferCloneService textBufferCloneServiceOpt, ITextSnapshot editorSnapshot, TextBufferContainer container)
             {
@@ -79,9 +75,13 @@ namespace Microsoft.CodeAnalysis.Text
 
                 if (!s_textSnapshotMap.TryGetValue(editorSnapshot, out var snapshot))
                 {
+                    // Explicitly obtain the TextBufferContainer before calling GetValue to avoid reentrancy in
+                    // ConditionalWeakTable. https://github.com/dotnet/roslyn/issues/28256
+                    var container = TextBufferContainer.From(editorSnapshot.TextBuffer);
+
                     // Avoid capturing `textBufferCloneServiceOpt` on the fast path
                     var tempTextBufferCloneServiceOpt = textBufferCloneServiceOpt;
-                    snapshot = s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(tempTextBufferCloneServiceOpt, s));
+                    snapshot = s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(tempTextBufferCloneServiceOpt, s, container));
                 }
 
                 return snapshot;
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 // otherwise, create a new cloned snapshot
-                var buffer = factory.Clone(TextImage);
+                var buffer = factory.CloneWithUnknownContentType(TextImage);
                 var baseSnapshot = buffer.CurrentSnapshot;
 
                 // apply the change to the buffer
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Text
                     range = range.Accumulate(changes);
                 }
 
-                Contract.Requires(range.HasValue);
+                Debug.Assert(range.HasValue);
                 return range.Value;
             }
 

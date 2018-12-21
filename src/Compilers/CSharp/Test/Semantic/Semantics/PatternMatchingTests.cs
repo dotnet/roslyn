@@ -299,7 +299,7 @@ No for 1.2";
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28026")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void PatternInFieldInitializer()
         {
             var source =
@@ -779,7 +779,7 @@ True");
             VerifyModelForDeclarationOrVarSimplePattern(model, x1Decl, x1Ref);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28026")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void Query_01()
         {
             var source =
@@ -975,9 +975,9 @@ public class X
 True");
 
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
-                // (9,30): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                // (9,34): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static bool Test1 = 1 is int x1 && Dummy(x1); 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "int x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 30)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 34)
                 );
         }
 
@@ -1068,9 +1068,9 @@ public class X
 True");
 
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
-                // (9,37): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                // (9,41): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static bool Test1 {get;} = 1 is int x1 && Dummy(x1); 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "int x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 37)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 41)
                 );
         }
 
@@ -1159,12 +1159,12 @@ True");
             Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl[0])).Type.ToTestDisplayString());
 
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
-                // (12,36): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                // (12,40): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     public D(object o) : base(2 is var x1 && Dummy(x1)) 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "var x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(12, 36),
-                // (17,28): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(12, 40),
+                // (17,32): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     public D() : this(1 is int x1 && Dummy(x1)) 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "int x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(17, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(17, 32)
                 );
         }
 
@@ -4292,10 +4292,8 @@ public class C
             var discard2 = GetDiscardDesignations(tree).Skip(1).First();
             Assert.Null(model.GetDeclaredSymbol(discard2));
             Assert.Null(model.GetSymbolInfo(discard2).Symbol);
-            var declaration2 = (DeclarationPatternSyntax)discard2.Parent;
+            var declaration2 = (VarPatternSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
-            Assert.Equal("System.Int32", model.GetTypeInfo(declaration2).Type.ToTestDisplayString());
-            Assert.Equal("System.Int32", model.GetTypeInfo(declaration2.Type).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
 
             var discard3 = GetDiscardDesignations(tree).Skip(2).First();
@@ -4307,10 +4305,8 @@ public class C
 
             var discard4 = GetDiscardDesignations(tree).Skip(3).First();
             Assert.Null(model.GetDeclaredSymbol(discard4));
-            var declaration4 = (DeclarationPatternSyntax)discard4.Parent;
+            var declaration4 = (VarPatternSyntax)discard4.Parent;
             Assert.Equal("var _", declaration4.ToString());
-            Assert.Equal("System.Int64", model.GetTypeInfo(declaration4).Type.ToTestDisplayString());
-            Assert.Equal("System.Int64", model.GetTypeInfo(declaration4.Type).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -4334,11 +4330,21 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            compilation.VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
                 //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29),
+                // (11,18): error CS0103: The name '_' does not exist in the current context
+                //             case _:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18)
+                );
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29),
+                // (11,18): error CS0103: The name '_' does not exist in the current context
+                //             case _:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18)
                 );
         }
 
@@ -4366,15 +4372,12 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (9,29): error CS8412: A constant named '_' cannot be used as a pattern.
+                // (9,29): error CS0118: '_' is a variable but is used like a type
                 //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_ConstantPatternNamedUnderscore, "_").WithLocation(9, 29),
-                // (9,29): error CS0150: A constant value is expected
-                //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(9, 29),
-                // (12,18): error CS8411: The discard pattern '_' cannot be used where '_' is in scope.
+                Diagnostic(ErrorCode.ERR_BadSKknown, "_").WithArguments("_", "variable", "type").WithLocation(9, 29),
+                // (12,18): error CS0150: A constant value is expected
                 //             case _:
-                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("_").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18)
                 );
         }
 
@@ -5666,10 +5669,10 @@ public class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
+                // (13,28): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Derived b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7.0", "7.1").WithLocation(13, 28),
-                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,18): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Derived b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7.0", "7.1").WithLocation(16, 18)
                 );
@@ -5709,10 +5712,10 @@ public class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (13,28): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (13,28): error CS8413: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is T b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7.0", "7.1").WithLocation(13, 28),
-                // (16,18): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,18): error CS8413: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7.0", "7.1")
                 );
@@ -5752,10 +5755,10 @@ public class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
+                // (13,28): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Derived<T> b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7.0", "7.1").WithLocation(13, 28),
-                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,18): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Derived<T> b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7.0", "7.1").WithLocation(16, 18)
                 );
@@ -5798,10 +5801,10 @@ public class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (16,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,28): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Container<T>.Derived b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7.0", "7.1").WithLocation(16, 28),
-                // (19,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
+                // (19,18): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Container<T>.Derived b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7.0", "7.1").WithLocation(19, 18)
                 );
@@ -5844,10 +5847,10 @@ public class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (16,28): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
+                // (16,28): error CS8413: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Container<T>.Derived[] b0);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7.0", "7.1").WithLocation(16, 28),
-                // (19,18): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
+                // (19,18): error CS8413: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Container<T>.Derived[] b1:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7.0", "7.1").WithLocation(19, 18)
                 );
@@ -6445,13 +6448,13 @@ public class X
 True");
 
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
-                // (9,61): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                // (9,65): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static event System.Func<bool> Test1 = GetDelegate(1 is int x1 && Dummy(x1)); 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "int x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 61)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 65)
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24865")]
+        [Fact]
         public void ExhaustiveBoolSwitch00()
         {
             // Note that the switches in this code are exhaustive. The idea of a switch
@@ -6479,14 +6482,14 @@ public class C
                 b = true;
                 break;
             case false:
-                b = true;
+                b = false;
                 break;
         }
 
-        Console.WriteLine(b); // incorrect error CS0165: Use of unassigned local variable 'b'
+        Console.WriteLine(b); // no more error CS0165: Use of unassigned local variable 'b'
     }
 
-    public static bool M2(bool e) // incorrect error CS0161: not all code paths return a value
+    public static bool M2(bool e) // no more error CS0161: not all code paths return a value
     {
         switch (e)
         {
@@ -6558,9 +6561,9 @@ True
 False");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/28633")]
+        [Fact]
         [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
-        public void IsPatternMatchingDoesNotCopyEscapeScopes()
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_01()
         {
             CreateCompilationWithMscorlibAndSpan(@"
 using System;
@@ -6582,9 +6585,9 @@ public class C
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 24));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/28633")]
+        [Fact]
         [WorkItem(27218, "https://github.com/dotnet/roslyn/issues/27218")]
-        public void CasePatternMatchingDoesNotCopyEscapeScopes()
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_01()
         {
             CreateCompilationWithMscorlibAndSpan(@"
 using System;
@@ -6607,6 +6610,236 @@ public class C
                 // (12,28): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //                 return ref inner[5];
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(12, 28));
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_02()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
+using System;
+public ref struct R
+{
+    public R Prop => this;
+    public void Deconstruct(out R X, out R Y) => X = Y = this;
+    public static implicit operator R(Span<int> span) => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { Prop: var x }: return x; // error 1
+        }
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { Prop: R x }: return x; // error 2
+        }
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (var x, var y): return x; // error 3
+        }
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (R x, R y): return x; // error 4
+        }
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var (x, y): return x; // error 5
+        }
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { } x: return x; // error 6
+        }
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (_, _) x: return x; // error 7
+        }
+    }
+}
+").VerifyDiagnostics(
+                // (16,42): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { Prop: var x }: return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(16, 42),
+                // (24,40): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { Prop: R x }: return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(24, 40),
+                // (32,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (var x, var y): return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 41),
+                // (40,37): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (R x, R y): return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(40, 37),
+                // (48,37): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var (x, y): return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(48, 37),
+                // (56,32): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { } x: return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(56, 32),
+                // (64,35): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (_, _) x: return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(64, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_02()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
+using System;
+public ref struct R
+{
+    public R Prop => this;
+    public void Deconstruct(out R X, out R Y) => X = Y = this;
+    public static implicit operator R(Span<int> span) => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { Prop: var x }) return x; // error 1
+        throw null;
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { Prop: R x }) return x; // error 2
+        throw null;
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        if (outer is (var x, var y)) return x; // error 3
+        throw null;
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        if (outer is (R x, R y)) return x; // error 4
+        throw null;
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        if (outer is var (x, y)) return x; // error 5
+        throw null;
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { } x) return x; // error 6
+        throw null;
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        if (outer is (_, _) x) return x; // error 7
+        throw null;
+    }
+}
+").VerifyDiagnostics(
+                // (14,46): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { Prop: var x }) return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(14, 46),
+                // (20,44): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { Prop: R x }) return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(20, 44),
+                // (26,45): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is (var x, var y)) return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(26, 45),
+                // (32,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is (R x, R y)) return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(32, 41),
+                // (38,41): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is var (x, y)) return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(38, 41),
+                // (44,36): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { } x) return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(44, 36),
+                // (50,39): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is (_, _) x) return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(50, 39)
+                );
+        }
+
+        [Fact]
+        [WorkItem(28633, "https://github.com/dotnet/roslyn/issues/28633")]
+        public void EscapeScopeInSubpatternOfNonRefType()
+        {
+            CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithRecursivePatterns, text: @"
+using System;
+public ref struct R
+{
+    public R RProp => this;
+    public S SProp => new S();
+    public void Deconstruct(out S X, out S Y) => X = Y = new S();
+    public static implicit operator R(Span<int> span) => new R();
+}
+public struct S
+{
+    public R RProp => new R();
+}
+public class C
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        if (outer is { SProp: { RProp: var x }}) return x; // OK
+        throw null;
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { SProp: { RProp: var x }}: return x; // OK
+        }
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        if (outer is ({ RProp: var x }, _)) return x; // OK
+        throw null;
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case ({ RProp: var x }, _): return x; // OK
+        }
+    }
+}
+").VerifyDiagnostics(
+                );
         }
     }
 }

@@ -698,9 +698,9 @@ class Program
         if (t is (int x)) { }                           // error 1
         switch (t) { case (_): break; }                 // error 2
         var u = t switch { (int y) => y, _ => 2 };      // error 3
-        if (t is (int z1) _) { }                        // error 4
-        if (t is (Item1: int z2)) { }                   // error 5
-        if (t is (int z3) { }) { }                      // error 6
+        if (t is (int z1) _) { }                        // ok
+        if (t is (Item1: int z2)) { }                   // ok
+        if (t is (int z3) { }) { }                      // ok
         if (t is ValueTuple<int>(int z4)) { }           // ok
     }
     private static bool Check<T>(T expected, T actual)
@@ -711,25 +711,16 @@ class Program
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                // (8,18): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
                 //         if (t is (int x)) { }                           // error 1
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int x)").WithLocation(8, 18),
-                // (9,27): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(int x)").WithLocation(8, 18),
+                // (9,27): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
                 //         switch (t) { case (_): break; }                 // error 2
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(_)").WithLocation(9, 27),
-                // (10,28): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(_)").WithLocation(9, 27),
+                // (10,28): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int y)").WithLocation(10, 28),
-                // (11,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
-                //         if (t is (int z1) _) { }                        // error 4
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int z1) _").WithLocation(11, 18),
-                // (12,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
-                //         if (t is (Item1: int z2)) { }                   // error 5
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(Item1: int z2)").WithLocation(12, 18),
-                // (13,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
-                //         if (t is (int z3) { }) { }                      // error 6
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int z3) { }").WithLocation(13, 18),
-                // (10,42): error CS8410: The pattern has already been handled by a previous arm of the switch expression.
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(int y)").WithLocation(10, 28),
+                // (10,42): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(10, 42)
                 );
@@ -793,25 +784,25 @@ namespace N
                 // (9,21): error CS0029: Cannot implicitly convert type '(int, int)' to 'N.var'
                 //             var t = (1, 2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2)").WithArguments("(int, int)", "N.var").WithLocation(9, 21),
-                // (10,32): error CS8408: The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to 'N.var' here.
+                // (10,32): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
                 //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
                 Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(10, 32),
-                // (10,32): error CS1061: 'var' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'var' could be found (are you missing a using directive or an assembly reference?)
+                // (10,36): error CS1061: 'var' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'var' could be found (are you missing a using directive or an assembly reference?)
                 //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "var (x, y)").WithArguments("N.var", "Deconstruct").WithLocation(10, 32),
-                // (10,32): error CS8129: No suitable Deconstruct instance or extension method was found for type 'var', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(x, y)").WithArguments("N.var", "Deconstruct").WithLocation(10, 36),
+                // (10,36): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'var', with 2 out parameters and a void return type.
                 //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "var (x, y)").WithArguments("N.var", "2").WithLocation(10, 32),
-                // (11,33): error CS8408: The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to 'N.var' here.
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(x, y)").WithArguments("N.var", "2").WithLocation(10, 36),
+                // (11,33): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
                 //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
                 Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(11, 33),
-                // (11,33): error CS1061: 'var' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'var' could be found (are you missing a using directive or an assembly reference?)
+                // (11,37): error CS1061: 'var' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'var' could be found (are you missing a using directive or an assembly reference?)
                 //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "var (x, y)").WithArguments("N.var", "Deconstruct").WithLocation(11, 33),
-                // (11,33): error CS8129: No suitable Deconstruct instance or extension method was found for type 'var', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(x, y)").WithArguments("N.var", "Deconstruct").WithLocation(11, 37),
+                // (11,37): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'var', with 2 out parameters and a void return type.
                 //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "var (x, y)").WithArguments("N.var", "2").WithLocation(11, 33),
-                // (12,32): error CS8408: The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to 'N.var' here.
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(x, y)").WithArguments("N.var", "2").WithLocation(11, 37),
+                // (12,32): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
                 //             { Check(true, t is var x); }                           // error 3
                 Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(12, 32)
                 );
@@ -839,7 +830,7 @@ class Program
             case (false, false): return 0;
             case (false, _): return 1;
             case (_, false): return 2;
-            case _: return 3;
+            case var _: return 3;
         }
     }
 }
@@ -887,7 +878,7 @@ class Program
             case (false, _): return 1;
             case (_, false): return 2;
             case (true, true): return 3;
-            case _: return 4;
+            case var _: return 4;
         }
     }
 }
@@ -909,8 +900,8 @@ namespace System
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 // (20,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case _: return 4;
-                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "_").WithLocation(20, 18)
+                //             case var _: return 4;
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var _").WithLocation(20, 18)
                 );
         }
 
@@ -1000,14 +991,14 @@ public class X
                 Console.WriteLine(t9);
                 break;
         }
-        // PROTOTYPE(patterns2): Lowering and code gen not yet supported for switch expression
-        //Console.WriteLine(t switch { (_, _, _, _, _, _, _, _, var t9) => t9 });
+        Console.WriteLine(t switch { (_, _, _, _, _, _, _, _, var t9) => t9 });
     }
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"9
+9
 9");
         }
 
@@ -1076,9 +1067,7 @@ class Frog
         public void OvereagerSubsumption()
         {
             var source =
-@"using System;
-
-class Program2
+@"class Program2
 {
     public static int Main() => 0;
     public static void M(object o)
@@ -1093,15 +1082,15 @@ class Program2
     }
 }
 ";
-            var compilation = CreatePatternCompilation(source);
+            var compilation = CreateCompilationWithMscorlib45(source); // doesn't have ITuple
             // Two errors below instead of one due to https://github.com/dotnet/roslyn/issues/25533
             compilation.VerifyDiagnostics(
-                // (10,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // (8,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (1, 2):
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("object", "Deconstruct").WithLocation(10, 18),
-                // (10,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("object", "Deconstruct").WithLocation(8, 18),
+                // (8,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (1, 2):
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 2)").WithArguments("object", "2").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 2)").WithArguments("object", "2").WithLocation(8, 18)
                 );
         }
 
@@ -1113,30 +1102,37 @@ class Program2
 {
     static int Main() => 0;
     private const int _ = 1;
-    bool M1(object o) => o is _;                             // error: cannot use _ as a constant
-    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+    bool M1(object o) => o is _;
+    bool M2(object o) => o switch { 1 => true, _ => false };
 }
 class Program1
 {
     class _ {}
-    bool M1(object o) => o is _;                             // error: is type named _
-    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+    bool M3(object o) => o is _;
+    bool M4(object o) => o switch { 1 => true, _ => false };
 }
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (11,31): error CS8413: The name '_' refers to the type 'Program1._', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
-                //     bool M1(object o) => o is _;                             // error: is type named _
-                Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("Program1._").WithLocation(11, 31),
-                // (5,31): error CS8412: A constant named '_' cannot be used as a pattern.
-                //     bool M1(object o) => o is _;                             // error: cannot use _ as a constant
-                Diagnostic(ErrorCode.ERR_ConstantPatternNamedUnderscore, "_").WithLocation(5, 31),
-                // (12,48): error CS8411: The discard pattern '_' cannot be used where 'Program1._' is in scope.
-                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
-                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program1._").WithLocation(12, 48),
-                // (6,48): error CS8411: The discard pattern '_' cannot be used where 'Program0._' is in scope.
-                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
-                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program0._").WithLocation(6, 48)
+                // (5,31): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //     bool M1(object o) => o is _;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(5, 31),
+                // (11,31): warning CS8513: The name '_' refers to the type 'Program1._', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
+                //     bool M3(object o) => o is _;
+                Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("Program1._").WithLocation(11, 31)
+                );
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            compilation.VerifyDiagnostics(
+                // (5,31): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //     bool M1(object o) => o is _;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(5, 31),
+                // (6,26): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     bool M2(object o) => o switch { 1 => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns", "8.0").WithLocation(6, 26),
+                // (12,26): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     bool M4(object o) => o switch { 1 => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns", "8.0").WithLocation(12, 26)
                 );
         }
 
@@ -1170,22 +1166,16 @@ class Program1 : Program0
 }
 class Program1 : Program0
 {
-    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+    bool M2(object o) => o switch { 1 => true, _ => false };
 }
 class Program2
 {
     bool _(object q) => true;
-    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+    bool M2(object o) => o switch { 1 => true, _ => false };
 }
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,48): error CS8411: The discard pattern '_' cannot be used where 'Program0._' is in scope.
-                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
-                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program0._").WithLocation(8, 48),
-                // (13,48): error CS8411: The discard pattern '_' cannot be used where 'Program2._(object)' is in scope.
-                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
-                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program2._(object)").WithLocation(13, 48)
                 );
         }
 
@@ -1197,14 +1187,14 @@ class Program2
 class Program
 {
     static int Main() => 0;
-    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+    bool M2(object o) => o switch { 1 => true, _ => false };
 }
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (5,48): error CS8411: The discard pattern '_' cannot be used where '_' is in scope.
-                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
-                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("_").WithLocation(5, 48)
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using _ = System.Int32;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using _ = System.Int32;").WithLocation(1, 1)
                 );
         }
 
@@ -2113,13 +2103,10 @@ public class C {
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
-                // (4,21): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
-                //         _ = this is (a: 1);
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(a: 1)").WithLocation(4, 21),
-                // (4,21): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                // (4,21): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         _ = this is (a: 1);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(a: 1)").WithArguments("C", "Deconstruct").WithLocation(4, 21),
-                // (4,21): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 1 out parameters and a void return type.
+                // (4,21): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 1 out parameters and a void return type.
                 //         _ = this is (a: 1);
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(a: 1)").WithArguments("C", "1").WithLocation(4, 21)
                 );

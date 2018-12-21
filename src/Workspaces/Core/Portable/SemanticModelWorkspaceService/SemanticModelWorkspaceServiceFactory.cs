@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 private static void ValidateTreeMap(ImmutableDictionary<DocumentId, SyntaxTree> actual, Project project, Compilation compilation)
                 {
                     var expected = ImmutableDictionary.CreateRange(GetNewTreeMap(project, compilation));
-                    Contract.Requires(actual.SetEquals(expected));
+                    Debug.Assert(actual.SetEquals(expected));
                 }
             }
         }

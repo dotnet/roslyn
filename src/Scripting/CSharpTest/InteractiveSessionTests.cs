@@ -1182,7 +1182,7 @@ new C()
             Assert.NotNull(result);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void ReferenceDirective_RelativeToBaseParent()
         {
             var file = Temp.CreateFile();
@@ -1589,7 +1589,7 @@ new List<ArgumentException>()
             Assert.Equal(1, r1.Result);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference1()
         {
             var scriptCompilation = CSharpScript.Create(
@@ -1599,7 +1599,8 @@ new List<ArgumentException>()
 
             scriptCompilation.VerifyDiagnostics(
                 // (1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Microsoft.CodeAnalysis").WithArguments("CodeAnalysis", "Microsoft"));
+                // nameof(Microsoft.CodeAnalysis.Scripting)
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Microsoft.CodeAnalysis").WithArguments("CodeAnalysis", "Microsoft").WithLocation(1, 8));
 
             string corAssemblyName = typeof(object).GetTypeInfo().Assembly.GetName().Name;
             string hostObjectAssemblyName = scriptCompilation.ScriptCompilationInfo.GlobalsType.GetTypeInfo().Assembly.GetName().Name;
@@ -1645,7 +1646,7 @@ new List<ArgumentException>()
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference2()
         {
             var scriptCompilation = CSharpScript.Create(
@@ -1709,7 +1710,7 @@ new List<ArgumentException>()
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference3()
         {
             string source = $@"

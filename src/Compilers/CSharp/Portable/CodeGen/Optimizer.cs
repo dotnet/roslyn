@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(_recursionDepth == 1);
                 return result;
             }
-            catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+            catch (InsufficientExecutionStackException ex)
             {
                 throw new CancelledByStackGuardException(ex, node);
             }
@@ -604,6 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 node.Checked,
                 node.ExplicitCastInCode,
                 node.ConstantValue,
+                node.ConversionGroupOpt,
                 node.Type);
         }
 
@@ -1013,8 +1014,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         internal static bool IsFixedBufferAssignmentToRefLocal(BoundExpression left, BoundExpression right, bool isRef)
             => isRef &&
                right is BoundFieldAccess fieldAccess &&
-               fieldAccess.FieldSymbol.IsFixed &&
-               left.Type.Equals(((PointerTypeSymbol)right.Type).PointedAtType, TypeCompareKind.AllIgnoreOptions);
+               fieldAccess.FieldSymbol.IsFixedSizeBuffer &&
+               left.Type.Equals(((PointerTypeSymbol)right.Type).PointedAtType.TypeSymbol, TypeCompareKind.AllIgnoreOptions);
 
         // indirect assignment is assignment to a value referenced indirectly
         // it may only happen if 
@@ -1424,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, left, right, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {
@@ -1458,7 +1459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 EnsureStackState(cookie);   // implicit label here
 
-                return node.Update(node.OperatorKind, left, right, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type);
+                return node.Update(node.OperatorKind, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, left, right, node.Type);
             }
 
             return base.VisitBinaryOperator(node);
@@ -1478,7 +1479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EnsureStackState(cookie);   // implicit label here
 
-            return node.Update(left, right, node.LeftConversion, node.Type);
+            return node.Update(left, right, node.LeftConversion, node.OperatorResultKind, node.Type);
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
@@ -1973,7 +1974,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 binary = stack.Pop();
                 var right = (BoundExpression)this.Visit(binary.Right);
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, left, right, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {
@@ -2161,7 +2162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { throw new NotImplementedException(); }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { throw new NotImplementedException(); }
         }

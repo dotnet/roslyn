@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -92,6 +93,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             return VSConstants.VSITEMID_NIL;
+        }
+
+        public static string TryGetProjectFilePath(this IVsHierarchy hierarchy)
+        {
+            if (ErrorHandler.Succeeded(((IVsProject3)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out var projectFilePath)) && !string.IsNullOrEmpty(projectFilePath))
+            {
+                return projectFilePath;
+            }
+
+            return null;
         }
     }
 }

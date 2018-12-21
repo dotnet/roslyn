@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequencePoint(original.Syntax, rewritten);
         }
 
-        public override BoundStatement InstrumentPatternSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
         {
             SwitchStatementSyntax switchSyntax = (SwitchStatementSyntax)original.Syntax;
             TextSpan switchSequencePointSpan = TextSpan.FromBounds(
@@ -356,19 +356,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequencePointWithSpan(
                 syntax: switchSyntax,
-                statementOpt: base.InstrumentPatternSwitchStatement(original, rewritten),
+                statementOpt: base.InstrumentSwitchStatement(original, rewritten),
                 span: switchSequencePointSpan,
                 hasErrors: false);
         }
 
-        public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
+        public override BoundStatement InstrumentSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
             WhenClauseSyntax whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
             Debug.Assert(whenClause != null);
 
             return new BoundSequencePointWithSpan(
                 syntax: whenClause,
-                statementOpt: base.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody),
+                statementOpt: base.InstrumentSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody),
                 span: whenClause.Span);
         }
 
@@ -395,11 +395,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddConditionSequencePoint(base.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory), original.Syntax, factory);
         }
 
-        public override BoundStatement InstrumentPatternSwitchBindCasePatternVariables(BoundStatement bindings)
+        public override BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)
         {
             // Mark the code that binds pattern variables to their values as hidden.
             // We do it to tell that this is not a part of previous statement.
-            return new BoundSequencePoint(null, base.InstrumentPatternSwitchBindCasePatternVariables(bindings));
+            return new BoundSequencePoint(null, base.InstrumentSwitchBindCasePatternVariables(bindings));
         }
     }
 }

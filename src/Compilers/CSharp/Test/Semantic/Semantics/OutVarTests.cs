@@ -983,14 +983,14 @@ public class Cls
 
             var local = (SourceLocalSymbol)symbol;
 
-            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: local.Type);
+            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: local.Type.TypeSymbol);
 
             foreach (var reference in references)
             {
                 Assert.Same(symbol, model.GetSymbolInfo(reference).Symbol);
                 Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: decl.Identifier().ValueText).Single());
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier().ValueText));
-                Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
+                Assert.Equal(local.Type.TypeSymbol, model.GetTypeInfo(reference).Type);
             }
 
             if (verifyDataFlow)
@@ -1037,7 +1037,7 @@ public class Cls
             Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
             Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
 
-            TypeSymbol expected = expectedSymbol?.GetTypeOrReturnType();
+            TypeSymbol expected = expectedSymbol?.GetTypeOrReturnType().TypeSymbol;
 
             if (expected?.IsErrorType() != false)
             {
@@ -1142,7 +1142,7 @@ public class Cls
 
             var local = (SourceLocalSymbol)symbol;
 
-            AssertInfoForDeclarationExpressionSyntax(model, decl, local, local.Type);
+            AssertInfoForDeclarationExpressionSyntax(model, decl, local, local.Type.TypeSymbol);
         }
 
         private static void VerifyNotInScope(SemanticModel model, IdentifierNameSyntax reference)
@@ -5531,7 +5531,7 @@ True");
 @"
 IFieldInitializerOperation (Field: System.Boolean X.Test1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= TakeOutPa ... & Dummy(x1)')
   Locals: Local_1: System.Int32 x1
-  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
+  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
     Left: 
       IInvocationOperation (System.Boolean X.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'TakeOutPara ... out int x1)')
         Instance Receiver: 
@@ -10976,7 +10976,7 @@ public class X
 @"
 IParameterInitializerOperation (Parameter: [System.Boolean p = default(System.Boolean)]) (OperationKind.ParameterInitializer, Type: null, IsInvalid) (Syntax: '= TakeOutPa ... ) && x3 > 0')
   Locals: Local_1: System.Int32 x3
-  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'TakeOutPara ... ) && x3 > 0')
+  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'TakeOutPara ... ) && x3 > 0')
     Left: 
       IInvocationOperation (System.Boolean X.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean, IsInvalid) (Syntax: 'TakeOutPara ... out int x3)')
         Instance Receiver: 
@@ -10992,7 +10992,7 @@ IParameterInitializerOperation (Parameter: [System.Boolean p = default(System.Bo
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Right: 
-      IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'x3 > 0')
+      IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'x3 > 0')
         Left: 
           ILocalReferenceOperation: x3 (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x3')
         Right: 
@@ -11234,7 +11234,7 @@ True");
 @"
 IPropertyInitializerOperation (Property: System.Boolean X.Test1 { get; }) (OperationKind.PropertyInitializer, Type: null) (Syntax: '= TakeOutPa ... & Dummy(x1)')
   Locals: Local_1: System.Int32 x1
-  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
+  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
     Left: 
       IInvocationOperation (System.Boolean X.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'TakeOutPara ... out int x1)')
         Instance Receiver: 
@@ -11369,7 +11369,7 @@ public class X
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28026")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void Scope_Query_01()
         {
             var source =
@@ -12664,7 +12664,7 @@ public class X
             VerifyModelForOutVarWithoutDataFlow(model, y4Decl, y4Ref);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28026")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28026")]
         public void Query_01()
         {
             var source =
@@ -19344,7 +19344,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void RestrictedTypes_01()
         {
             var text = @"
@@ -19383,7 +19383,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void RestrictedTypes_02()
         {
             var text = @"
@@ -19422,7 +19422,7 @@ public class Cls
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void RestrictedTypes_03()
         {
             var text = @"
@@ -20083,7 +20083,7 @@ public class Cls
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
             var x1 = (LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl));
-            Assert.True(x1.Type.IsErrorType());
+            Assert.True(x1.Type.TypeSymbol.IsErrorType());
             VerifyModelForOutVar(compilation.GetSemanticModel(tree), x1Decl, x1Ref);
 
             compilation.VerifyDiagnostics(
@@ -20488,10 +20488,7 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(14, 30),
                 // (18,58): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //             var list2 = new Dictionary<int, long> { [out _] = 6 };
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(18, 58),
-                // (9,18): error CS0165: Use of unassigned local variable 'x1'
-                //             [out var x1] = 3,
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "var x1").WithArguments("x1").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(18, 58)
                 );
         }
 
@@ -21163,7 +21160,7 @@ var y, y1(Dummy(TakeOutParam(true, out var x1), x1));
 
             var y1 = model.LookupSymbols(x1Ref[0].SpanStart, name: "y1").Single();
             Assert.Equal("var y1", y1.ToTestDisplayString());
-            Assert.True(((LocalSymbol)y1).Type.IsErrorType());
+            Assert.True(((LocalSymbol)y1).Type.TypeSymbol.IsErrorType());
         }
 
         [Fact]
@@ -21223,7 +21220,7 @@ public class X
             var e = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(id => id.Identifier.ValueText == "e").Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(e);
             Assert.Equal("var e", symbol.ToTestDisplayString());
-            Assert.True(symbol.Type.IsErrorType());
+            Assert.True(symbol.Type.TypeSymbol.IsErrorType());
         }
 
         [Fact]
@@ -28403,7 +28400,7 @@ class H
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void GlobalCode_LabeledStatement_06()
         {
             string source =
@@ -30972,7 +30969,7 @@ class H
             VerifyModelForOutField(model, x1Decl, x1Ref);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.IsErrorType());
+            Assert.True(x1.Type.TypeSymbol.IsErrorType());
         }
 
         [Fact]
@@ -30993,13 +30990,15 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            // `skipUsesIsNullable: true` is necessary to avoid visiting symbols eagerly in CreateCompilation,
+            // which would result in `ERR_RecursivelyTypedVariable` reported on the other local (field).
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
-            Assert.True(b.Type.IsErrorType());
+            Assert.True(b.Type.TypeSymbol.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31031,13 +31030,15 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            // `skipUsesIsNullable: true` is necessary to avoid visiting symbols eagerly in CreateCompilation,
+            // which would result in `ERR_RecursivelyTypedVariable` reported on the other local (field).
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
-            Assert.True(b.Type.IsErrorType());
+            Assert.True(b.Type.TypeSymbol.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31069,13 +31070,15 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            // `skipUsesIsNullable: true` is necessary to avoid visiting symbols eagerly in CreateCompilation,
+            // which would result in `ERR_RecursivelyTypedVariable` reported on the other local (field).
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var a = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "a").Single());
-            Assert.True(a.Type.IsErrorType());
+            Assert.True(a.Type.TypeSymbol.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (3,5): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31088,14 +31091,14 @@ class H
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
 
-            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
             tree = compilation.SyntaxTrees.Single();
             model = compilation.GetSemanticModel(tree);
             x1Decl = GetOutVarDeclarations(tree, "x1").Single();
 
             x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.IsErrorType());
+            Assert.True(x1.Type.TypeSymbol.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (4,32): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31122,7 +31125,9 @@ class H
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            // `skipUsesIsNullable: true` is necessary to avoid visiting symbols eagerly in CreateCompilation,
+            // which would result in `ERR_RecursivelyTypedVariable` reported on the other local (field).
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -31131,7 +31136,7 @@ class H
             VerifyModelForOutField(model, x1Decl);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.IsErrorType());
+            Assert.True(x1.Type.TypeSymbol.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (3,32): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31139,7 +31144,7 @@ class H
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x1").WithArguments("x1").WithLocation(3, 32)
                 );
 
-            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
             tree = compilation.SyntaxTrees.Single();
             model = compilation.GetSemanticModel(tree);
 
@@ -31147,11 +31152,11 @@ class H
 
             var bDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single();
             var b = (FieldSymbol)model.GetDeclaredSymbol(bDecl);
-            Assert.True(b.Type.IsErrorType());
+            Assert.True(b.Type.TypeSymbol.IsErrorType());
 
             x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
-            Assert.False(x1.Type.IsErrorType());
+            Assert.False(x1.Type.TypeSymbol.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31200,7 +31205,7 @@ class H
             VerifyModelForOutField(model, x1Decl);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.IsErrorType());
+            Assert.True(x1.Type.TypeSymbol.IsErrorType());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17377")]
@@ -31250,7 +31255,7 @@ class H
             VerifyModelForOutField(model, x1Decl, x1Ref);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
             Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.IsErrorType());
+            Assert.True(x1.Type.TypeSymbol.IsErrorType());
         }
 
         [Fact, WorkItem(17321, "https://github.com/dotnet/roslyn/issues/17321")]
@@ -31524,8 +31529,8 @@ class Program
                                            (declarator.ArgumentList?.Contains(decl)).GetValueOrDefault();
 
             // We're not able to get type information at such location (out var argument in global code) at this point
-            // Seee https://github.com/dotnet/roslyn/issues/13569
-            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: inFieldDeclaratorArgumentlist ? null : local.Type);
+            // See https://github.com/dotnet/roslyn/issues/13569
+            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: inFieldDeclaratorArgumentlist ? null : local.Type.TypeSymbol);
 
             foreach (var reference in references)
             {
@@ -31543,7 +31548,7 @@ class Program
                 {
                     Assert.Same(symbol, referenceInfo.Symbol);
                     Assert.Same(symbol, symbols.Single());
-                    Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
+                    Assert.Equal(local.Type.TypeSymbol, model.GetTypeInfo(reference).Type);
                 }
 
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier().ValueText));
@@ -33929,7 +33934,7 @@ public class C
         }
 
         [WorkItem(19382, "https://github.com/dotnet/roslyn/issues/19382")]
-        [ConditionalFact(typeof(DesktopOnly), Skip = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void DiscardAndArgList()
         {
             var text = @"
@@ -34246,7 +34251,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
             IOperation blockBodyOperation = model.GetOperation(blockBodySyntax);
-            Assert.Equal(OperationKind.ConstructorBodyOperation, blockBodyOperation.Parent.Kind);
+            Assert.Equal(OperationKind.ConstructorBody, blockBodyOperation.Parent.Kind);
             Assert.Same(initializerOperation.Parent.Parent, blockBodyOperation.Parent);
             Assert.Null(blockBodyOperation.Parent.Parent);
 
@@ -34279,7 +34284,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
 
             compilation.VerifyOperationTree(declarationSyntax, expectedOperationTree:
 @"
-IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null, IsInvalid) (Syntax: 'C() : this( ... out var z);')
+IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null, IsInvalid) (Syntax: 'C() : this( ... out var z);')
   Locals: Local_1: System.Int32 x
   Initializer: 
     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: ': this(out var x)')
@@ -34367,7 +34372,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
             IOperation expressionBodyOperation = model.GetOperation(expressionBodySyntax);
-            Assert.Equal(OperationKind.MethodBodyOperation, expressionBodyOperation.Parent.Kind);
+            Assert.Equal(OperationKind.MethodBody, expressionBodyOperation.Parent.Kind);
             Assert.Null(expressionBodyOperation.Parent.Parent);
 
             var blockBodySyntax = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
@@ -34403,7 +34408,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
             Assert.Same(expressionBodyOperation.Parent, model.GetOperation(declarationSyntax));
             compilation.VerifyOperationTree(declarationSyntax, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) (Syntax: 'get {return ... out var y);')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'get {return ... out var y);')
   BlockBody: 
     IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{return M(out var x);}')
       Locals: Local_1: System.Int32 x
@@ -34476,6 +34481,53 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Synt
 ");
             Assert.Null(model.GetOperation(node3).Parent);
         }
+
+        [Fact]
+        public void OutVarInConstructorUsedInObjectInitializer()
+        {
+            var source =
+@"
+public class C
+{
+    public int Number { get; set; }
+    
+    public C(out int n)
+    {
+        n = 1;
+    }
+
+    public static void Main()
+    {
+        C c = new C(out var i) { Number = i };
+        System.Console.WriteLine(c.Number);
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: @"1");
+        }
+
+        [Fact]
+        public void OutVarInConstructorUsedInCollectionInitializer()
+        {
+            var source =
+@"
+public class C : System.Collections.Generic.List<int>
+{
+    public C(out int n)
+    {
+        n = 1;
+    }
+
+    public static void Main()
+    {
+        C c = new C(out var i) { i, i, i };
+        System.Console.WriteLine(c[0]);
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: @"1");
+        }
+
     }
 
     internal static class OutVarTestsExtensions

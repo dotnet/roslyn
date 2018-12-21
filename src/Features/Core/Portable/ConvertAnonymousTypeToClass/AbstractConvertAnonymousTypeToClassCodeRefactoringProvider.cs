@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                         
             var equalsMethod = await equalsAndGetHashCodeService.GenerateEqualsMethodAsync(
                 document, namedTypeWithoutMembers, readonlyProperties, 
-                localNameOpt: ICodeDefinitionFactoryExtensions.OtherName, cancellationToken).ConfigureAwait(false);
+                localNameOpt: SyntaxGeneratorExtensions.OtherName, cancellationToken).ConfigureAwait(false);
             var getHashCodeMethod = await equalsAndGetHashCodeService.GenerateGetHashCodeMethodAsync(
                 document, namedTypeWithoutMembers,
                 readonlyProperties, cancellationToken).ConfigureAwait(false);

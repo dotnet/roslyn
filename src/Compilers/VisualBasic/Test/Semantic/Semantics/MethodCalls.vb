@@ -5101,7 +5101,7 @@ S1
         End Sub
 
         <WorkItem(531448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531448")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug18133_1()
             Dim source =
 <compilation>
@@ -5131,7 +5131,7 @@ End Module
         End Sub
 
         <WorkItem(531448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531448")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug18133_2()
             Dim source =
 <compilation>

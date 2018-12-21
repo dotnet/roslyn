@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         [Conditional("DEBUG")]
         private static void ValidateSpanFromBounds(ITextSnapshot snapshot, int start, int end)
         {
-            Contract.Requires(start >= 0 && end <= snapshot.Length && start <= end);
+            Debug.Assert(start >= 0 && end <= snapshot.Length && start <= end);
         }
 
         [Conditional("DEBUG")]

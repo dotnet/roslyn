@@ -1778,6 +1778,179 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        public async Task PickCorrectOverload_PickInt()
+        {
+            var markup = @"
+class Program
+{
+    static void Main()
+    {
+        [|M(1$$|]);
+    }
+    static void M(int i) { }
+    static void M(string s) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void Program.M(int i)", currentParameterIndex: 0, isSelected: true),
+                new SignatureHelpTestItem($"void Program.M(string s)", currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        public async Task PickCorrectOverload_PickInt_ReverseOrder()
+        {
+            var markup = @"
+class Program
+{
+    static void Main()
+    {
+        [|M(1$$|]);
+    }
+    static void M(string s) { }
+    static void M(int i) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void Program.M(int i)", currentParameterIndex: 0, isSelected: true),
+                new SignatureHelpTestItem($"void Program.M(string s)", currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        public async Task PickCorrectOverload_PickSecond()
+        {
+            var markup = @"
+class Program
+{
+    static void Main()
+    {
+        [|M(null$$|]);
+    }
+    static void M(int i) { }
+    static void M(string s) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void Program.M(int i)", currentParameterIndex: 0),
+                new SignatureHelpTestItem($"void Program.M(string s)", currentParameterIndex: 0, isSelected: true),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        public async Task PickCorrectOverload_FilterFirst_PickIntRemaining()
+        {
+            var markup = @"
+class D
+{
+    static void Main()
+    {
+        [|M(i: 42$$|]);
+    }
+    static void M(D filtered) { }
+    static void M(int i) { }
+    static void M(string i) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
+                new SignatureHelpTestItem($"void D.M(string i)", currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        public async Task PickCorrectOverload_FilterFirst_PickIntRemaining_ConversionToD()
+        {
+            var markup = @"
+class D
+{
+    static void Main()
+    {
+        [|M(i: 42$$|]);
+    }
+    static void M(D filtered) { }
+    static void M(int i) { }
+    static void M(string i) { }
+    static implicit operator D(int i) => throw null;
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
+                new SignatureHelpTestItem($"void D.M(string i)", currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        public async Task PickCorrectOverload_FilterFirst_PickIntRemaining_ReversedOrder()
+        {
+            var markup = @"
+class D
+{
+    static void Main()
+    {
+        [|M(i: 42$$|]);
+    }
+    static void M(string i) { }
+    static void M(int i) { }
+    static void M(D filtered) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
+                new SignatureHelpTestItem($"void D.M(string i)", currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        public async Task PickCorrectOverload_FilterFirst_PickStringRemaining()
+        {
+            var markup = @"
+class D
+{
+    static void Main()
+    {
+        [|M(i: null$$|]);
+    }
+    static void M(D filtered) { }
+    static void M(int i) { }
+    static void M(string i) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0),
+                new SignatureHelpTestItem($"void D.M(string i)", currentParameterIndex: 0, isSelected: true),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithCrefXmlComments()
         {
             var markup = @"
@@ -2191,6 +2364,35 @@ class C
             expectedOrderedItems.Add(new SignatureHelpTestItem("int C.Goo(object x)", currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task PickCorrectOverload_WithCorrectSelectionAfterFilteringOutNoApplicableItems()
+        {
+            var markup = @"
+class Comparer
+{
+    public static bool Equals(object x, object y) => true;
+    public bool Equals(object x) => true;
+    public bool Equals(string x, string y) => true;
+}
+
+class Program
+{
+    static void Main(string x, string y)
+    {
+        var comparer = new Comparer();
+        comparer.Equals(x, y$$);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("bool Comparer.Equals(object x)", currentParameterIndex: 1),
+                new SignatureHelpTestItem("bool Comparer.Equals(string x, string y)", currentParameterIndex: 1, isSelected: true),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
         }
     }
 }

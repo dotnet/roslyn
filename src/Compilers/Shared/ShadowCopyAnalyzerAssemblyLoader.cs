@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class ShadowCopyAnalyzerAssemblyLoader :
-#if NET46
+#if NET472
         DesktopAnalyzerAssemblyLoader
 #else
         CoreClrAnalyzerAssemblyLoader

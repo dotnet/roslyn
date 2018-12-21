@@ -1734,9 +1734,9 @@ End Module").Path
         <Fact>
         Public Sub LanguageVersionAdded_Canary()
             ' When a new version is added, this test will break. This list must be checked:
-            ' - update the command-line error for bad /langver flag (<see cref="ERRID.IDS_VBCHelp"/>)
             ' - update the "UpgradeProject" codefixer (not yet supported in VB)
             ' - update the IDE drop-down for selecting Language Version (not yet supported in VB)
+            ' - update project-system to recognize the new value and pass it through
             ' - update all the tests that call this canary
             ' - update the command-line documentation (CommandLine.md)
             AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "latest"},
@@ -1781,8 +1781,10 @@ End Module").Path
             Assert.Equal(LanguageVersion.VisualBasic15_5, LanguageVersion.VisualBasic15_5.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.VisualBasic16.MapSpecifiedToEffectiveVersion())
 
-            Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
-            Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic15, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic15_5, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
+
+            ' https//github.com/dotnet/roslyn/issues/29819 Once we are ready to remove the beta tag from VB 16 we should update Default/Latest accordingly
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
@@ -3184,6 +3186,74 @@ print Goodbye, World"
             Dim doublemap = Parse({"/pathmap:/temp=/goo,/temp/=/bar", "a.cs"}).PathMap
             Assert.Equal(New KeyValuePair(Of String, String)("/temp/", "/goo/"), doublemap(0))
             Assert.Equal(New KeyValuePair(Of String, String)("/temp/", "/bar/"), doublemap(1))
+        End Sub
+
+        <Fact>
+        Public Sub NothingBaseDirectoryNotAddedToKeyFileSearchPaths()
+            Dim args As VisualBasicCommandLineArguments = VisualBasicCommandLineParser.Default.Parse(New String() {}, Nothing, RuntimeEnvironment.GetRuntimeDirectory())
+            AssertEx.Equal(ImmutableArray.Create(Of String)(), args.KeyFileSearchPaths)
+        End Sub
+
+        <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
+        Public Sub SdkPathArg()
+            Dim parentDir = Temp.CreateDirectory()
+
+            Dim sdkDir = parentDir.CreateDirectory("sdk")
+            Dim sdkPath = sdkDir.Path
+
+            Dim parser = VisualBasicCommandLineParser.Default.Parse({$"-sdkPath:{sdkPath}"}, parentDir.Path, Nothing)
+            AssertEx.Equal(ImmutableArray.Create(sdkPath), parser.ReferencePaths)
+        End Sub
+
+        <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
+        Public Sub SdkPathNoArg()
+            Dim parentDir = Temp.CreateDirectory()
+            Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", "-sdkPath", $"-out:{parentDir.Path}"}, parentDir.Path, Nothing)
+            parser.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired, arguments:={"sdkpath", ":<path>"}).WithLocation(1, 1),
+                Diagnostic(ERRID.WRN_CannotFindStandardLibrary1).WithArguments("System.dll").WithLocation(1, 1),
+                Diagnostic(ERRID.ERR_LibNotFound).WithArguments("Microsoft.VisualBasic.dll").WithLocation(1, 1))
+        End Sub
+
+        <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
+        Public Sub SdkPathFollowedByNoSdkPath()
+            Dim parentDir = Temp.CreateDirectory()
+            Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", $"-out:{parentDir.Path}", "-sdkPath:path/to/sdk", "/noSdkPath"}, parentDir.Path, Nothing)
+            AssertEx.Equal(ImmutableArray(Of String).Empty, parser.ReferencePaths)
+        End Sub
+
+        <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
+        Public Sub NoSdkPathFollowedBySdkPath()
+            Dim parentDir = Temp.CreateDirectory()
+            Dim sdkDir = parentDir.CreateDirectory("sdk")
+            Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", $"-out:{parentDir.Path}", "/noSdkPath", $"-sdkPath:{sdkDir.Path}"}, parentDir.Path, Nothing)
+            AssertEx.Equal(ImmutableArray.Create(sdkDir.Path), parser.ReferencePaths)
+        End Sub
+
+        <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
+        Public Sub NoSdkPathReferenceSystemDll()
+            Dim source = "
+Module M
+End Module
+"
+            Dim dir = Temp.CreateDirectory()
+
+            Dim file = dir.CreateFile("a.vb")
+            file.WriteAllText(source)
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/preferreduilang:en", "/nosdkpath", "/t:library", "a.vb"})
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Dim output = outWriter.ToString().Trim()
+            Assert.Equal(1, exitCode)
+            Assert.Contains("vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'", output)
+
+            CleanupAllGeneratedFiles(file.Path)
         End Sub
 
         <CompilerTrait(CompilerFeature.Determinism)>
@@ -6369,6 +6439,13 @@ End Module
         <WorkItem(5664, "https://github.com/dotnet/roslyn/issues/5664")>
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub Bug15538()
+            ' The icacls command fails on our Helix machines And it appears to be related to the use of the $ in 
+            ' the username. 
+            ' https://github.com/dotnet/roslyn/issues/28836
+            If StringComparer.OrdinalIgnoreCase.Equals(Environment.UserDomainName, "WORKGROUP") Then
+                Return
+            End If
+
             Dim folder = Temp.CreateDirectory()
             Dim source As String = folder.CreateFile("src.vb").WriteAllText("").Path
             Dim ref As String = folder.CreateFile("ref.dll").WriteAllText("").Path

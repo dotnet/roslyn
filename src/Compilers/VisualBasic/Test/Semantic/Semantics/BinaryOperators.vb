@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class BinaryOperators
         Inherits BasicTestBase
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Test1()
 
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
@@ -353,7 +353,7 @@ False
             CompileAndVerify(compilation, expectedOutput:=SemanticResourceUtil.BinaryOperatorsTestBaseline4)
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Test5()
 
             Dim compilationDef =
@@ -850,9 +850,9 @@ Expected: 0.
 
             compilation.VerifyOperationTree(node.Declarators.Last.Initializer.Value, expectedOperationTree:=
             <![CDATA[
-IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"Expected:  ...  line & "."')
+IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary, Type: System.String) (Syntax: '"Expected:  ...  line & "."')
   Left: 
-    IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"Expected: " & line')
+    IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary, Type: System.String) (Syntax: '"Expected: " & line')
       Left: 
         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Expected: ") (Syntax: '"Expected: "')
       Right: 
@@ -868,7 +868,7 @@ IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary
 ]]>.Value)
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         Public Sub IntrinsicSymbols()
             Dim operators() As BinaryOperatorKind =
             {

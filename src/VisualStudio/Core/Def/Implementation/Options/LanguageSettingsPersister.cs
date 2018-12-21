@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -44,10 +45,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// We make sure this code is from the UI by asking for all serializers on the UI thread in <see cref="HACK_AbstractCreateServicesOnUiThread"/>.
         /// </remarks>
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LanguageSettingsPersister(
+            IThreadingContext threadingContext,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IGlobalOptionService optionService)
-            : base(assertIsForeground: true)
+            : base(threadingContext, assertIsForeground: true)
         {
             _textManager = (IVsTextManager4)serviceProvider.GetService(typeof(SVsTextManager));
             _optionService = optionService;
@@ -266,7 +269,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
             else
             {
-                Task.Factory.StartNew(() => this.SetUserPreferencesMaybeAsync(languagePreferences), CancellationToken.None, TaskCreationOptions.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler);
+                Task.Factory.StartNew(
+                    async () =>
+                    {
+                        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        this.SetUserPreferencesMaybeAsync(languagePreferences);
+                    },
+                    CancellationToken.None,
+                    TaskCreationOptions.None,
+                    TaskScheduler.Default).Unwrap();
             }
         }
     }

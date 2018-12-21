@@ -1019,7 +1019,7 @@ public interface I {}";
 
             var comp = CSharpCompilation.Create(
                 "DupSignedRefs",
-                new[] { SyntaxFactory.ParseSyntaxTree(text) },
+                new[] { SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular) },
                 new[] { MetadataReference.CreateFromFile(p1), MetadataReference.CreateFromFile(p2) },
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
@@ -1660,7 +1660,7 @@ namespace System.Printing
                 GetMember<NamedTypeSymbol>("PrintDialog").
                 GetMember<MethodSymbol>("Test");
 
-            AssemblyIdentity actualIdentity = method.ReturnType.ContainingAssembly.Identity;
+            AssemblyIdentity actualIdentity = method.ReturnType.TypeSymbol.ContainingAssembly.Identity;
 
             // Even though the compilation has the correct version number, the referenced binary is preferred.
             Assert.Equal(oldMetadata.GetAssembly().Identity, actualIdentity);
@@ -2553,7 +2553,7 @@ public class P
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingAssemblyResolution_Aliases()
         {
             // c - a -> b with alias X
@@ -2580,7 +2580,7 @@ public class C : A
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingAssemblyResolution_AliasesMerge()
         {
             // c - a -> "b, V1" resolved to "b, V3" with alias X
@@ -2875,7 +2875,7 @@ public class C : A
         /// <summary>
         /// Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         /// </summary>
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingAssemblyResolution_BindingToExplicitReference_WorseVersion()
         {
             // c - a -> d -> "b,v2"
@@ -2941,7 +2941,7 @@ public class C : A
         /// <summary>
         /// Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         /// </summary>
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingAssemblyResolution_BindingToExplicitReference_BetterVersion()
         {
             // c - a -> d -> "b,v2"

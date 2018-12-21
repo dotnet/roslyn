@@ -657,7 +657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 EmitCondBranchCore(condition, lazyDest, sense)
                 Debug.Assert(_recursionDepth = 1)
 
-            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+            Catch ex As InsufficientExecutionStackException
                 _diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression,
                                  BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(condition))
                 Throw New EmitCancelledException()
@@ -800,7 +800,7 @@ OtherExpressions:
                     EmitExpression(condition, True)
 
                     Dim conditionType = condition.Type
-                    If conditionType.IsReferenceType AndAlso Not IsVerifierReference(conditionType) Then
+                    If Not conditionType.IsValueType AndAlso Not IsVerifierReference(conditionType) Then
                         EmitBox(conditionType, condition.Syntax)
                     End If
 

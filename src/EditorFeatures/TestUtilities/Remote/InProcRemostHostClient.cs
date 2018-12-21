@@ -29,10 +29,10 @@ namespace Roslyn.Test.Utilities.Remote
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
             var remotableDataRpc = new RemotableDataJsonRpc(workspace, inprocServices.Logger, await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false));
 
-            var instance = new InProcRemoteHostClient(workspace, inprocServices, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
+            var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
+            var instance = new InProcRemoteHostClient(current, workspace, inprocServices, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
 
             // make sure connection is done right
-            var current = $"VS ({Process.GetCurrentProcess().Id})";
             var telemetrySession = default(string);
             var uiCultureLCIDE = 0;
             var cultureLCID = 0;
@@ -49,6 +49,7 @@ namespace Roslyn.Test.Utilities.Remote
         }
 
         private InProcRemoteHostClient(
+            string clientId,
             Workspace workspace,
             InProcRemoteServices inprocServices,
             ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc,
@@ -56,6 +57,8 @@ namespace Roslyn.Test.Utilities.Remote
             base(workspace)
         {
             Contract.ThrowIfNull(remotableDataRpc);
+
+            ClientId = clientId;
 
             _inprocServices = inprocServices;
             _remotableDataRpc = remotableDataRpc;
@@ -75,6 +78,8 @@ namespace Roslyn.Test.Utilities.Remote
         {
             _inprocServices.RegisterService(name, serviceCreator);
         }
+
+        public override string ClientId { get; }
 
         public override async Task<Connection> TryCreateConnectionAsync(
             string serviceName, object callbackTarget, CancellationToken cancellationToken)

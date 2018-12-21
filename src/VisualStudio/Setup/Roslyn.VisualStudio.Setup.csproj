@@ -6,202 +6,137 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Setup</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+    <RoslynProjectType>Vsix</RoslynProjectType>
+
+    <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
-    <RoslynProjectType>Vsix</RoslynProjectType>
-    <IsProductComponent>true</IsProductComponent>
     <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\LanguageServices</ExtensionInstallationFolder>
-    <Ngen>true</Ngen>
-    <NgenArchitecture>All</NgenArchitecture>
-    <NgenPriority>3</NgenPriority>
+
+    <!-- VS Insertion -->
+    <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.LanguageServices</VisualStudioInsertionComponent>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj">
       <Name>CodeAnalysis</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj">
       <Name>CSharpCodeAnalysis</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj">
       <Name>BasicCodeAnalysis</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj">
       <Name>Workspaces.Desktop</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj">
       <Name>BasicFeatures</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj">
       <Name>CSharpFeatures</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj">
       <Name>CSharpEditorFeatures</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj">
       <Name>EditorFeatures</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj">
       <Name>EditorFeatures.Wpf</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj">
       <Name>Features</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj">
       <Name>TextEditorFeatures</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj">
       <Name>BasicEditorFeatures</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
       <Name>Workspaces</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj">
       <Name>Workspaces.MSBuild</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
+      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj">
       <Name>CSharpWorkspace</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj">
       <Name>BasicWorkspace</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj">
       <Name>ServicesVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;VsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj">
       <Name>ServicesVisualStudioImpl</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\Core\SolutionExplorerShim\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.csproj">
       <Name>SolutionExplorerShim</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj">
       <Name>CSharpVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bPkgDefProjectOutputGroup%3bContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\VisualBasic\Impl\Microsoft.VisualStudio.LanguageServices.VisualBasic.vbproj">
       <Name>BasicVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bPkgDefProjectOutputGroup%3bContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\Setup.Dependencies\Roslyn.VisualStudio.Setup.Dependencies.csproj">
       <Name>VisualStudioSetup.Dependencies</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX></IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\Xaml\Impl\Microsoft.VisualStudio.LanguageServices.Xaml.csproj">
       <Name>XamlVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj">
       <Name>RemoteWorkspaces</Name>
@@ -222,9 +157,6 @@
       <Name>RazorVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -235,9 +167,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Composition.TypedParts" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Convention" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Hosting" />
-    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" />
     <NuGetPackageToIncludeInVsix Include="ICSharpCode.Decompiler" />
-    <NuGetPackageToIncludeInVsix Include="Mono.Cecil" />
   </ItemGroup>
   <ItemGroup>
     <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.bundle_green\1.1.2\lib\net45\SQLitePCLRaw.batteries_green.dll" />
@@ -300,5 +230,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(MicrosoftDiaSymReaderPortablePdbVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)"/>
   </ItemGroup>
 </Project>

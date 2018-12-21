@@ -176,7 +176,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// provide a basis for approximating the capacities of
         /// various databases used during Emit.
         /// </summary>
-        public int HintNumberOfMethodDefinitions => _methodBodyMap.Count;
+        public int HintNumberOfMethodDefinitions
+            // Try to guess at the size of tables to prevent re-allocation. The method body
+            // map is pretty close, but unfortunately it tends to undercount. x1.5 seems like
+            // a healthy amount of room based on compiling Roslyn.
+            => (int)(_methodBodyMap.Count * 1.5);
 
         internal Cci.IMethodBody GetMethodBody(IMethodSymbol methodSymbol)
         {
@@ -477,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
         {
-            Cci.NoPiaReferenceIndexer noPiaIndexer = null;
+            Cci.TypeReferenceIndexer typeReferenceIndexer = null;
             HashSet<string> names;
 
             // First time through, we need to collect emitted names of all top level types.
@@ -490,30 +494,34 @@ namespace Microsoft.CodeAnalysis.Emit
                 names = null;
             }
 
-            // First time through, we need to push things through NoPiaReferenceIndexer
+            // First time through, we need to push things through TypeReferenceIndexer
             // to make sure we collect all to be embedded NoPia types and members.
             if (EmbeddedTypesManagerOpt != null && !EmbeddedTypesManagerOpt.IsFrozen)
             {
-                noPiaIndexer = new Cci.NoPiaReferenceIndexer(context);
+                typeReferenceIndexer = new Cci.TypeReferenceIndexer(context);
                 Debug.Assert(names != null);
-                this.Dispatch(noPiaIndexer);
+
+                // Run this reference indexer on the assembly- and module-level attributes first.
+                // We'll run it on all other types below.
+                // The purpose is to trigger Translate on all types.
+                this.Dispatch(typeReferenceIndexer);
             }
 
             AddTopLevelType(names, _rootModuleType);
-            VisitTopLevelType(noPiaIndexer, _rootModuleType);
+            VisitTopLevelType(typeReferenceIndexer, _rootModuleType);
             yield return _rootModuleType;
 
             foreach (var type in this.GetAnonymousTypes(context))
             {
                 AddTopLevelType(names, type);
-                VisitTopLevelType(noPiaIndexer, type);
+                VisitTopLevelType(typeReferenceIndexer, type);
                 yield return type;
             }
 
             foreach (var type in this.GetTopLevelTypesCore(context))
             {
                 AddTopLevelType(names, type);
-                VisitTopLevelType(noPiaIndexer, type);
+                VisitTopLevelType(typeReferenceIndexer, type);
                 yield return type;
             }
 
@@ -521,7 +529,7 @@ namespace Microsoft.CodeAnalysis.Emit
             if (privateImpl != null)
             {
                 AddTopLevelType(names, privateImpl);
-                VisitTopLevelType(noPiaIndexer, privateImpl);
+                VisitTopLevelType(typeReferenceIndexer, privateImpl);
                 yield return privateImpl;
             }
 
@@ -579,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Emit
             names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type)));
         }
 
-        private static void VisitTopLevelType(Cci.NoPiaReferenceIndexer noPiaIndexer, Cci.INamespaceTypeDefinition type)
+        private static void VisitTopLevelType(Cci.TypeReferenceIndexer noPiaIndexer, Cci.INamespaceTypeDefinition type)
         {
             noPiaIndexer?.Visit((Cci.ITypeDefinition)type);
         }

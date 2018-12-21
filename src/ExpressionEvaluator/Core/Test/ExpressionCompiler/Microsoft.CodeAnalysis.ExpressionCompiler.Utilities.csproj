@@ -2,21 +2,18 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <NonShipping>true</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.Utilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
+    <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
@@ -29,8 +26,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">

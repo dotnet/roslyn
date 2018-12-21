@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
         internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
+        internal abstract ISyntaxFactsService SyntaxFacts { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
 
@@ -2212,6 +2214,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an await expression.
         /// </summary>
         public abstract SyntaxNode AwaitExpression(SyntaxNode expression);
+
+        /// <summary>
+        /// Wraps with parens.
+        /// </summary>
+        internal abstract SyntaxNode AddParentheses(SyntaxNode expression);
 
         /// <summary>
         /// Creates an nameof expression.

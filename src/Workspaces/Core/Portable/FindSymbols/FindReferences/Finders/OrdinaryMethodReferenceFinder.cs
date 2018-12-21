@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // If it's a delegate method, then cascade to the type as well.  These guys are
@@ -37,7 +38,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             else
             {
                 var otherPartsOfPartial = GetOtherPartsOfPartial(symbolAndProjectId);
-                var baseCascadedSymbols = await base.DetermineCascadedSymbolsAsync(symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
+                var baseCascadedSymbols = await base.DetermineCascadedSymbolsAsync(
+                    symbolAndProjectId, solution, projects, options, cancellationToken).ConfigureAwait(false);
 
                 if (otherPartsOfPartial == null && baseCascadedSymbols == null)
                 {
@@ -71,6 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol methodSymbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // TODO(cyrusn): Handle searching for IDisposable.Dispose (or an implementation
@@ -117,10 +120,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private bool IsGetAwaiterMethod(IMethodSymbol methodSymbol)
             => methodSymbol.Name == WellKnownMemberNames.GetAwaiter;
 
-        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();

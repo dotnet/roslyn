@@ -9,13 +9,17 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 {
     internal static class CodeCleanupOptions
     {
-        public static readonly PerLanguageOption<bool> AreCodeCleanupRulesConfigured = new PerLanguageOption<bool>(
-            nameof(CodeCleanupOptions), nameof(AreCodeCleanupRulesConfigured), defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Are Code Cleanup Rules Configured"));
+        // runtime only option. it is not saved anywhere
+        public static readonly PerLanguageOption<bool> CodeCleanupInfoBarShown = new PerLanguageOption<bool>(
+            nameof(CodeCleanupOptions), nameof(CodeCleanupInfoBarShown), defaultValue: false);
 
         public static readonly PerLanguageOption<bool> NeverShowCodeCleanupInfoBarAgain = new PerLanguageOption<bool>(
             nameof(CodeCleanupOptions), nameof(NeverShowCodeCleanupInfoBarAgain), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Never Show Code Cleanup Info Bar Again"));
+
+        public static readonly PerLanguageOption<bool> PerformAdditionalCodeCleanupDuringFormatting = new PerLanguageOption<bool>(
+            nameof(CodeCleanupOptions), nameof(PerformAdditionalCodeCleanupDuringFormatting), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Perform Additional Code Cleanup During Formatting"));
 
         public static readonly PerLanguageOption<bool> RemoveUnusedImports = new PerLanguageOption<bool>(
             nameof(CodeCleanupOptions), nameof(RemoveUnusedImports), defaultValue: true,
@@ -26,15 +30,15 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Sort Imports"));
 
         public static readonly PerLanguageOption<bool> AddRemoveBracesForSingleLineControlStatements = new PerLanguageOption<bool>(
-            nameof(CodeCleanupOptions), nameof(AddRemoveBracesForSingleLineControlStatements), defaultValue: true,
+            nameof(CodeCleanupOptions), nameof(AddRemoveBracesForSingleLineControlStatements), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Add Remove Braces For Single Line Control Statements"));
 
         public static readonly PerLanguageOption<bool> AddAccessibilityModifiers = new PerLanguageOption<bool>(
-            nameof(CodeCleanupOptions), nameof(AddAccessibilityModifiers), defaultValue: true,
+            nameof(CodeCleanupOptions), nameof(AddAccessibilityModifiers), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Add Accessibility Modifiers"));
 
         public static readonly PerLanguageOption<bool> SortAccessibilityModifiers = new PerLanguageOption<bool>(
-            nameof(CodeCleanupOptions), nameof(SortAccessibilityModifiers), defaultValue: true,
+            nameof(CodeCleanupOptions), nameof(SortAccessibilityModifiers), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Sort Accessibility Modifiers"));
 
         public static readonly PerLanguageOption<bool> ApplyExpressionBlockBodyPreferences = new PerLanguageOption<bool>(
@@ -42,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Apply Expression Block Body Preferences"));
 
         public static readonly PerLanguageOption<bool> ApplyImplicitExplicitTypePreferences = new PerLanguageOption<bool>(
-            nameof(CodeCleanupOptions), nameof(ApplyImplicitExplicitTypePreferences), defaultValue: true,
+            nameof(CodeCleanupOptions), nameof(ApplyImplicitExplicitTypePreferences), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Apply Implicit Explicit Type Preferences"));
 
         public static readonly PerLanguageOption<bool> ApplyInlineOutVariablePreferences = new PerLanguageOption<bool>(
@@ -50,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Apply Inline Out Variable Preferences"));
 
         public static readonly PerLanguageOption<bool> ApplyLanguageFrameworkTypePreferences = new PerLanguageOption<bool>(
-            nameof(CodeCleanupOptions), nameof(ApplyLanguageFrameworkTypePreferences), defaultValue: true,
+            nameof(CodeCleanupOptions), nameof(ApplyLanguageFrameworkTypePreferences), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Apply Language Framework Type Preferences"));
 
         public static readonly PerLanguageOption<bool> ApplyObjectCollectionInitializationPreferences = new PerLanguageOption<bool>(
@@ -58,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Apply Object Collection Initialization Preferences"));
 
         public static readonly PerLanguageOption<bool> ApplyThisQualificationPreferences = new PerLanguageOption<bool>(
-            nameof(CodeCleanupOptions), nameof(ApplyThisQualificationPreferences), defaultValue: true,
+            nameof(CodeCleanupOptions), nameof(ApplyThisQualificationPreferences), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Apply This Qualification Preferences"));
 
         public static readonly PerLanguageOption<bool> MakePrivateFieldReadonlyWhenPossible = new PerLanguageOption<bool>(
@@ -77,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
     [ExportOptionProvider, Shared]
     internal class CodeCleanupOptionsProvider : IOptionProvider
     {
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            CodeCleanupOptions.AreCodeCleanupRulesConfigured,
+        public static ImmutableArray<IOption> SingletonOptions { get; } = ImmutableArray.Create<IOption>(
+            CodeCleanupOptions.CodeCleanupInfoBarShown,
             CodeCleanupOptions.AddAccessibilityModifiers,
             CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements,
             CodeCleanupOptions.ApplyExpressionBlockBodyPreferences,
@@ -88,11 +92,15 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             CodeCleanupOptions.ApplyObjectCollectionInitializationPreferences,
             CodeCleanupOptions.ApplyThisQualificationPreferences,
             CodeCleanupOptions.MakePrivateFieldReadonlyWhenPossible,
+            CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain,
+            CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting,
             CodeCleanupOptions.RemoveUnnecessaryCasts,
             CodeCleanupOptions.RemoveUnusedImports,
             CodeCleanupOptions.RemoveUnusedVariables,
             CodeCleanupOptions.SortAccessibilityModifiers,
             CodeCleanupOptions.SortImports
-            );
+        );
+
+        public ImmutableArray<IOption> Options { get; } = SingletonOptions;
     }
 }
