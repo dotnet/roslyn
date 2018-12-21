@@ -137,8 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!compilation.Options.CryptoPublicKey.IsEmpty)
             {
-                // TODO: this is suspicious. When it's set here it's never re-computed hence it will never get the private
-                // key. This appears to be what is used for emit though. Need to follow up on this.
                 // Private key is not necessary for assembly identity, only when emitting.  For this reason, the private key can remain null.
                 _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey: null, hasCounterSignature: false, MessageProvider.Instance);
             }
