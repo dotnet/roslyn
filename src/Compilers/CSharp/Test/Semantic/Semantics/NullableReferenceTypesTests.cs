@@ -674,6 +674,35 @@ class C
         }
 
         [Fact]
+        public void IsOperator_AffectsNullConditionalOperator()
+        {
+            var source = @"
+class C
+{
+    public object? field = null;
+    static void M(C? c)
+    {
+        if (c?.field is string)
+        {
+            c.ToString();
+        }
+        else
+        {
+            c.ToString(); // 1
+        }
+    }
+}
+";
+
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            c.VerifyDiagnostics(
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             c.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
         public void OmittedCall()
         {
             var source = @"

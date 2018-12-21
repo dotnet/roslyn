@@ -4540,24 +4540,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!this.IsConditionalState);
 
-            int slot = -1;
+            ArrayBuilder<int> slotBuilder = null;
             var operand = node.Operand;
             if (operand.Type?.IsValueType == false)
             {
-                slot = MakeSlot(operand);
-                if (slot > 0)
-                {
-                    Normalize(ref this.State);
-                }
+                slotBuilder = ArrayBuilder<int>.GetInstance();
+                GetSlotsToMarkAsNotNullable(operand, slotBuilder);
             }
 
             var result = base.VisitIsOperator(node);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Boolean);
 
-            if (slot > 0)
+            if (slotBuilder?.Count > 0)
             {
                 Split();
-                this.StateWhenTrue[slot] = NullableAnnotation.NotNullable;
+                MarkSlotsAsNotNullable(slotBuilder, ref StateWhenTrue);
+                slotBuilder.Free();
             }
 
             SetResult(node);
