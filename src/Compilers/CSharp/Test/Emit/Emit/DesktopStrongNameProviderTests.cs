@@ -42,7 +42,7 @@ class C
     public static void Main(string[] args) { }
 }";
             var tempDir = Temp.CreateDirectory();
-            var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, tempDir.Path, new VirtualizedStrongNameFileSystem());
+            var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem(tempDir.Path));
 
             var options = TestOptions
                 .DebugExe
@@ -60,7 +60,7 @@ class C
 {
     public static void Main(string[] args) { }
 }";
-            var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, null, new VirtualizedStrongNameFileSystem());
+            var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem());
             var options = TestOptions
                 .DebugExe
                 .WithStrongNameProvider(provider)

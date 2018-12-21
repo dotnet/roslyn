@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
 
         private static StrongNameProvider GetProviderWithPath(string keyFilePath) =>
-            new DesktopStrongNameProvider(ImmutableArray.Create(keyFilePath), null, strongNameFileSystem: new VirtualizedStrongNameFileSystem());
+            new DesktopStrongNameProvider(ImmutableArray.Create(keyFilePath), strongNameFileSystem: new VirtualizedStrongNameFileSystem());
 
         #endregion
 

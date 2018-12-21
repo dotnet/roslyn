@@ -116,16 +116,16 @@ namespace Microsoft.CodeAnalysis
         // so there's no chance of an API consumer seeing it.
         internal sealed class ClrStrongNameMissingException : Exception
         {
+
         }
 
         private readonly ImmutableArray<string> _keyFileSearchPaths;
-        private readonly string _tempPath;
         internal override StrongNameFileSystem FileSystem { get; }
 
         // for testing/mocking
         internal Func<IClrStrongName> TestStrongNameInterfaceFactory;
 
-        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths) : this(keyFileSearchPaths, null, null)
+        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths) : this(keyFileSearchPaths, StrongNameFileSystem.Instance)
         {
 
         }
@@ -135,12 +135,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="tempPath">Path to use for any temporary file generation.</param>
         /// <param name="keyFileSearchPaths">An ordered set of fully qualified paths which are searched when locating a cryptographic key file.</param>
-        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths = default(ImmutableArray<string>), string tempPath = null) : this(keyFileSearchPaths, tempPath, null)
+        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths = default, string tempPath = null)
+           : this(keyFileSearchPaths, tempPath == null ? StrongNameFileSystem.Instance : new StrongNameFileSystem(tempPath))
         {
 
         }
 
-        internal DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths, string tempPath, StrongNameFileSystem strongNameFileSystem)
+        internal DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths, StrongNameFileSystem strongNameFileSystem)
         {
             if (!keyFileSearchPaths.IsDefault && keyFileSearchPaths.Any(path => !PathUtilities.IsAbsolute(path)))
             {
@@ -149,17 +150,14 @@ namespace Microsoft.CodeAnalysis
 
             FileSystem = strongNameFileSystem ?? StrongNameFileSystem.Instance;
             _keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
-            _tempPath = tempPath;
         }
 
-
-        /// <exception cref="IOException"></exception>
         internal override Stream CreateInputStream()
         {
             Func<string, Stream> streamConstructor = lPath => new TempFileStream(lPath,
                 new FileStream(lPath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite));
 
-            var tempPath = _tempPath ?? Path.GetTempPath();
+            var tempPath = FileSystem.GetTempPath();
             var tempName = Path.Combine(tempPath, Guid.NewGuid().ToString("N"));
             return FileUtilities.CreateFileStreamChecked(streamConstructor, tempName);
         }
@@ -261,8 +259,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <exception cref="IOException"></exception>
-        /// <exception cref="ClrStrongNameMissingException"></exception>
         internal override void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream)
         {
             Debug.Assert(inputStream is TempFileStream);
@@ -408,7 +404,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return false;
             }
-            return string.Equals(_tempPath, other._tempPath, StringComparison.Ordinal);
+
+            return true;
         }
     }
 }

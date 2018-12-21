@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
@@ -13,8 +14,13 @@ namespace Microsoft.CodeAnalysis
     internal class StrongNameFileSystem
     {
         internal readonly static StrongNameFileSystem Instance = new StrongNameFileSystem();
-        protected StrongNameFileSystem()
+        internal readonly Func<string> _getTempPath;
+
+        internal StrongNameFileSystem(string tempPath = null)
         {
+            _getTempPath = tempPath == null
+                ? (Func<string>)Path.GetTempPath
+                : () => tempPath;
         }
 
         internal virtual byte[] ReadAllBytes(string fullPath)
@@ -28,5 +34,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(fullPath == null || PathUtilities.IsAbsolute(fullPath));
             return File.Exists(fullPath);
         }
+
+        internal virtual string GetTempPath() => _getTempPath();
     }
 }

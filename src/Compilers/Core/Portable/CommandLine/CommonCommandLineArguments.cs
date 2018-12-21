@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis
 
         internal StrongNameProvider GetStrongNameProvider(
             StrongNameFileSystem fileSystem,
-            string tempDirectory) => new DesktopStrongNameProvider(KeyFileSearchPaths, tempDirectory, fileSystem);
+            string tempDirectory) => new DesktopStrongNameProvider(KeyFileSearchPaths, fileSystem);
 
         internal CommandLineArguments()
         {
