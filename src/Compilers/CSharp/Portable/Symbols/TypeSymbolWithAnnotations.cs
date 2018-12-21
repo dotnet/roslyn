@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Example of unspeakable types:
                     // - an unconstrained T which was null-tested already
                     // - a nullable value type which was null-tested already
+                    // Note this projection is lossy for such types (we forget about the non-nullable state)
                     return NullableAnnotation.NotAnnotated;
 
                 default:

@@ -321,6 +321,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // Consider reporting the correct source with annotations on mismatch.
                 AssertEx.Equal(expectedTypes, actualTypes, message: method.ToTestDisplayString());
 
+                foreach (var entry in dictionary.Values.Where(v => !v.IsNull))
+                {
+                    // Result types cannot have nested types that are lossy unspeakables
+                    Assert.Null(entry.VisitType(typeOpt: null,
+                        typeWithAnnotationsPredicateOpt: (tswa, a, b) => !tswa.Equals(entry, TypeCompareKind.ConsiderEverything) && isLossyUnspeakable(tswa),
+                        typePredicateOpt: (ts, _, b) => false, arg: (object)null, canDigThroughNullable: true));
+                }
+
+                // Returns true if the application of TypeSymbolWithAnnotations.AsSpeakable would lose information
+                bool isLossyUnspeakable(TypeSymbolWithAnnotations tswa)
+                {
+                    return tswa.NullableAnnotation == NullableAnnotation.NotNullable && tswa.TypeSymbol.IsTypeParameterDisallowingAnnotation();
+                }
+
                 string toDisplayString(SyntaxNode syntaxOpt)
                 {
                     return (syntaxOpt != null) && dictionary.TryGetValue(syntaxOpt, out var type) ?
