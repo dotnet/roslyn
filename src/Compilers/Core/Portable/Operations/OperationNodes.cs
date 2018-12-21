@@ -7917,8 +7917,15 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class DeclarationPatternOperation : Operation, IDeclarationPatternOperation
     {
-        public DeclarationPatternOperation(ITypeSymbol inputType, ITypeSymbol matchedType, ISymbol declaredSymbol, bool matchesNull, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(OperationKind.DeclarationPattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+        public DeclarationPatternOperation(
+            ITypeSymbol inputType,
+            ITypeSymbol matchedType,
+            ISymbol declaredSymbol,
+            bool matchesNull,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(OperationKind.DeclarationPattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
         {
             InputType = inputType;
             MatchedType = matchedType;
@@ -7952,26 +7959,27 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    /// <summary>
-    /// Represents a C# recursive pattern.
-    /// </summary>
-    internal sealed partial class RecursivePatternOperation : Operation, IRecursivePatternOperation
+    internal abstract partial class BaseRecursivePatternOperation: Operation, IRecursivePatternOperation
     {
-        public RecursivePatternOperation(ITypeSymbol inputType, ITypeSymbol matchedType, ISymbol deconstructSymbol, ImmutableArray<IPatternOperation> deconstructionSubpatterns, ImmutableArray<(ISymbol, IPatternOperation)> propertySubpatterns, ISymbol declaredSymbol, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-                    base(OperationKind.RecursivePattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+        public BaseRecursivePatternOperation(
+            ITypeSymbol inputType,
+            ITypeSymbol matchedType,
+            ISymbol deconstructSymbol,
+            ISymbol declaredSymbol, SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(OperationKind.RecursivePattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
         {
             InputType = inputType;
             MatchedType = matchedType;
             DeconstructSymbol = deconstructSymbol;
-            DeconstructionSubpatterns = deconstructionSubpatterns;
-            PropertySubpatterns = propertySubpatterns;
             DeclaredSymbol = declaredSymbol;
         }
         public ITypeSymbol InputType { get; }
         public ITypeSymbol MatchedType { get; }
         public ISymbol DeconstructSymbol { get; }
-        public ImmutableArray<IPatternOperation> DeconstructionSubpatterns { get; }
-        public ImmutableArray<(ISymbol, IPatternOperation)> PropertySubpatterns { get; }
+        public abstract ImmutableArray<IPatternOperation> DeconstructionSubpatterns { get; }
+        public abstract ImmutableArray<(ISymbol, IPatternOperation)> PropertySubpatterns { get; }
         public ISymbol DeclaredSymbol { get; }
         public override IEnumerable<IOperation> Children
         {
@@ -8001,6 +8009,91 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitRecursivePattern(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# recursive pattern.
+    /// </summary>
+    internal sealed partial class RecursivePatternOperation : BaseRecursivePatternOperation
+    {
+        public RecursivePatternOperation(
+            ITypeSymbol inputType,
+            ITypeSymbol matchedType,
+            ISymbol deconstructSymbol,
+            ImmutableArray<IPatternOperation> deconstructionSubpatterns,
+            ImmutableArray<(ISymbol, IPatternOperation)> propertySubpatterns,
+            ISymbol declaredSymbol, SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(inputType, matchedType, deconstructSymbol, declaredSymbol, semanticModel, syntax, isImplicit)
+        {
+            foreach (var p in deconstructionSubpatterns)
+            {
+                SetParentOperation(p, this);
+            }
+            DeconstructionSubpatterns = deconstructionSubpatterns;
+            foreach (var p in propertySubpatterns)
+            {
+                SetParentOperation(p.Item2, this);
+            }
+            PropertySubpatterns = propertySubpatterns;
+        }
+        public override ImmutableArray<IPatternOperation> DeconstructionSubpatterns { get; }
+        public override ImmutableArray<(ISymbol, IPatternOperation)> PropertySubpatterns { get; }
+    }
+
+    internal abstract partial class LazyRecursivePatternOperation : BaseRecursivePatternOperation
+    {
+        private ImmutableArray<IPatternOperation> _lazyDeconstructionSubpatterns;
+        private ImmutableArray<(ISymbol, IPatternOperation)> _lazyPropertySubpatterns;
+        public LazyRecursivePatternOperation(
+            ITypeSymbol inputType,
+            ITypeSymbol matchedType,
+            ISymbol deconstructSymbol,
+            ISymbol declaredSymbol, SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(inputType, matchedType, deconstructSymbol, declaredSymbol, semanticModel, syntax, isImplicit)
+        {
+        }
+        public abstract ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns();
+        public abstract ImmutableArray<(ISymbol, IPatternOperation)> CreatePropertySubpatterns();
+        public override ImmutableArray<IPatternOperation> DeconstructionSubpatterns
+        {
+            get
+            {
+                if (_lazyDeconstructionSubpatterns.IsDefault)
+                {
+                    var deconstructionSubpatterns = CreateDeconstructionSubpatterns();
+                    foreach (var d in deconstructionSubpatterns)
+                    {
+                        SetParentOperation(d, this);
+                    }
+
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDeconstructionSubpatterns, deconstructionSubpatterns);
+                }
+
+                return _lazyDeconstructionSubpatterns;
+            }
+        }
+        public override ImmutableArray<(ISymbol, IPatternOperation)> PropertySubpatterns
+        {
+            get
+            {
+                if (_lazyPropertySubpatterns.IsDefault)
+                {
+                    var propertySubpatterns = CreatePropertySubpatterns();
+                    foreach (var d in propertySubpatterns)
+                    {
+                        SetParentOperation(d.Item2, this);
+                    }
+
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyPropertySubpatterns, propertySubpatterns);
+                }
+
+                return _lazyPropertySubpatterns;
+            }
         }
     }
 

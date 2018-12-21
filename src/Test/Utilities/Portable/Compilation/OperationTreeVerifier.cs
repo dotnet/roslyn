@@ -1756,7 +1756,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogSymbol(subpat.Item1, "Matched Property");
                 Visit(subpat.Item2, ", Pattern");
             });
-            LogCommonPropertiesAndNewLine(operation);
         }
 
         public override void VisitIsPattern(IIsPatternOperation operation)

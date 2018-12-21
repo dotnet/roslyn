@@ -718,35 +718,31 @@ Block[B0] - Entry
 
 .locals {R1}
 {
-    Locals: [System.Int32? y]
+    Locals: [(System.Int32 X, System.Int32 Y) p] [System.Int32 z]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (2)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = x is var y;')
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = x is (1 ...  var z } p;')
               Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = x is var y')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = x is (1 ... : var z } p')
                   Left: 
                     IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
                   Right: 
-                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is var y')
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is (1, 2) ... : var z } p')
                       Expression: 
-                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32 X, System.Int32 Y)?) (Syntax: 'x')
                       Pattern: 
-                        IDeclarationPatternOperation (Declared Symbol: System.Int32? y, AcceptsNull: True) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
-
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b2 = x2 is 1;')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b2 = x2 is 1')
-                  Left: 
-                    IParameterReferenceOperation: b2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b2')
-                  Right: 
-                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x2 is 1')
-                      Expression: 
-                        IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x2')
-                      Pattern: 
-                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
-                          Value: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        IRecursivePatternOperation (Declared Symbol: (System.Int32 X, System.Int32 Y) p, MatchedType: (System.Int32 X, System.Int32 Y)?, Deconstruct Symbol: null)
+                          Patterns (2):
+                              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
+                                Value: 
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '2')
+                                Value: 
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                          Properties (1):
+                            Matched Property: System.Int32 (System.Int32 X, System.Int32 Y).Item1, Pattern: 
+                                IDeclarationPatternOperation (Declared Symbol: System.Int32 z, AcceptsNull: True) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var z')
 
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -754,8 +750,7 @@ Block[B0] - Entry
 
 Block[B2] - Exit
     Predecessors: [B1]
-    Statements (0)
-";
+    Statements (0)";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
@@ -890,7 +885,6 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'tu
       Properties (1):
         Matched Property: System.Int32 (System.Int32 X, System.Int32 Y).Item1, Pattern: 
             IDeclarationPatternOperation (Declared Symbol: System.Int32 x, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
-     (OperationKind.DeclarationPattern, Type: null) (Syntax: '(1, 2) { It ... : int x } y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
