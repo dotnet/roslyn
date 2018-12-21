@@ -612,12 +612,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (overridingMemberIsMethod || overridingMember.IsIndexer())
                         {
                             var parameterTypes = overridingMemberIsMethod
-                                ? ((MethodSymbol) overridingMember).ParameterTypes
-                                : ((PropertySymbol) overridingMember).ParameterTypes;
+                                ? ((MethodSymbol)overridingMember).ParameterTypes
+                                : ((PropertySymbol)overridingMember).ParameterTypes;
 
                             foreach (var parameterType in parameterTypes)
                             {
-                                if (parameterType.TypeSymbol.VisitType((typeSymbol, unused1, unused2) => typeSymbol.IsErrorType(), (object)null) != null)
+                                if ((object)parameterType.TypeSymbol.VisitType((typeSymbol, unused1, unused2) => typeSymbol.IsErrorType(), (object)null) != null)
                                 {
                                     suppressError = true; // The parameter type must be fixed before the override can be found, so suppress error
                                     break;
@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                             {
                                 // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
-                                if (overridingMemberType.TypeSymbol.VisitType((typeSymbol, unused1, unused2) => typeSymbol.IsErrorType(), (object)null) == null)
+                                if ((object)overridingMemberType.TypeSymbol.VisitType((typeSymbol, unused1, unused2) => typeSymbol.IsErrorType(), (object)null) == null)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.TypeSymbol);
                                 }
@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                             {
                                 // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
-                                if (overridingMemberType.TypeSymbol.VisitType((typeSymbol, unused1, unused2) => typeSymbol.IsErrorType(), (object)null) == null)
+                                if ((object)overridingMemberType.TypeSymbol.VisitType((typeSymbol, unused1, unused2) => typeSymbol.IsErrorType(), (object)null) == null)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.TypeSymbol);
                                 }
@@ -828,7 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else if (!overridingMethod.ReturnType.Equals(overriddenMethod.ReturnType, TypeCompareKind.AllIgnoreOptions))
                             {
                                 // if the Return type is or contains an error type, the return type must be fixed before the override can be found, so suppress error
-                                if (overridingMethod.ReturnType.TypeSymbol.VisitType((typeSymbol, unused1, unused2) => typeSymbol.IsErrorType(), (object)null) == null)
+                                if ((object)overridingMethod.ReturnType.TypeSymbol.VisitType((typeSymbol, unused1, unused2) => typeSymbol.IsErrorType(), (object)null) == null)
                                 {
                                     // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
                                     diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType.TypeSymbol);
