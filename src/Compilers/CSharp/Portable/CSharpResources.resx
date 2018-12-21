@@ -5634,4 +5634,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UsingVarInSwitchCase" xml:space="preserve">
     <value>A using variable cannot be used directly within a switch section (consider using braces). </value>
   </data>
+  <data name="ERR_GoToForwardJumpOverUsingVar" xml:space="preserve">
+    <value>A goto cannot jump to a location after a using declaration.</value>
+  </data>
+  <data name="ERR_GoToBackwardJumpOverUsingVar" xml:space="preserve">
+    <value>A goto cannot jump to a location before a using declaration within the same block.</value>
+  </data>
 </root>

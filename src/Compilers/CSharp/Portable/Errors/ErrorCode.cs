@@ -1634,7 +1634,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CantInferNullabilityOfMethodTypeArgs = 8638,
         WRN_NoBestNullabilityArrayElements = 8639,
         ERR_UsingVarInSwitchCase = 8640,
-
+        ERR_GoToForwardJumpOverUsingVar = 8641,
+        ERR_GoToBackwardJumpOverUsingVar = 8642,
         #endregion diagnostics introduced for C# 8.0
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)

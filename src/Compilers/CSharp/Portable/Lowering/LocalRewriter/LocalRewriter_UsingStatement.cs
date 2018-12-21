@@ -37,38 +37,72 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.ExpressionOpt != null)
             {
-                return RewriteExpressionUsingStatement(node, tryBlock);
+                return MakeExpressionUsingStatement(node, tryBlock);
             }
             else
             {
-                Debug.Assert(node.DeclarationsOpt != null);
-
-                SyntaxNode usingSyntax = node.Syntax;
-                SyntaxToken awaitKeyword = usingSyntax.Kind() == SyntaxKind.UsingStatement ? ((UsingStatementSyntax)usingSyntax).AwaitKeyword : default;
-                Conversion idisposableConversion = node.IDisposableConversion;
-                ImmutableArray<BoundLocalDeclaration> declarations = node.DeclarationsOpt.LocalDeclarations;
-
-                BoundBlock result = tryBlock;
-
-                int numDeclarations = declarations.Length;
-                for (int i = numDeclarations - 1; i >= 0; i--) //NB: inner-to-outer = right-to-left
-                {
-                    result = RewriteDeclarationUsingStatement(usingSyntax, declarations[i], result, idisposableConversion, awaitKeyword, node.AwaitOpt, node.DisposeMethodOpt);
-                }
-
-                // Declare all locals in a single, top-level block so that the scope is correct in the debugger
-                // (Dev10 has them all come into scope at once, not per-declaration.)
-                return new BoundBlock(
-                    usingSyntax,
-                    node.Locals,
-                    ImmutableArray.Create<BoundStatement>(result));
+                SyntaxToken awaitKeyword = node.Syntax.Kind() == SyntaxKind.UsingStatement ? ((UsingStatementSyntax)node.Syntax).AwaitKeyword : default;
+                return MakeDeclarationUsingStatement(node.Syntax,
+                                                     tryBlock,
+                                                     node.Locals,
+                                                     node.DeclarationsOpt.LocalDeclarations,
+                                                     node.IDisposableConversion,
+                                                     node.DisposeMethodOpt,
+                                                     node.AwaitOpt,
+                                                     awaitKeyword);
             }
+        }
+
+        private BoundStatement MakeDeclarationUsingStatement(SyntaxNode syntax,
+                                                       BoundBlock body, 
+                                                       ImmutableArray<LocalSymbol> locals,
+                                                       ImmutableArray<BoundLocalDeclaration> declarations,
+                                                       Conversion iDisposableConversion,
+                                                       MethodSymbol disposeMethodOpt,
+                                                       AwaitableInfo awaitOpt,
+                                                       SyntaxToken awaitKeyword)
+        {
+            Debug.Assert(declarations != null);
+
+            BoundBlock result = body;
+            for (int i = declarations.Length - 1; i >= 0; i--) //NB: inner-to-outer = right-to-left
+            {
+                result = RewriteDeclarationUsingStatement(syntax, declarations[i], result, iDisposableConversion, awaitKeyword, awaitOpt, disposeMethodOpt);
+            }
+
+            // Declare all locals in a single, top-level block so that the scope is correct in the debugger
+            // (Dev10 has them all come into scope at once, not per-declaration.)
+            return new BoundBlock(
+                syntax,
+                locals,
+                ImmutableArray.Create<BoundStatement>(result));
+        }
+
+        /// <summary>
+        /// Lower "using var x = (expression)" to a try-finally block.
+        /// </summary>
+        private BoundStatement MakeLocalUsingDeclarationStatement(BoundUsingLocalDeclarations usingDeclarations, ImmutableArray<BoundStatement> statements)
+        {
+            SyntaxNode syntax = usingDeclarations.Syntax;
+            BoundBlock body = new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements);
+            
+            //PROTOTYPE: need to handle await using when boundMultipleLocalDeclarations supports it
+            var usingStatement = MakeDeclarationUsingStatement(syntax,
+                                                               body,
+                                                               ImmutableArray<LocalSymbol>.Empty,
+                                                               usingDeclarations.LocalDeclarations, 
+                                                               usingDeclarations.IDisposableConversion,
+                                                               usingDeclarations.DisposeMethodOpt, 
+                                                               awaitOpt: null, 
+                                                               awaitKeyword: default);
+
+            return usingStatement;
         }
 
         /// <summary>
         /// Lower "using [await] (expression) statement" to a try-finally block.
         /// </summary>
-        private BoundBlock RewriteExpressionUsingStatement(BoundUsingStatement node, BoundBlock tryBlock)
+        private BoundBlock MakeExpressionUsingStatement(BoundUsingStatement node, BoundBlock tryBlock)
         {
             Debug.Assert(node.ExpressionOpt != null);
             Debug.Assert(node.DeclarationsOpt == null);

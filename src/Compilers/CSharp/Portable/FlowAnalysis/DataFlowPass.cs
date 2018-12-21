@@ -1437,6 +1437,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitStatementsWithLocalFunctions(node);
 
+            // any local using symbols are implicitly read at the end of the block when they get disposed
+            foreach (var local in node.Locals)
+            {
+                if (local.IsUsing)
+                {
+                    NoteRead(local);
+                }
+            }
+
             ReportUnusedVariables(node.Locals);
             ReportUnusedVariables(node.LocalFunctions);
 

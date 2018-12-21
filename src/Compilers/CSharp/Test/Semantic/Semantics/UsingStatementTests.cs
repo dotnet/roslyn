@@ -2578,57 +2578,6 @@ class C
                 );
         }
 
-        [Fact]
-        public void UsingVarInSwitchCase()
-        {
-            var source = @"
-using System;
-class C1 : IDisposable
-    {
-        public void Dispose() { }
-    }
-    class C2
-    {
-        public static void Main()
-        {
-            int x = 5;
-            switch (x)
-            {
-                case 5:
-                    using C1 o1 = new C1();
-                    break;
-            }
-        }
-    }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (15,21): error CS8389: A using variable cannot be used directly within a switch section (consider using braces). 
-                //                     using C1 o1 = new C1();
-                Diagnostic(ErrorCode.ERR_UsingVarInSwitchCase, "using C1 o1 = new C1();").WithLocation(15, 21)
-            );
-        }
-
-        [Fact]
-        public void DiagnosticsInUsingVariableDeclarationAreOnlyEmittedOnce()
-        {
-            var source = @"
-using System;
-class C1 : IDisposable
-{
-    public void Dispose() { }
-}
-class C2
-{
-    public static void Main()
-    {
-        using var c1 = new C1(), c2 = new C2();
-    }
-}";
-            CreateCompilation(source).VerifyDiagnostics(
-              // (11,15): error CS0819: Implicitly-typed variables cannot have multiple declarators
-              //         using (var c1 = new C1(), c2 = new C2())
-              Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, "var c1 = new C1(), c2 = new C2()").WithLocation(11, 15)
-            );
-        }
 
         #region help method
 

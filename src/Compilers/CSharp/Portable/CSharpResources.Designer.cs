@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis.CSharp {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpResources", typeof(CSharpResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpResources", typeof(CSharpResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -5215,6 +5214,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_GlobalStatement {
             get {
                 return ResourceManager.GetString("ERR_GlobalStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A goto cannot jump to a location before a using declaration within the same block..
+        /// </summary>
+        internal static string ERR_GoToBackwardJumpOverUsingVar {
+            get {
+                return ResourceManager.GetString("ERR_GoToBackwardJumpOverUsingVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A goto cannot jump to a location after a using declaration..
+        /// </summary>
+        internal static string ERR_GoToForwardJumpOverUsingVar {
+            get {
+                return ResourceManager.GetString("ERR_GoToForwardJumpOverUsingVar", resourceCulture);
             }
         }
         
@@ -10629,20 +10646,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to alternative interpolated verbatim strings.
-        /// </summary>
-        internal static string IDS_FeatureAltInterpolatedVerbatimStrings {
-            get {
-                return ResourceManager.GetString("IDS_FeatureAltInterpolatedVerbatimStrings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to disposable.
         /// </summary>
         internal static string IDS_Disposable {
             get {
                 return ResourceManager.GetString("IDS_Disposable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to alternative interpolated verbatim strings.
+        /// </summary>
+        internal static string IDS_FeatureAltInterpolatedVerbatimStrings {
+            get {
+                return ResourceManager.GetString("IDS_FeatureAltInterpolatedVerbatimStrings", resourceCulture);
             }
         }
         
