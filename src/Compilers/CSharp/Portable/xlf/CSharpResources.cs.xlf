@@ -307,6 +307,11 @@
         <target state="new">unmanaged generic type constraints</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUsingDeclarations">
+        <source>using declarations</source>
+        <target state="new">using declarations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_InjectedDeclaration">
         <source>injected declaration</source>
         <target state="new">injected declaration</target>

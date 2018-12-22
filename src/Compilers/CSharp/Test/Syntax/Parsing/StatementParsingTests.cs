@@ -2506,38 +2506,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestAwaitUsingVarWithDeclaration()
-        {
-            var text = "await using T a = b;";
-            var statement = this.ParseStatement(text, 0, TestOptions.Regular8);
-
-            Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
-            Assert.Equal(text, statement.ToString());
-            Assert.Equal(0, statement.Errors().Length);
-
-            var us = (LocalDeclarationStatementSyntax)statement;
-            Assert.NotNull(us.AwaitKeyword);
-            Assert.Equal(SyntaxKind.AwaitKeyword, us.AwaitKeyword.ContextualKind());
-            Assert.NotNull(us.UsingKeyword);
-            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
-
-            Assert.NotNull(us.Declaration);
-            Assert.NotNull(us.Declaration.Type);
-            Assert.Equal("T", us.Declaration.Type.ToString());
-            Assert.Equal(SyntaxKind.IdentifierName, us.Declaration.Type.Kind());
-            Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)us.Declaration.Type).Identifier.Kind());
-            Assert.Equal(1, us.Declaration.Variables.Count);
-            Assert.NotNull(us.Declaration.Variables[0].Identifier);
-            Assert.Equal("a", us.Declaration.Variables[0].Identifier.ToString());
-            Assert.Null(us.Declaration.Variables[0].ArgumentList);
-            Assert.NotNull(us.Declaration.Variables[0].Initializer);
-            Assert.NotNull(us.Declaration.Variables[0].Initializer.EqualsToken);
-            Assert.NotNull(us.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal("b", us.Declaration.Variables[0].Initializer.Value.ToString());
-        }
-
-        [Fact]
         public void TestAwaitUsingVarWithDeclarationTree()
         {
             UsingStatement(@"await using T a = b;", TestOptions.Regular8);
@@ -2629,6 +2597,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 N(SyntaxKind.SemicolonToken);
             }
+        }
+
+        [Fact]
+        public void TestAwaitUsingVarWithVarAnNoUsingDeclarationTree()
+        {
+            UsingStatement(@"await var a = b;", TestOptions.Regular8, expectedErrors:
+                // (1,11): error CS1003: Syntax error, ',' expected
+                // await var a = b;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",", "").WithLocation(1, 11)
+            );
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "await");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
         [Fact]

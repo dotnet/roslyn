@@ -1861,7 +1861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
         {
-            if (((LocalDeclarationStatementSyntax)node.Syntax).AwaitKeyword != default)
+            if (AwaitUsingAddsPendingBranch && node.AwaitOpt != null)
             {
                 _pendingBranches.Add(new PendingBranch(node, this.State));
             }

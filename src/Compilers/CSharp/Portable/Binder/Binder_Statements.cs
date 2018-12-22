@@ -653,6 +653,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 awaitOpt = BindAsyncDisposeAwaiter(node, node.AwaitKeyword, disposeMethod, diagnostics, ref hasErrors);
             }
 
+            MessageID.IDS_FeatureUsingDeclarations.CheckFeatureAvailability(availableVersion: Compilation.LanguageVersion, diagnostics, node.Declaration.Location);
+
             return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, awaitOpt, declarations, hasErrors);
         }
 
@@ -774,13 +776,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Binds an awaiter for asynchronous dispose
         /// </summary>
-        /// <param name="node">The synatx node to bind for</param>
+        /// <param name="node">The syntax node to bind for</param>
         /// <param name="awaitKeyword">The await keyword of the syntax</param>
         /// <param name="disposeMethodOpt">The dispose method to call, or null to use IAsyncDisposable.DisposeAsync</param>
         /// <param name="diagnostics">Populated with any errors</param>
-        /// <param name="hasErrors">True if errors occured during binding</param>
+        /// <param name="hasErrors">True if errors occurred during binding</param>
         /// <returns>An <see cref="AwaitableInfo"/> with the bound information</returns>
-        internal AwaitableInfo BindAsyncDisposeAwaiter(SyntaxNode node, SyntaxToken awaitKeyword, MethodSymbol disposeMethodOpt, DiagnosticBag diagnostics, ref bool hasErrors)
+        protected AwaitableInfo BindAsyncDisposeAwaiter(SyntaxNode node, SyntaxToken awaitKeyword, MethodSymbol disposeMethodOpt, DiagnosticBag diagnostics, ref bool hasErrors)
         {
             TypeSymbol taskType = disposeMethodOpt is null
                                     ? this.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask)
