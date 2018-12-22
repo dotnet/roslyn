@@ -143,8 +143,6 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
                 var generator = _document.GetLanguageService<SyntaxGenerator>();
 
-                var localName = _containingType.GetLocalName();
-
                 var parameters = ImmutableArray.Create(
                     CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType, LeftName),
                     CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType, RightName));
