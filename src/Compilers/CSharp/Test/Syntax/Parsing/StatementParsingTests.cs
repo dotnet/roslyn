@@ -2354,7 +2354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingVarWithDeclaration()
         {
             var text = "using T a = b;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -2382,7 +2382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestUsingVarWithDeclarationTree()
         {
-            UsingStatement(@"using T a = b;");
+            UsingStatement(@"using T a = b;", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2449,7 +2449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingVarWithVarDeclaration()
         {
             var text = "using var a = b;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -2478,7 +2478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestUsingVarWithVarDeclarationTree()
         {
-            UsingStatement(@"using var a = b;");
+            UsingStatement(@"using var a = b;", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2750,7 +2750,7 @@ class C
         public void TestUsingVarWithDeclarationWithMultipleVariables()
         {
             var text = "using T a = b, c = d;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -2787,7 +2787,7 @@ class C
         [Fact]
         public void TestUsingVarWithDeclarationMultipleVariablesTree()
         {
-            UsingStatement(@"using T a = b, c = d;");
+            UsingStatement(@"using T a = b, c = d;", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2853,7 +2853,7 @@ class C
         public void TestUsingVarSpecialCase1()
         {
             var text = "using var x = f ? a : b;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -2870,7 +2870,7 @@ class C
         [Fact]
         public void TestUsingVarSpecialCase1Tree()
         {
-            UsingStatement(@"using var x = f ? a : b;");
+            UsingStatement(@"using var x = f ? a : b;", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2914,7 +2914,7 @@ class C
         public void TestUsingSpecialCase2()
         {
             var text = "using (f ? x = a) { }";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
@@ -2936,7 +2936,7 @@ class C
         public void TestUsingVarSpecialCase2()
         {
             var text = "using f ? x = a;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -2953,7 +2953,7 @@ class C
         [Fact]
         public void TestUsingVarSpecialCase2Tree()
         {
-            UsingStatement(@"using f ? x = a;");
+            UsingStatement(@"using f ? x = a;", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -3008,7 +3008,7 @@ class C
         public void TestUsingVarSpecialCase3()
         {
             var text = "using f ? x, y;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -3025,7 +3025,7 @@ class C
         [Fact]
         public void TestUsingVarSpecialCase3Tree()
         {
-            UsingStatement("using f? x, y;");
+            UsingStatement("using f? x, y;", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -3056,7 +3056,7 @@ class C
         [Fact]
         public void TestUsingVarRefTree()
         {
-            UsingStatement("using ref int x = ref y;");
+            UsingStatement("using ref int x = ref y;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -3094,7 +3094,7 @@ class C
         [Fact]
         public void TestUsingVarRefReadonlyTree()
         {
-            UsingStatement("using ref readonly int x = ref y;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
+            UsingStatement("using ref readonly int x = ref y;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -3133,7 +3133,7 @@ class C
         [Fact]
         public void TestUsingVarRefVarTree()
         {
-            UsingStatement("using ref var x = ref y;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
+            UsingStatement("using ref var x = ref y;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -3171,7 +3171,7 @@ class C
         [Fact]
         public void TestUsingVarRefVarIsYTree()
         {
-            UsingStatement("using ref var x = y;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
+            UsingStatement("using ref var x = y;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -3205,7 +3205,7 @@ class C
         [Fact]
         public void TestUsingVarReadonlyMultipleDeclarations()
         {
-            UsingStatement("using readonly var x, y = ref z;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2),
+            UsingStatement("using readonly var x, y = ref z;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8),
                 // (1,7): error CS0106: The modifier 'readonly' is not valid for this item
                 // using readonly var x, y = ref z;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1,7));
