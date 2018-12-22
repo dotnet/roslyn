@@ -812,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol declType = inputType;
-            Symbol foundSymbol = BindTypeOrAliasOrKeyword(node.VarKeyword, node, diagnostics, out bool isVar).NamespaceOrTypeSymbol;
+            Symbol foundSymbol = BindTypeOrAliasOrKeyword(node.VarKeyword, node, diagnostics, out bool isVar).Symbol;
             if (!isVar)
             {
                 // Give an error if there is a bindable type "var" in scope
