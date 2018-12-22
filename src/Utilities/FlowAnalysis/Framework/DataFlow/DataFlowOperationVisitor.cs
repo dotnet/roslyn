@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
             private set
             {
-                Debug.Assert(!value.Disposed);
                 Debug.Assert(value != null);
+                Debug.Assert(!value.Disposed);
                 _currentAnalysisData = value;
             }
         }
@@ -2302,12 +2302,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             oldMergedAnalysisData?.Dispose();
                         }
                     }
-                }
 
-                if (!ReferenceEquals(CurrentAnalysisData, mergedCurrentAnalysisData))
-                {
-                    CurrentAnalysisData.Dispose();
-                    CurrentAnalysisData = mergedCurrentAnalysisData;
+                    Debug.Assert(mergedCurrentAnalysisData == null || ReferenceEquals(mergedCurrentAnalysisData, CurrentAnalysisData));
                 }
             }
 
@@ -2320,15 +2316,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     first = false;
                     value = invocationValue;
-                    return CurrentAnalysisData;
                 }
                 else
                 {
                     value = ValueDomain.Merge(value, invocationValue);
                     var result = MergeAnalysisData(mergedAnalysisData, CurrentAnalysisData);
                     CurrentAnalysisData.Dispose();
-                    return result;
+                    CurrentAnalysisData = result;
                 }
+
+                return CurrentAnalysisData;
             }
         }
 

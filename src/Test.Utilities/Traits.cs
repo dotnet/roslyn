@@ -17,6 +17,7 @@ namespace Test.Utilities
             public const string ValueContentAnalysis = nameof(ValueContentAnalysis);
             public const string DisposeAnalysis = nameof(DisposeAnalysis);
             public const string ParameterValidationAnalysis = nameof(ParameterValidationAnalysis);
+            public const string PropertySetAnalysis = nameof(PropertySetAnalysis);
 
             public const string PredicateAnalysis = nameof(PredicateAnalysis);
 
