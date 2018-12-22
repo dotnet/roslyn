@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return ch = ")"c
         End Function
 
-        Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Private Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim expression As ObjectCreationExpressionSyntax = Nothing
             If TryGetObjectCreationExpression(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, expression) AndAlso
                 currentSpan.Start = SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start Then
@@ -82,10 +82,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 GetDelegateTypeConstructors(objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken),
                 GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, type, within, cancellationToken))
 
-            Return CreateSignatureHelpItems(itemsAndSelected.Items,
+            Return CreateSignatureHelpItems(itemsAndSelected.items,
                                             textSpan,
                                             GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken),
-                                            itemsAndSelected.SelectedItem)
+                                            itemsAndSelected.selectedItem)
         End Function
     End Class
 End Namespace

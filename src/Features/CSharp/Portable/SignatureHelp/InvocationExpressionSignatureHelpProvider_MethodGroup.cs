@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -16,17 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class InvocationExpressionSignatureHelpProvider
     {
-        private (IList<SignatureHelpItem>, int?) GetMethodGroupItemsAndSelection(
-            InvocationExpressionSyntax invocationExpression,
-            SemanticModel semanticModel,
-            ISymbolDisplayService symbolDisplayService,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
-            ISymbol within,
-            IEnumerable<IMethodSymbol> methodGroup,
-            ISymbol currentSymbol,
-            CancellationToken cancellationToken)
+        /// <summary>
+        /// Overloads can be ruled out for different reasons:
+        /// - not including an argument name used in the invocation
+        /// - being inaccessible
+        /// - ...
+        /// </summary>
+        private static ImmutableArray<IMethodSymbol> RemoveUnacceptable(IEnumerable<IMethodSymbol> methodGroup, InvocationExpressionSyntax invocationExpression,
+            ISymbol within, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            methodGroup = methodGroup.Where(m => !IsInacceptable(invocationExpression.ArgumentList.Arguments, m)).ToImmutableArray();
+
             ITypeSymbol throughType = null;
             if (invocationExpression.Expression is MemberAccessExpressionSyntax)
             {
@@ -60,17 +62,27 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             var accessibleMethods = methodGroup.Where(m => m.IsAccessibleWithin(within, throughTypeOpt: throughType)).ToImmutableArrayOrEmpty();
-            if (accessibleMethods.Length == 0)
-            {
-                return default;
-            }
+            return accessibleMethods;
+        }
 
-            var methodSet = accessibleMethods.ToSet();
-            accessibleMethods = accessibleMethods.Where(m => !IsHiddenByOtherMethod(m, methodSet)).ToImmutableArrayOrEmpty();
+        private (IList<SignatureHelpItem>, int?) GetMethodGroupItemsAndSelection(
+            ImmutableArray<IMethodSymbol> methodGroup,
+            ISymbol currentSymbol,
+            InvocationExpressionSyntax invocationExpression,
+            SemanticModel semanticModel,
+            ISymbolDisplayService symbolDisplayService,
+            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IDocumentationCommentFormattingService documentationCommentFormattingService,
+            CancellationToken cancellationToken)
+        {
+            Debug.Assert(!methodGroup.IsEmpty);
 
-            return (accessibleMethods.Select(m =>
+            var methodSet = methodGroup.ToSet();
+            methodGroup = methodGroup.Where(m => !IsHiddenByOtherMethod(m, methodSet)).ToImmutableArrayOrEmpty();
+
+            return (methodGroup.Select(m =>
                 ConvertMethodGroupMethod(m, invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
-                TryGetSelectedIndex(accessibleMethods, currentSymbol));
+                TryGetSelectedIndex(methodGroup, currentSymbol));
         }
 
         private bool IsHiddenByOtherMethod(IMethodSymbol method, ISet<IMethodSymbol> methodSet)

@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Roslyn.Utilities;
@@ -15,11 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class InvocationExpressionSignatureHelpProvider
     {
-        private IList<SignatureHelpItem> GetDelegateInvokeItems(
-            InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, ISymbolDisplayService symbolDisplayService, IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService, ISymbol within, INamedTypeSymbol delegateType, out int? selectedItem, CancellationToken cancellationToken)
+        private IMethodSymbol GetDelegateInvokeMethod(
+            InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, ISymbol within, INamedTypeSymbol delegateType,
+            CancellationToken cancellationToken)
         {
-            selectedItem = null;
             var invokeMethod = delegateType.DelegateInvokeMethod;
             if (invokeMethod == null)
             {
@@ -34,21 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var position = invocationExpression.SpanStart;
-            var item = CreateItem(
-                invokeMethod, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
-                isVariadic: invokeMethod.IsParams(),
-                documentationFactory: null,
-                prefixParts: GetDelegateInvokePreambleParts(invokeMethod, semanticModel, position),
-                separatorParts: GetSeparatorParts(),
-                suffixParts: GetDelegateInvokePostambleParts(),
-                parameters: GetDelegateInvokeParameters(invokeMethod, semanticModel, position, documentationCommentFormattingService, cancellationToken));
-
-            // Since we're returning a single item, we can selected it as the "best one".
-            selectedItem = 0;
-
-            return SpecializedCollections.SingletonList(item);
+            return invokeMethod;
         }
 
         private IList<SymbolDisplayPart> GetDelegateInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)

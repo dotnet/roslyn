@@ -584,7 +584,7 @@ class C
                 Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
 
                 state.SendTypeChars("1")
-                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, string x)")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j)")
             End Using
         End Function
 

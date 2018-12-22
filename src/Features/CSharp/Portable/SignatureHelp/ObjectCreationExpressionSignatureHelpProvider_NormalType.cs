@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -15,39 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private (IList<SignatureHelpItem> items, int? selectedItem) GetNormalTypeConstructors(
-            Document document,
-            ObjectCreationExpressionSyntax objectCreationExpression,
-            SemanticModel semanticModel,
-            ISymbolDisplayService symbolDisplayService,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
-            INamedTypeSymbol normalType,
-            ISymbol within,
-            CancellationToken cancellationToken)
-        {
-            var accessibleConstructors = normalType.InstanceConstructors
-                                                   .WhereAsArray(c => c.IsAccessibleWithin(within))
-                                                   .WhereAsArray(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
-                                                   .Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart);
-
-            var currentSymbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol;
-
-            // if the symbol could not be bound, we could be dealing with a partial invocation, we'll try to find a possible overload
-            if (currentSymbol is null)
-            {
-                currentSymbol = GuessCurrentSymbol(objectCreationExpression.ArgumentList.Arguments, accessibleConstructors,
-                    semanticModel, document.GetLanguageService<ISemanticFactsService>(), cancellationToken);
-            }
-
-            var selectedItem = TryGetSelectedIndex(accessibleConstructors, currentSymbol);
-
-            var items = accessibleConstructors.SelectAsArray(c =>
-                ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken));
-
-            return (items, selectedItem);
-        }
-
         private SignatureHelpItem ConvertNormalTypeConstructor(
             IMethodSymbol constructor,
             ObjectCreationExpressionSyntax objectCreationExpression,

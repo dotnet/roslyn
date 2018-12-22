@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using System.Collections.Immutable;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
@@ -70,35 +72,91 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
+            // get the candidate methods
             var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
-            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            var (items, selectedItem) = type.TypeKind == TypeKind.Delegate
-                ? GetDelegateTypeConstructors(objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, type, within, cancellationToken)
-                : GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken);
-
-            return CreateSignatureHelpItems(items, textSpan,
-                GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
-        }
-
-        public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
-        {
-            if (TryGetObjectCreationExpression(
-                    root,
-                    position,
-                    syntaxFacts,
-                    SignatureHelpTriggerReason.InvokeSignatureHelpCommand,
-                    cancellationToken,
-                    out var expression) &&
-                currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
+            var methods = ImmutableArray<IMethodSymbol>.Empty;
+            if (type.TypeKind == TypeKind.Delegate)
             {
-                return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);
+                var invokeMethod = type.DelegateInvokeMethod;
+                if (invokeMethod != null)
+                {
+                    methods = ImmutableArray.Create(invokeMethod);
+                }
+            }
+            else
+            {
+                methods = type.InstanceConstructors
+                   .WhereAsArray(c => c.IsAccessibleWithin(within))
+                   .WhereAsArray(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
+                   .Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart);
+                methods = methods.Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart);
+                methods = RemoveUnacceptable(methods, objectCreationExpression, within, semanticModel, cancellationToken);
             }
 
-            return null;
+            if (!methods.Any())
+            {
+                return default;
+            }
+
+            // try to bind to the actual constructor
+            var currentSymbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol;
+
+            var semanticFactsService = document.GetLanguageService<ISemanticFactsService>();
+            var arguments = objectCreationExpression.ArgumentList.Arguments;
+            var parameterIndex = -1;
+            if (currentSymbol is null)
+            {
+                (currentSymbol, parameterIndex) = GuessCurrentSymbolAndParameter(arguments, methods, position,
+                    semanticModel, semanticFactsService, cancellationToken);
+            }
+            else
+            {
+                _ = IsAcceptable(arguments, (IMethodSymbol)currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
+            }
+
+            // present items and select
+            ImmutableArray<SignatureHelpItem> items;
+            int? selectedItem;
+            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
+            if (type.TypeKind == TypeKind.Delegate)
+            {
+                items = methods.SelectAsArray(m =>
+                    CreateItem(
+                        m, semanticModel, position,
+                        symbolDisplayService, anonymousTypeDisplayService,
+                        isVariadic: false,
+                        documentationFactory: null,
+                        prefixParts: GetDelegateTypePreambleParts(m, semanticModel, position),
+                        separatorParts: GetSeparatorParts(),
+                        suffixParts: GetDelegateTypePostambleParts(m),
+                        parameters: GetDelegateTypeParameters(m, semanticModel, position, cancellationToken)));
+                selectedItem = 0;
+            }
+            else
+            {
+                var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
+                items = methods.SelectAsArray(c =>
+                    ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken));
+                selectedItem = TryGetSelectedIndex(methods, currentSymbol);
+            }
+
+            if (currentSymbol is null || parameterIndex < 0)
+            {
+                var argumentIndex = GetArgumentIndex(arguments, position);
+                return new SignatureHelpItems(items, textSpan, argumentIndex < 0 ? 0 : argumentIndex, arguments.Count, argumentName: null, selectedItem);
+            }
+
+            var methodSymbol = (IMethodSymbol)currentSymbol;
+            var parameters = methodSymbol.Parameters;
+            var name = parameters.Length == 0 ? null : parameters[parameterIndex].Name;
+            return new SignatureHelpItems(items, textSpan, parameterIndex, methodSymbol.Parameters.Length, name, selectedItem);
+        }
+
+        private static ImmutableArray<IMethodSymbol> RemoveUnacceptable(IEnumerable<IMethodSymbol> methodGroup, ObjectCreationExpressionSyntax objectCreation,
+            ISymbol within, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            return methodGroup.Where(m => !IsInacceptable(objectCreation.ArgumentList.Arguments, m)).ToImmutableArray();
         }
     }
 }

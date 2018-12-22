@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         public abstract bool IsTriggerCharacter(char ch);
         public abstract bool IsRetriggerCharacter(char ch);
-        public abstract SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken);
 
         protected abstract Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
 
@@ -84,12 +83,6 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         {
             var itemParameterNames = item.Parameters.Select(p => p.Name).ToSet();
             return parameterNames.All(itemParameterNames.Contains);
-        }
-
-        public async Task<SignatureHelpState> GetCurrentArgumentStateAsync(Document document, int position, TextSpan currentSpan, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return GetCurrentArgumentState(root, position, document.GetLanguageService<ISyntaxFactsService>(), currentSpan, cancellationToken);
         }
 
         protected SignatureHelpItem CreateItem(

@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         private void CompareAndAssertCollectionsAndCurrentParameter(
             IEnumerable<SignatureHelpTestItem> expectedTestItems, SignatureHelpItems actualSignatureHelpItems, ISignatureHelpProvider signatureHelpProvider, Document document, int cursorPosition)
         {
-            Assert.Equal(expectedTestItems.Count(), actualSignatureHelpItems.Items.Count());
+            Assert.True(expectedTestItems.Count() == actualSignatureHelpItems.Items.Count(), $"Expected {expectedTestItems.Count()} items, but got {actualSignatureHelpItems.Items.Count()}");
 
             for (int i = 0; i < expectedTestItems.Count(); i++)
             {
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
             if (expectedTestItem.CurrentParameterIndex != null)
             {
-                Assert.Equal(expectedTestItem.CurrentParameterIndex, items.ArgumentIndex);
+                Assert.True(expectedTestItem.CurrentParameterIndex == items.ArgumentIndex, $"The current parameter is {items.ArgumentIndex}, but we expected {expectedTestItem.CurrentParameterIndex}");
             }
 
             if (expectedTestItem.Description != null)
