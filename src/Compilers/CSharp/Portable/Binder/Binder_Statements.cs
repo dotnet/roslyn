@@ -653,8 +653,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 awaitOpt = BindAsyncDisposeAwaiter(node, node.AwaitKeyword, disposeMethod, diagnostics, ref hasErrors);
             }
 
-            MessageID.IDS_FeatureUsingDeclarations.CheckFeatureAvailability(availableVersion: Compilation.LanguageVersion, diagnostics, node.Declaration.Location);
-
             return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, awaitOpt, declarations, hasErrors);
         }
 

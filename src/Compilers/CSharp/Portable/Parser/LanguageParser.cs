@@ -8299,6 +8299,8 @@ tryAgain:
         private StatementSyntax ParseLocalDeclarationStatement(SyntaxToken awaitKeywordOpt = default)
         {
             var usingKeyword = this.CurrentToken.Kind == SyntaxKind.UsingKeyword ? this.EatToken() : null;
+            usingKeyword = CheckFeatureAvailability(usingKeyword, MessageID.IDS_FeatureUsingDeclarations);
+
             var mods = _pool.Allocate();
             this.ParseDeclarationModifiers(mods);
 

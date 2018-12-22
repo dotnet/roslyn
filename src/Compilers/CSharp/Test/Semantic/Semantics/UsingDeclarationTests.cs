@@ -645,9 +645,9 @@ class C
 }
 ";
             CreateCompilation(source,  parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (7,15): error CS8370: Feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (7,9): error CS8370: Feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         using IDisposable x = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "IDisposable x = null").WithArguments("using declarations", "8.0").WithLocation(7, 15)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "using").WithArguments("using declarations", "8.0").WithLocation(7, 9)
                 );
         }
 
@@ -669,9 +669,9 @@ class C
                 // (8,9): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         await using IAsyncDisposable x = null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(8, 9),
-                // (8,21): error CS8370: Feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (8,15): error CS8370: Feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         await using IAsyncDisposable x = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "IAsyncDisposable x = null").WithArguments("using declarations", "8.0").WithLocation(8, 21)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "using").WithArguments("using declarations", "8.0").WithLocation(8, 15)
                 );
         }
 
