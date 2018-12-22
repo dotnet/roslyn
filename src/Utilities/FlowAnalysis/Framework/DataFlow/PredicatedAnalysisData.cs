@@ -438,8 +438,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return;
             }
 
-            _lazyPredicateDataMap.Values.Dispose();
-            _lazyPredicateDataMap.Dispose();
+            if (!_lazyPredicateDataMap.IsDisposed)
+            {
+                _lazyPredicateDataMap.Values.Dispose();
+                _lazyPredicateDataMap.Dispose();
+            }
+
+            Debug.Assert(_lazyPredicateDataMap.IsDisposed);
             _lazyPredicateDataMap = null;
         }
 

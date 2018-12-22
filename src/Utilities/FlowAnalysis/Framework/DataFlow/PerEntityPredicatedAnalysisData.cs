@@ -20,34 +20,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 Debug.Assert(truePredicatedData != null || falsePredicatedData != null);
 
-                TruePredicatedData = truePredicatedData;
-                FalsePredicatedData = falsePredicatedData;
+                if (truePredicatedData != null)
+                {
+                    TruePredicatedData = new DictionaryAnalysisData<TKey, TValue>(truePredicatedData);
+                }
+
+                if (falsePredicatedData != null)
+                {
+                    FalsePredicatedData = new DictionaryAnalysisData<TKey, TValue>(falsePredicatedData);
+                }
             }
 
             public PerEntityPredicatedAnalysisData(PerEntityPredicatedAnalysisData fromData)
+                : this(fromData.TruePredicatedData, fromData.FalsePredicatedData)
             {
-                if (fromData.TruePredicatedData != null)
-                {
-                    TruePredicatedData = new DictionaryAnalysisData<TKey, TValue>(fromData.TruePredicatedData);
-                }
-
-                if (fromData.FalsePredicatedData != null)
-                {
-                    FalsePredicatedData = new DictionaryAnalysisData<TKey, TValue>(fromData.FalsePredicatedData);
-                }
             }
 
             /// <summary>
             /// Analysis data for <code>true</code> value of the corresponding <see cref="AnalysisEntity"/> on which this data is predicated.
             /// <code>null</code> value indicates the corresponding <see cref="AnalysisEntity"/> can never be <code>true</code>.
             /// </summary>
-            public DictionaryAnalysisData<TKey, TValue> TruePredicatedData { get; }
+            public DictionaryAnalysisData<TKey, TValue> TruePredicatedData { get; private set; }
 
             /// <summary>
             /// Analysis data for <code>false</code> value of the corresponding <see cref="AnalysisEntity"/> on which this data is predicated.
             /// <code>null</code> value indicates the corresponding <see cref="AnalysisEntity"/> can never be <code>false</code>.
             /// </summary>
-            public DictionaryAnalysisData<TKey, TValue> FalsePredicatedData { get; }
+            public DictionaryAnalysisData<TKey, TValue> FalsePredicatedData { get; private set; }
 
             private void DisposeCore()
             {
@@ -57,7 +56,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
 
                 TruePredicatedData?.Dispose();
+                TruePredicatedData = null;
                 FalsePredicatedData?.Dispose();
+                FalsePredicatedData = null;
                 _disposed = true;
             }
 

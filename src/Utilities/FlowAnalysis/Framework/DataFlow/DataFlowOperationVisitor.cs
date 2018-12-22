@@ -1497,8 +1497,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Compute the dependent interprocedural PointsTo and Copy analysis results, if any.
-            var pointsToAnalysisResultOpt = DataFlowAnalysisContext.PointsToAnalysisResultOpt?.GetInterproceduralResult(originalOperation);
-            var copyAnalysisResultOpt = DataFlowAnalysisContext.CopyAnalysisResultOpt?.GetInterproceduralResult(originalOperation);
+            var pointsToAnalysisResultOpt = DataFlowAnalysisContext.PointsToAnalysisResultOpt?.TryGetInterproceduralResult(originalOperation);
+            var copyAnalysisResultOpt = DataFlowAnalysisContext.CopyAnalysisResultOpt?.TryGetInterproceduralResult(originalOperation);
 
             // Compute the CFG for the invoked method.
             var cfg = pointsToAnalysisResultOpt?.ControlFlowGraph ??

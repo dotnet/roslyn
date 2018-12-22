@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     internal sealed class DictionaryAnalysisData<TKey, TValue> : AbstractAnalysisData, IDictionary<TKey, TValue>
     {
-        private readonly PooledDictionary<TKey, TValue> _coreAnalysisData;
+        private PooledDictionary<TKey, TValue> _coreAnalysisData;
 
         public DictionaryAnalysisData()
         {
@@ -155,6 +155,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (disposing)
             {
                 _coreAnalysisData.Free();
+                _coreAnalysisData = null;
             }
 
             base.Dispose(disposing);
