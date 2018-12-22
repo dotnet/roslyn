@@ -201,10 +201,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var clonedMap = new DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>();
             foreach (var kvp in fromData)
             {
-                var clonedTruePredicatedData = kvp.Value.TruePredicatedData == null ? null : new DictionaryAnalysisData<TKey, TValue>(kvp.Value.TruePredicatedData);
-                var clonedFalsePredicatedData = kvp.Value.FalsePredicatedData == null ? null : new DictionaryAnalysisData<TKey, TValue>(kvp.Value.FalsePredicatedData);
-                var perEntityPredicatedData = new PerEntityPredicatedAnalysisData(clonedTruePredicatedData, clonedFalsePredicatedData);
-                clonedMap.Add(kvp.Key, perEntityPredicatedData);
+                clonedMap.Add(kvp.Key, new PerEntityPredicatedAnalysisData(kvp.Value));
             }
 
             return clonedMap;
