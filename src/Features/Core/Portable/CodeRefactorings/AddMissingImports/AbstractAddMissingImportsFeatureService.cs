@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -200,6 +201,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             {
                 return document;
             }
+
+            // The last text change should end where the insert span ends
+            Debug.Assert(textChanges.Last().Span.End == insertSpan.End);
 
             // If there are changes then, this was a case where there were no
             // previous imports statements. We need to retain the final extra
