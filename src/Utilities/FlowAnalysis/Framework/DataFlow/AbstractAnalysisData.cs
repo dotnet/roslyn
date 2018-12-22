@@ -10,17 +10,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected virtual void Dispose(bool disposing)
         {
+            IsDisposed = true;
         }
 
-#pragma warning disable CA1063 // Implement IDisposable Correctly - GC.SuppressFinalize invocation not necessary.
-        public void Dispose()
+#pragma warning disable CA1063 // Implement IDisposable Correctly - We want to ensure that we cleanup managed resources even when object was not explicitly disposed.
+        ~AbstractAnalysisData()
 #pragma warning restore CA1063 // Implement IDisposable Correctly
         {
-            if (!IsDisposed)
-            {
-                Dispose(true);
-                IsDisposed = true;
-            }
+            Dispose(true);  // We want to explicitly cleanup managed resources, so pass 'true'
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

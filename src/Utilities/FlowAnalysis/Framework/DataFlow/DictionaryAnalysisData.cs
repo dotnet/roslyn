@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             get
             {
-                Debug.Assert(!IsDisposed);
+                // "Values" might be accessed during dispose.
+                //Debug.Assert(!IsDisposed);
                 return _coreAnalysisData.Values;
             }
         }
@@ -146,10 +147,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override void Dispose(bool disposing)
         {
+            if (IsDisposed)
+            {
+                return;
+            }
+
             if (disposing)
             {
                 _coreAnalysisData.Free();
             }
+
+            base.Dispose(disposing);
         }
     }
 }

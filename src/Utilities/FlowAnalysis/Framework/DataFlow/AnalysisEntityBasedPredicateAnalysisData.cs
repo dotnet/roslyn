@@ -158,10 +158,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override void Dispose(bool disposing)
         {
+            if (IsDisposed)
+            {
+                return;
+            }
+
             if (disposing)
             {
                 CoreAnalysisData.Dispose();
             }
+
+            base.Dispose(disposing);
         }
     }
 }

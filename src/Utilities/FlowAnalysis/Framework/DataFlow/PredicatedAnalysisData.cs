@@ -470,10 +470,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override void Dispose(bool disposing)
         {
+            if (IsDisposed)
+            {
+                return;
+            }
+
             if (disposing)
             {
                 ResetPredicatedData();
             }
+
+            base.Dispose(disposing);
         }
     }
 }

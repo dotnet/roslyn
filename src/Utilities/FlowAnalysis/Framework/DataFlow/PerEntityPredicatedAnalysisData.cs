@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// </summary>
         protected sealed class PerEntityPredicatedAnalysisData : IDisposable
         {
-#if DEBUG
             private bool _disposed;
-#endif
 
             public PerEntityPredicatedAnalysisData(DictionaryAnalysisData<TKey, TValue> truePredicatedData, DictionaryAnalysisData<TKey, TValue> falsePredicatedData)
             {
@@ -51,14 +49,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             /// </summary>
             public DictionaryAnalysisData<TKey, TValue> FalsePredicatedData { get; }
 
-            public void Dispose()
+            private void DisposeCore()
             {
+                if (_disposed)
+                {
+                    return;
+                }
+
                 TruePredicatedData?.Dispose();
                 FalsePredicatedData?.Dispose();
-#if DEBUG
-                Debug.Assert(!_disposed);
                 _disposed = true;
-#endif
+            }
+
+            ~PerEntityPredicatedAnalysisData()
+            {
+                DisposeCore();
+            }
+
+            public void Dispose()
+            {
+                DisposeCore();
+                GC.SuppressFinalize(this);
             }
         }
     }
