@@ -5,8 +5,6 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-    using CoreTaintedDataAnalysisData = IDictionary<AnalysisEntity, TaintedDataAbstractValue>;
-
     internal sealed class TaintedDataAnalysisData : AnalysisEntityBasedPredicateAnalysisData<TaintedDataAbstractValue>
     {
         public TaintedDataAnalysisData()
@@ -14,7 +12,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
         }
 
-        public TaintedDataAnalysisData(CoreTaintedDataAnalysisData fromData)
+        public TaintedDataAnalysisData(IDictionary<AnalysisEntity, TaintedDataAbstractValue> fromData)
             : base(fromData)
         {
         }

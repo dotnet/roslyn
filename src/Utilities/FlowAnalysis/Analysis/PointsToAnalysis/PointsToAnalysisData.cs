@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
-    using CorePointsToAnalysisData = IDictionary<AnalysisEntity, PointsToAbstractValue>;
+    using CorePointsToAnalysisData = DictionaryAnalysisData<AnalysisEntity, PointsToAbstractValue>;
 
     /// <summary>
     /// Aggregated PointsTo analysis data tracked by <see cref="PointsToAnalysis"/>.
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         {
         }
 
-        public PointsToAnalysisData(CorePointsToAnalysisData fromData)
+        public PointsToAnalysisData(IDictionary<AnalysisEntity, PointsToAbstractValue> fromData)
             : base(fromData)
         {
             AssertValidPointsToAnalysisData(fromData);
@@ -101,8 +101,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         }
 
         [Conditional("DEBUG")]
-        public static void AssertValidPointsToAnalysisData(CorePointsToAnalysisData map)
+        public static void AssertValidPointsToAnalysisData(IDictionary<AnalysisEntity, PointsToAbstractValue> map)
         {
+            if (map is CorePointsToAnalysisData corePointsToAnalysisData)
+            {
+                Debug.Assert(!corePointsToAnalysisData.IsDisposed);
+            }
+
             foreach (var kvp in map)
             {
                 AssertValidPointsToAnalysisKeyValuePair(kvp.Key, kvp.Value);

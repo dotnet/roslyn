@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 {
-    using CoreValueContentAnalysisData = IDictionary<AnalysisEntity, ValueContentAbstractValue>;
+    using CoreValueContentAnalysisData = DictionaryAnalysisData<AnalysisEntity, ValueContentAbstractValue>;
 
     /// <summary>
     /// Aggregated value content analysis data tracked by <see cref="ValueContentAnalysis"/>.
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         {
         }
 
-        public ValueContentAnalysisData(CoreValueContentAnalysisData fromData)
+        public ValueContentAnalysisData(IDictionary<AnalysisEntity, ValueContentAbstractValue> fromData)
             : base(fromData)
         {
         }

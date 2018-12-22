@@ -95,8 +95,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        internal DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> GetInterproceduralResult(IOperation operation)
-            => (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>)_interproceduralResultsMap[operation];
+        internal DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> TryGetInterproceduralResult(IOperation operation)
+        {
+            if (_interproceduralResultsMap.TryGetValue(operation, out var result))
+            {
+                return (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>)result;
+            }
+
+            return null;
+        }
 
         public ControlFlowGraph ControlFlowGraph { get; }
         public (TAbstractAnalysisValue Value, PredicateValueKind PredicateValueKind)? ReturnValueAndPredicateKindOpt { get; }

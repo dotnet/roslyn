@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalysis
 {
-    using ParameterValidationAnalysisData = IDictionary<AbstractLocation, ParameterValidationAbstractValue>;
+    using ParameterValidationAnalysisData = DictionaryAnalysisData<AbstractLocation, ParameterValidationAbstractValue>;
 
     /// <summary>
     /// Result from execution of <see cref="ParameterValidationAnalysis"/> on a basic block.

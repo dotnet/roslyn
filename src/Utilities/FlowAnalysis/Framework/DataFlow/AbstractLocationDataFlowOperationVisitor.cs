@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     internal abstract class AbstractLocationDataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         : DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+        where TAnalysisData: AbstractAnalysisData
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult : IDataFlowAnalysisResult<TAbstractAnalysisValue>
     {
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <summary>
         /// Helper method to reset analysis data for analysis locations.
         /// </summary>
-        protected void ResetAnalysisData(IDictionary<AbstractLocation, TAbstractAnalysisValue> currentAnalysisDataOpt)
+        protected void ResetAnalysisData(DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue> currentAnalysisDataOpt)
         {
             // Reset the current analysis data, while ensuring that we don't violate the monotonicity, i.e. we cannot remove any existing key from currentAnalysisData.
             // Just set the values for existing keys to ValueDomain.UnknownOrMayBeValue.
@@ -118,9 +120,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected static IDictionary<AbstractLocation, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AbstractLocation, TAbstractAnalysisValue> analysisData)
-            => new Dictionary<AbstractLocation, TAbstractAnalysisValue>(analysisData);
-        protected static IDictionary<AbstractLocation, TAbstractAnalysisValue> GetEmptyAnalysisDataHelper()
+        protected static DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AbstractLocation, TAbstractAnalysisValue> analysisData)
+            => new DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue>(analysisData);
+        protected static DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue> GetEmptyAnalysisDataHelper()
             => GetClonedAnalysisDataHelper(ImmutableDictionary<AbstractLocation, TAbstractAnalysisValue>.Empty);
 
         #region Visitor methods

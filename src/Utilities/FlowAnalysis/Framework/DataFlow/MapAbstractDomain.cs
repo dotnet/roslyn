@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// An abstract domain implementation for analyses that store dictionary typed data.
     /// </summary>
-    internal class MapAbstractDomain<TKey, TValue> : AbstractAnalysisDomain<IDictionary<TKey, TValue>>
+    internal class MapAbstractDomain<TKey, TValue> : AbstractAnalysisDomain<DictionaryAnalysisData<TKey, TValue>>
     {
         public MapAbstractDomain(AbstractValueDomain<TValue> valueDomain)
         {
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         protected AbstractValueDomain<TValue> ValueDomain { get; }
-        public override IDictionary<TKey, TValue> Clone(IDictionary<TKey, TValue> value) => new Dictionary<TKey, TValue>(value);
+        public override DictionaryAnalysisData<TKey, TValue> Clone(DictionaryAnalysisData<TKey, TValue> value) => new DictionaryAnalysisData<TKey, TValue>(value);
 
         /// <summary>
         /// Compares if the abstract dataflow values in <paramref name="oldValue"/> against the values in <paramref name="newValue"/> to ensure
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         ///    the value of each such key in <paramref name="oldValue"/> is lesser than or equals the value in <paramref name="newValue"/>.
         /// 3) 1, otherwise.
         /// </returns>
-        public sealed override int Compare(IDictionary<TKey, TValue> oldValue, IDictionary<TKey, TValue> newValue)
+        public sealed override int Compare(DictionaryAnalysisData<TKey, TValue> oldValue, DictionaryAnalysisData<TKey, TValue> newValue)
         {
             Debug.Assert(oldValue != null);
             Debug.Assert(newValue != null);
@@ -71,12 +71,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return newValueIsBigger ? -1 : 0;
         }
 
-        public override IDictionary<TKey, TValue> Merge(IDictionary<TKey, TValue> value1, IDictionary<TKey, TValue> value2)
+        public override DictionaryAnalysisData<TKey, TValue> Merge(DictionaryAnalysisData<TKey, TValue> value1, DictionaryAnalysisData<TKey, TValue> value2)
         {
             Debug.Assert(value1 != null);
             Debug.Assert(value2 != null);
 
-            var result = new Dictionary<TKey, TValue>(value1);
+            var result = new DictionaryAnalysisData<TKey, TValue>(value1);
             foreach (var entry in value2)
             {
                 if (result.TryGetValue(entry.Key, out TValue value))

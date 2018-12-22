@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     /// <summary>
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     internal abstract class ForwardDataFlowAnalysis<TAnalysisData, TAnalysisContext, TAnalysisResult, TBlockAnalysisResult, TAbstractAnalysisValue>
         : DataFlowAnalysis<TAnalysisData, TAnalysisContext, TAnalysisResult, TBlockAnalysisResult, TAbstractAnalysisValue>
-        where TAnalysisData : class
+        where TAnalysisData : AbstractAnalysisData
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult : DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>
         where TBlockAnalysisResult : AbstractBlockAnalysisResult

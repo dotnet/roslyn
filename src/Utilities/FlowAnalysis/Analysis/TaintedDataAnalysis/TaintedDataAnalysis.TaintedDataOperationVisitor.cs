@@ -44,10 +44,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return builder.ToImmutableArray();
             }
 
-            protected override void AddTrackedEntities(ImmutableArray<AnalysisEntity>.Builder builder)
-            {
-                this.CurrentAnalysisData.AddTrackedEntities(builder);
-            }
+            protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder)
+                => CurrentAnalysisData.AddTrackedEntities(builder);
 
             protected override bool Equals(TaintedDataAnalysisData value1, TaintedDataAnalysisData value2)
             {

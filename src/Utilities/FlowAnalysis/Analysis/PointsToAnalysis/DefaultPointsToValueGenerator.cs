@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             return value;
         }
 
-        public void AddTrackedEntities(ImmutableArray<AnalysisEntity>.Builder builder) => builder.AddRange(_defaultPointsToValueMapBuilder.Keys);
+        public void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder) => builder.UnionWith(_defaultPointsToValueMapBuilder.Keys);
         public bool IsTrackedEntity(AnalysisEntity analysisEntity) => _defaultPointsToValueMapBuilder.ContainsKey(analysisEntity);
     }
 }

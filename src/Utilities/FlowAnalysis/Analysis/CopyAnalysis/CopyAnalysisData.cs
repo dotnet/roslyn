@@ -2,13 +2,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
-    using CoreCopyAnalysisData = IDictionary<AnalysisEntity, CopyAbstractValue>;
+    using CoreCopyAnalysisData = DictionaryAnalysisData<AnalysisEntity, CopyAbstractValue>;
 
     /// <summary>
     /// Aggregated copy analysis data tracked by <see cref="CopyAnalysis"/>.
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         {
         }
 
-        public CopyAnalysisData(CoreCopyAnalysisData fromData)
+        public CopyAnalysisData(IDictionary<AnalysisEntity, CopyAbstractValue> fromData)
             : base(fromData)
         {
             AssertValidCopyAnalysisData();
@@ -193,10 +192,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
         [Conditional("DEBUG")]
         public static void AssertValidCopyAnalysisData(
-            CoreCopyAnalysisData map,
+            IDictionary<AnalysisEntity, CopyAbstractValue> map,
             Func<AnalysisEntity, CopyAbstractValue> tryGetDefaultCopyValueOpt = null,
             bool initializingParameters = false)
         {
+            if (map is CoreCopyAnalysisData coreCopyAnalysisData)
+            {
+                Debug.Assert(!coreCopyAnalysisData.IsDisposed);
+            }
+
             foreach (var kvp in map)
             {
                 AssertValidCopyAnalysisEntity(kvp.Key);

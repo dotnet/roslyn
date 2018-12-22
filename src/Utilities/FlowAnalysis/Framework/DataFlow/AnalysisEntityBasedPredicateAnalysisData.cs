@@ -15,18 +15,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     {
         protected AnalysisEntityBasedPredicateAnalysisData()
         {
-            CoreAnalysisData = new Dictionary<AnalysisEntity, TValue>();
+            CoreAnalysisData = new DictionaryAnalysisData<AnalysisEntity, TValue>();
         }
 
         protected AnalysisEntityBasedPredicateAnalysisData(IDictionary<AnalysisEntity, TValue> fromData)
         {
-            CoreAnalysisData = new Dictionary<AnalysisEntity, TValue>(fromData);
+            CoreAnalysisData = new DictionaryAnalysisData<AnalysisEntity, TValue>(fromData);
         }
 
         protected AnalysisEntityBasedPredicateAnalysisData(AnalysisEntityBasedPredicateAnalysisData<TValue> fromData)
             : base(fromData)
         {
-            CoreAnalysisData = new Dictionary<AnalysisEntity, TValue>(fromData.CoreAnalysisData);
+            CoreAnalysisData = new DictionaryAnalysisData<AnalysisEntity, TValue>(fromData.CoreAnalysisData);
         }
 
         protected AnalysisEntityBasedPredicateAnalysisData(
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         protected AnalysisEntityBasedPredicateAnalysisData(
-            IDictionary<AnalysisEntity, TValue> mergedCoreAnalysisData,
+            DictionaryAnalysisData<AnalysisEntity, TValue> mergedCoreAnalysisData,
             PredicatedAnalysisData<AnalysisEntity, TValue> predicatedData1,
             PredicatedAnalysisData<AnalysisEntity, TValue> predicatedData2,
             bool isReachableData,
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             CoreAnalysisData = mergedCoreAnalysisData;
         }
 
-        public IDictionary<AnalysisEntity, TValue> CoreAnalysisData { get; }
+        public DictionaryAnalysisData<AnalysisEntity, TValue> CoreAnalysisData { get; }
 
         public virtual bool HasAnyAbstractValue => CoreAnalysisData.Count > 0 || HasPredicatedData;
 
@@ -81,8 +81,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public TValue this[AnalysisEntity key] => CoreAnalysisData[key];
 
+        [Conditional("DEBUG")]
+        private void AssertValidAnalysisData()
+        {
+            Debug.Assert(!CoreAnalysisData.IsDisposed);
+            AssertValidPredicatedAnalysisData(map => Debug.Assert(!map.IsDisposed));
+        }
+
         public virtual void SetAbstractValue(AnalysisEntity key, TValue value)
         {
+            AssertValidAnalysisData();
             if (HasPredicatedData)
             {
                 RemoveEntriesInPredicatedData(key);
@@ -93,6 +101,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public void RemoveEntries(AnalysisEntity key)
         {
+            AssertValidAnalysisData();
+
             CoreAnalysisData.Remove(key);
             if (HasPredicatedData)
             {
@@ -102,12 +112,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public bool Equals(AnalysisEntityBasedPredicateAnalysisData<TValue> other)
         {
+            AssertValidAnalysisData();
+
             return base.Equals(other) &&
                 EqualsHelper(CoreAnalysisData, other.CoreAnalysisData);
         }
 
         public virtual void Reset(Func<AnalysisEntity, TValue, TValue> getResetValue)
         {
+            AssertValidAnalysisData();
+            
             // Reset the current analysis data, while ensuring that we don't violate the monotonicity, i.e. we cannot remove any existing key from currentAnalysisData.
             // Just set the values for existing keys to ValueDomain.UnknownOrMayBeValue.
             if (CoreAnalysisData.Count > 0)
@@ -120,14 +134,41 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             ResetPredicatedData();
+            AssertValidAnalysisData();
         }
 
         public void StartTrackingPredicatedData(AnalysisEntity predicatedEntity, AnalysisEntityBasedPredicateAnalysisData<TValue> truePredicateData, AnalysisEntityBasedPredicateAnalysisData<TValue> falsePredicateData)
-            => StartTrackingPredicatedData(predicatedEntity, truePredicateData?.CoreAnalysisData, falsePredicateData?.CoreAnalysisData);
+        {
+            AssertValidAnalysisData();
+
+            StartTrackingPredicatedData(predicatedEntity, truePredicateData?.CoreAnalysisData, falsePredicateData?.CoreAnalysisData);
+            AssertValidAnalysisData();
+        }
 
         public PredicateValueKind ApplyPredicatedDataForEntity(AnalysisEntity predicatedEntity, bool trueData)
-            => ApplyPredicatedDataForEntity(CoreAnalysisData, predicatedEntity, trueData);
+        {
+            AssertValidAnalysisData();
 
-        public void AddTrackedEntities(ImmutableArray<AnalysisEntity>.Builder builder) => builder.AddRange(CoreAnalysisData.Keys);
+            var result = ApplyPredicatedDataForEntity(CoreAnalysisData, predicatedEntity, trueData);
+            AssertValidAnalysisData();
+            return result;
+        }
+
+        public void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder) => builder.UnionWith(CoreAnalysisData.Keys);
+
+        protected override void Dispose(bool disposing)
+        {
+            if (IsDisposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                CoreAnalysisData.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
     }
 }

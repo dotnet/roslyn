@@ -1,20 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Analyzer.Utilities;
-using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 {
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
-    using DisposeAnalysisData = IDictionary<AbstractLocation, DisposeAbstractValue>;
-    using InterproceduralDisposeAnalysisData = InterproceduralAnalysisData<IDictionary<AbstractLocation, DisposeAbstractValue>, DisposeAnalysisContext, DisposeAbstractValue>;
+    using DisposeAnalysisData = DictionaryAnalysisData<AbstractLocation, DisposeAbstractValue>;
+    using InterproceduralDisposeAnalysisData = InterproceduralAnalysisData<DictionaryAnalysisData<AbstractLocation, DisposeAbstractValue>, DisposeAnalysisContext, DisposeAbstractValue>;
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
 
     /// <summary>
