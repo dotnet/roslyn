@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -15,17 +14,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="BoundObjectCreationExpression"/>. It is used to track the state 
         /// of members being initialized.
         /// </summary>
-        private class ObjectCreationPlaceholderLocal : LocalSymbol
+        private sealed class ObjectCreationPlaceholderLocal : LocalSymbol
         {
             private readonly Symbol _containingSymbol;
             private readonly TypeSymbolWithAnnotations _type;
-            public readonly BoundExpression ObjectCreationExpression;
+            private readonly BoundExpression _objectCreationExpression;
 
             public ObjectCreationPlaceholderLocal(Symbol containingSymbol, BoundExpression objectCreationExpression)
             {
                 _containingSymbol = containingSymbol;
-                _type = TypeSymbolWithAnnotations.Create(objectCreationExpression.Type, isNullableIfReferenceType: false);
-                ObjectCreationExpression = objectCreationExpression;
+                _type = TypeSymbolWithAnnotations.Create(objectCreationExpression.Type, NullableAnnotation.NotNullable);
+                _objectCreationExpression = objectCreationExpression;
             }
 
             public override bool Equals(object obj)
@@ -37,12 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var other = obj as ObjectCreationPlaceholderLocal;
 
-                return (object)other != null && (object)ObjectCreationExpression == other.ObjectCreationExpression;
+                return (object)other != null && (object)_objectCreationExpression == other._objectCreationExpression;
             }
 
             public override int GetHashCode()
             {
-                return ObjectCreationExpression.GetHashCode();
+                return _objectCreationExpression.GetHashCode();
             }
 
             internal override SyntaxNode ScopeDesignatorOpt
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics = null)
             {
-                return null; 
+                return null;
             }
 
             internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue)

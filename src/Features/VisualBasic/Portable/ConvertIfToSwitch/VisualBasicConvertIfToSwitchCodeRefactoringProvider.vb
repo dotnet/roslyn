@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
 
             Protected Overrides Iterator Function GetIfElseStatementChain(node As ExecutableStatementSyntax) _
                 As IEnumerable(Of (ExpressionSyntax, SyntaxList(Of StatementSyntax)))
-                Dim elseBlockStatements As SyntaxList(Of StatementSyntax) ?
+                Dim elseBlockStatements As SyntaxList(Of StatementSyntax)?
 
                 Dim singleLineIf = TryCast(node, SingleLineIfStatementSyntax)
                 If singleLineIf IsNot Nothing Then

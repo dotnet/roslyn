@@ -2,18 +2,12 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>netstandard1.3;$(RoslynPortableTargetFrameworks);net46</TargetFrameworks>
-    <DefineConstants>$(DefineConstants);DNX</DefineConstants>
-    <NoStdLib>true</NoStdLib>
-    <RootNamespace></RootNamespace>
-    <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
+    <TargetFrameworks>netstandard2.0;$(RoslynPortableTargetFrameworks);net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
-  <ItemGroup Label="Project References">
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
@@ -24,12 +18,12 @@
       Note SkipGetTargetFrameworkProperties makes it possible to reference project with incompatible TFM.
       GlobalPropertiesToRemove makes sure TargetFramework isn't set as a global property for the target project.
     -->
-    <ProjectReference Include="..\..\..\Tools\ILAsm\IlAsmDeploy.csproj" 
-       ReferenceOutputAssembly="false"
-       SkipGetTargetFrameworkProperties="true"
-       GlobalPropertiesToRemove="TargetFramework" 
-       Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+    <ProjectReference Include="..\..\..\Tools\ILAsm\IlAsmDeploy.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" GlobalPropertiesToRemove="TargetFramework" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
 
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Needed to find the Unsafe.dll binary to lay out at runtime for the compiler when testing analyzers. -->
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -88,16 +82,17 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>TestResource.resx</DependentUpon>
     </Compile>
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\ControlFlowRegionExtensions.cs" Link="Compilation\FlowAnalysis\ControlFlowRegionExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\FlowAnalysis\CustomDataFlowAnalysis.cs" Link="Compilation\FlowAnalysis\CustomDataFlowAnalysis.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\FlowAnalysis\DataFlowAnalyzer.cs" Link="Compilation\FlowAnalysis\DataFlowAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="TestResource.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>TestResource.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Roslyn.Test.Utilities</CustomToolNamespace>
+      <LogicalName>TestResource.resources</LogicalName>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" Version="$(MicrosoftCodeAnalysisTestResourcesProprietaryVersion)" />
@@ -105,16 +100,8 @@
     <PackageReference Include="Microsoft.DiaSymReader.Converter.Xml" Version="$(MicrosoftDiaSymReaderConverterXmlVersion)" />
     <PackageReference Include="Microsoft.Metadata.Visualizer" Version="$(MicrosoftMetadataVisualizerVersion)" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="$(MicrosoftNETCorePlatformsVersion)" />
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.3'">
-    <PackageReference Include="System.Reflection.TypeExtensions" Version="$(SystemReflectionTypeExtensionsVersion)" />
-    <PackageReference Include="System.Diagnostics.TraceSource" Version="$(SystemDiagnosticsTraceSourceVersion)" />
-    <PackageReference Include="System.Diagnostics.Process" Version="$(SystemDiagnosticsProcessVersion)" />
-    <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
-    <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
+    <PackageReference Include="xunit.assert" Version="$(xunitassertVersion)" />
+    <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
     <PackageReference Include="ICSharpCode.Decompiler" Version="$(ICSharpCodeDecompilerVersion)" />
   </ItemGroup>
 </Project>

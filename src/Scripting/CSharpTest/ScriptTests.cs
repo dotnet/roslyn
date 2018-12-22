@@ -88,11 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             pdbStream.Position = 0;
 
             PdbValidation.ValidateDebugDirectory(
-                peStream, 
-                portablePdbStreamOpt: (format == DebugInformationFormat.PortablePdb) ? pdbStream : null, 
-                pdbPath: compilation.AssemblyName + ".pdb", 
-                hashAlgorithm: default, 
-                hasEmbeddedPdb: false, 
+                peStream,
+                portablePdbStreamOpt: (format == DebugInformationFormat.PortablePdb) ? pdbStream : null,
+                pdbPath: compilation.AssemblyName + ".pdb",
+                hashAlgorithm: default,
+                hasEmbeddedPdb: false,
                 isDeterministic: false);
         }
 
@@ -227,7 +227,7 @@ d.Do()"
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 32));
             }
 
-             Assert.True(exceptionThrown);
+            Assert.True(exceptionThrown);
         }
 
         [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
@@ -827,7 +827,7 @@ i", options);
             catch (CompilationErrorException ex)
             {
                 //  CS8055: Cannot emit debug information for a source text without encoding.
-                ex.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, code).WithLocation(1,1));
+                ex.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, code).WithLocation(1, 1));
             }
         }
 

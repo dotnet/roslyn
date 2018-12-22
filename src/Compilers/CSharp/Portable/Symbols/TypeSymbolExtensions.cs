@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (NamedTypeSymbol @interface in subType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
-                if (@interface.IsInterface && @interface == superInterface)
+                if (@interface.IsInterface && TypeSymbol.Equals(@interface, superInterface, TypeCompareKind.ConsiderEverything2))
                 {
                     return true;
                 }
@@ -44,6 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // https://github.com/dotnet/roslyn/issues/30056: Should probably rename this method to have more specific name.
         //                                    At the moment it is used only for Nullable Reference Types feature and
         //                                    its implementation is specialized for this feature.
+        //    T => true
+        //    T where T : struct => false
+        //    T where T : class => false
+        //    T where T : class? => true
+        //    T where T : IComparable => true
+        //    T where T : IComparable? => true
         public static bool IsUnconstrainedTypeParameter(this TypeSymbol type)
         {
             if (type.TypeKind != TypeKind.TypeParameter)
@@ -56,6 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return !typeParameter.IsValueType && !(typeParameter.IsReferenceType && typeParameter.IsNotNullableIfReferenceType == true);
         }
 
+        //    T => true
+        //    T where T : struct => false
+        //    T where T : class => false
+        //    T where T : class? => true
+        //    T where T : IComparable => false
+        //    T where T : IComparable? => true
         public static bool IsPossiblyNullableReferenceTypeTypeParameter(this TypeSymbol type)
         {
             if (type.TypeKind != TypeKind.TypeParameter)
@@ -331,10 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsExpressionTree(this TypeSymbol _type)
         {
-            // TODO: there must be a better way!
-            var type = _type.OriginalDefinition as NamedTypeSymbol;
-            return
-                (object)type != null &&
+            return _type.OriginalDefinition is NamedTypeSymbol type &&
                 type.Arity == 1 &&
                 type.MangleName &&
                 type.Name == "Expression" &&
@@ -431,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-       public static ImmutableArray<TypeSymbolWithAnnotations> GetElementTypesOfTupleOrCompatible(this TypeSymbol type)
+        public static ImmutableArray<TypeSymbolWithAnnotations> GetElementTypesOfTupleOrCompatible(this TypeSymbol type)
         {
             if (type.IsTupleType)
             {
@@ -898,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static readonly Func<TypeSymbol, TypeParameterSymbol, bool, bool> s_containsTypeParameterPredicate =
-            (type, parameter, unused) => type.TypeKind == TypeKind.TypeParameter && ((object)parameter == null || type == parameter);
+            (type, parameter, unused) => type.TypeKind == TypeKind.TypeParameter && ((object)parameter == null || TypeSymbol.Equals(type, parameter, TypeCompareKind.ConsiderEverything2));
 
         public static bool ContainsTypeParameter(this TypeSymbol type, MethodSymbol parameterContainer)
         {
@@ -941,7 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Return true if the type contains any tuples with element names.
         /// </summary>
         internal static bool ContainsTupleNames(this TypeSymbol type) =>
-            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => !t.TupleElementNames.IsDefault , null) != null;
+            (object)type.VisitType((TypeSymbol t, object _1, bool _2) => !t.TupleElementNames.IsDefault, null) != null;
 
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
@@ -1044,8 +1053,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
             }
 
-            return ignoreSpanLikeTypes? 
-                        false:
+            return ignoreSpanLikeTypes ?
+                        false :
                         type.IsByRefLikeType;
         }
 
@@ -1430,6 +1439,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return namedType.IsCustomTaskType(out builderArgument);
         }
 
+        internal static bool IsIAsyncEnumerableType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 1)
+            {
+                return false;
+            }
+
+            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+        }
+
+        internal static bool IsIAsyncEnumeratorType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 1)
+            {
+                return false;
+            }
+
+            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T);
+        }
+
         /// <summary>
         /// Returns true if the type is generic or non-generic custom task-like type due to the
         /// [AsyncMethodBuilder(typeof(B))] attribute. It returns the "B".
@@ -1626,7 +1657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (type.ContainsNullableReferenceTypes())
+            if (type.NeedsNullableAttribute())
             {
                 SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(declaringSymbol, type);
                 if (attr != null)
@@ -1669,6 +1700,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var globalNamespace = systemNamespace.ContainingNamespace;
 
             return globalNamespace != null && globalNamespace.IsGlobalNamespace;
+        }
+
+        public static bool IsBadAsyncReturn(this TypeSymbol returnType, CSharpCompilation declaringCompilation)
+        {
+            // Note: we're passing the return type explicitly (rather than using `method.ReturnType`) to avoid cycles
+            return !returnType.IsErrorType() &&
+                returnType.SpecialType != SpecialType.System_Void &&
+                !returnType.IsNonGenericTaskType(declaringCompilation) &&
+                !returnType.IsGenericTaskType(declaringCompilation) &&
+                !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
+                !returnType.IsIAsyncEnumeratorType(declaringCompilation);
         }
     }
 }

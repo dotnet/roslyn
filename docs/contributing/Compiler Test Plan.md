@@ -5,7 +5,7 @@ This document provides guidance for thinking about language interactions and tes
 - Other external documentation
 - Backward and forward compatibility (interoperation with previous and future compilers, each in both directions)
 - Error handling/recovery (missing libraries, including missing types in mscorlib; errors in parsing, ambiguous lookup, inaccessible lookup, wrong kind of thing found, instance vs static thing found, wrong type for the context, value vs variable)
-- BCL and other customer impact
+- BCL (including mono) and other customer impact
 - Determinism
 - Loading from metadata (source vs. loaded from metadata)
 - Public interface of compiler APIs (including semantic model APIs listed below):
@@ -27,6 +27,7 @@ This document provides guidance for thinking about language interactions and tes
     - AnalyzeStatementDataFlow 
     - ClassifyConversion
     - GetOperation (IOperation)
+    - ControlFlowGraph
 - VB/F# interop
 - Performance and stress testing
  
@@ -72,20 +73,23 @@ This document provides guidance for thinking about language interactions and tes
 - Inheritance (virtual, override, abstract, new)
 - Anonymous types
 - Tuple types and literals (elements with explicit or inferred names, long tuples), tuple equality
+- Range literals (`1..2`) and Index operator (`^1`) 
 - Deconstructions
 - Local functions
 - Unsafe code
 - LINQ
 - Constructors, properties, indexers, events, operators, and destructors.
-- Async (task-like types)
+- Async (task-like types) and async-iterator methods
 - Lvalues: the synthesized fields are mutable 
     - Ref / out parameters
-    - Compound operators (+=, /=, etc ..) 
+    - Compound operators (`+=`, `/=`, etc ..) 
     - Assignment exprs
 - Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
 - `this = e;` in `struct` .ctor
 - Stackalloc (including initializers)
-- Patterns
+- Patterns (constant, declaration, `var`, positional, property, and discard forms)
+- Switch expressions
+- Nullability annotations (`?`, attributes) and analysis
 
 # Misc
 - reserved keywords (sometimes contextual)
@@ -99,10 +103,10 @@ This document provides guidance for thinking about language interactions and tes
 # Testing in interaction with other components
 Interaction with IDE, Debugger, and EnC should be worked out with relevant teams. A few highlights:
 - IDE
-    - Colorization
+    - Colorization and formatting
     - Typing experience and dealing with incomplete code
     - Intellisense (squiggles, dot completion)
-    - "go to" and renaming
+    - "go to", Find All References, and renaming
     - cref comments
     - UpgradeProject code fixer
     - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/master/docs/contributing/IDE%20Test%20Plan.md)
@@ -129,7 +133,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
 { … }  
 ;   
 label : … 
-T x = whatever; 
+T x = whatever; // including `using` and `await` using variants
 M(); 
 ++x; 
 x++; 
@@ -141,7 +145,7 @@ switch(…) { … case (…) when (…): … }
 while(…) … 
 do … while(…); 
 for( … ; … ; … ) … 
-foreach(…) …
+foreach(…) … // including `await` variant
 fixed(…) … // (plain, or custom with `GetPinnableReference`)
 goto … ; 
 throw … ; 
@@ -150,7 +154,7 @@ try  { … } catch (…) when (…) { … } finally { … }
 checked { … } 
 unchecked { … } 
 lock(…) … 
-using (…) … 
+using (…) … // including `await` variant
 yield return …; 
 yield break; 
 break; 
@@ -213,6 +217,7 @@ delegate ( ) { }
 -x 
 !x 
 ~x 
+^x
 ++x 
 --x 
 (X)x 
@@ -237,7 +242,7 @@ x | y
 x && y 
 x || y 
 x ?? y 
-x ? : y : z 
+x ? : y : z
 x = y 
 x *= y 
 x /= y 

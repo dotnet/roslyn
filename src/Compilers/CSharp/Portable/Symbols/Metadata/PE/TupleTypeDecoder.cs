@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbol decoded = DecodeTupleTypesInternal(type, elementNames, hasTupleElementNamesAttribute);
             return (object)decoded == (object)type ?
                 metadataType :
-                TypeSymbolWithAnnotations.Create(metadataType.NonNullTypesContext, decoded, isAnnotated: metadataType.IsAnnotated, metadataType.CustomModifiers);
+                TypeSymbolWithAnnotations.Create(decoded, metadataType.NullableAnnotation, metadataType.CustomModifiers);
         }
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(
@@ -276,11 +276,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ArrayTypeSymbol DecodeArrayType(ArrayTypeSymbol type)
         {
-            TypeSymbolWithAnnotations elementType = type.ElementType;
-            TypeSymbolWithAnnotations decodedElementType = DecodeTypeInternal(elementType);
-            return decodedElementType.IsSameAs(elementType)
-                ? type
-                : type.WithElementType(decodedElementType);
+            TypeSymbolWithAnnotations decodedElementType = DecodeTypeInternal(type.ElementType);
+            return type.WithElementType(decodedElementType);
         }
 
         private TypeSymbolWithAnnotations DecodeTypeInternal(TypeSymbolWithAnnotations typeWithAnnotations)
@@ -289,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbol decoded = DecodeType(type);
             return ReferenceEquals(decoded, type) ?
                 typeWithAnnotations :
-                TypeSymbolWithAnnotations.Create(typeWithAnnotations.NonNullTypesContext, decoded, isAnnotated: typeWithAnnotations.IsAnnotated, typeWithAnnotations.CustomModifiers);
+                TypeSymbolWithAnnotations.Create(decoded, typeWithAnnotations.NullableAnnotation, typeWithAnnotations.CustomModifiers);
         }
 
         private ImmutableArray<string> EatElementNamesIfAvailable(int numberOfElements)

@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => null;
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
+        internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved = null)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool? IsNotNullableIfReferenceTypeFromConstraintType(TypeSymbolWithAnnotations constraintType)
         {
-            if (constraintType.IsAnnotated)
+            if (constraintType.NullableAnnotation.IsAnyNullable())
             {
                 return false;
             }
@@ -486,12 +486,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (constraintType.NonNullTypesContext.NonNullTypes == true)
+            if (constraintType.NullableAnnotation == NullableAnnotation.Unknown)
             {
-                return true;
+                return null;
             }
 
-            return null;
+            return true;
         }
 
         internal bool IsValueTypeFromConstraintTypes(ImmutableArray<TypeSymbolWithAnnotations> constraintTypes, ConsList<TypeParameterSymbol> inProgress)
@@ -667,11 +667,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(ContainingSymbol, Ordinal);
         }
 
-        internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
+        internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
         }
 
-        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result)
+        internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
         {
             result = this;
             return true;
@@ -682,12 +682,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this;
         }
 
-        public override sealed bool? NonNullTypes
+        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
         {
-            get
-            {
-                return ContainingSymbol.NonNullTypes;
-            }
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            hadNullabilityMismatch = false;
+            return this;
         }
 
         #region ITypeParameterTypeSymbol Members

@@ -88,6 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RestoreKeyword:
                 case SyntaxKind.ReferenceKeyword:
                 case SyntaxKind.LoadKeyword:
+                case SyntaxKind.NullableKeyword:
+                case SyntaxKind.EnableKeyword:
+                case SyntaxKind.SafeOnlyKeyword:
                     return true;
                 default:
                     return false;
@@ -114,6 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ChecksumKeyword:
                 case SyntaxKind.DisableKeyword:
                 case SyntaxKind.RestoreKeyword:
+                case SyntaxKind.EnableKeyword:
+                case SyntaxKind.SafeOnlyKeyword:
                     return false;
                 default:
                     return IsPreprocessorKeyword(kind);
@@ -195,6 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.InterpolatedStringEndToken:
                 case SyntaxKind.LoadKeyword:
+                case SyntaxKind.NullableKeyword:
+                case SyntaxKind.EnableKeyword:
+                case SyntaxKind.SafeOnlyKeyword:
                 case SyntaxKind.UnderscoreToken:
                     return true;
                 default:
@@ -242,6 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LoadDirectiveTrivia:
                 case SyntaxKind.BadDirectiveTrivia:
                 case SyntaxKind.ShebangDirectiveTrivia:
+                case SyntaxKind.NullableDirectiveTrivia:
                     return true;
                 default:
                     return false;
@@ -1049,6 +1058,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ReferenceKeyword;
                 case "load":
                     return SyntaxKind.LoadKeyword;
+                case "nullable":
+                    return SyntaxKind.NullableKeyword;
+                case "enable":
+                    return SyntaxKind.EnableKeyword;
+                case "safeonly":
+                    return SyntaxKind.SafeOnlyKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1534,6 +1549,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "r";
                 case SyntaxKind.LoadKeyword:
                     return "load";
+                case SyntaxKind.NullableKeyword:
+                    return "nullable";
+                case SyntaxKind.EnableKeyword:
+                    return "enable";
+                case SyntaxKind.SafeOnlyKeyword:
+                    return "safeonly";
 
                 // contextual keywords
                 case SyntaxKind.YieldKeyword:

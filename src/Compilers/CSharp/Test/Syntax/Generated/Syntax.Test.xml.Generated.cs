@@ -526,17 +526,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax GenerateForEachStatement()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ForEachStatement(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.ForEachKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Identifier("Identifier"), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ForEachStatement(null, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.ForEachKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Identifier("Identifier"), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax GenerateForEachVariableStatement()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ForEachVariableStatement(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.ForEachKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ForEachVariableStatement(null, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.ForEachKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax GenerateUsingStatement()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.UsingStatement(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.UsingKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenParenToken), null, null, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.UsingStatement(null, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.UsingKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenParenToken), null, null, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.FixedStatementSyntax GenerateFixedStatement()
@@ -1037,6 +1037,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ShebangDirectiveTriviaSyntax GenerateShebangDirectiveTrivia()
         {
             return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ShebangDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.HashToken), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.ExclamationToken), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+        }
+        
+        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax GenerateNullableDirectiveTrivia()
+        {
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.NullableDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.HashToken), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.NullableKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.EnableKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         }
         #endregion Green Generators
         
@@ -2276,6 +2281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateForEachStatement();
             
+            Assert.Null(node.AwaitKeyword);
             Assert.Equal(SyntaxKind.ForEachKeyword, node.ForEachKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
             Assert.NotNull(node.Type);
@@ -2293,6 +2299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateForEachVariableStatement();
             
+            Assert.Null(node.AwaitKeyword);
             Assert.Equal(SyntaxKind.ForEachKeyword, node.ForEachKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
             Assert.NotNull(node.Variable);
@@ -2309,6 +2316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateUsingStatement();
             
+            Assert.Null(node.AwaitKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, node.UsingKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
             Assert.Null(node.Declaration);
@@ -3649,6 +3657,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.HashToken, node.HashToken.Kind);
             Assert.Equal(SyntaxKind.ExclamationToken, node.ExclamationToken.Kind);
+            Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind);
+            Assert.Equal(new bool(), node.IsActive);
+            
+            AttachAndCheckDiagnostics(node);
+        }
+        
+        [Fact]
+        public void TestNullableDirectiveTriviaFactoryAndProperties()
+        {
+            var node = GenerateNullableDirectiveTrivia();
+            
+            Assert.Equal(SyntaxKind.HashToken, node.HashToken.Kind);
+            Assert.Equal(SyntaxKind.NullableKeyword, node.NullableKeyword.Kind);
+            Assert.Equal(SyntaxKind.EnableKeyword, node.SettingToken.Kind);
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind);
             Assert.Equal(new bool(), node.IsActive);
             
@@ -9012,6 +9034,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Same(oldNode, newNode);
         }
+        
+        [Fact]
+        public void TestNullableDirectiveTriviaTokenDeleteRewriter()
+        {
+            var oldNode = GenerateNullableDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestNullableDirectiveTriviaIdentityRewriter()
+        {
+            var oldNode = GenerateNullableDirectiveTrivia();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
         #endregion Green Rewriters
     }
     
@@ -9535,17 +9583,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static ForEachStatementSyntax GenerateForEachStatement()
         {
-            return SyntaxFactory.ForEachStatement(SyntaxFactory.Token(SyntaxKind.ForEachKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Identifier("Identifier"), SyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
+            return SyntaxFactory.ForEachStatement(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.ForEachKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Identifier("Identifier"), SyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
         }
         
         private static ForEachVariableStatementSyntax GenerateForEachVariableStatement()
         {
-            return SyntaxFactory.ForEachVariableStatement(SyntaxFactory.Token(SyntaxKind.ForEachKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
+            return SyntaxFactory.ForEachVariableStatement(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.ForEachKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
         }
         
         private static UsingStatementSyntax GenerateUsingStatement()
         {
-            return SyntaxFactory.UsingStatement(SyntaxFactory.Token(SyntaxKind.UsingKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), default(VariableDeclarationSyntax), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
+            return SyntaxFactory.UsingStatement(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.UsingKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), default(VariableDeclarationSyntax), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
         }
         
         private static FixedStatementSyntax GenerateFixedStatement()
@@ -10046,6 +10094,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static ShebangDirectiveTriviaSyntax GenerateShebangDirectiveTrivia()
         {
             return SyntaxFactory.ShebangDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ExclamationToken), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+        }
+        
+        private static NullableDirectiveTriviaSyntax GenerateNullableDirectiveTrivia()
+        {
+            return SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.NullableKeyword), SyntaxFactory.Token(SyntaxKind.EnableKeyword), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         }
         #endregion Red Generators
         
@@ -11285,6 +11338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateForEachStatement();
             
+            Assert.Equal(SyntaxKind.None, node.AwaitKeyword.Kind());
             Assert.Equal(SyntaxKind.ForEachKeyword, node.ForEachKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
             Assert.NotNull(node.Type);
@@ -11293,7 +11347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             Assert.NotNull(node.Statement);
-            var newNode = node.WithForEachKeyword(node.ForEachKeyword).WithOpenParenToken(node.OpenParenToken).WithType(node.Type).WithIdentifier(node.Identifier).WithInKeyword(node.InKeyword).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement);
+            var newNode = node.WithAwaitKeyword(node.AwaitKeyword).WithForEachKeyword(node.ForEachKeyword).WithOpenParenToken(node.OpenParenToken).WithType(node.Type).WithIdentifier(node.Identifier).WithInKeyword(node.InKeyword).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
         }
         
@@ -11302,6 +11356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateForEachVariableStatement();
             
+            Assert.Equal(SyntaxKind.None, node.AwaitKeyword.Kind());
             Assert.Equal(SyntaxKind.ForEachKeyword, node.ForEachKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
             Assert.NotNull(node.Variable);
@@ -11309,7 +11364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             Assert.NotNull(node.Statement);
-            var newNode = node.WithForEachKeyword(node.ForEachKeyword).WithOpenParenToken(node.OpenParenToken).WithVariable(node.Variable).WithInKeyword(node.InKeyword).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement);
+            var newNode = node.WithAwaitKeyword(node.AwaitKeyword).WithForEachKeyword(node.ForEachKeyword).WithOpenParenToken(node.OpenParenToken).WithVariable(node.Variable).WithInKeyword(node.InKeyword).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
         }
         
@@ -11318,13 +11373,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateUsingStatement();
             
+            Assert.Equal(SyntaxKind.None, node.AwaitKeyword.Kind());
             Assert.Equal(SyntaxKind.UsingKeyword, node.UsingKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
             Assert.Null(node.Declaration);
             Assert.Null(node.Expression);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             Assert.NotNull(node.Statement);
-            var newNode = node.WithUsingKeyword(node.UsingKeyword).WithOpenParenToken(node.OpenParenToken).WithDeclaration(node.Declaration).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement);
+            var newNode = node.WithAwaitKeyword(node.AwaitKeyword).WithUsingKeyword(node.UsingKeyword).WithOpenParenToken(node.OpenParenToken).WithDeclaration(node.Declaration).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
         }
         
@@ -12661,6 +12717,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind());
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithExclamationToken(node.ExclamationToken).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
+            Assert.Equal(node, newNode);
+        }
+        
+        [Fact]
+        public void TestNullableDirectiveTriviaFactoryAndProperties()
+        {
+            var node = GenerateNullableDirectiveTrivia();
+            
+            Assert.Equal(SyntaxKind.HashToken, node.HashToken.Kind());
+            Assert.Equal(SyntaxKind.NullableKeyword, node.NullableKeyword.Kind());
+            Assert.Equal(SyntaxKind.EnableKeyword, node.SettingToken.Kind());
+            Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind());
+            Assert.Equal(new bool(), node.IsActive);
+            var newNode = node.WithHashToken(node.HashToken).WithNullableKeyword(node.NullableKeyword).WithSettingToken(node.SettingToken).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
         }
         #endregion Red Factory and Property Tests
@@ -18016,6 +18086,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestShebangDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateShebangDirectiveTrivia();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestNullableDirectiveTriviaTokenDeleteRewriter()
+        {
+            var oldNode = GenerateNullableDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestNullableDirectiveTriviaIdentityRewriter()
+        {
+            var oldNode = GenerateNullableDirectiveTrivia();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             

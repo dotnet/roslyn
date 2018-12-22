@@ -46,7 +46,7 @@
       </trans-unit>
       <trans-unit id="PathReturnedByResolveMetadataFileMustBeAbsolute">
         <source>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</source>
-        <target state="translated">Der von {0}.ResolveMetadataFile zurückgegebene Pfad muss absolut sein: '{1}'</target>
+        <target state="translated">Der von {0}.ResolveMetadataFile zurückgegebene Pfad muss absolut sein: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="AssemblyMustHaveAtLeastOneModule">
@@ -91,7 +91,7 @@
       </trans-unit>
       <trans-unit id="Enum1">
         <source>enum</source>
-        <target state="translated">Aufzählung</target>
+        <target state="translated">Enumeration</target>
         <note />
       </trans-unit>
       <trans-unit id="Event1">
@@ -136,7 +136,7 @@
       </trans-unit>
       <trans-unit id="Return1">
         <source>return</source>
-        <target state="translated">Zurück</target>
+        <target state="translated">Rückgabewert</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct1">
@@ -181,7 +181,7 @@
       </trans-unit>
       <trans-unit id="CannotAliasModule">
         <source>Can't alias a module.</source>
-        <target state="translated">Ein Modul kann nicht bezeichnet werden.</target>
+        <target state="translated">Für ein Modul kann kein Alias erstellt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAlias">
@@ -206,7 +206,7 @@
       </trans-unit>
       <trans-unit id="InvalidAssemblyName">
         <source>Invalid assembly name: '{0}'</source>
-        <target state="translated">Ungültiger Assemblyname: '{0}'</target>
+        <target state="translated">Ungültiger Assemblyname: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="AbsolutePathExpected">
@@ -226,7 +226,7 @@
       </trans-unit>
       <trans-unit id="CompilationOptionsMustNotHaveErrors">
         <source>Compilation options must not have errors.</source>
-        <target state="translated">Kompilierungs-Optionen dürfen keine Fehler enthalten.</target>
+        <target state="translated">Kompilierungsoptionen dürfen keine Fehler enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ReturnTypeCannotBeValuePointerbyRefOrOpen">
@@ -256,17 +256,17 @@
       </trans-unit>
       <trans-unit id="InvalidCompilationOptions">
         <source>Invalid compilation options -- submission can't be signed.</source>
-        <target state="translated">Ungültige Kompilierungsoptionen -- Übermittlung kann nicht signiert werden.</target>
+        <target state="translated">Ungültige Kompilierungsoptionen. Übermittlung kann nicht signiert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ResourceStreamProviderShouldReturnNonNullStream">
         <source>Resource stream provider should return non-null stream.</source>
-        <target state="translated">Ressourcenstreamanbieter sollte einen nicht-Null-Stream zurückgeben.</target>
+        <target state="translated">Ressourcenstreamanbieter muss einen Nicht-NULL-Stream zurückgeben.</target>
         <note />
       </trans-unit>
       <trans-unit id="ReferenceResolverShouldReturnReadableNonNullStream">
         <source>Reference resolver should return readable non-null stream.</source>
-        <target state="translated">Verweis-Resolver sollte einen lesbaren nicht-Null-Stream zurückgeben.</target>
+        <target state="translated">Verweis-Resolver muss einen lesbaren Nicht-NULL-Stream zurückgeben.</target>
         <note />
       </trans-unit>
       <trans-unit id="EmptyOrInvalidResourceName">
@@ -281,7 +281,7 @@
       </trans-unit>
       <trans-unit id="ResourceDataProviderShouldReturnNonNullStream">
         <source>Resource data provider should return non-null stream</source>
-        <target state="translated">Ressourcendatenanbieter sollte einen Nicht-Null-Stream zurückgeben</target>
+        <target state="translated">Ressourcendatenanbieter muss einen Nicht-NULL-Stream zurückgeben</target>
         <note />
       </trans-unit>
       <trans-unit id="FileNotFound">
@@ -291,7 +291,7 @@
       </trans-unit>
       <trans-unit id="PathReturnedByResolveStrongNameKeyFileMustBeAbsolute">
         <source>Path returned by {0}.ResolveStrongNameKeyFile must be absolute: '{1}'</source>
-        <target state="translated">Der von {0}.ResolveStrongNameKeyFile zurückgegebene Pfad muss absolut sein: '{1}'</target>
+        <target state="translated">Der von {0}.ResolveStrongNameKeyFile zurückgegebene Pfad muss absolut sein: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeMustBeASubclassOfSyntaxAnnotation">
@@ -301,7 +301,7 @@
       </trans-unit>
       <trans-unit id="InvalidModuleName">
         <source>Invalid module name specified in metadata module '{0}': '{1}'</source>
-        <target state="translated">Im Metadatenmodul '{0}': '{1}' ist ein ungültiger Modulname angegeben</target>
+        <target state="translated">Im Metadatenmodul "{0}" wurde ein ungültiger Modulname angegeben: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="FileSizeExceedsMaximumAllowed">
@@ -341,12 +341,12 @@
       </trans-unit>
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
-        <target state="translated">'Start' darf nicht negativ sein</target>
+        <target state="translated">"start" darf nicht negativ sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'</source>
-        <target state="translated">'Ende' darf nicht kleiner sein als 'Start'</target>
+        <target state="translated">"end" darf nicht kleiner sein als "start".</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">
@@ -381,7 +381,7 @@
       </trans-unit>
       <trans-unit id="StreamMustSupportRead">
         <source>Stream must be readable.</source>
-        <target state="translated">Der Datenstrom muss lesbar sein.</target>
+        <target state="translated">Der Stream muss lesbar sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="StreamMustSupportWrite">
@@ -391,7 +391,7 @@
       </trans-unit>
       <trans-unit id="PdbStreamUnexpectedWhenEmbedding">
         <source>PDB stream should not be given when embedding PDB into the PE stream.</source>
-        <target state="translated">Der PDB-Datenstrom sollte nicht angegeben werden, wenn PDB in den PE-Datenstrom eingebettet wird.</target>
+        <target state="translated">Der PDB-Stream darf nicht angegeben werden, wenn PDB in den PE-Stream eingebettet wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="PdbStreamUnexpectedWhenEmittingMetadataOnly">
@@ -406,7 +406,7 @@
       </trans-unit>
       <trans-unit id="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream">
         <source>Including private members should not be used when emitting to the secondary assembly output.</source>
-        <target state="translated">Private Members sollten beim Ausgeben an die sekundäre Assemblyausgabe nicht einbezogen werden.</target>
+        <target state="translated">Private Member sollten beim Ausgeben an die sekundäre Assemblyausgabe nicht einbezogen werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="MustIncludePrivateMembersUnlessRefAssembly">
@@ -456,7 +456,7 @@
       </trans-unit>
       <trans-unit id="CoffResourceMissingSection">
         <source>Win32 resources, assumed to be in COFF object format, are missing one or both of sections '.rsrc$01' and '.rsrc$02'</source>
-        <target state="translated">Bei Win32-Ressourcen, bei denen angenommen wird, dass sie im COFF-Objektformat vorhanden sind, fehlen ein oder beide Abschnitte der Dateien '.rsrc$01' und '.rsrc$02'</target>
+        <target state="translated">Bei Win32-Ressourcen, bei denen angenommen wird, dass sie im COFF-Objektformat vorhanden sind, fehlt mindestens einer der Abschnitte ".rsrc$01" oder ".rsrc$02".</target>
         <note />
       </trans-unit>
       <trans-unit id="IconStreamUnexpectedFormat">
@@ -466,12 +466,12 @@
       </trans-unit>
       <trans-unit id="InvalidCultureName">
         <source>Invalid culture name: '{0}'</source>
-        <target state="translated">Ungültiger Kulturname: '{0}'</target>
+        <target state="translated">Ungültiger Kulturname: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
         <source>WindowsRuntime identity can't be retargetable</source>
-        <target state="translated">WindowsRuntime-Identität darf nicht anzielbar sein</target>
+        <target state="translated">WindowsRuntime-Identität darf keine erneute Zielzuweisung gestatten.</target>
         <note />
       </trans-unit>
       <trans-unit id="PEImageNotAvailable">
@@ -496,7 +496,7 @@
       </trans-unit>
       <trans-unit id="InvalidRuleSetInclude">
         <source>An error occurred while loading the included rule set file {0} - {1}</source>
-        <target state="translated">Fehler beim Laden der eingeschlossenen Regelsatzdatei {0} - {1}</target>
+        <target state="translated">Fehler beim Laden der eingeschlossenen Regelsatzdatei {0}: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
@@ -538,12 +538,12 @@
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
         <source>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
-        <target state="translated">Ein "DiagnosticDescriptor" muss eine ID aufweisen, die nicht NULL, keine leere Zeichenfolge und keine Zeichenfolge ist, die nur Leerzeichen enthält.</target>
+        <target state="translated">Ein DiagnosticDescriptor muss eine ID aufweisen, die nicht NULL, keine leere Zeichenfolge und keine Zeichenfolge ist, die nur Leerzeichen enthält.</target>
         <note />
       </trans-unit>
       <trans-unit id="RuleSetHasDuplicateRules">
         <source>The rule set file has duplicate rules for '{0}' with differing actions '{1}' and '{2}'.</source>
-        <target state="translated">Die Regelsatzdatei weist doppelte Regeln für '{0}' mit abweichenden Aktionen '{1}' und '{2}' auf.</target>
+        <target state="translated">Die Regelsatzdatei weist doppelte Regeln für "{0}" mit abweichenden Aktionen "{1}" und "{2}" auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="CantCreateModuleReferenceToAssembly">
@@ -568,7 +568,7 @@
       </trans-unit>
       <trans-unit id="ArgumentElementCannotBeNull">
         <source>Argument cannot have a null element.</source>
-        <target state="translated">Argument darf kein Nullelement enthalten.</target>
+        <target state="translated">Argument darf kein NULL-Element enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
@@ -628,7 +628,7 @@
       </trans-unit>
       <trans-unit id="InvalidPublicKey">
         <source>Invalid public key.</source>
-        <target state="translated">Ungültiger, öffentlicher Schlüssel.</target>
+        <target state="translated">Ungültiger öffentlicher Schlüssel.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidPublicKeyToken">
@@ -678,12 +678,12 @@
       </trans-unit>
       <trans-unit id="KeepAliveWithoutShared">
         <source>'/keepalive' option is only valid with '/shared' option.</source>
-        <target state="translated">'Die "/keepalive"-Option ist nur zusammen mit der "/shared"-Option gültig.</target>
+        <target state="translated">Die /keepalive-Option ist nur zusammen mit der /shared-Option gültig.</target>
         <note />
       </trans-unit>
       <trans-unit id="MismatchedVersion">
         <source>Roslyn compiler server reports different protocol version than build task.</source>
-        <target state="translated">Roslyn-Compilerserver meldet unterschiedliche Protokollversion als in Erstellungsaufgabe.</target>
+        <target state="translated">Der Roslyn-Compilerserver meldet eine andere Protokollversion als der Buildtask.</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingKeepAlive">
@@ -733,7 +733,7 @@
       </trans-unit>
       <trans-unit id="ResourceStreamEndedUnexpectedly">
         <source>Resource stream ended at {0} bytes, expected {1} bytes.</source>
-        <target state="translated">Der Ressourcendatenstrom endete bei {0} Bytes. Erwartet wurden {1} Bytes.</target>
+        <target state="translated">Der Ressourcenstream endete bei {0} Bytes. Erwartet wurden {1} Bytes.</target>
         <note />
       </trans-unit>
       <trans-unit id="SharedArgumentMissing">
@@ -815,7 +815,7 @@
       </trans-unit>
       <trans-unit id="StreamIsTooLong">
         <source>Stream is too long.</source>
-        <target state="translated">Der Datenstrom ist zu lang.</target>
+        <target state="translated">Der Stream ist zu lang.</target>
         <note />
       </trans-unit>
       <trans-unit id="EmbeddedTextsRequirePdb">
@@ -825,7 +825,7 @@
       </trans-unit>
       <trans-unit id="TheStreamCannotBeWrittenTo">
         <source>The stream cannot be written to.</source>
-        <target state="translated">In den Datenstrom kann nicht geschrieben werden.</target>
+        <target state="translated">In den Stream kann nicht geschrieben werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ElementIsExpected">
@@ -840,7 +840,7 @@
       </trans-unit>
       <trans-unit id="TheStreamCannotBeReadFrom">
         <source>The stream cannot be read from.</source>
-        <target state="translated">Aus dem Datenstrom kann nicht gelesen werden.</target>
+        <target state="translated">Aus dem Stream kann nicht gelesen werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">

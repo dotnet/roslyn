@@ -208,8 +208,7 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILockOperation (OperationKind.Lock, Type: null, IsInvalid) (Syntax: 'lock (o)
-')
+ILockOperation (OperationKind.Lock, Type: null, IsInvalid) (Syntax: 'lock (o)')
   Expression: 
     ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
   Body: 
@@ -617,9 +616,9 @@ Block[B4] - Exit
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics, 
-                                                              targetFramework: Roslyn.Test.Utilities.TargetFramework.Empty, 
-                                                              references: new[] { MscorlibRef_v20});
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics,
+                                                              targetFramework: Roslyn.Test.Utilities.TargetFramework.Empty,
+                                                              references: new[] { MscorlibRef_v20 });
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]

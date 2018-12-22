@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             internal override Symbol ContainingMemberOrLambda { get { return _factory.CurrentFunction; } }
-            internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
+            internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved)
             {
                 return AccessCheck.IsSymbolAccessible(symbol, _factory.CurrentType, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
             }
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)CurrentType != null)
             {
-                Debug.Assert((object)TopLevelMethod == null || TopLevelMethod.ContainingType == CurrentType);
+                Debug.Assert((object)TopLevelMethod == null || TypeSymbol.Equals(TopLevelMethod.ContainingType, CurrentType, TypeCompareKind.ConsiderEverything2));
 
                 // In EE scenarios, lambdas and local functions are considered to be contained by the
                 // user-defined methods, rather than the EE-defined methods for which we are generating
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)CurrentFunction == null ||
                     CurrentFunction.MethodKind == MethodKind.AnonymousFunction ||
                     CurrentFunction.MethodKind == MethodKind.LocalFunction ||
-                    CurrentFunction.ContainingType == CurrentType);
+                    TypeSymbol.Equals(CurrentFunction.ContainingType, CurrentType, TypeCompareKind.ConsiderEverything2));
             }
         }
 
@@ -268,6 +268,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundFieldAccess(Syntax, receiver, f, ConstantValue.NotAvailable, LookupResultKind.Viable, f.Type.TypeSymbol) { WasCompilerGenerated = true };
         }
 
+        public BoundFieldAccess InstanceField(FieldSymbol f)
+        {
+            return this.Field(this.This(), f);
+        }
+
         public BoundExpression Property(WellKnownMember member)
         {
             return Property(null, member);
@@ -286,6 +291,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((receiverOpt == null) == property.IsStatic);
             return Call(receiverOpt, property.GetMethod); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
+        }
+
+        public BoundExpression Indexer(BoundExpression receiverOpt, PropertySymbol property, BoundExpression arg0)
+        {
+            Debug.Assert((receiverOpt == null) == property.IsStatic);
+            return Call(receiverOpt, property.GetMethod, arg0); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
         }
 
         public NamedTypeSymbol SpecialType(SpecialType st)
@@ -418,6 +429,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(Syntax, locals, localFunctions, statements) { WasCompilerGenerated = true };
         }
 
+        public BoundExtractedFinallyBlock ExtractedFinallyBlock(BoundBlock finallyBlock)
+        {
+            return new BoundExtractedFinallyBlock(Syntax, finallyBlock) { WasCompilerGenerated = true };
+        }
+
         public BoundStatementList StatementList()
         {
             return StatementList(ImmutableArray<BoundStatement>.Empty);
@@ -491,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBinaryOperator Binary(BinaryOperatorKind kind, TypeSymbol type, BoundExpression left, BoundExpression right)
         {
-            return new BoundBinaryOperator(this.Syntax, kind, left, right, ConstantValue.NotAvailable, null, LookupResultKind.Viable, type) { WasCompilerGenerated = true };
+            return new BoundBinaryOperator(this.Syntax, kind, ConstantValue.NotAvailable, null, LookupResultKind.Viable, left, right, type) { WasCompilerGenerated = true };
         }
 
         public BoundAsOperator As(BoundExpression operand, TypeSymbol type)
@@ -658,13 +674,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression ComplexConditionalReceiver(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver)
         {
-            Debug.Assert(valueTypeReceiver.Type == referenceTypeReceiver.Type);
+            Debug.Assert(TypeSymbol.Equals(valueTypeReceiver.Type, referenceTypeReceiver.Type, TypeCompareKind.ConsiderEverything2));
             return new BoundComplexConditionalReceiver(Syntax, valueTypeReceiver, referenceTypeReceiver, valueTypeReceiver.Type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression Coalesce(BoundExpression left, BoundExpression right)
         {
-            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             Debug.Assert(left.Type.IsReferenceType);
 
             return new BoundNullCoalescingOperator(Syntax, left, right, Conversion.Identity, BoundNullCoalescingOperatorResultKind.LeftType, left.Type) { WasCompilerGenerated = true };
@@ -1112,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Convert(TypeSymbol type, BoundExpression arg)
         {
-            if (type == arg.Type)
+            if (TypeSymbol.Equals(type, arg.Type, TypeCompareKind.ConsiderEverything2))
             {
                 return arg;
             }
@@ -1132,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // NOTE: We can see user-defined conversions at this point because there are places in the bound tree where
             // the binder stashes Conversion objects for later consumption (e.g. foreach, nullable, increment).
-            if ((object)conversion.Method != null && conversion.Method.Parameters[0].Type.TypeSymbol != arg.Type)
+            if ((object)conversion.Method != null && !TypeSymbol.Equals(conversion.Method.Parameters[0].Type.TypeSymbol, arg.Type, TypeCompareKind.ConsiderEverything2))
             {
                 arg = Convert(conversion.Method.Parameters[0].Type.TypeSymbol, arg);
             }
@@ -1213,9 +1229,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundStatement Try(
             BoundBlock tryBlock,
             ImmutableArray<BoundCatchBlock> catchBlocks,
-            BoundBlock finallyBlock = null)
+            BoundBlock finallyBlock = null,
+            LabelSymbol finallyLabel = null)
         {
-            return new BoundTryStatement(Syntax, tryBlock, catchBlocks, finallyBlock) { WasCompilerGenerated = true };
+            return new BoundTryStatement(Syntax, tryBlock, catchBlocks, finallyBlock, finallyLabel) { WasCompilerGenerated = true };
         }
 
         internal ImmutableArray<BoundCatchBlock> CatchBlocks(
@@ -1241,7 +1258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundTryStatement Fault(BoundBlock tryBlock, BoundBlock faultBlock)
         {
-            return new BoundTryStatement(Syntax, tryBlock, ImmutableArray<BoundCatchBlock>.Empty, faultBlock, preferFaultHandler: true);
+            return new BoundTryStatement(Syntax, tryBlock, ImmutableArray<BoundCatchBlock>.Empty, faultBlock, finallyLabelOpt: null, preferFaultHandler: true);
         }
 
         internal BoundExpression NullOrDefault(TypeSymbol typeSymbol)

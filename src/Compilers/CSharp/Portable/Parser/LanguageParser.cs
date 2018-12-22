@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 return parseFunc();
             }
-            catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+            catch (InsufficientExecutionStackException)
             {
                 return CreateForGlobalFailure(lexer.TextWindow.Position, createEmptyNodeFunc());
             }
@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // incomplete members must be processed before we add any nodes to the body:
                                 AddIncompleteMembers(ref pendingIncompleteMembers, ref body);
 
-                                body.Members.Add(_syntaxFactory.GlobalStatement(ParseUsingStatement()));
+                                body.Members.Add(_syntaxFactory.GlobalStatement(ParseUsingStatement(awaitTokenOpt: default)));
                                 seen = NamespaceParts.MembersAndStatements;
                             }
                             else
@@ -1019,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var argNodes = _pool.AllocateSeparated<AttributeArgumentSyntax>();
                 try
                 {
-                    tryAgain:
+tryAgain:
                     if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                     {
                         if (this.IsPossibleAttributeArgument() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return DeclarationModifiers.None;
             }
         }
-        
+
         private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors)
         {
             while (true)
@@ -1191,7 +1191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             modTok = CheckFeatureAvailability(modTok,
                                 isPartialType ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod);
                         }
-                        else if(nextToken.Kind == SyntaxKind.NamespaceKeyword)
+                        else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
                         {
                             // Error reported in binding
                             modTok = ConvertToKeyword(this.EatToken());
@@ -4524,7 +4524,7 @@ tryAgain:
                 case SyntaxKind.OpenBracketToken:
                     bool sawNonOmittedSize;
                     _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
-                    var specifier = this.ParseArrayRankSpecifier(isArrayCreation: false, expectSizes: flags == VariableFlags.Fixed, allowQuestionToken: false, sawNonOmittedSize: out sawNonOmittedSize);
+                    var specifier = this.ParseArrayRankSpecifier(isArrayCreation: false, expectSizes: flags == VariableFlags.Fixed, questionTokenModeOpt: null, sawNonOmittedSize: out sawNonOmittedSize);
                     _termState = saveTerm;
                     var open = specifier.OpenBracketToken;
                     var sizes = specifier.Sizes;
@@ -6214,7 +6214,6 @@ tryAgain:
             ParseTypeMode mode,
             bool expectSizes)
         {
-            var isOrAs = mode == ParseTypeMode.AsExpression || mode == ParseTypeMode.AfterIs;
             NameOptions nameOptions;
             switch (mode)
             {
@@ -6244,30 +6243,14 @@ tryAgain:
             }
 
             var type = this.ParseUnderlyingType(parentIsParameter: mode == ParseTypeMode.Parameter, options: nameOptions);
+            Debug.Assert(type != null);
 
-            if (this.CurrentToken.Kind == SyntaxKind.QuestionToken &&
-                // we do not permit nullable types in a declaration pattern
-                (mode != ParseTypeMode.AfterIs && mode != ParseTypeMode.AfterCase || !IsTrueIdentifier(this.PeekToken(1))))
+            if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
             {
-                var resetPoint = this.GetResetPoint();
-                try
+                var question = EatNullableQualifierIfApplicable(mode);
+                if (question != null)
                 {
-                    var question = this.EatToken();
-
-                    if (isOrAs && (IsTerm() || IsPredefinedType(this.CurrentToken.Kind) || SyntaxFacts.IsAnyUnaryExpression(this.CurrentToken.Kind)))
-                    {
-                        this.Reset(ref resetPoint);
-
-                        Debug.Assert(type != null);
-                        return type;
-                    }
-
-                    question = CheckFeatureAvailability(question, MessageID.IDS_FeatureNullable);
                     type = _syntaxFactory.NullableType(type, question);
-                }
-                finally
-                {
-                    this.Release(ref resetPoint);
                 }
             }
 
@@ -6301,7 +6284,7 @@ tryAgain:
                     while (this.IsPossibleRankAndDimensionSpecifier())
                     {
                         bool unused;
-                        var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, allowQuestionToken: true, out unused);
+                        var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, questionTokenModeOpt: mode, out unused);
                         ranks.Add(rank);
                         expectSizes = false;
                     }
@@ -6316,6 +6299,36 @@ tryAgain:
 
             Debug.Assert(type != null);
             return type;
+        }
+
+        private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode)
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
+
+            // we do not permit nullable types in a declaration pattern
+            if (mode != ParseTypeMode.AfterIs && mode != ParseTypeMode.AfterCase || !IsTrueIdentifier(this.PeekToken(1)))
+            {
+                var resetPoint = this.GetResetPoint();
+                try
+                {
+                    var question = this.EatToken();
+
+                    var isOrAs = mode == ParseTypeMode.AsExpression || mode == ParseTypeMode.AfterIs;
+                    if (isOrAs && (IsTerm() || IsPredefinedType(this.CurrentToken.Kind) || SyntaxFacts.IsAnyUnaryExpression(this.CurrentToken.Kind)))
+                    {
+                        this.Reset(ref resetPoint);
+                        return null;
+                    }
+
+                    return CheckFeatureAvailability(question, MessageID.IDS_FeatureNullable);
+                }
+                finally
+                {
+                    this.Release(ref resetPoint);
+                }
+            }
+
+            return null;
         }
 
         private bool PointerTypeModsFollowedByRankAndDimensionSpecifier()
@@ -6340,7 +6353,7 @@ tryAgain:
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
-        private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, bool allowQuestionToken, out bool sawNonOmittedSize)
+        private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, ParseTypeMode? questionTokenModeOpt, out bool sawNonOmittedSize)
         {
             sawNonOmittedSize = false;
             bool sawOmittedSize = false;
@@ -6407,9 +6420,9 @@ tryAgain:
                 var close = this.EatToken(SyntaxKind.CloseBracketToken);
 
                 SyntaxToken questionToken = null;
-                if (allowQuestionToken && this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                if (questionTokenModeOpt != null && this.CurrentToken.Kind == SyntaxKind.QuestionToken)
                 {
-                    questionToken = this.EatToken();
+                    questionToken = EatNullableQualifierIfApplicable(questionTokenModeOpt.GetValueOrDefault());
                 }
 
                 return _syntaxFactory.ArrayRankSpecifier(open, list, close, questionToken);
@@ -6674,10 +6687,11 @@ tryAgain:
                 case SyntaxKind.ForKeyword:
                     return this.ParseForOrForEachStatement();
                 case SyntaxKind.ForEachKeyword:
-                    return this.ParseForEachStatement();
+                    return this.ParseForEachStatement(awaitTokenOpt: default);
                 case SyntaxKind.GotoKeyword:
                     return this.ParseGotoStatement();
                 case SyntaxKind.IfKeyword:
+                case SyntaxKind.ElseKeyword: // Including 'else' keyword to handle 'else without if' error cases 
                     return this.ParseIfStatement();
                 case SyntaxKind.LockKeyword:
                     return this.ParseLockStatement();
@@ -6693,9 +6707,9 @@ tryAgain:
                     {
                         return this.ParseUnsafeStatement();
                     }
-                    goto default;
+                    break;
                 case SyntaxKind.UsingKeyword:
-                    return this.ParseUsingStatement();
+                    return this.ParseUsingStatement(awaitTokenOpt: default);
                 case SyntaxKind.WhileKeyword:
                     return this.ParseWhileStatement();
                 case SyntaxKind.OpenBraceToken:
@@ -6703,7 +6717,15 @@ tryAgain:
                 case SyntaxKind.SemicolonToken:
                     return _syntaxFactory.EmptyStatement(this.EatToken());
                 case SyntaxKind.IdentifierToken:
-                    if (this.IsPossibleLabeledStatement())
+                    if (isPossibleAwaitForEach())
+                    {
+                        return this.ParseForEachStatement(parseAwaitKeywordForAsyncStreams());
+                    }
+                    else if (isPossibleAwaitUsing())
+                    {
+                        return this.ParseUsingStatement(parseAwaitKeywordForAsyncStreams());
+                    }
+                    else if (this.IsPossibleLabeledStatement())
                     {
                         return this.ParseLabeledStatement();
                     }
@@ -6719,20 +6741,35 @@ tryAgain:
                     {
                         return this.ParseExpressionStatement(this.ParseQueryExpression(0));
                     }
-                    else
-                    {
-                        goto default;
-                    }
+                    break;
+            }
 
-                default:
-                    if (this.IsPossibleLocalDeclarationStatement(allowAnyExpression))
-                    {
-                        return null;
-                    }
-                    else
-                    {
-                        return this.ParseExpressionStatement();
-                    }
+            if (this.IsPossibleLocalDeclarationStatement(allowAnyExpression))
+            {
+                return null;
+            }
+            else
+            {
+                return this.ParseExpressionStatement();
+            }
+
+            bool isPossibleAwaitForEach()
+            {
+                return this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
+                    this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword;
+            }
+
+            bool isPossibleAwaitUsing()
+            {
+                return this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
+                    this.PeekToken(1).Kind == SyntaxKind.UsingKeyword;
+            }
+
+            SyntaxToken parseAwaitKeywordForAsyncStreams()
+            {
+                Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
+                SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
+                return CheckFeatureAvailability(awaitToken, MessageID.IDS_FeatureAsyncStreams);
             }
         }
 
@@ -7315,6 +7352,7 @@ tryAgain:
                 case SyntaxKind.ForEachKeyword:
                 case SyntaxKind.GotoKeyword:
                 case SyntaxKind.IfKeyword:
+                case SyntaxKind.ElseKeyword:
                 case SyntaxKind.LockKeyword:
                 case SyntaxKind.ReturnKeyword:
                 case SyntaxKind.SwitchKeyword:
@@ -7643,7 +7681,7 @@ tryAgain:
                 {
                     // Looks like a foreach statement.  Parse it that way instead
                     this.Reset(ref resetPoint);
-                    return this.ParseForEachStatement();
+                    return this.ParseForEachStatement(awaitTokenOpt: default);
                 }
                 else
                 {
@@ -7783,15 +7821,15 @@ tryAgain:
                 expected);
         }
 
-        private CommonForEachStatementSyntax ParseForEachStatement()
+        private CommonForEachStatementSyntax ParseForEachStatement(SyntaxToken awaitTokenOpt)
         {
             // Can be a 'for' keyword if the user typed: 'for (SomeType t in'
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ForEachKeyword || this.CurrentToken.Kind == SyntaxKind.ForKeyword);
 
             // Syntax for foreach is either:
-            //  foreach ( <type> <identifier> in <expr> ) <embedded-statement>
+            //  foreach [await] ( <type> <identifier> in <expr> ) <embedded-statement>
             // or
-            //  foreach ( <deconstruction-declaration> in <expr> ) <embedded-statement>
+            //  foreach [await] ( <deconstruction-declaration> in <expr> ) <embedded-statement>
 
             SyntaxToken @foreach;
 
@@ -7850,11 +7888,11 @@ tryAgain:
                             throw ExceptionUtilities.UnexpectedValue(decl.designation.Kind);
                     }
 
-                    return _syntaxFactory.ForEachStatement(@foreach, openParen, decl.Type, identifier, @in, expression, closeParen, statement);
+                    return _syntaxFactory.ForEachStatement(awaitTokenOpt, @foreach, openParen, decl.Type, identifier, @in, expression, closeParen, statement);
                 }
             }
 
-            return _syntaxFactory.ForEachVariableStatement(@foreach, openParen, variable, @in, expression, closeParen, statement);
+            return _syntaxFactory.ForEachVariableStatement(awaitTokenOpt, @foreach, openParen, variable, @in, expression, closeParen, statement);
         }
 
         private static bool IsValidForeachVariable(ExpressionSyntax variable)
@@ -7910,20 +7948,24 @@ tryAgain:
 
         private IfStatementSyntax ParseIfStatement()
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword);
-            var @if = this.EatToken(SyntaxKind.IfKeyword);
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword || this.CurrentToken.Kind == SyntaxKind.ElseKeyword);
+
+            bool firstTokenIsElse = this.CurrentToken.Kind == SyntaxKind.ElseKeyword;
+            var @if = firstTokenIsElse
+                ? this.EatToken(SyntaxKind.IfKeyword, ErrorCode.ERR_ElseCannotStartStatement)
+                : this.EatToken(SyntaxKind.IfKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var condition = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = this.ParseEmbeddedStatement();
-            var elseClause = ParseElseClauseOpt();
+            var statement = firstTokenIsElse ? this.ParseExpressionStatement() : this.ParseEmbeddedStatement();
+            var elseClause = this.ParseElseClauseOpt();
 
             return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
         }
 
         private ElseClauseSyntax ParseElseClauseOpt()
         {
-           if (this.CurrentToken.Kind != SyntaxKind.ElseKeyword)
+            if (this.CurrentToken.Kind != SyntaxKind.ElseKeyword)
             {
                 return null;
             }
@@ -8125,7 +8167,7 @@ tryAgain:
             return _syntaxFactory.UnsafeStatement(@unsafe, block);
         }
 
-        private UsingStatementSyntax ParseUsingStatement()
+        private UsingStatementSyntax ParseUsingStatement(SyntaxToken awaitTokenOpt)
         {
             var @using = this.EatToken(SyntaxKind.UsingKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
@@ -8140,7 +8182,7 @@ tryAgain:
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var statement = this.ParseEmbeddedStatement();
 
-            return _syntaxFactory.UsingStatement(@using, openParen, declaration, expression, closeParen, statement);
+            return _syntaxFactory.UsingStatement(awaitTokenOpt, @using, openParen, declaration, expression, closeParen, statement);
         }
 
         private void ParseUsingExpression(ref VariableDeclarationSyntax declaration, ref ExpressionSyntax expression, ref ResetPoint resetPoint)
@@ -8752,6 +8794,7 @@ tryAgain:
                 case SyntaxKind.ForEachKeyword:
                 case SyntaxKind.GotoKeyword:
                 case SyntaxKind.IfKeyword:
+                case SyntaxKind.ElseKeyword:
                 case SyntaxKind.LockKeyword:
                 case SyntaxKind.ReturnKeyword:
                 case SyntaxKind.SwitchKeyword:
@@ -9538,7 +9581,7 @@ tryAgain:
 
                     case SyntaxKind.ExclamationToken:
                         expr = _syntaxFactory.PostfixUnaryExpression(SyntaxFacts.GetPostfixUnaryExpression(tk), expr, this.EatToken());
-                        expr = CheckFeatureAvailability(expr, MessageID.IDS_FeatureStaticNullChecking);
+                        expr = CheckFeatureAvailability(expr, MessageID.IDS_FeatureNullableReferenceTypes);
                         break;
 
                     default:

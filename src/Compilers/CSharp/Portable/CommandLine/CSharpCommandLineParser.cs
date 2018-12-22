@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool displayLangVersions = false;
             bool optimize = false;
             bool checkOverflow = false;
+            NullableContextOptions nullableContextOptions = NullableContextOptions.Disable;
             bool allowUnsafe = false;
             bool concurrentBuild = true;
             bool deterministic = false; // TODO(5431): Enable deterministic mode by default
@@ -320,6 +321,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                             checkOverflow = false;
                             continue;
 
+                        case "nullable":
+
+                            value = RemoveQuotesAndSlashes(value);
+                            if (value != null)
+                            {
+                                if (value.IsEmpty())
+                                {
+                                    AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), name);
+                                    continue;
+                                }
+
+                                string loweredValue = value.ToLower();
+                                switch (loweredValue)
+                                {
+                                    case "disable":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.Disable).ToLower());
+                                        nullableContextOptions = NullableContextOptions.Disable;
+                                        break;
+                                    case "enable":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.Enable).ToLower());
+                                        nullableContextOptions = NullableContextOptions.Enable;
+                                        break;
+                                    case "safeonly":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.SafeOnly).ToLower());
+                                        nullableContextOptions = NullableContextOptions.SafeOnly;
+                                        break;
+                                    default:
+                                        AddDiagnostic(diagnostics, ErrorCode.ERR_BadNullableContextOption, value);
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                nullableContextOptions = NullableContextOptions.Enable;
+                            }
+                            continue;
+
+
+                        case "nullable+":
+                            if (value != null)
+                            {
+                                break;
+                            }
+
+                            nullableContextOptions = NullableContextOptions.Enable;
+                            continue;
+
+                        case "nullable-":
+                            if (value != null)
+                                break;
+
+                            nullableContextOptions = NullableContextOptions.Disable;
+                            continue;
+
                         case "instrument":
                             value = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(value))
@@ -372,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             try
                             {
                                 preferredUILang = new CultureInfo(value);
-                                if (CorLightup.Desktop.IsUserCustomCulture(preferredUILang) ?? false)
+                                if ((preferredUILang.CultureTypes & CultureTypes.UserCustomCulture) != 0)
                                 {
                                     // Do not use user custom cultures.
                                     preferredUILang = null;
@@ -386,6 +441,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.WRN_BadUILang, value);
                             }
+
+                            continue;
+
+                        case "nosdkpath":
+                            sdkDirectory = null;
 
                             continue;
 
@@ -1166,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 embedAllSourceFiles = true;
                                 continue;
                             }
-                            
+
                             embeddedFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
                             continue;
                     }
@@ -1247,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddDiagnostic(diagnostics, ErrorCode.ERR_SourceLinkRequiresPdb);
             }
-            
+
             if (embedAllSourceFiles)
             {
                 embeddedFiles.AddRange(sourceFiles);
@@ -1285,6 +1345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 usings: usings,
                 optimizationLevel: optimize ? OptimizationLevel.Release : OptimizationLevel.Debug,
                 checkOverflow: checkOverflow,
+                nullableContextOptions: nullableContextOptions,
                 allowUnsafe: allowUnsafe,
                 deterministic: deterministic,
                 concurrentBuild: concurrentBuild,
@@ -1324,6 +1385,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // add option incompatibility errors if any
             diagnostics.AddRange(options.Errors);
             diagnostics.AddRange(parseOptions.Errors);
+
+            if (nullableContextOptions != NullableContextOptions.Disable && parseOptions.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
+            {
+                diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
+                                                 "nullable", nullableContextOptions, parseOptions.LanguageVersion.ToDisplayString(),
+                                                 new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
+            }
 
             return new CSharpCommandLineArguments
             {

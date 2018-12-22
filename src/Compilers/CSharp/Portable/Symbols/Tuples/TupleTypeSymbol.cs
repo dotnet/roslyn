@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => _underlyingType.BaseTypeNoUseSiteDiagnostics;
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
         }
@@ -972,12 +972,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var defaultImplicitlyDeclared = providedName != defaultName;
 
                     // Add a field with default name. It should be present regardless.
-                    TupleErrorFieldSymbol defaultTupleField = new TupleErrorFieldSymbol(this, 
-                                                                                        defaultName, 
-                                                                                        i, 
-                                                                                        defaultImplicitlyDeclared ? null : location, 
-                                                                                        _elementTypes[i], 
-                                                                                        diagnosticInfo, 
+                    TupleErrorFieldSymbol defaultTupleField = new TupleErrorFieldSymbol(this,
+                                                                                        defaultName,
+                                                                                        i,
+                                                                                        defaultImplicitlyDeclared ? null : location,
+                                                                                        _elementTypes[i],
+                                                                                        diagnosticInfo,
                                                                                         defaultImplicitlyDeclared,
                                                                                         correspondingDefaultFieldOpt: null);
 
@@ -986,12 +986,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (defaultImplicitlyDeclared && !String.IsNullOrEmpty(providedName))
                     {
                         // Add friendly named element field. 
-                        members.Add(new TupleErrorFieldSymbol(this, 
-                                                              providedName, 
-                                                              i, 
-                                                              location, 
-                                                              _elementTypes[i], 
-                                                              diagnosticInfo, 
+                        members.Add(new TupleErrorFieldSymbol(this,
+                                                              providedName,
+                                                              i,
+                                                              location,
+                                                              _elementTypes[i],
+                                                              diagnosticInfo,
                                                               isImplicitlyDeclared: false,
                                                               correspondingDefaultFieldOpt: defaultTupleField));
                     }
@@ -1083,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Symbol underlyingMemberDefinition = underlyingMemberOpt.OriginalDefinition;
-            if (underlyingMemberDefinition.ContainingType == _underlyingType.OriginalDefinition)
+            if (TypeSymbol.Equals(underlyingMemberDefinition.ContainingType, _underlyingType.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 Symbol result;
                 if (UnderlyingDefinitionToMemberMap.TryGetValue(underlyingMemberDefinition, out result))
@@ -1430,14 +1430,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
+        internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
             _underlyingType.AddNullableTransforms(transforms);
         }
 
-        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result)
+        internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
         {
-            if (_underlyingType.ApplyNullableTransforms(transforms, nonNullTypesContext, ref position, out TypeSymbol underlying))
+            if (_underlyingType.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out TypeSymbol underlying))
             {
                 result = this.WithUnderlyingType((NamedTypeSymbol)underlying);
                 return true;
@@ -1454,6 +1454,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this;
             }
             return this.WithUnderlyingType(underlyingType);
+        }
+
+        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
+        {
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            var otherTuple = other as TupleTypeSymbol;
+            if (otherTuple is null)
+            {
+                hadNullabilityMismatch = false;
+                return this;
+            }
+            TypeSymbol underlyingType = _underlyingType.MergeNullability(otherTuple._underlyingType, variance, out hadNullabilityMismatch);
+            return WithUnderlyingType((NamedTypeSymbol)underlyingType);
         }
 
         #region Use-Site Diagnostics
@@ -1499,12 +1512,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return underlying.SelectAsArray((u, tuple) => tuple.GetTupleMemberSymbolForUnderlyingMember(u), this).WhereAsArray(m => (object)m != null);
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _underlyingType.GetDeclaredBaseType(basesBeingResolved);
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _underlyingType.GetDeclaredInterfaces(basesBeingResolved);
         }

@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var diagnostics = ImmutableArray<Diagnostic>.Empty;
             var analysisScope = new AnalysisScope(_compilation, analyzers, _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             Func<AsyncQueue<CompilationEvent>> getEventQueue = () =>
-               GetPendingEvents(analyzers, includeSourceEvents: true, includeNonSourceEvents: true);
+               GetPendingEvents(analyzers, includeSourceEvents: true, includeNonSourceEvents: true, cancellationToken);
 
             // Compute the analyzer diagnostics for the given analysis scope.
             await ComputeAnalyzerDiagnosticsAsync(analysisScope, getEventQueue, newTaskToken: 0, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -580,18 +580,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var pendingAnalysisScope = pendingAnalyzers.Length < analyzers.Length ? analysisScope.WithAnalyzers(pendingAnalyzers) : analysisScope;
 
-                    Func<AsyncQueue<CompilationEvent>> getEventQueue = () => GetPendingEvents(analyzers, model.SyntaxTree);
+                    Func<AsyncQueue<CompilationEvent>> getEventQueue = () => GetPendingEvents(analyzers, model.SyntaxTree, cancellationToken);
 
                     // Compute the analyzer diagnostics for the given analysis scope.
                     // We need to loop till symbol analysis is complete for any partial symbols being processed for other tree diagnostic requests.
                     do
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         (ImmutableArray<CompilationEvent> compilationEvents, bool hasSymbolStartActions) = await ComputeAnalyzerDiagnosticsAsync(pendingAnalysisScope, getEventQueue, taskToken, cancellationToken).ConfigureAwait(false);
                         if (hasSymbolStartActions)
                         {
                             await processPartialSymbolLocationsAsync(compilationEvents, analysisScope).ConfigureAwait(false);
                         }
-                    } while (_analysisOptions.ConcurrentAnalysis && _analysisState.HasPendingSymbolAnalysis(pendingAnalysisScope));
+                    } while (_analysisOptions.ConcurrentAnalysis && _analysisState.HasPendingSymbolAnalysis(pendingAnalysisScope, cancellationToken));
 
                     if (_analysisOptions.ConcurrentAnalysis)
                     {
@@ -642,12 +644,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (partialTrees != null)
                 {
-                    await Task.WhenAll(partialTrees.Select(t =>
-                        Task.Run(() =>
+                    if (AnalysisOptions.ConcurrentAnalysis)
+                    {
+                        await Task.WhenAll(partialTrees.Select(tree =>
+                            Task.Run(() =>
+                            {
+                                var treeModel = _compilationData.GetOrCreateCachedSemanticModel(tree, _compilation, cancellationToken);
+                                return GetAnalyzerSemanticDiagnosticsAsync(treeModel, filterSpan: null, cancellationToken);
+                            }, cancellationToken))).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        foreach (var tree in partialTrees)
                         {
-                            var treeModel = _compilationData.GetOrCreateCachedSemanticModel(t, _compilation, cancellationToken);
-                            return GetAnalyzerSemanticDiagnosticsAsync(treeModel, filterSpan: null, cancellationToken);
-                        }))).ConfigureAwait(false);
+                            cancellationToken.ThrowIfCancellationRequested();
+                            var treeModel = _compilationData.GetOrCreateCachedSemanticModel(tree, _compilation, cancellationToken);
+                            await GetAnalyzerSemanticDiagnosticsAsync(treeModel, filterSpan: null, cancellationToken).ConfigureAwait(false);
+                        }
+                    }
                 }
             }
         }
@@ -1062,13 +1076,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private AsyncQueue<CompilationEvent> GetPendingEvents(ImmutableArray<DiagnosticAnalyzer> analyzers, SyntaxTree tree)
+        private AsyncQueue<CompilationEvent> GetPendingEvents(ImmutableArray<DiagnosticAnalyzer> analyzers, SyntaxTree tree, CancellationToken cancellationToken)
         {
             var eventQueue = _eventQueuePool.Allocate();
             Debug.Assert(!eventQueue.IsCompleted);
             Debug.Assert(eventQueue.Count == 0);
 
-            foreach (var compilationEvent in _analysisState.GetPendingEvents(analyzers, tree))
+            foreach (var compilationEvent in _analysisState.GetPendingEvents(analyzers, tree, cancellationToken))
             {
                 eventQueue.TryEnqueue(compilationEvent);
             }
@@ -1076,7 +1090,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return eventQueue;
         }
 
-        private AsyncQueue<CompilationEvent> GetPendingEvents(ImmutableArray<DiagnosticAnalyzer> analyzers, bool includeSourceEvents, bool includeNonSourceEvents)
+        private AsyncQueue<CompilationEvent> GetPendingEvents(
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            bool includeSourceEvents,
+            bool includeNonSourceEvents,
+            CancellationToken cancellationToken)
         {
             Debug.Assert(includeSourceEvents || includeNonSourceEvents);
 
@@ -1084,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(!eventQueue.IsCompleted);
             Debug.Assert(eventQueue.Count == 0);
 
-            foreach (var compilationEvent in _analysisState.GetPendingEvents(analyzers, includeSourceEvents, includeNonSourceEvents))
+            foreach (var compilationEvent in _analysisState.GetPendingEvents(analyzers, includeSourceEvents, includeNonSourceEvents, cancellationToken))
             {
                 eventQueue.TryEnqueue(compilationEvent);
             }

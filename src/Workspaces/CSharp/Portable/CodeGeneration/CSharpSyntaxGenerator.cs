@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxTrivia EndOfLine(string text)
             => SyntaxFactory.EndOfLine(text);
 
+        internal override SyntaxTrivia Whitespace(string text)
+            => SyntaxFactory.Whitespace(text);
+
         internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list)
             => SyntaxFactory.SeparatedList<TElement>(list);
 
@@ -2574,14 +2577,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override IReadOnlyList<SyntaxNode> GetParameters(SyntaxNode declaration)
         {
             var list = GetParameterList(declaration);
-            if (list != null)
-            {
-                return list.Parameters;
-            }
-            else
-            {
-                return SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
-            }
+            return list != null
+                ? list.Parameters
+                : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
         }
 
         public override SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
@@ -2657,6 +2655,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return SyntaxFactory.Token(token.Kind()).WithTriviaFrom(rewrittenToken);
             }
         }
+
+        internal override SyntaxNode GetParameterListNode(SyntaxNode declaration)
+            => GetParameterList(declaration);
 
         internal static BaseParameterListSyntax GetParameterList(SyntaxNode declaration)
         {
@@ -3226,10 +3227,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var fullDecl = GetFullDeclaration(declaration);
 
                 // special handling for replacing at location of sub-declaration
-                if (fullDecl != declaration)
+                if (fullDecl != declaration && fullDecl.IsKind(newFullDecl.Kind()))
                 {
                     // try to replace inline if possible
-                    if (fullDecl.IsKind(newFullDecl.Kind()) && GetDeclarationCount(newFullDecl) == 1)
+                    if (GetDeclarationCount(newFullDecl) == 1)
                     {
                         var newSubDecl = GetSubDeclarations(newFullDecl)[0];
                         if (AreInlineReplaceableSubDeclarations(declaration, newSubDecl))

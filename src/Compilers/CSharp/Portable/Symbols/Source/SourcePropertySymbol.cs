@@ -271,10 +271,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // We do an extra check before copying the type to handle the case where the overriding
                     // property (incorrectly) has a different type than the overridden property.  In such cases,
                     // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-                    if (type.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
+                    if (type.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamic))
                     {
                         type = type.WithTypeAndModifiers(
-                            CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, type.TypeSymbol, this.ContainingAssembly, nonNullTypesContext: this),
+                            CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, type.TypeSymbol, this.ContainingAssembly),
                             overriddenPropertyType.CustomModifiers);
                         _lazyType = default;
                         _lazyType.InterlockedInitialize(type);
@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
-            if (this.Type.ContainsNullableReferenceTypes())
+            if (this.Type.NeedsNullableAttribute())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -1132,7 +1132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        private PropertyWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        private CommonPropertyWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (PropertyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (CommonPropertyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
-            if (type.ContainsNullableReferenceTypes())
+            if (type.NeedsNullableAttribute())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
@@ -1278,11 +1278,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasSpecialNameAttribute = true;
+                arguments.GetOrCreateData<CommonPropertyWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
+                arguments.GetOrCreateData<CommonPropertyWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {
@@ -1312,11 +1312,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                bool value = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().NonNullTypes = value;
             }
         }
 
@@ -1528,15 +1523,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static BaseParameterListSyntax GetParameterListSyntax(BasePropertyDeclarationSyntax syntax)
         {
             return (syntax.Kind() == SyntaxKind.IndexerDeclaration) ? ((IndexerDeclarationSyntax)syntax).ParameterList : null;
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                var data = GetDecodedWellKnownAttributeData();
-                return data?.NonNullTypes ?? base.NonNullTypes;
-            }
         }
     }
 }

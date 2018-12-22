@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _F = factory;
             _F.CurrentFunction = containingMethod;
-            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
+            Debug.Assert(TypeSymbol.Equals(factory.CurrentType, (containingType ?? containingMethod.ContainingType), TypeCompareKind.ConsiderEverything2));
             _diagnostics = diagnostics;
             _analysis = analysis;
         }
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             Debug.Assert(containingSymbol != null);
-            Debug.Assert(containingType != null);
+            Debug.Assert((object)containingType != null);
             Debug.Assert(statement != null);
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // since finalized region is a try we can just attach finally to it
                     Debug.Assert(asTry.FinallyBlockOpt == null);
-                    return asTry.Update(asTry.TryBlock, asTry.CatchBlocks, rewrittenFinally, asTry.PreferFaultHandler);
+                    return asTry.Update(asTry.TryBlock, asTry.CatchBlocks, rewrittenFinally, asTry.FinallyLabelOpt, asTry.PreferFaultHandler);
                 }
                 else
                 {
@@ -187,9 +187,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _F.HiddenSequencePoint(),
                     _F.Goto(finallyLabel),
                     PendBranches(frame, pendingBranchVar, finallyLabel)),
-                ImmutableArray.Create(catchAll));
+                ImmutableArray.Create(catchAll),
+                finallyLabel: finallyLabel);
 
-            var syntheticFinally = _F.Block(
+            BoundBlock syntheticFinallyBlock = _F.Block(
                 _F.HiddenSequencePoint(),
                 _F.Label(finallyLabel),
                 rewrittenFinally,
@@ -200,6 +201,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     pendingBranchVar,
                     pendingExceptionLocal));
 
+            BoundStatement syntheticFinally = syntheticFinallyBlock;
+            if (_F.CurrentFunction.IsAsync && _F.CurrentFunction.IsIterator)
+            {
+                // We wrap this block so that it can be processed as a finally block by async-iterator rewriting
+                syntheticFinally = _F.ExtractedFinallyBlock(syntheticFinallyBlock);
+            }
 
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             var statements = ArrayBuilder<BoundStatement>.GetInstance();
@@ -690,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private AwaitFinallyFrame PushFrame(BoundTryStatement statement)
         {
-            var newFrame = new AwaitFinallyFrame(_currentAwaitFinallyFrame, _analysis.Labels(statement), (TryStatementSyntax)statement.Syntax);
+            var newFrame = new AwaitFinallyFrame(_currentAwaitFinallyFrame, _analysis.Labels(statement), (StatementSyntax)statement.Syntax);
             _currentAwaitFinallyFrame = newFrame;
             return newFrame;
         }
@@ -868,8 +875,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // labels within this frame (branching to these labels does not go through finally).
             public readonly HashSet<LabelSymbol> LabelsOpt;
 
-            // the try statement the frame is associated with
-            private readonly TryStatementSyntax _tryStatementSyntaxOpt;
+            // the try or using-await statement the frame is associated with
+            private readonly StatementSyntax _statementSyntaxOpt;
 
             // proxy labels for branches leaving the frame. 
             // we build this on demand once we encounter leaving branches.
@@ -888,14 +895,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // root frame
             }
 
-            public AwaitFinallyFrame(AwaitFinallyFrame parent, HashSet<LabelSymbol> labelsOpt, TryStatementSyntax tryStatementSyntax)
+            public AwaitFinallyFrame(AwaitFinallyFrame parent, HashSet<LabelSymbol> labelsOpt, StatementSyntax statementSyntax)
             {
                 Debug.Assert(parent != null);
-                Debug.Assert(tryStatementSyntax != null);
+                Debug.Assert(statementSyntax != null);
+
+                Debug.Assert(statementSyntax.Kind() == SyntaxKind.TryStatement ||
+                    (statementSyntax.Kind() == SyntaxKind.UsingStatement && ((UsingStatementSyntax)statementSyntax).AwaitKeyword != default) ||
+                    (statementSyntax.Kind() == SyntaxKind.ForEachStatement && ((CommonForEachStatementSyntax)statementSyntax).AwaitKeyword != default) ||
+                    (statementSyntax.Kind() == SyntaxKind.ForEachVariableStatement && ((CommonForEachStatementSyntax)statementSyntax).AwaitKeyword != default));
 
                 this.ParentOpt = parent;
                 this.LabelsOpt = labelsOpt;
-                _tryStatementSyntaxOpt = tryStatementSyntax;
+                _statementSyntaxOpt = statementSyntax;
             }
 
             public bool IsRoot()
@@ -956,8 +968,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnValue = this.returnValue;
                     if (returnValue == null)
                     {
-                        Debug.Assert(_tryStatementSyntaxOpt != null);
-                        this.returnValue = returnValue = new SynthesizedLocal(containingMethod, TypeSymbolWithAnnotations.Create(valueOpt.Type), SynthesizedLocalKind.AsyncMethodReturnValue, _tryStatementSyntaxOpt);
+                        Debug.Assert(_statementSyntaxOpt != null);
+                        this.returnValue = returnValue = new SynthesizedLocal(containingMethod, TypeSymbolWithAnnotations.Create(valueOpt.Type), SynthesizedLocalKind.AsyncMethodReturnValue, _statementSyntaxOpt);
                     }
                 }
 
@@ -1001,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public void HoistLocal(LocalSymbol local, SyntheticBoundNodeFactory F)
             {
-                if (!_hoistedLocals.Keys.Any(l => l.Name == local.Name && l.Type.TypeSymbol == local.Type.TypeSymbol))
+                if (!_hoistedLocals.Keys.Any(l => l.Name == local.Name && TypeSymbol.Equals(l.Type.TypeSymbol, local.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2)))
                 {
                     _hoistedLocals.Add(local, local);
                     _orderedHoistedLocals.Add(local);

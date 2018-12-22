@@ -9572,6 +9572,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
+    public abstract SyntaxToken AwaitKeyword { get; }
+    public CommonForEachStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword) => WithAwaitKeywordCore(awaitKeyword);
+    internal abstract CommonForEachStatementSyntax WithAwaitKeywordCore(SyntaxToken awaitKeyword);
+
     public abstract SyntaxToken ForEachKeyword { get; }
     public CommonForEachStatementSyntax WithForEachKeyword(SyntaxToken forEachKeyword) => WithForEachKeywordCore(forEachKeyword);
     internal abstract CommonForEachStatementSyntax WithForEachKeywordCore(SyntaxToken forEachKeyword);
@@ -9608,53 +9612,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
+    public override SyntaxToken AwaitKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).awaitKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.Position, 0);
+
+            return default(SyntaxToken);
+        }
+    }
+
     public override SyntaxToken ForEachKeyword 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).forEachKeyword, this.Position, 0); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).forEachKeyword, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
     public override SyntaxToken OpenParenToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).openParenToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).openParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
     public TypeSyntax Type 
     {
         get
         {
-            return this.GetRed(ref this.type, 2);
+            return this.GetRed(ref this.type, 3);
         }
     }
 
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).identifier, this.GetChildPosition(3), this.GetChildIndex(3)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).identifier, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
     public override SyntaxToken InKeyword 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).inKeyword, this.GetChildPosition(4), this.GetChildIndex(4)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).inKeyword, this.GetChildPosition(5), this.GetChildIndex(5)); }
     }
 
     public override ExpressionSyntax Expression 
     {
         get
         {
-            return this.GetRed(ref this.expression, 5);
+            return this.GetRed(ref this.expression, 6);
         }
     }
 
     public override SyntaxToken CloseParenToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).closeParenToken, this.GetChildPosition(6), this.GetChildIndex(6)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).closeParenToken, this.GetChildPosition(7), this.GetChildIndex(7)); }
     }
 
     public override StatementSyntax Statement 
     {
         get
         {
-            return this.GetRed(ref this.statement, 7);
+            return this.GetRed(ref this.statement, 8);
         }
     }
 
@@ -9662,9 +9678,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.type, 2);
-            case 5: return this.GetRed(ref this.expression, 5);
-            case 7: return this.GetRed(ref this.statement, 7);
+            case 3: return this.GetRed(ref this.type, 3);
+            case 6: return this.GetRed(ref this.expression, 6);
+            case 8: return this.GetRed(ref this.statement, 8);
             default: return null;
         }
     }
@@ -9672,9 +9688,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.type;
-            case 5: return this.expression;
-            case 7: return this.statement;
+            case 3: return this.type;
+            case 6: return this.expression;
+            case 8: return this.statement;
             default: return null;
         }
     }
@@ -9689,11 +9705,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitForEachStatement(this);
     }
 
-    public ForEachStatementSyntax Update(SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public ForEachStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
-        if (forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || type != this.Type || identifier != this.Identifier || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
+        if (awaitKeyword != this.AwaitKeyword || forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || type != this.Type || identifier != this.Identifier || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
         {
-            var newNode = SyntaxFactory.ForEachStatement(forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
+            var newNode = SyntaxFactory.ForEachStatement(awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -9703,50 +9719,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
+    internal override CommonForEachStatementSyntax WithAwaitKeywordCore(SyntaxToken awaitKeyword) => WithAwaitKeyword(awaitKeyword);
+    public new ForEachStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
+    {
+        return this.Update(awaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+    }
+
     internal override CommonForEachStatementSyntax WithForEachKeywordCore(SyntaxToken forEachKeyword) => WithForEachKeyword(forEachKeyword);
     public new ForEachStatementSyntax WithForEachKeyword(SyntaxToken forEachKeyword)
     {
-        return this.Update(forEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, forEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     internal override CommonForEachStatementSyntax WithOpenParenTokenCore(SyntaxToken openParenToken) => WithOpenParenToken(openParenToken);
     public new ForEachStatementSyntax WithOpenParenToken(SyntaxToken openParenToken)
     {
-        return this.Update(this.ForEachKeyword, openParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, openParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     public ForEachStatementSyntax WithType(TypeSyntax type)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     public ForEachStatementSyntax WithIdentifier(SyntaxToken identifier)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Type, identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Type, identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     internal override CommonForEachStatementSyntax WithInKeywordCore(SyntaxToken inKeyword) => WithInKeyword(inKeyword);
     public new ForEachStatementSyntax WithInKeyword(SyntaxToken inKeyword)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, inKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, inKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     internal override CommonForEachStatementSyntax WithExpressionCore(ExpressionSyntax expression) => WithExpression(expression);
     public new ForEachStatementSyntax WithExpression(ExpressionSyntax expression)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, expression, this.CloseParenToken, this.Statement);
     }
 
     internal override CommonForEachStatementSyntax WithCloseParenTokenCore(SyntaxToken closeParenToken) => WithCloseParenToken(closeParenToken);
     public new ForEachStatementSyntax WithCloseParenToken(SyntaxToken closeParenToken)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, closeParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, closeParenToken, this.Statement);
     }
 
     internal override CommonForEachStatementSyntax WithStatementCore(StatementSyntax statement) => WithStatement(statement);
     public new ForEachStatementSyntax WithStatement(StatementSyntax statement)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, statement);
     }
   }
 
@@ -9761,14 +9783,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
+    public override SyntaxToken AwaitKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).awaitKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.Position, 0);
+
+            return default(SyntaxToken);
+        }
+    }
+
     public override SyntaxToken ForEachKeyword 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).forEachKeyword, this.Position, 0); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).forEachKeyword, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
     public override SyntaxToken OpenParenToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).openParenToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).openParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
     /// <summary>
@@ -9781,33 +9815,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.variable, 2);
+            return this.GetRed(ref this.variable, 3);
         }
     }
 
     public override SyntaxToken InKeyword 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).inKeyword, this.GetChildPosition(3), this.GetChildIndex(3)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).inKeyword, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
     public override ExpressionSyntax Expression 
     {
         get
         {
-            return this.GetRed(ref this.expression, 4);
+            return this.GetRed(ref this.expression, 5);
         }
     }
 
     public override SyntaxToken CloseParenToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).closeParenToken, this.GetChildPosition(5), this.GetChildIndex(5)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).closeParenToken, this.GetChildPosition(6), this.GetChildIndex(6)); }
     }
 
     public override StatementSyntax Statement 
     {
         get
         {
-            return this.GetRed(ref this.statement, 6);
+            return this.GetRed(ref this.statement, 7);
         }
     }
 
@@ -9815,9 +9849,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.variable, 2);
-            case 4: return this.GetRed(ref this.expression, 4);
-            case 6: return this.GetRed(ref this.statement, 6);
+            case 3: return this.GetRed(ref this.variable, 3);
+            case 5: return this.GetRed(ref this.expression, 5);
+            case 7: return this.GetRed(ref this.statement, 7);
             default: return null;
         }
     }
@@ -9825,9 +9859,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.variable;
-            case 4: return this.expression;
-            case 6: return this.statement;
+            case 3: return this.variable;
+            case 5: return this.expression;
+            case 7: return this.statement;
             default: return null;
         }
     }
@@ -9842,11 +9876,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitForEachVariableStatement(this);
     }
 
-    public ForEachVariableStatementSyntax Update(SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public ForEachVariableStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
-        if (forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || variable != this.Variable || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
+        if (awaitKeyword != this.AwaitKeyword || forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || variable != this.Variable || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
         {
-            var newNode = SyntaxFactory.ForEachVariableStatement(forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
+            var newNode = SyntaxFactory.ForEachVariableStatement(awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -9856,45 +9890,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
+    internal override CommonForEachStatementSyntax WithAwaitKeywordCore(SyntaxToken awaitKeyword) => WithAwaitKeyword(awaitKeyword);
+    public new ForEachVariableStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
+    {
+        return this.Update(awaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+    }
+
     internal override CommonForEachStatementSyntax WithForEachKeywordCore(SyntaxToken forEachKeyword) => WithForEachKeyword(forEachKeyword);
     public new ForEachVariableStatementSyntax WithForEachKeyword(SyntaxToken forEachKeyword)
     {
-        return this.Update(forEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, forEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     internal override CommonForEachStatementSyntax WithOpenParenTokenCore(SyntaxToken openParenToken) => WithOpenParenToken(openParenToken);
     public new ForEachVariableStatementSyntax WithOpenParenToken(SyntaxToken openParenToken)
     {
-        return this.Update(this.ForEachKeyword, openParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, openParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     public ForEachVariableStatementSyntax WithVariable(ExpressionSyntax variable)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     internal override CommonForEachStatementSyntax WithInKeywordCore(SyntaxToken inKeyword) => WithInKeyword(inKeyword);
     public new ForEachVariableStatementSyntax WithInKeyword(SyntaxToken inKeyword)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Variable, inKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Variable, inKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     internal override CommonForEachStatementSyntax WithExpressionCore(ExpressionSyntax expression) => WithExpression(expression);
     public new ForEachVariableStatementSyntax WithExpression(ExpressionSyntax expression)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, expression, this.CloseParenToken, this.Statement);
     }
 
     internal override CommonForEachStatementSyntax WithCloseParenTokenCore(SyntaxToken closeParenToken) => WithCloseParenToken(closeParenToken);
     public new ForEachVariableStatementSyntax WithCloseParenToken(SyntaxToken closeParenToken)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, closeParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, closeParenToken, this.Statement);
     }
 
     internal override CommonForEachStatementSyntax WithStatementCore(StatementSyntax statement) => WithStatement(statement);
     public new ForEachVariableStatementSyntax WithStatement(StatementSyntax statement)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, statement);
     }
   }
 
@@ -9909,21 +9949,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
+    public SyntaxToken AwaitKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).awaitKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.Position, 0);
+
+            return default(SyntaxToken);
+        }
+    }
+
     public SyntaxToken UsingKeyword 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).usingKeyword, this.Position, 0); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).usingKeyword, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
     public SyntaxToken OpenParenToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).openParenToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).openParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
     public VariableDeclarationSyntax Declaration 
     {
         get
         {
-            return this.GetRed(ref this.declaration, 2);
+            return this.GetRed(ref this.declaration, 3);
         }
     }
 
@@ -9931,20 +9983,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 3);
+            return this.GetRed(ref this.expression, 4);
         }
     }
 
     public SyntaxToken CloseParenToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).closeParenToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).closeParenToken, this.GetChildPosition(5), this.GetChildIndex(5)); }
     }
 
     public StatementSyntax Statement 
     {
         get
         {
-            return this.GetRed(ref this.statement, 5);
+            return this.GetRed(ref this.statement, 6);
         }
     }
 
@@ -9952,9 +10004,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.declaration, 2);
-            case 3: return this.GetRed(ref this.expression, 3);
-            case 5: return this.GetRed(ref this.statement, 5);
+            case 3: return this.GetRed(ref this.declaration, 3);
+            case 4: return this.GetRed(ref this.expression, 4);
+            case 6: return this.GetRed(ref this.statement, 6);
             default: return null;
         }
     }
@@ -9962,9 +10014,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.declaration;
-            case 3: return this.expression;
-            case 5: return this.statement;
+            case 3: return this.declaration;
+            case 4: return this.expression;
+            case 6: return this.statement;
             default: return null;
         }
     }
@@ -9979,11 +10031,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitUsingStatement(this);
     }
 
-    public UsingStatementSyntax Update(SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public UsingStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
-        if (usingKeyword != this.UsingKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
+        if (awaitKeyword != this.AwaitKeyword || usingKeyword != this.UsingKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
         {
-            var newNode = SyntaxFactory.UsingStatement(usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
+            var newNode = SyntaxFactory.UsingStatement(awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -9993,34 +10045,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
+    public UsingStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
+    {
+        return this.Update(awaitKeyword, this.UsingKeyword, this.OpenParenToken, this.Declaration, this.Expression, this.CloseParenToken, this.Statement);
+    }
+
     public UsingStatementSyntax WithUsingKeyword(SyntaxToken usingKeyword)
     {
-        return this.Update(usingKeyword, this.OpenParenToken, this.Declaration, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, usingKeyword, this.OpenParenToken, this.Declaration, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     public UsingStatementSyntax WithOpenParenToken(SyntaxToken openParenToken)
     {
-        return this.Update(this.UsingKeyword, openParenToken, this.Declaration, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, openParenToken, this.Declaration, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     public UsingStatementSyntax WithDeclaration(VariableDeclarationSyntax declaration)
     {
-        return this.Update(this.UsingKeyword, this.OpenParenToken, declaration, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, this.OpenParenToken, declaration, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     public UsingStatementSyntax WithExpression(ExpressionSyntax expression)
     {
-        return this.Update(this.UsingKeyword, this.OpenParenToken, this.Declaration, expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, this.OpenParenToken, this.Declaration, expression, this.CloseParenToken, this.Statement);
     }
 
     public UsingStatementSyntax WithCloseParenToken(SyntaxToken closeParenToken)
     {
-        return this.Update(this.UsingKeyword, this.OpenParenToken, this.Declaration, this.Expression, closeParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, this.OpenParenToken, this.Declaration, this.Expression, closeParenToken, this.Statement);
     }
 
     public UsingStatementSyntax WithStatement(StatementSyntax statement)
     {
-        return this.Update(this.UsingKeyword, this.OpenParenToken, this.Declaration, this.Expression, this.CloseParenToken, statement);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, this.OpenParenToken, this.Declaration, this.Expression, this.CloseParenToken, statement);
     }
   }
 
@@ -21940,6 +21997,102 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public ShebangDirectiveTriviaSyntax WithIsActive(bool isActive)
     {
         return this.Update(this.HashToken, this.ExclamationToken, this.EndOfDirectiveToken, isActive);
+    }
+  }
+
+  public sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSyntax
+  {
+    internal NullableDirectiveTriviaSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public override SyntaxToken HashToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).hashToken, this.Position, 0); }
+    }
+
+    public SyntaxToken NullableKeyword 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).nullableKeyword, this.GetChildPosition(1), this.GetChildIndex(1)); }
+    }
+
+    public SyntaxToken SettingToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).settingToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+    }
+
+    public override SyntaxToken EndOfDirectiveToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
+    }
+
+    public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).IsActive; } }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitNullableDirectiveTrivia(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitNullableDirectiveTrivia(this);
+    }
+
+    public NullableDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken endOfDirectiveToken, bool isActive)
+    {
+        if (hashToken != this.HashToken || nullableKeyword != this.NullableKeyword || settingToken != this.SettingToken || endOfDirectiveToken != this.EndOfDirectiveToken)
+        {
+            var newNode = SyntaxFactory.NullableDirectiveTrivia(hashToken, nullableKeyword, settingToken, endOfDirectiveToken, isActive);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new NullableDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    {
+        return this.Update(hashToken, this.NullableKeyword, this.SettingToken, this.EndOfDirectiveToken, this.IsActive);
+    }
+
+    public NullableDirectiveTriviaSyntax WithNullableKeyword(SyntaxToken nullableKeyword)
+    {
+        return this.Update(this.HashToken, nullableKeyword, this.SettingToken, this.EndOfDirectiveToken, this.IsActive);
+    }
+
+    public NullableDirectiveTriviaSyntax WithSettingToken(SyntaxToken settingToken)
+    {
+        return this.Update(this.HashToken, this.NullableKeyword, settingToken, this.EndOfDirectiveToken, this.IsActive);
+    }
+
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new NullableDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    {
+        return this.Update(this.HashToken, this.NullableKeyword, this.SettingToken, endOfDirectiveToken, this.IsActive);
+    }
+
+    public NullableDirectiveTriviaSyntax WithIsActive(bool isActive)
+    {
+        return this.Update(this.HashToken, this.NullableKeyword, this.SettingToken, this.EndOfDirectiveToken, isActive);
     }
   }
 }

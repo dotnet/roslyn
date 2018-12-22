@@ -32,16 +32,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _isImplicitlyDeclared;
 
         public TupleErrorFieldSymbol(
-            NamedTypeSymbol container, 
-            string name, 
-            int tupleElementIndex, 
-            Location location, 
-            TypeSymbolWithAnnotations type, 
-            DiagnosticInfo useSiteDiagnosticInfo, 
+            NamedTypeSymbol container,
+            string name,
+            int tupleElementIndex,
+            Location location,
+            TypeSymbolWithAnnotations type,
+            DiagnosticInfo useSiteDiagnosticInfo,
             bool isImplicitlyDeclared,
             TupleErrorFieldSymbol correspondingDefaultFieldOpt)
 
-            : base(container, name, isPublic:true, isReadOnly:false, isStatic:false)
+            : base(container, name, isPublic: true, isReadOnly: false, isStatic: false)
         {
             Debug.Assert(name != null);
             _type = type;
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (object)other != null &&
                 _tupleElementIndex == other._tupleElementIndex &&
-                ContainingType == other.ContainingType;
+                TypeSymbol.Equals(ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything2);
         }
     }
 }

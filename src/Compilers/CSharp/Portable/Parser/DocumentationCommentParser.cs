@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // before doing ToString, check if 
             // all nodes contributing to ToString are recursively the same
             // NOTE: leading and trailing trivia do not contribute to ToString
-            if (!name.HasLeadingTrivia && 
+            if (!name.HasLeadingTrivia &&
                 !endName.HasTrailingTrivia &&
                 name.IsEquivalentTo(endName))
             {
@@ -1411,7 +1411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                             if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
                             {
-                                questionToken = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureStaticNullChecking);
+                                questionToken = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureNullableReferenceTypes);
                             }
 
                             rankList.Add(SyntaxFactory.ArrayRankSpecifier(open, dimensionList, close, questionToken));

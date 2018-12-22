@@ -5,6 +5,10 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
+#endif
+
 namespace Microsoft.CodeAnalysis.Formatting
 {
     public static class FormattingOptions
@@ -65,6 +69,20 @@ namespace Microsoft.CodeAnalysis.Formatting
             defaultValue: false,
             storageLocations: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 
+        /// <summary>
+        /// Default value of 120 was picked based on the amount of code in a github.com diff at 1080p.
+        /// That resolution is the most common value as per the last DevDiv survey as well as the latest
+        /// Steam hardware survey.  This also seems to a reasonable length default in that shorter
+        /// lengths can often feel too cramped for .Net languages, which are often starting with a
+        /// default indentation of at least 16 (for namespace, class, member, plus the final construct
+        /// indentation).
+        /// </summary>
+        internal static Option<int> PreferredWrappingColumn { get; } = new Option<int>(
+            nameof(FormattingOptions),
+            FormattingOptionGroups.NewLine,
+            nameof(PreferredWrappingColumn),
+            defaultValue: 120);
+
         private static readonly BidirectionalMap<string, string> s_parenthesesPreferenceMap =
             new BidirectionalMap<string, string>(new[]
             {
@@ -78,8 +96,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static string GetEndOfLineEditorConfigString(string option)
             => s_parenthesesPreferenceMap.TryGetKey(option, out var editorConfigString) ? editorConfigString : null;
-
-        internal static PerLanguageOption<bool> DebugMode { get; } = CreatePerLanguageOption(OptionGroup.Default, nameof(DebugMode), defaultValue: false);
 
         internal static Option<bool> AllowDisjointSpanMerging { get; } = CreateOption(OptionGroup.Default, nameof(AllowDisjointSpanMerging), defaultValue: false);
 

@@ -476,7 +476,7 @@ End Class
             v.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -546,7 +546,7 @@ End Class
             v.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">

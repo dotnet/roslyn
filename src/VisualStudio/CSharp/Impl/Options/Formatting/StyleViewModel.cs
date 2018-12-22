@@ -630,6 +630,76 @@ class Customer
 }}
 ";
 
+        private static readonly string s_doNotPreferBraces = $@"
+using System;
+
+class Customer
+{{
+    private int Age;
+
+    void M1()
+    {{
+//[
+        // {ServicesVSResources.Allow_colon}
+        if (test) Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+            Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+            Console.WriteLine(
+                ""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+        {{
+            Console.WriteLine(
+                ""Text"");
+        }}
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferBracesWhenMultiline = $@"
+using System;
+
+class Customer
+{{
+    private int Age;
+
+    void M1()
+    {{
+//[
+        // {ServicesVSResources.Allow_colon}
+        if (test) Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+            Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Prefer_colon}
+        if (test)
+        {{
+            Console.WriteLine(
+                ""Text"");
+        }}
+//]
+    }}
+    void M2()
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        if (test)
+            Console.WriteLine(
+                ""Text"");
+//]
+    }}
+}}
+";
+
         private static readonly string s_preferBraces = $@"
 using System;
 
@@ -643,7 +713,7 @@ class Customer
         // {ServicesVSResources.Prefer_colon}
         if (test)
         {{
-            this.Display();
+            Console.WriteLine(""Text"");
         }}
 //]
     }}
@@ -652,7 +722,7 @@ class Customer
 //[
         // {ServicesVSResources.Over_colon}
         if (test)
-            this.Display();
+            Console.WriteLine(""Text"");
 //]
     }}
 }}
@@ -716,7 +786,6 @@ class Customer
 
         private static readonly string s_preferCompoundAssignments = $@"
 using System;
-
 class Customer
 {{
     void M1(int value)
@@ -731,6 +800,51 @@ class Customer
 //[
         // {ServicesVSResources.Over_colon}
         value = value + 10
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferIndexOperator = $@"
+using System;
+
+class Customer
+{{
+    void M1(string value)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var ch = value[^1];
+//]
+    }}
+    void M2(string value)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        var ch = value[value.Length - 1];
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferRangeOperator = $@"
+using System;
+
+class Customer
+{{
+    void M1(string value)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var sub = value[1..^1];
+//]
+    }}
+    void M2(string value)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        var sub = value.Substring(1, value.Length - 2);
+>>>>>>> UI options.  Also support arrays.
 //]
     }}
 }}
@@ -964,6 +1078,45 @@ class Customer
 }
 ";
 
+        private const string s_preferExpressionBodyForLocalFunctions = @"
+using System;
+
+//[
+class Customer
+{
+    private int Age;
+
+    public int GetAge() 
+    {
+        return GetAgeLocal();
+        
+        int GetAgeLocal() => this.Age;
+    }
+}
+//]
+";
+
+        private const string s_preferBlockBodyForLocalFunctions = @"
+using System;
+
+//[
+class Customer
+{
+    private int Age;
+
+    public int GetAge()
+    {
+        return GetAgeLocal();
+        
+        int GetAgeLocal()
+        {
+            return this.Age;
+        }
+    }
+}
+//]
+";
+
         private static readonly string s_preferReadonly = $@"
 class Customer1
 {{
@@ -1126,6 +1279,169 @@ class C
 
         #endregion
 
+        #region unused parameters
+
+        private static readonly string s_avoidUnusedParametersNonPublicMethods = $@"
+class C1
+{{
+//[
+    // {ServicesVSResources.Prefer_colon}
+    private void M()
+    {{
+    }}
+//]
+}}
+class C2
+{{
+//[
+    // {ServicesVSResources.Over_colon}
+    private void M(int param)
+    {{
+    }}
+//]
+}}
+";
+
+        private static readonly string s_avoidUnusedParametersAllMethods = $@"
+class C1
+{{
+//[
+    // {ServicesVSResources.Prefer_colon}
+    public void M()
+    {{
+    }}
+//]
+}}
+class C2
+{{
+//[
+    // {ServicesVSResources.Over_colon}
+    public void M(int param)
+    {{
+    }}
+//]
+}}
+";
+        #endregion
+
+        #region unused values
+
+        private static readonly string s_avoidUnusedValueAssignmentUnusedLocal = $@"
+class C
+{{
+    int M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        int unused = Computation();  // {ServicesVSResources.Unused_value_is_explicitly_assigned_to_an_unused_local}
+        int x = 1;
+//]
+        return x;
+    }}
+
+    int Computation() => 0;
+}}
+class C2
+{{
+    int M()
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        int x = Computation();  // {ServicesVSResources.Value_assigned_here_is_never_used}
+        x = 1;
+//]
+        return x;
+    }}
+
+    int Computation() => 0;
+}}
+";
+
+        private static readonly string s_avoidUnusedValueAssignmentDiscard = $@"
+class C
+{{
+    int M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        _ = Computation();      // {ServicesVSResources.Unused_value_is_explicitly_assigned_to_discard}
+        int x = 1;
+//]
+        return x;
+    }}
+
+    int Computation() => 0;
+}}
+class C2
+{{
+    int M()
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        int x = Computation();  // {ServicesVSResources.Value_assigned_here_is_never_used}
+        x = 1;
+//]
+        return x;
+    }}
+
+    int Computation() => 0;
+}}
+";
+
+        private static readonly string s_avoidUnusedValueExpressionStatementUnusedLocal = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        int unused = Computation();  //  {ServicesVSResources.Unused_value_is_explicitly_assigned_to_an_unused_local}
+//]
+    }}
+
+    int Computation() => 0;
+}}
+class C2
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        Computation();               // {ServicesVSResources.Value_returned_by_invocation_is_implicitly_ignored}
+//]
+    }}
+
+    int Computation() => 0;
+}}
+";
+
+        private static readonly string s_avoidUnusedValueExpressionStatementDiscard = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        _ = Computation();      // {ServicesVSResources.Unused_value_is_explicitly_assigned_to_discard}
+//]
+    }}
+
+    int Computation() => 0;
+}}
+class C2
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        Computation();          // {ServicesVSResources.Value_returned_by_invocation_is_implicitly_ignored}
+//]
+    }}
+
+    int Computation() => 0;
+}}
+";
+        #endregion
         #endregion
 
         internal StyleViewModel(OptionSet optionSet, IServiceProvider serviceProvider) : base(optionSet, serviceProvider, LanguageNames.CSharp)
@@ -1141,6 +1457,7 @@ class C
             var codeBlockPreferencesGroupTitle = ServicesVSResources.Code_block_preferences_colon;
             var expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon;
             var variablePreferencesGroupTitle = ServicesVSResources.Variable_preferences_colon;
+            var parameterPreferencesGroupTitle = ServicesVSResources.Parameter_preferences_colon;
 
             var qualifyMemberAccessPreferences = new List<CodeStylePreference>
             {
@@ -1174,7 +1491,7 @@ class C
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
 
             // Code block
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferBraces, ServicesVSResources.Prefer_braces, s_preferBraces, s_preferBraces, this, optionSet, codeBlockPreferencesGroupTitle));
+            AddBracesOptions(optionSet, codeBlockPreferencesGroupTitle);
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionSet, codeBlockPreferencesGroupTitle));
 
             AddParenthesesOptions(Options);
@@ -1193,7 +1510,11 @@ class C
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, ServicesVSResources.Prefer_local_function_over_anonymous_function, s_preferLocalFunctionOverAnonymousFunction, s_preferLocalFunctionOverAnonymousFunction, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCompoundAssignment, ServicesVSResources.Prefer_compound_assignments, s_preferCompoundAssignments, s_preferCompoundAssignments, this, optionSet, expressionPreferencesGroupTitle));
 
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferIndexOperator, ServicesVSResources.Prefer_index_operator, s_preferIndexOperator, s_preferIndexOperator, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferRangeOperator, ServicesVSResources.Prefer_range_operator, s_preferRangeOperator, s_preferRangeOperator, this, optionSet, expressionPreferencesGroupTitle));
+
             AddExpressionBodyOptions(optionSet, expressionPreferencesGroupTitle);
+            AddUnusedValueOptions(optionSet, expressionPreferencesGroupTitle);
 
             // Variable preferences
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferInlinedVariableDeclaration, ServicesVSResources.Prefer_inlined_variable_declaration, s_preferInlinedVariableDeclaration, s_preferInlinedVariableDeclaration, this, optionSet, variablePreferencesGroupTitle));
@@ -1208,6 +1529,9 @@ class C
 
             // Field preferences.
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, this, optionSet, fieldGroupTitle));
+
+            // Parameter preferences
+            AddParameterOptions(optionSet, parameterPreferencesGroupTitle);
         }
 
         private void AddParenthesesOptions(OptionSet optionSet)
@@ -1235,6 +1559,25 @@ class C
                 ServicesVSResources.In_other_operators,
                 new[] { s_otherParenthesesAlwaysForClarity, s_otherParenthesesNeverIfUnnecessary },
                 defaultAddForClarity: false);
+        }
+
+        private void AddBracesOptions(OptionSet optionSet, string bracesPreferenceGroupTitle)
+        {
+            var bracesPreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(ServicesVSResources.Yes, isChecked: false),
+                new CodeStylePreference(ServicesVSResources.No, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.When_on_multiple_lines, isChecked: false),
+            };
+
+            var enumValues = new[] { PreferBracesPreference.Always, PreferBracesPreference.None, PreferBracesPreference.WhenMultiline };
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<PreferBracesPreference>(
+                CSharpCodeStyleOptions.PreferBraces,
+                ServicesVSResources.Prefer_braces,
+                enumValues,
+                new[] { s_preferBraces, s_doNotPreferBraces, s_preferBracesWhenMultiline },
+                this, optionSet, bracesPreferenceGroupTitle, bracesPreferences));
         }
 
         private void AddExpressionBodyOptions(OptionSet optionSet, string expressionPreferencesGroupTitle)
@@ -1296,6 +1639,59 @@ class C
                 enumValues,
                 new[] { s_preferBlockBodyForLambdas, s_preferExpressionBodyForLambdas, s_preferExpressionBodyForLambdas },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
+                CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions,
+                ServicesVSResources.Use_expression_body_for_local_functions,
+                enumValues,
+                new[] { s_preferBlockBodyForLocalFunctions, s_preferExpressionBodyForLocalFunctions, s_preferExpressionBodyForLocalFunctions },
+                this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
+        }
+
+        private void AddUnusedValueOptions(OptionSet optionSet, string expressionPreferencesGroupTitle)
+        {
+            var unusedValuePreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(CSharpVSResources.Unused_local, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.Discard, isChecked: true),
+            };
+
+            var enumValues = new[]
+            {
+                UnusedValuePreference.UnusedLocalVariable,
+                UnusedValuePreference.DiscardVariable
+            };
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<UnusedValuePreference>(
+                CSharpCodeStyleOptions.UnusedValueAssignment,
+                ServicesVSResources.Avoid_unused_value_assignments,
+                enumValues,
+                new[] { s_avoidUnusedValueAssignmentUnusedLocal, s_avoidUnusedValueAssignmentDiscard },
+                this,
+                optionSet,
+                expressionPreferencesGroupTitle,
+                unusedValuePreferences));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<UnusedValuePreference>(
+                CSharpCodeStyleOptions.UnusedValueExpressionStatement,
+                ServicesVSResources.Avoid_expression_statements_that_implicitly_ignore_value,
+                enumValues,
+                new[] { s_avoidUnusedValueExpressionStatementUnusedLocal, s_avoidUnusedValueExpressionStatementDiscard },
+                this,
+                optionSet,
+                expressionPreferencesGroupTitle,
+                unusedValuePreferences));
+        }
+
+        private void AddParameterOptions(OptionSet optionSet, string parameterPreferencesGroupTitle)
+        {
+            var examples = new[]
+            {
+                s_avoidUnusedParametersNonPublicMethods,
+                s_avoidUnusedParametersAllMethods
+            };
+
+            AddUnusedParameterOption(LanguageNames.CSharp, optionSet, parameterPreferencesGroupTitle, examples);
         }
     }
 }

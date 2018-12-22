@@ -1,15 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Shared.Collections
-Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     ''' <summary>
@@ -22,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Inherits AbstractFormattingResult
         Implements IFormattingResult
 
-        Friend Sub New(treeInfo As TreeData, tokenStream As TokenStream, spanToFormat As TextSpan, taskExecutor As TaskExecutor)
-            MyBase.New(treeInfo, tokenStream, spanToFormat, taskExecutor)
+        Friend Sub New(treeInfo As TreeData, tokenStream As TokenStream, spanToFormat As TextSpan)
+            MyBase.New(treeInfo, tokenStream, spanToFormat)
         End Sub
 
         Protected Overrides Function Rewriter(changeMap As Dictionary(Of ValueTuple(Of SyntaxToken, SyntaxToken), TriviaData), cancellationToken As CancellationToken) As SyntaxNode

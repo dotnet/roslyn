@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxNode typeSyntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, // may be omitted in synthesized invocations
             Compilation currentCompilation,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(!type.IsTupleType);
@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // C# does not let you declare a type in which it would be possible for distinct base interfaces
         // to unify under some instantiations.  But such ill-formed classes can come in through
         // metadata and be instantiated in C#.  We check to see if that's happened.
-        private static bool HasDuplicateInterfaces(NamedTypeSymbol type, ConsList<Symbol> basesBeingResolved)
+        private static bool HasDuplicateInterfaces(NamedTypeSymbol type, ConsList<TypeSymbol> basesBeingResolved)
         {
             // PERF: avoid instantiating all interfaces here
             //       Ex: if class implements just IEnumerable<> and IComparable<> it cannot have conflicting implementations
@@ -685,11 +685,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
             }
 
-            // very rare case. 
-            // some implemented interfaces are related
-            // will have to instantiate interfaces and check
-            hasRelatedInterfaces:
-            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
+// very rare case. 
+// some implemented interfaces are related
+// will have to instantiate interfaces and check
+hasRelatedInterfaces:
+            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
         }
 
         public static bool CheckConstraints(
@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (conversions.IncludeNullability && warningsBuilderOpt != null &&
                     typeParameter.ReferenceTypeConstraintIsNullable == false &&
-                    typeArgument.IsNullable == true)
+                    typeArgument.GetValueNullableAnnotation().IsAnyNullable())
                 {
                     var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, containingSymbol.ConstructedFrom(), typeParameter, typeArgument);
                     warningsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));
@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (conversions.IncludeNullability && warningsBuilderOpt != null)
                     {
                         if (!SatisfiesConstraintType(conversions, typeArgument, constraintType, ref useSiteDiagnostics) ||
-                            (typeArgument.IsNullable == true && !typeArgument.IsValueType &&
+                            (typeArgument.GetValueNullableAnnotation().IsAnyNullable() && !typeArgument.IsValueType &&
                              TypeParameterSymbol.IsNotNullableIfReferenceTypeFromConstraintType(constraintType) == true))
                         {
                             var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument);
@@ -1044,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // "... A boxing conversion (6.1.7), provided that type A is a non-nullable value type. ..."
             // NOTE: we extend this to allow, for example, a conversion from Nullable<T> to object.
             if (typeArgument.IsValueType &&
-                conversions.HasBoxingConversion(typeArgument.TypeSymbol.IsNullableType() ? ((NamedTypeSymbol)typeArgument.TypeSymbol).ConstructedFrom : typeArgument.TypeSymbol, 
+                conversions.HasBoxingConversion(typeArgument.TypeSymbol.IsNullableType() ? ((NamedTypeSymbol)typeArgument.TypeSymbol).ConstructedFrom : typeArgument.TypeSymbol,
                                                 constraintType.TypeSymbol, ref useSiteDiagnostics))
             {
                 return true;
@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            Debug.Assert(type.ConstructedFrom != type);
+            Debug.Assert(!type.ConstructedFrom.Equals(type, TypeCompareKind.ConsiderEverything));
             return true;
         }
 

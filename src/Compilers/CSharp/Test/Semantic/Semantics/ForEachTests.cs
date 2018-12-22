@@ -2241,7 +2241,7 @@ class C
 ";
             var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
-                // (28,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // (28,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(28, 55)
                 );
@@ -2286,9 +2286,9 @@ class C
 ";
             var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
-                // (28,55): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (28,55): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("static null checking", "8.0").WithLocation(28, 55)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(28, 55)
                 );
         }
 
@@ -3373,6 +3373,31 @@ class C
                 // (18,35): error CS8176: Iterators cannot have by-reference locals
                 //         foreach (ref readonly int x in new E())
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(18, 35));
+        }
+
+
+        [Fact]
+        [WorkItem(30016, "https://github.com/dotnet/roslyn/issues/30016")]
+        public void ForEachIteratorWithCurrentRefKind_DontPassFieldByValue()
+        {
+            var source = @"
+using System;
+struct S1
+{
+    public int A;
+}
+class C
+{
+    public static void Main()
+    {
+        Span<S1> items = new Span<S1>(new S1[1]);
+        foreach (ref var t in items) t.A++; 
+        Console.WriteLine(items[0].A);
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseDebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "1");
         }
     }
 }

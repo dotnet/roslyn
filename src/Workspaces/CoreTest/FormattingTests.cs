@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public partial class FormattingTests : TestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task TestCSharpFormatting()
+        public void TestCSharpFormatting()
         {
             var text = @"public class C{public int X;}";
             var expectedFormattedText = @"public class C { public int X; }";
 
-            await AssertFormatCSharpAsync(expectedFormattedText, text);
+            AssertFormatCSharp(expectedFormattedText, text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task TestVisualBasicFormatting()
+        public void TestVisualBasicFormatting()
         {
             var text = @"
 Public Class C
@@ -45,7 +45,7 @@ Public Class C
 End Class
 ";
 
-            await AssertFormatVBAsync(expectedFormattedText, text);
+            AssertFormatVB(expectedFormattedText, text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -57,23 +57,23 @@ End Class
             Assert.NotEmpty(rules);
         }
 
-        private Task AssertFormatCSharpAsync(string expected, string input)
+        private void AssertFormatCSharp(string expected, string input)
         {
             var tree = CS.SyntaxFactory.ParseSyntaxTree(input);
-            return AssertFormatAsync(expected, tree);
+            AssertFormat(expected, tree);
         }
 
-        private Task AssertFormatVBAsync(string expected, string input)
+        private void AssertFormatVB(string expected, string input)
         {
             var tree = VB.SyntaxFactory.ParseSyntaxTree(input);
-            return AssertFormatAsync(expected, tree);
+            AssertFormat(expected, tree);
         }
 
-        private async Task AssertFormatAsync(string expected, SyntaxTree tree)
+        private void AssertFormat(string expected, SyntaxTree tree)
         {
             using (var workspace = new AdhocWorkspace())
             {
-                var formattedRoot = await Formatter.FormatAsync(tree.GetRoot(), workspace);
+                var formattedRoot = Formatter.Format(tree.GetRoot(), workspace);
                 var actualFormattedText = formattedRoot.ToFullString();
 
                 Assert.Equal(expected, actualFormattedText);

@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturnRef, _methodSymbol.Locations[0], _methodSymbol);
                     }
-                    else
+                    else if (!returnType.IsErrorType())
                     {
-                    Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
+                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
                     }
                     elementType = CreateErrorType();
                 }
@@ -177,25 +177,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol GetIteratorElementTypeFromReturnType(RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
         {
+            return GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocationNode, diagnostics).TypeSymbol;
+        }
+
+        internal static TypeSymbolWithAnnotations GetIteratorElementTypeFromReturnType(CSharpCompilation compilation, RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
+        {
             if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
             {
-                switch (returnType.OriginalDefinition.SpecialType)
+                TypeSymbol originalDefinition = returnType.OriginalDefinition;
+                switch (originalDefinition.SpecialType)
                 {
                     case SpecialType.System_Collections_IEnumerable:
                     case SpecialType.System_Collections_IEnumerator:
-                        return GetSpecialType(SpecialType.System_Object, diagnostics, errorLocationNode);
+                        var objectType = compilation.GetSpecialType(SpecialType.System_Object);
+                        if (diagnostics != null)
+                        {
+                            ReportUseSiteDiagnostics(objectType, diagnostics, errorLocationNode);
+                        }
+                        return TypeSymbolWithAnnotations.Create(objectType);
 
                     case SpecialType.System_Collections_Generic_IEnumerable_T:
                     case SpecialType.System_Collections_Generic_IEnumerator_T:
-                        return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
+                        return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
+                }
+
+                if (TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T), TypeCompareKind.ConsiderEverything2) ||
+                    TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T), TypeCompareKind.ConsiderEverything2))
+                {
+                    return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
                 }
             }
 
-            return null;
+            return default;
         }
 
         internal override void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(result.IsClear);
 
@@ -274,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameterKind == SymbolKind.TypeParameter)
             {
                 if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local ||
-                    (newSymbolKind == SymbolKind.Method && 
+                    (newSymbolKind == SymbolKind.Method &&
                      ((MethodSymbol)newSymbol).MethodKind == MethodKind.LocalFunction))
                 {
                     // CS0412: '{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter

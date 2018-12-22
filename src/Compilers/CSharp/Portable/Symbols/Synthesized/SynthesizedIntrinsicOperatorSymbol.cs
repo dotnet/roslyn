@@ -18,17 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public SynthesizedIntrinsicOperatorSymbol(TypeSymbol leftType, string name, TypeSymbol rightType, TypeSymbol returnType, bool isCheckedBuiltin)
         {
-            if (leftType.Equals(rightType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            if (leftType.Equals(rightType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 _containingType = leftType;
             }
-            else if (rightType.Equals(returnType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            else if (rightType.Equals(returnType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 _containingType = rightType;
             }
             else
             {
-                Debug.Assert(leftType.Equals(returnType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                Debug.Assert(leftType.Equals(returnType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                 _containingType = leftType;
             }
 
@@ -416,12 +416,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_isCheckedBuiltin == other._isCheckedBuiltin &&
                 _parameters.Length == other._parameters.Length &&
                 string.Equals(_name, other._name, StringComparison.Ordinal) &&
-                _containingType == other._containingType &&
-                _returnType == other._returnType)
+                TypeSymbol.Equals(_containingType, other._containingType, TypeCompareKind.ConsiderEverything2) &&
+                TypeSymbol.Equals(_returnType, other._returnType, TypeCompareKind.ConsiderEverything2))
             {
                 for (int i = 0; i < _parameters.Length; i++)
                 {
-                    if (_parameters[i].Type.TypeSymbol != other._parameters[i].Type.TypeSymbol)
+                    if (!TypeSymbol.Equals(_parameters[i].Type.TypeSymbol, other._parameters[i].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
                     {
                         return false;
                     }

@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <RoslynProjectType>Vsix</RoslynProjectType>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.DiagnosticsWindow</RootNamespace>
@@ -25,9 +25,6 @@
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj">
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj">
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
@@ -68,7 +65,6 @@
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
@@ -80,6 +76,10 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Telemetry\TelemetryPanel.xaml.cs">
+      <DependentUpon>TelemetryPanel.xaml</DependentUpon>
+      <SubType>Code</SubType>
     </Compile>
     <Compile Update="VenusMargin\ProjectionBufferMargin.xaml.cs">
       <DependentUpon>ProjectionBufferMargin.xaml</DependentUpon>
@@ -111,6 +111,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Telemetry\TelemetryPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="VenusMargin\ProjectionBufferMargin.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
             // Pointers do not support boxing, so they really have no interfaces
             return ImmutableArray<NamedTypeSymbol>.Empty;
@@ -249,47 +249,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
+        internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
             PointedAtType.AddNullableTransforms(transforms);
         }
 
-        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result)
+        internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
         {
             TypeSymbolWithAnnotations oldPointedAtType = PointedAtType;
             TypeSymbolWithAnnotations newPointedAtType;
 
-            if (!oldPointedAtType.ApplyNullableTransforms(transforms, nonNullTypesContext, ref position, out newPointedAtType))
+            if (!oldPointedAtType.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out newPointedAtType))
             {
                 result = this;
                 return false;
             }
 
-            if (oldPointedAtType.IsSameAs(newPointedAtType))
-            {
-                result = this;
-            }
-            else
-            {
-                result = new PointerTypeSymbol(newPointedAtType);
-            }
-
+            result = WithPointedAtType(newPointedAtType);
             return true;
         }
 
         internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
         {
-            TypeSymbolWithAnnotations oldPointedAtType = PointedAtType;
-            TypeSymbolWithAnnotations newPointedAtType = oldPointedAtType.SetUnknownNullabilityForReferenceTypes();
+            return WithPointedAtType(PointedAtType.SetUnknownNullabilityForReferenceTypes());
+        }
 
-            if (oldPointedAtType.IsSameAs(newPointedAtType))
-            {
-                return this;
-            }
-            else
-            {
-                return new PointerTypeSymbol(newPointedAtType);
-            }
+        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
+        {
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            TypeSymbolWithAnnotations pointedAtType = PointedAtType.MergeNullability(((PointerTypeSymbol)other).PointedAtType, VarianceKind.None, out hadNullabilityMismatch);
+            return WithPointedAtType(pointedAtType);
+        }
+
+        private PointerTypeSymbol WithPointedAtType(TypeSymbolWithAnnotations newPointedAtType)
+        {
+            return PointedAtType.IsSameAs(newPointedAtType) ? this : new PointerTypeSymbol(newPointedAtType);
         }
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rewrittenRight != null);
             Debug.Assert(leftConversion.IsValid);
             Debug.Assert((object)rewrittenResultType != null);
-            Debug.Assert(rewrittenRight.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(rewrittenRight.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             if (_inExpressionLambda)
             {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, rewrittenConversion, resultKind, rewrittenResultType);
             }
 
-            var isUnconstrainedTypeParameter = rewrittenLeft.Type != null && !rewrittenLeft.Type.IsReferenceType && !rewrittenLeft.Type.IsValueType;
+            var isUnconstrainedTypeParameter = (object)rewrittenLeft.Type != null && !rewrittenLeft.Type.IsReferenceType && !rewrittenLeft.Type.IsValueType;
 
             // first we can make a small optimization:
             // If left is a constant then we already know whether it is null or not. If it is null then we
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // MakeConversion(temp, rewrittenResultType)
             BoundExpression convertedLeft = GetConvertedLeftForNullCoalescingOperator(boundTemp, leftConversion, rewrittenResultType);
-            Debug.Assert(convertedLeft.HasErrors || convertedLeft.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(convertedLeft.HasErrors || convertedLeft.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             // (temp != null) ? MakeConversion(temp, LeftConversion) : RightOperand
             BoundExpression conditionalExpression = RewriteConditionalOperator(
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isRef: false);
 
             Debug.Assert(conditionalExpression.ConstantValue == null); // we shouldn't have hit this else case otherwise
-            Debug.Assert(conditionalExpression.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(conditionalExpression.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             return new BoundSequence(
                 syntax: syntax,
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsStringConcat(BoundExpression expression)
         {
-            if  (expression.Kind != BoundKind.Call)
+            if (expression.Kind != BoundKind.Call)
             {
                 return false;
             }
@@ -226,12 +226,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // before performing the leftConversion.
             // See comments in Binder.BindNullCoalescingOperator referring to GetConvertedLeftForNullCoalescingOperator for more details.
 
-            if (rewrittenLeftType != rewrittenResultType && rewrittenLeftType.IsNullableType())
+            if (!TypeSymbol.Equals(rewrittenLeftType, rewrittenResultType, TypeCompareKind.ConsiderEverything2) && rewrittenLeftType.IsNullableType())
             {
                 TypeSymbol strippedLeftType = rewrittenLeftType.GetNullableUnderlyingType();
                 MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeftType, SpecialMember.System_Nullable_T_GetValueOrDefault);
                 rewrittenLeft = BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, getValueOrDefault);
-                if (strippedLeftType == rewrittenResultType)
+                if (TypeSymbol.Equals(strippedLeftType, rewrittenResultType, TypeCompareKind.ConsiderEverything2))
                 {
                     return rewrittenLeft;
                 }

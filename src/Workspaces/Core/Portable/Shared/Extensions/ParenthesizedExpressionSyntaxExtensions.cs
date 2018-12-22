@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.Extensions
     internal static class CommonParenthesizedExpressionSyntaxExtensions
     {
         public static bool IsSafeToChangeAssociativity(
-            this SyntaxNode parenthesizedExpression, SyntaxNode innerExpression, 
+            this SyntaxNode parenthesizedExpression, SyntaxNode innerExpression,
             SyntaxNode parentBinaryLeft, SyntaxNode parentBinaryRight, SemanticModel semanticModel)
         {
             // Now we'll perform a few semantic checks to determine whether removal 

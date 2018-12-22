@@ -346,7 +346,7 @@ HandleMethodBase:
                     node = Parser.ReportSyntaxError(node, ERRID.ERR_ExecutableAsDeclaration)
                     Return TryUseStatement(node, newContext)
 
-                ' by default statements are not handled in declaration context
+                    ' by default statements are not handled in declaration context
                 Case Else
                     newContext = Me
                     Return LinkResult.NotUsed

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             int index = 0)
         {
             await TestAsync(
-                initialMarkup, expected, index: index, 
+                initialMarkup, expected, index: index,
                 options: Option(GenerationOptions.PlaceSystemNamespaceFirst, systemSpecialCase));
         }
 
@@ -4828,6 +4828,225 @@ class C
     }
 }
 ", WellKnownTagArrays.Namespace);
+        }
+
+        [WorkItem(29313, "https://github.com/dotnet/roslyn/issues/29313")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestGetAwaiterExtensionMethod1()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+
+    class C
+    {
+        async Task M() => await [|Goo|];
+
+        C Goo { get; set; }
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Awaiter GetAwaiter(this C scheduler) => null;
+
+        public class Awaiter : INotifyCompletion
+        {
+            public object GetResult() => null;
+
+            public void OnCompleted(Action continuation) { }
+
+            public bool IsCompleted => true;
+        }
+    }
+}",
+@"
+namespace A
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using B;
+
+    class C
+    {
+        async Task M() => await Goo;
+
+        C Goo { get; set; }
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Awaiter GetAwaiter(this C scheduler) => null;
+
+        public class Awaiter : INotifyCompletion
+        {
+            public object GetResult() => null;
+
+            public void OnCompleted(Action continuation) { }
+
+            public bool IsCompleted => true;
+        }
+    }
+}");
+        }
+
+        [WorkItem(29313, "https://github.com/dotnet/roslyn/issues/29313")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestGetAwaiterExtensionMethod2()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+
+    class C
+    {
+        async Task M() => await [|GetC|]();
+
+        C GetC() => null;
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Awaiter GetAwaiter(this C scheduler) => null;
+
+        public class Awaiter : INotifyCompletion
+        {
+            public object GetResult() => null;
+
+            public void OnCompleted(Action continuation) { }
+
+            public bool IsCompleted => true;
+        }
+    }
+}",
+@"
+namespace A
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using B;
+
+    class C
+    {
+        async Task M() => await GetC();
+
+        C GetC() => null;
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Awaiter GetAwaiter(this C scheduler) => null;
+
+        public class Awaiter : INotifyCompletion
+        {
+            public object GetResult() => null;
+
+            public void OnCompleted(Action continuation) { }
+
+            public bool IsCompleted => true;
+        }
+    }
+}");
+        }
+
+
+        [WorkItem(745490, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/745490")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddUsingForAwaitableReturningExtensionMethod()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    using System;
+    using System.Threading.Tasks;
+
+    class C
+    {
+        C Instance { get; } => null;
+
+        async Task M() => await Instance.[|Foo|]();
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Task Foo(this C instance) => null;
+    }
+}",
+@"
+namespace A
+{
+    using System;
+    using System.Threading.Tasks;
+    using B;
+
+    class C
+    {
+        C Instance { get; } => null;
+
+        async Task M() => await Instance.Foo();
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Task Foo(this C instance) => null;
+    }
+}");
         }
     }
 }

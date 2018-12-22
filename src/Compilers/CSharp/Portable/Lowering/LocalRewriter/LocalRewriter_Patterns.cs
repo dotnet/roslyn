@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeIsDeclarationPattern(BoundDeclarationPattern loweredPattern, BoundExpression loweredInput)
         {
             Debug.Assert(((object)loweredPattern.Variable == null && loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression) ||
-                         loweredPattern.Variable.GetTypeOrReturnType().TypeSymbol == loweredPattern.DeclaredType.Type);
+                         TypeSymbol.Equals(loweredPattern.Variable.GetTypeOrReturnType().TypeSymbol, loweredPattern.DeclaredType.Type, TypeCompareKind.ConsiderEverything2));
 
             if (loweredPattern.IsVar)
             {
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var assignment = _factory.AssignmentExpression(loweredTarget, convertedInput);
                         return _factory.MakeSequence(assignment, _factory.Literal(true));
                     }
-                    
+
                 }
                 else
                 {

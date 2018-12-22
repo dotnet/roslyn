@@ -219,7 +219,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialDefinition());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -247,7 +247,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialDefinition());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -272,7 +272,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialImplementation());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -293,7 +293,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialDefinition());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 

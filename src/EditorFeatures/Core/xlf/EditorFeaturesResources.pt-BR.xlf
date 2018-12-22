@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
-        <target state="new">Change configuration</target>
+        <target state="translated">Alterar configuração</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
@@ -39,7 +39,27 @@
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
-        <target state="new">Format Document performed additional cleanup</target>
+        <target state="translated">A formatação de documento realizou uma limpeza adicional</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="new">Invalid assembly name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="new">Invalid characters in assembly name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keyword_Control">
+        <source>Keyword - Control</source>
+        <target state="new">Keyword - Control</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_Overloaded">
+        <source>Operator - Overloaded</source>
+        <target state="new">Operator - Overloaded</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste_Tracking">
@@ -60,6 +80,66 @@
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
         <target state="new">String - Escape Character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Static">
+        <source>Symbol - Static</source>
+        <target state="new">Symbol - Static</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Constants">
+        <source>User Members - Constants</source>
+        <target state="new">User Members - Constants</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Enum_Members">
+        <source>User Members - Enum Members</source>
+        <target state="new">User Members - Enum Members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Events">
+        <source>User Members - Events</source>
+        <target state="new">User Members - Events</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Extension_Methods">
+        <source>User Members - Extension Methods</source>
+        <target state="new">User Members - Extension Methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Fields">
+        <source>User Members - Fields</source>
+        <target state="new">User Members - Fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Labels">
+        <source>User Members - Labels</source>
+        <target state="new">User Members - Labels</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Locals">
+        <source>User Members - Locals</source>
+        <target state="new">User Members - Locals</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Methods">
+        <source>User Members - Methods</source>
+        <target state="new">User Members - Methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Namespaces">
+        <source>User Members - Namespaces</source>
+        <target state="new">User Members - Namespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Parameters">
+        <source>User Members - Parameters</source>
+        <target state="new">User Members - Parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Properties">
+        <source>User Members - Properties</source>
+        <target state="new">User Members - Properties</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">
@@ -299,12 +379,12 @@
       </trans-unit>
       <trans-unit id="Given_Workspace_doesn_t_support_Undo">
         <source>Given Workspace doesn't support Undo</source>
-        <target state="translated">Espaço de Trabalho fornecido não suporta Desfazer</target>
+        <target state="translated">Workspace fornecido não suporta Desfazer</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
         <source>Document must be contained in the workspace that created this service</source>
-        <target state="translated">O Documento deve estar contido no espaço de trabalho que criou este serviço</target>
+        <target state="translated">O Documento deve estar contido no workspace que criou este serviço</target>
         <note />
       </trans-unit>
       <trans-unit id="Searching">
@@ -494,12 +574,12 @@
       </trans-unit>
       <trans-unit id="The_buffer_is_not_part_of_a_workspace">
         <source>The buffer is not part of a workspace.</source>
-        <target state="translated">O buffer não é parte de um espaço de trabalho.</target>
+        <target state="translated">O buffer não é parte de um workspace.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_token_is_not_contained_in_the_workspace">
         <source>The token is not contained in the workspace.</source>
-        <target state="translated">O token não está contido no espaço de trabalho.</target>
+        <target state="translated">O token não está contido no workspace.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_rename_an_identifier">
@@ -774,7 +854,7 @@
       </trans-unit>
       <trans-unit id="The_triggerSpan_is_not_included_in_the_given_workspace">
         <source>The triggerSpan is not included in the given workspace.</source>
-        <target state="translated">O triggerSpan não está incluído no espaço de trabalho fornecido.</target>
+        <target state="translated">O triggerSpan não está incluído no workspace fornecido.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_session_has_already_been_dismissed">

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -70,7 +69,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             );
         }
 
-        public TypeSymbolWithAnnotations GetInferredReturnType(ref HashSet<DiagnosticInfo> useSiteDiagnostics, NullableWalker.VariableState nullableState = null)
+        public TypeSymbolWithAnnotations GetInferredReturnType(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            // Nullability (and conversions) are ignored.
+            return GetInferredReturnType(conversions: null, nullableState: null, ref useSiteDiagnostics);
+        }
+
+        /// <summary>
+        /// Infer return type. If `nullableState` is non-null, nullability is also inferred and `NullableWalker.Analyze`
+        /// uses that state to set the inferred nullability of variables in the enclosing scope. `conversions` is
+        /// only needed when nullability is inferred.
+        /// </summary>
+        public TypeSymbolWithAnnotations GetInferredReturnType(ConversionsBase conversions, NullableWalker.VariableState nullableState, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if (!InferredReturnType.UseSiteDiagnostics.IsEmpty)
             {
@@ -93,12 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Diagnostics from NullableWalker.Analyze can be dropped here since Analyze
                 // will be called again from NullableWalker.ApplyConversion when the
                 // BoundLambda is converted to an anonymous function.
-                // https://github.com/dotnet/roslyn/issues/29617 Can we avoid generating extra
+                // https://github.com/dotnet/roslyn/issues/31752: Can we avoid generating extra
                 // diagnostics? And is this exponential when there are nested lambdas?
                 var diagnostics = DiagnosticBag.GetInstance();
                 var delegateType = Type.GetDelegateType();
                 var compilation = Binder.Compilation;
-                var conversions = (Conversions)Binder.Conversions.WithNullability(includeNullability: true);
                 NullableWalker.Analyze(compilation, lambda: this, diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: returnTypes, initialState: nullableState);
                 diagnostics.Free();
                 var inferredReturnType = InferReturnType(returnTypes, compilation, conversions, delegateType, Symbol.IsAsync);
@@ -115,9 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Behavior of this function should be kept aligned with <see cref="UnboundLambdaState.ReturnInferenceCacheKey"/>.
         /// </summary>
-        internal static InferredLambdaReturnType InferReturnType(ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes, CSharpCompilation compilation, Conversions conversions, TypeSymbol delegateType, bool isAsync)
+        internal static InferredLambdaReturnType InferReturnType(ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes, CSharpCompilation compilation, ConversionsBase conversions, TypeSymbol delegateType, bool isAsync)
         {
-            var types = new HashSet<TypeSymbolWithAnnotations>(TypeSymbolWithAnnotations.EqualsComparer.Instance);
+            var types = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             bool hasReturnWithoutArgument = false;
             RefKind refKind = RefKind.None;
             foreach (var (rk, type) in returnTypes)
@@ -136,35 +145,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var bestType = CalculateReturnType(compilation, conversions, delegateType, types.AsImmutableOrEmpty(), isAsync, ref useSiteDiagnostics);
+            var bestType = CalculateReturnType(compilation, conversions, delegateType, types, isAsync, ref useSiteDiagnostics);
             int numberOfDistinctReturns = types.Count + (hasReturnWithoutArgument ? 1 : 0);
             return new InferredLambdaReturnType(numberOfDistinctReturns < 2, refKind, bestType, useSiteDiagnostics.AsImmutableOrEmpty());
         }
 
         private static TypeSymbolWithAnnotations CalculateReturnType(
             CSharpCompilation compilation,
-            Conversions conversions,
+            ConversionsBase conversions,
             TypeSymbol delegateType,
-            ImmutableArray<TypeSymbolWithAnnotations> resultTypes,
+            ArrayBuilder<TypeSymbolWithAnnotations> resultTypes,
             bool isAsync,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             TypeSymbolWithAnnotations bestResultType;
-            if (resultTypes.IsDefaultOrEmpty)
+            int n = resultTypes.Count;
+            switch (n)
             {
-                bestResultType = default;
-            }
-            else if (resultTypes.Length == 1)
-            {
-                bestResultType = resultTypes[0];
-            }
-            else
-            {
-                // https://github.com/dotnet/roslyn/issues/29617 Should report best type mismatch if the types
-                // differ by nested nullability. In that case, the nested nullability should be null-oblivious
-                // but the top-level nullability should be determined from GetIsNullable(resultTypes).
-                // (Compare with handling of array element type in NullableWalker.VisitArrayInitializer.)
-                bestResultType = BestTypeInferrer.InferBestType(resultTypes, conversions, ref useSiteDiagnostics);
+                case 0:
+                    bestResultType = default;
+                    break;
+                case 1:
+                    bestResultType = resultTypes[0];
+                    break;
+                default:
+                    var typesOnly = ArrayBuilder<TypeSymbol>.GetInstance(n);
+                    foreach (var resultType in resultTypes)
+                    {
+                        typesOnly.Add(resultType.TypeSymbol);
+                    }
+                    bool hadNullabilityMismatch;
+                    var bestType = BestTypeInferrer.GetBestType(typesOnly, conversions, out hadNullabilityMismatch, ref useSiteDiagnostics);
+                    // https://github.com/dotnet/roslyn/issues/30480: Should return `bestType` even if
+                    // there was a nullability mismatch, and `hadNullabilityMismatch` should be available
+                    // to the caller, and up through MethodTypeInferrer.Infer.
+                    bestResultType = bestType is null || hadNullabilityMismatch ?
+                        default :
+                        TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(bestType, resultTypes));
+                    typesOnly.Free();
+                    break;
             }
 
             if (!isAsync)
@@ -186,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (resultTypes.IsEmpty)
+            if (n == 0)
             {
                 // No return statements have expressions; use delegate InvokeMethod
                 // or infer type Task if delegate type not available.
@@ -297,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool HasSignature { get { return Data.HasSignature; } }
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
         public int ParameterCount { get { return Data.ParameterCount; } }
-        public TypeSymbolWithAnnotations InferReturnType(NamedTypeSymbol delegateType, ref HashSet<DiagnosticInfo> useSiteDiagnostics) { return BindForReturnTypeInference(delegateType).GetInferredReturnType(ref useSiteDiagnostics, _nullableState);  }
+        public TypeSymbolWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref HashSet<DiagnosticInfo> useSiteDiagnostics) { return BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, ref useSiteDiagnostics); }
         public RefKind RefKind(int index) { return Data.RefKind(index); }
         public void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType) { Data.GenerateAnonymousFunctionConversionError(diagnostics, targetType); }
         public bool GenerateSummaryErrors(DiagnosticBag diagnostics) { return Data.GenerateSummaryErrors(diagnostics); }
@@ -315,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
             Constraint = "Avoid " + nameof(ConcurrentDictionary<NamedTypeSymbol, BoundLambda>) + " which has a large default size, but this cache is normally small.")]
-        private ImmutableDictionary<NamedTypeSymbol, BoundLambda> _bindingCache = ImmutableDictionary<NamedTypeSymbol, BoundLambda>.Empty.WithComparers(TypeSymbol.EqualsIncludingNullableComparer);
+        private ImmutableDictionary<NamedTypeSymbol, BoundLambda> _bindingCache = ImmutableDictionary<NamedTypeSymbol, BoundLambda>.Empty.WithComparers(TypeSymbol.EqualsConsiderEverything);
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
@@ -449,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaSymbol = returnInferenceLambda.Symbol;
                 var lambdaReturnType = lambdaSymbol.ReturnType;
                 if ((object)LambdaSymbol.InferenceFailureReturnType != lambdaReturnType.TypeSymbol &&
-                    lambdaReturnType.Equals(returnType, TypeCompareKind.CompareNullableModifiersForReferenceTypes) && lambdaSymbol.RefKind == refKind)
+                    lambdaReturnType.Equals(returnType, TypeCompareKind.ConsiderEverything) && lambdaSymbol.RefKind == refKind)
                 {
                     lambdaBodyBinder = returnInferenceLambda.Binder;
                     block = returnInferenceLambda.Body;
@@ -480,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!returnType.IsNull)
             {
-                if (returnType.ContainsNullableReferenceTypes())
+                if (returnType.NeedsNullableAttribute())
                 {
                     binder.Compilation.EnsureNullableAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
                     // Note: we don't need to warn on annotations used without NonNullTypes context for lambdas, as this is handled in binding already
@@ -495,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);
             ValidateUnsafeParameters(diagnostics, cacheKey.ParameterTypes);
 
-        haveLambdaBodyAndBinders:
+haveLambdaBodyAndBinders:
 
             bool reachableEndpoint = ControlFlowPass.Analyze(binder.Compilation, lambdaSymbol, block, diagnostics);
             if (reachableEndpoint)
@@ -585,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var returnType = inferredReturnType.Type;
             if (returnType.IsNull)
             {
-                returnType = TypeSymbolWithAnnotations.Create(NonNullTypesFalseContext.Instance, LambdaSymbol.InferenceFailureReturnType);
+                returnType = TypeSymbolWithAnnotations.Create(LambdaSymbol.InferenceFailureReturnType);
             }
             lambdaSymbol.SetInferredReturnType(inferredReturnType.RefKind, returnType);
 
@@ -637,14 +656,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)other == null ||
                     other.ParameterTypes.Length != this.ParameterTypes.Length ||
-                    other.TaskLikeReturnTypeOpt != this.TaskLikeReturnTypeOpt)
+                    !TypeSymbol.Equals(other.TaskLikeReturnTypeOpt, this.TaskLikeReturnTypeOpt, TypeCompareKind.ConsiderEverything2))
                 {
                     return false;
                 }
 
                 for (int i = 0; i < this.ParameterTypes.Length; i++)
                 {
-                    if (!other.ParameterTypes[i].Equals(this.ParameterTypes[i], TypeCompareKind.CompareNullableModifiersForReferenceTypes) ||
+                    if (!other.ParameterTypes[i].Equals(this.ParameterTypes[i], TypeCompareKind.ConsiderEverything) ||
                         other.ParameterRefKinds[i] != this.ParameterRefKinds[i])
                     {
                         return false;

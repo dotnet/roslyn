@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        protected abstract (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context);
+        protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(
+            ISymbol symbol, SyntaxContext context);
 
         protected virtual CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols)
             => CompletionItemRules.Default;
@@ -50,10 +51,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var tree = context.SyntaxTree;
 
             var q = from symbol in symbols
-                    let texts = GetDisplayAndInsertionText(symbol, context)
+                    let texts = GetDisplayAndSuffixAndInsertionText(symbol, context)
                     group symbol by texts into g
                     select this.CreateItem(
-                        g.Key.displayText, g.Key.insertionText, g.ToList(), context,
+                        g.Key.displayText, g.Key.suffix, g.Key.insertionText, g.ToList(), context,
                         invalidProjectMap: null, totalProjects: null, preselect: preselect);
 
             return q.ToImmutableArray();
@@ -71,10 +72,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var symbols = originatingContextMap.Keys;
             var q = from symbol in symbols
-                    let texts = GetDisplayAndInsertionText(symbol, originatingContextMap[symbol])
+                    let texts = GetDisplayAndSuffixAndInsertionText(symbol, originatingContextMap[symbol])
                     group symbol by texts into g
                     select this.CreateItem(
-                        g.Key.displayText, g.Key.insertionText, g.ToList(),
+                        g.Key.displayText, g.Key.suffix, g.Key.insertionText, g.ToList(),
                         originatingContextMap[g.First()], invalidProjectMap, totalProjects, preselect);
 
             return q.ToImmutableArray();
@@ -85,6 +86,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// </summary>
         private CompletionItem CreateItem(
             string displayText,
+            string displayTextSuffix,
             string insertionText,
             List<ISymbol> symbols,
             SyntaxContext context,
@@ -112,17 +114,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return CreateItem(displayText, insertionText, symbols, context, preselect, supportedPlatformData);
+            return CreateItem(
+                displayText, displayTextSuffix, insertionText, symbols,
+                context, preselect, supportedPlatformData);
         }
 
         protected virtual CompletionItem CreateItem(
-            string displayText, string insertionText,
-            List<ISymbol> symbols,
-            SyntaxContext context, bool preselect,
+            string displayText, string displayTextSuffix, string insertionText,
+            List<ISymbol> symbols, SyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
+                displayTextSuffix: displayTextSuffix,
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
                 contextPosition: context.Position,
@@ -271,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 foreach (var symbol in linkedContextSymbolList.symbols.GroupBy(s => new { s.Name, s.Kind }).Select(g => g.First()))
                 {
                     if (!result.ContainsKey(symbol))
-                    { 
+                    {
                         result.Add(symbol, linkedContextSymbolList.syntaxContext);
                     }
                 }

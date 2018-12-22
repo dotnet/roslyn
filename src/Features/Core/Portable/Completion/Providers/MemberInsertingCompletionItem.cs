@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         public static CompletionItem Create(
             string displayText,
+            string displayTextSuffix,
             DeclarationModifiers modifiers,
             int line,
             ISymbol symbol,
@@ -25,13 +26,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
+                displayTextSuffix: displayTextSuffix,
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: descriptionPosition,
                 properties: props,
                 rules: rules);
         }
 
-        public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem  item, Document document, CancellationToken cancellationToken)
+        public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
         {
             return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
         }

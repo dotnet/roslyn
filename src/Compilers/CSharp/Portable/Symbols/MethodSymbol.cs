@@ -219,15 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments()
         {
-            // Resolving [NonNullTypes] only makes sense within the definition of the generic type or method.
-            // If this is a substituted symbol, we use a dummy NonNullTypes context.
-            var definition = OriginalDefinition;
-            INonNullTypesContext nonNullTypesContext = (object)this == definition ? definition : NonNullTypesFalseContext.Instance;
-            return GetTypeParametersAsTypeArguments(nonNullTypesContext);
+            return TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(TypeParameters);
         }
-
-        internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments(INonNullTypesContext nonNullTypesContext) =>
-            TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(nonNullTypesContext, TypeParameters);
 
         /// <summary>
         /// Call <see cref="TryGetThisParameter"/> and throw if it returns false.
@@ -794,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
-            return (newOwner == this.ContainingSymbol) ? this : new SubstitutedMethodSymbol(newOwner, this);
+            return newOwner.IsDefinition ? this : new SubstitutedMethodSymbol(newOwner, this);
         }
 
         /// <summary>
@@ -960,14 +953,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The resulting syntax offset is then negative for locals defined outside of the constructor body.
         /// </remarks>
         internal abstract int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree);
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                return (AssociatedSymbol ?? ContainingSymbol)?.NonNullTypes;
-            }
-        }
 
         #region IMethodSymbol Members
 
@@ -1181,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
-            if (type.ContainsNullableReferenceTypes())
+            if (type.NeedsNullableAttribute())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
