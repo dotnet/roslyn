@@ -23,7 +23,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             int result;
-            var isSubset = oldValue.IsSubsetOf(newValue);
+            // PERF: Avoid additional hash set allocation by using overload which takes
+            // a set argument instead of IEnumerable argument.
+            var isSubset = oldValue.IsSubsetOfSet(newValue);
 
             if (isSubset &&
                 oldValue.Count == newValue.Count)
@@ -63,8 +65,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return value1;
             }
 
-            var values = merge ? value1.Concat(value2) : value1.Intersect(value2);
-            return ImmutableHashSet.CreateRange(values);
+            // PERF: Avoid additional allocations by using the overload that takes a set argument
+            // instead of IEnumerable argument.
+            return merge ? value1.AddRange(value2) : value1.IntersectSet(value2);
         }
     }
 }

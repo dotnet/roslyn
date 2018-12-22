@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public PointsToAnalysisData MergeAnalysisDataForBackEdge(
                 PointsToAnalysisData forwardEdgeAnalysisData,
                 PointsToAnalysisData backEdgeAnalysisData,
-                Func<PointsToAbstractValue, IEnumerable<AnalysisEntity>> getChildAnalysisEntities,
+                Func<PointsToAbstractValue, ImmutableHashSet<AnalysisEntity>> getChildAnalysisEntities,
                 Action<AnalysisEntity, PointsToAnalysisData> resetAbstractValue)
             {
                 if (!forwardEdgeAnalysisData.IsReachableBlockData && backEdgeAnalysisData.IsReachableBlockData)

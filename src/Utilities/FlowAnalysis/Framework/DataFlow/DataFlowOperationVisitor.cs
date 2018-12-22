@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// Operation visitor to flow the abstract dataflow analysis values across a given statement in a basic block.
     /// </summary>
     internal abstract class DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> : OperationVisitor<object, TAbstractAnalysisValue>
+        where TAnalysisData: AbstractAnalysisData
         where TAnalysisContext: AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult: IDataFlowAnalysisResult<TAbstractAnalysisValue>
     {
@@ -90,9 +91,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected TAnalysisData CurrentAnalysisData
         {
-            get => _currentAnalysisData;
+            get
+            {
+                Debug.Assert(!_currentAnalysisData.Disposed);
+                return _currentAnalysisData;
+            }
             private set
             {
+                Debug.Assert(!value.Disposed);
                 Debug.Assert(value != null);
                 _currentAnalysisData = value;
             }
@@ -902,11 +908,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     TAnalysisData savedCurrentAnalysisData = GetClonedCurrentAnalysisData();
 #endif
                     FlowBranchConditionKind = ControlFlowConditionKind.WhenTrue;
-                    PerformPredicateAnalysisCore(operation, GetClonedCurrentAnalysisData());
+                    var dummyTargetPredicateData = GetClonedCurrentAnalysisData();
+                    PerformPredicateAnalysisCore(operation, dummyTargetPredicateData);
                     FlowBranchConditionKind = ControlFlowConditionKind.None;
 #if DEBUG
                     Debug.Assert(Equals(savedCurrentAnalysisData, CurrentAnalysisData), "Expected no updates to CurrentAnalysisData");
+                    savedCurrentAnalysisData.Dispose();
 #endif
+                    dummyTargetPredicateData.Dispose();
                 }
                 else
                 {
@@ -931,19 +940,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         TAnalysisData truePredicatedData = GetEmptyAnalysisData();
                         FlowBranchConditionKind = ControlFlowConditionKind.WhenTrue;
                         PerformPredicateAnalysisCore(operation, truePredicatedData);
+                        Debug.Assert(!ReferenceEquals(truePredicatedData, CurrentAnalysisData));
 
                         TAnalysisData falsePredicatedData = GetEmptyAnalysisData();
                         FlowBranchConditionKind = ControlFlowConditionKind.WhenFalse;
                         PerformPredicateAnalysisCore(operation, falsePredicatedData);
+                        Debug.Assert(!ReferenceEquals(falsePredicatedData, CurrentAnalysisData));
                         FlowBranchConditionKind = ControlFlowConditionKind.None;
 
 #if DEBUG
                         Debug.Assert(Equals(savedCurrentAnalysisData, CurrentAnalysisData), "Expected no updates to CurrentAnalysisData");
+                        savedCurrentAnalysisData.Dispose();
 #endif
 
                         if (HasAnyAbstractValue(truePredicatedData) || HasAnyAbstractValue(falsePredicatedData))
                         {
                             StartTrackingPredicatedData(predicatedFlowCaptureEntityOpt, truePredicatedData, falsePredicatedData);
+                        }
+                        else
+                        {
+                            truePredicatedData.Dispose();
+                            falsePredicatedData.Dispose();
                         }
                     }
                 }
@@ -1532,6 +1549,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // For now, retain the original logic of resetting the analysis data.
                 ResetAnalysisData();
             }
+
+            interproceduralAnalysisData?.InitialAnalysisData?.Dispose();
 
             Debug.Assert(invokedMethod.ReturnsVoid == !analysisResult.ReturnValueAndPredicateKindOpt.HasValue);
             if (invokedMethod.ReturnsVoid)
@@ -2245,39 +2264,51 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 Debug.Assert(knownTargetInvocations);
                 Debug.Assert(methodTargetsOptBuilder != null || lambdaTargetsOpt != null);
 
-                var savedCurrentAnalysisData = GetClonedCurrentAnalysisData();
-                TAnalysisData mergedCurrentAnalysisData = default(TAnalysisData);
+                TAnalysisData mergedCurrentAnalysisData = null;
                 var first = true;
                 var defaultValue = value;
 
-                if (methodTargetsOptBuilder != null)
+                using (var savedCurrentAnalysisData = GetClonedCurrentAnalysisData())
                 {
-                    foreach ((IMethodSymbol method, IOperation instance) in methodTargetsOptBuilder)
+                    if (methodTargetsOptBuilder != null)
                     {
-                        mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
-                            computeValueForInvocation: () => method.MethodKind == MethodKind.LocalFunction ?
-                                VisitInvocation_LocalFunction(method, operation.Arguments, operation, defaultValue) :
-                                VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, instance, operation.Arguments,
-                                    invokedAsDelegate: true, originalOperation: operation, defaultValue: defaultValue),
-                            inputAnalysisData: savedCurrentAnalysisData,
-                            mergedAnalysisData: mergedCurrentAnalysisData,
-                            first: ref first);
+                        foreach ((IMethodSymbol method, IOperation instance) in methodTargetsOptBuilder)
+                        {
+                            var oldMergedAnalysisData = mergedCurrentAnalysisData;
+                            mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
+                                computeValueForInvocation: () => method.MethodKind == MethodKind.LocalFunction ?
+                                    VisitInvocation_LocalFunction(method, operation.Arguments, operation, defaultValue) :
+                                    VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, instance, operation.Arguments,
+                                        invokedAsDelegate: true, originalOperation: operation, defaultValue: defaultValue),
+                                inputAnalysisData: savedCurrentAnalysisData,
+                                mergedAnalysisData: mergedCurrentAnalysisData,
+                                first: ref first);
+                            Debug.Assert(!ReferenceEquals(oldMergedAnalysisData, CurrentAnalysisData));
+                            oldMergedAnalysisData?.Dispose();
+                        }
+                    }
+
+                    if (lambdaTargetsOpt != null)
+                    {
+                        foreach (var lambda in lambdaTargetsOpt)
+                        {
+                            var oldMergedAnalysisData = mergedCurrentAnalysisData;
+                            mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
+                                computeValueForInvocation: () => VisitInvocation_Lambda(lambda, operation.Arguments, operation, defaultValue),
+                                inputAnalysisData: savedCurrentAnalysisData,
+                                mergedAnalysisData: mergedCurrentAnalysisData,
+                                first: ref first);
+                            Debug.Assert(!ReferenceEquals(oldMergedAnalysisData, CurrentAnalysisData));
+                            oldMergedAnalysisData?.Dispose();
+                        }
                     }
                 }
 
-                if (lambdaTargetsOpt != null)
+                if (!ReferenceEquals(CurrentAnalysisData, mergedCurrentAnalysisData))
                 {
-                    foreach (var lambda in lambdaTargetsOpt)
-                    {
-                        mergedCurrentAnalysisData = AnalyzePossibleTargetInvocation(
-                            computeValueForInvocation: () => VisitInvocation_Lambda(lambda, operation.Arguments, operation, defaultValue),
-                            inputAnalysisData: savedCurrentAnalysisData,
-                            mergedAnalysisData: mergedCurrentAnalysisData,
-                            first: ref first);
-                    }
+                    CurrentAnalysisData.Dispose();
+                    CurrentAnalysisData = mergedCurrentAnalysisData;
                 }
-
-                CurrentAnalysisData = mergedCurrentAnalysisData;
             }
 
             TAnalysisData AnalyzePossibleTargetInvocation(Func<TAbstractAnalysisValue> computeValueForInvocation, TAnalysisData inputAnalysisData, TAnalysisData mergedAnalysisData, ref bool first)
@@ -2294,7 +2325,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 else
                 {
                     value = ValueDomain.Merge(value, invocationValue);
-                    return MergeAnalysisData(mergedAnalysisData, CurrentAnalysisData);
+                    var result = MergeAnalysisData(mergedAnalysisData, CurrentAnalysisData);
+                    CurrentAnalysisData.Dispose();
+                    return result;
                 }
             }
         }
@@ -2457,7 +2490,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                     if (pendingThrow.ExceptionType.DerivesFrom(operation.Type, baseTypesOnly: true))
                     {
-                        CurrentAnalysisData = MergeAnalysisData(CurrentAnalysisData, AnalysisDataForUnhandledThrowOperations[pendingThrow]);
+                        var data1 = CurrentAnalysisData;
+                        var data2 = AnalysisDataForUnhandledThrowOperations[pendingThrow];
+                        CurrentAnalysisData = MergeAnalysisData(data1, data2);
+                        data1.Dispose();
+                        data2.Dispose();
                         AnalysisDataForUnhandledThrowOperations.Remove(pendingThrow);
                     }
                 }

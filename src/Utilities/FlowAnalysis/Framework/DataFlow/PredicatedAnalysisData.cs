@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities.Extensions;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -14,9 +15,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// Predicate analysis data is used to improve the preciseness of analysis when we can apply the <see cref="PerEntityPredicatedAnalysisData.TruePredicatedData"/> or <see cref="PerEntityPredicatedAnalysisData.FalsePredicatedData"/>
     /// on the control flow paths where the corresonding <see cref="AnalysisEntity"/> is known to have <code>true</code> or <code>false</code> value respectively.
     /// </summary>
-    internal abstract partial class PredicatedAnalysisData<TKey, TValue>
+    internal abstract partial class PredicatedAnalysisData<TKey, TValue> : AbstractAnalysisData
     {
-        private IDictionary<AnalysisEntity, PerEntityPredicatedAnalysisData> _lazyPredicateDataMap;
+        private DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData> _lazyPredicateDataMap;
 
         protected PredicatedAnalysisData()
         {
@@ -27,50 +28,90 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             IsReachableBlockData = fromData.IsReachableBlockData;
             _lazyPredicateDataMap = Clone(fromData._lazyPredicateDataMap);
+            AssertValidAnalysisData();
         }
 
         protected PredicatedAnalysisData(
            PredicatedAnalysisData<TKey, TValue> predicatedData1,
            PredicatedAnalysisData<TKey, TValue> predicatedData2,
-           IDictionary<TKey, TValue> coreAnalysisData1,
-           IDictionary<TKey, TValue> coreAnalysisData2,
+           DictionaryAnalysisData<TKey, TValue> coreAnalysisData1,
+           DictionaryAnalysisData<TKey, TValue> coreAnalysisData2,
            bool isReachableData,
            MapAbstractDomain<TKey, TValue> coreDataAnalysisDomain)
         {
             IsReachableBlockData = isReachableData;
             _lazyPredicateDataMap = Merge(predicatedData1._lazyPredicateDataMap, predicatedData2._lazyPredicateDataMap,
                 coreAnalysisData1, coreAnalysisData2, coreDataAnalysisDomain, ApplyPredicatedData);
+            AssertValidAnalysisData();
         }
 
         public bool IsReachableBlockData { get; set; }
         
         public bool HasPredicatedData => _lazyPredicateDataMap != null;
 
-        private void EnsurePredicatedData()
+        [Conditional("DEBUG")]
+        private void AssertValidAnalysisData()
         {
-            _lazyPredicateDataMap = _lazyPredicateDataMap ?? new Dictionary<AnalysisEntity, PerEntityPredicatedAnalysisData>();
+            if (_lazyPredicateDataMap != null)
+            {
+                Debug.Assert(!_lazyPredicateDataMap.Disposed);
+                var builder = PooledHashSet<DictionaryAnalysisData<TKey, TValue>>.GetInstance();
+                foreach (var value in _lazyPredicateDataMap.Values)
+                {
+                    if (value.TruePredicatedData != null)
+                    {
+                        Debug.Assert(!value.TruePredicatedData.Disposed);
+                        Debug.Assert(builder.Add(value.TruePredicatedData));
+                    }
+
+                    if (value.FalsePredicatedData != null)
+                    {
+                        Debug.Assert(!value.FalsePredicatedData.Disposed);
+                        Debug.Assert(builder.Add(value.FalsePredicatedData));
+                    }
+                }
+
+                builder.Free();
+            }
         }
 
-        protected void StartTrackingPredicatedData(AnalysisEntity predicatedEntity, IDictionary<TKey, TValue> truePredicatedData, IDictionary<TKey, TValue> falsePredicatedData)
+        private void EnsurePredicatedData()
+        {
+            _lazyPredicateDataMap = _lazyPredicateDataMap ?? new DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>();
+        }
+
+        protected void StartTrackingPredicatedData(AnalysisEntity predicatedEntity, DictionaryAnalysisData<TKey, TValue> truePredicatedData, DictionaryAnalysisData<TKey, TValue> falsePredicatedData)
         {
             Debug.Assert(predicatedEntity.Type.SpecialType == SpecialType.System_Boolean ||
                 predicatedEntity.Type.Language == LanguageNames.VisualBasic && predicatedEntity.Type.SpecialType == SpecialType.System_Object);
             Debug.Assert(predicatedEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
 
+            AssertValidAnalysisData();
+
             EnsurePredicatedData();
             _lazyPredicateDataMap[predicatedEntity] = new PerEntityPredicatedAnalysisData(truePredicatedData, falsePredicatedData);
+
+            AssertValidAnalysisData();
         }
 
         public void StopTrackingPredicatedData(AnalysisEntity predicatedEntity)
         {
             Debug.Assert(HasPredicatedDataForEntity(predicatedEntity));
             Debug.Assert(predicatedEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
+            AssertValidAnalysisData();
+
+            if (_lazyPredicateDataMap.TryGetValue(predicatedEntity, out var perEntityPredicatedAnalysisData))
+            {
+                perEntityPredicatedAnalysisData.Dispose();
+            }
 
             _lazyPredicateDataMap.Remove(predicatedEntity);
             if (_lazyPredicateDataMap.Count == 0)
             {
-                _lazyPredicateDataMap = null;
+                ResetPredicatedData();
             }
+
+            AssertValidAnalysisData();
         }
 
         public bool HasPredicatedDataForEntity(AnalysisEntity predicatedEntity)
@@ -81,16 +122,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(HasPredicatedDataForEntity(fromEntity));
             Debug.Assert(fromEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
             Debug.Assert(toEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
+            AssertValidAnalysisData();
 
             if (_lazyPredicateDataMap.TryGetValue(fromEntity, out var fromEntityPredicatedData))
             {
-                _lazyPredicateDataMap[toEntity] = fromEntityPredicatedData;
+                _lazyPredicateDataMap[toEntity] = new PerEntityPredicatedAnalysisData(fromEntityPredicatedData);
             }
+
+            AssertValidAnalysisData();
         }
 
-        protected PredicateValueKind ApplyPredicatedDataForEntity(IDictionary<TKey, TValue> coreAnalysisData, AnalysisEntity predicatedEntity, bool trueData)
+        protected PredicateValueKind ApplyPredicatedDataForEntity(DictionaryAnalysisData<TKey, TValue> coreAnalysisData, AnalysisEntity predicatedEntity, bool trueData)
         {
             Debug.Assert(HasPredicatedDataForEntity(predicatedEntity));
+            AssertValidAnalysisData();
 
             var perEntityPredicateData = _lazyPredicateDataMap[predicatedEntity];
             var predicatedDataToApply = trueData ? perEntityPredicateData.TruePredicatedData : perEntityPredicateData.FalsePredicatedData;
@@ -109,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 PredicateValueKind.Unknown;
         }
 
-        protected virtual void ApplyPredicatedData(IDictionary<TKey, TValue> coreAnalysisData, IDictionary<TKey, TValue> predicatedData)
+        protected virtual void ApplyPredicatedData(DictionaryAnalysisData<TKey, TValue> coreAnalysisData, DictionaryAnalysisData<TKey, TValue> predicatedData)
         {
             Debug.Assert(coreAnalysisData != null);
             Debug.Assert(predicatedData != null);
@@ -123,6 +168,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected void RemoveEntriesInPredicatedData(TKey key)
         {
             Debug.Assert(HasPredicatedData);
+            AssertValidAnalysisData();
 
             foreach (var kvp in _lazyPredicateDataMap)
             {
@@ -136,25 +182,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     RemoveEntryInPredicatedData(key, kvp.Value.FalsePredicatedData);
                 }
             }
+
+            AssertValidAnalysisData();
         }
 
-        protected virtual void RemoveEntryInPredicatedData(TKey key, IDictionary<TKey, TValue> predicatedData)
+        protected virtual void RemoveEntryInPredicatedData(TKey key, DictionaryAnalysisData<TKey, TValue> predicatedData)
         {
             predicatedData.Remove(key);
         }
 
-        private static IDictionary<AnalysisEntity, PerEntityPredicatedAnalysisData> Clone(IDictionary<AnalysisEntity, PerEntityPredicatedAnalysisData> fromData)
+        private static DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData> Clone(DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData> fromData)
         {
             if (fromData == null)
             {
                 return null;
             }
 
-            var clonedMap = new Dictionary<AnalysisEntity, PerEntityPredicatedAnalysisData>();
+            var clonedMap = new DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>();
             foreach (var kvp in fromData)
             {
-                var clonedTruePredicatedData = kvp.Value.TruePredicatedData == null ? null : new Dictionary<TKey, TValue>(kvp.Value.TruePredicatedData);
-                var clonedFalsePredicatedData = kvp.Value.FalsePredicatedData == null ? null : new Dictionary<TKey, TValue>(kvp.Value.FalsePredicatedData);
+                var clonedTruePredicatedData = kvp.Value.TruePredicatedData == null ? null : new DictionaryAnalysisData<TKey, TValue>(kvp.Value.TruePredicatedData);
+                var clonedFalsePredicatedData = kvp.Value.FalsePredicatedData == null ? null : new DictionaryAnalysisData<TKey, TValue>(kvp.Value.FalsePredicatedData);
                 var perEntityPredicatedData = new PerEntityPredicatedAnalysisData(clonedTruePredicatedData, clonedFalsePredicatedData);
                 clonedMap.Add(kvp.Key, perEntityPredicatedData);
             }
@@ -162,13 +210,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return clonedMap;
         }
 
-        private static IDictionary<AnalysisEntity, PerEntityPredicatedAnalysisData> Merge(
-            IDictionary<AnalysisEntity, PerEntityPredicatedAnalysisData> predicatedData1,
-            IDictionary<AnalysisEntity, PerEntityPredicatedAnalysisData> predicatedData2,
-            IDictionary<TKey, TValue> coreAnalysisData1,
-            IDictionary<TKey, TValue> coreAnalysisData2,
+        private static DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData> Merge(
+            DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData> predicatedData1,
+            DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData> predicatedData2,
+            DictionaryAnalysisData<TKey, TValue> coreAnalysisData1,
+            DictionaryAnalysisData<TKey, TValue> coreAnalysisData2,
             MapAbstractDomain<TKey, TValue> coreDataAnalysisDomain,
-            Action<IDictionary<TKey, TValue>, IDictionary<TKey, TValue>> applyPredicatedData)
+            Action<DictionaryAnalysisData<TKey, TValue>, DictionaryAnalysisData<TKey, TValue>> applyPredicatedData)
         {
             Debug.Assert(coreAnalysisData1 != null);
             Debug.Assert(coreAnalysisData2 != null);
@@ -191,15 +239,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 coreAnalysisData1, coreAnalysisData2, coreDataAnalysisDomain, applyPredicatedData);
         }
 
-        private static Dictionary<AnalysisEntity, PerEntityPredicatedAnalysisData> MergeForPredicatedDataInOneBranch(
-            IDictionary<AnalysisEntity, PerEntityPredicatedAnalysisData> predicatedData,
-            IDictionary<TKey, TValue> coreAnalysisDataForOtherBranch,
+        private static DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData> MergeForPredicatedDataInOneBranch(
+            DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData> predicatedData,
+            DictionaryAnalysisData<TKey, TValue> coreAnalysisDataForOtherBranch,
             MapAbstractDomain<TKey, TValue> coreDataAnalysisDomain)
         {
             Debug.Assert(predicatedData != null);
             Debug.Assert(coreAnalysisDataForOtherBranch != null);
 
-            var result = new Dictionary<AnalysisEntity, PerEntityPredicatedAnalysisData>();
+            var result = new DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>();
             foreach (var kvp in predicatedData)
             {
                 var resultTruePredicatedData = MergeForPredicatedDataInOneBranch(kvp.Value.TruePredicatedData, coreAnalysisDataForOtherBranch, coreDataAnalysisDomain);
@@ -211,9 +259,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return result;
         }
 
-        private static IDictionary<TKey, TValue> MergeForPredicatedDataInOneBranch(
-            IDictionary<TKey, TValue> predicatedData,
-            IDictionary<TKey, TValue> coreAnalysisDataForOtherBranch,
+        private static DictionaryAnalysisData<TKey, TValue> MergeForPredicatedDataInOneBranch(
+            DictionaryAnalysisData<TKey, TValue> predicatedData,
+            DictionaryAnalysisData<TKey, TValue> coreAnalysisDataForOtherBranch,
             MapAbstractDomain<TKey, TValue> coreDataAnalysisDomain)
         {
             if (predicatedData == null)
@@ -224,24 +272,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return coreDataAnalysisDomain.Merge(predicatedData, coreAnalysisDataForOtherBranch);
         }
 
-        private static Dictionary<AnalysisEntity, PerEntityPredicatedAnalysisData> MergeForPredicatedDataInBothBranches(
-            IDictionary<AnalysisEntity, PerEntityPredicatedAnalysisData> predicatedData1,
-            IDictionary<AnalysisEntity, PerEntityPredicatedAnalysisData> predicatedData2,
-            IDictionary<TKey, TValue> coreAnalysisData1,
-            IDictionary<TKey, TValue> coreAnalysisData2,
+        private static DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData> MergeForPredicatedDataInBothBranches(
+            DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData> predicatedData1,
+            DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData> predicatedData2,
+            DictionaryAnalysisData<TKey, TValue> coreAnalysisData1,
+            DictionaryAnalysisData<TKey, TValue> coreAnalysisData2,
             MapAbstractDomain<TKey, TValue> coreDataAnalysisDomain,
-            Action<IDictionary<TKey, TValue>, IDictionary<TKey, TValue>> applyPredicatedData)
+            Action<DictionaryAnalysisData<TKey, TValue>, DictionaryAnalysisData<TKey, TValue>> applyPredicatedData)
         {
             Debug.Assert(predicatedData1 != null);
             Debug.Assert(predicatedData2 != null);
             Debug.Assert(coreAnalysisData1 != null);
             Debug.Assert(coreAnalysisData2 != null);
 
-            var result = new Dictionary<AnalysisEntity, PerEntityPredicatedAnalysisData>();
+            var result = new DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>();
             foreach (var kvp in predicatedData1)
             {
-                IDictionary<TKey, TValue> resultTruePredicatedData;
-                IDictionary<TKey, TValue> resultFalsePredicatedData;
+                DictionaryAnalysisData<TKey, TValue> resultTruePredicatedData;
+                DictionaryAnalysisData<TKey, TValue> resultFalsePredicatedData;
                 if (!predicatedData2.TryGetValue(kvp.Key, out var value2))
                 {
                     // Data predicated by the analysis entity present in only one branch.
@@ -278,13 +326,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return result;            
         }
 
-        private static IDictionary<TKey, TValue> Merge(
-            IDictionary<TKey, TValue> predicateTrueOrFalseData1,
-            IDictionary<TKey, TValue> predicateTrueOrFalseData2,
-            IDictionary<TKey, TValue> coreAnalysisData1,
-            IDictionary<TKey, TValue> coreAnalysisData2,
+        private static DictionaryAnalysisData<TKey, TValue> Merge(
+            DictionaryAnalysisData<TKey, TValue> predicateTrueOrFalseData1,
+            DictionaryAnalysisData<TKey, TValue> predicateTrueOrFalseData2,
+            DictionaryAnalysisData<TKey, TValue> coreAnalysisData1,
+            DictionaryAnalysisData<TKey, TValue> coreAnalysisData2,
             MapAbstractDomain<TKey, TValue> coreDataAnalysisDomain,
-            Action<IDictionary<TKey, TValue>, IDictionary<TKey, TValue>> applyPredicatedData)
+            Action<DictionaryAnalysisData<TKey, TValue>, DictionaryAnalysisData<TKey, TValue>> applyPredicatedData)
         {
             if (predicateTrueOrFalseData1 == null)
             {
@@ -303,15 +351,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return coreDataAnalysisDomain.Merge(appliedPredicatedData1, appliedPredicatedData2);            
         }
 
-        private static IDictionary<TKey, TValue> CloneAndApplyPredicatedData(
-            IDictionary<TKey, TValue> coreAnalysisData,
-            IDictionary<TKey, TValue> predicateTrueOrFalseData,
-            Action<IDictionary<TKey, TValue>, IDictionary<TKey, TValue>> applyPredicatedData)
+        private static DictionaryAnalysisData<TKey, TValue> CloneAndApplyPredicatedData(
+            DictionaryAnalysisData<TKey, TValue> coreAnalysisData,
+            DictionaryAnalysisData<TKey, TValue> predicateTrueOrFalseData,
+            Action<DictionaryAnalysisData<TKey, TValue>, DictionaryAnalysisData<TKey, TValue>> applyPredicatedData)
         {
             Debug.Assert(predicateTrueOrFalseData != null);
             Debug.Assert(coreAnalysisData != null);
 
-            var result = new Dictionary<TKey, TValue>(coreAnalysisData);
+            var result = new DictionaryAnalysisData<TKey, TValue>(coreAnalysisData);
             applyPredicatedData(result, predicateTrueOrFalseData);
             return result;
         }
@@ -371,7 +419,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return true;
         }
 
-        protected static bool EqualsHelper(IDictionary<TKey, TValue> dict1, IDictionary<TKey, TValue> dict2)
+        protected static bool EqualsHelper(DictionaryAnalysisData<TKey, TValue> dict1, DictionaryAnalysisData<TKey, TValue> dict2)
         {
             if (dict1 == null)
             {
@@ -388,14 +436,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected void ResetPredicatedData()
         {
+            if (_lazyPredicateDataMap == null)
+            {
+                return;
+            }
+
+            _lazyPredicateDataMap.Values.Dispose();
+            _lazyPredicateDataMap.Dispose();
             _lazyPredicateDataMap = null;
         }
 
         [Conditional("DEBUG")]
-        protected void AssertValidPredicatedAnalysisData(Action<IDictionary<TKey, TValue>> assertValidAnalysisData)
+        protected void AssertValidPredicatedAnalysisData(Action<DictionaryAnalysisData<TKey, TValue>> assertValidAnalysisData)
         {
             if (HasPredicatedData)
             {
+                AssertValidAnalysisData();
+
                 foreach (var kvp in _lazyPredicateDataMap)
                 {
                     if (kvp.Value.TruePredicatedData != null)
@@ -408,6 +465,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         assertValidAnalysisData(kvp.Value.FalsePredicatedData);
                     }
                 }
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                ResetPredicatedData();
             }
         }
     }

@@ -66,19 +66,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return result;
             }
 
-            protected override void AddTrackedEntities(ImmutableArray<AnalysisEntity>.Builder builder)
+            protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder)
             {
                 _defaultPointsToValueGenerator.AddTrackedEntities(builder);
-
-                // Ensure we skip duplicates.
-                var defaultPointsToEntities = builder.ToSet();
-                foreach (var key in CurrentAnalysisData.CoreAnalysisData.Keys)
-                {
-                    if (!defaultPointsToEntities.Contains(key))
-                    {
-                        builder.Add(key);
-                    }
-                }
+                CurrentAnalysisData.AddTrackedEntities(builder);
             }
 
             protected override bool IsPointsToAnalysis => true;

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities.Extensions;
@@ -8,8 +7,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalysis
 {
-    using ParameterValidationAnalysisData = IDictionary<AbstractLocation, ParameterValidationAbstractValue>;
-    using InterproceduralParameterValidationAnalysisData = InterproceduralAnalysisData<IDictionary<AbstractLocation, ParameterValidationAbstractValue>, ParameterValidationAnalysisContext, ParameterValidationAbstractValue>;
+    using ParameterValidationAnalysisData = DictionaryAnalysisData<AbstractLocation, ParameterValidationAbstractValue>;
     using ParameterValidationAnalysisDomain = MapAbstractDomain<AbstractLocation, ParameterValidationAbstractValue>;
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToAnalysis.PointsToBlockAnalysisResult, PointsToAnalysis.PointsToAbstractValue>;
 
@@ -70,10 +68,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
         {
             analysisContext = analysisContext.WithTrackHazardousParameterUsages();
             var newOperationVisitor = new ParameterValidationDataFlowOperationVisitor(analysisContext);
-            var resultBuilder = new DataFlowAnalysisResultBuilder<ParameterValidationAnalysisData>();
+
             foreach (var block in analysisContext.ControlFlowGraph.Blocks)
             {
-                var data = ParameterValidationAnalysisDomainInstance.Clone(dataFlowAnalysisResult[block].InputData);
+                var data = new ParameterValidationAnalysisData(dataFlowAnalysisResult[block].InputData);
                 data = Flow(newOperationVisitor, block, data);
             }
 

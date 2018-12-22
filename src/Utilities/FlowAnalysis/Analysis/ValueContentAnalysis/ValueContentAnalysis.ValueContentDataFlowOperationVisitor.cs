@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             {
             }
 
-            protected override void AddTrackedEntities(ImmutableArray<AnalysisEntity>.Builder builder) => builder.AddRange(CurrentAnalysisData.CoreAnalysisData.Keys);
+            protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder)
+                => CurrentAnalysisData.AddTrackedEntities(builder);
 
             protected override void SetAbstractValue(AnalysisEntity analysisEntity, ValueContentAbstractValue value) => SetAbstractValue(CurrentAnalysisData, analysisEntity, value);
 

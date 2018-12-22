@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -14,7 +15,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     internal abstract class AnalysisEntityDataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         : DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
-        where TAnalysisContext: AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+        where TAnalysisData : AbstractAnalysisData
+        where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult: IDataFlowAnalysisResult<TAbstractAnalysisValue>
     {
         protected AnalysisEntityDataFlowOperationVisitor(TAnalysisContext analysisContext)
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
         }
 
-        protected abstract void AddTrackedEntities(ImmutableArray<AnalysisEntity>.Builder builder);
+        protected abstract void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder);
         protected abstract void SetAbstractValue(AnalysisEntity analysisEntity, TAbstractAnalysisValue value);
         protected abstract TAbstractAnalysisValue GetAbstractValue(AnalysisEntity analysisEntity);
         protected abstract bool HasAbstractValue(AnalysisEntity analysisEntity);
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <summary>
         /// Helper method to reset analysis data for analysis entities.
         /// </summary>
-        protected void ResetAnalysisData(IDictionary<AnalysisEntity, TAbstractAnalysisValue> currentAnalysisDataOpt)
+        protected void ResetAnalysisData(DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> currentAnalysisDataOpt)
         {
             // Reset the current analysis data, while ensuring that we don't violate the monotonicity, i.e. we cannot remove any existing key from currentAnalysisData.
             // Just set the values for existing keys to ValueDomain.UnknownOrMayBeValue.
@@ -270,45 +272,41 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        private IEnumerable<AnalysisEntity> GetChildAnalysisEntities(AnalysisEntity analysisEntity)
+        private ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(AnalysisEntity analysisEntity)
         {
+            if (analysisEntity.InstanceLocation == null)
+            {
+                return ImmutableHashSet<AnalysisEntity>.Empty;
+
+            }
+
             var hasValueCopySemantics = analysisEntity.Type.HasValueCopySemantics();
-            foreach (var entity in GetChildAnalysisEntities(analysisEntity.InstanceLocation))
-            {
-                if (!hasValueCopySemantics || entity.HasAncestor(analysisEntity))
-                {
-                    yield return entity;
-                }
-            }
+            return GetChildAnalysisEntities(analysisEntity.InstanceLocation, entity => !hasValueCopySemantics || entity.HasAncestor(analysisEntity));
         }
 
-        private IEnumerable<AnalysisEntity> GetTrackedEntities()
-        {
-            var trackedEntitiesBuilder = ImmutableArray.CreateBuilder<AnalysisEntity>();
-            AddTrackedEntities(trackedEntitiesBuilder);
-            if (trackedEntitiesBuilder.Count > 0)
-            {
-                Debug.Assert(trackedEntitiesBuilder.ToSet().Count == trackedEntitiesBuilder.Count);
-                foreach (var entity in trackedEntitiesBuilder)
-                {
-                    yield return entity;
-                }
-            }
-        }
+        protected ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(PointsToAbstractValue instanceLocationOpt)
+           => GetChildAnalysisEntities(instanceLocationOpt, predicateOpt: null);
 
-        protected IEnumerable<AnalysisEntity> GetChildAnalysisEntities(PointsToAbstractValue instanceLocationOpt)
+        private ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(PointsToAbstractValue instanceLocationOpt, Func<AnalysisEntity, bool> predicateOpt)
         {
             // We are interested only in dependent child/member infos, not the root info.
-            if (instanceLocationOpt != null)
+            if (instanceLocationOpt == null)
             {
-                foreach (var entity in GetTrackedEntities())
-                {
-                    if (entity.InstanceLocation.Equals(instanceLocationOpt) && entity.IsChildOrInstanceMember)
-                    {
-                        yield return entity;
-                    }
-                }
+                return ImmutableHashSet<AnalysisEntity>.Empty;
             }
+
+            return GetChildAnalysisEntities(entity =>
+                entity.InstanceLocation.Equals(instanceLocationOpt) &&
+                entity.IsChildOrInstanceMember &&
+                (predicateOpt == null || predicateOpt(entity)));
+        }
+
+        private ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(Func<AnalysisEntity, bool> predicate)
+        {
+            var trackedEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+            AddTrackedEntities(trackedEntitiesBuilder);
+            trackedEntitiesBuilder.RemoveWhere(entity => !predicate(entity));
+            return trackedEntitiesBuilder.ToImmutableAndFree();
         }
 
         #endregion
@@ -351,7 +349,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
         #endregion
 
-        protected IDictionary<AnalysisEntity, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AnalysisEntity, TAbstractAnalysisValue> analysisData)
-            => new Dictionary<AnalysisEntity, TAbstractAnalysisValue>(analysisData);
+        protected DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AnalysisEntity, TAbstractAnalysisValue> analysisData)
+            => new DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue>(analysisData);
     }
 }

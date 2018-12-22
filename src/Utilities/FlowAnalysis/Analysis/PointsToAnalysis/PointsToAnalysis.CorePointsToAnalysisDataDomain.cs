@@ -2,12 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
-    using CorePointsToAnalysisData = IDictionary<AnalysisEntity, PointsToAbstractValue>;
+    using CorePointsToAnalysisData = DictionaryAnalysisData<AnalysisEntity, PointsToAbstractValue>;
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
 
     internal partial class PointsToAnalysis : ForwardDataFlowAnalysis<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToBlockAnalysisResult, PointsToAbstractValue>
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public CorePointsToAnalysisData MergeCoreAnalysisDataForBackEdge(
                 PointsToAnalysisData forwardEdgeAnalysisData,
                 PointsToAnalysisData backEdgeAnalysisData,
-                Func<PointsToAbstractValue, IEnumerable<AnalysisEntity>> getChildAnalysisEntities,
+                Func<PointsToAbstractValue, ImmutableHashSet<AnalysisEntity>> getChildAnalysisEntities,
                 Action<AnalysisEntity, PointsToAnalysisData> resetAbstractValue)
             {
                 Debug.Assert(forwardEdgeAnalysisData != null);
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         void stopTrackingAnalysisDataForChildren()
                         {
                             var childEntities = getChildAnalysisEntities(forwardEdgeValue)
-                                .Union(getChildAnalysisEntities(backEdgeValue));
+                                .AddRange(getChildAnalysisEntities(backEdgeValue));
                             foreach (var childEntity in childEntities)
                             {
                                 stopTrackingAnalysisDataForEntity(childEntity);

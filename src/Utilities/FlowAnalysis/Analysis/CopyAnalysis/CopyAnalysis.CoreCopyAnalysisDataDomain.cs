@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
-    using CoreCopyAnalysisData = IDictionary<AnalysisEntity, CopyAbstractValue>;
+    using CoreCopyAnalysisData = DictionaryAnalysisData<AnalysisEntity, CopyAbstractValue>;
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
 
     internal partial class CopyAnalysis : ForwardDataFlowAnalysis<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyBlockAnalysisResult, CopyAbstractValue>
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 CopyAnalysisData.AssertValidCopyAnalysisData(map1);
                 CopyAnalysisData.AssertValidCopyAnalysisData(map2);
 
-                var result = new Dictionary<AnalysisEntity, CopyAbstractValue>();
+                var result = new DictionaryAnalysisData<AnalysisEntity, CopyAbstractValue>();
                 foreach (var kvp in map1)
                 {
                     var key = kvp.Key;

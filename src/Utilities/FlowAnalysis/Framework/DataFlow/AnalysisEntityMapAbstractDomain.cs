@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected abstract bool CanSkipNewEntry(AnalysisEntity analysisEntity, TValue value);
 
         protected abstract void AssertValidEntryForMergedMap(AnalysisEntity analysisEntity, TValue value);
-        protected virtual void AssertValidAnalysisData(IDictionary<AnalysisEntity, TValue> map)
+        protected virtual void AssertValidAnalysisData(DictionaryAnalysisData<AnalysisEntity, TValue> map)
         {
 #if DEBUG
             foreach (var kvp in map)
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 #endif
         }
 
-        public override IDictionary<AnalysisEntity, TValue> Merge(IDictionary<AnalysisEntity, TValue> map1, IDictionary<AnalysisEntity, TValue> map2)
+        public override DictionaryAnalysisData<AnalysisEntity, TValue> Merge(DictionaryAnalysisData<AnalysisEntity, TValue> map1, DictionaryAnalysisData<AnalysisEntity, TValue> map2)
         {
             Debug.Assert(map1 != null);
             AssertValidAnalysisData(map1);
@@ -43,93 +43,106 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return ValueDomain.Merge(value, defaultValue);
             }
 
-            var resultMap = new Dictionary<AnalysisEntity, TValue>();
-            var newKeys = new HashSet<AnalysisEntity>();
-            var map2LookupIgnoringInstanceLocation = map2.Keys.ToLookup(entity => entity.EqualsIgnoringInstanceLocationId);
+            var resultMap = new DictionaryAnalysisData<AnalysisEntity, TValue>();
+            var newKeys = PooledHashSet<AnalysisEntity>.GetInstance();
+
+            var map2LookupIgnoringInstanceLocation = map2.Keys.Where(IsAnalysisEntityForFieldOrProperty)
+                                                              .ToLookup(entity => entity.EqualsIgnoringInstanceLocationId);
             foreach (var entry1 in map1)
             {
                 AnalysisEntity key1 = entry1.Key;
                 TValue value1 = entry1.Value;
 
-                var equivalentKeys2 = map2LookupIgnoringInstanceLocation[key1.EqualsIgnoringInstanceLocationId];
-                if (!equivalentKeys2.Any())
+                if (map2LookupIgnoringInstanceLocation.Count > 0 && IsAnalysisEntityForFieldOrProperty(key1))
                 {
-                    TValue mergedValue = GetMergedValueForEntityPresentInOneMap(key1, value1);
-                    Debug.Assert(!map2.ContainsKey(key1));
-                    Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
-                    AssertValidEntryForMergedMap(key1, mergedValue);
-                    resultMap.Add(key1, mergedValue);
-                    continue;
-                }
-
-                foreach (AnalysisEntity key2 in equivalentKeys2)
-                {
-                    // Confirm that key2 and key1 are indeed EqualsIgnoringInstanceLocation
-                    // This ensures that we handle hash code clashes of EqualsIgnoringInstanceLocationId.
-                    if (!key1.EqualsIgnoringInstanceLocation(key2))
+                    var equivalentKeys2 = map2LookupIgnoringInstanceLocation[key1.EqualsIgnoringInstanceLocationId];
+                    if (!equivalentKeys2.Any())
                     {
+                        TValue mergedValue = GetMergedValueForEntityPresentInOneMap(key1, value1);
+                        Debug.Assert(!map2.ContainsKey(key1));
+                        Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
+                        AssertValidEntryForMergedMap(key1, mergedValue);
+                        resultMap.Add(key1, mergedValue);
                         continue;
                     }
 
-                    TValue value2 = map2[key2];
+                    foreach (AnalysisEntity key2 in equivalentKeys2)
+                    {
+                        // Confirm that key2 and key1 are indeed EqualsIgnoringInstanceLocation
+                        // This ensures that we handle hash code clashes of EqualsIgnoringInstanceLocationId.
+                        if (!key1.EqualsIgnoringInstanceLocation(key2))
+                        {
+                            continue;
+                        }
+
+                        TValue value2 = map2[key2];
+                        TValue mergedValue = ValueDomain.Merge(value1, value2);
+                        Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
+                        Debug.Assert(ValueDomain.Compare(value2, mergedValue) <= 0);
+
+                        if (key1.InstanceLocation.Equals(key2.InstanceLocation))
+                        {
+                            AssertValidEntryForMergedMap(key1, mergedValue);
+                            resultMap[key1] = mergedValue;
+                        }
+                        else
+                        {
+                            if (key1.SymbolOpt == null || key1.SymbolOpt != key2.SymbolOpt)
+                            {
+                                // PERF: Do not add a new key-value pair to the resultMap for unrelated entities or non-symbol based entities.
+                                continue;
+                            }
+
+                            AnalysisEntity mergedKey = key1.WithMergedInstanceLocation(key2);
+                            TValue newMergedValue = mergedValue;
+                            var isExistingKeyInInput = false;
+                            var isExistingKeyInResult = false;
+                            if (resultMap.TryGetValue(mergedKey, out var existingValue))
+                            {
+                                newMergedValue = ValueDomain.Merge(newMergedValue, existingValue);
+                                isExistingKeyInResult = true;
+                            }
+
+                            if (map1.TryGetValue(mergedKey, out existingValue))
+                            {
+                                newMergedValue = ValueDomain.Merge(newMergedValue, existingValue);
+                                isExistingKeyInInput = true;
+                            }
+
+                            if (map2.TryGetValue(mergedKey, out existingValue))
+                            {
+                                newMergedValue = ValueDomain.Merge(newMergedValue, existingValue);
+                                isExistingKeyInInput = true;
+                            }
+
+                            Debug.Assert(ValueDomain.Compare(value1, newMergedValue) <= 0);
+                            Debug.Assert(ValueDomain.Compare(value2, newMergedValue) <= 0);
+                            Debug.Assert(ValueDomain.Compare(mergedValue, newMergedValue) <= 0);
+                            mergedValue = newMergedValue;
+
+                            if (!isExistingKeyInInput && !isExistingKeyInResult && CanSkipNewEntry(mergedKey, mergedValue))
+                            {
+                                // PERF: Do not add a new key-value pair to the resultMap if the value can be skipped.
+                                continue;
+                            }
+
+                            if (!isExistingKeyInInput)
+                            {
+                                newKeys.Add(mergedKey);
+                            }
+
+                            AssertValidEntryForMergedMap(mergedKey, mergedValue);
+                            resultMap[mergedKey] = mergedValue;
+                        }
+                    }
+                }
+                else if (map2.TryGetValue(key1, out var value2))
+                {
                     TValue mergedValue = ValueDomain.Merge(value1, value2);
                     Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
                     Debug.Assert(ValueDomain.Compare(value2, mergedValue) <= 0);
-
-                    if (key1.InstanceLocation.Equals(key2.InstanceLocation))
-                    {
-                        AssertValidEntryForMergedMap(key1, mergedValue);
-                        resultMap[key1] = mergedValue;
-                    }
-                    else
-                    {
-                        if (key1.SymbolOpt == null || key1.SymbolOpt != key2.SymbolOpt)
-                        {
-                            // PERF: Do not add a new key-value pair to the resultMap for unrelated entities or non-symbol based entities.
-                            continue;
-                        }
-
-                        AnalysisEntity mergedKey = key1.WithMergedInstanceLocation(key2);
-                        TValue newMergedValue = mergedValue;
-                        var isExistingKeyInInput = false;
-                        var isExistingKeyInResult = false;
-                        if (resultMap.TryGetValue(mergedKey, out var existingValue))
-                        {
-                            newMergedValue = ValueDomain.Merge(newMergedValue, existingValue);
-                            isExistingKeyInResult = true;
-                        }
-
-                        if (map1.TryGetValue(mergedKey, out existingValue))
-                        {
-                            newMergedValue = ValueDomain.Merge(newMergedValue, existingValue);
-                            isExistingKeyInInput = true;
-                        }
-
-                        if (map2.TryGetValue(mergedKey, out existingValue))
-                        {
-                            newMergedValue = ValueDomain.Merge(newMergedValue, existingValue);
-                            isExistingKeyInInput = true;
-                        }
-
-                        Debug.Assert(ValueDomain.Compare(value1, newMergedValue) <= 0);
-                        Debug.Assert(ValueDomain.Compare(value2, newMergedValue) <= 0);
-                        Debug.Assert(ValueDomain.Compare(mergedValue, newMergedValue) <= 0);
-                        mergedValue = newMergedValue;
-
-                        if (!isExistingKeyInInput && !isExistingKeyInResult && CanSkipNewEntry(mergedKey, mergedValue))
-                        {
-                            // PERF: Do not add a new key-value pair to the resultMap if the value can be skipped.
-                            continue;
-                        }
-
-                        if (!isExistingKeyInInput)
-                        {
-                            newKeys.Add(mergedKey);
-                        }
-
-                        AssertValidEntryForMergedMap(mergedKey, mergedValue);
-                        resultMap[mergedKey] = mergedValue;
-                    }
+                    resultMap.Add(key1, mergedValue);
+                    continue;
                 }
 
                 if (!resultMap.ContainsKey(key1))
@@ -164,11 +177,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
             }
 
+            newKeys.Free();
+
             Debug.Assert(Compare(map1, resultMap) <= 0);
             Debug.Assert(Compare(map2, resultMap) <= 0);
             AssertValidAnalysisData(resultMap);
 
             return resultMap;
+
+            bool IsAnalysisEntityForFieldOrProperty(AnalysisEntity entity)
+                => entity.SymbolOpt?.Kind == SymbolKind.Field || entity.SymbolOpt?.Kind == SymbolKind.Property;
         }
     }
 }
