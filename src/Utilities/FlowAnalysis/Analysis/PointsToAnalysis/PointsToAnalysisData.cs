@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         {
             if (map is CorePointsToAnalysisData corePointsToAnalysisData)
             {
-                Debug.Assert(!corePointsToAnalysisData.Disposed);
+                Debug.Assert(!corePointsToAnalysisData.IsDisposed);
             }
 
             foreach (var kvp in map)

@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     internal abstract class AbstractAnalysisData : IDisposable
     {
-        public bool Disposed { get; private set; }
+        public bool IsDisposed { get; private set; }
 
         protected virtual void Dispose(bool disposing)
         {
@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public void Dispose()
 #pragma warning restore CA1063 // Implement IDisposable Correctly
         {
-            if (!Disposed)
+            if (!IsDisposed)
             {
                 Dispose(true);
-                Disposed = true;
+                IsDisposed = true;
             }
         }
     }

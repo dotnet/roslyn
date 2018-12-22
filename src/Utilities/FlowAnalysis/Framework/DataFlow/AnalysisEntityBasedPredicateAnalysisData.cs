@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         [Conditional("DEBUG")]
         private void AssertValidAnalysisData()
         {
-            Debug.Assert(!CoreAnalysisData.Disposed);
-            AssertValidPredicatedAnalysisData(map => Debug.Assert(!map.Disposed));
+            Debug.Assert(!CoreAnalysisData.IsDisposed);
+            AssertValidPredicatedAnalysisData(map => Debug.Assert(!map.IsDisposed));
         }
 
         public virtual void SetAbstractValue(AnalysisEntity key, TValue value)

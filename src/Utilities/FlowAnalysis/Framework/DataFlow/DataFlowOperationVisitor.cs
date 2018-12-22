@@ -93,13 +93,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             get
             {
-                Debug.Assert(!_currentAnalysisData.Disposed);
+                Debug.Assert(!_currentAnalysisData.IsDisposed);
                 return _currentAnalysisData;
             }
             private set
             {
                 Debug.Assert(value != null);
-                Debug.Assert(!value.Disposed);
+                Debug.Assert(!value.IsDisposed);
                 _currentAnalysisData = value;
             }
         }

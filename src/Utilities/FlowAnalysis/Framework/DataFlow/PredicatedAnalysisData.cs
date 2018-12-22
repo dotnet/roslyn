@@ -54,19 +54,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             if (_lazyPredicateDataMap != null)
             {
-                Debug.Assert(!_lazyPredicateDataMap.Disposed);
+                Debug.Assert(!_lazyPredicateDataMap.IsDisposed);
                 var builder = PooledHashSet<DictionaryAnalysisData<TKey, TValue>>.GetInstance();
                 foreach (var value in _lazyPredicateDataMap.Values)
                 {
                     if (value.TruePredicatedData != null)
                     {
-                        Debug.Assert(!value.TruePredicatedData.Disposed);
+                        Debug.Assert(!value.TruePredicatedData.IsDisposed);
                         Debug.Assert(builder.Add(value.TruePredicatedData));
                     }
 
                     if (value.FalsePredicatedData != null)
                     {
-                        Debug.Assert(!value.FalsePredicatedData.Disposed);
+                        Debug.Assert(!value.FalsePredicatedData.IsDisposed);
                         Debug.Assert(builder.Add(value.FalsePredicatedData));
                     }
                 }

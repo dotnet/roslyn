@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public ImmutableDictionary<TKey, TValue> ToImmutableDictionary()
         {
-            Debug.Assert(!Disposed);
+            Debug.Assert(!IsDisposed);
             return _coreAnalysisData.ToImmutableDictionary();
         }
 
@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             get
             {
-                Debug.Assert(!Disposed);
+                Debug.Assert(!IsDisposed);
                 return _coreAnalysisData[key];
             }
             set
             {
-                Debug.Assert(!Disposed);
+                Debug.Assert(!IsDisposed);
                 _coreAnalysisData[key] = value;
             }
         }
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             get
             {
-                Debug.Assert(!Disposed);
+                Debug.Assert(!IsDisposed);
                 return _coreAnalysisData.Keys;
             }
         }
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             get
             {
-                Debug.Assert(!Disposed);
+                Debug.Assert(!IsDisposed);
                 return _coreAnalysisData.Values;
             }
         }
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             get
             {
-                Debug.Assert(!Disposed);
+                Debug.Assert(!IsDisposed);
                 return _coreAnalysisData.Count;
             }
         }
@@ -73,74 +73,74 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             get
             {
-                Debug.Assert(!Disposed);
+                Debug.Assert(!IsDisposed);
                 return ((IDictionary<TKey, TValue>)_coreAnalysisData).IsReadOnly;
             }
         }
 
         public void Add(TKey key, TValue value)
         {
-            Debug.Assert(!Disposed);
+            Debug.Assert(!IsDisposed);
             _coreAnalysisData.Add(key, value);
         }
 
         public void Add(KeyValuePair<TKey, TValue> item)
         {
-            Debug.Assert(!Disposed);
+            Debug.Assert(!IsDisposed);
             _coreAnalysisData.Add(item.Key, item.Value);
         }
 
         public void Clear()
         {
-            Debug.Assert(!Disposed);
+            Debug.Assert(!IsDisposed);
             _coreAnalysisData.Clear();
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
-            Debug.Assert(!Disposed);
+            Debug.Assert(!IsDisposed);
             return ((IDictionary<TKey, TValue>)_coreAnalysisData).Contains(item);
         }
 
         public bool ContainsKey(TKey key)
         {
-            Debug.Assert(!Disposed);
+            Debug.Assert(!IsDisposed);
             return _coreAnalysisData.ContainsKey(key);
         }
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
-            Debug.Assert(!Disposed);
+            Debug.Assert(!IsDisposed);
             ((IDictionary<TKey, TValue>)_coreAnalysisData).CopyTo(array, arrayIndex);
         }
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            Debug.Assert(!Disposed);
+            Debug.Assert(!IsDisposed);
             return _coreAnalysisData.GetEnumerator();
         }
 
         public bool Remove(TKey key)
         {
-            Debug.Assert(!Disposed);
+            Debug.Assert(!IsDisposed);
             return _coreAnalysisData.Remove(key);
         }
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
         {
-            Debug.Assert(!Disposed);
+            Debug.Assert(!IsDisposed);
             return Remove(item.Key);
         }
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            Debug.Assert(!Disposed);
+            Debug.Assert(!IsDisposed);
             return _coreAnalysisData.TryGetValue(key, out value);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            Debug.Assert(!Disposed);
+            Debug.Assert(!IsDisposed);
             return _coreAnalysisData.GetEnumerator();
         }
 

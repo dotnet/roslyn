@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         {
             if (map is CoreCopyAnalysisData coreCopyAnalysisData)
             {
-                Debug.Assert(!coreCopyAnalysisData.Disposed);
+                Debug.Assert(!coreCopyAnalysisData.IsDisposed);
             }
 
             foreach (var kvp in map)
