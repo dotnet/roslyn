@@ -76,7 +76,14 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 if (MessageFormat != null)
                 {
-                    return string.Format(MessageFormat.ToString(), MessageArguments ?? EmptyArguments);
+                    try
+                    {
+                        return string.Format(MessageFormat.ToString(), MessageArguments ?? EmptyArguments);
+                    }
+                    catch (FormatException)
+                    {
+                        return MessageFormat.ToString();
+                    }
                 }
 
                 return null;
