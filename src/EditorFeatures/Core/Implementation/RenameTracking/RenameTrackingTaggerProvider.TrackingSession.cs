@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         async t =>
                         {
                             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
+                            _cancellationToken.ThrowIfCancellationRequested();
+
                             stateMachine.UpdateTrackingSessionIfRenamable();
                         },
                         _cancellationToken,
@@ -103,6 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 task.SafeContinueWithFromAsync(async t =>
                    {
                        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
+                       _cancellationToken.ThrowIfCancellationRequested();
 
                        if (_isRenamableIdentifierTask.Result != TriggerIdentifierKind.NotRenamable)
                        {
