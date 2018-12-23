@@ -277,6 +277,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 async t =>
                 {
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
+                    _cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
                     RaiseSessionSpansUpdated(t.Result.Locations.ToImmutableArray());
                 },
                 _cancellationTokenSource.Token,
@@ -524,6 +526,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     async t =>
                     {
                         await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _conflictResolutionTaskCancellationSource.Token);
+                        _conflictResolutionTaskCancellationSource.Token.ThrowIfCancellationRequested();
+
                         ApplyReplacements(t.Result.replacementInfo, t.Result.mergeResult, _conflictResolutionTaskCancellationSource.Token);
                     },
                     _conflictResolutionTaskCancellationSource.Token,
