@@ -1000,21 +1000,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!IsConditionalState);
 
-            ArrayBuilder<int> slotBuilder = null;
             int mainSlot = -1;
             if (whenTrue != NullableAnnotation.Unknown)
             {
-                // Create slots for whole expression and sub-expression that we can infer about.
-                // We do it when the state is unconditional since EnsureCapacity should be
+                // Create slot when the state is unconditional since EnsureCapacity should be
                 // called on all fields and that is simpler if state is limited to this.State.
                 mainSlot = MakeSlot(expression);
-                if (mainSlot > 0)
-                {
-                    Normalize(ref this.State);
-                }
-
-                slotBuilder = ArrayBuilder<int>.GetInstance();
-                GetSlotsToMarkAsNotNullable(expression, slotBuilder);
             }
 
             base.VisitPattern(expression, pattern); // note: splits
@@ -1034,17 +1025,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.StateWhenFalse[mainSlot] = whenFalse;
             }
 
-            // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c.
-            if (whenTrue == NullableAnnotation.NotNullable)
+            if (whenTrue == NullableAnnotation.NotNullable || whenFalse == NullableAnnotation.NotNullable)
             {
-                MarkSlotsAsNotNullable(slotBuilder, ref StateWhenTrue);
-            }
-            else if (whenFalse == NullableAnnotation.NotNullable)
-            {
-                MarkSlotsAsNotNullable(slotBuilder, ref StateWhenFalse);
-            }
+                var slotBuilder = ArrayBuilder<int>.GetInstance();
+                GetSlotsToMarkAsNotNullable(expression, slotBuilder);
 
-            slotBuilder?.Free();
+                // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c.
+                if (whenTrue == NullableAnnotation.NotNullable)
+                {
+                    MarkSlotsAsNotNullable(slotBuilder, ref StateWhenTrue);
+                }
+                else if (whenFalse == NullableAnnotation.NotNullable)
+                {
+                    MarkSlotsAsNotNullable(slotBuilder, ref StateWhenFalse);
+                }
+
+                slotBuilder.Free();
+            }
         }
 
         protected override BoundNode VisitReturnStatementNoAdjust(BoundReturnStatement node)
@@ -1626,11 +1623,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void GetSlotsToMarkAsNotNullable(BoundExpression operand, ArrayBuilder<int> slotBuilder)
         {
-            Debug.Assert(!IsConditionalState);
             Debug.Assert(operand != null);
             Debug.Assert(_lastConditionalAccessSlot == -1);
 
-            do
+            while (true)
             {
                 // Due to the nature of binding, if there are conditional access they will be at the top of the bound tree,
                 // potentially with a conversion on top of it. We go through any conditional accesses, adding slots for the
@@ -1640,7 +1636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     a?.GetB()?.C // a is a field, GetB is a method, and C is a property
                 //
                 // The top of the tree is the a?.GetB() conditional call. We'll ask for a slot for a, and we'll get one because
-                // locals have slots. The AccessExpression of the BoundConditionalAccess is another BoundConditionalAccess, this time
+                // fields have slots. The AccessExpression of the BoundConditionalAccess is another BoundConditionalAccess, this time
                 // with a receiver of the GetB() BoundCall. Attempting to get a slot for this receiver will fail, and we'll
                 // return an array with just the slot for a.
                 int slot;
@@ -1710,14 +1706,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // so we reset before leaving the function.
                 _lastConditionalAccessSlot = -1;
 
-                if (slotBuilder.Count != 0)
-                {
-                    Normalize(ref this.State);
-                }
-
                 return;
             }
-            while (true);
 
             bool shouldUpdateType(TypeSymbol operandType)
                 => !(operandType is null) && (!operandType.IsValueType || operandType.IsNullableType());
@@ -2530,23 +2520,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(annotations.Length == arguments.Length);
             Debug.Assert(_disableDiagnostics);
 
-            // prepare slots for expressions and sub-expressions that we'll want to mark as non-null
-            var allSlots = ArrayBuilder<ArrayBuilder<int>>.GetInstance(arguments.Length);
-            for (int i = 0; i < arguments.Length; i++)
-            {
-                FlowAnalysisAnnotations annotation = annotations[i];
-                bool notNullWhenTrue = (annotation & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
-                bool notNullWhenFalse = (annotation & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
-
-                ArrayBuilder<int> slotsForArgument = null;
-                if (notNullWhenTrue || notNullWhenFalse)
-                {
-                    slotsForArgument = ArrayBuilder<int>.GetInstance();
-                    GetSlotsToMarkAsNotNullable(arguments[i], slotsForArgument);
-                }
-                allSlots.Add(slotsForArgument);
-            }
-
             for (int i = 0; i < arguments.Length; i++)
             {
                 FlowAnalysisAnnotations annotation = annotations[i];
@@ -2596,25 +2569,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool wasPreviouslySplit = this.IsConditionalState;
                     Split();
 
+                    var slotBuilder = ArrayBuilder<int>.GetInstance();
+                    GetSlotsToMarkAsNotNullable(arguments[i], slotBuilder);
+
                     if (notNullWhenTrue)
                     {
-                        MarkSlotsAsNotNullable(allSlots?[i], ref StateWhenTrue);
+                        MarkSlotsAsNotNullable(slotBuilder, ref StateWhenTrue);
                     }
                     if (notNullWhenFalse)
                     {
-                        MarkSlotsAsNotNullable(allSlots?[i], ref StateWhenFalse);
+                        MarkSlotsAsNotNullable(slotBuilder, ref StateWhenFalse);
                         if (notNullWhenTrue && !wasPreviouslySplit) Unsplit();
                     }
+                    slotBuilder.Free();
                 }
             }
 
             _resultType = _invalidType;
-
-            foreach (var slotsForArgument in allSlots)
-            {
-                slotsForArgument?.Free();
-            }
-            allSlots.Free();
 
             // Evaluate an argument, potentially producing a split state.
             // Then unsplit it based on [AssertsTrue] or [AssertsFalse] attributes, or default Unsplit otherwise.
@@ -4565,23 +4536,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!this.IsConditionalState);
 
-            ArrayBuilder<int> slotBuilder = null;
             var operand = node.Operand;
-            if (operand.Type?.IsValueType == false)
-            {
-                slotBuilder = ArrayBuilder<int>.GetInstance();
-                GetSlotsToMarkAsNotNullable(operand, slotBuilder);
-            }
-
             var result = base.VisitIsOperator(node);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Boolean);
 
-            if (slotBuilder?.Count > 0)
+            if (operand.Type?.IsValueType == false)
             {
-                Split();
-                MarkSlotsAsNotNullable(slotBuilder, ref StateWhenTrue);
+                var slotBuilder = ArrayBuilder<int>.GetInstance();
+                GetSlotsToMarkAsNotNullable(operand, slotBuilder);
+                if (slotBuilder.Count > 0)
+                {
+                    Split();
+                    MarkSlotsAsNotNullable(slotBuilder, ref StateWhenTrue);
+                }
+                slotBuilder.Free();
             }
-            slotBuilder?.Free();
 
             SetResult(node);
             return result;

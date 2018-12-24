@@ -685,6 +685,7 @@ class C
         if (c?.field is string)
         {
             c.ToString();
+            c.field.ToString();
         }
         else
         {
@@ -696,9 +697,9 @@ class C
 
             var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics(
-                // (13,13): warning CS8602: Possible dereference of a null reference.
+                // (14,13): warning CS8602: Possible dereference of a null reference.
                 //             c.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(13, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(14, 13)
                 );
         }
 
