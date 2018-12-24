@@ -674,6 +674,36 @@ class C
         }
 
         [Fact]
+        public void IsOperator_AffectsNullConditionalOperator()
+        {
+            var source = @"
+class C
+{
+    public object? field = null;
+    static void M(C? c)
+    {
+        if (c?.field is string)
+        {
+            c.ToString();
+            c.field.ToString();
+        }
+        else
+        {
+            c.ToString(); // 1
+        }
+    }
+}
+";
+
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            c.VerifyDiagnostics(
+                // (14,13): warning CS8602: Possible dereference of a null reference.
+                //             c.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(14, 13)
+                );
+        }
+
+        [Fact]
         public void OmittedCall()
         {
             var source = @"
@@ -9669,6 +9699,35 @@ public class C
         }
 
         [Fact]
+        public void NotNullWhenFalse_Nested()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(string? s)
+    {
+        if (MyIsNullOrEmpty(s?.ToString()))
+        {
+            s.ToString(); // warn
+        }
+        else
+        {
+            s.ToString();
+        }
+    }
+    public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+}
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
         [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
         public void NotNullWhenFalse_EqualsTrue_InErrorInvocation()
         {
@@ -11030,6 +11089,35 @@ public class C
         }
 
         [Fact]
+        public void NotNullWhenTrue_Nested()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(string? s)
+    {
+        if (IsNotNull(s?.ToString()))
+        {
+            s.ToString();
+        }
+        else
+        {
+            s.ToString(); // warn
+        }
+    }
+    public static bool IsNotNull([NotNullWhenTrue] string? value) => throw null;
+}
+", NotNullWhenTrueAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
         public void NotNullWhenTrue_WithNotNullWhenFalse_WithVoidReturn()
         {
             // When both NotNullWhenTrue and NotNullWhenFalse are applied, it's the same as EnsuresNotNull,
@@ -11062,6 +11150,26 @@ class C
     void Main(C? c)
     {
         MyAssert(c != null);
+        c.ToString();
+    }
+
+    void MyAssert([AssertsTrue] bool condition) => throw null;
+}
+", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AssertsTrue_NotNull_Nested()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(C? c)
+    {
+        MyAssert(c?.ToString() != null);
         c.ToString();
     }
 
@@ -12541,6 +12649,25 @@ public class C
             c.VerifyDiagnostics();
 
             VerifyAnnotationsAndMetadata(c, "C.ThrowIfNull", None, EnsuresNotNull);
+        }
+
+        [Fact]
+        public void EnsuresNotNull_Nested()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+public class C
+{
+    void Main(string? s)
+    {
+        ThrowIfNull(s?.ToString());
+        s.ToString(); // ok
+    }
+    public static void ThrowIfNull([EnsuresNotNull] string? s) => throw null;
+}
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -33477,6 +33604,147 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IsPattern_AffectsNullConditionalOperator_DeclarationPattern()
+        {
+            var source =
+@"class C
+{
+    static void G(string? s)
+    {
+        if (s?.ToString() is string t)
+        {
+            s.ToString();
+        }
+        else
+        {
+            s.ToString(); // warn
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(11, 13)
+                );
+        }
+
+        [Fact]
+        public void IsPattern_AffectsNullConditionalOperator_NullableValueType()
+        {
+            var source =
+@"class C
+{
+    static void G(int? i)
+    {
+        if (i?.ToString() is string t)
+        {
+            i.Value.ToString();
+        }
+        else
+        {
+            i.Value.ToString(); // warn
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,13): warning CS8629: Nullable value type may be null.
+                //             i.Value.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "i.Value").WithLocation(11, 13)
+                );
+        }
+
+        [Fact]
+        public void IsPattern_AffectsNullConditionalOperator_NullableValueType_Nested()
+        {
+            var source = @"
+public struct S
+{
+    public int? field;
+}
+class C
+{
+    static void G(S? s)
+    {
+        if (s?.field?.ToString() is string t)
+        {
+            s.Value.ToString();
+            s.Value.field.Value.ToString();
+        }
+        else
+        {
+            s.Value.ToString(); // warn
+            s.Value.field.Value.ToString(); // warn
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (17,13): warning CS8629: Nullable value type may be null.
+                //             s.Value.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s.Value").WithLocation(17, 13),
+                // (18,13): warning CS8629: Nullable value type may be null.
+                //             s.Value.field.Value.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s.Value.field.Value").WithLocation(18, 13)
+                );
+        }
+
+        [Fact]
+        public void IsPattern_AffectsNullConditionalOperator_VarPattern()
+        {
+            var source =
+@"class C
+{
+    static void G(string? s)
+    {
+        if (s?.ToString() is var t)
+        {
+            s.ToString(); // 1
+        }
+        else
+        {
+            s.ToString();
+        }
+    }
+}";
+            // Should also warn on unreachable code
+            // https://github.com/dotnet/roslyn/issues/28798
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void IsPattern_AffectsNullConditionalOperator_NullConstantPattern()
+        {
+            var source =
+@"class C
+{
+    static void G(string? s)
+    {
+        if (s?.ToString() is null)
+        {
+            s.ToString(); // warn
+        }
+        else
+        {
+            s.ToString();
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 13)
+                );
         }
 
         // https://github.com/dotnet/roslyn/issues/29909: Should only warn on F(x) in `case null`.
