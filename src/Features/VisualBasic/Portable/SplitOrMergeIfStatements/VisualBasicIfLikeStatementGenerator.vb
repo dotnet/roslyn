@@ -150,9 +150,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
         Public Sub InsertElseIfClause(editor As SyntaxEditor, afterIfOrElseIf As SyntaxNode, elseIfClause As SyntaxNode) Implements IIfLikeStatementGenerator.InsertElseIfClause
             Dim elseIfBlockToInsert = DirectCast(elseIfClause, ElseIfBlockSyntax)
             If TypeOf afterIfOrElseIf Is MultiLineIfBlockSyntax Then
-                Dim ifBlock = DirectCast(afterIfOrElseIf, MultiLineIfBlockSyntax)
-                Dim newIfBlock = ifBlock.WithElseIfBlocks(ifBlock.ElseIfBlocks.Insert(0, elseIfBlockToInsert))
-                editor.ReplaceNode(ifBlock, newIfBlock)
+                editor.ReplaceNode(afterIfOrElseIf,
+                                   Function(currentNode, g)
+                                       Dim ifBlock = DirectCast(currentNode, MultiLineIfBlockSyntax)
+                                       Dim newIfBlock = ifBlock.WithElseIfBlocks(ifBlock.ElseIfBlocks.Insert(0, elseIfBlockToInsert))
+                                       Return newIfBlock
+                                   End Function)
             ElseIf TypeOf afterIfOrElseIf Is ElseIfBlockSyntax Then
                 editor.InsertAfter(afterIfOrElseIf, elseIfBlockToInsert)
             Else

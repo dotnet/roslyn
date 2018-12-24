@@ -2,7 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -10,7 +9,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
@@ -60,15 +58,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             leftCondition = leftCondition.WithAdditionalAnnotations(Formatter.Annotation);
             rightCondition = rightCondition.WithAdditionalAnnotations(Formatter.Annotation);
 
-            // The syntax editor will be operating on ifLikeStatement. If we did this replacement
-            // using the syntax editor, it wouldn't be able to do the subsequent modifications (insert an else clause).
-            // We need to do this in a separate step and track the nodes for later use.
-            root = root.TrackNodes(ifOrElseIf);
-            root = root.ReplaceNode(
-                root.GetCurrentNode(ifOrElseIf),
-                ifGenerator.WithCondition(root.GetCurrentNode(ifOrElseIf), leftCondition));
-
             var editor = new SyntaxEditor(root, generator);
+
+            editor.ReplaceNode(ifOrElseIf, (currentNode, _) => ifGenerator.WithCondition(currentNode, leftCondition));
 
             if (await CanBeSeparateStatementsAsync(document, syntaxFacts, ifGenerator, ifOrElseIf, cancellationToken).ConfigureAwait(false))
             {
@@ -85,7 +77,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 var secondIfStatement = ifGenerator.WithCondition(ifOrElseIf, rightCondition)
                     .WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed);
 
-                editor.InsertAfter(root.GetCurrentNode(ifOrElseIf), secondIfStatement);
+                editor.InsertAfter(ifOrElseIf, secondIfStatement);
             }
             else
             {
@@ -100,7 +92,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
                 var elseIfClause = ifGenerator.WithCondition(ifGenerator.ToElseIfClause(ifOrElseIf), rightCondition);
 
-                ifGenerator.InsertElseIfClause(editor, root.GetCurrentNode(ifOrElseIf), elseIfClause);
+                ifGenerator.InsertElseIfClause(editor, ifOrElseIf, elseIfClause);
             }
 
             return editor.GetChangedRoot();

@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
@@ -68,15 +67,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             newCondition = newCondition.WithAdditionalAnnotations(Formatter.Annotation);
 
-            // The syntax editor will be operating on both nodes and removing ifLikeStatement. If we did this replacement
-            // using the syntax editor, it wouldn't be able to do the sebsequent removal since its parent was modified.
-            // We need to do this in a separate step and track the nodes for later use.
-            root = root.TrackNodes(previousIfOrElseIf, ifOrElseIf);
-            root = root.ReplaceNode(
-                root.GetCurrentNode(previousIfOrElseIf),
-                ifGenerator.WithCondition(root.GetCurrentNode(previousIfOrElseIf), newCondition));
-
             var editor = new SyntaxEditor(root, generator);
+
+            editor.ReplaceNode(previousIfOrElseIf, (currentNode, _) => ifGenerator.WithCondition(currentNode, newCondition));
 
             if (isElseIfClause)
             {
@@ -88,7 +81,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
                 // Remove the else-if clause and preserve any subsequent clauses.
 
-                ifGenerator.RemoveElseIfClause(editor, root.GetCurrentNode(ifOrElseIf));
+                ifGenerator.RemoveElseIfClause(editor, ifOrElseIf);
             }
             else
             {
@@ -108,10 +101,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 Debug.Assert(ifGenerator.GetElseIfAndElseClauses(previousIfOrElseIf).Length == 0);
 
                 editor.ReplaceNode(
-                    root.GetCurrentNode(previousIfOrElseIf),
-                    ifGenerator.WithElseIfAndElseClausesOf(root.GetCurrentNode(previousIfOrElseIf), ifOrElseIf));
+                    previousIfOrElseIf,
+                    (currentNode, _) => ifGenerator.WithElseIfAndElseClausesOf(currentNode, ifOrElseIf));
 
-                editor.RemoveNode(root.GetCurrentNode(ifOrElseIf));
+                editor.RemoveNode(ifOrElseIf);
             }
 
             return editor.GetChangedRoot();
