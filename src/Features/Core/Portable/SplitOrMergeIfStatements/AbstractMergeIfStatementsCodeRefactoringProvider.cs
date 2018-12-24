@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return document.WithSyntaxRoot(newRoot);
         }
 
-        protected static IReadOnlyList<SyntaxNode> WalkDownPureBlocks(
+        protected static IReadOnlyList<SyntaxNode> WalkDownScopeBlocks(
             ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
         {
             // If our statements only contain a single block, walk down the block and any subsequent nested blocks
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return statements;
         }
 
-        protected static IReadOnlyList<SyntaxNode> WalkUpPureBlocks(
+        protected static IReadOnlyList<SyntaxNode> WalkUpScopeBlocks(
             ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
         {
             // If our statements are inside a block, walk up the block and any subsequent nested blocks that contain

@@ -181,8 +181,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             SyntaxNode ifStatement2,
             out IReadOnlyList<SyntaxNode> statements)
         {
-            var statements1 = WalkDownPureBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(ifStatement1));
-            var statements2 = WalkDownPureBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(ifStatement2));
+            var statements1 = WalkDownScopeBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(ifStatement1));
+            var statements2 = WalkDownScopeBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(ifStatement2));
 
             statements = statements1;
             return statements1.SequenceEqual(statements2, syntaxFacts.AreEquivalent);

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 var statements = syntaxFacts.GetStatementContainerStatements(statement.Parent);
                 if (statements.Count > 0 && statements[0] == statement)
                 {
-                    var rootStatements = WalkUpPureBlocks(syntaxFacts, statements);
+                    var rootStatements = WalkUpScopeBlocks(syntaxFacts, statements);
                     if (rootStatements.Count > 0 && ifGenerator.IsIfOrElseIf(rootStatements[0].Parent))
                     {
                         ifOrElseIf = rootStatements[0].Parent;
@@ -189,8 +189,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 }
             }
 
-            var statements1 = WalkDownPureBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(elseIfOrElseClause1));
-            var statements2 = WalkDownPureBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(elseIfOrElseClause2));
+            var statements1 = WalkDownScopeBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(elseIfOrElseClause1));
+            var statements2 = WalkDownScopeBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(elseIfOrElseClause2));
 
             return statements1.SequenceEqual(statements2, syntaxFacts.AreEquivalent);
         }
