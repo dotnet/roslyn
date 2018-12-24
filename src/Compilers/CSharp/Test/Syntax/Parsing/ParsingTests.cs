@@ -124,7 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// Parses given string and initializes a depth-first preorder enumerator.
         /// </summary>
         protected SyntaxTree UsingTree(string text, CSharpParseOptions options = null)
-            => UsingTree(text, options);
+        {
+            var tree = ParseTree(text, options);
+            UsingNode((CSharpSyntaxNode)tree.GetRoot());
+            return tree;
+        }
 
         /// <summary>
         /// Parses given string and initializes a depth-first preorder enumerator.

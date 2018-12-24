@@ -445,9 +445,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 SyntaxFactory.CompilationUnit()
                 .WithMembers(
                     SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
-                        SyntaxFactory.ClassDeclaration("C")
-                        .WithMembers(
-                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                        SyntaxFactory.ClassDeclaration(
+                            attributeLists: default,
+                            modifiers: default,
+                            identifier: SyntaxFactory.Identifier("C"),
+                            typeParameterList: default,
+                            baseList: default,
+                            constraintClauses: default,
+                            members: SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
                                 SyntaxFactory.PropertyDeclaration(
                                     SyntaxFactory.NullableType(
                                         SyntaxFactory.PredefinedType(
@@ -469,9 +474,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 SyntaxFactory.CompilationUnit()
                 .WithMembers(
                     SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
-                        SyntaxFactory.ClassDeclaration("C")
-                        .WithMembers(
-                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                        SyntaxFactory.ClassDeclaration(
+                            attributeLists: default,
+                            modifiers: default,
+                            identifier: SyntaxFactory.Identifier("C"),
+                            typeParameterList: default,
+                            baseList: default,
+                            constraintClauses: default,
+                            members: SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
                                 SyntaxFactory.PropertyDeclaration(
                                     SyntaxFactory.NullableType(
                                         SyntaxFactory.ParseTypeName("DateTime")),
