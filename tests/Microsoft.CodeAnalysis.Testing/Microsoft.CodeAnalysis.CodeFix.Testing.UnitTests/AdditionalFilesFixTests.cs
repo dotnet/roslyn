@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            Assert.Equal("content of 'File1.txt' was expected to be 'Wrong file text' but was 'File text'", exception.Message);
+            Assert.Equal($"content of 'File1.txt' did not match. Diff shown with expected as baseline:{Environment.NewLine}-Wrong file text{Environment.NewLine}+File text{Environment.NewLine}", exception.Message);
         }
 
         [Fact]
