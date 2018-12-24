@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Roslyn.Utilities;
@@ -130,123 +131,136 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         protected static bool IsAcceptable(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method, int position,
-            SemanticModel semanticModel, ISemanticFactsService semanticFactsService, out int parameterIndex)
+            SemanticModel semanticModel, ISemanticFactsService semanticFactsService, out int foundParameterIndex)
         {
-            parameterIndex = -1;
-            var argumentIndexToSave = GetArgumentIndex(arguments, position);
+            int argumentCount = arguments.Count;
             var parameters = method.Parameters;
             var parameterCount = parameters.Length;
-            var seenParameters = BitVector.Create(parameterCount);
-            var currentParameterIndex = 0;
-            var seenOutOfPositionArgument = false;
-            var inParams = false;
-            for (var argumentIndex = 0; argumentIndex < arguments.Count; argumentIndex++)
+
+            // map the arguments to their corresponding parameters
+            var map = ArrayBuilder<int>.GetInstance(argumentCount, -1);
+            if (!PrepareMap())
             {
-                if (argumentIndex >= parameterCount && !inParams)
+                foundParameterIndex = -1;
+                return false;
+            }
+
+            // verify that the arguments are compatible with their corresponding parameters
+            for (var argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
+            {
+                var parameterIndex = map[argumentIndex];
+                if (parameterIndex < 0)
                 {
-                    return false;
+                    continue;
                 }
 
+                var parameter = parameters[parameterIndex];
                 var argument = arguments[argumentIndex];
-                IParameterSymbol parameter;
-                if (HasName(argument, out var name))
+
+                if (!IsAcceptableArgument(argument, parameter))
                 {
-                    var namedParameterIndex = parameters.IndexOf(p => p.Name == name);
-                    if (namedParameterIndex < 0)
+                    foundParameterIndex = -1;
+                    return false;
+                }
+            }
+
+            // find the parameter at the cursor position
+            var argumentIndexToSave = GetArgumentIndex(arguments, position);
+            if (argumentIndexToSave >= 0)
+            {
+                var found = map[argumentIndexToSave];
+                if (found >= 0)
+                {
+                    foundParameterIndex = found;
+                }
+                else
+                {
+                    var firstUnspecified = FirstUnspecifiedParameter();
+                    foundParameterIndex = firstUnspecified < 0 ? 0 : firstUnspecified;
+                }
+            }
+            else
+            {
+                foundParameterIndex = argumentIndexToSave >= 0 ? map[argumentIndexToSave] : -1;
+            }
+
+            Debug.Assert(foundParameterIndex < parameterCount);
+            map.Free();
+
+            return true;
+
+            bool PrepareMap()
+            {
+                var currentParameterIndex = 0;
+                var seenOutOfPositionArgument = false;
+                var inParams = false;
+
+                for (var argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
+                {
+                    if (argumentIndex >= parameterCount && !inParams)
                     {
                         return false;
                     }
 
-                    if (namedParameterIndex != currentParameterIndex)
+                    var argument = arguments[argumentIndex];
+                    if (HasName(argument, out var name))
                     {
-                        seenOutOfPositionArgument = true;
-                    }
+                        var namedParameterIndex = parameters.IndexOf(p => p.Name == name);
+                        if (namedParameterIndex < 0)
+                        {
+                            return false;
+                        }
 
-                    currentParameterIndex = namedParameterIndex;
-                    seenParameters[namedParameterIndex] = true;
-                    parameter = parameters[namedParameterIndex];
-                    SaveCurrentParameterIndexIfNeeded(namedParameterIndex, argumentIndex, ref parameterIndex);
-                    SetSeenParamsIfNeeded(parameter);
+                        if (namedParameterIndex != currentParameterIndex)
+                        {
+                            seenOutOfPositionArgument = true;
+                        }
 
-                    if (!seenOutOfPositionArgument)
-                    {
+                        AddMapping(argumentIndex, namedParameterIndex);
                         IncrementParameterIndexIfNeeded();
                     }
-                }
-                else if (IsEmptyArgument(argument.Expression))
-                {
-                    if (!seenOutOfPositionArgument)
+                    else if (IsEmptyArgument(argument.Expression))
                     {
-                        // We count the empty argument as a used position
-                        SetSeenParamsIfNeeded(parameters[currentParameterIndex]);
-                        IncrementParameterIndexIfNeeded();
+                        if (!seenOutOfPositionArgument)
+                        {
+                            // We count the empty argument as a used position
+                            AddMapping(argumentIndex, currentParameterIndex);
+                            IncrementParameterIndexIfNeeded();
+                        }
+                    }
+                    else if (seenOutOfPositionArgument)
+                    {
+                        // Unnamed arguments are not allowed after an out-of-position argument
+                        return false;
                     }
                     else
                     {
-                        currentParameterIndex = -1;
+                        AddMapping(argumentIndex, currentParameterIndex);
+                        IncrementParameterIndexIfNeeded();
                     }
-
-                    continue;
-                }
-                else if (seenOutOfPositionArgument)
-                {
-                    return false;
-                }
-                else
-                {
-                    seenParameters[currentParameterIndex] = true;
-                    parameter = parameters[currentParameterIndex];
-                    SaveCurrentParameterIndexIfNeeded(currentParameterIndex, argumentIndex, ref parameterIndex);
-                    SetSeenParamsIfNeeded(parameter);
-                    IncrementParameterIndexIfNeeded();
                 }
 
-                if (!IsAcceptableArgument(argument, parameter))
-                {
-                    currentParameterIndex = -1;
-                    return false;
-                }
-            }
+                return true;
 
-            if (seenOutOfPositionArgument && parameterIndex < 0)
-            {
-                // Find the first unspecified parameter
-                for (int i = 0; i < parameterCount; i++)
+                void IncrementParameterIndexIfNeeded()
                 {
-                    if (!seenParameters[i])
+                    if (!seenOutOfPositionArgument && !inParams)
                     {
-                        parameterIndex = i;
-                        break;
+                        currentParameterIndex++;
                     }
                 }
-            }
 
-            Debug.Assert(parameterIndex < parameterCount);
-            return true;
-
-            void SetSeenParamsIfNeeded(IParameterSymbol parameter)
-            {
-                if (parameter.IsParams)
+                void AddMapping(int argumentIndex, int parameterIndex)
                 {
-                    inParams = true;
-                }
-            }
+                    Debug.Assert(parameterIndex >= 0);
+                    Debug.Assert(parameterIndex < parameterCount);
 
-            void SaveCurrentParameterIndexIfNeeded(int value, int argumentIndex, ref int output)
-            {
-                // if the position is on the current argument, we'll save the parameter index
-                if (argumentIndex == argumentIndexToSave)
-                {
-                    output = value;
-                }
-            }
+                    if (parameters[parameterIndex].IsParams)
+                    {
+                        inParams = true;
+                    }
 
-            void IncrementParameterIndexIfNeeded()
-            {
-                if (!inParams && arguments.SeparatorCount > currentParameterIndex)
-                {
-                    // Increment for `1, $$` but not for `1$$`, and not when we reached a params parameter
-                    currentParameterIndex++;
+                    map[argumentIndex] = parameterIndex;
                 }
             }
 
@@ -254,6 +268,23 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             {
                 return expression.IsKind(SyntaxKind.IdentifierName) &&
                     ((IdentifierNameSyntax)expression).Identifier.ValueText.Length == 0;
+            }
+
+            int FirstUnspecifiedParameter()
+            {
+                var specified = ArrayBuilder<bool>.GetInstance(argumentCount, false);
+                for (var i = 0; i < argumentCount; i++)
+                {
+                    var parameterIndex = map[i];
+                    if (parameterIndex >= 0)
+                    {
+                        specified[parameterIndex] = true;
+                    }
+                }
+
+                var first = specified.FindIndex(s => !s);
+                specified.Free();
+                return first;
             }
 
             bool IsAcceptableArgument(ArgumentSyntax argument, IParameterSymbol parameter)
@@ -286,9 +317,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 {
                     return true;
                 }
+
                 return true;
             }
-
         }
 
         protected static int GetArgumentIndex(SeparatedSyntaxList<ArgumentSyntax> arguments, int position)
