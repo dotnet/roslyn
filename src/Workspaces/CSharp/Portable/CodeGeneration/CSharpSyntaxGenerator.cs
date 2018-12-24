@@ -661,7 +661,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AsModifierList(accessibility, modifiers, SyntaxKind.ClassDeclaration),
                 name.ToIdentifierToken(),
                 AsTypeParameterList(typeParameters),
-                parameterList: default,
                 baseTypes != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(baseTypes)) : null,
                 default,
                 this.AsClassMembers(name, members));
@@ -710,7 +709,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AsModifierList(accessibility, modifiers, SyntaxKind.StructDeclaration),
                 name.ToIdentifierToken(),
                 AsTypeParameterList(typeParameters),
-                parameterList: default,
                 itypes != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(itypes)) : null,
                 default,
                 this.AsClassMembers(name, members));

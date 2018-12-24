@@ -48,12 +48,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             => StructDeclaration(
                 attributeLists,
                 modifiers,
+                SyntaxFactory.Token(SyntaxKind.StructKeyword),
                 identifier,
                 typeParameterList,
                 default(ParameterListSyntax),
                 baseList,
                 constraintClauses,
-                members);
+                SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
+                members,
+                SyntaxFactory.Token(SyntaxKind.CloseBraceToken),
+                semicolonToken: default);
 
         public static StructDeclarationSyntax StructDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
