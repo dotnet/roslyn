@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         bool IsElseIfClause(SyntaxNode node, out SyntaxNode parentIfOrElseIf);
 
+        bool HasElseIfClause(SyntaxNode ifOrElseIf, out SyntaxNode elseIfClause);
+
         SyntaxNode GetCondition(SyntaxNode ifOrElseIf);
 
         /// <summary>

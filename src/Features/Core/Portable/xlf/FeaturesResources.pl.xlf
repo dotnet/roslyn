@@ -137,14 +137,24 @@
         <target state="new">Indent wrapped parameters</target>
         <note />
       </trans-unit>
-      <trans-unit id="Merge_consecutive_0_statements">
-        <source>Merge consecutive '{0}' statements</source>
-        <target state="new">Merge consecutive '{0}' statements</target>
+      <trans-unit id="Merge_with_nested_0_statement">
+        <source>Merge with nested '{0}' statement</source>
+        <target state="new">Merge with nested '{0}' statement</target>
         <note />
       </trans-unit>
-      <trans-unit id="Merge_nested_0_statements">
-        <source>Merge nested '{0}' statements</source>
-        <target state="new">Merge nested '{0}' statements</target>
+      <trans-unit id="Merge_with_next_0_statement">
+        <source>Merge with next '{0}' statement</source>
+        <target state="new">Merge with next '{0}' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_outer_0_statement">
+        <source>Merge with outer '{0}' statement</source>
+        <target state="new">Merge with outer '{0}' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_previous_0_statement">
+        <source>Merge with previous '{0}' statement</source>
+        <target state="new">Merge with previous '{0}' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">

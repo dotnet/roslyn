@@ -48,6 +48,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             Return False
         End Function
 
+        Public Function HasElseIfClause(ifOrElseIf As SyntaxNode, ByRef elseIfClause As SyntaxNode) As Boolean Implements IIfLikeStatementGenerator.HasElseIfClause
+            Dim ifBlock As MultiLineIfBlockSyntax
+            Dim nextElseIfIndex As Integer
+
+            If TypeOf ifOrElseIf Is MultiLineIfBlockSyntax Then
+                ifBlock = DirectCast(ifOrElseIf, MultiLineIfBlockSyntax)
+                nextElseIfIndex = 0
+            ElseIf TypeOf ifOrElseIf Is ElseIfBlockSyntax Then
+                ifBlock = DirectCast(ifOrElseIf.Parent, MultiLineIfBlockSyntax)
+                Dim index = ifBlock.ElseIfBlocks.IndexOf(DirectCast(ifOrElseIf, ElseIfBlockSyntax))
+                nextElseIfIndex = index + 1
+            Else
+                Throw ExceptionUtilities.UnexpectedValue(ifOrElseIf)
+            End If
+
+            elseIfClause = ifBlock.ElseIfBlocks.ElementAtOrDefault(nextElseIfIndex)
+            Return elseIfClause IsNot Nothing
+        End Function
+
         Public Function GetCondition(ifOrElseIf As SyntaxNode) As SyntaxNode Implements IIfLikeStatementGenerator.GetCondition
             If TypeOf ifOrElseIf Is MultiLineIfBlockSyntax Then
                 Return DirectCast(ifOrElseIf, MultiLineIfBlockSyntax).IfStatement.Condition

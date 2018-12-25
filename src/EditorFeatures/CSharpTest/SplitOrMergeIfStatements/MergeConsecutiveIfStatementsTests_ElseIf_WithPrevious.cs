@@ -306,24 +306,6 @@ $@"class C
         }
 
         [Fact]
-        public async Task NotMergedOnParentIf()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        [||]if (a)
-        {
-        }
-        else if (b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
         public async Task NotMergedOnSingleIf()
         {
             await TestMissingInRegularAndScriptAsync(

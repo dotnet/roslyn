@@ -552,7 +552,7 @@ end class")
 
         <Fact>
         Public Async Function NotMergedIntoPreviousStatementThatHasElseIfClauseIfControlFlowQuits2() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a then
@@ -564,6 +564,19 @@ end class")
         [||]if b then
             return
         elseif true then
+            return
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        elseif true then
+            return
+        end if
+
+        if b OrElse true then
             return
         end if
     end sub

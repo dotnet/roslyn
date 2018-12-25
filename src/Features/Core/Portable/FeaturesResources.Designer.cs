@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FeaturesResources {
@@ -2341,20 +2341,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Merge consecutive &apos;{0}&apos; statements.
+        ///   Looks up a localized string similar to Merge with nested &apos;{0}&apos; statement.
         /// </summary>
-        internal static string Merge_consecutive_0_statements {
+        internal static string Merge_with_nested_0_statement {
             get {
-                return ResourceManager.GetString("Merge_consecutive_0_statements", resourceCulture);
+                return ResourceManager.GetString("Merge_with_nested_0_statement", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Merge nested &apos;{0}&apos; statements.
+        ///   Looks up a localized string similar to Merge with next &apos;{0}&apos; statement.
         /// </summary>
-        internal static string Merge_nested_0_statements {
+        internal static string Merge_with_next_0_statement {
             get {
-                return ResourceManager.GetString("Merge_nested_0_statements", resourceCulture);
+                return ResourceManager.GetString("Merge_with_next_0_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge with outer &apos;{0}&apos; statement.
+        /// </summary>
+        internal static string Merge_with_outer_0_statement {
+            get {
+                return ResourceManager.GetString("Merge_with_outer_0_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge with previous &apos;{0}&apos; statement.
+        /// </summary>
+        internal static string Merge_with_previous_0_statement {
+            get {
+                return ResourceManager.GetString("Merge_with_previous_0_statement", resourceCulture);
             }
         }
         

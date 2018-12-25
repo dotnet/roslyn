@@ -39,6 +39,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             return false;
         }
 
+        public bool HasElseIfClause(SyntaxNode ifOrElseIf, out SyntaxNode elseIfClause)
+        {
+            var ifStatement = (IfStatementSyntax)ifOrElseIf;
+            if (ifStatement.Else?.Statement is IfStatementSyntax elseIfStatement)
+            {
+                elseIfClause = elseIfStatement;
+                return true;
+            }
+
+            elseIfClause = null;
+            return false;
+        }
+
         public SyntaxNode GetCondition(SyntaxNode ifOrElseIf)
         {
             var ifStatement = (IfStatementSyntax)ifOrElseIf;

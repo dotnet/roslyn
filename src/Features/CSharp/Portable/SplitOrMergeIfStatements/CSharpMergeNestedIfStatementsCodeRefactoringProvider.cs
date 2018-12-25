@@ -25,9 +25,23 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
                 if (span.Length == 0 ||
                     span.IsAround(ifStatement.IfKeyword) ||
                     span.IsAround(ifStatement.IfKeyword, ifStatement.CloseParenToken) ||
-                    span.IsAround(node))
+                    span.IsAround(ifStatement.IfKeyword, ifStatement))
                 {
                     ifOrElseIf = ifStatement;
+                    return true;
+                }
+            }
+
+            if (node is ElseClauseSyntax elseClause && elseClause.Statement is IfStatementSyntax elseIfStatement)
+            {
+                // 5. Position is at a child token of an else clause with no selection ('else' keyword)
+                // 6. Selection around the header including the 'else' keyword - from 'else' keyword to the end of the condition
+                // 7. Selection from the 'else' keyword to the end of the if statement
+                if (span.Length == 0 ||
+                    span.IsAround(elseClause.ElseKeyword, elseIfStatement.CloseParenToken) ||
+                    span.IsAround(elseClause.ElseKeyword, elseIfStatement))
+                {
+                    ifOrElseIf = elseIfStatement;
                     return true;
                 }
             }

@@ -201,18 +201,6 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedOnParentIf() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        [||]if a then
-        elseif b then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
         Public Async Function NotMergedOnSingleIf() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C

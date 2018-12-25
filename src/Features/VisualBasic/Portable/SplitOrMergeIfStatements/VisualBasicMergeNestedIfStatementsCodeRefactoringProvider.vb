@@ -27,9 +27,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             End If
 
             If TypeOf node Is MultiLineIfBlockSyntax Then
+                Dim ifBlock = DirectCast(node, MultiLineIfBlockSyntax)
                 ' 4. Selection around the whole if block
                 If span.IsAround(node) Then
                     ifOrElseIf = node
+                    Return True
+                End If
+
+                ' 8. Selection from an else if block to the end of its multiline if block
+                For Each elseIfBlock In ifBlock.ElseIfBlocks
+                    If span.IsAround(elseIfBlock, ifBlock) Then
+                        ifOrElseIf = elseIfBlock
+                        Return True
+                    End If
+                Next
+            End If
+
+            If TypeOf node Is ElseIfStatementSyntax AndAlso TypeOf node.Parent Is ElseIfBlockSyntax Then
+                Dim elseIfStatement = DirectCast(node, ElseIfStatementSyntax)
+                ' 5. Position is at a child token of an else if statement with no selection (e.g. 'ElseIf' keyword, 'Then' keyword)
+                ' 6. Selection around the 'ElseIf' keyword
+                ' 7. Selection around the else if statement - from 'ElseIf' keyword to 'Then' keyword
+                If span.Length = 0 OrElse
+                   span.IsAround(elseIfStatement.ElseIfKeyword) OrElse
+                   span.IsAround(elseIfStatement) Then
+                    ifOrElseIf = node.Parent
                     Return True
                 End If
             End If

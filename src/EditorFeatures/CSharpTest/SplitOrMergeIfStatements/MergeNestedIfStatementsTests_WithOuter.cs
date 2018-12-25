@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatements
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsMergeNestedIfStatements)]
-    public sealed class MergeNestedIfStatementsTests : AbstractCSharpCodeActionTest
+    public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpMergeNestedIfStatementsCodeRefactoringProvider();
@@ -273,24 +273,6 @@ $@"class C
             if (b)
             {
             }[||]
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnOuterIf()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        [||]if (a)
-        {
-            if (b)
-            {
-            }
         }
     }
 }");

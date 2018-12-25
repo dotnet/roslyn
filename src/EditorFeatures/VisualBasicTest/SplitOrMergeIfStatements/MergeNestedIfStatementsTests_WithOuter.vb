@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitOrMergeIfStatements
     <Trait(Traits.Feature, Traits.Features.CodeActionsMergeNestedIfStatements)>
-    Public NotInheritable Class MergeNestedIfStatementsTests
+    Partial Public NotInheritable Class MergeNestedIfStatementsTests
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
@@ -184,19 +184,6 @@ end class")
         if a then
             if b then
             [||]end if
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotMergedOnOuterIf() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        [||]if a then
-            if b then
-            end if
         end if
     end sub
 end class")

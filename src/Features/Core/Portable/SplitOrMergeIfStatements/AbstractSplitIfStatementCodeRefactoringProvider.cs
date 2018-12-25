@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -8,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
@@ -42,28 +42,28 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var ifGenerator = context.Document.GetLanguageService<IIfLikeStatementGenerator>();
 
             if (IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(syntaxKinds), out var rootExpression) &&
-                ifGenerator.IsCondition(rootExpression, out _))
+                ifGenerator.IsCondition(rootExpression, out var ifOrElseIf))
             {
                 context.RegisterRefactoring(
                     CreateCodeAction(
-                        c => RefactorAsync(context.Document, context.Span, c),
+                        c => RefactorAsync(context.Document, token.Span, ifOrElseIf.Span, c),
                         syntaxFacts.GetText(syntaxKinds.IfKeyword)));
             }
         }
 
-        private async Task<Document> RefactorAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        private async Task<Document> RefactorAsync(Document document, TextSpan tokenSpan, TextSpan ifOrElseIfSpan, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(span.Start);
-
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var syntaxKinds = document.GetLanguageService<ISyntaxKindsService>();
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
-            Contract.ThrowIfFalse(IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(syntaxKinds), out var rootExpression));
-            Contract.ThrowIfFalse(ifGenerator.IsCondition(rootExpression, out var ifOrElseIf));
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var (left, right) = SplitBinaryExpressionChain(token, rootExpression, syntaxFacts);
+            var token = root.FindToken(tokenSpan.Start);
+            var ifOrElseIf = root.FindNode(ifOrElseIfSpan);
+
+            Debug.Assert(ifGenerator.IsIfOrElseIf(ifOrElseIf));
+
+            var (left, right) = SplitBinaryExpressionChain(token, ifGenerator.GetCondition(ifOrElseIf), syntaxFacts);
 
             var newRoot = await GetChangedRootAsync(document, root, ifOrElseIf, left, right, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);

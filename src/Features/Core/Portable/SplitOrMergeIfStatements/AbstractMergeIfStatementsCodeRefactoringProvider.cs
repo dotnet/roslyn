@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -10,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
@@ -18,12 +18,16 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
     {
         protected abstract bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifOrElseIf);
 
-        protected abstract CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText);
+        protected abstract CodeAction CreateCodeAction(
+            Func<CancellationToken, Task<Document>> createChangedDocument, MergeDirection direction, string ifKeywordText);
 
-        protected abstract Task<bool> CanBeMergedAsync(
-            Document document, SyntaxNode ifOrElseIf, CancellationToken cancellationToken);
+        protected abstract Task<bool> CanBeMergedUpAsync(
+            Document document, SyntaxNode ifOrElseIf, CancellationToken cancellationToken, out SyntaxNode upperIfOrElseIf);
 
-        protected abstract SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode ifOrElseIf);
+        protected abstract Task<bool> CanBeMergedDownAsync(
+            Document document, SyntaxNode ifOrElseIf, CancellationToken cancellationToken, out SyntaxNode lowerIfOrElseIf);
+
+        protected abstract SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode upperIfOrElseIf, SyntaxNode lowerIfOrElseIf);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -35,24 +39,36 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
                 var syntaxKinds = context.Document.GetLanguageService<ISyntaxKindsService>();
 
-                if (await CanBeMergedAsync(context.Document, ifOrElseIf, context.CancellationToken).ConfigureAwait(false))
+                if (await CanBeMergedUpAsync(context.Document, ifOrElseIf, context.CancellationToken, out var upperIfOrElseIf).ConfigureAwait(false))
+                    RegisterRefactoring(MergeDirection.Up, upperIfOrElseIf.Span, ifOrElseIf.Span);
+
+                if (await CanBeMergedDownAsync(context.Document, ifOrElseIf, context.CancellationToken, out var lowerIfOrElseIf).ConfigureAwait(false))
+                    RegisterRefactoring(MergeDirection.Down, ifOrElseIf.Span, lowerIfOrElseIf.Span);
+
+                void RegisterRefactoring(MergeDirection direction, TextSpan upperIfOrElseIfSpan, TextSpan lowerIfOrElseIfSpan)
                 {
                     context.RegisterRefactoring(
                         CreateCodeAction(
-                            c => RefactorAsync(context.Document, context.Span, c),
+                            c => RefactorAsync(context.Document, upperIfOrElseIfSpan, lowerIfOrElseIfSpan, c),
+                            direction,
                             syntaxFacts.GetText(syntaxKinds.IfKeyword)));
                 }
             }
         }
 
-        private async Task<Document> RefactorAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        private async Task<Document> RefactorAsync(Document document, TextSpan upperIfOrElseIfSpan, TextSpan lowerIfOrElseIfSpan, CancellationToken cancellationToken)
         {
+            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
+
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(span, getInnermostNodeForTie: true);
 
-            Contract.ThrowIfFalse(IsApplicableSpan(node, span, out var ifOrElseIf));
+            var upperIfOrElseIf = root.FindNode(upperIfOrElseIfSpan);
+            var lowerIfOrElseIf = root.FindNode(lowerIfOrElseIfSpan);
 
-            var newRoot = GetChangedRoot(document, root, ifOrElseIf);
+            Debug.Assert(ifGenerator.IsIfOrElseIf(upperIfOrElseIf));
+            Debug.Assert(ifGenerator.IsIfOrElseIf(lowerIfOrElseIf));
+
+            var newRoot = GetChangedRoot(document, root, upperIfOrElseIf, lowerIfOrElseIf);
             return document.WithSyntaxRoot(newRoot);
         }
 
@@ -92,5 +108,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             return statements;
         }
+
+        protected enum MergeDirection { Up, Down }
     }
 }

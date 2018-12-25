@@ -1472,9 +1472,6 @@ This version used in: {2}</value>
   <data name="Replace_0_with_1" xml:space="preserve">
     <value>Replace '{0}' with '{1}' </value>
   </data>
-  <!--
-        protected override string Unwrap_list => FeaturesResources.Unwrap_parameter_list;
-    -->
   <data name="Align_wrapped_parameters" xml:space="preserve">
     <value>Align wrapped parameters</value>
   </data>
@@ -1568,14 +1565,14 @@ This version used in: {2}</value>
   <data name="Split_into_nested_0_statements" xml:space="preserve">
     <value>Split into nested '{0}' statements</value>
   </data>
-  <data name="Merge_nested_0_statements" xml:space="preserve">
-    <value>Merge nested '{0}' statements</value>
+  <data name="Merge_with_outer_0_statement" xml:space="preserve">
+    <value>Merge with outer '{0}' statement</value>
   </data>
   <data name="Split_into_consecutive_0_statements" xml:space="preserve">
     <value>Split into consecutive '{0}' statements</value>
   </data>
-  <data name="Merge_consecutive_0_statements" xml:space="preserve">
-    <value>Merge consecutive '{0}' statements</value>
+  <data name="Merge_with_previous_0_statement" xml:space="preserve">
+    <value>Merge with previous '{0}' statement</value>
   </data>
   <data name="Indexing_can_be_simplified" xml:space="preserve">
     <value>Indexing can be simplified</value>
@@ -1606,5 +1603,11 @@ This version used in: {2}</value>
   </data>
   <data name="Remove_unused_parameter_0_its_initial_value_is_never_used" xml:space="preserve">
     <value>Remove unused parameter '{0}', its initial value is never used</value>
+  </data>
+  <data name="Merge_with_nested_0_statement" xml:space="preserve">
+    <value>Merge with nested '{0}' statement</value>
+  </data>
+  <data name="Merge_with_next_0_statement" xml:space="preserve">
+    <value>Merge with next '{0}' statement</value>
   </data>
 </root>
