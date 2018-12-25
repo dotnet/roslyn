@@ -276,6 +276,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateRangeExpressionOperation((BoundRangeExpression)boundNode);
                 case BoundKind.SwitchSection:
                     return CreateBoundSwitchSectionOperation((BoundSwitchSection)boundNode);
+                case BoundKind.SwitchExpression:
+                    return CreateBoundSwitchExpressionOperation((BoundSwitchExpression)boundNode);
+                case BoundKind.SwitchExpressionArm:
+                    return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
@@ -1882,6 +1886,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazySwitchCaseOperation(this, boundSwitchSection, locals, _semanticModel, boundSwitchSection.Syntax, type: null, constantValue: default, isImplicit: boundSwitchSection.WasCompilerGenerated);
         }
 
+        private ISwitchExpressionOperation CreateBoundSwitchExpressionOperation(BoundSwitchExpression boundSwitchExpression)
+        {
+            return new CSharpLazySwitchExpressionOperation(this, boundSwitchExpression, _semanticModel);
+        }
+
+        private ISwitchExpressionArmOperation CreateBoundSwitchExpressionArmOperation(BoundSwitchExpressionArm boundSwitchExpressionArm)
+        {
+            return new CSharpLazySwitchExpressionArmOperation(this, boundSwitchExpressionArm, _semanticModel);
+        }
+
         private ICaseClauseOperation CreateBoundSwitchLabelOperation(BoundSwitchLabel boundSwitchLabel)
         {
             SyntaxNode syntax = boundSwitchLabel.Syntax;
@@ -1942,7 +1956,6 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation CreateBoundDiscardExpressionOperation(BoundDiscardExpression boundNode)
         {
             return new DiscardOperation(
-                inputType: null,
                 (IDiscardSymbol)boundNode.ExpressionSymbol,
                 _semanticModel,
                 boundNode.Syntax,
@@ -1979,13 +1992,10 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundDiscardPatternOperation(BoundDiscardPattern boundNode)
         {
-            return new DiscardOperation(
+            return new DiscardPatternOperation(
                 boundNode.InputType,
-                boundNode.DiscardSymbol,
                 _semanticModel,
                 boundNode.Syntax,
-                boundNode.InputType,
-                null,
                 isImplicit: boundNode.WasCompilerGenerated);
         }
     }

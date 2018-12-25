@@ -1265,6 +1265,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(operation.Type, discardSymbol.Type);
         }
 
+        public override void VisitDiscardPattern(IDiscardPatternOperation operation)
+        {
+            Assert.Equal(OperationKind.DiscardPattern, operation.Kind);
+            Assert.Empty(operation.Children);
+        }
+
         public override void VisitFlowCapture(IFlowCaptureOperation operation)
         {
             Assert.Equal(OperationKind.FlowCapture, operation.Kind);

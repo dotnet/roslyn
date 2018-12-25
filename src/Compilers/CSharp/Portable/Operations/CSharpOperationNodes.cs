@@ -1564,6 +1564,56 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
+    internal sealed class CSharpLazySwitchExpressionOperation : LazySwitchExpressionOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundSwitchExpression _switchExpression;
+
+        public CSharpLazySwitchExpressionOperation(CSharpOperationFactory operationFactory, BoundSwitchExpression boundSwitchExpression, SemanticModel semanticModel)
+            : base(boundSwitchExpression.Type, semanticModel, boundSwitchExpression.Syntax, boundSwitchExpression.WasCompilerGenerated)
+        {
+            this._operationFactory = operationFactory;
+            this._switchExpression = boundSwitchExpression;
+        }
+
+        protected override IOperation CreateValue()
+        {
+            return _operationFactory.Create(_switchExpression.Expression);
+        }
+        protected override ImmutableArray<ISwitchExpressionArmOperation> CreateArms()
+        {
+            return _switchExpression.SwitchArms.SelectAsArray(a => (ISwitchExpressionArmOperation)_operationFactory.Create(a));
+        }
+    }
+
+    internal sealed class CSharpLazySwitchExpressionArmOperation : LazySwitchExpressionArmOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundSwitchExpressionArm _switchExpressionArm;
+
+        public CSharpLazySwitchExpressionArmOperation(CSharpOperationFactory operationFactory, BoundSwitchExpressionArm boundSwitchExpressionArm, SemanticModel semanticModel)
+            : base(boundSwitchExpressionArm.Locals.Cast<CSharp.Symbols.LocalSymbol, ILocalSymbol>(), semanticModel, boundSwitchExpressionArm.Syntax, boundSwitchExpressionArm.WasCompilerGenerated)
+        {
+            this._operationFactory = operationFactory;
+            this._switchExpressionArm = boundSwitchExpressionArm;
+        }
+
+        protected override IOperation CreateGuard()
+        {
+            return _operationFactory.Create(_switchExpressionArm.WhenClause);
+        }
+
+        protected override IPatternOperation CreatePattern()
+        {
+            return (IPatternOperation)_operationFactory.Create(_switchExpressionArm.Pattern);
+        }
+
+        protected override IOperation CreateValue()
+        {
+            return _operationFactory.Create(_switchExpressionArm.Value);
+        }
+    }
+
     internal sealed class CSharpLazyObjectOrCollectionInitializerOperation : LazyObjectOrCollectionInitializerOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

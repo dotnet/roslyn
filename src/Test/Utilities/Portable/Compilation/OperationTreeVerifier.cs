@@ -1822,6 +1822,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
+        public override void VisitDiscardPattern(IDiscardPatternOperation operation)
+        {
+            LogString(nameof(IDiscardPatternOperation));
+            LogString(" (");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+        }
+
+        public override void VisitSwitchExpression(ISwitchExpressionOperation operation)
+        {
+            LogString($"{nameof(ISwitchExpressionOperation)} ({operation.Arms.Length} arms)");
+            LogNewLine();
+            Visit(operation.Value, "Value");
+            VisitArray(operation.Arms, "Arms", logElementCount: true);
+        }
+
+        public override void VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation)
+        {
+            LogString($"{nameof(ISwitchExpressionArmOperation)} ({operation.Locals.Length} locals)");
+            LogNewLine();
+            Visit(operation.Pattern, "Pattern");
+            if (operation.Guard != null)
+                Visit(operation.Guard, "Guard");
+            Visit(operation.Value, "Value");
+            LogLocals(operation.Locals);
+        }
+
         public override void VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
         {
             LogString(nameof(IStaticLocalInitializationSemaphoreOperation));

@@ -1695,6 +1695,8 @@ endRegion:
                 case OperationKind.ObjectOrCollectionInitializer:
                 case OperationKind.LocalFunction:
                 case OperationKind.CoalesceAssignment:
+                case OperationKind.SwitchExpression:
+                case OperationKind.SwitchExpressionArm:
                     return false;
 
                 case OperationKind.Binary:
@@ -1783,6 +1785,7 @@ endRegion:
                 case OperationKind.FromEndIndex:
                 case OperationKind.Range:
                 case OperationKind.RecursivePattern:
+                case OperationKind.DiscardPattern:
                     return true;
             }
 

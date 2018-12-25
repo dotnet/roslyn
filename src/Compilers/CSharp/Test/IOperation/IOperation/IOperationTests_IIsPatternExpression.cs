@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public partial class IOperationTests_Patterns : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
@@ -706,7 +706,7 @@ class C
 {
     void M((int X, int Y)? x, bool b)
     /*<bind>*/{
-        b = x is (1, 2) { Item1: var z } p;
+        b = x is (1, _) { Item1: var z } p;
     }/*</bind>*/
 }
 ";
@@ -728,7 +728,7 @@ Block[B0] - Entry
                   Left: 
                     IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
                   Right: 
-                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is (1, 2) ... : var z } p')
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is (1, _) ... : var z } p')
                       Expression: 
                         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32 X, System.Int32 Y)?) (Syntax: 'x')
                       Pattern: 
@@ -737,9 +737,7 @@ Block[B0] - Entry
                               IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
                                 Value: 
                                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '2')
-                                Value: 
-                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                              IDiscardPatternOperation () (OperationKind.DiscardPattern, Type: null) (Syntax: '_')
                           Properties (1):
                             Matched Property: System.Int32 (System.Int32 X, System.Int32 Y).Item1, Pattern: 
                                 IDeclarationPatternOperation (Declared Symbol: System.Int32 z, AcceptsNull: True) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var z')
@@ -750,7 +748,8 @@ Block[B0] - Entry
 
 Block[B2] - Exit
     Predecessors: [B1]
-    Statements (0)";
+    Statements (0)
+";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);

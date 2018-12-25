@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyReferenceInterlocked = s_unset;
 
         public LazyAddressOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyArgumentInterlocked = s_unset;
 
         public LazyNameOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyExceptionInterlocked = s_unset;
 
         public LazyThrowOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyValueInterlocked = s_unset;
 
         public LazyArgumentOperation(ArgumentKind argumentKind, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-			base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, isImplicit)
+            base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, isImplicit)
         {
         }
 
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IArrayInitializerOperation _lazyInitializerInterlocked = s_unsetArrayInitializer;
 
         public LazyArrayCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyIndicesInterlocked;
 
         public LazyArrayElementReferenceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyElementValuesInterlocked;
 
         public LazyArrayInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, constantValue, isImplicit)
+            base(semanticModel, syntax, constantValue, isImplicit)
         {
         }
 
@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyValueInterlocked = s_unset;
 
         public LazySimpleAssignmentOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
+            base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyValueInterlocked = s_unset;
 
         public LazyDeconstructionAssignmentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyExpressionInterlocked = s_unset;
 
         public LazyDeclarationExpressionOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyOperationInterlocked = s_unset;
 
         public LazyAwaitOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1109,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyRightOperandInterlocked = s_unset;
 
         public LazyBinaryOperation(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+            base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1153,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract class BaseTupleBinaryOperation : Operation, ITupleBinaryOperation
     {
         public BaseTupleBinaryOperation(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(OperationKind.TupleBinary, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.TupleBinary, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = operatorKind;
         }
@@ -1202,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed class TupleBinaryOperation : BaseTupleBinaryOperation, ITupleBinaryOperation
     {
         public TupleBinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
+            base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LeftOperand = SetParentOperation(leftOperand, this);
             RightOperand = SetParentOperation(rightOperand, this);
@@ -1221,7 +1221,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyRightOperandInterlocked = s_unset;
 
         public LazyTupleBinaryOperation(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
+            base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1323,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyOperationsInterlocked;
 
         public LazyBlockOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1491,7 +1491,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IBlockOperation _lazyHandlerInterlocked = s_unsetBlock;
 
         public LazyCatchClauseOperation(ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
+            base(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1610,7 +1610,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyValueInterlocked = s_unset;
 
         public LazyCompoundAssignmentOperation(IConvertibleConversion inConversionConvertible, IConvertibleConversion outConversionConvertible, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(inConversionConvertible, outConversionConvertible, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+            base(inConversionConvertible, outConversionConvertible, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1715,7 +1715,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyOperationInterlocked = s_unset;
 
         public LazyConditionalAccessOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1877,7 +1877,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyWhenFalseInterlocked = s_unset;
 
         public LazyConditionalOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
+            base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -1989,7 +1989,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyOperandInterlocked = s_unset;
 
         public LazyConversionOperation(IConvertibleConversion convertibleConversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(convertibleConversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
+            base(convertibleConversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2164,7 +2164,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyHandlerValueInterlocked = s_unset;
 
         public LazyEventAssignmentOperation(bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(adds, semanticModel, syntax, type, constantValue, isImplicit)
+            base(adds, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2258,7 +2258,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyInstanceInterlocked = s_unset;
 
         public LazyEventReferenceOperation(IEventSymbol @event, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(@event, semanticModel, syntax, type, constantValue, isImplicit)
+            base(@event, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2336,7 +2336,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyOperationInterlocked = s_unset;
 
         public LazyExpressionStatementOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2411,7 +2411,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyValueInterlocked = s_unset;
 
         public LazyVariableInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2493,7 +2493,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyValueInterlocked = s_unset;
 
         public LazyFieldInitializerOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IFieldSymbol> initializedFields, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(locals, initializedFields, kind, semanticModel, syntax, type, constantValue, isImplicit)
+            base(locals, initializedFields, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2572,7 +2572,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyInstanceInterlocked = s_unset;
 
         public LazyFieldReferenceOperation(IFieldSymbol field, bool isDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(field, isDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
+            base(field, isDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2667,7 +2667,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyBodyInterlocked = s_unset;
 
         public LazyFixedOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2803,7 +2803,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyBodyInterlocked = s_unset;
 
         public LazyForEachLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+            base(locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2985,7 +2985,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyBodyInterlocked = s_unset;
 
         public LazyForLoopOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<ILocalSymbol> conditionLocals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(locals, conditionLocals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+            base(locals, conditionLocals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3185,7 +3185,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyNextVariablesInterlocked;
 
         public LazyForToLoopOperation(ImmutableArray<ILocalSymbol> locals, bool isChecked, (ILocalSymbol LoopObject, ForToLoopOperationUserDefinedInfo UserDefinedInfo) info, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(locals, isChecked, info, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+            base(locals, isChecked, info, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3367,7 +3367,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyTargetInterlocked = s_unset;
 
         public LazyIncrementOrDecrementOperation(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(isDecrement, isPostfix, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+            base(isDecrement, isPostfix, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3476,7 +3476,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IInterpolatedStringContentOperation> _lazyPartsInterlocked;
 
         public LazyInterpolatedStringOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3554,7 +3554,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyTextInterlocked = s_unset;
 
         public LazyInterpolatedStringTextOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3654,7 +3654,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyFormatStringInterlocked = s_unset;
 
         public LazyInterpolationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3858,7 +3858,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
 
         public LazyInvocationOperation(IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
+            base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3964,7 +3964,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
 
         public LazyRaiseEventOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4069,7 +4069,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyOperandInterlocked = s_unset;
 
         public LazyIsTypeOperation(ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
+            base(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4151,7 +4151,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyOperationInterlocked = s_unset;
 
         public LazyLabeledOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(label, semanticModel, syntax, type, constantValue, isImplicit)
+            base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4218,7 +4218,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IBlockOperation _lazyBodyInterlocked = s_unsetBlock;
 
         public LazyAnonymousFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
+            base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4315,7 +4315,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyTargetInterlocked = s_unset;
 
         public LazyDelegateCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4410,7 +4410,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyInstanceInterlocked = s_unset;
 
         public LazyDynamicMemberReferenceOperation(string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(memberName, typeArguments, containingType, semanticModel, syntax, type, constantValue, isImplicit)
+            base(memberName, typeArguments, containingType, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4560,7 +4560,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyBodyInterlocked = s_unset;
 
         public LazyLockOperation(ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
+            base(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4713,7 +4713,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyInstanceInterlocked = s_unset;
 
         public LazyMethodReferenceOperation(IMethodSymbol method, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(method, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
+            base(method, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4807,7 +4807,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyWhenNullInterlocked = s_unset;
 
         public LazyCoalesceOperation(IConvertibleConversion convertibleValueConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
+            base(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4899,7 +4899,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyWhenNullInterlocked = s_unset;
 
         public LazyCoalesceAssignmentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5015,7 +5015,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
 
         public LazyObjectCreationOperation(IMethodSymbol constructor, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(constructor, semanticModel, syntax, type, constantValue, isImplicit)
+            base(constructor, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5112,7 +5112,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyInitializersInterlocked;
 
         public LazyAnonymousObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5220,7 +5220,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyValueInterlocked = s_unset;
 
         public LazyParameterInitializerOperation(ImmutableArray<ILocalSymbol> locals, IParameterSymbol parameter, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(locals, parameter, kind, semanticModel, syntax, type, constantValue, isImplicit)
+            base(locals, parameter, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5329,7 +5329,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyOperandInterlocked = s_unset;
 
         public LazyParenthesizedOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5444,7 +5444,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyValueInterlocked = s_unset;
 
         public LazyPropertyInitializerOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IPropertySymbol> initializedProperties, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(locals, initializedProperties, kind, semanticModel, syntax, type, constantValue, isImplicit)
+            base(locals, initializedProperties, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5539,7 +5539,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
 
         public LazyPropertyReferenceOperation(IPropertySymbol property, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(property, semanticModel, syntax, type, constantValue, isImplicit)
+            base(property, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5647,7 +5647,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyMaximumValueInterlocked = s_unset;
 
         public LazyRangeCaseClauseOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5749,7 +5749,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyValueInterlocked = s_unset;
 
         public LazyRelationalCaseClauseOperation(BinaryOperatorKind relation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(relation, semanticModel, syntax, type, constantValue, isImplicit)
+            base(relation, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5830,7 +5830,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyReturnedValueInterlocked = s_unset;
 
         public LazyReturnOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(kind, semanticModel, syntax, type, constantValue, isImplicit)
+            base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -5911,7 +5911,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyValueInterlocked = s_unset;
 
         public LazySingleValueCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(label, semanticModel, syntax, type, constantValue, isImplicit)
+            base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6108,7 +6108,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyBodyInterlocked;
 
         public LazySwitchCaseOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6237,7 +6237,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<ISwitchCaseOperation> _lazyCasesInterlocked;
 
         public LazySwitchOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+            base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6370,7 +6370,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IBlockOperation _lazyFinallyHandlerInterlocked = s_unsetBlock;
 
         public LazyTryOperation(ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+            base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6491,7 +6491,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyElementsInterlocked;
 
         public LazyTupleOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ITypeSymbol naturalType, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, naturalType, constantValue, isImplicit)
+            base(semanticModel, syntax, type, naturalType, constantValue, isImplicit)
         {
         }
 
@@ -6598,7 +6598,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
 
         public LazyTypeParameterObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6710,7 +6710,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
 
         public LazyDynamicObjectCreationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6812,7 +6812,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
 
         public LazyDynamicInvocationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -6914,7 +6914,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
 
         public LazyDynamicIndexerAccessOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7030,7 +7030,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyOperandInterlocked = s_unset;
 
         public LazyUnaryOperation(UnaryOperatorKind unaryOperationKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+            base(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7127,7 +7127,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyBodyInterlocked = s_unset;
 
         public LazyUsingOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7231,7 +7231,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyIgnoredArgumentsInterlocked;
 
         public LazyVariableDeclaratorOperation(ILocalSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
+            base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7329,7 +7329,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IVariableInitializerOperation _lazyInitializerInterlocked = s_unsetVariableInitializer;
 
         public LazyVariableDeclarationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7426,7 +7426,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IVariableDeclarationOperation> _lazyDeclarationsInterlocked;
 
         public LazyVariableDeclarationGroupOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7562,7 +7562,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyIgnoredConditionInterlocked = s_unset;
 
         public LazyWhileLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
+            base(locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7684,7 +7684,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyValueInterlocked = s_unset;
 
         public LazyWithOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -7792,7 +7792,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IBlockOperation _lazyIgnoredBodyInterlocked = s_unsetBlock;
 
         public LazyLocalFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
+            base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -8161,7 +8161,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyGuardExpressionInterlocked = s_unset;
 
         public LazyPatternCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(label, semanticModel, syntax, type, constantValue, isImplicit)
+            base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -8195,6 +8195,230 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
 
                 return _lazyGuardExpressionInterlocked;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# switch expression.
+    /// </summary>
+    internal abstract partial class BaseSwitchExpressionOperation : Operation, ISwitchExpressionOperation
+    {
+        public BaseSwitchExpressionOperation(
+            ITypeSymbol type,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(OperationKind.SwitchExpression, semanticModel, syntax, type: type, constantValue: default, isImplicit)
+        {
+        }
+        public abstract IOperation Value { get; }
+        public abstract ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+                foreach (var arm in Arms)
+                {
+                    yield return arm;
+                }
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSwitchExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSwitchExpression(this, argument);
+        }
+    }
+
+    internal sealed partial class SwitchExpressionOperation : BaseSwitchExpressionOperation
+    {
+        public SwitchExpressionOperation(
+            ITypeSymbol type,
+            IOperation value,
+            ImmutableArray<ISwitchExpressionArmOperation> arms,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(type, semanticModel, syntax, isImplicit)
+        {
+            this.Value = value;
+            this.Arms = arms;
+            SetParentOperation(value, this);
+            SetParentOperation(arms, this);
+        }
+        public override IOperation Value { get; }
+        public override ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
+    }
+
+    internal abstract partial class LazySwitchExpressionOperation : BaseSwitchExpressionOperation
+    {
+        private IOperation _lazyValue = s_unset;
+        private ImmutableArray<ISwitchExpressionArmOperation> _lazyArms = default;
+        public LazySwitchExpressionOperation(
+            ITypeSymbol type,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(type, semanticModel, syntax, isImplicit)
+        {
+        }
+        protected abstract IOperation CreateValue();
+        protected abstract ImmutableArray<ISwitchExpressionArmOperation> CreateArms();
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValue == s_unset)
+                {
+                    var value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
+                }
+
+                return _lazyValue;
+            }
+        }
+        public override ImmutableArray<ISwitchExpressionArmOperation> Arms
+        {
+            get
+            {
+                if (_lazyArms.IsDefault)
+                {
+                    var arms = CreateArms();
+                    SetParentOperation(arms, this);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArms, arms);
+                }
+
+                return _lazyArms;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# switch expression arm.
+    /// </summary>
+    internal abstract partial class BaseSwitchExpressionArmOperation : Operation, ISwitchExpressionArmOperation
+    {
+        public BaseSwitchExpressionArmOperation(
+            ImmutableArray<ILocalSymbol> locals,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(OperationKind.SwitchExpressionArm, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+        {
+            this.Locals = locals;
+        }
+        public ImmutableArray<ILocalSymbol> Locals { get; }
+        public abstract IPatternOperation Pattern { get; }
+        public abstract IOperation Guard { get; }
+        public abstract IOperation Value { get; }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Pattern;
+                if (Guard != null)
+                    yield return Guard;
+                yield return Value;
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSwitchExpressionArm(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSwitchExpressionArm(this, argument);
+        }
+    }
+
+    internal sealed partial class SwitchExpressionArmOperation : BaseSwitchExpressionArmOperation
+    {
+        public SwitchExpressionArmOperation(
+            ImmutableArray<ILocalSymbol> locals,
+            IPatternOperation pattern,
+            IOperation guard,
+            IOperation value,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(locals, semanticModel, syntax, isImplicit)
+        {
+            this.Pattern = pattern;
+            SetParentOperation(pattern, this);
+            this.Guard = guard;
+            if (guard != null)
+                SetParentOperation(guard, this);
+            this.Value = value;
+            SetParentOperation(value, this);
+        }
+        public sealed override IPatternOperation Pattern { get; }
+        public sealed override IOperation Guard { get; }
+        public sealed override IOperation Value { get; }
+    }
+
+    internal abstract partial class LazySwitchExpressionArmOperation : BaseSwitchExpressionArmOperation
+    {
+        private IPatternOperation _lazyPattern = null;
+        private IOperation _lazyGuard = s_unset;
+        private IOperation _lazyValue = s_unset;
+        public LazySwitchExpressionArmOperation(
+            ImmutableArray<ILocalSymbol> locals,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(locals, semanticModel, syntax, isImplicit)
+        {
+        }
+        protected abstract IPatternOperation CreatePattern();
+        protected abstract IOperation CreateGuard();
+        protected abstract IOperation CreateValue();
+        public override IPatternOperation Pattern
+        {
+            get
+            {
+                if (_lazyPattern == null)
+                {
+                    var pattern = CreatePattern();
+                    SetParentOperation(pattern, this);
+                    Interlocked.CompareExchange(ref _lazyPattern, pattern, null);
+                }
+
+                return _lazyPattern;
+            }
+        }
+        public override IOperation Guard
+        {
+            get
+            {
+                if (_lazyGuard == s_unset)
+                {
+                    var guard = CreateGuard();
+                    SetParentOperation(guard, this);
+                    Interlocked.CompareExchange(ref _lazyGuard, guard, s_unset);
+                }
+
+                return _lazyGuard;
+            }
+        }
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValue == s_unset)
+                {
+                    var value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
+                }
+
+                return _lazyValue;
             }
         }
     }
@@ -8266,7 +8490,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IPatternOperation _lazyPatternInterlocked = s_unsetPattern;
 
         public LazyIsPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -8363,7 +8587,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyInitializersInterlocked;
 
         public LazyObjectOrCollectionInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -8453,7 +8677,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
 
         public LazyMemberInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -8560,7 +8784,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyOperationInterlocked = s_unset;
 
         public LazyTranslatedQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -8795,7 +9019,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IBlockOperation _lazyExpressionBodyInterlocked = s_unsetBlock;
 
         public LazyMethodBodyOperation(SemanticModel semanticModel, SyntaxNode syntax) :
-			base(semanticModel, syntax)
+            base(semanticModel, syntax)
         {
         }
 
@@ -8902,7 +9126,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IBlockOperation _lazyExpressionBodyInterlocked = s_unsetBlock;
 
         public LazyConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax) :
-			base(locals, semanticModel, syntax)
+            base(locals, semanticModel, syntax)
         {
         }
 
@@ -8956,20 +9180,17 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class DiscardOperation : Operation, IDiscardOperation, IPatternOperation
+    internal sealed class DiscardOperation : Operation, IDiscardOperation
     {
-        public DiscardOperation(ITypeSymbol inputType, IDiscardSymbol discardSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public DiscardOperation(IDiscardSymbol discardSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.Discard, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            InputType = inputType;
             DiscardSymbol = discardSymbol;
         }
 
         public IDiscardSymbol DiscardSymbol { get; }
 
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
-
-        public ITypeSymbol InputType { get; }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -8979,6 +9200,25 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitDiscardOperation(this, argument);
+        }
+    }
+
+    internal sealed class DiscardPatternOperation : Operation, IDiscardPatternOperation
+    {
+        public DiscardPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(OperationKind.DiscardPattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+        {
+            InputType = inputType;
+        }
+        public ITypeSymbol InputType { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDiscardPattern(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDiscardPattern(this, argument);
         }
     }
 
@@ -9052,7 +9292,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _lazyAggregationInterlocked = s_unset;
 
         public LazyAggregateQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -9145,7 +9385,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
 
         public LazyNoPiaObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -9219,7 +9459,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _operandInterlocked = s_unset;
 
         public LazyFromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
-			base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+            base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
         {
         }
 
@@ -9303,7 +9543,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _rightOperandInterlocked = s_unset;
 
         public LazyRangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
-			base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+            base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
         {
         }
 
@@ -9390,7 +9630,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IReDimClauseOperation> _lazyClausesInterlocked;
 
         public LazyReDimOperation(bool preserve, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(preserve, semanticModel, syntax, type, constantValue, isImplicit)
+            base(preserve, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -9467,7 +9707,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IOperation> _lazyDimensionSizesInterlocked;
 
         public LazyReDimClauseOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-			base(semanticModel, syntax, type, constantValue, isImplicit)
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
