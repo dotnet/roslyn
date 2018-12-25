@@ -677,12 +677,17 @@ namespace Roslyn.Test.Utilities
 
         public static void Equal(bool[,] expected, Func<int, int, bool> getResult, int size)
         {
+            Equal<bool>(expected, getResult, (b1, b2) => b1 == b2, b => b ? "true" : "false", "{0,-6:G}", size);
+        }
+
+        public static void Equal<T>(T[,] expected, Func<int, int, T> getResult, Func<T, T, bool> valuesEqual, Func<T, string> printValue, string format, int size)
+        {
             bool mismatch = false;
             for (int i = 0; i < size; i++)
             {
                 for (int j = 0; j < size; j++)
                 {
-                    if (expected[i, j] != getResult(i, j))
+                    if (!valuesEqual(expected[i, j], getResult(i, j)))
                     {
                         mismatch = true;
                     }
@@ -698,13 +703,13 @@ namespace Roslyn.Test.Utilities
                     builder.Append("{ ");
                     for (int j = 0; j < size; j++)
                     {
-                        string resultWithComma = getResult(i, j) ? "true" : "false";
+                        string resultWithComma = printValue(getResult(i, j));
                         if (j < size - 1)
                         {
                             resultWithComma += ",";
                         }
 
-                        builder.Append($"{resultWithComma,-6:G}");
+                        builder.Append(string.Format(format, resultWithComma));
                         if (j < size - 1)
                         {
                             builder.Append(' ');

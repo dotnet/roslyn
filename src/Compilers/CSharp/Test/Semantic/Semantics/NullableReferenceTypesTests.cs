@@ -101,6 +101,32 @@ class C
         }
 
         [Fact]
+        public void SpeakableInference_MethodTypeInference_NullAssigned()
+        {
+            var source =
+@"class Program
+{
+    void M<T>(T t) where T : class
+    {
+        t = null;
+        var t2 = Copy(t);
+        t2 /*T:T?*/ .ToString(); // warn
+    }
+    static T Copy<T>(T t) => throw null;
+}";
+            var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (5,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         t = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         t2 /*T:T?*/ .ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
         public void SpeakableInference_MethodTypeInference_NullableValueType()
         {
             var source =
@@ -64303,41 +64329,7 @@ partial class Program
 
         private static void AssertEqual(NullableAnnotation[,] expected, Func<int, int, NullableAnnotation> getResult, int size)
         {
-            bool mismatch = false;
-            for (int i = 0; i < size; i++)
-            {
-                for (int j = 0; j < size; j++)
-                {
-                    if (expected[i, j] != getResult(i, j))
-                    {
-                        mismatch = true;
-                    }
-                }
-            }
-
-            if (mismatch)
-            {
-                var builder = new StringBuilder();
-                builder.AppendLine("Actual result: ");
-                for (int i = 0; i < size; i++)
-                {
-                    builder.Append("{ ");
-                    for (int j = 0; j < size; j++)
-                    {
-                        string resultWithComma = getResult(i, j).ToString();
-                        if (j < size - 1)
-                        {
-                            resultWithComma += ",";
-                        }
-
-                        builder.Append($"NullableAnnotation.{resultWithComma,-14:G}");
-
-                    }
-                    builder.AppendLine("},");
-                }
-
-                Assert.True(false, builder.ToString());
-            }
+            AssertEx.Equal<NullableAnnotation>(expected, getResult, (na1, na2) => na1 == na2, na => $"NullableAnnotation.{na}", "{0,-14:G}", size);
         }
 
         [Fact]
