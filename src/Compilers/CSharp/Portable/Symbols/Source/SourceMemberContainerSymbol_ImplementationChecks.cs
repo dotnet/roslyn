@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // a synthesized implementation is needed that invokes the base method.
                             // We can do so only if there are no use-site errors.
 
-                            if ((object)synthesizedImplementation != null || implementingMember.ContainingType == this)
+                            if ((object)synthesizedImplementation != null || TypeSymbol.Equals(implementingMember.ContainingType, this, TypeCompareKind.ConsiderEverything2))
                             {
                                 DiagnosticInfo useSiteDiagnostic = interfaceMember.GetUseSiteDiagnostic();
                                 // CAVEAT: don't report ERR_ByRefReturnUnsupported since by-ref return types are 
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol directInterface = null;
             foreach (var iface in this.InterfacesNoUseSiteDiagnostics())
             {
-                if (iface == implementedInterface)
+                if (TypeSymbol.Equals(iface, implementedInterface, TypeCompareKind.ConsiderEverything2))
                 {
                     directInterface = iface;
                     break;
@@ -1058,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // CanUnifyWith is the real check - the others just short-circuit
                     if (interface1.IsGenericType && interface2.IsGenericType &&
-                        interface1.OriginalDefinition == interface2.OriginalDefinition &&
+                        TypeSymbol.Equals(interface1.OriginalDefinition, interface2.OriginalDefinition, TypeCompareKind.ConsiderEverything2) &&
                         interface1.CanUnifyWith(interface2))
                     {
                         if (GetImplementsLocation(interface1).SourceSpan.Start > GetImplementsLocation(interface2).SourceSpan.Start)

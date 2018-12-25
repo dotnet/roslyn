@@ -35,6 +35,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
                                                           End Function)
         End Function
 
+        Protected Overrides Function IsIfConditionalDirective(node As SyntaxNode) As Boolean
+            Return TryCast(node, IfDirectiveTriviaSyntax) IsNot Nothing
+        End Function
+
         Protected Overrides Function IsCallStatement(expressionStatement As IExpressionStatementOperation) As Boolean
             Return TryCast(expressionStatement.Syntax, CallStatementSyntax) IsNot Nothing
         End Function

@@ -2633,7 +2633,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
   </data>
   <data name="ERR_AwaitForEachMissingMember" xml:space="preserve">
-    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
+    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</value>
   </data>
   <data name="ERR_ForEachMissingMemberWrongAsync" xml:space="preserve">
     <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</value>
@@ -4602,7 +4602,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               `default` (latest major version), or
                               `latest` (latest version, including minor versions),
                               or specific versions like `6` or `7.1`
--nullable[+|-]                Enable/disable Nullable Reference Types feature
+-nullable[+|-]                Specify nullable context option enable|disable.
+-nullable:{enable|disable|safeonly}
+                              Specify nullable context option enable|disable|safeonly.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -5531,7 +5533,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</value>
   </data>
   <data name="ERR_InDynamicMethodArg" xml:space="preserve">
-    <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</value>
+    <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</value>
   </data>
   <data name="ERR_TupleSizesMismatchForBinOps" xml:space="preserve">
     <value>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</value>
@@ -5633,7 +5635,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
   <data name="ERR_NullableDirectiveQualifierExpected" xml:space="preserve">
-    <value>Expected enable or disable</value>
+    <value>Expected 'enable', 'safeonly', 'disable', or 'restore'</value>
   </data>
   <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
     <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
@@ -5643,5 +5645,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExpressionTreeCantContainNullCoalescingAssignment" xml:space="preserve">
     <value>An expression tree may not contain a null coalescing assignment</value>
+  </data>
+  <data name="ERR_BadNullableContextOption" xml:space="preserve">
+    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'safeonly'</value>
   </data>
 </root>

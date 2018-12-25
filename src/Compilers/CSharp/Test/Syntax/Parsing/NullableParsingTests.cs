@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullCoalesingOperator_NotNullableType()
+        public void NullCoalescingOperator_NotNullableType()
         {
             UsingExpression("x as T?? y");
             N(SyntaxKind.CoalesceExpression);
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullCoalesingOperator_NullableType()
+        public void NullCoalescingOperator_NullableType()
         {
             UsingExpression("x as T? ?? y");
             N(SyntaxKind.CoalesceExpression);
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullCoalesingOperator_NullableType_Invalid()
+        public void NullCoalescingOperator_NullableType_Invalid()
         {
             UsingExpression("x as T??? y",
                 // (1,9): error CS1525: Invalid expression term '?'
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullCoalesingOperator_NotNullableArray()
+        public void NullCoalescingOperator_NotNullableArray()
         {
             UsingExpression("x as T[] ?? y");
             N(SyntaxKind.CoalesceExpression);
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullCoalesingOperator_NullableArray()
+        public void NullCoalescingOperator_NullableArray()
         {
             UsingExpression("x as T[] ? ?? y");
             N(SyntaxKind.CoalesceExpression);

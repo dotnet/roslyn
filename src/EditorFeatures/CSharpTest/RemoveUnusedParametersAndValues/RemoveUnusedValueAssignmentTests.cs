@@ -5893,5 +5893,27 @@ $@"class C
     }
 }", optionName);
         }
+
+        [WorkItem(31583, "https://github.com/dotnet/roslyn/issues/31583")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UsedAssignment_ConditionalPreprocessorDirective(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#define DEBUG
+
+class C
+{
+    int M()
+    {
+        int [|x|] = 0;
+#if DEBUG
+        x = 1;
+#endif
+        return x;
+    }
+}", optionName);
+        }
     }
 }

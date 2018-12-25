@@ -34,11 +34,11 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
 
     $solution = Join-Path $rootDir "Roslyn.sln"
 
-    Write-Host "Restoring Roslyn.sln"
-    Restore-Project $solution
+    Write-Host "Restoring $solution"
+    Run-MSBuild $solution "/t:Restore" -logFileName:"Restore-$logFileName"
 
-    $args = "/p:DebugDeterminism=true /p:Features=`"debug-determinism`" /p:DeployExtension=false"
-    Run-MSBuild $solution $args -logFileName:$logFileName
+    Write-Host "Building $solution"
+    Run-MSBuild $solution "/p:DebugDeterminism=true /p:Features=`"debug-determinism`" /p:DeployExtension=false" -logFileName:$logFileName
 }
 
 function Get-ObjDir([string]$rootDir) { 

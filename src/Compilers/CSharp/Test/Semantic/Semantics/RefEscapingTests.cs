@@ -3393,7 +3393,7 @@ public struct Thing
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_Class()
+        public void RefThisAssignment_Class()
         {
             CreateCompilation(@"
 class Test
@@ -3420,7 +3420,7 @@ class Test
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_Struct()
+        public void RefThisAssignment_Struct()
         {
             CreateCompilation(@"
 struct Test
@@ -3444,7 +3444,7 @@ struct Test
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_ReadOnlyStruct()
+        public void RefThisAssignment_ReadOnlyStruct()
         {
             CreateCompilation(@"
 readonly struct Test
@@ -3468,7 +3468,7 @@ readonly struct Test
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_RefStruct()
+        public void RefThisAssignment_RefStruct()
         {
             CreateCompilation(@"
 ref struct Test
@@ -3492,7 +3492,7 @@ ref struct Test
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_ReadOnlyRefStruct()
+        public void RefThisAssignment_ReadOnlyRefStruct()
         {
             CreateCompilation(@"
 readonly ref struct Test

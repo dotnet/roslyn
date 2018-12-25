@@ -1592,8 +1592,8 @@ This version used in: {2}</value>
   <data name="Wrap_expression" xml:space="preserve">
     <value>Wrap expression</value>
   </data>
-  <data name="Wrap_expression_including_operators" xml:space="preserve">
-    <value>Wrap expression (including operators)</value>
+  <data name="Wrapping" xml:space="preserve">
+    <value>Wrapping</value>
   </data>
   <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API" xml:space="preserve">
     <value>Remove unused parameter '{0}' if it is not part of a shipped public API</value>
@@ -1609,5 +1609,11 @@ This version used in: {2}</value>
   </data>
   <data name="Merge_with_next_0_statement" xml:space="preserve">
     <value>Merge with next '{0}' statement</value>
+  </data>
+  <data name="Use_block_body_for_local_functions" xml:space="preserve">
+    <value>Use block body for local functions</value>
+  </data>
+  <data name="Use_expression_body_for_local_functions" xml:space="preserve">
+    <value>Use expression body for local functions</value>
   </data>
 </root>

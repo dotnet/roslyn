@@ -12,6 +12,11 @@
         <target state="new">All methods</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_colon">
+        <source>Allow:</source>
+        <target state="new">Allow:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">Immer zur besseren Unterscheidung</target>
@@ -145,6 +150,11 @@
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="new">Use expression body for lambdas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="new">Use expression body for local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">

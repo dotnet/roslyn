@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 
         protected Task TestAllWrappingCasesAsync(
             string input,
-            Dictionary<OptionKey, object> options,
+            IDictionary<OptionKey, object> options,
             params string[] outputs)
         {
             var parameters = new TestParameters(options: options);
