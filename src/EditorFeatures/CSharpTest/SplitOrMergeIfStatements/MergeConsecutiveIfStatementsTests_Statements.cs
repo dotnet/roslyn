@@ -7,6 +7,262 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
 {
     public sealed partial class MergeConsecutiveIfStatementsTests
     {
+        [Theory]
+        [InlineData("[||]if (b)")]
+        [InlineData("i[||]f (b)")]
+        [InlineData("if[||] (b)")]
+        [InlineData("if [||](b)")]
+        [InlineData("if (b)[||]")]
+        [InlineData("[|if|] (b)")]
+        [InlineData("[|if (b)|]")]
+        public async Task MergedIntoPreviousStatementOnIfSpans(string ifLine)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    void M(bool a, bool b)
+    {{
+        if (a)
+            return;
+        {ifLine}
+            return;
+    }}
+}}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            return;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedIntoPreviousStatementOnIfExtendedHeaderSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            return;
+[|        if (b)
+|]            return;
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            return;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedIntoPreviousStatementOnIfFullSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            return;
+        [|if (b)
+            return;|]
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            return;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedIntoPreviousStatementOnIfExtendedFullSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            return;
+[|        if (b)
+            return;
+|]    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            return;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedIntoPreviousStatementOnIfFullSelectionWithoutElseClause()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            return;
+        [|if (b)
+            return;|]
+        else
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            return;
+        else
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedIntoPreviousStatementOnIfExtendedFullSelectionWithoutElseClause()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            return;
+[|        if (b)
+            return;
+|]        else
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            return;
+        else
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedIntoPreviousStatementOnIfFullSelectionWithElseClause()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            return;
+        [|if (b)
+            return;
+        else
+        {
+        }|]
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedIntoPreviousStatementOnIfExtendedFullSelectionWithElseClause()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            return;
+[|        if (b)
+            return;
+        else
+        {
+        }
+|]    }
+}");
+        }
+
+        [Theory]
+        [InlineData("if ([||]b)")]
+        [InlineData("[|i|]f (b)")]
+        [InlineData("[|if (|]b)")]
+        [InlineData("if [|(|]b)")]
+        [InlineData("if (b[|)|]")]
+        [InlineData("if ([|b|])")]
+        [InlineData("if [|(b)|]")]
+        public async Task NotMergedIntoPreviousStatementOnIfSpans(string ifLine)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"class C
+{{
+    void M(bool a, bool b)
+    {{
+        if (a)
+            return;
+        {ifLine}
+            return;
+    }}
+}}");
+        }
+
+        [Fact]
+        public async Task NotMergedIntoPreviousStatementOnIfOverreachingSelection()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            return;
+        [|if (b)
+          |]return;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedIntoPreviousStatementOnIfBodySelection()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            return;
+        if (b)
+            [|return;|]
+    }
+}");
+        }
+
         [Fact]
         public async Task MergedIntoPreviousStatementIfControlFlowQuits1()
         {

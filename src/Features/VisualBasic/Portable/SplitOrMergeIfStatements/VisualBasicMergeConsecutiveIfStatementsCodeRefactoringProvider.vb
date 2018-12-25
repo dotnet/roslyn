@@ -27,8 +27,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             End If
 
             If TypeOf node Is MultiLineIfBlockSyntax Then
-                ' 4. Selection around the if block.
-                If span.IsAround(node) Then
+                Dim ifBlock = DirectCast(node, MultiLineIfBlockSyntax)
+                ' 4. Selection around the if block *excluding* its else if and else clauses - from 'if' keyword to the end of its statements
+                If ifBlock.Statements.Count > 0 AndAlso span.IsAround(ifBlock, ifBlock.Statements.Last()) Then
                     ifOrElseIf = node
                     Return True
                 End If

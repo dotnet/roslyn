@@ -56,7 +56,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function MergedIntoPreviousStatementOnIfFullSelection() As Task
+        Public Async Function MergedIntoPreviousStatementOnIfFullSelectionWithoutElseClause() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -64,21 +64,23 @@ end class")
             return
         end if
         [|if b then
-            return
-        end if|]
+            return|]
+        else
+        end if
     end sub
 end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a OrElse b then
             return
+        else
         end if
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function MergedIntoPreviousStatementOnIfExtendedFullSelection() As Task
+        Public Async Function MergedIntoPreviousStatementOnIfExtendedFullSelectionWithoutElseClause() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -87,44 +89,22 @@ end class")
         end if
 [|        if b then
             return
+|]        else
         end if
-|]    end sub
-end class",
-"class C
-    sub M(a as boolean, b as boolean)
-        if a OrElse b then
-            return
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function MergedIntoPreviousStatementOnIfFullSelectionWithElseClause() As Task
-            Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a then
-            return
-        end if
-        [|if b then
-            return
-        else if a then
-        end if|]
     end sub
 end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a OrElse b then
             return
-        else if a then
+        else
         end if
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedIntoPreviousStatementOnIfFullSelectionWithoutElseClause() As Task
+        Public Async Function NotMergedIntoPreviousStatementOnIfFullSelectionWithElseClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -132,10 +112,26 @@ end class")
             return
         end if
         [|if b then
-            return|]
-        else if a then
-        end if
+            return
+        else
+        end if|]
     end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedIntoPreviousStatementOnIfExtendedFullSelectionWithElseClause() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+[|        if b then
+            return
+        else
+        end if
+|]    end sub
 end class")
         End Function
 
