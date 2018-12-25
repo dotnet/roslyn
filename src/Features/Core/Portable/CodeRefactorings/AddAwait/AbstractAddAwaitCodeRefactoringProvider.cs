@@ -75,6 +75,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 return null;
             }
 
+            if (syntaxFacts.IsExpressionOfInvocationExpression(invocation.Parent))
+            {
+                return null;
+            }
+
             if (syntaxFacts.IsExpressionOfAwaitExpression(invocation))
             {
                 return null;
