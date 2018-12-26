@@ -23,15 +23,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         public async Task SplitOnAndOperatorSpans(string condition)
         {
             await TestInRegularAndScriptAsync(
-$@"class C
-{{
+@"class C
+{
     void M(bool a, bool b)
-    {{
-        if ({condition})
-        {{
-        }}
-    }}
-}}",
+    {
+        if (" + condition + @")
+        {
+        }
+    }
+}",
 @"class C
 {
     void M(bool a, bool b)
@@ -53,15 +53,15 @@ $@"class C
         public async Task NotSplitOnAndOperatorSpans(string condition)
         {
             await TestMissingInRegularAndScriptAsync(
-$@"class C
-{{
+@"class C
+{
     void M(bool a, bool b)
-    {{
-        if ({condition})
-        {{
-        }}
-    }}
-}}");
+    {
+        if (" + condition + @")
+        {
+        }
+    }
+}");
         }
 
         [Fact]

@@ -30,18 +30,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         public async Task MergedOnElseIfSpans(string elseIfLine)
         {
             await TestInRegularAndScriptAsync(
-$@"class C
-{{
+@"class C
+{
     void M(bool a, bool b)
-    {{
+    {
         if (a)
-        {{
-        }}
-        {elseIfLine}
-        {{
-        }}
-    }}
-}}",
+        {
+        }
+        " + elseIfLine + @"
+        {
+        }
+    }
+}",
 @"class C
 {
     void M(bool a, bool b)
@@ -201,18 +201,18 @@ $@"class C
         public async Task NotMergedOnElseIfSpans(string elseIfLine)
         {
             await TestMissingInRegularAndScriptAsync(
-$@"class C
-{{
+@"class C
+{
     void M(bool a, bool b)
-    {{
+    {
         if (a)
-        {{
-        }}
-        {elseIfLine}
-        {{
-        }}
-    }}
-}}");
+        {
+        }
+        " + elseIfLine + @"
+        {
+        }
+    }
+}");
         }
 
         [Fact]
