@@ -60,14 +60,6 @@
       
       <CompilerArtifact Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.*.dll" Exclude="@(_NoOptimizationData)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="true"/>
       <CompilerArtifact Include="@(_NoOptimizationData)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="false"/>
-
-      <!-- Satellite assemblies for insertion into VS -->
-      <SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.resources.dll"/>
-      <SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.CSharp.resources.dll"/>
-      <SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.Scripting.resources.dll"/>
-      <SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Scripting\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.CSharp.Scripting.resources.dll"/>
-      <SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll"/>
-      <SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll"/>
     </ItemGroup>
   </Target>
 </Project>
