@@ -132,7 +132,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
         End Function
 
         Public Function ToIfStatement(ifOrElseIf As SyntaxNode) As SyntaxNode Implements IIfLikeStatementGenerator.ToIfStatement
-            If TypeOf ifOrElseIf Is ElseIfBlockSyntax Then
+            If TypeOf ifOrElseIf Is MultiLineIfBlockSyntax Then
+                Return ifOrElseIf
+            ElseIf TypeOf ifOrElseIf Is ElseIfBlockSyntax Then
                 Dim elseIfBlock = DirectCast(ifOrElseIf, ElseIfBlockSyntax)
                 Dim ifBlock = DirectCast(elseIfBlock.Parent, MultiLineIfBlockSyntax)
                 Dim nextElseIfBlocks = ifBlock.ElseIfBlocks.RemoveRange(0, ifBlock.ElseIfBlocks.IndexOf(elseIfBlock) + 1)
@@ -147,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
                                                                 ifBlock.EndIfStatement)
                 Return newIfBlock
             Else
-                Return ifOrElseIf
+                Throw ExceptionUtilities.UnexpectedValue(ifOrElseIf)
             End If
         End Function
 
@@ -161,8 +163,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
                 Dim newElseIfBlock = SyntaxFactory.ElseIfBlock(newElseIfStatement,
                                                                ifBlock.Statements)
                 Return newElseIfBlock
-            Else
+            ElseIf TypeOf ifOrElseIf Is ElseIfBlockSyntax Then
                 Return ifOrElseIf
+            Else
+                Throw ExceptionUtilities.UnexpectedValue(ifOrElseIf)
             End If
         End Function
 
