@@ -1696,4 +1696,22 @@ namespace Microsoft.CodeAnalysis.Operations
             return _operationFactory.Create(_rangeExpression.RightOperand);
         }
     }
+
+    internal sealed class CSharpLazySuppressNullableWarningOperation : LazySuppressNullableWarningOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundSuppressNullableWarningExpression _suppressionExpression;
+
+        internal CSharpLazySuppressNullableWarningOperation(CSharpOperationFactory operationFactory, BoundSuppressNullableWarningExpression suppressionExpression, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type) :
+            base(isImplicit, semanticModel, syntax, type)
+        {
+            _operationFactory = operationFactory;
+            _suppressionExpression = suppressionExpression;
+        }
+
+        protected override IOperation CreateExpression()
+        {
+            return _operationFactory.Create(_suppressionExpression.Expression);
+        }
+    }
 }

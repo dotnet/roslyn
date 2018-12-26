@@ -15,6 +15,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.RefLocalsReturns)]
         [Fact]
+        public void SuppressNullableWarningOperation()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+#nullable enable
+    void M(string? x)
+    {
+        x!.ToString();
+    }
+}");
+            comp.VerifyDiagnostics();
+
+            var m = comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
+            comp.VerifyOperationTree(m, expectedOperationTree: @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x!.ToString();')
+    Expression: 
+      IInvocationOperation (virtual System.String System.String.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x!.ToString()')
+        Instance Receiver: 
+          ISuppressNullableWarningOperation (OperationKind.SuppressNullableWarning, Type: System.String) (Syntax: 'x!')
+            Expression: 
+              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+        Arguments(0)");
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.RefLocalsReturns)]
+        [Fact]
         public void RefReassignmentExpressions()
         {
             var comp = CreateCompilation(@"

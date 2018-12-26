@@ -9183,6 +9183,76 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
+    internal abstract class BaseSuppressNullableWarningOperation : Operation, ISuppressNullableWarningOperation
+    {
+        protected BaseSuppressNullableWarningOperation(bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type) :
+            base(OperationKind.SuppressNullableWarning, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
+        {
+        }
+
+        public abstract IOperation Expression { get; }
+
+        public sealed override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                IOperation expression = Expression;
+                if (expression != null)
+                {
+                    yield return expression;
+                }
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSuppressNullableWarningOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSuppressNullableWarningOperation(this, argument);
+        }
+    }
+
+    internal sealed class SuppressNullableWarningOperation : BaseSuppressNullableWarningOperation
+    {
+        public SuppressNullableWarningOperation(bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation expression) :
+            base(isImplicit, semanticModel, syntax, type)
+        {
+            Expression = Operation.SetParentOperation(expression, this);
+        }
+
+        public override IOperation Expression { get; }
+    }
+
+    internal abstract class LazySuppressNullableWarningOperation : BaseSuppressNullableWarningOperation
+    {
+        private IOperation _expressionInterlocked = s_unset;
+
+        public LazySuppressNullableWarningOperation(bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type) :
+            base(isImplicit, semanticModel, syntax, type)
+        {
+        }
+
+        protected abstract IOperation CreateExpression();
+
+        public override IOperation Expression
+        {
+            get
+            {
+                if (_expressionInterlocked == s_unset)
+                {
+                    IOperation expression = CreateExpression();
+                    SetParentOperation(expression, this);
+                    Interlocked.CompareExchange(ref _expressionInterlocked, expression, s_unset);
+                }
+
+                return _expressionInterlocked;
+            }
+        }
+    }
+
     internal abstract class BaseReDimOperation : Operation, IReDimOperation
     {
         protected BaseReDimOperation(bool preserve, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
