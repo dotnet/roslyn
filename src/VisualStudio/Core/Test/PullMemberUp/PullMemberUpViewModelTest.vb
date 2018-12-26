@@ -1,17 +1,16 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
-Imports Microsoft.CodeAnalysis.PullMemberUp
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports System.Collections.Immutable
+Imports System.Threading
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.PullMemberUp
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.PullMemberUp
     <[UseExportProvider]>
@@ -76,7 +75,7 @@ class MyClass : Level1BaseClass, Level1Interface
             viewModel.SelectAllMembers()
 
             Assert.True(viewModel.SelectAllCheckBoxState)
-            Assert.False(viewModel.ThreeStateEnable)
+            Assert.False(viewModel.SelectAllCheckBoxThreeStateEnable)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
@@ -108,7 +107,7 @@ class MyClass : Level1BaseClass, Level1Interface
             viewModel.DeSelectAllMembers()
 
             Assert.False(viewModel.SelectAllCheckBoxState)
-            Assert.False(viewModel.ThreeStateEnable)
+            Assert.False(viewModel.SelectAllCheckBoxThreeStateEnable)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
@@ -148,7 +147,7 @@ class MyClass : Level1BaseClass, Level1Interface
             Assert.Equal("Level1Interface", baseTypeTree(0).MemberName)
             viewModel.SelectedDestination = baseTypeTree(0)
 
-            For Each member In viewModel.Members.Where(Function(memberViewModel) memberViewModel.MemberSymbol.IsKind(SymbolKind.Field))
+            For Each member In viewModel.Members.Where(Function(memberViewModel) memberViewModel.Symbol.IsKind(SymbolKind.Field))
                 Assert.False(member.IsCheckable)
             Next
         End Function
@@ -194,7 +193,7 @@ class MyClass : Level1BaseClass, Level1Interface
             ' Second select a class, check all checkboxs will be resumed.
             Assert.Equal("Level1BaseClass", baseTypeTree(1).MemberName)
             viewModel.SelectedDestination = baseTypeTree(1)
-            For Each member In viewModel.Members.Where(Function(memberViewModel) memberViewModel.MemberSymbol.IsKind(SymbolKind.Field))
+            For Each member In viewModel.Members.Where(Function(memberViewModel) memberViewModel.Symbol.IsKind(SymbolKind.Field))
                 Assert.True(member.IsCheckable)
             Next
         End Function
@@ -234,7 +233,7 @@ class MyClass : Level1BaseClass, Level1Interface
             Dim baseTypeTree = viewModel.Destinations()
             viewModel.SelectPublicMembers()
 
-            For Each member In viewModel.Members.Where(Function(memberViewModel) memberViewModel.MemberSymbol.DeclaredAccessibility = Microsoft.CodeAnalysis.Accessibility.Public)
+            For Each member In viewModel.Members.Where(Function(memberViewModel) memberViewModel.Symbol.DeclaredAccessibility = Microsoft.CodeAnalysis.Accessibility.Public)
                 Assert.True(member.IsChecked)
             Next
         End Function

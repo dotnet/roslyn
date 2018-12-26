@@ -1,0 +1,51 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Windows.Media;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.Language.Intellisense;
+
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
+{
+    internal class SymbolViewModel<T> : AbstractNotifyPropertyChanged where T: ISymbol
+    {
+        private readonly IGlyphService _glyphService;
+
+        public T Symbol { get; }
+
+        private static readonly SymbolDisplayFormat s_memberDisplayFormat = new SymbolDisplayFormat(
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
+            parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeOptionalBrackets,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+        public SymbolViewModel(T symbol, IGlyphService glyphService)
+        {
+            Symbol = symbol;
+            _glyphService = glyphService;
+            _isChecked = true;
+        }
+
+        private bool _isChecked;
+        public bool IsChecked
+        {
+            get { return _isChecked; }
+            set { SetProperty(ref _isChecked, value); }
+        }
+
+        public string MemberName
+        {
+            get { return Symbol.ToDisplayString(s_memberDisplayFormat); }
+        }
+
+        public ImageSource Glyph
+        {
+            get { return Symbol.GetGlyph().GetImageSource(_glyphService); }
+        }
+
+        public string MemberAutomationText
+        {
+            get { return Symbol.Kind + " " + MemberName; }
+        }
+    }
+}

@@ -18,14 +18,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         public ImmutableArray<PullMemberUpSymbolViewModel> Members { get; set; }
         public ImmutableArray<BaseTypeTreeNodeViewModel> Destinations { get; set; }
         private BaseTypeTreeNodeViewModel _selectedDestination;
-        public ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> DependentsMap;
+        public ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> DependentsMap { get; }
         public ImmutableDictionary<ISymbol, PullMemberUpSymbolViewModel> SymbolToMemberViewMap { get; }
         private bool _okButtonEnabled;
         public bool OkButtonEnabled { get => _okButtonEnabled; set => SetProperty(ref _okButtonEnabled, value, nameof(OkButtonEnabled)); }
         private bool? _selectAllCheckBoxState;
         public bool? SelectAllCheckBoxState { get => _selectAllCheckBoxState; set => SetProperty(ref _selectAllCheckBoxState, value, nameof(SelectAllCheckBoxState)); }
-        private bool _threeStateEnable;
-        public bool ThreeStateEnable { get => _threeStateEnable; set => SetProperty(ref _threeStateEnable, value, nameof(ThreeStateEnable)); }
+        private bool _selectAllCheckBoxThreeStateEnable;
+        public bool SelectAllCheckBoxThreeStateEnable { get => _selectAllCheckBoxThreeStateEnable; set => SetProperty(ref _selectAllCheckBoxThreeStateEnable, value, nameof(SelectAllCheckBoxThreeStateEnable)); }
         private readonly IWaitIndicator _waitIndicator;
 
         public BaseTypeTreeNodeViewModel SelectedDestination
@@ -35,8 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             {
                 if (SetProperty(ref _selectedDestination, value, nameof(SelectedDestination)))
                 {
-                    var fields = Members.WhereAsArray(memberViewModel => memberViewModel.MemberSymbol.IsKind(SymbolKind.Field));
-                    if (_selectedDestination.MemberSymbol is INamedTypeSymbol interfaceSymbol &&
+                    var fields = Members.WhereAsArray(memberViewModel => memberViewModel.Symbol.IsKind(SymbolKind.Field));
+                    if (_selectedDestination.Symbol is INamedTypeSymbol interfaceSymbol &&
                         interfaceSymbol.TypeKind == TypeKind.Interface)
                     {
                         // Disable field check box if destination is interface
@@ -68,20 +68,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             Destinations = destinations;
             DependentsMap = dependentsMap;
             Members = members;
-            SymbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.MemberSymbol);
+            SymbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
             _waitIndicator = waitIndicator;
         }
 
-        internal PullMembersUpAnalysisResult CreateAnaysisResult()
+        internal PullMembersUpOptions CreateAnaysisResult()
         {
             var selectedOptionFromDialog = Members.
                 WhereAsArray(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable).
                 SelectAsArray(memberSymbolView =>
-                    (member: memberSymbolView.MemberSymbol,
+                    (member: memberSymbolView.Symbol,
                     makeAbstract: memberSymbolView.MakeAbstract));
 
-            var result = PullMembersUpAnalysisBuilder.BuildAnalysisResult(
-                (INamedTypeSymbol)SelectedDestination.MemberSymbol,
+            var result = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(
+                SelectedDestination.Symbol,
                 selectedOptionFromDialog);
             return result;
         }
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
         internal void SelectPublicMembers()
         {
-            SelectMembers(Members.WhereAsArray(memberViewModel => memberViewModel.MemberSymbol.DeclaredAccessibility == Accessibility.Public));
+            SelectMembers(Members.WhereAsArray(memberViewModel => memberViewModel.Symbol.DeclaredAccessibility == Accessibility.Public));
         }
 
         internal void EnableOrDisableOkButton()
@@ -109,17 +109,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             if (checkableMembers.All(member => member.IsChecked))
             {
                 SelectAllCheckBoxState = true;
-                ThreeStateEnable = false;
+                SelectAllCheckBoxThreeStateEnable = false;
             }
             else if (checkableMembers.Any(member => member.IsChecked))
             {
-                ThreeStateEnable = true;
+                SelectAllCheckBoxThreeStateEnable = true;
                 SelectAllCheckBoxState = null;
             }
             else
             {
                 SelectAllCheckBoxState = false;
-                ThreeStateEnable = false;
+                SelectAllCheckBoxThreeStateEnable = false;
             }
         }
         
@@ -127,22 +127,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         {
             var checkedMembers = Members.
                 Where(member => member.IsChecked && member.IsCheckable);
-            foreach (var member in checkedMembers)
-            {
-                var dependentsTask = DependentsMap[member.MemberSymbol];
-                var waitResult = _waitIndicator.Wait(
-                        title: ServicesVSResources.Pull_Members_Up, 
-                        message: ServicesVSResources.Calculating_dependents, 
-                        allowCancel: true,
-                        showProgress: true,
-                        context =>
-                        {
-                            DependentsMap[member.MemberSymbol].Wait(context.CancellationToken);
-                        });
 
-                if (waitResult == WaitIndicatorResult.Completed)
+            var waitResult = _waitIndicator.Wait(
+                    title: ServicesVSResources.Pull_members_up, 
+                    message: ServicesVSResources.Calculating_dependents, 
+                    allowCancel: true,
+                    showProgress: true,
+                    context =>
+                    {
+                        foreach (var member in checkedMembers)
+                        {
+                            DependentsMap[member.Symbol].Wait(context.CancellationToken);
+                        }
+                    });
+
+            if (waitResult == WaitIndicatorResult.Completed)
+            {
+                foreach (var member in checkedMembers)
                 {
-                    var membersToSelected = dependentsTask.Result.SelectAsArray(symbol => SymbolToMemberViewMap[symbol]);
+                    var membersToSelected = DependentsMap[member.Symbol].Result.SelectAsArray(symbol => SymbolToMemberViewMap[symbol]);
                     SelectMembers(membersToSelected);
                 }
             }

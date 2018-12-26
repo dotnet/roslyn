@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             return _membersInType.ToImmutableDictionary(
                 member => member,
-                member => FindMemberDependentsAsync(_document, member, cancellationToken));
+                member => Task.Run(() => FindMemberDependentsAsync(_document, member, cancellationToken), cancellationToken));
         }
 
         private async Task<ImmutableArray<ISymbol>> FindMemberDependentsAsync(

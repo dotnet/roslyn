@@ -12,17 +12,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
     {
         public ImmutableArray<string> WarningMessageContainer { get; set; }
 
-        internal PullMemberUpWarningViewModel(PullMembersUpAnalysisResult analysisResult)
+        internal PullMemberUpWarningViewModel(PullMembersUpOptions analysisResult)
         {
             WarningMessageContainer = GenerateMessage(analysisResult);
         }
 
-        private ImmutableArray<string> GenerateMessage(PullMembersUpAnalysisResult analysisResult)
+        private ImmutableArray<string> GenerateMessage(PullMembersUpOptions analysisResult)
         {
             var warningMessagesBuilder = ImmutableArray.CreateBuilder<string>();
 
             if (!analysisResult.Destination.IsAbstract &&
-                analysisResult.MemberAnalysisResults.Any(result => result.ChangeDestinationToAbstract))
+                analysisResult.MemberAnalysisResults.Any(result => result.ChangeDestinationTypeToAbstract))
             {
                 Logger.Log(FunctionId.PullMembersUpWarning_ChangeTargetToAbstract);
                 warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_abstract, analysisResult.Destination.ToDisplayString()));

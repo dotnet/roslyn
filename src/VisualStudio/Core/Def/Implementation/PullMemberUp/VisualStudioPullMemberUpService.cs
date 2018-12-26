@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -29,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             _waitIndicator = waitIndicator;
         }
 
-        public PullMembersUpAnalysisResult GetPullMemberUpOptions(Document document, ISymbol selectedMember)
+        public PullMembersUpOptions GetPullMemberUpOptions(Document document, ISymbol selectedMember)
         {
             var membersInType = selectedMember.ContainingType.GetMembers().
                 WhereAsArray(member => MemberAndDestinationValidator.IsMemberValid(member));
@@ -43,31 +41,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                         IsCheckable = true
                     });
 
-            using (var cts = new CancellationTokenSource())
+            using (var cancellationTokenSource = new CancellationTokenSource())
             {
                 var baseTypeRootViewModel = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(
                     _glyphService,
                     document.Project.Solution,
                     selectedMember.ContainingType,
-                    cts.Token).BaseTypeNodes;
+                    cancellationTokenSource.Token).BaseTypeNodes;
                 var dependentsBuilder = new SymbolDependentsBuilder(document, membersInType);
-                var dependentsMap = dependentsBuilder.CreateDependentsMap(cts.Token);
-
-                // Finding the dependents of all members will be expensive, so start an new background thread calculates it.
-                var dependentsTask = Task.Run(async () =>
-                {
-                    foreach (var dependents in dependentsMap.Values)
-                    {
-                        await dependents.ConfigureAwait(false);
-                    }
-                }, cts.Token);
-
+                var dependentsMap = dependentsBuilder.CreateDependentsMap(cancellationTokenSource.Token);
                 var viewModel = new PullMemberUpDialogViewModel(_waitIndicator,  memberViewModels, baseTypeRootViewModel, dependentsMap);
                 var dialog = new PullMemberUpDialog(viewModel);
                 var result = dialog.ShowModal();
 
                 // Dialog has finshed its work, cancel finding dependents task.
-                cts.Cancel();
+                cancellationTokenSource.Cancel();
 
                 if (result.GetValueOrDefault())
                 {

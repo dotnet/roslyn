@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
     {
         public string Back => ServicesVSResources.Back;
         public string Finish => ServicesVSResources.Finish;
-        public string PullMembersUpTitle => ServicesVSResources.Pull_Members_Up;
+        public string PullMembersUpTitle => ServicesVSResources.Pull_members_up;
         public string TextTitle => ServicesVSResources.Review_problems_below;
         public string FoundProblem => ServicesVSResources.Found_problems_colon;
 

@@ -2260,11 +2260,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pull Members Up.
+        ///   Looks up a localized string similar to Pull Members up.
         /// </summary>
-        internal static string Pull_Members_Up {
+        internal static string Pull_members_up {
             get {
-                return ResourceManager.GetString("Pull_Members_Up", resourceCulture);
+                return ResourceManager.GetString("Pull_members_up", resourceCulture);
             }
         }
         

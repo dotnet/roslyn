@@ -1141,8 +1141,8 @@ I agree to all of the foregoing:</value>
   <data name="Namespace_0" xml:space="preserve">
     <value>Namespace: {0}</value>
   </data>
-  <data name="Pull_Members_Up" xml:space="preserve">
-    <value>Pull Members Up</value>
+  <data name="Pull_members_up" xml:space="preserve">
+    <value>Pull Members up</value>
   </data>
   <data name="Review_problems_below" xml:space="preserve">
     <value>Review problems below.</value>

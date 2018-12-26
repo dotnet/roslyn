@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
@@ -17,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         private readonly IPullMemberUpOptionsService _service;
 
         protected abstract bool IsSelectionValid(TextSpan span, SyntaxNode selectedMemberNode);
+
+        protected abstract Task<SyntaxNode> GetMatchedNodeAsync(Document document, TextSpan span);
 
         /// <summary>
         /// Test purpose only
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var document = context.Document;
             var semanticModel = await document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var selectedMemberNode = root.FindNode(context.Span);
+            var selectedMemberNode = await GetMatchedNodeAsync(document, context.Span).ConfigureAwait(false);
 
             if (selectedMemberNode == null)
             {
@@ -70,10 +73,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
 
-            var allActions = allDestinations.SelectAsArray(
-                destination => MembersPuller.Instance.TryComputeCodeAction(document, selectedMember, destination)).
-                WhereAsArray(action => action != null).
-                Concat(new PullMemberUpWithDialogCodeAction(document, selectedMember, this));
+            var allActions = allDestinations.Select(
+                destination => MembersPuller.TryComputeCodeAction(document, selectedMember, destination)).
+                WhereNotNull().Concat(new PullMemberUpWithDialogCodeAction(document, selectedMember, this)).
+                ToImmutableArray();
 
             var nestedCodeAction = new CodeActionWithNestedActions(
                 string.Format(FeaturesResources.Pull_0_up, selectedMember.ToNameDisplayString()),

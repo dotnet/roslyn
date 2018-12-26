@@ -5,9 +5,9 @@ using Microsoft.CodeAnalysis.PullMemberUp;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
-    internal class PullMembersUpAnalysisBuilder
+    internal class PullMembersUpOptionsBuilder
     {
-        internal static PullMembersUpAnalysisResult BuildAnalysisResult(
+        internal static PullMembersUpOptions BuildPullMembersUpOptions(
             INamedTypeSymbol destination,
             ImmutableArray<(ISymbol member, bool makeAbstract)> members)
         {
@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                         memberAndMakeAbstract.member,
                         changeOriginalToPublic,
                         changeOriginalToNonStatic,
-                        makeDestinationDeclarationAbstract: false,
-                        changeDestinationToAbstract: false);
+                        makeMemberDeclarationAbstract: false,
+                        changeDestinationTypeToAbstract: false);
                 }
                 else
                 {
@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                         changeOriginalToPublic: false,
                         changeOriginalToNonStatic: false,
                         memberAndMakeAbstract.makeAbstract,
-                        changeDestinationToAbstract: changeDestinationToAbstract);
+                        changeDestinationTypeToAbstract: changeDestinationToAbstract);
                 }
             });
 
-            return new PullMembersUpAnalysisResult(destination, membersAnalysisResult);
+            return new PullMembersUpOptions(destination, membersAnalysisResult);
         }
     }
 }

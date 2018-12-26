@@ -7,7 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.VisualStudio.Language.Intellisense;
-using static Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface.ExtractInterfaceDialogViewModel;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
 {
@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
     /// View model used to represent and display the inheritance graph as a tree. This tree is constructed by breadth first searching.
     /// If one type is the common base type of several other types, it will be showed multiple time.
     /// </summary>
-    internal class BaseTypeTreeNodeViewModel : MemberSymbolViewModel 
+    internal class BaseTypeTreeNodeViewModel : SymbolViewModel<INamedTypeSymbol>
     {
         /// <summary>
         /// Base types of this tree node
@@ -27,8 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         /// <summary>
         /// Content of the tooltip.
         /// </summary>
-        public string Namespace => string.Format(ServicesVSResources.Namespace_0,
-            MemberSymbol.ContainingNamespace?.ToDisplayString() ?? "global" );
+        public string Namespace => string.Format(ServicesVSResources.Namespace_0, Symbol.ContainingNamespace?.ToDisplayString() ?? "global" );
 
         private BaseTypeTreeNodeViewModel(IGlyphService glyphService, INamedTypeSymbol node) : base(node, glyphService)
         {
@@ -49,12 +48,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             while (queue.Any())
             {
                 var currentTreeNode = queue.Dequeue();
-                var currentTypeSymbol = (INamedTypeSymbol)currentTreeNode.MemberSymbol;
+                var currentTypeSymbol = currentTreeNode.Symbol;
 
                 currentTreeNode.BaseTypeNodes = currentTypeSymbol.Interfaces.
                     Concat(currentTypeSymbol.BaseType).
-                    WhereAsArray(baseType => MemberAndDestinationValidator.IsDestinationValid(solution, baseType, cancellationToken)).
-                    SelectAsArray(baseType => new BaseTypeTreeNodeViewModel(glyphService, baseType) { IsChecked = false, IsExpanded = true });
+                    Where(baseType => baseType != null && MemberAndDestinationValidator.IsDestinationValid(solution, baseType, cancellationToken)).
+                    Select(baseType => new BaseTypeTreeNodeViewModel(glyphService, baseType) { IsChecked = false, IsExpanded = true }).
+                    ToImmutableArray();
 
                 foreach (var node in currentTreeNode.BaseTypeNodes)
                 {

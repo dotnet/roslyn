@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
     {
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
-        public string PullMembersUpTitle => ServicesVSResources.Pull_Members_Up;
+        public string PullMembersUpTitle => ServicesVSResources.Pull_members_up;
         public string SelectMembers => ServicesVSResources.Select_members_colon;
         public string SelectDestination => ServicesVSResources.Select_destination_colon;
         public string Description => ServicesVSResources.Select_destination_and_members_to_pull_up;
@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         public string Members => ServicesVSResources.Members;
         public string MakeAbstract => ServicesVSResources.Make_abstract;
         public string InterfaceCannotHaveField => ServicesVSResources.Interface_cannot_have_field;
-        public string SpinnerToolTip => ServicesVSResources.Calculating_dependents;
 
         internal PullMemberUpDialogViewModel ViewModel { get; }
 
@@ -53,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             }
         }
 
-        private bool ShowWarningDialog(PullMembersUpAnalysisResult result)
+        private bool ShowWarningDialog(PullMembersUpOptions result)
         {
             var warningViewModel = new PullMemberUpWarningViewModel(result);
             var warningDialog = new PullMemberUpWarningDialog(warningViewModel);

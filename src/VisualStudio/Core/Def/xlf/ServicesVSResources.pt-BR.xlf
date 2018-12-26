@@ -152,9 +152,9 @@
         <target state="new">Prefer range operator</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pull_Members_Up">
-        <source>Pull Members Up</source>
-        <target state="new">Pull Members Up</target>
+      <trans-unit id="Pull_members_up">
+        <source>Pull Members up</source>
+        <target state="new">Pull Members up</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">

@@ -3,6 +3,7 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PullMemberUp
 {
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         {
             if (destination == null)
             {
-                return false;
+                throw ExceptionUtilities.Unreachable;
             }
 
             // Check destination is class or interface since destination could be ErrorTypeSymbol
@@ -22,21 +23,16 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             }
 
             // Don't provide any refactoring option if the destination is not in source.
-            // If the destination is generated code, also don't provide refactoring since we can't make sure if we will break it.
+            // If the destination is generated code, also don't provide refactoring since we can't make sure if we won't break it.
             var isDestinationInSourceAndNotGeneratedCode = 
                 destination.DeclaringSyntaxReferences.Length > 0 &&
                 destination.Locations.Any(location => location.IsInSource && !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
-            if (!isDestinationInSourceAndNotGeneratedCode)
-            {
-                return false;
-            }
-
-            return true;
+            return isDestinationInSourceAndNotGeneratedCode;
         }
 
         internal static bool IsMemberValid(ISymbol member)
         {
-            // Static, abstract and accessiblity are not checked here but in PullMemberUpAnalyzer.cs since there are
+            // Static, abstract and accessiblity are not checked here but in PullMembersUpOptionsBuilder.cs since there are
             // two refactoring options provided for pull members up,
             // 1. Quick Action (Only allow members that don't cause error)
             // 2. Dialog box (Allow modifers may cause errors and will provide fixing)

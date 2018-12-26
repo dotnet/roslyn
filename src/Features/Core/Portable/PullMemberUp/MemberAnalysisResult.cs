@@ -24,30 +24,32 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         /// If this property is true, then pull a member up to a class will only generate a abstract declaration in the destination.
         /// It will always be false if the refactoring is trigger from Quick Action.
         /// </summary>
-        public readonly bool MakeDeclarationAtDestinationAbstract;
+        public readonly bool MakeMemberDeclarationAbstract;
 
         /// <summary>
-        /// Indicate whether pulling this member up would change the destination to abstract.
+        /// Indicate whether pulling this member up would change the destination to abstract. It will be true if:
+        /// 1. Pull an abstract member to a non-abstract class
+        /// 2. The 'Make abstract' check box of a member is checked, and the destination is a non-abstract class
         /// </summary>
-        public readonly bool ChangeDestinationToAbstract;
+        public readonly bool ChangeDestinationTypeToAbstract;
 
         /// <summary>
         /// Indicate whether it would cause error if we directly pull Member into destination.
         /// </summary>
-        public bool PullMemberUpCausesError => ChangeOriginalToPublic || ChangeOriginalToNonStatic || ChangeDestinationToAbstract;
+        public bool PullMemberUpCausesError => ChangeOriginalToPublic || ChangeOriginalToNonStatic || ChangeDestinationTypeToAbstract;
 
         internal MemberAnalysisResult(
             ISymbol member,
             bool changeOriginalToPublic,
             bool changeOriginalToNonStatic,
-            bool makeDestinationDeclarationAbstract,
-            bool changeDestinationToAbstract)
+            bool makeMemberDeclarationAbstract,
+            bool changeDestinationTypeToAbstract)
         {
             Member = member;
             ChangeOriginalToPublic = changeOriginalToPublic;
             ChangeOriginalToNonStatic = changeOriginalToNonStatic;
-            MakeDeclarationAtDestinationAbstract = makeDestinationDeclarationAbstract;
-            ChangeDestinationToAbstract = changeDestinationToAbstract;
+            MakeMemberDeclarationAbstract = makeMemberDeclarationAbstract;
+            ChangeDestinationTypeToAbstract = changeDestinationTypeToAbstract;
         }
     }
 }

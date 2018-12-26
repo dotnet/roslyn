@@ -3,17 +3,17 @@
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Language.Intellisense;
-using static Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface.ExtractInterfaceDialogViewModel;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
 {
-    internal class PullMemberUpSymbolViewModel : MemberSymbolViewModel
+    internal class PullMemberUpSymbolViewModel : SymbolViewModel<ISymbol>
     {
         /// <summary>
         /// Property controls the 'Make abstract' check box's Visibility.
         /// The check box is hidden for members impossbile to be made to abstract.
         /// </summary>
-        public Visibility MakeAbstractVisibility => MemberSymbol.Kind == SymbolKind.Field || MemberSymbol.IsAbstract ? Visibility.Hidden : Visibility.Visible;
+        public Visibility MakeAbstractVisibility => Symbol.Kind == SymbolKind.Field || Symbol.IsAbstract ? Visibility.Hidden : Visibility.Visible;
 
         private bool _makeAbstract;
 
@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         /// <summary>
         /// The content of tooltip.
         /// </summary>
-        public string Accessibility => MemberSymbol.DeclaredAccessibility.ToString();
+        public string Accessibility => Symbol.DeclaredAccessibility.ToString();
 
         public PullMemberUpSymbolViewModel(IGlyphService glyphService, ISymbol symbol) : base(symbol, glyphService)
         {

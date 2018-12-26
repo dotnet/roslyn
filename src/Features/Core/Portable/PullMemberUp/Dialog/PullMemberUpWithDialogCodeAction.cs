@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,11 +14,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     {
         internal class PullMemberUpWithDialogCodeAction : CodeActionWithOptions
         {
+            /// <summary>
+            /// Member which user initially selects. It will be checked initially when the dialog pops up.
+            /// </summary>
             private readonly ISymbol _selectedMember;
             private readonly Document _document;
             private readonly IPullMemberUpOptionsService _service;
 
-            public override string Title => FeaturesResources.Pull_members_up;
+            public override string Title => FeaturesResources.Add_members_to_base_type;
 
             internal PullMemberUpWithDialogCodeAction(
                 Document document,
@@ -37,14 +41,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             
             protected async override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
-                if (options is PullMembersUpAnalysisResult result)
+                if (options is PullMembersUpOptions result)
                 {
-                    var changedSolution = await MembersPuller.Instance.PullMembersUpAsync(_document, result, cancellationToken).ConfigureAwait(false);
-                    return new CodeActionOperation[1] { new ApplyChangesOperation(changedSolution) };
+                    var changedSolution = await MembersPuller.PullMembersUpAsync(_document, result, cancellationToken).ConfigureAwait(false);
+                    return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
                 }
                 else
                 {
-                    return new CodeActionOperation[0];
+                    // If user click cancel button, options will be null and hit this branch
+                    return Array.Empty<CodeActionOperation>();
                 }
             }
         }
