@@ -2901,7 +2901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (IsNegativeConstantForArraySize(size))
                     {
                         Error(diagnostics, ErrorCode.ERR_NegativeArraySize, dimension);
-						hasErrors = true;
+                        hasErrors = true;
                     }
                 }
 

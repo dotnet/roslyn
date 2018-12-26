@@ -1211,7 +1211,7 @@ class C
             var syntaxTree = Parse(source, filename: "file.cs");
             var rankSpecifierOld = syntaxTree.GetCompilationUnitRoot().DescendantNodes().OfType<ArrayRankSpecifierSyntax>().First();
             var rankSpecifierNew = rankSpecifierOld
-                .WithSizes(SyntaxFactory.SeparatedList<ExpressionSyntax>(SyntaxFactory.NodeOrTokenList(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression ,SyntaxFactory.Literal(10)))));
+                .WithSizes(SyntaxFactory.SeparatedList<ExpressionSyntax>(SyntaxFactory.NodeOrTokenList(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(10)))));
             syntaxTree = syntaxTree.GetCompilationUnitRoot().ReplaceNode(rankSpecifierOld, rankSpecifierNew).SyntaxTree;
 
             string expectedOperationTree = @"
@@ -2878,7 +2878,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "y switch { int z => 42 }").WithArguments("recursive patterns").WithLocation(7, 29)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>( new[] { syntaxTree }, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(new[] { syntaxTree }, expectedOperationTree, expectedDiagnostics);
         }
 
         #endregion
