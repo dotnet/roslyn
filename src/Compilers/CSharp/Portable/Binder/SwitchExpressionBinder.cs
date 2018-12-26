@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var @case in switchCases)
             {
                 var type = @case.Value.Type;
-                if (type != null && seenTypes.Add(type))
+                if (!(type is null) && seenTypes.Add(type))
                 {
                     typesInOrder.Add(type);
                 }
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, out _, ref useSiteDiagnostics);
             diagnostics.Add(SwitchExpressionSyntax, useSiteDiagnostics);
-            if (commonType == null)
+            if (commonType is null)
             {
                 diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, SwitchExpressionSyntax.Location);
                 commonType = CreateErrorType();

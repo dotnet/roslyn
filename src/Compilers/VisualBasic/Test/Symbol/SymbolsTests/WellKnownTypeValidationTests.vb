@@ -519,7 +519,7 @@ End Namespace
                          WellKnownType.System_Threading_Tasks_ValueTask_T,
                          WellKnownType.System_Threading_Tasks_ValueTask,
                          WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
-                         WellKnownType.System_Threading_CancellationToken
+                         WellKnownType.System_Threading_CancellationToken,
                          WellKnownType.System_MatchFailureException,
                          WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
                          WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute
@@ -580,7 +580,7 @@ End Namespace
                          WellKnownType.System_Threading_Tasks_ValueTask_T,
                          WellKnownType.System_Threading_Tasks_ValueTask,
                          WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
-                         WellKnownType.System_Threading_CancellationToken
+                         WellKnownType.System_Threading_CancellationToken,
                          WellKnownType.System_MatchFailureException,
                          WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
                          WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute
