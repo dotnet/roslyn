@@ -4177,6 +4177,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.BreakStatement();
         }
 
+        internal override SyntaxNode ScopeBlock(IEnumerable<SyntaxNode> statements)
+            => SyntaxFactory.Block(statements.Cast<StatementSyntax>());
+
         public override SyntaxNode ValueReturningLambdaExpression(IEnumerable<SyntaxNode> parameterDeclarations, SyntaxNode expression)
         {
             var prms = AsReadOnlyList(parameterDeclarations?.Cast<ParameterSyntax>());

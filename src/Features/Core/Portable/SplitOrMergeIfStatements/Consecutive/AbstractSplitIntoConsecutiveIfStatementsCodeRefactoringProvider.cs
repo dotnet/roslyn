@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,6 +78,12 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 var secondIfStatement = ifGenerator.WithCondition(ifOrElseIf, rightCondition)
                     .WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed);
 
+                if (!syntaxFacts.IsExecutableBlock(ifOrElseIf.Parent))
+                {
+                    // In order to insert a new statement, we have to be inside a block.
+                    editor.ReplaceNode(ifOrElseIf, (currentNode, _) => generator.ScopeBlock(ImmutableArray.Create(currentNode)));
+                }
+
                 editor.InsertAfter(ifOrElseIf, secondIfStatement);
             }
             else
@@ -105,9 +112,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             SyntaxNode ifOrElseIf,
             CancellationToken cancellationToken)
         {
-            // If the if-like statement is an else-if clause or we're not inside a block, we cannot introduce another statement.
-            if (!syntaxFacts.IsExecutableStatement(ifOrElseIf) ||
-                !syntaxFacts.IsExecutableBlock(ifOrElseIf.Parent))
+            // In order to make separate statements, ifOrElseIf must be an if statement, not an else-if clause.
+            if (ifGenerator.IsElseIfClause(ifOrElseIf, out _))
             {
                 return false;
             }

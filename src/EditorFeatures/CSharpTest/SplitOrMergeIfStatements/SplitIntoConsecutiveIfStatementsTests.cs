@@ -1268,7 +1268,7 @@ else if (b)
         }
 
         [Fact]
-        public async Task SplitNotIntoSeparateStatementsAsEmbeddedStatementIfControlFlowQuits1()
+        public async Task SplitIntoSeparateStatementsAsEmbeddedStatementIfControlFlowQuits()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1285,16 +1285,18 @@ else if (b)
     void M(bool a, bool b)
     {
         while (a)
+        {
             if (a)
                 return;
-            else if (b)
+            if (b)
                 return;
+        }
     }
 }");
         }
 
         [Fact]
-        public async Task SplitNotIntoSeparateStatementsAsEmbeddedStatementIfControlFlowQuits2()
+        public async Task SplitNotIntoSeparateStatementsAsElseIfIfControlFlowQuits()
         {
             await TestInRegularAndScriptAsync(
 @"class C
