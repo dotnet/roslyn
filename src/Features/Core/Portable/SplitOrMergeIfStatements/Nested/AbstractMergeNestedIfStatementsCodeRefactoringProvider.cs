@@ -140,9 +140,23 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             CancellationToken cancellationToken)
         {
             // We can only merge this with the outer if statement if any inner else-if and else clauses are equal
-            // to else-if and else clauses following the outer if statement because we'll be removing them.
-            if (!ifGenerator.GetElseIfAndElseClauses(outerIfOrElseIf).SequenceEqual(
-                    ifGenerator.GetElseIfAndElseClauses(innerIfStatement), (a, b) => IsElseIfOrElseClauseEquivalent(syntaxFacts, ifGenerator, a, b)))
+            // to else-if and else clauses following the outer if statement because we'll be removing the inner ones.
+            // Example of what we can merge:
+            //    if (a)
+            //    {
+            //        if (b)
+            //            Console.WriteLine();
+            //        else
+            //            Foo();
+            //    }
+            //    else
+            //    {
+            //        Foo();
+            //    }
+            if (!System.Linq.ImmutableArrayExtensions.SequenceEqual(
+                    ifGenerator.GetElseIfAndElseClauses(outerIfOrElseIf),
+                    ifGenerator.GetElseIfAndElseClauses(innerIfStatement),
+                    (a, b) => IsElseIfOrElseClauseEquivalent(syntaxFacts, ifGenerator, a, b)))
             {
                 return false;
             }
@@ -174,10 +188,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 // If we have an else-if, get the topmost if statement.
                 var outerIfStatement = ifGenerator.GetRootIfStatement(outerIfOrElseIf);
 
-                Debug.Assert(syntaxFacts.IsStatementContainer(outerIfStatement.Parent));
-
                 // A statement should always be in a statement container, but we'll do a defensive check anyway so that
                 // we don't crash if the helper is missing some cases or there's a new language feature it didn't account for.
+                Debug.Assert(syntaxFacts.IsStatementContainer(outerIfStatement.Parent));
                 if (!syntaxFacts.IsStatementContainer(outerIfStatement.Parent))
                 {
                     return false;
