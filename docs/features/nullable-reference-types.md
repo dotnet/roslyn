@@ -186,6 +186,7 @@ Merging equivalent but not identical types is done as follows:
  - if either `n` or `m` are nullable, nullable.
  - otherwise oblivious.
 - Merging constructed generic types is performed as follows: Merging the types `K<A1, A2, ...>` and `K<B1, B2, ...>` results in the type `K<C1, C2, ...>` where `Ci` is the result of merging `Ai` and `Bi` by the invariant rule.
+- Merging tuple types `(A1, A2, ...)` and `(B1, B2, ...)` results in the type `(C1, C2, ...)` where `Ci` is the result of merging `Ai` and `Bi` by the invariant rule.
 - Merging the array types `T[]` and `U[]` results in the type `V[]` where `V` is the result of merging `T` and `U` by the invariant rule.
 
 #### Covariant merging rules
@@ -200,6 +201,7 @@ Merging equivalent but not identical types is done as follows:
   - the invariant rule if `K`'s type parameter in the `i` position is invariant.
   - the covariant rule if `K`'s type parameter in the `i` position is declared `out`.
   - the contravariant rule if the `K`'s type parameter in the `i` position is declared `in`.
+- Merging tuple types `(A1, A2, ...)` and `(B1, B2, ...)` results in the type `(C1, C2, ...)` where `Ci` is the result of merging `Ai` and `Bi` by the covariant rule.
 - Merging the array types `T[]` and `U[]` results in the type `V[]` where `V` is the result of merging `T` and `U` by the invariant rule.
 
 #### Contravariant merging rules
@@ -214,6 +216,7 @@ Merging equivalent but not identical types is done as follows:
   - the invariant rule if `K`'s type parameter in the `i` position is invariant.
   - the covariant rule if `K`'s type parameter in the `i` position is declared `in`.
   - the contravariant rule if `K`'s type parameter in the `i` position is declared `out`.
+- Merging tuple types `(A1, A2, ...)` and `(B1, B2, ...)` results in the type `(C1, C2, ...)` where `Ci` is the result of merging `Ai` and `Bi` by the contravariant rule.
 - Merging the array types `T[]` and `U[]` results in the type `V[]` where `V` is the result of merging `T` and `U` by the invariant rule.
 
 It is intended that these merging rules are associative and commutative, so that a compiler may merge a set of equivalent types pairwise in any order to compute the final result.
