@@ -6565,9 +6565,15 @@ oneMoreTime:
         public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, int? argument)
         {
             return new RecursivePatternOperation(
-                inputType: operation.InputType, matchedType: operation.MatchedType, operation.DeconstructSymbol,
-                operation.DeconstructionSubpatterns, operation.PropertySubpatterns,
-                operation.DeclaredSymbol, semanticModel: null, operation.Syntax, operation.IsImplicit);
+                inputType: operation.InputType,
+                matchedType: operation.MatchedType,
+                operation.DeconstructSymbol,
+                operation.DeconstructionSubpatterns.SelectAsArray(p => (IPatternOperation)Visit(p)),
+                operation.PropertySubpatterns.SelectAsArray(p => (p.Item1, (IPatternOperation)Visit(p.Item2))),
+                operation.DeclaredSymbol,
+                semanticModel: null,
+                operation.Syntax,
+                operation.IsImplicit);
         }
 
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)

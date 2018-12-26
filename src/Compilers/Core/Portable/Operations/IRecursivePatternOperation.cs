@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Operations
         ImmutableArray<IPatternOperation> DeconstructionSubpatterns { get; }
 
         /// <summary>
-        /// This contains the
-        /// <see cref="ISymbol"/>/<see cref="IPatternOperation"/> pairs within a property subpattern.
+        /// This contains the (symbol, property) pairs within a property subpattern.
         /// </summary>
         ImmutableArray<(ISymbol, IPatternOperation)> PropertySubpatterns { get; }
 

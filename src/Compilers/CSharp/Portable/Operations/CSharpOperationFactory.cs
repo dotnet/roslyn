@@ -1848,6 +1848,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IRecursivePatternOperation CreateBoundRecursivePatternOperation(BoundRecursivePattern boundRecursivePattern)
         {
+            bool isImplicit = boundRecursivePattern.WasCompilerGenerated;
             ITypeSymbol matchedType = boundRecursivePattern.DeclaredType?.Type ?? boundRecursivePattern.InputType;
             ISymbol variable = boundRecursivePattern.Variable;
             ISymbol deconstructSymbol = boundRecursivePattern.DeconstructMethod;
@@ -1858,12 +1859,9 @@ namespace Microsoft.CodeAnalysis.Operations
 
             TypeSymbol inputType = boundRecursivePattern.InputType;
             SyntaxNode syntax = boundRecursivePattern.Syntax;
-            ImmutableArray<IPatternOperation> deconstructionSubpatterns =
-                boundRecursivePattern.Deconstruction.SelectAsArray(p => (IPatternOperation)Create(p.Pattern));
-            ImmutableArray<(ISymbol, IPatternOperation)> propertySubpatterns =
-                boundRecursivePattern.Properties.SelectAsArray(p => ((ISymbol)p.Symbol, (IPatternOperation)Create(p.Pattern)));
-            bool isImplicit = boundRecursivePattern.WasCompilerGenerated;
-            return new RecursivePatternOperation(inputType, matchedType, deconstructSymbol, deconstructionSubpatterns, propertySubpatterns, variable, _semanticModel, syntax, isImplicit);
+            return new CSharpLazyRecursivePatternOperation(
+                this, inputType, matchedType, deconstructSymbol, boundRecursivePattern.Deconstruction,
+                boundRecursivePattern.Properties, variable, _semanticModel, syntax, isImplicit);
         }
 
         private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)

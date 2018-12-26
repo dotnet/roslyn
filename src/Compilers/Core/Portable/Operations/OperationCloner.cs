@@ -538,8 +538,15 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, object argument)
         {
             return new RecursivePatternOperation(
-                operation.InputType, operation.MatchedType, operation.DeconstructSymbol, VisitArray(operation.DeconstructionSubpatterns),
-                VisitArray(operation.PropertySubpatterns), operation.DeclaredSymbol, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
+                operation.InputType,
+                operation.MatchedType,
+                operation.DeconstructSymbol,
+                VisitArray(operation.DeconstructionSubpatterns),
+                VisitArray(operation.PropertySubpatterns),
+                operation.DeclaredSymbol,
+                ((Operation)operation).OwningSemanticModel,
+                operation.Syntax,
+                operation.IsImplicit);
         }
 
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, object argument)
