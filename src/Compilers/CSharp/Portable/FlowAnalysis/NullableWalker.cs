@@ -989,6 +989,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _variableTypes[variable] = expressionResultType;
                             TrackNullableStateForAssignment(expression, expressionResultType, GetOrCreateSlot(variable), expressionResultType);
                         }
+
+                        whenFalse = NullableAnnotation.NotNullable; // whenFalse is unreachable
                     }
                     else
                     {
