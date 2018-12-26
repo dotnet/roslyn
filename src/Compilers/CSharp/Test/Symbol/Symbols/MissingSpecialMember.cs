@@ -574,9 +574,11 @@ namespace System
                     case WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceStatus:
                     case WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags:
                     case WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T:
+                    case WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource:
                     case WellKnownType.System_Threading_Tasks_ValueTask_T:
                     case WellKnownType.System_Threading_Tasks_ValueTask:
                     case WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder:
+                    case WellKnownType.System_Threading_CancellationToken:
                     // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
@@ -904,10 +906,15 @@ namespace System
                     case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__Reset:
                     case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetResult:
                     case WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult:
                     case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus:
                     case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted:
-                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult:
-                    case WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetResult:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetStatus:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__OnCompleted:
+                    case WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken:
+                    case WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue:
+                    case WellKnownMember.System_Threading_Tasks_ValueTask__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete:

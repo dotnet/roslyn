@@ -442,6 +442,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>2__current";
         }
 
+        internal static string MakeDisposeModeFieldName()
+        {
+            Debug.Assert((char)GeneratedNameKind.DisposeModeField == 'w');
+            return "<>w__disposeMode";
+        }
+
         internal static string MakeIteratorCurrentThreadIdFieldName()
         {
             Debug.Assert((char)GeneratedNameKind.IteratorCurrentThreadIdField == 'l');

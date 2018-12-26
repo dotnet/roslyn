@@ -55,6 +55,13 @@
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dataflow" ]
+        },
+        "features/editorconfig-in-compiler": {
+            "nugetKind": ["Shipping", "NonShipping"],
+            "version": "2.11.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "editorconfig" ]
         }
     },
     "releases": {

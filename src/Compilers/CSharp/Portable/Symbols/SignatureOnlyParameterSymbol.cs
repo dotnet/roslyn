@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             RefKind refKind)
         {
-            Debug.Assert(type.TypeSymbol != null);
+            Debug.Assert((object)type.TypeSymbol != null);
             Debug.Assert(!refCustomModifiers.IsDefault);
 
             _type = type;
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var other = obj as SignatureOnlyParameterSymbol;
             return (object)other != null &&
-                _type.TypeSymbol == other._type.TypeSymbol &&
+                TypeSymbol.Equals(_type.TypeSymbol, other._type.TypeSymbol, TypeCompareKind.ConsiderEverything2) &&
                 _type.CustomModifiers.Equals(other._type.CustomModifiers) &&
                 _refCustomModifiers.SequenceEqual(other._refCustomModifiers) &&
                 _isParams == other._isParams &&

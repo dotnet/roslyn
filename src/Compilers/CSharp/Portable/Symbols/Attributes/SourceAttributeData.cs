@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 lazySystemType = GetSystemType(targetSymbol);
                             }
 
-                            foundMatch = parameterType == lazySystemType;
+                            foundMatch = TypeSymbol.Equals(parameterType, lazySystemType, TypeCompareKind.ConsiderEverything2);
                             k += 1;
                             break;
 

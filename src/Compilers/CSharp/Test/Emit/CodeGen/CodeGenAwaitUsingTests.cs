@@ -449,6 +449,42 @@ class C : System.IAsyncDisposable
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void TestThrowingDisposeAsync()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        try
+        {
+            await using (var x = new C())
+            {
+                System.Console.Write(""using "");
+            }
+        }
+        catch (System.Exception e)
+        {
+            System.Console.Write($""caught {e.Message}"");
+            return;
+        }
+        System.Console.Write(""SKIPPED"");
+    }
+    public async System.Threading.Tasks.ValueTask DisposeAsync()
+    {
+        bool b = true;
+        if (b) throw new System.Exception(""message"");
+        System.Console.Write(""SKIPPED"");
+        await System.Threading.Tasks.Task.Delay(10);
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "using caught message");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestRegularAwaitInFinallyBlock()
         {
             string source = @"

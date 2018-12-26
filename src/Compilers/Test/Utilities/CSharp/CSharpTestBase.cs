@@ -115,7 +115,7 @@ namespace System.Collections.Generic
 {
     public interface IAsyncEnumerable<out T>
     {
-        IAsyncEnumerator<T> GetAsyncEnumerator();
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token = default);
     }
 
     public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
@@ -411,12 +411,22 @@ namespace System.Runtime.CompilerServices
 
         protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
         {
-            return (options ?? TestOptions.ReleaseDll).WithNullable(true);
+            return WithNonNullTypes(options, NullableContextOptions.Enable);
         }
 
         protected static CSharpCompilationOptions WithNonNullTypesFalse(CSharpCompilationOptions options = null)
         {
-            return (options ?? TestOptions.ReleaseDll).WithNullable(false);
+            return WithNonNullTypes(options, NullableContextOptions.Disable);
+        }
+
+        protected static CSharpCompilationOptions WithNonNullTypes(NullableContextOptions nullableContextOptions)
+        {
+            return WithNonNullTypes(null, nullableContextOptions);
+        }
+
+        protected static CSharpCompilationOptions WithNonNullTypes(CSharpCompilationOptions options, NullableContextOptions nullableContextOptions)
+        {
+            return (options ?? TestOptions.ReleaseDll).WithNullableContextOptions(nullableContextOptions);
         }
 
         protected static string NonNullTypesOff()
@@ -2011,7 +2021,7 @@ namespace System.Collections.Generic
 {
     public interface IAsyncEnumerable<out T>
     {
-        IAsyncEnumerator<T> GetAsyncEnumerator();
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token = default);
     }
 
     public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
