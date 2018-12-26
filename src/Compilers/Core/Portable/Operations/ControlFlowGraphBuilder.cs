@@ -6608,6 +6608,17 @@ oneMoreTime:
             return new RangeOperation(operation.IsLifted, operation.IsImplicit, semanticModel: null, operation.Syntax, operation.Type, visitedLeftOperand, visitedRightOperand, operation.Method);
         }
 
+        public override IOperation VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation, int? argument)
+        {
+            IOperation visitedExpression = null;
+            if (!(operation.Expression is null))
+            {
+                visitedExpression = Visit(operation.Expression);
+            }
+
+            return new SuppressNullableWarningOperation(operation.IsImplicit, semanticModel: null, operation.Syntax, operation.Type, visitedExpression);
+        }
+
         public IOperation Visit(IOperation operation)
         {
             // We should never be revisiting nodes we've already visited, and we don't set SemanticModel in this builder.

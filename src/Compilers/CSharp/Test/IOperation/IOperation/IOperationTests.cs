@@ -22,14 +22,14 @@ class C
 {
 #nullable enable
     void M(string? x)
-    {
+    /*<bind>*/{
         x!.ToString();
-    }
+    }/*</bind>*/
 }");
             comp.VerifyDiagnostics();
 
             var m = comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
-            comp.VerifyOperationTree(m, expectedOperationTree: @"
+            var expectedOperationTree = @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x!.ToString();')
     Expression: 
@@ -38,7 +38,33 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
           ISuppressNullableWarningOperation (OperationKind.SuppressNullableWarning, Type: System.String) (Syntax: 'x!')
             Expression: 
               IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
-        Arguments(0)");
+        Arguments(0)";
+
+            var diagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, expectedOperationTree, diagnostics);
+
+            var expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x!.ToString();')
+          Expression: 
+            IInvocationOperation (virtual System.String System.String.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x!.ToString()')
+              Instance Receiver: 
+                ISuppressNullableWarningOperation (OperationKind.SuppressNullableWarning, Type: System.String) (Syntax: 'x!')
+                  Expression: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+              Arguments(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)";
+
+            VerifyFlowGraphForTest<BlockSyntax>(comp, expectedFlowGraph);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.RefLocalsReturns)]
