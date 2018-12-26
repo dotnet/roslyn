@@ -176,6 +176,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     bool hadNullabilityMismatch;
                     var bestType = BestTypeInferrer.GetBestType(typesOnly, conversions, out hadNullabilityMismatch, ref useSiteDiagnostics);
+
+
+                    // WIP: TODO: convert types to bestType to determine top-level nullabilities
+                    // WIP: TODO: merge the top-level nullabilities
+
                     // https://github.com/dotnet/roslyn/issues/30480: Should return `bestType` even if
                     // there was a nullability mismatch, and `hadNullabilityMismatch` should be available
                     // to the caller, and up through MethodTypeInferrer.Infer.

@@ -1387,10 +1387,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultBuilder.Add(resultType);
             }
 
-            bool checkConversions = true;
+            bool checkNestedNullability = true;
             // Consider recording in the BoundArrayCreation
             // whether the array was implicitly typed, rather than relying on syntax.
-            if (node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
+            bool isInferred = node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression;
+            if (isInferred)
             {
                 TypeSymbol bestType = null;
                 if (!node.HasErrors)
@@ -1407,29 +1408,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (hadNullabilityMismatch)
                     {
                         ReportSafetyDiagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, node.Syntax);
-                        checkConversions = false;
+                        checkNestedNullability = false;
                     }
                 }
-                if ((object)bestType == null)
+
+                if (bestType is null)
                 {
                     elementType = elementType.SetUnknownNullabilityForReferenceTypes();
-                    checkConversions = false;
+                    checkNestedNullability = false;
                 }
                 else
                 {
-                    elementType = TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(bestType, resultBuilder));
+                    elementType = TypeSymbolWithAnnotations.Create(bestType);
                 }
                 arrayType = arrayType.WithElementType(elementType);
             }
 
-            if (checkConversions && !elementType.IsValueType)
+            if (checkNestedNullability && !elementType.IsValueType)
             {
+                // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
                 for (int i = 0; i < n; i++)
                 {
                     var conversion = conversionBuilder[i];
                     var element = elementBuilder[i];
                     var resultType = resultBuilder[i];
-                    ApplyConversion(element, element, conversion, elementType, resultType, checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment);
+                    var obliviousBestType = elementType;
+                    resultBuilder[i] = ApplyConversion(element, element, conversion, obliviousBestType, resultType, checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportTopLevelWarnings: false);
+                }
+
+                if (isInferred)
+                {
+                    // Set top-level nullability on inferred element type
+                    TypeSymbol bestType = elementType.TypeSymbol;
+                    elementType = TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(bestType, resultBuilder));
+
+                    arrayType = arrayType.WithElementType(elementType);
+                }
+
+                for (int i = 0; i < n; i++)
+                {
+                    var element = elementBuilder[i];
+                    var resultType = resultBuilder[i];
+                    // Report top-level warnings
+                    _ = ApplyConversion(element, operandOpt: null, Conversion.Identity, targetTypeWithNullability: elementType, operandType: resultType, checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportNestedWarnings: false);
                 }
             }
 

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -12,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static NullableAnnotation GetNullableAnnotation(TypeSymbol bestType, ArrayBuilder<TypeSymbolWithAnnotations> types)
         {
-            bool bestTypeIsPossiblyNullableReferenceTypeTypeParameter = bestType.IsPossiblyNullableReferenceTypeTypeParameter();
             NullableAnnotation result = NullableAnnotation.NotAnnotated;
             foreach (var type in types)
             {

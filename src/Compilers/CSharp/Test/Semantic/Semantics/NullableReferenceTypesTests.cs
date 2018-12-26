@@ -197,6 +197,9 @@ class C
 }";
             var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
+                // (7,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         var t2 = new[] { t, null };
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 29),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         t2[0].ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2[0]").WithLocation(8, 9)
@@ -310,6 +313,45 @@ class C
                 // (21,9): warning CS8602: Possible dereference of a null reference.
                 //         x2.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(21, 9)
+                );
+        }
+
+        [Fact]
+        public void SpeakableInference_LambdaReturnTypeInference_ConversionWithNullableOutput()
+        {
+            // TODO
+            var source =
+@"class A
+{
+    public static implicit operator C?(A a) => new C();
+}
+class B : A
+{
+}
+class C
+{
+    void M(B x, C y)
+    {
+        var x1 = F(() =>
+        {
+            bool b = true;
+            if (b) return x;
+            return y;
+        });
+        x1.ToString();
+
+        //var x2 = F(() =>
+        //{
+        //    bool b = true;
+        //    if (b) return y;
+        //    return x;
+        //});
+        //x2.ToString();
+    }
+    T F<T>(System.Func<T> f) => throw null;
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
                 );
         }
 
@@ -8315,9 +8357,9 @@ class C
                 // (17,14): warning CS8639: No best nullability found for implicitly-typed array.
                 //         G(x, new[] { x, y, z });
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x, y, z }").WithLocation(17, 14),
-                // (17,14): warning CS8620: Nullability of reference types in argument of type 'I<object>?[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                // (17,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(x, new[] { x, y, z });
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, y, z }").WithArguments("I<object>?[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(17, 14),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, y, z }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(17, 14),
                 // (18,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(y: new[] { x, x }, x: y);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, x }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(18, 14),
@@ -18895,15 +18937,9 @@ class C
                 // (8,21): warning CS8639: No best nullability found for implicitly-typed array.
                 //             var c = new[] { a, b };
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { a, b }").WithLocation(8, 21),
-                // (9,13): warning CS8602: Possible dereference of a null reference.
-                //             c[0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c[0]").WithLocation(9, 13),
                 // (10,21): warning CS8639: No best nullability found for implicitly-typed array.
                 //             var d = new[] { b, a };
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { b, a }").WithLocation(10, 21),
-                // (11,13): warning CS8602: Possible dereference of a null reference.
-                //             d[0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "d[0]").WithLocation(11, 13),
                 // (15,21): warning CS8639: No best nullability found for implicitly-typed array.
                 //             var c = new[] { a, b };
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { a, b }").WithLocation(15, 21),
@@ -19033,14 +19069,14 @@ class Program
     {
         var z = Create(A.F); // B<object~>
         object o;
-        o = (new[] { x, y })[0]/*T:B<object!>!*/;
+        o = (new[] { x, y })[0]/*T:B<object!>*/;
         o = (new[] { x, z })[0]/*T:B<object?>!*/;
-        o = (new[] { y, x })[0]/*T:B<object!>!*/;
+        o = (new[] { y, x })[0]/*T:B<object!>*/;
         o = (new[] { y, z })[0]/*T:B<object!>!*/;
         o = (new[] { z, x })[0]/*T:B<object?>!*/;
         o = (new[] { z, y })[0]/*T:B<object!>!*/;
-        o = (new[] { x, y, z })[0]/*T:B<object!>!*/;
-        o = (new[] { z, y, x })[0]/*T:B<object!>!*/;
+        o = (new[] { x, y, z })[0]/*T:B<object!>*/;
+        o = (new[] { z, y, x })[0]/*T:B<object!>*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -19085,9 +19121,9 @@ class C
         var z = CreateI(A.F)/*T:I<object>!*/;
         object o;
         o = (new[] { x, x })[0]/*T:I<object!>!*/;
-        o = (new[] { x, y })[0]/*T:I<object!>!*/;
+        o = (new[] { x, y })[0]/*T:I<object!>*/; // 1
         o = (new[] { x, z })[0]/*T:I<object!>!*/;
-        o = (new[] { y, x })[0]/*T:I<object!>!*/;
+        o = (new[] { y, x })[0]/*T:I<object!>*/; // 2
         o = (new[] { y, y })[0]/*T:I<object?>!*/;
         o = (new[] { y, z })[0]/*T:I<object?>!*/;
         o = (new[] { z, x })[0]/*T:I<object!>!*/;
@@ -19128,10 +19164,10 @@ class C
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics(
                 // (12,14): warning CS8639: No best nullability found for implicitly-typed array.
-                //         o = (new[] { x, y })[0]/*T:I<object>!*/;
+                //         o = (new[] { x, y })[0]/*T:I<object!>*/; // 1
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x, y }").WithLocation(12, 14),
                 // (14,14): warning CS8639: No best nullability found for implicitly-typed array.
-                //         o = (new[] { y, x })[0]/*T:I<object>!*/;
+                //         o = (new[] { y, x })[0]/*T:I<object!>*/; // 2
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { y, x }").WithLocation(14, 14));
             comp.VerifyTypes();
         }
@@ -19162,9 +19198,9 @@ class C
         var z1 = Create1(A.F)/*T:I<IOut<string>!>!*/;
         object o;
         o = (new [] { x1, x1 })[0]/*T:I<IOut<string?>!>!*/;
-        o = (new [] { x1, y1 })[0]/*T:I<IOut<string!>!>!*/; // 1
+        o = (new [] { x1, y1 })[0]/*T:I<IOut<string!>!>*/; // 1
         o = (new [] { x1, z1 })[0]/*T:I<IOut<string?>!>!*/;
-        o = (new [] { y1, x1 })[0]/*T:I<IOut<string!>!>!*/; // 2
+        o = (new [] { y1, x1 })[0]/*T:I<IOut<string!>!>*/; // 2
         o = (new [] { y1, y1 })[0]/*T:I<IOut<string!>!>!*/;
         o = (new [] { y1, z1 })[0]/*T:I<IOut<string!>!>!*/;
         o = (new [] { z1, x1 })[0]/*T:I<IOut<string?>!>!*/;
@@ -19244,9 +19280,9 @@ class C
         var z0 = CreateINone(A.F1)/*T:B<object>.INone!*/;
         object o;
         o = (new[] { x0, x0 })[0]/*T:B<object!>.INone!*/;
-        o = (new[] { x0, y0 })[0]/*T:B<object!>.INone!*/;
+        o = (new[] { x0, y0 })[0]/*T:B<object!>.INone*/; // 1
         o = (new[] { x0, z0 })[0]/*T:B<object!>.INone!*/;
-        o = (new[] { y0, x0 })[0]/*T:B<object!>.INone!*/;
+        o = (new[] { y0, x0 })[0]/*T:B<object!>.INone*/; // 2
         o = (new[] { y0, y0 })[0]/*T:B<object?>.INone!*/;
         o = (new[] { y0, z0 })[0]/*T:B<object?>.INone!*/;
         o = (new[] { z0, x0 })[0]/*T:B<object!>.INone!*/;
@@ -19259,9 +19295,9 @@ class C
         var z1 = CreateI(A.F1, A.F2)/*T:B<object>.I<string>!*/;
         object o;
         o = (new[] { x1, x1 })[0]/*T:B<object!>.I<string!>!*/;
-        o = (new[] { x1, y1 })[0]/*T:B<object!>.I<string!>!*/;
+        o = (new[] { x1, y1 })[0]/*T:B<object!>.I<string!>*/; // 3
         o = (new[] { x1, z1 })[0]/*T:B<object!>.I<string!>!*/;
-        o = (new[] { y1, x1 })[0]/*T:B<object!>.I<string!>!*/;
+        o = (new[] { y1, x1 })[0]/*T:B<object!>.I<string!>*/; // 4
         o = (new[] { y1, y1 })[0]/*T:B<object?>.I<string?>!*/;
         o = (new[] { y1, z1 })[0]/*T:B<object?>.I<string?>!*/;
         o = (new[] { z1, x1 })[0]/*T:B<object!>.I<string!>!*/;
@@ -19274,9 +19310,9 @@ class C
         var z2 = CreateIIn(A.F1, A.F2)/*T:B<object>.IIn<string>!*/;
         object o;
         o = (new[] { x2, x2 })[0]/*T:B<object!>.IIn<string!>!*/;
-        o = (new[] { x2, y2 })[0]/*T:B<object!>.IIn<string!>!*/;
+        o = (new[] { x2, y2 })[0]/*T:B<object!>.IIn<string!>*/; // 5
         o = (new[] { x2, z2 })[0]/*T:B<object!>.IIn<string!>!*/;
-        o = (new[] { y2, x2 })[0]/*T:B<object!>.IIn<string!>!*/;
+        o = (new[] { y2, x2 })[0]/*T:B<object!>.IIn<string!>*/; // 6
         o = (new[] { y2, y2 })[0]/*T:B<object?>.IIn<string?>!*/;
         o = (new[] { y2, z2 })[0]/*T:B<object?>.IIn<string>!*/;
         o = (new[] { z2, x2 })[0]/*T:B<object!>.IIn<string!>!*/;
@@ -19289,9 +19325,9 @@ class C
         var z3 = CreateIOut(A.F1, A.F2)/*T:B<object>.IOut<string>!*/;
         object o;
         o = (new[] { x3, x3 })[0]/*T:B<object!>.IOut<string!>!*/;
-        o = (new[] { x3, y3 })[0]/*T:B<object!>.IOut<string?>!*/;
+        o = (new[] { x3, y3 })[0]/*T:B<object!>.IOut<string?>*/; // 7
         o = (new[] { x3, z3 })[0]/*T:B<object!>.IOut<string>!*/;
-        o = (new[] { y3, x3 })[0]/*T:B<object!>.IOut<string?>!*/;
+        o = (new[] { y3, x3 })[0]/*T:B<object!>.IOut<string?>*/; // 8
         o = (new[] { y3, y3 })[0]/*T:B<object?>.IOut<string?>!*/;
         o = (new[] { y3, z3 })[0]/*T:B<object?>.IOut<string?>!*/;
         o = (new[] { z3, x3 })[0]/*T:B<object!>.IOut<string>!*/;
@@ -19302,28 +19338,28 @@ class C
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics(
                 // (17,14): warning CS8639: No best nullability found for implicitly-typed array.
-                //         o = (new[] { x0, y0 })[0]/*T:B<object>.INone!*/;
+                //         o = (new[] { x0, y0 })[0]/*T:B<object!>.INone*/; // 1
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x0, y0 }").WithLocation(17, 14),
                 // (19,14): warning CS8639: No best nullability found for implicitly-typed array.
-                //         o = (new[] { y0, x0 })[0]/*T:B<object>.INone!*/;
+                //         o = (new[] { y0, x0 })[0]/*T:B<object!>.INone*/; // 2
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { y0, x0 }").WithLocation(19, 14),
                 // (32,14): warning CS8639: No best nullability found for implicitly-typed array.
-                //         o = (new[] { x1, y1 })[0]/*T:B<object>.I<string>!*/;
+                //         o = (new[] { x1, y1 })[0]/*T:B<object!>.I<string!>*/; // 3
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x1, y1 }").WithLocation(32, 14),
                 // (34,14): warning CS8639: No best nullability found for implicitly-typed array.
-                //         o = (new[] { y1, x1 })[0]/*T:B<object>.I<string>!*/;
+                //         o = (new[] { y1, x1 })[0]/*T:B<object!>.I<string!>*/; // 4
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { y1, x1 }").WithLocation(34, 14),
                 // (47,14): warning CS8639: No best nullability found for implicitly-typed array.
-                //         o = (new[] { x2, y2 })[0]/*T:B<object>.IIn<string!>!*/;
+                //         o = (new[] { x2, y2 })[0]/*T:B<object!>.IIn<string!>*/; // 5
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x2, y2 }").WithLocation(47, 14),
                 // (49,14): warning CS8639: No best nullability found for implicitly-typed array.
-                //         o = (new[] { y2, x2 })[0]/*T:B<object>.IIn<string!>!*/;
+                //         o = (new[] { y2, x2 })[0]/*T:B<object!>.IIn<string!>*/; // 6
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { y2, x2 }").WithLocation(49, 14),
                 // (62,14): warning CS8639: No best nullability found for implicitly-typed array.
-                //         o = (new[] { x3, y3 })[0]/*T:B<object>.IOut<string?>!*/;
+                //         o = (new[] { x3, y3 })[0]/*T:B<object!>.IOut<string?>*/; // 7
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x3, y3 }").WithLocation(62, 14),
                 // (64,14): warning CS8639: No best nullability found for implicitly-typed array.
-                //         o = (new[] { y3, x3 })[0]/*T:B<object>.IOut<string?>!*/;
+                //         o = (new[] { y3, x3 })[0]/*T:B<object!>.IOut<string?>*/; // 8
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { y3, x3 }").WithLocation(64, 14));
             comp.VerifyTypes();
         }
@@ -19424,24 +19460,15 @@ class C
                 // (10,10): warning CS8639: No best nullability found for implicitly-typed array.
                 //         (new[] { x, w })[0].ToString(); // A3
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x, w }").WithLocation(10, 10),
-                // (10,9): warning CS8602: Possible dereference of a null reference.
-                //         (new[] { x, w })[0].ToString(); // A3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, w })[0]").WithLocation(10, 9),
                 // (11,10): warning CS8639: No best nullability found for implicitly-typed array.
                 //         (new[] { y, z })[0].ToString(); // A4
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { y, z }").WithLocation(11, 10),
-                // (11,9): warning CS8602: Possible dereference of a null reference.
-                //         (new[] { y, z })[0].ToString(); // A4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { y, z })[0]").WithLocation(11, 9),
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         (new[] { y, w })[0].ToString(); // A5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { y, w })[0]").WithLocation(12, 9),
                 // (13,10): warning CS8639: No best nullability found for implicitly-typed array.
                 //         (new[] { w, z })[0].ToString(); // A6
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { w, z }").WithLocation(13, 10),
-                // (13,9): warning CS8602: Possible dereference of a null reference.
-                //         (new[] { w, z })[0].ToString(); // A6
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { w, z })[0]").WithLocation(13, 9),
                 // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         (new[] { x, z })[0].ToString(); // B2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, z })[0]").WithLocation(18, 9),
@@ -19703,6 +19730,58 @@ class C
                 // (13,9): warning CS8602: Possible dereference of a null reference.
                 //         (new[] { y, x })[0].ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { y, x })[0]").WithLocation(13, 9));
+        }
+
+        [Fact]
+        public void MultipleConversions_ArrayInitializer_ConversionWithNullableOutput()
+        {
+            var source =
+@"class A
+{
+    public static implicit operator C?(A a) => new C();
+}
+class B : A
+{
+}
+class C
+{
+    static void F(B x, C y)
+    {
+        (new[] { x, y })[0].ToString();
+        (new[] { y, x })[0].ToString();
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { x, y })[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, y })[0]").WithLocation(12, 9),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { y, x })[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { y, x })[0]").WithLocation(13, 9));
+        }
+
+        [Fact]
+        public void MultipleConversions_ArrayInitializer_ConversionWithNullableInput()
+        {
+            var source =
+@"class A
+{
+    public static implicit operator C(A? a) => new C();
+}
+class B : A
+{
+}
+class C
+{
+    static void F(B? x, C y)
+    {
+        (new[] { x, y })[0].ToString();
+        (new[] { y, x })[0].ToString();
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
