@@ -41,7 +41,7 @@ param (
     [switch]$deployExtensions,
     [switch]$prepareMachine,
     [switch]$useGlobalNuGetCache = $true,
-    [switch]$warnAsError = $true,
+    [switch]$warnAsError,
 
     # Test actions
     [switch]$test32,
