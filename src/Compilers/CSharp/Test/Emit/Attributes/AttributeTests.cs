@@ -2320,7 +2320,7 @@ class C
                 // 1) Has return type attributes from delegate declaration syntax
                 // 2) Has parameter attributes from delegate declaration syntax
                 var invokeMethod = delegateType.GetMethod("Invoke");
-                Assert.Equal(1, invokeMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == returnTypeAttrType).Count());
+                Assert.Equal(1, invokeMethod.GetReturnTypeAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, returnTypeAttrType, TypeCompareKind.ConsiderEverything2)).Count());
                 Assert.Equal(typeParameters[0], invokeMethod.ReturnType.TypeSymbol);
                 var parameters = invokeMethod.GetParameters();
                 Assert.Equal(3, parameters.Length);
@@ -2362,7 +2362,7 @@ class C
                 // 2) Has parameter attributes from delegate declaration syntax
                 //    only for ref/out parameters.
                 var endInvokeMethod = (MethodSymbol)delegateType.GetMember("EndInvoke");
-                Assert.Equal(1, endInvokeMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == returnTypeAttrType).Count());
+                Assert.Equal(1, endInvokeMethod.GetReturnTypeAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, returnTypeAttrType, TypeCompareKind.ConsiderEverything2)).Count());
                 parameters = endInvokeMethod.GetParameters();
                 Assert.Equal(3, parameters.Length);
                 Assert.Equal("p2", parameters[0].Name);
@@ -3453,7 +3453,7 @@ namespace AttributeTest
                 attr = attrs.First();
                 Assert.Equal("AttributeTest.TestAttributeForParam", attr.AttributeClass.ToDisplayString());
 
-                attrs = setter.GetReturnTypeAttributes().Where(a => a.AttributeClass == attributeTypeForReturn);
+                attrs = setter.GetReturnTypeAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, attributeTypeForReturn, TypeCompareKind.ConsiderEverything2));
                 Assert.Equal(1, attrs.Count());
                 attr = attrs.First();
                 Assert.Equal("AttributeTest.TestAttributeForReturn", attr.AttributeClass.ToDisplayString());
@@ -3467,7 +3467,7 @@ namespace AttributeTest
                 attr = attrs.First();
                 Assert.Equal("AttributeTest.TestAttributeForMethod", attr.AttributeClass.ToDisplayString());
 
-                attrs = getter.GetReturnTypeAttributes().Where(a => a.AttributeClass == attributeTypeForReturn);
+                attrs = getter.GetReturnTypeAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, attributeTypeForReturn, TypeCompareKind.ConsiderEverything2));
                 Assert.Equal(1, attrs.Count());
                 attr = attrs.First();
                 Assert.Equal("AttributeTest.TestAttributeForReturn", attr.AttributeClass.ToDisplayString());
@@ -4274,8 +4274,8 @@ partial class Program
             Assert.Equal(1, gooMethod.GetAttributes(a1Class).Count());
             Assert.Equal(1, gooMethod.GetAttributes(a2Class).Count());
 
-            Assert.Equal(1, gooMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == b1Class).Count());
-            Assert.Equal(1, gooMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == b2Class).Count());
+            Assert.Equal(1, gooMethod.GetReturnTypeAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, b1Class, TypeCompareKind.ConsiderEverything2)).Count());
+            Assert.Equal(1, gooMethod.GetReturnTypeAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, b2Class, TypeCompareKind.ConsiderEverything2)).Count());
 
             var typeParam1 = gooMethod.TypeParameters[0];
             Assert.Equal(1, typeParam1.GetAttributes(c1Class).Count());

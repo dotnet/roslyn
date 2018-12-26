@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var constantValue = pattern.ConstantValue;
                         if (!hasErrors &&
                             (object)constantValue != null &&
-                            pattern.Value.Type == SwitchGoverningType &&
+                            TypeSymbol.Equals(pattern.Value.Type, SwitchGoverningType, TypeCompareKind.ConsiderEverything2) &&
                             this.FindMatchingSwitchCaseLabel(constantValue, caseLabelSyntax) != label)
                         {
                             diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, pattern.ConstantValue.GetValueToDisplay() ?? label.Name);

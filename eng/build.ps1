@@ -41,6 +41,7 @@ param (
     [switch]$deployExtensions,
     [switch]$prepareMachine,
     [switch]$useGlobalNuGetCache = $true,
+    [switch]$warnAsError = $true,
 
     # Test actions
     [switch]$test32,
@@ -153,6 +154,9 @@ function BuildSolution() {
     $toolsetBuildProj = InitializeToolset
     $quietRestore = !$ci
     $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" }
+    
+    # Do not set the property to true explicitly, since that would override value projects might set.
+    $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
 
     MSBuild $toolsetBuildProj `
         $bl `
@@ -167,13 +171,13 @@ function BuildSolution() {
         /p:Sign=$sign `
         /p:Publish=$publish `
         /p:ContinuousIntegrationBuild=$ci `
-        /p:DeployExtension=$deployExtensions `
         /p:OfficialBuildId=$officialBuildId `
         /p:UseRoslynAnalyzers=$enableAnalyzers `
         /p:BootstrapBuildPath=$bootstrapDir `
         /p:QuietRestore=$quietRestore `
         /p:QuietRestoreBinaryLog=$binaryLog `
         /p:TestTargetFrameworks=$testTargetFrameworks `
+        $suppressExtensionDeployment `
         @properties
 }
 
@@ -206,6 +210,12 @@ function TestUsingOptimizedRunner() {
 
     if ($testVsi) {
         Deploy-VsixViaTool
+
+        if ($ci) {
+            # Minimize all windows to avoid interference during integration test runs
+            $shell = New-Object -ComObject "Shell.Application"
+            $shell.MinimizeAll()
+        }
     }
 
     if ($testIOperation) {

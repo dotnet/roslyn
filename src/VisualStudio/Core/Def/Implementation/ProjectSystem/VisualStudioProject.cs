@@ -19,7 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
-        private readonly string _projectUniqueName;
 
         /// <summary>
         /// Provides dynamic source files for files added through <see cref="AddDynamicSourceFile" />.
@@ -119,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             ProjectId id,
-            string projectUniqueName,
+            string displayName,
             string language,
             string directoryNameOpt)
         {
@@ -129,8 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             Id = id;
             Language = language;
-            _displayName = projectUniqueName;
-            _projectUniqueName = projectUniqueName;
+            _displayName = displayName;
 
             if (directoryNameOpt != null)
             {

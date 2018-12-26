@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var arg = node.Indices[0];
                 var index = Visit(arg);
-                if (index.Type != _int32Type)
+                if (!TypeSymbol.Equals(index.Type, _int32Type, TypeCompareKind.ConsiderEverything2))
                 {
                     index = ConvertIndex(index, arg.Type, _int32Type);
                 }
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var arg in expressions)
             {
                 var index = Visit(arg);
-                if (index.Type != _int32Type)
+                if (!TypeSymbol.Equals(index.Type, _int32Type, TypeCompareKind.ConsiderEverything2))
                 {
                     index = ConvertIndex(index, arg.Type, _int32Type);
                 }
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return
                 ((object)methodOpt == null) ? ExprFactory(opName, loweredLeft, loweredRight) :
-                    requiresLifted ? ExprFactory(opName, loweredLeft, loweredRight, _bound.Literal(isLifted && methodOpt.ReturnType.TypeSymbol != type), _bound.MethodInfo(methodOpt)) :
+                    requiresLifted ? ExprFactory(opName, loweredLeft, loweredRight, _bound.Literal(isLifted && !TypeSymbol.Equals(methodOpt.ReturnType.TypeSymbol, type, TypeCompareKind.ConsiderEverything2)), _bound.MethodInfo(methodOpt)) :
                         ExprFactory(opName, loweredLeft, loweredRight, _bound.MethodInfo(methodOpt));
         }
 
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var promotedType = e.IsNullableType() ? _nullableType.Construct(PromotedType(e.GetNullableUnderlyingType())) : PromotedType(e);
-                if (promotedType != type)
+                if (!TypeSymbol.Equals(promotedType, type, TypeCompareKind.ConsiderEverything2))
                 {
                     return Convert(node, type, isChecked);
                 }
@@ -618,9 +618,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var operandType = node.Operand.Type;
                         var strippedOperandType = operandType.StrippedType();
                         var conversionInputType = method.Parameters[0].Type.TypeSymbol;
-                        var isLifted = operandType != conversionInputType && strippedOperandType == conversionInputType;
+                        var isLifted = !TypeSymbol.Equals(operandType, conversionInputType, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(strippedOperandType, conversionInputType, TypeCompareKind.ConsiderEverything2);
                         bool requireAdditionalCast =
-                            strippedOperandType != ((node.ConversionKind == ConversionKind.ExplicitUserDefined) ? conversionInputType : conversionInputType.StrippedType());
+                            !TypeSymbol.Equals(strippedOperandType, ((node.ConversionKind == ConversionKind.ExplicitUserDefined) ? conversionInputType : conversionInputType.StrippedType()), TypeCompareKind.ConsiderEverything2);
                         var resultType = (isLifted && method.ReturnType.TypeSymbol.IsNonNullableValueType() && node.Type.IsNullableType()) ?
                                             _nullableType.Construct(method.ReturnType.TypeSymbol) : method.ReturnType.TypeSymbol;
                         var e1 = requireAdditionalCast
@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression Convert(BoundExpression operand, TypeSymbol oldType, TypeSymbol newType, bool isChecked, bool isExplicit)
         {
-            return (oldType == newType && !isExplicit) ? operand : Convert(operand, newType, isChecked);
+            return (TypeSymbol.Equals(oldType, newType, TypeCompareKind.ConsiderEverything2) && !isExplicit) ? operand : Convert(operand, newType, isChecked);
         }
 
         private BoundExpression Convert(BoundExpression expr, TypeSymbol type, bool isChecked)
