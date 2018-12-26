@@ -1686,7 +1686,7 @@ class Test
 
             verifier = CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: @"2");
 
-            // NOTE: two separate histed int locals: 
+            // NOTE: two separate hoisted int locals: 
             //       int Test.<MainAsync>d__1.<a>5__1  and  
             //       int Test.<MainAsync>d__1.<b>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
@@ -2011,7 +2011,7 @@ class Test
 
             verifier = CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: @"2");
 
-            // NOTE: two separate histed int locals: 
+            // NOTE: two separate hoisted int locals: 
             //       int Test.<MainAsync>d__1.<a>5__1  and  
             //       int Test.<MainAsync>d__1.<b>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",

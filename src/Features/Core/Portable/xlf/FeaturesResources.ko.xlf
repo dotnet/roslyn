@@ -357,11 +357,6 @@
         <target state="new">Wrap expression</target>
         <note />
       </trans-unit>
-      <trans-unit id="Wrap_expression_including_operators">
-        <source>Wrap expression (including operators)</source>
-        <target state="new">Wrap expression (including operators)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="new">Wrap long argument list</target>
@@ -370,6 +365,11 @@
       <trans-unit id="Wrap_long_parameter_list">
         <source>Wrap long parameter list</source>
         <target state="new">Wrap long parameter list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping">
+        <source>Wrapping</source>
+        <target state="new">Wrapping</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_can_be_simplified">

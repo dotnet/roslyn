@@ -1129,7 +1129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     fixedPatternMethod = GetFixedPatternMethodOpt(initializerOpt, additionalDiagnostics);
 
                     // check for String
-                    // NOTE: We will allow the pattern method to take precendence, but only if it is an instance member of System.String
+                    // NOTE: We will allow the pattern method to take precedence, but only if it is an instance member of System.String
                     if (initializerType.SpecialType == SpecialType.System_String &&
                         ((object)fixedPatternMethod == null || fixedPatternMethod.ContainingType.SpecialType != SpecialType.System_String))
                     {
@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                // we have succeeded or almost succeded to bind the method
+                // we have succeeded or almost succeeded to bind the method
                 // report additional binding diagnostics that we have seen so far
                 additionalDiagnostics.AddRange(bindingDiagnostics);
 

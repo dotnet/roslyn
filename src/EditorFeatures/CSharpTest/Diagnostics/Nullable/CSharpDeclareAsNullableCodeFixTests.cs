@@ -372,5 +372,105 @@ class Program
     }
 }", parameters: s_nullableFeature);
         }
+
+        [Fact]
+        public async Task FixReturnType_Iterator_Enumerable()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    static System.Collections.Generic.IEnumerable<string> M()
+    {
+        yield return [|null|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    static System.Collections.Generic.IEnumerable<string?> M()
+    {
+        yield return null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixReturnType_Iterator_Enumerator()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    static System.Collections.Generic.IEnumerator<string> M()
+    {
+        yield return [|null|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    static System.Collections.Generic.IEnumerator<string?> M()
+    {
+        yield return null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixReturnType_IteratorProperty()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    System.Collections.Generic.IEnumerable<string> Property
+    {
+        get
+        {
+            yield return [|null|];
+        }
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    System.Collections.Generic.IEnumerable<string?> Property
+    {
+        get
+        {
+            yield return null;
+        }
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixReturnType_Iterator_LocalFunction()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        System.Collections.Generic.IEnumerable<string> local()
+        {
+            yield return [|null|];
+        }
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        System.Collections.Generic.IEnumerable<string?> local()
+        {
+            yield return null;
+        }
+    }
+}", parameters: s_nullableFeature);
+        }
     }
 }

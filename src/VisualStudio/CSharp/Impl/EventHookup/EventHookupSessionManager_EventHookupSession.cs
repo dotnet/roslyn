@@ -116,6 +116,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                         async t =>
                         {
                             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
+                            _cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
                             if (t.Result != null)
                             {
                                 commandHandler.EventHookupSessionManager.EventHookupFoundInSession(this);

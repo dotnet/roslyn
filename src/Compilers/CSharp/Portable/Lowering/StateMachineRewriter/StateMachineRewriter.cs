@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var synthesizedKind = local.SynthesizedKind;
             var optimizationLevel = F.Compilation.Options.OptimizationLevel;
 
-            // do not preallocate proxiy fields for user defined locals in release
+            // do not preallocate proxy fields for user defined locals in release
             // otherwise we will be allocating fields for all locals even when fields can be reused
             // see https://github.com/dotnet/roslyn/issues/15290
             if (optimizationLevel == OptimizationLevel.Release && synthesizedKind == SynthesizedLocalKind.UserDefined)
