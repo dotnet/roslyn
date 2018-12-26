@@ -1465,8 +1465,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hadNullabilityMismatch = false;
                 return this;
             }
-            TypeSymbol underlyingType = _underlyingType.MergeNullability(otherTuple._underlyingType, variance, out hadNullabilityMismatch);
-            return WithUnderlyingType((NamedTypeSymbol)underlyingType);
+            NamedTypeSymbol underlyingType;
+            if (MergeUnderlyingTypeNullability(_underlyingType, otherTuple._underlyingType, variance, out underlyingType, out hadNullabilityMismatch))
+            {
+                return WithUnderlyingType(underlyingType);
+            }
+            return this;
+        }
+
+        private static bool MergeUnderlyingTypeNullability(
+            NamedTypeSymbol typeA,
+            NamedTypeSymbol typeB,
+            VarianceKind variance,
+            out NamedTypeSymbol mergedType,
+            out bool hadNullabilityMismatch)
+        {
+            Debug.Assert(typeA.Equals(typeB, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+
+            hadNullabilityMismatch = false;
+            mergedType = null;
+
+            var typeDefinition = typeA.OriginalDefinition;
+            var typeParameters = typeDefinition.TypeParameters;
+            int n = typeParameters.Length;
+            var allTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
+
+            var typeArgumentsA = typeA.TypeArgumentsNoUseSiteDiagnostics;
+            var typeArgumentsB = typeB.TypeArgumentsNoUseSiteDiagnostics;
+            bool haveChanges = false;
+            for (int i = 0; i < n; i++)
+            {
+                TypeSymbolWithAnnotations typeArgumentA = typeArgumentsA[i];
+                TypeSymbolWithAnnotations typeArgumentB = typeArgumentsB[i];
+                TypeSymbolWithAnnotations merged = typeArgumentA.MergeNullability(typeArgumentB, variance, out bool hadMismatch);
+                hadNullabilityMismatch |= hadMismatch;
+                allTypeArguments.Add(merged);
+                if (!typeArgumentA.IsSameAs(merged))
+                {
+                    haveChanges = true;
+                }
+            }
+
+            if (haveChanges)
+            {
+                TypeMap substitution = new TypeMap(typeParameters, allTypeArguments.ToImmutable());
+                mergedType = substitution.SubstituteNamedType(typeDefinition);
+            }
+
+            allTypeArguments.Free();
+            return haveChanges;
         }
 
         #region Use-Site Diagnostics

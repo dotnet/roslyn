@@ -594,11 +594,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (useLegacyWarnings)
                 {
-                    ReportNonSafetyDiagnostic(value.Syntax);
+                    ReportNonSafetyDiagnostic(expr.Syntax);
                 }
                 else
                 {
-                    ReportSafetyDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, value.Syntax);
+                    ReportSafetyDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, expr.Syntax);
                 }
                 return true;
             }
