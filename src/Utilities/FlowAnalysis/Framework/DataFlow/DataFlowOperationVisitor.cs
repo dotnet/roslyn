@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 var invocationInstance = analysisContext.InterproceduralAnalysisDataOpt.InvocationInstanceOpt.Value;
                 ThisOrMePointsToAbstractValue = invocationInstance.PointsToValue;
-                interproceduralInvocationInstanceOpt = invocationInstance.Instance;
+                interproceduralInvocationInstanceOpt = invocationInstance.InstanceOpt;
             }
             else
             {
@@ -1434,6 +1434,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         #region Interprocedural analysis
 
+        protected virtual TAnalysisData GetInitialInterproceduralAnalysisData(
+            IMethodSymbol invokedMethod,
+            (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
+            (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCallerOpt,
+            ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> arguments,
+            IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
+            IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
+            bool isLambdaOrLocalFunction)
+            => GetClonedCurrentAnalysisData();
+
+        protected virtual void ApplyInterproceduralAnalysisResult(TAnalysisData resultData, bool isLambdaOrLocalFunction)
+            => CurrentAnalysisData = resultData;
+
         protected bool TryGetInterproceduralAnalysisResult(IOperation operation, out TAnalysisResult analysisResult)
         {
             if (_interproceduralResultsBuilder.TryGetValue(operation, out var computedAnalysisResult))
@@ -1538,7 +1551,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Update the current analysis data based on interprocedural analysis result.
             if (isContextSensitive)
             {
-                CurrentAnalysisData = GetAnalysisDataAtBlockEnd(analysisResult, cfg.GetExit());
+                var resultData = GetAnalysisDataAtBlockEnd(analysisResult, cfg.GetExit());
+                ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction);
                 Debug.Assert(arguments.All(arg => !_pendingArgumentsToReset.Contains(arg)));
             }
             else
@@ -1591,18 +1605,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> ComputeInterproceduralAnalysisData()
             {
-                // TODO(Perf): https://github.com/dotnet/roslyn-analyzers/issues/1811
-                // For non-lambda/local function invocations, we should remove the part of data that
-                // is not accessible in the callee and add it back to result data.
-                // This will avoid duplicate interprocedural analysis for cases where initial analysis data
-                // just differs by non-accessible part of data.
-                var initialAnalysisData = GetClonedCurrentAnalysisData();
+                var invocationInstance = GetInvocationInstance();
+                var thisOrMeInstance = GetThisOrMeInstance();
+                var argumentValues = GetArgumentValues();
+                var pointsToValuesOpt = pointsToAnalysisResultOpt?[cfg.GetEntry()].InputData;
+                var copyValuesOpt = copyAnalysisResultOpt?[cfg.GetEntry()].InputData;
+                var initialAnalysisData = GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstance,
+                    thisOrMeInstance, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction);
 
                 return new InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>(
                     initialAnalysisData,
-                    GetInvocationInstance(),
-                    GetThisOrMeInstance(),
-                    GetArgumentValues(),
+                    invocationInstance,
+                    thisOrMeInstance,
+                    argumentValues,
                     GetCapturedVariablesMap(),
                     _addressSharedEntitiesProvider.GetAddressedSharedEntityMap(),
                     ImmutableStack.CreateRange(_interproceduralCallStack),
@@ -1611,10 +1626,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     getInterproceduralControlFlowGraph: GetInterproceduralControlFlowGraph,
                     getAnalysisEntityForFlowCapture: GetAnalysisEntityForFlowCapture);
 
+                // Local functions.
                 (AnalysisEntity, PointsToAbstractValue)? GetInvocationInstance()
                 {
-                    if (instanceReceiver != null && AnalysisEntityFactory.TryCreate(instanceReceiver, out var receiverAnalysisEntity))
+                    if (isLambdaOrLocalFunction)
                     {
+                        return (AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue);
+                    }
+                    else if (instanceReceiver != null)
+                    {
+                        if (!AnalysisEntityFactory.TryCreate(instanceReceiver, out var receiverAnalysisEntityOpt))
+                        {
+                            receiverAnalysisEntityOpt = null;
+                        }
+
                         var instancePointsToValue = GetPointsToAbstractValue(instanceReceiver);
                         if (instancePointsToValue.Kind == PointsToAbstractValueKind.Undefined)
                         {
@@ -1623,11 +1648,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             instancePointsToValue = PointsToAbstractValue.Unknown;
                         }
 
-                        return (receiverAnalysisEntity, instancePointsToValue);
-                    }
-                    else if (isLambdaOrLocalFunction)
-                    {
-                        return (AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue);
+                        return (receiverAnalysisEntityOpt, instancePointsToValue);
                     }
                     else
                     {

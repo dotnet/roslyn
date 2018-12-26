@@ -55,14 +55,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         /// We do not support the <see cref="SetAbstractValue(AnalysisEntity, CopyAbstractValue)"/> overload
         /// that updates copy value for each individual entity.
         /// </summary>
-        public void SetAbstactValueForEntities(CopyAbstractValue copyValue, AnalysisEntity entityBeingAssigned)
+        public void SetAbstactValueForEntities(CopyAbstractValue copyValue, AnalysisEntity entityBeingAssignedOpt)
         {
             foreach (var entity in copyValue.AnalysisEntities)
             {
                 // If we have any predicate data based on the previous value of this entity,
                 // and we are changing the copy value for an assigment (i.e. entity == entityBeingAssigned),
                 // we need to drop all the predicate data based on this entity.
-                if (entity == entityBeingAssigned && HasPredicatedDataForEntity(entity))
+                if (entity == entityBeingAssignedOpt && HasPredicatedDataForEntity(entity))
                 {
                     StopTrackingPredicatedData(entity);
                 }

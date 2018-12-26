@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -18,13 +19,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         where TAnalysisData : AbstractAnalysisData
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult: IDataFlowAnalysisResult<TAbstractAnalysisValue>
+        where TAbstractAnalysisValue : IEquatable<TAbstractAnalysisValue>
     {
         protected AnalysisEntityDataFlowOperationVisitor(TAnalysisContext analysisContext)
             : base(analysisContext)
         {
         }
 
-        protected abstract void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder);
+        protected abstract void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false);
         protected abstract void SetAbstractValue(AnalysisEntity analysisEntity, TAbstractAnalysisValue value);
         protected abstract TAbstractAnalysisValue GetAbstractValue(AnalysisEntity analysisEntity);
         protected abstract bool HasAbstractValue(AnalysisEntity analysisEntity);
@@ -280,8 +282,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             }
 
-            var hasValueCopySemantics = analysisEntity.Type.HasValueCopySemantics();
-            return GetChildAnalysisEntities(analysisEntity.InstanceLocation, entity => !hasValueCopySemantics || entity.HasAncestor(analysisEntity));
+            return GetChildAnalysisEntities(analysisEntity.InstanceLocation, entity => IsChildAnalysisEntity(entity, analysisEntity));
+        }
+
+        protected static bool IsChildAnalysisEntity(AnalysisEntity entity, AnalysisEntity ancestorEntity)
+        {
+            return (!ancestorEntity.Type.HasValueCopySemantics() || entity.HasAncestor(ancestorEntity)) &&
+                IsChildAnalysisEntity(entity, ancestorEntity.InstanceLocation);
         }
 
         protected ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(PointsToAbstractValue instanceLocationOpt)
@@ -295,10 +302,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return ImmutableHashSet<AnalysisEntity>.Empty;
             }
 
-            return GetChildAnalysisEntities(entity =>
-                entity.InstanceLocation.Equals(instanceLocationOpt) &&
-                entity.IsChildOrInstanceMember &&
-                (predicateOpt == null || predicateOpt(entity)));
+            if (predicateOpt == null)
+            {
+                predicateOpt = entity => IsChildAnalysisEntity(entity, instanceLocationOpt);
+            }
+
+            return GetChildAnalysisEntities(predicateOpt);
+        }
+
+        protected static bool IsChildAnalysisEntity(AnalysisEntity entity, PointsToAbstractValue instanceLocation)
+        {
+            return entity.InstanceLocation.Equals(instanceLocation) && entity.IsChildOrInstanceMember;
         }
 
         private ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(Func<AnalysisEntity, bool> predicate)
@@ -347,6 +361,193 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 (analysisData as AnalysisEntityBasedPredicateAnalysisData<TAbstractAnalysisValue>).IsReachableBlockData = false;
             }
         }
+        #endregion
+
+        #region Interprocedural analysis
+        protected override TAnalysisData GetInitialInterproceduralAnalysisData(
+            IMethodSymbol invokedMethod,
+            (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
+            (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCallerOpt,
+            ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> argumentValues,
+            IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
+            IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
+            bool isLambdaOrLocalFunction)
+        {
+            if (isLambdaOrLocalFunction || pointsToValuesOpt == null)
+            {
+                return base.GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstanceOpt,
+                    thisOrMeInstanceForCallerOpt, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction);
+            }
+
+            var allTrackedEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+            var interproceduralEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+            var worklistEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+            var worklistPointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
+            var processedPointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
+            var childWorklistEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+
+            try
+            {
+                AddTrackedEntities(allTrackedEntitiesBuilder, forInterproceduralAnalysis: true);
+                var allTrackedEntitiesCount = allTrackedEntitiesBuilder.Count;
+
+                if (invocationInstanceOpt.HasValue)
+                {
+                    AddWorklistEntityValue(invocationInstanceOpt.Value.InstanceOpt);
+                    AddWorklistPointsToValue(invocationInstanceOpt.Value.PointsToValue);
+                }
+
+                if (thisOrMeInstanceForCallerOpt.HasValue)
+                {
+                    AddWorklistEntityValue(thisOrMeInstanceForCallerOpt.Value.Instance);
+                    AddWorklistPointsToValue(thisOrMeInstanceForCallerOpt.Value.PointsToValue);
+                }
+
+                foreach (var argument in argumentValues)
+                {
+                    if (!AddWorklistEntityValue(argument.AnalysisEntityOpt))
+                    {
+                        AddWorklistPointsToValue(argument.InstanceLocation);
+                    }
+                }
+
+                while (worklistEntities.Count > 0 || worklistPointsToValues.Count > 0)
+                {
+                    if (worklistEntities.Count > 0)
+                    {
+                        interproceduralEntitiesBuilder.AddRange(worklistEntities);
+                        allTrackedEntitiesBuilder.ExceptWith(worklistEntities);
+
+                        foreach (var entity in allTrackedEntitiesBuilder)
+                        {
+                            foreach (var ancestorEntity in worklistEntities)
+                            {
+                                if (IsChildAnalysisEntity(entity, ancestorEntity))
+                                {
+                                    childWorklistEntities.Add(entity);
+                                    break;
+                                }
+                            }
+                        }
+
+                        worklistEntities.Clear();
+                    }
+
+                    if (worklistPointsToValues.Count > 0)
+                    {
+                        foreach (var entity in allTrackedEntitiesBuilder)
+                        {
+                            foreach (var pointsToValue in worklistPointsToValues)
+                            {
+                                Debug.Assert(ShouldProcessPointsToValue(pointsToValue));
+                                if (IsChildAnalysisEntity(entity, pointsToValue))
+                                {
+                                    childWorklistEntities.Add(entity);
+                                    break;
+                                }
+                            }
+                        }
+
+                        worklistPointsToValues.Clear();
+                    }
+
+                    foreach (var childEntity in childWorklistEntities)
+                    {
+                        AddWorklistEntityValue(childEntity);
+                        if (pointsToValuesOpt.TryGetValue(childEntity, out var pointsToValue))
+                        {
+                            AddWorklistPointsToValue(pointsToValue);
+                        }
+                    }
+
+                    childWorklistEntities.Clear();
+                }
+
+                if (interproceduralEntitiesBuilder.Count == allTrackedEntitiesCount)
+                {
+                    return GetClonedCurrentAnalysisData();
+                }
+
+                return GetTrimmedCurrentAnalysisData(interproceduralEntitiesBuilder);
+            }
+            finally
+            {
+                allTrackedEntitiesBuilder.Free();
+                interproceduralEntitiesBuilder.Free();
+                worklistEntities.Free();
+                worklistPointsToValues.Free();
+                processedPointsToValues.Free();
+                childWorklistEntities.Free();
+            }
+
+            // Local functions.
+            bool AddWorklistEntityValue(AnalysisEntity analysisEntityOpt)
+            {
+                if (analysisEntityOpt != null && allTrackedEntitiesBuilder.Contains(analysisEntityOpt))
+                {
+                    worklistEntities.Add(analysisEntityOpt);
+                    return true;
+                }
+
+                return false;
+            }
+
+            void AddWorklistPointsToValue(PointsToAbstractValue pointsToValue)
+            {
+                if (ShouldProcessPointsToValue(pointsToValue) &&
+                    processedPointsToValues.Add(pointsToValue))
+                {
+                    worklistPointsToValues.Add(pointsToValue);
+                }
+            }
+
+            bool ShouldProcessPointsToValue(PointsToAbstractValue pointsToValue)
+                => pointsToValue.Kind == PointsToAbstractValueKind.KnownLocations &&
+                   pointsToValue != PointsToAbstractValue.NoLocation;
+        }
+
+        protected abstract TAnalysisData GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities);
+        protected TAnalysisData GetTrimmedCurrentAnalysisDataHelper(
+            IEnumerable<AnalysisEntity> withEntities,
+            IDictionary<AnalysisEntity, TAbstractAnalysisValue> existingValues,
+            Action<TAnalysisData, AnalysisEntity, TAbstractAnalysisValue> setAbstractValue)
+        {
+            var initialAnalysisData = GetEmptyAnalysisData();
+            foreach (var entity in withEntities)
+            {
+                setAbstractValue(initialAnalysisData, entity, existingValues[entity]);
+            }
+
+            return initialAnalysisData;
+        }
+
+        protected abstract void ApplyInterproceduralAnalysisResultCore(TAnalysisData resultData);
+
+        protected sealed override void ApplyInterproceduralAnalysisResult(TAnalysisData resultData, bool isLambdaOrLocalFunction)
+        {
+            if (isLambdaOrLocalFunction)
+            {
+                base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction);
+                return;
+            }
+
+            ApplyInterproceduralAnalysisResultCore(resultData);
+        }
+
+        protected void ApplyInterproceduralAnalysisResultHelper(IDictionary<AnalysisEntity, TAbstractAnalysisValue> resultToApply)
+        {
+            foreach (var kvp in resultToApply)
+            {
+                var entity = kvp.Key;
+                var newValue = kvp.Value;
+                var currentValue = GetAbstractValue(entity);
+                if (!currentValue.Equals(newValue))
+                {
+                    SetAbstractValue(entity, newValue);
+                }
+            }
+        }
+
         #endregion
 
         protected DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AnalysisEntity, TAbstractAnalysisValue> analysisData)

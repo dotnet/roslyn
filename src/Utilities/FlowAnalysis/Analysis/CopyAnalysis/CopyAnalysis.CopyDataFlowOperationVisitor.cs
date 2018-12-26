@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
+    using System.Collections.Generic;
+    using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
     using CopyAnalysisDomain = PredicatedAnalysisDataDomain<CopyAnalysisData, CopyAbstractValue>;
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
 
@@ -24,6 +26,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             {
                 var coreAnalysisDomain = new CoreCopyAnalysisDataDomain(CopyAbstractValueDomain.Default, GetDefaultCopyValue);
                 AnalysisDomain = new CopyAnalysisDomain(coreAnalysisDomain);
+
+                analysisContext.InterproceduralAnalysisDataOpt?.InitialAnalysisData.AssertValidCopyAnalysisData();
             }
 
             public CopyAnalysisDomain AnalysisDomain { get; }
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 copyAnalysisData.AssertValidCopyAnalysisData(GetDefaultCopyValue);
             }
 
-            protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder)
+            protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
                 => CurrentAnalysisData.AddTrackedEntities(builder);
 
             protected override bool HasAbstractValue(AnalysisEntity analysisEntity) => CurrentAnalysisData.HasAbstractValue(analysisEntity);
@@ -162,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                             CopyAbstractValue newValueForEntitiesInOldSet = addressSharedCopyValue != null ?
                                 existingValue.WithEntitiesRemoved(addressSharedCopyValue.AnalysisEntities) :
                                 existingValue.WithEntityRemoved(analysisEntity);
-                            targetCopyAnalysisData.SetAbstactValueForEntities(newValueForEntitiesInOldSet, entityBeingAssigned: analysisEntity);
+                            targetCopyAnalysisData.SetAbstactValueForEntities(newValueForEntitiesInOldSet, entityBeingAssignedOpt: analysisEntity);
                         }
                     }
                 }
@@ -193,7 +197,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 }
 
                 var newValue = new CopyAbstractValue(newAnalysisEntities);
-                targetCopyAnalysisData.SetAbstactValueForEntities(newValue, entityBeingAssigned: analysisEntity);
+                targetCopyAnalysisData.SetAbstactValueForEntities(newValue, entityBeingAssignedOpt: analysisEntity);
 
                 targetCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
             }
@@ -324,6 +328,75 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 => new CopyAnalysisData(analysisResult[block].OutputData);
             protected override bool Equals(CopyAnalysisData value1, CopyAnalysisData value2)
                 => value1.Equals(value2);
+            protected override void ApplyInterproceduralAnalysisResultCore(CopyAnalysisData resultData)
+            {
+                var processedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                try
+                {
+                    foreach (var kvp in resultData.CoreAnalysisData)
+                    {
+                        var entity = kvp.Key;
+                        var newCopyValue = kvp.Value;
+                        if (processedEntities.Add(entity))
+                        {
+                            var currentCopyValue = GetAbstractValue(entity);
+                            if (currentCopyValue != newCopyValue)
+                            {
+                                CurrentAnalysisData.SetAbstactValueForEntities(newCopyValue, entityBeingAssignedOpt: null);
+                            }
+
+                            processedEntities.AddRange(newCopyValue.AnalysisEntities);
+                        }
+                    }
+
+                    AssertValidCopyAnalysisData(CurrentAnalysisData);
+                }
+                finally
+                {
+                    processedEntities.Free();
+                }
+            }
+
+            protected override CopyAnalysisData GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities)
+            {
+                var processedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                try
+                {
+                    var analysisData = new CopyAnalysisData();
+                    foreach (var entity in withEntities)
+                    {
+                        if (processedEntities.Add(entity))
+                        {
+                            var copyValue = GetAbstractValue(entity);
+                            analysisData.SetAbstactValueForEntities(copyValue, entityBeingAssignedOpt: null);
+                            processedEntities.AddRange(copyValue.AnalysisEntities);
+                        }
+                    }
+
+                    AssertValidCopyAnalysisData(analysisData);
+                    return analysisData;
+                }
+                finally
+                {
+                    processedEntities.Free();
+                }
+            }
+
+            protected override CopyAnalysisData GetInitialInterproceduralAnalysisData(
+                IMethodSymbol invokedMethod,
+                (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
+                (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCallerOpt,
+                ImmutableArray<ArgumentInfo<CopyAbstractValue>> argumentValues,
+                IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
+                IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
+                bool isLambdaOrLocalFunction)
+            {
+                copyValuesOpt = CurrentAnalysisData.CoreAnalysisData;
+                var initialAnalysisData = base.GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstanceOpt,
+                    thisOrMeInstanceForCallerOpt, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction);
+                AssertValidCopyAnalysisData(initialAnalysisData);
+                return initialAnalysisData;
+            }
 
             #region Visitor overrides
             public override CopyAbstractValue DefaultVisit(IOperation operation, object argument)
