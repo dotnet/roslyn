@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             if (!triggerLocation.Snapshot.TextBuffer.Properties.ContainsProperty(PotentialCommitCharacters))
             {
-                triggerLocation.Snapshot.TextBuffer.Properties.AddProperty(PotentialCommitCharacters, service.GetRules().DefaultCommitCharacters);
+                triggerLocation.Snapshot.TextBuffer.Properties.AddOrUpdateProperty(PotentialCommitCharacters, service.GetRules().DefaultCommitCharacters);
             }
 
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
-            return ShouldTriggerCompletion(trigger, triggerLocation, sourceText, document, service) 
+            return ShouldTriggerCompletion(trigger, triggerLocation, sourceText, document, service)
                 ? new AsyncCompletionData.CompletionStartData(
                     participation: AsyncCompletionData.CompletionParticipation.ProvidesItems,
                     applicableToSpan: new SnapshotSpan(
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CompletionService completionService)
         {
             // The trigger reason guarantees that user wants a completion.
-            if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Invoke || 
+            if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Invoke ||
                 trigger.Reason == AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique)
             {
                 return true;
@@ -202,18 +202,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // Have to store the snapshot to reuse it in some projections related scenarios
             // where data and session in further calls are able to provide other snapshots.
-            session.Properties.AddProperty(TriggerSnapshot, triggerLocation.Snapshot);
+            session.Properties.AddOrUpdateProperty(TriggerSnapshot, triggerLocation.Snapshot);
 
             // This is a code supporting original completion scenarios: 
             // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
             // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
-            session.Properties.AddProperty(HasSuggestionItemOptions, suggestionItemOptions != null);
+            session.Properties.AddOrUpdateProperty(HasSuggestionItemOptions, suggestionItemOptions != null);
 
-            session.Properties.AddProperty(InitialTriggerKind, roslynTrigger.Kind);
+            session.Properties.AddOrUpdateProperty(InitialTriggerKind, roslynTrigger.Kind);
             var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
             if (excludedCommitCharacters.Length > 0)
             {
-                session.Properties.AddProperty(ExcludedCommitCharacters, excludedCommitCharacters);
+                session.Properties.AddOrUpdateProperty(ExcludedCommitCharacters, excludedCommitCharacters);
             }
 
             return new AsyncCompletionData.CompletionContext(
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 filterText: roslynItem.FilterText,
                 attributeIcons: attributeImages);
 
-            item.Properties.AddProperty(RoslynItem, roslynItem);
+            item.Properties.AddOrUpdateProperty(RoslynItem, roslynItem);
             return item;
         }
 

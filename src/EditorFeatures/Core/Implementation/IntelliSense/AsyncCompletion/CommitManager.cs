@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             PotentialCommitCharacters = potentialCommitCharacters;
             _recentItemsManager = recentItemsManager;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-    }
+        }
 
         /// <summary>
         /// The method performs a preliminarily filtering of commit availability.
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var filterText = session.ApplicableToSpan.GetText(session.ApplicableToSpan.TextBuffer.CurrentSnapshot) + typeChar;
             if (Helpers.IsFilterCharacter(roslynItem, typeChar, filterText))
-            { 
+            {
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
             }
 
@@ -118,11 +118,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
             char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
             var commitBehavior = Commit(
-                document, completionService, session.TextView, subjectBuffer, 
+                document, completionService, session.TextView, subjectBuffer,
                 roslynItem, commitChar, triggerSnapshot, serviceRules, filterText, cancellationToken);
 
             _recentItemsManager.MakeMostRecentItem(roslynItem.DisplayText);
-            return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);            
+            return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
         }
 
         private AsyncCompletionData.CommitBehavior Commit(
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var textChange = change.TextChange;
             var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
             var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-            
+
             var adjustedNewText = AdjustForVirtualSpace(textChange, view, _editorOperationsFactoryService);
 
             using (var edit = subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // edit.Apply() may trigger changes made by extensions.
                 // updatedCurrentSnapshot will contain changes made by Roslyn but not by other extensions.
                 var updatedCurrentSnapshot = edit.Apply();
-                
+
                 if (change.NewPosition.HasValue)
                 {
                     // Roslyn knows how to positionate the caret in the snapshot we just created.

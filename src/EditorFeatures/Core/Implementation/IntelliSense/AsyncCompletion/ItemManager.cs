@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly RecentItemsManager _recentItemsManager;
 
         internal ItemManager(RecentItemsManager recentItemsManager)
-        { 
+        {
             // Let us make the completion Helper used for non-Roslyn items case-sensitive.
             // We can change this if get requests from partner teams.
             _defaultCompletionHelper = new CompletionHelper(isCaseSensitive: true);
@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (!item.Properties.TryGetProperty(CompletionSource.RoslynItem, out RoslynCompletionItem roslynItem))
                 {
                     roslynItem = RoslynCompletionItem.Create(
-                        displayText: item.DisplayText, 
-                        filterText: item.FilterText, 
+                        displayText: item.DisplayText,
+                        filterText: item.FilterText,
                         sortText: item.SortText,
                         displayTextSuffix: item.Suffix);
                 }
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return new FilteredCompletionModel(
                 highlightedList, index, filters,
                 hardSelect ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected,
-                centerSelection: true, 
+                centerSelection: true,
                 uniqueItem: matchCount == 1 ? bestFilterResult.Value.VSCompletionItem : default);
         }
 
