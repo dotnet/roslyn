@@ -177,7 +177,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public AnalysisEntity ParentOpt { get; }
         public bool IsThisOrMeInstance { get; }
 
-        public bool HasUnknownInstanceLocation => InstanceLocation.Kind == PointsToAbstractValueKind.Unknown;
+        public bool HasUnknownInstanceLocation
+        {
+            get
+            {
+                switch (InstanceLocation.Kind)
+                {
+                    case PointsToAbstractValueKind.Unknown:
+                    case PointsToAbstractValueKind.UnknownNull:
+                    case PointsToAbstractValueKind.UnknownNotNull:
+                        return true;
+
+                    default:
+                        return false;
+                }
+            }
+        }
 
         public bool IsLValueFlowCaptureEntity => CaptureIdOpt.HasValue && CaptureIdOpt.Value.IsLValueFlowCapture;
 

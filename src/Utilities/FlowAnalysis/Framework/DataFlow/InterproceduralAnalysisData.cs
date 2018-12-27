@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         public TAnalysisData InitialAnalysisData { get; }
-        public (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? InvocationInstanceOpt { get; }
+        public (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? InvocationInstanceOpt { get; }
         public (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? ThisOrMeInstanceForCallerOpt { get; }
         public ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> Arguments { get; }
         public ImmutableDictionary<ISymbol, PointsToAbstractValue> CapturedVariablesMap { get; }
@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         private static void AddHashCodeParts(
-            (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? instanceAndPointsToValueOpt,
+            (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? instanceAndPointsToValueOpt,
             ArrayBuilder<int> builder)
         {
             if (instanceAndPointsToValueOpt.HasValue)
             {
-                builder.Add(instanceAndPointsToValueOpt.Value.Instance.GetHashCode());
+                builder.Add(instanceAndPointsToValueOpt.Value.InstanceOpt.GetHashCodeOrDefault());
                 builder.Add(instanceAndPointsToValueOpt.Value.PointsToValue.GetHashCode());
             }
             else

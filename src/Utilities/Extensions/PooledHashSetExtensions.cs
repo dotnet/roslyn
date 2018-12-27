@@ -11,6 +11,14 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class PooledHashSetExtensions
     {
+        public static void AddRange<T>(this PooledHashSet<T> builder, IEnumerable<T> set2)
+        {
+            foreach (var item in set2)
+            {
+                builder.Add(item);
+            }
+        }
+
         // Just to make hardcoding SinkInfos more convenient.
         public static void AddSinkInfo(
             this PooledHashSet<SinkInfo> builder,

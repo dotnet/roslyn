@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 _defaultPointsToValueGenerator = defaultPointsToValueGenerator;
                 _pointsToAnalysisDomain = pointsToAnalysisDomain;
+
+                analysisContext.InterproceduralAnalysisDataOpt?.InitialAnalysisData.AssertValidPointsToAnalysisData();
             }
 
             public override PointsToAnalysisData Flow(IOperation statement, BasicBlock block, PointsToAnalysisData input)
@@ -66,9 +68,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return result;
             }
 
-            protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder)
+            protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
             {
-                _defaultPointsToValueGenerator.AddTrackedEntities(builder);
+                if (!forInterproceduralAnalysis)
+                {
+                    _defaultPointsToValueGenerator.AddTrackedEntities(builder);
+                }
+
                 CurrentAnalysisData.AddTrackedEntities(builder);
             }
 
@@ -120,9 +126,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         return;
                     }
 
-                    CurrentAnalysisData.SetAbstractValue(analysisEntity, value);
+                    SetAbstractValueCore(CurrentAnalysisData, analysisEntity, value);
                 }
             }
+
+            private static void SetAbstractValueCore(PointsToAnalysisData pointsToAnalysisData, AnalysisEntity analysisEntity, PointsToAbstractValue value)
+                => pointsToAnalysisData.SetAbstractValue(analysisEntity, value);
 
             private void ResetAbstractValue(AnalysisEntity analysisEntity, PointsToAnalysisData pointsToAnalysisData)
             {
@@ -422,6 +431,35 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 => new PointsToAnalysisData(analysisResult[block].OutputData);
             protected override bool Equals(PointsToAnalysisData value1, PointsToAnalysisData value2)
                 => value1.Equals(value2);
+
+            protected override void ApplyInterproceduralAnalysisResultCore(PointsToAnalysisData resultData)
+            {
+                ApplyInterproceduralAnalysisResultHelper(resultData.CoreAnalysisData);
+                AssertValidPointsToAnalysisData(CurrentAnalysisData);
+            }
+
+            protected override PointsToAnalysisData GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities)
+            {
+                var trimmedData = GetTrimmedCurrentAnalysisDataHelper(withEntities, CurrentAnalysisData.CoreAnalysisData, SetAbstractValueCore);
+                AssertValidPointsToAnalysisData(trimmedData);
+                return trimmedData;
+            }
+
+            protected override PointsToAnalysisData GetInitialInterproceduralAnalysisData(
+                IMethodSymbol invokedMethod, 
+                (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
+                (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCallerOpt,
+                ImmutableArray<ArgumentInfo<PointsToAbstractValue>> argumentValues,
+                IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
+                IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
+                bool isLambdaOrLocalFunction)
+            {
+                pointsToValuesOpt = CurrentAnalysisData.CoreAnalysisData;
+                var initialAnalysisData = base.GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstanceOpt, thisOrMeInstanceForCallerOpt,
+                    argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction);
+                AssertValidPointsToAnalysisData(initialAnalysisData);
+                return initialAnalysisData;
+            }
 
             #region Visitor methods
 
