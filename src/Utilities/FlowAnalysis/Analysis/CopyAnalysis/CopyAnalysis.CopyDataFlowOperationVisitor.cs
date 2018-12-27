@@ -65,18 +65,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             protected override bool HasAnyAbstractValue(CopyAnalysisData data) => data.HasAnyAbstractValue;
 
             protected override void StopTrackingEntity(AnalysisEntity analysisEntity)
+                => StopTrackingEntity(analysisEntity, CurrentAnalysisData, GetDefaultCopyValue);
+
+            private static void StopTrackingEntity(
+                AnalysisEntity analysisEntity,
+                CopyAnalysisData analysisData,
+                Func<AnalysisEntity, CopyAbstractValue> getDefaultCopyValue)
             {
-                AssertValidCopyAnalysisData(CurrentAnalysisData);
+                analysisData.AssertValidCopyAnalysisData(getDefaultCopyValue);
 
                 // First set the value to unknown so we remove the entity from existing copy sets.
                 // Note that we pass 'tryGetAddressSharedCopyValue = null' to ensure that
                 // we do not reset the entries for address shared entities.
-                SetAbstractValue(CurrentAnalysisData, analysisEntity, CopyAbstractValue.Unknown, tryGetAddressSharedCopyValue: _ => null);
-                CurrentAnalysisData.AssertValidCopyAnalysisData(tryGetDefaultCopyValueOpt: null);
+                SetAbstractValue(analysisData, analysisEntity, CopyAbstractValue.Unknown, tryGetAddressSharedCopyValue: _ => null);
+                analysisData.AssertValidCopyAnalysisData(tryGetDefaultCopyValueOpt: null);
 
                 // Now it should be safe to remove the entry.
-                CurrentAnalysisData.RemoveEntries(analysisEntity);
-                AssertValidCopyAnalysisData(CurrentAnalysisData);
+                analysisData.RemoveEntries(analysisEntity);
+                analysisData.AssertValidCopyAnalysisData(getDefaultCopyValue);
             }
 
             protected override CopyAbstractValue GetAbstractValue(AnalysisEntity analysisEntity) => CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : CopyAbstractValue.Unknown;
@@ -328,6 +334,110 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 => new CopyAnalysisData(analysisResult[block].OutputData);
             protected override bool Equals(CopyAnalysisData value1, CopyAnalysisData value2)
                 => value1.Equals(value2);
+
+            public override (CopyAbstractValue Value, PredicateValueKind PredicateValueKind)? GetReturnValueAndPredicateKind()
+            {
+                // Filter out all the local symbol and flow capture entities from the return value.
+                var returnValueAndPredicateKindOpt = base.GetReturnValueAndPredicateKind();
+                if (returnValueAndPredicateKindOpt.HasValue &&
+                    returnValueAndPredicateKindOpt.Value.Value.Kind == CopyAbstractValueKind.Known)
+                {
+                    var entitiesToFilterBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+
+                    try
+                    {
+                        var copyValue = returnValueAndPredicateKindOpt.Value.Value;
+                        var copyValueEntities = copyValue.AnalysisEntities;
+                        foreach (var entity in copyValueEntities)
+                        {
+                            if (ShouldRemoveEntityAtExit(entity))
+                            {
+                                ProcessEntityToRemoveAtExit(entity, entitiesToFilterBuilder, copyValueEntities);
+                            }
+                        }
+
+                        if (entitiesToFilterBuilder.Count > 0)
+                        {
+                            copyValue = entitiesToFilterBuilder.Count == copyValueEntities.Count ?
+                                CopyAbstractValue.Unknown :
+                                copyValue.WithEntitiesRemoved(entitiesToFilterBuilder);
+                        }
+
+                        return (copyValue, returnValueAndPredicateKindOpt.Value.PredicateValueKind);
+                    }
+                    finally
+                    {
+                        entitiesToFilterBuilder.Free();
+                    }
+                }
+
+                return returnValueAndPredicateKindOpt;
+            }
+
+            private bool ShouldRemoveEntityAtExit(AnalysisEntity entity)
+            {
+                return entity.SymbolOpt?.Kind == SymbolKind.Local &&
+                    entity.SymbolOpt.ContainingSymbol.Equals(DataFlowAnalysisContext.OwningSymbol) ||
+                    entity.CaptureIdOpt.HasValue &&
+                    entity.CaptureIdOpt.Value.ControlFlowGraph == DataFlowAnalysisContext.ControlFlowGraph;
+            }
+
+            private void ProcessEntityToRemoveAtExit(
+                AnalysisEntity entity,
+                PooledHashSet<AnalysisEntity> entitiesToFilterBuilder,
+                IEnumerable<AnalysisEntity> allAnalysisEntities)
+            {
+                Debug.Assert(ShouldRemoveEntityAtExit(entity));
+
+                // Stop tracking entity that is now out of scope.
+                entitiesToFilterBuilder.Add(entity);
+                
+                // Additionally, stop tracking all the child entities if the entity type has value copy semantics.
+                if (entity.Type.HasValueCopySemantics())
+                {
+                    var childEntities = allAnalysisEntities.Where(e => IsChildAnalysisEntity(e, ancestorEntity: entity));
+                    entitiesToFilterBuilder.AddRange(childEntities);
+                }
+            }
+
+
+            public override CopyAnalysisData GetMergedDataForUnhandledThrowOperations()
+            {
+                var copyAnalysisData = base.GetMergedDataForUnhandledThrowOperations();
+                if (copyAnalysisData == null)
+                {
+                    return null;
+                }
+
+                // Filter out all the local symbol and flow capture entities from the returned analysis data.
+                var entitiesToFilterBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+
+                try
+                {
+                    var allAnalysisEntities = copyAnalysisData.CoreAnalysisData.Keys;
+                    foreach (var entity in allAnalysisEntities)
+                    {
+                        if (ShouldRemoveEntityAtExit(entity))
+                        {
+                            ProcessEntityToRemoveAtExit(entity, entitiesToFilterBuilder, allAnalysisEntities);
+                        }
+                    }
+
+                    foreach (var entity in entitiesToFilterBuilder)
+                    {
+                        StopTrackingEntity(entity, copyAnalysisData, GetDefaultCopyValue);
+                    }
+                }
+                finally
+                {
+                    entitiesToFilterBuilder.Free();
+                }
+
+                return copyAnalysisData;
+            }
+
+            #region Interprocedural analysis
+
             protected override void ApplyInterproceduralAnalysisResultCore(CopyAnalysisData resultData)
             {
                 var processedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
@@ -397,6 +507,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 AssertValidCopyAnalysisData(initialAnalysisData);
                 return initialAnalysisData;
             }
+
+            #endregion
 
             #region Visitor overrides
             public override CopyAbstractValue DefaultVisit(IOperation operation, object argument)

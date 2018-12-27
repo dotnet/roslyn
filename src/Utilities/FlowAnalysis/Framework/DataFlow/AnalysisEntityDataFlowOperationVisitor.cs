@@ -393,20 +393,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 if (invocationInstanceOpt.HasValue)
                 {
-                    AddWorklistEntityValue(invocationInstanceOpt.Value.InstanceOpt);
+                    AddWorklistEntityAndPointsToValue(invocationInstanceOpt.Value.InstanceOpt);
                     AddWorklistPointsToValue(invocationInstanceOpt.Value.PointsToValue);
                 }
 
                 if (thisOrMeInstanceForCallerOpt.HasValue)
                 {
-                    AddWorklistEntityValue(thisOrMeInstanceForCallerOpt.Value.Instance);
+                    AddWorklistEntityAndPointsToValue(thisOrMeInstanceForCallerOpt.Value.Instance);
                     AddWorklistPointsToValue(thisOrMeInstanceForCallerOpt.Value.PointsToValue);
                 }
 
                 foreach (var argument in argumentValues)
                 {
-                    if (!AddWorklistEntityValue(argument.AnalysisEntityOpt))
+                    if (!AddWorklistEntityAndPointsToValue(argument.AnalysisEntityOpt))
                     {
+                        // For allocations passed as arguments.
                         AddWorklistPointsToValue(argument.InstanceLocation);
                     }
                 }
@@ -453,11 +454,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                     foreach (var childEntity in childWorklistEntities)
                     {
-                        AddWorklistEntityValue(childEntity);
-                        if (pointsToValuesOpt.TryGetValue(childEntity, out var pointsToValue))
-                        {
-                            AddWorklistPointsToValue(pointsToValue);
-                        }
+                        AddWorklistEntityAndPointsToValue(childEntity);
                     }
 
                     childWorklistEntities.Clear();
@@ -481,11 +478,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Local functions.
-            bool AddWorklistEntityValue(AnalysisEntity analysisEntityOpt)
+            bool AddWorklistEntityAndPointsToValue(AnalysisEntity analysisEntityOpt)
             {
                 if (analysisEntityOpt != null && allTrackedEntitiesBuilder.Contains(analysisEntityOpt))
                 {
                     worklistEntities.Add(analysisEntityOpt);
+
+                    if (pointsToValuesOpt.TryGetValue(analysisEntityOpt, out var pointsToValue))
+                    {
+                        AddWorklistPointsToValue(pointsToValue);
+                    }
+
                     return true;
                 }
 

@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected CopyAbstractValue TryGetAddressSharedCopyValue(AnalysisEntity analysisEntity)
             => _addressSharedEntitiesProvider.TryGetAddressSharedCopyValue(analysisEntity);
 
-        public (TAbstractAnalysisValue, PredicateValueKind)? GetReturnValueAndPredicateKind()
+        public virtual (TAbstractAnalysisValue Value, PredicateValueKind PredicateValueKind)? GetReturnValueAndPredicateKind()
         {
             if (_returnValueOperationsOpt == null ||
                 _returnValueOperationsOpt.Count == 0)
@@ -243,6 +243,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             return (mergedValue, mergedPredicateValueKind ?? PredicateValueKind.Unknown);
         }
+
         private static PointsToAbstractValue GetThisOrMeInstancePointsToValue(ISymbol owningSymbol)
         {
             if (!owningSymbol.IsStatic &&
@@ -590,7 +591,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public ImmutableDictionary<IOperation, PredicateValueKind> GetPredicateValueKindMap() => _predicateValueKindCacheBuilder.ToImmutable();
 
-        public TAnalysisData GetMergedDataForUnhandledThrowOperations()
+        public virtual TAnalysisData GetMergedDataForUnhandledThrowOperations()
         {
             if (AnalysisDataForUnhandledThrowOperations == null)
             {

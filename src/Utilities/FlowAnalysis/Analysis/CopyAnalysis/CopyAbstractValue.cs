@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             return new CopyAbstractValue(AnalysisEntities.Remove(entityToRemove));
         }
 
-        public CopyAbstractValue WithEntitiesRemoved(ImmutableHashSet<AnalysisEntity> entitiesToRemove)
+        public CopyAbstractValue WithEntitiesRemoved(IEnumerable<AnalysisEntity> entitiesToRemove)
         {
             Debug.Assert(entitiesToRemove.All(entityToRemove => AnalysisEntities.Contains(entityToRemove)));
             Debug.Assert(AnalysisEntities.Count > 1);
