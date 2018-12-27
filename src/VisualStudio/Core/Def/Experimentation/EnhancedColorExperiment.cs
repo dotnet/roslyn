@@ -12,11 +12,9 @@ using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.Win32;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Experimentation
@@ -35,7 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 
         private EnhancedColorApplier _colorApplier;
         private ISettingsManager _settingsManager;
-        private RegistryKey _vsRegistryRoot;
 
         private bool _inUseEnhancedColorsFlight;
         private bool _inStopEnhancedColorsFlight;
@@ -58,7 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 _hasTextViewOpened = true;
 
                 _colorApplier = new EnhancedColorApplier(_serviceProvider);
-                _vsRegistryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_UserSettings, writable: true);
 
                 // Check which experimental flights we are in
                 _inUseEnhancedColorsFlight = _experimentationService?.IsExperimentEnabled(UseEnhancedColorsFlight) ?? false;
