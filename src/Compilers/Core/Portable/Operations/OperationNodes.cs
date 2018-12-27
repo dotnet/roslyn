@@ -8023,10 +8023,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit)
             : base(inputType, matchedType, deconstructSymbol, declaredSymbol, semanticModel, syntax, isImplicit)
         {
-            foreach (var p in deconstructionSubpatterns)
-            {
-                SetParentOperation(p, this);
-            }
+            SetParentOperation(deconstructionSubpatterns, this);
             DeconstructionSubpatterns = deconstructionSubpatterns;
             foreach (var p in propertySubpatterns)
             {
@@ -8079,9 +8076,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (_lazyPropertySubpatterns.IsDefault)
                 {
                     var propertySubpatterns = CreatePropertySubpatterns();
-                    foreach (var d in propertySubpatterns)
+                    foreach (var propertySubpattern in propertySubpatterns)
                     {
-                        SetParentOperation(d.Item2, this);
+                        SetParentOperation(propertySubpattern.Item2, this);
                     }
 
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyPropertySubpatterns, propertySubpatterns);

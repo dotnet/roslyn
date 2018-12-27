@@ -47,13 +47,13 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation
         {
             // clone the array
-            return nodes.IsDefault ? default : nodes.SelectAsArray(n => Visit(n));
+            return nodes.SelectAsArray(n => Visit(n));
         }
 
         private ImmutableArray<(U, T)> VisitArray<U, T>(ImmutableArray<(U, T)> nodes) where T : IOperation
         {
             // clone the array
-            return nodes.IsDefault ? default : nodes.SelectAsArray(n => (n.Item1, Visit(n.Item2)));
+            return nodes.SelectAsArray(n => (n.Item1, Visit(n.Item2)));
         }
 
         public override IOperation VisitBlock(IBlockOperation operation, object argument)

@@ -30,21 +30,21 @@ ISwitchExpressionOperation (3 arms)
   Arms(3):
       ISwitchExpressionArmOperation (0 locals)
         Pattern: 
-          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
+          IConstantPatternOperation (OperationKind.ConstantPattern, InputType: System.Int32?)
             Value: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       ISwitchExpressionArmOperation (0 locals)
         Pattern: 
-          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '3')
+          IConstantPatternOperation (OperationKind.ConstantPattern, InputType: System.Int32?)
             Value: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
       ISwitchExpressionArmOperation (0 locals)
         Pattern: 
-          IDiscardPatternOperation () (OperationKind.DiscardPattern, Type: null) (Syntax: '_')
+          IDiscardPatternOperation (OperationKind.DiscardPattern, InputType: System.Int32?)
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";

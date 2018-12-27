@@ -64,6 +64,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         #region Logging helpers
 
+        private void LogPatternPropertiesAndNewLine(IPatternOperation operation)
+        {
+            LogPatternProperties(operation);
+            LogString(")");
+            LogNewLine();
+        }
+
+        private void LogPatternProperties(IPatternOperation operation)
+        {
+            LogString(" (");
+            // Kind
+            LogString($"{nameof(OperationKind)}.{operation.Kind}");
+            LogType(operation.InputType, $", {nameof(operation.InputType)}");
+        }
+
         private void LogCommonPropertiesAndNewLine(IOperation operation)
         {
             LogString(" (");
@@ -1729,7 +1744,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitConstantPattern(IConstantPatternOperation operation)
         {
             LogString(nameof(IConstantPatternOperation));
-            LogCommonPropertiesAndNewLine(operation);
+            LogPatternPropertiesAndNewLine(operation);
 
             Visit(operation.Value, "Value");
         }
@@ -1737,23 +1752,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
         {
             LogString(nameof(IDeclarationPatternOperation));
-            LogSymbol(operation.DeclaredSymbol, " (Declared Symbol");
-            LogConstant((object)operation.MatchesNull, ", AcceptsNull");
+            LogPatternProperties(operation);
+            LogSymbol(operation.DeclaredSymbol, $", {nameof(operation.DeclaredSymbol)}");
+            LogConstant((object)operation.MatchesNull, $", {nameof(operation.MatchesNull)}");
             LogString(")");
-            LogCommonPropertiesAndNewLine(operation);
+            LogNewLine();
         }
 
         public override void VisitRecursivePattern(IRecursivePatternOperation operation)
         {
             LogString(nameof(IRecursivePatternOperation));
-            LogSymbol(operation.DeclaredSymbol, " (Declared Symbol");
-            LogType(operation.MatchedType, ", MatchedType");
-            LogSymbol(operation.DeconstructSymbol, ", Deconstruct Symbol");
+            LogPatternProperties(operation);
+            LogSymbol(operation.DeclaredSymbol, $", {nameof(operation.DeclaredSymbol)}");
+            LogType(operation.MatchedType, $", {nameof(operation.MatchedType)}");
+            LogSymbol(operation.DeconstructSymbol, $", {nameof(operation.DeconstructSymbol)}");
             LogString(")");
             LogNewLine();
-            VisitArray(operation.DeconstructionSubpatterns, "Patterns ", true, true);
-            VisitArrayCommon(operation.PropertySubpatterns, "Properties ", true, true, subpat => {
-                LogSymbol(subpat.Item1, "Matched Property");
+
+            VisitArray(operation.DeconstructionSubpatterns, $"{nameof(operation.DeconstructionSubpatterns)} ", true, true);
+            VisitArrayCommon(operation.PropertySubpatterns, $"{nameof(operation.PropertySubpatterns)} ", true, true, subpat => {
+                LogSymbol(subpat.Item1, "MatchedSymbol");
                 Visit(subpat.Item2, ", Pattern");
             });
         }
@@ -1763,7 +1781,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IIsPatternOperation));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Value, "Expression");
+            Visit(operation.Value, $"{nameof(operation.Value)}");
             Visit(operation.Pattern, "Pattern");
         }
 
@@ -1774,7 +1792,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Same(((ICaseClauseOperation)operation).Label, operation.Label);
 
             Visit(operation.Pattern, "Pattern");
-            Visit(operation.Guard, "Guard Expression");
+            if (operation.Guard != null)
+                Visit(operation.Guard, nameof(operation.Guard));
         }
 
         public override void VisitTranslatedQuery(ITranslatedQueryOperation operation)
@@ -1825,27 +1844,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitDiscardPattern(IDiscardPatternOperation operation)
         {
             LogString(nameof(IDiscardPatternOperation));
-            LogString(" (");
-            LogString(")");
-            LogCommonPropertiesAndNewLine(operation);
+            LogPatternPropertiesAndNewLine(operation);
         }
 
         public override void VisitSwitchExpression(ISwitchExpressionOperation operation)
         {
             LogString($"{nameof(ISwitchExpressionOperation)} ({operation.Arms.Length} arms)");
             LogNewLine();
-            Visit(operation.Value, "Value");
-            VisitArray(operation.Arms, "Arms", logElementCount: true);
+            Visit(operation.Value, nameof(operation.Value));
+            VisitArray(operation.Arms, nameof(operation.Arms), logElementCount: true);
         }
 
         public override void VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation)
         {
             LogString($"{nameof(ISwitchExpressionArmOperation)} ({operation.Locals.Length} locals)");
             LogNewLine();
-            Visit(operation.Pattern, "Pattern");
+            Visit(operation.Pattern, nameof(operation.Pattern));
             if (operation.Guard != null)
-                Visit(operation.Guard, "Guard");
-            Visit(operation.Value, "Value");
+                Visit(operation.Guard, nameof(operation.Guard));
+            Visit(operation.Value, nameof(operation.Value));
             LogLocals(operation.Locals);
         }
 
