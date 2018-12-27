@@ -90,41 +90,82 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             base.OnLeavingRegion(region);
 
-            // Stop tracking entities for locals and capture Ids that are now out of scope.
-            foreach (var local in region.Locals)
+            if (!region.Locals.IsEmpty || !region.CaptureIds.IsEmpty)
             {
-                var success = AnalysisEntityFactory.TryCreateForSymbolDeclaration(local, out var analysisEntity);
-                Debug.Assert(success);
+                var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
 
-                StopTrackingDataForEntity(analysisEntity);
-            }
-
-            foreach (var captureId in region.CaptureIds)
-            {
-                if (AnalysisEntityFactory.TryGetForFlowCapture(captureId, out var analysisEntity))
+                try
                 {
-                    StopTrackingDataForEntity(analysisEntity);
+                    AddTrackedEntities(allEntities);
+                    
+                    // Stop tracking entities for locals and capture Ids that are now out of scope.
+                    foreach (var local in region.Locals)
+                    {
+                        var success = AnalysisEntityFactory.TryCreateForSymbolDeclaration(local, out var analysisEntity);
+                        Debug.Assert(success);
+
+                        StopTrackingDataForEntity(analysisEntity, allEntities);
+                    }
+
+                    foreach (var captureId in region.CaptureIds)
+                    {
+                        if (AnalysisEntityFactory.TryGetForFlowCapture(captureId, out var analysisEntity))
+                        {
+                            StopTrackingDataForEntity(analysisEntity, allEntities);
+                        }
+                    }
+                }
+                finally
+                {
+                    allEntities.Free();
                 }
             }
         }
 
-        private void StopTrackingDataForEntity(AnalysisEntity analysisEntity)
+        private void StopTrackingDataForEntity(AnalysisEntity analysisEntity, PooledHashSet<AnalysisEntity> allEntities)
         {
+            if (!allEntities.Contains(analysisEntity))
+            {
+                return;
+            }
+
             // Stop tracking entity that is now out of scope.
             StopTrackingEntity(analysisEntity);
 
             // Additionally, stop tracking all the child entities if the entity type has value copy semantics.
             if (analysisEntity.Type.HasValueCopySemantics())
             {
-                foreach (var childEntity in GetChildAnalysisEntities(analysisEntity))
+                foreach (var childEntity in GetChildAnalysisEntities(analysisEntity, allEntities))
                 {
                     StopTrackingEntity(childEntity);
                 }
             }
         }
 
-        protected override void StopTrackingDataForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity)
-            => StopTrackingDataForEntity(analysisEntity);
+        protected sealed override void StopTrackingDataForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity)
+            => throw new InvalidOperationException("Unreachable");
+
+        protected sealed override void StopTrackingDataForParameters(ImmutableDictionary<IParameterSymbol, AnalysisEntity> parameterEntities)
+        {
+            if (parameterEntities.Count > 0)
+            {
+                var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+
+                try
+                {
+                    AddTrackedEntities(allEntities);
+
+                    foreach (AnalysisEntity parameterEntity in parameterEntities.Values)
+                    {
+                        StopTrackingDataForEntity(parameterEntity, allEntities);
+                    }
+                }
+                finally
+                {
+                    allEntities.Free();
+                }
+            }
+        }
 
         #region Helper methods to handle initialization/assignment operations
         protected override void SetAbstractValueForArrayElementInitializer(IArrayCreationOperation arrayCreation, ImmutableArray<AbstractIndex> indices, ITypeSymbol elementType, IOperation initializer, TAbstractAnalysisValue value)
@@ -276,13 +317,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(AnalysisEntity analysisEntity)
         {
-            if (analysisEntity.InstanceLocation == null)
-            {
-                return ImmutableHashSet<AnalysisEntity>.Empty;
-
-            }
-
             return GetChildAnalysisEntities(analysisEntity.InstanceLocation, entity => IsChildAnalysisEntity(entity, analysisEntity));
+        }
+
+        protected static IEnumerable<AnalysisEntity> GetChildAnalysisEntities(AnalysisEntity analysisEntity, PooledHashSet<AnalysisEntity> allEntities)
+        {
+            foreach (var entity in allEntities)
+            {
+                if (IsChildAnalysisEntity(entity, ancestorEntity: analysisEntity))
+                {
+                    yield return entity;
+                }
+            }
         }
 
         protected static bool IsChildAnalysisEntity(AnalysisEntity entity, AnalysisEntity ancestorEntity)

@@ -326,6 +326,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected abstract void StopTrackingDataForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity);
 
+        protected virtual void StopTrackingDataForParameters(ImmutableDictionary<IParameterSymbol, AnalysisEntity> parameterEntities)
+        {
+            foreach (var kvp in parameterEntities)
+            {
+                IParameterSymbol parameter = kvp.Key;
+                AnalysisEntity analysisEntity = kvp.Value;
+
+                // Stop tracking parameter values on exit.
+                StopTrackingDataForParameter(parameter, analysisEntity);
+            }
+        }
+
         private void OnStartEntryBlockAnalysis(BasicBlock entryBlock)
         {
             Debug.Assert(entryBlock.Kind == BasicBlockKind.Entry);
@@ -388,15 +400,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 // Reset address shared entities to caller's address shared entities.
                 _addressSharedEntitiesProvider.SetAddressSharedEntities(DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.AddressSharedEntities);
-
-                foreach (var kvp in _lazyParameterEntities)
-                {
-                    IParameterSymbol parameter = kvp.Key;
-                    AnalysisEntity analysisEntity = kvp.Value;
-
-                    // Stop tracking parameter values on exit.
-                    StopTrackingDataForParameter(parameter, analysisEntity);
-                }
+                StopTrackingDataForParameters(_lazyParameterEntities);
             }
         }
 
