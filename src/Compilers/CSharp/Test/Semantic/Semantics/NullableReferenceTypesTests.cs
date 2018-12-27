@@ -14811,7 +14811,7 @@ class C
         }
         else
         {
-            x.ToString(); // warn 3
+            x.ToString();
         }
     }
 }
@@ -14824,10 +14824,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             c /*T:object?*/ .ToString(); // warn 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(9, 13),
-                // (13,13): warning CS8602: Possible dereference of a null reference.
-                //             x.ToString(); // warn 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(9, 13)
                 );
         }
 
