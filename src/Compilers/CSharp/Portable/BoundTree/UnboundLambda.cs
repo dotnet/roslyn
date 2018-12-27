@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var returnTypes = ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)>.GetInstance();
+                var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)>.GetInstance();
                 // Diagnostics from NullableWalker.Analyze can be dropped here since Analyze
                 // will be called again from NullableWalker.ApplyConversion when the
                 // BoundLambda is converted to an anonymous function.
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var compilation = Binder.Compilation;
                 NullableWalker.Analyze(compilation, lambda: this, diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: returnTypes, initialState: nullableState);
                 diagnostics.Free();
-                var inferredReturnType = InferReturnType(returnTypes, compilation, conversions, delegateType, Symbol.IsAsync);
+                var inferredReturnType = InferReturnType(returnTypes, node: this, compilation, conversions, delegateType, Symbol.IsAsync);
                 returnTypes.Free();
                 return inferredReturnType.Type;
             }
@@ -124,28 +124,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Behavior of this function should be kept aligned with <see cref="UnboundLambdaState.ReturnInferenceCacheKey"/>.
         /// </summary>
-        internal static InferredLambdaReturnType InferReturnType(ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes, CSharpCompilation compilation, ConversionsBase conversions, TypeSymbol delegateType, bool isAsync)
+        internal static InferredLambdaReturnType InferReturnType(ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypes,
+            BoundNode node, CSharpCompilation compilation, ConversionsBase conversions, TypeSymbol delegateType, bool isAsync)
         {
-            var types = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            var types = ArrayBuilder<(BoundExpression, TypeSymbolWithAnnotations)>.GetInstance();
             bool hasReturnWithoutArgument = false;
             RefKind refKind = RefKind.None;
-            foreach (var (rk, type) in returnTypes)
+            foreach (var (returnStatement, type) in returnTypes)
             {
+                RefKind rk = returnStatement.RefKind;
                 if (rk != RefKind.None)
                 {
                     refKind = rk;
                 }
+
                 if ((object)type.TypeSymbol == NoReturnExpression)
                 {
                     hasReturnWithoutArgument = true;
                 }
                 else
                 {
-                    types.Add(type);
+                    types.Add((returnStatement.ExpressionOpt, type));
                 }
             }
+
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var bestType = CalculateReturnType(compilation, conversions, delegateType, types, isAsync, ref useSiteDiagnostics);
+            var bestType = CalculateReturnType(compilation, conversions, delegateType, types, isAsync, node, ref useSiteDiagnostics);
             int numberOfDistinctReturns = types.Count + (hasReturnWithoutArgument ? 1 : 0);
             return new InferredLambdaReturnType(numberOfDistinctReturns < 2, refKind, bestType, useSiteDiagnostics.AsImmutableOrEmpty());
         }
@@ -154,40 +158,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             ConversionsBase conversions,
             TypeSymbol delegateType,
-            ArrayBuilder<TypeSymbolWithAnnotations> resultTypes,
+            ArrayBuilder<(BoundExpression, TypeSymbolWithAnnotations resultType)> returns,
             bool isAsync,
+            BoundNode node,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             TypeSymbolWithAnnotations bestResultType;
-            int n = resultTypes.Count;
+            int n = returns.Count;
             switch (n)
             {
                 case 0:
                     bestResultType = default;
                     break;
                 case 1:
-                    bestResultType = resultTypes[0];
+                    bestResultType = returns[0].Item2;
                     break;
                 default:
-                    var typesOnly = ArrayBuilder<TypeSymbol>.GetInstance(n);
-                    foreach (var resultType in resultTypes)
-                    {
-                        typesOnly.Add(resultType.TypeSymbol);
-                    }
-                    bool hadNullabilityMismatch;
-                    var bestType = BestTypeInferrer.GetBestType(typesOnly, conversions, out hadNullabilityMismatch, ref useSiteDiagnostics);
-
-
-                    // WIP: TODO: convert types to bestType to determine top-level nullabilities
-                    // WIP: TODO: merge the top-level nullabilities
-
-                    // https://github.com/dotnet/roslyn/issues/30480: Should return `bestType` even if
-                    // there was a nullability mismatch, and `hadNullabilityMismatch` should be available
-                    // to the caller, and up through MethodTypeInferrer.Infer.
-                    bestResultType = bestType is null || hadNullabilityMismatch ?
-                        default :
-                        TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(bestType, resultTypes));
-                    typesOnly.Free();
+                    bestResultType = NullableWalker.BestTypeForLambdaReturns(returns, compilation, node);
                     break;
             }
 
@@ -237,14 +224,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal sealed class BlockReturns : BoundTreeWalker
         {
-            private readonly ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> _builder;
+            private readonly ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> _builder;
 
-            private BlockReturns(ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> builder)
+            private BlockReturns(ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> builder)
             {
                 _builder = builder;
             }
 
-            public static void GetReturnTypes(ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> builder, BoundBlock block)
+            public static void GetReturnTypes(ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> builder, BoundBlock block)
             {
                 var visitor = new BoundLambda.BlockReturns(builder);
                 visitor.Visit(block);
@@ -277,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = (expression is null) ?
                     NoReturnExpression :
                     expression.Type?.SetUnknownNullabilityForReferenceTypes();
-                _builder.Add((node.RefKind, TypeSymbolWithAnnotations.Create(type)));
+                _builder.Add((node, TypeSymbolWithAnnotations.Create(type)));
                 return null;
             }
         }
@@ -598,9 +585,9 @@ haveLambdaBodyAndBinders:
                 diagnostics: diagnostics);
             Binder lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
             var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
-            var returnTypes = ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)>.GetInstance();
+            var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)>.GetInstance();
             BoundLambda.BlockReturns.GetReturnTypes(returnTypes, block);
-            var inferredReturnType = BoundLambda.InferReturnType(returnTypes, lambdaBodyBinder.Compilation, lambdaBodyBinder.Conversions, delegateType, lambdaSymbol.IsAsync);
+            var inferredReturnType = BoundLambda.InferReturnType(returnTypes, block, lambdaBodyBinder.Compilation, lambdaBodyBinder.Conversions, delegateType, lambdaSymbol.IsAsync);
             returnTypes.Free();
             var result = new BoundLambda(_unboundLambda.Syntax, _unboundLambda, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferredReturnType)
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };

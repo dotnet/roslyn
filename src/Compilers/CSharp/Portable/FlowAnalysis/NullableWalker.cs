@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly MethodSymbol _methodSignatureOpt;
 
         /// <summary>
-        /// Types from return expressions. Used when inferring lambda return type in MethodTypeInferrer.
+        /// Return statements and the result types from analyzing the returned expressions. Used when inferring lambda return type in MethodTypeInferrer.
         /// </summary>
-        private readonly ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> _returnTypesOpt;
+        private readonly ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> _returnTypesOpt;
 
         /// <summary>
         /// An optional callback for callers to receive notification of the inferred type and nullability
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useMethodSignatureParameterTypes,
             MethodSymbol methodSignatureOpt,
             BoundNode node,
-            ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypesOpt,
+            ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypesOpt,
             VariableState initialState,
             Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
             : base(compilation, method, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: true)
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLambda lambda,
             DiagnosticBag diagnostics,
             MethodSymbol delegateInvokeMethod,
-            ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
+            ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypes,
             VariableState initialState)
         {
             Analyze(
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useMethodSignatureReturnType,
             bool useMethodSignatureParameterTypes,
             MethodSymbol methodSignatureOpt,
-            ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
+            ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypes,
             VariableState initialState,
             Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
         {
@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/29968 Remove isByRefTarget check?
                 if (isByRefTarget)
                 {
-                    // This is a member access through a by ref entity and it isn't considered declared as not-nullable. 
+                    // This is a member access through a by ref entity and it isn't considered declared as not-nullable.
                     // Since reference can point to the heap, we cannot assume the member doesn't have null value
                     // after this assignment, regardless of what value is being assigned.
                 }
@@ -1058,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Inferring return type. Should not convert to method return type.
                 TypeSymbolWithAnnotations result = VisitRvalueWithResult(expr);
-                _returnTypesOpt.Add((node.RefKind, result));
+                _returnTypesOpt.Add((node, result));
                 return null;
             }
 
@@ -1364,100 +1364,156 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ArrayTypeSymbol VisitArrayInitializer(BoundArrayCreation node)
         {
-            var arrayType = (ArrayTypeSymbol)node.Type;
-            var elementType = arrayType.ElementType;
-
             BoundArrayInitialization initialization = node.InitializerOpt;
-            var elementBuilder = ArrayBuilder<BoundExpression>.GetInstance(initialization.Initializers.Length);
-            GetArrayElements(initialization, elementBuilder);
+            var expressions = ArrayBuilder<BoundExpression>.GetInstance(initialization.Initializers.Length);
+            GetArrayElements(initialization, expressions);
+            int n = expressions.Count;
 
-            // https://github.com/dotnet/roslyn/issues/27961 Removing and recalculating conversions should not
-            // be necessary for explicitly typed arrays. In those cases, VisitConversion should warn
-            // on nullability mismatch (although we'll need to ensure we handle the case where
-            // initial binding calculated an Identity conversion, even though nullability was distinct).
-            int n = elementBuilder.Count;
-            var conversionBuilder = ArrayBuilder<Conversion>.GetInstance(n);
-            var resultBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
-            for (int i = 0; i < n; i++)
-            {
-                (BoundExpression element, Conversion conversion) = RemoveConversion(elementBuilder[i], includeExplicitConversions: false);
-                elementBuilder[i] = element;
-                conversionBuilder.Add(conversion);
-                var resultType = VisitRvalueWithResult(element);
-                resultBuilder.Add(resultType);
-            }
-
-            bool checkNestedNullability = true;
             // Consider recording in the BoundArrayCreation
             // whether the array was implicitly typed, rather than relying on syntax.
             bool isInferred = node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression;
-            if (isInferred)
+            var arrayType = (ArrayTypeSymbol)node.Type;
+            var elementType = arrayType.ElementType;
+            if (!isInferred)
             {
-                TypeSymbol bestType = null;
-                if (!node.HasErrors)
+                for (int i = 0; i < n; i++)
                 {
-                    var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
-                    for (int i = 0; i < n; i++)
-                    {
-                        placeholderBuilder.Add(CreatePlaceholderIfNecessary(elementBuilder[i], resultBuilder[i]));
-                    }
-                    var placeholders = placeholderBuilder.ToImmutableAndFree();
-                    bool hadNullabilityMismatch;
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, out hadNullabilityMismatch, ref useSiteDiagnostics);
-                    if (hadNullabilityMismatch)
-                    {
-                        ReportSafetyDiagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, node.Syntax);
-                        checkNestedNullability = false;
-                    }
+                    _ = VisitOptionalImplicitConversion(expressions[i], elementType, useLegacyWarnings: false, AssignmentKind.Assignment);
                 }
 
-                if (bestType is null)
-                {
-                    elementType = elementType.SetUnknownNullabilityForReferenceTypes();
-                    checkNestedNullability = false;
-                }
-                else
-                {
-                    elementType = TypeSymbolWithAnnotations.Create(bestType);
-                }
-                arrayType = arrayType.WithElementType(elementType);
+                return arrayType;
             }
 
-            if (checkNestedNullability && !elementType.IsValueType)
+            var conversions = ArrayBuilder<Conversion>.GetInstance(n);
+            var resultTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                // collect elements and conversions
+                (BoundExpression element, Conversion conversion) = RemoveConversion(expressions[i], includeExplicitConversions: false);
+                expressions[i] = element;
+                conversions.Add(conversion);
+                var resultType = VisitRvalueWithResult(element);
+                resultTypes.Add(resultType);
+            }
+
+            bool checkNestedNullability = true;
+            TypeSymbol bestType = null;
+            if (!node.HasErrors)
+            {
+                var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
+                for (int i = 0; i < n; i++)
+                {
+                    placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressions[i], resultTypes[i]));
+                }
+                var placeholders = placeholderBuilder.ToImmutableAndFree();
+
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, out bool hadNullabilityMismatch, ref useSiteDiagnostics);
+                if (hadNullabilityMismatch)
+                {
+                     ReportSafetyDiagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, node.Syntax);
+                    checkNestedNullability = false;
+                }
+            }
+
+            TypeSymbolWithAnnotations inferredType;
+            if (bestType is null)
+            {
+                inferredType = elementType.SetUnknownNullabilityForReferenceTypes();
+                checkNestedNullability = false;
+            }
+            else
+            {
+                inferredType = TypeSymbolWithAnnotations.Create(bestType);
+            }
+
+            if (checkNestedNullability && !inferredType.IsValueType)
             {
                 // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
                 for (int i = 0; i < n; i++)
                 {
-                    var conversion = conversionBuilder[i];
-                    var element = elementBuilder[i];
-                    var resultType = resultBuilder[i];
-                    var obliviousBestType = elementType;
-                    resultBuilder[i] = ApplyConversion(element, element, conversion, obliviousBestType, resultType, checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportTopLevelWarnings: false);
+                    var conversion = conversions[i];
+                    var element = expressions[i];
+                    var resultType = resultTypes[i];
+                    resultTypes[i] = ApplyConversion(element, element, conversion, inferredType, resultType, checkConversion: true,
+                        fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportTopLevelWarnings: false);
                 }
 
-                if (isInferred)
-                {
-                    // Set top-level nullability on inferred element type
-                    TypeSymbol bestType = elementType.TypeSymbol;
-                    elementType = TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(bestType, resultBuilder));
-
-                    arrayType = arrayType.WithElementType(elementType);
-                }
+                // Set top-level nullability on inferred element type
+                inferredType = TypeSymbolWithAnnotations.Create(inferredType.TypeSymbol, BestTypeInferrer.GetNullableAnnotation(resultTypes));
 
                 for (int i = 0; i < n; i++)
                 {
-                    var element = elementBuilder[i];
-                    var resultType = resultBuilder[i];
+                    var element = expressions[i];
+                    var resultType = resultTypes[i];
                     // Report top-level warnings
-                    _ = ApplyConversion(element, operandOpt: null, Conversion.Identity, targetTypeWithNullability: elementType, operandType: resultType, checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportNestedWarnings: false);
+                    _ = ApplyConversion(element, operandOpt: null, Conversion.Identity, targetTypeWithNullability: inferredType, operandType: resultType,
+                        checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportNestedWarnings: false);
                 }
             }
 
-            resultBuilder.Free();
-            elementBuilder.Free();
+            resultTypes.Free();
+            expressions.Free();
+
             _resultType = _invalidType;
+            arrayType = arrayType.WithElementType(inferredType);
             return arrayType;
+        }
+
+        /// <summary>
+        /// Applies a method similar to <see cref="VisitArrayInitializer(BoundArrayCreation)"/>
+        /// The expressions returned from a lambda are not converted though, so we'll have to classify fresh conversions.
+        /// Note: even if some conversions fail, we'll proceed to infer top-level nullability. That is reasonable in common cases.
+        /// </summary>
+        internal static TypeSymbolWithAnnotations BestTypeForLambdaReturns(
+            ArrayBuilder<(BoundExpression, TypeSymbolWithAnnotations resultType)> returns,
+            CSharpCompilation compilation,
+            BoundNode node)
+        {
+            var walker = new NullableWalker(compilation, method: null,
+                useMethodSignatureReturnType: false, useMethodSignatureParameterTypes: false, methodSignatureOpt: null,
+                node, returnTypes: null, initialState: null, callbackOpt: null);
+
+            int n = returns.Count;
+            var expressions = ArrayBuilder<BoundExpression>.GetInstance();
+            var resultTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
+            var placeholders = ArrayBuilder<BoundExpression>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                var (returnExpr, resultType) = returns[i];
+                expressions.Add(returnExpr);
+                resultTypes.Add(returns[i].resultType);
+                placeholders.Add(CreatePlaceholderIfNecessary(returnExpr, resultType));
+            }
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(placeholders.ToImmutableAndFree(),
+                walker._conversions, hadNullabilityMismatch: out _, ref useSiteDiagnostics);
+
+            TypeSymbolWithAnnotations inferredType = bestType is null ? default : TypeSymbolWithAnnotations.Create(bestType);
+            if (!inferredType.IsNull)
+            {
+                for (int i = 0; i < n; i++)
+                {
+                    BoundExpression expression = expressions[i];
+                    var conversion = walker._conversions.ClassifyConversionFromExpression(expression, inferredType.TypeSymbol, ref useSiteDiagnostics);
+                    if (conversion.Exists)
+                    {
+                        resultTypes[i] = walker.ApplyConversion(expression, expression, conversion, inferredType, resultTypes[i],
+                            checkConversion: false, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Return,
+                            reportNestedWarnings: false, reportTopLevelWarnings: false);
+                    }
+                }
+
+                // Set top-level nullability on inferred type
+                inferredType = TypeSymbolWithAnnotations.Create(inferredType.TypeSymbol, BestTypeInferrer.GetNullableAnnotation(resultTypes));
+            }
+
+            resultTypes.Free();
+            expressions.Free();
+            walker.Free();
+
+            return inferredType;
         }
 
         private static void GetArrayElements(BoundArrayInitialization node, ArrayBuilder<BoundExpression> builder)
@@ -1997,21 +2053,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If T is not nullable - result is nullable if U is nullable
                     // If U is nullable - result is nullable
                     // If U is not nullable, T is also not nullable - result is not nullable
-                    // So, nullability of the result can be inferred from nullability of U, and the type of the result is U.   
+                    // So, nullability of the result can be inferred from nullability of U, and the type of the result is U.
 
                     // U ?. T
                     // If U is nullable - result is nullable
                     // If U is not nullable, T is also not nullable - result is not nullable
                     // If T is nullable, U is also nullable - result is nullable
                     // If T is not nullable - result is nullable if U is nullable
-                    // So, nullability of the result can be inferred from nullability of U, but the type of the result is T.   
+                    // So, nullability of the result can be inferred from nullability of U, but the type of the result is T.
                     // At the moment we don't have a way to represent this correlation, result type is one type parameter, but
-                    // nullability comes from another. 
+                    // nullability comes from another.
                     // Ideally, we would want to have the following behavior:
                     //     U x = U?.T - no warning
                     //     T y = U?.T - a warning
                     // But we can track the state only in the way when either both produce a warning, or none.
-                    // It feels like it is reasonable to prefer the latter approach, i.e. produce no warnings 
+                    // It feels like it is reasonable to prefer the latter approach, i.e. produce no warnings
                     // for both scenarios - no false diagnostics.
                     resultAnnotation = NullableAnnotation.NotAnnotated; // Inherit nullability of U
                 }
@@ -2221,6 +2277,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Placeholders are bound expressions with type and annotation, when available.
+        /// But for typeless expressions (such as `null` or `(null, null)` we hold onto the original bound expression,
+        /// as it will be useful for conversions from expression.
+        /// </summary>
         private static BoundExpression CreatePlaceholderIfNecessary(BoundExpression expr, TypeSymbolWithAnnotations type)
         {
             return type.IsNull ?
@@ -3738,7 +3799,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return resultType;
         }
 
-        private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundExpression node, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations operandType, bool useLegacyWarnings, AssignmentKind assignmentKind, ParameterSymbol target)
+        private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundExpression node, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations operandType,
+            bool useLegacyWarnings, AssignmentKind assignmentKind, ParameterSymbol target)
         {
             Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -4938,7 +5000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsNullabilityMismatch(TypeSymbolWithAnnotations type1, TypeSymbolWithAnnotations type2)
         {
-            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch. 
+            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch.
             // See TypeCompareKind.UnknownNullableModifierMatchesAny and TypeCompareKind.IgnoreInsignificantNullableModifiersDifference
             return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions) &&
                 !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
@@ -4946,7 +5008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsNullabilityMismatch(TypeSymbol type1, TypeSymbol type2)
         {
-            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch. 
+            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch.
             // See TypeCompareKind.UnknownNullableModifierMatchesAny and TypeCompareKind.IgnoreInsignificantNullableModifiersDifference
             return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions) &&
                 !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);

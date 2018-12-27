@@ -319,7 +319,6 @@ class C
         [Fact]
         public void SpeakableInference_LambdaReturnTypeInference_ConversionWithNullableOutput()
         {
-            // TODO
             var source =
 @"class A
 {
@@ -340,18 +339,136 @@ class C
         });
         x1.ToString();
 
-        //var x2 = F(() =>
-        //{
-        //    bool b = true;
-        //    if (b) return y;
-        //    return x;
-        //});
-        //x2.ToString();
+        var x2 = F(() =>
+        {
+            bool b = true;
+            if (b) return y;
+            return x;
+        });
+        x2.ToString();
     }
     T F<T>(System.Func<T> f) => throw null;
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         x1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(18, 9),
+                // (26,9): warning CS8602: Possible dereference of a null reference.
+                //         x2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(26, 9)
+                );
+        }
+
+        [Fact]
+        public void SpeakableInference_LambdaReturnTypeInference_ConversionWithNullableInput()
+        {
+            var source =
+@"class A
+{
+    public static implicit operator C(A? a) => new C();
+}
+class B : A
+{
+}
+class C
+{
+    void M(B? x, C y)
+    {
+        var x1 = F(() =>
+        {
+            bool b = true;
+            if (b) return x;
+            return y;
+        });
+        x1.ToString();
+
+        var x2 = F(() =>
+        {
+            bool b = true;
+            if (b) return y;
+            return x;
+        });
+        x2.ToString();
+    }
+    T F<T>(System.Func<T> f) => throw null;
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SpeakableInference_LambdaReturnTypeInference_WithNullabilityMismatch()
+        {
+            var source = @"
+class C<T>
+{
+    void M(C<object>? x, C<object?> y)
+    {
+        var x1 = F(() =>
+        {
+            bool b = true;
+            if (b) return x;
+            return y;
+        });
+        _ = x1 /*T:C<object!>?*/;
+        x1.ToString();
+
+        var x2 = F(() =>
+        {
+            bool b = true;
+            if (b) return y;
+            return x;
+        });
+        _ = x2 /*T:C<object!>?*/;
+        x2.ToString();
+    }
+    U F<U>(System.Func<U> f) => throw null;
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (10,20): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                //             return y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "C<object>").WithLocation(10, 20),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         x1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(13, 9),
+                // (18,27): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                //             if (b) return y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "C<object>").WithLocation(18, 27),
+                // (22,9): warning CS8602: Possible dereference of a null reference.
+                //         x2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(22, 9)
+                );
+        }
+
+        [Fact]
+        public void SpeakableInference_LambdaReturnTypeInference_NonNullableTypelessOuptut()
+        {
+            // TODO: need to fix GetImplicitTupleLiteralConversion
+            var source =
+@"
+class C
+{
+    void M(C? c)
+    {
+        var x1 = F(() =>
+        {
+            bool b = true;
+            if (b) return (c, c);
+            return (null, null);
+        });
+        x1.ToString();
+        x1.Item1.ToString();
+    }
+    T F<T>(System.Func<T> f) => throw null;
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         x1.Item1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1.Item1").WithLocation(13, 9)
                 );
         }
 
@@ -22066,9 +22183,11 @@ class C
 
         [WorkItem(27961, "https://github.com/dotnet/roslyn/issues/27961")]
         [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
+        [WorkItem(30480, "https://github.com/dotnet/roslyn/issues/30480")]
         [Fact]
         public void LambdaReturnValue_NestedNullability_Invariant()
         {
+            // TODO: adjust inferred type and diagnostics when nullability mismatch
             var source0 =
 @"public class A
 {
@@ -22089,21 +22208,33 @@ class C
     {
         var z = Create(A.F)/*T:B<object>!*/;
         F(i => { switch (i) { case 0: return x; default: return x; }})/*T:B<object?>!*/;
-        F(i => { switch (i) { case 0: return x; default: return y; }})/*T:B<object>*/;
+        F(i => { switch (i) { case 0: return x; default: return y; }})/*T:B<object>*/; // 1
         F(i => { switch (i) { case 0: return x; default: return z; }})/*T:B<object?>*/;
-        F(i => { switch (i) { case 0: return y; default: return x; }})/*T:B<object>*/;
+        F(i => { switch (i) { case 0: return y; default: return x; }})/*T:B<object>*/; // 2
         F(i => { switch (i) { case 0: return y; default: return y; }})/*T:B<object!>!*/;
         F(i => { switch (i) { case 0: return y; default: return z; }})/*T:B<object!>*/;
         F(i => { switch (i) { case 0: return z; default: return x; }})/*T:B<object?>*/;
         F(i => { switch (i) { case 0: return z; default: return y; }})/*T:B<object!>*/;
         F(i => { switch (i) { case 0: return z; default: return z; }})/*T:B<object>*/;
-        F(i => { switch (i) { case 0: return x; case 1: return y; default: return z; }})/*T:B<object>*/;
-        F(i => { switch (i) { case 0: return z; case 1: return y; default: return x; }})/*T:B<object>*/;
+        F(i => { switch (i) { case 0: return x; case 1: return y; default: return z; }})/*T:B<object>*/; // 3
+        F(i => { switch (i) { case 0: return z; case 1: return y; default: return x; }})/*T:B<object>*/; // 4
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
-            // https://github.com/dotnet/roslyn/issues/30480: Should report WRN_CantInferNullabilityOfMethodTypeArgs for { B<object>, B<object?> }.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,46): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
+                //         F(i => { switch (i) { case 0: return x; default: return y; }})/*T:B<object>*/; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object?>", "B<object>").WithLocation(11, 46),
+                // (13,65): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
+                //         F(i => { switch (i) { case 0: return y; default: return x; }})/*T:B<object>*/; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object?>", "B<object>").WithLocation(13, 65),
+                // (19,46): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
+                //         F(i => { switch (i) { case 0: return x; case 1: return y; default: return z; }})/*T:B<object>*/; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object?>", "B<object>").WithLocation(19, 46),
+                // (20,83): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
+                //         F(i => { switch (i) { case 0: return z; case 1: return y; default: return x; }})/*T:B<object>*/; // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object?>", "B<object>").WithLocation(20, 83)
+                );
             comp.VerifyTypes();
         }
 
@@ -22111,6 +22242,7 @@ class C
         [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
         public void LambdaReturnValue_NestedNullability_Variant_01()
         {
+            // TODO: adjust inferred type and diagnostics when nullability mismatch
             var source0 =
 @"public class A
 {
@@ -22296,8 +22428,8 @@ class C
     {
         // I<object>
         F((ref I<object?> a1, ref I<object?> b1) => { if (b) return ref a1; return ref b1; });
-        F((ref I<object?> a2, ref I<object> b2) => { if (b) return ref a2; return ref b2; });
-        F((ref I<object> a3, ref I<object?> b3) => { if (b) return ref a3; return ref b3; });
+        F((ref I<object?> a2, ref I<object> b2) => { if (b) return ref a2; return ref b2; }); // 1
+        F((ref I<object> a3, ref I<object?> b3) => { if (b) return ref a3; return ref b3; }); // 2
         F((ref I<object> a4, ref I<object> b4) => { if (b) return ref a4; return ref b4; });
         // IIn<object>
         F((ref IIn<object?> c1, ref IIn<object?> d1) => { if (b) return ref c1; return ref d1; });
@@ -22317,7 +22449,14 @@ class C
             // https://github.com/dotnet/roslyn/issues/30964 - Report warnings about nullability mismatch in conditional operators for: 
             //         F((ref I<object?> a2, ref I<object> b2) => { if (b) return ref a2; return ref b2; });
             //         F((ref I<object> a3, ref I<object?> b3) => { if (b) return ref a3; return ref b3; });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (12,72): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                //         F((ref I<object?> a2, ref I<object> b2) => { if (b) return ref a2; return ref b2; });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a2").WithArguments("I<object?>", "I<object>").WithLocation(12, 72),
+                // (13,87): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                //         F((ref I<object> a3, ref I<object?> b3) => { if (b) return ref a3; return ref b3; });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b3").WithArguments("I<object?>", "I<object>").WithLocation(13, 87)
+                );
             comp.VerifyTypes();
         }
 
