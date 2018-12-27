@@ -31,7 +31,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case var y:')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Int32?, DeclaredSymbol: System.Int32? y, MatchesNull: True)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y') (InputType: System.Int32?, DeclaredSymbol: System.Int32? y, MatchesNull: True)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -60,7 +60,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case int y:')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Int32?, DeclaredSymbol: System.Int32 y, MatchesNull: False)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y') (InputType: System.Int32?, DeclaredSymbol: System.Int32 y, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -88,7 +88,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case X y:')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y') (InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -116,7 +116,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case T y:')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: T y, MatchesNull: False)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'T y') (InputType: System.Object, DeclaredSymbol: T y, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -144,7 +144,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case dynamic y:')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: dynamic y, MatchesNull: False)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'dynamic y') (InputType: System.Object, DeclaredSymbol: dynamic y, MatchesNull: False)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8208: It is not legal to use the type 'dynamic' in a pattern.
@@ -178,7 +178,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case X y:')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y') (InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -207,7 +207,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case X y:')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y') (InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -237,7 +237,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case X y:')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y') (InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -265,7 +265,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case X y when x != null:')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y') (InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
   Guard: 
     IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x != null')
       Left: 
@@ -302,13 +302,13 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case X y when x is X z :')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y') (InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
   Guard: 
     IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is X z')
       Value: 
         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
       Pattern: 
-        IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: X z, MatchesNull: False)
+        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X z') (InputType: System.Object, DeclaredSymbol: X z, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -336,7 +336,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case X y when :')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y') (InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
   Guard: 
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
@@ -371,7 +371,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case X y when x:')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y') (InputType: System.Object, DeclaredSymbol: X y, MatchesNull: False)
   Guard: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -410,7 +410,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'x')
   Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, InputType: System.Boolean)
+    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: 'true') (InputType: System.Boolean)
       Value: 
         ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsInvalid) (Syntax: 'true')
 ";
@@ -471,7 +471,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case typeof(X):')
   Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, InputType: System.Type)
+    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case typeof(X):') (InputType: System.Type)
       Value: 
         ITypeOfOperation (OperationKind.TypeOf, Type: System.Type, IsInvalid) (Syntax: 'typeof(X)')
           TypeOperand: X
@@ -506,7 +506,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case UndefinedType y:')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: UndefinedType y, MatchesNull: False)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'UndefinedType y') (InputType: System.Object, DeclaredSymbol: UndefinedType y, MatchesNull: False)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0246: The type or namespace name 'UndefinedType' could not be found (are you missing a using directive or an assembly reference?)
@@ -538,7 +538,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case X y:')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Int32?, DeclaredSymbol: X y, MatchesNull: False)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'X y') (InputType: System.Int32?, DeclaredSymbol: X y, MatchesNull: False)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(9,28): error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'X'.
@@ -571,7 +571,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case int y:')
   Pattern: 
-    IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Int32?, DeclaredSymbol: System.Int32 y, MatchesNull: False)
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int y') (InputType: System.Int32?, DeclaredSymbol: System.Int32 y, MatchesNull: False)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -665,7 +665,7 @@ ISwitchOperation (3 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
           Clauses:
               IPatternCaseClauseOperation (Label Id: 1) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case int x:')
                 Pattern: 
-                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: System.Int32 x, MatchesNull: False)
+                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, DeclaredSymbol: System.Int32 x, MatchesNull: False)
           Body:
               IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null, IsInvalid) (Syntax: 'case int y: ... break;')
@@ -673,7 +673,7 @@ ISwitchOperation (3 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
           Clauses:
               IPatternCaseClauseOperation (Label Id: 2) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case int y:')
                 Pattern: 
-                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: System.Int32 y, MatchesNull: False)
+                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int y') (InputType: System.Object, DeclaredSymbol: System.Int32 y, MatchesNull: False)
           Body:
               IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null) (Syntax: 'case X z: ... break;')
@@ -681,7 +681,7 @@ ISwitchOperation (3 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
           Clauses:
               IPatternCaseClauseOperation (Label Id: 3) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case X z:')
                 Pattern: 
-                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, InputType: System.Object, DeclaredSymbol: X z, MatchesNull: False)
+                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X z') (InputType: System.Object, DeclaredSymbol: X z, MatchesNull: False)
           Body:
               IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";

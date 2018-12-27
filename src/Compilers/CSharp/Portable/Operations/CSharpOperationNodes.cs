@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -1489,32 +1490,28 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class CSharpLazyRecursivePatternOperation : LazyRecursivePatternOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
-        private readonly ImmutableArray<BoundSubpattern> _deconstructionSubpatterns;
-        private readonly ImmutableArray<BoundSubpattern> _propertySubpatterns;
-        public CSharpLazyRecursivePatternOperation(
-            CSharpOperationFactory operationFactory,
-            ITypeSymbol inputType,
-            ITypeSymbol matchedType,
-            ISymbol deconstructSymbol,
-            ImmutableArray<BoundSubpattern> deconstructionSubpatterns,
-            ImmutableArray<BoundSubpattern> propertySubpatterns,
-            ISymbol declaredSymbol,
-            SemanticModel semanticModel,
-            SyntaxNode syntax,
-            bool isImplicit)
-            : base(inputType, matchedType, deconstructSymbol, declaredSymbol, semanticModel, syntax, isImplicit)
+        private readonly BoundRecursivePattern _boundRecursivePattern;
+
+        public CSharpLazyRecursivePatternOperation(CSharpOperationFactory operationFactory, BoundRecursivePattern boundRecursivePattern, SemanticModel semanticModel)
+            : base(inputType: boundRecursivePattern.InputType,
+                   matchedType: boundRecursivePattern.DeclaredType?.Type ?? boundRecursivePattern.InputType.StrippedType(),
+                   deconstructSymbol: boundRecursivePattern.DeconstructMethod,
+                   declaredSymbol: boundRecursivePattern.Variable,
+                   semanticModel: semanticModel,
+                   syntax: boundRecursivePattern.Syntax,
+                   isImplicit: boundRecursivePattern.WasCompilerGenerated)
         {
-            _operationFactory = operationFactory;
-            _deconstructionSubpatterns = deconstructionSubpatterns;
-            _propertySubpatterns = propertySubpatterns;
+            this._operationFactory = operationFactory;
+            this._boundRecursivePattern = boundRecursivePattern;
+
         }
         public override ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns()
         {
-            return _deconstructionSubpatterns.SelectAsArray(p => (IPatternOperation)_operationFactory.Create(p.Pattern));
+            return _boundRecursivePattern.Deconstruction.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
         }
         public override ImmutableArray<(ISymbol, IPatternOperation)> CreatePropertySubpatterns()
         {
-            return _propertySubpatterns.SelectAsArray(p => ((ISymbol)p.Symbol, (IPatternOperation)_operationFactory.Create(p.Pattern)));
+            return _boundRecursivePattern.Properties.SelectAsArray((p, fac) => ((ISymbol)p.Symbol, (IPatternOperation)fac.Create(p.Pattern)), _operationFactory);
         }
     }
 
@@ -1582,7 +1579,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         protected override ImmutableArray<ISwitchExpressionArmOperation> CreateArms()
         {
-            return _switchExpression.SwitchArms.SelectAsArray(a => (ISwitchExpressionArmOperation)_operationFactory.Create(a));
+            return _switchExpression.SwitchArms.SelectAsArray((a, fac) => (ISwitchExpressionArmOperation)fac.Create(a), _operationFactory);
         }
     }
 

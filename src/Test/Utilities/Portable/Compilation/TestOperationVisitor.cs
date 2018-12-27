@@ -1104,19 +1104,42 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.Equal(children, operation.Children);
         }
 
+        private void VisitPatternCommon(IPatternOperation pattern)
+        {
+            Assert.NotNull(pattern.InputType);
+            Assert.Null(pattern.Type);
+            Assert.False(pattern.ConstantValue.HasValue);
+        }
+
         public override void VisitConstantPattern(IConstantPatternOperation operation)
         {
             Assert.Equal(OperationKind.ConstantPattern, operation.Kind);
+            VisitPatternCommon(operation);
             Assert.Same(operation.Value, operation.Children.Single());
         }
 
         public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
         {
             Assert.Equal(OperationKind.DeclarationPattern, operation.Kind);
+            VisitPatternCommon(operation);
+            if (operation.Syntax is CSharp.Syntax.VarPatternSyntax)
+            {
+                Assert.True(operation.MatchesNull);
+                Assert.Null(operation.MatchedType);
+            }
+            else
+            {
+                Assert.False(operation.MatchesNull);
+                Assert.NotNull(operation.MatchedType);
+            }
 
             if (!((operation.Syntax as CSharp.Syntax.DeclarationPatternSyntax)?.Designation).IsKind(CSharp.SyntaxKind.DiscardDesignation))
             {
                 Assert.NotNull(operation.DeclaredSymbol);
+            }
+            else
+            {
+                Assert.Null(operation.DeclaredSymbol);
             }
 
             Assert.Empty(operation.Children);
@@ -1125,23 +1148,43 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitRecursivePattern(IRecursivePatternOperation operation)
         {
             Assert.Equal(OperationKind.RecursivePattern, operation.Kind);
+            VisitPatternCommon(operation);
+            Assert.NotNull(operation.MatchedType);
+            _ = operation.DeconstructSymbol;
 
             if (!((operation.Syntax as CSharp.Syntax.RecursivePatternSyntax)?.Designation).IsKind(CSharp.SyntaxKind.DiscardDesignation))
             {
                 Assert.NotNull(operation.DeclaredSymbol);
             }
+            else
+            {
+                Assert.Null(operation.DeclaredSymbol);
+            }
 
-            IEnumerable<IOperation> children = Enumerable.Empty<IOperation>();
-            if (!operation.DeconstructionSubpatterns.IsDefault)
-            {
-                children = children.Concat(operation.DeconstructionSubpatterns);
-            }
-            if (!operation.PropertySubpatterns.IsDefault)
-            {
-                children = children.Concat(operation.PropertySubpatterns.Select(x => x.Item2));
-            }
+            IEnumerable<IOperation> children = operation.DeconstructionSubpatterns.Cast<IOperation>();
+            children = children.Concat(operation.PropertySubpatterns.Select(x => x.Item2));
 
             AssertEx.Equal(children, operation.Children);
+        }
+
+        public override void VisitSwitchExpression(ISwitchExpressionOperation operation)
+        {
+            Assert.NotNull(operation.Type);
+            Assert.False(operation.ConstantValue.HasValue);
+            Assert.Equal(OperationKind.SwitchExpression, operation.Kind);
+            Assert.NotNull(operation.Value);
+            var children = operation.Arms.Cast<IOperation>().Prepend(operation.Value);
+            AssertEx.Equal(children, operation.Children);
+        }
+
+        public override void VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation)
+        {
+            Assert.Null(operation.Type);
+            Assert.False(operation.ConstantValue.HasValue);
+            Assert.NotNull(operation.Pattern);
+            _ = operation.Guard;
+            Assert.NotNull(operation.Value);
+            VisitLocals(operation.Locals);
         }
 
         public override void VisitIsPattern(IIsPatternOperation operation)
@@ -1268,6 +1311,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitDiscardPattern(IDiscardPatternOperation operation)
         {
             Assert.Equal(OperationKind.DiscardPattern, operation.Kind);
+            VisitPatternCommon(operation);
             Assert.Empty(operation.Children);
         }
 

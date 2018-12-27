@@ -8243,10 +8243,8 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit)
             : base(type, semanticModel, syntax, isImplicit)
         {
-            this.Value = value;
-            this.Arms = arms;
-            SetParentOperation(value, this);
-            SetParentOperation(arms, this);
+            Value = SetParentOperation(value, this);
+            Arms = SetParentOperation(arms, this);
         }
         public override IOperation Value { get; }
         public override ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
@@ -8347,13 +8345,9 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit)
             : base(locals, semanticModel, syntax, isImplicit)
         {
-            this.Pattern = pattern;
-            SetParentOperation(pattern, this);
-            this.Guard = guard;
-            if (guard != null)
-                SetParentOperation(guard, this);
-            this.Value = value;
-            SetParentOperation(value, this);
+            Pattern = SetParentOperation(pattern, this);
+            Guard = SetParentOperation(guard, this);
+            Value = SetParentOperation(value, this);
         }
         public sealed override IPatternOperation Pattern { get; }
         public sealed override IOperation Guard { get; }
@@ -8362,7 +8356,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal abstract partial class LazySwitchExpressionArmOperation : BaseSwitchExpressionArmOperation
     {
-        private IPatternOperation _lazyPattern = null;
+        private IPatternOperation _lazyPattern = s_unsetPattern;
         private IOperation _lazyGuard = s_unset;
         private IOperation _lazyValue = s_unset;
         public LazySwitchExpressionArmOperation(
@@ -8380,11 +8374,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                if (_lazyPattern == null)
+                if (_lazyPattern == s_unsetPattern)
                 {
                     var pattern = CreatePattern();
                     SetParentOperation(pattern, this);
-                    Interlocked.CompareExchange(ref _lazyPattern, pattern, null);
+                    Interlocked.CompareExchange(ref _lazyPattern, pattern, s_unsetPattern);
                 }
 
                 return _lazyPattern;

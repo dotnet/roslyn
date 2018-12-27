@@ -6576,7 +6576,7 @@ oneMoreTime:
                 operation.DeclaredSymbol,
                 semanticModel: null,
                 operation.Syntax,
-                operation.IsImplicit);
+                IsImplicit(operation));
         }
 
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)

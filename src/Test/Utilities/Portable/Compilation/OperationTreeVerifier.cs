@@ -73,13 +73,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void LogPatternProperties(IPatternOperation operation)
         {
+            LogCommonProperties(operation);
             LogString(" (");
-            // Kind
-            LogString($"{nameof(OperationKind)}.{operation.Kind}");
-            LogType(operation.InputType, $", {nameof(operation.InputType)}");
+            LogType(operation.InputType, $"{nameof(operation.InputType)}");
         }
 
         private void LogCommonPropertiesAndNewLine(IOperation operation)
+        {
+            LogCommonProperties(operation);
+            LogNewLine();
+        }
+
+        private void LogCommonProperties(IOperation operation)
         {
             LogString(" (");
 
@@ -115,8 +120,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Syntax
             Assert.NotNull(operation.Syntax);
             LogString($" (Syntax: {GetSnippetFromSyntax(operation.Syntax)})");
-
-            LogNewLine();
 
             // Some of these kinds were inconsistent in the first release, and in standardizing them the
             // string output isn't guaranteed to be one or the other. So standardize manually.
@@ -1850,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSwitchExpression(ISwitchExpressionOperation operation)
         {
             LogString($"{nameof(ISwitchExpressionOperation)} ({operation.Arms.Length} arms)");
-            LogNewLine();
+            LogCommonPropertiesAndNewLine(operation);
             Visit(operation.Value, nameof(operation.Value));
             VisitArray(operation.Arms, nameof(operation.Arms), logElementCount: true);
         }
@@ -1858,7 +1861,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation)
         {
             LogString($"{nameof(ISwitchExpressionArmOperation)} ({operation.Locals.Length} locals)");
-            LogNewLine();
+            LogCommonPropertiesAndNewLine(operation);
             Visit(operation.Pattern, nameof(operation.Pattern));
             if (operation.Guard != null)
                 Visit(operation.Guard, nameof(operation.Guard));

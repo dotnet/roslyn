@@ -1852,20 +1852,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IRecursivePatternOperation CreateBoundRecursivePatternOperation(BoundRecursivePattern boundRecursivePattern)
         {
-            bool isImplicit = boundRecursivePattern.WasCompilerGenerated;
-            ITypeSymbol matchedType = boundRecursivePattern.DeclaredType?.Type ?? boundRecursivePattern.InputType;
-            ISymbol variable = boundRecursivePattern.Variable;
-            ISymbol deconstructSymbol = boundRecursivePattern.DeconstructMethod;
-            if (variable == null && boundRecursivePattern.VariableAccess?.Kind == BoundKind.DiscardExpression)
-            {
-                variable = ((BoundDiscardExpression)boundRecursivePattern.VariableAccess).ExpressionSymbol;
-            }
-
-            TypeSymbol inputType = boundRecursivePattern.InputType;
-            SyntaxNode syntax = boundRecursivePattern.Syntax;
-            return new CSharpLazyRecursivePatternOperation(
-                this, inputType, matchedType, deconstructSymbol, boundRecursivePattern.Deconstruction,
-                boundRecursivePattern.Properties, variable, _semanticModel, syntax, isImplicit);
+            return new CSharpLazyRecursivePatternOperation(this, boundRecursivePattern, _semanticModel);
         }
 
         private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)

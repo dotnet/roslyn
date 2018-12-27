@@ -24,27 +24,27 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (3 arms)
+ISwitchExpressionOperation (3 arms) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'x switch {  ... 4, _ => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(3):
-      ISwitchExpressionArmOperation (0 locals)
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '1 => 2')
         Pattern: 
-          IConstantPatternOperation (OperationKind.ConstantPattern, InputType: System.Int32?)
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32?)
             Value: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-      ISwitchExpressionArmOperation (0 locals)
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '3 => 4')
         Pattern: 
-          IConstantPatternOperation (OperationKind.ConstantPattern, InputType: System.Int32?)
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '3') (InputType: System.Int32?)
             Value: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
-      ISwitchExpressionArmOperation (0 locals)
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => 5')
         Pattern: 
-          IDiscardPatternOperation (OperationKind.DiscardPattern, InputType: System.Int32?)
+          IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32?)
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";

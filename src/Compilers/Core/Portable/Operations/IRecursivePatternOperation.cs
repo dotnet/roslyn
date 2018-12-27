@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IRecursivePatternOperation : IPatternOperation
     {
         /// <summary>
-        /// The explicit type accepted for the recursive pattern, or null if none was specified.
+        /// The type accepted for the recursive pattern.
         /// </summary>
         ITypeSymbol MatchedType { get; }
 

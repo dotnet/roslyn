@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return nodes.SelectAsArray(n => Visit(n));
         }
 
-        private ImmutableArray<(U, T)> VisitArray<U, T>(ImmutableArray<(U, T)> nodes) where T : IOperation
+        private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation
         {
             // clone the array
             return nodes.SelectAsArray(n => (n.Item1, Visit(n.Item2)));
@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation, object argument)
         {
-            return new SwitchExpressionArmOperation(operation.Locals, operation.Pattern, operation.Guard, operation.Value, operation.SemanticModel, operation.Syntax, operation.IsImplicit);
+            return new SwitchExpressionArmOperation(operation.Locals, Visit(operation.Pattern), Visit(operation.Guard), Visit(operation.Value), operation.SemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
         public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, object argument)
