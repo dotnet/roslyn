@@ -1738,8 +1738,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IDeclarationPatternOperation));
             LogSymbol(operation.DeclaredSymbol, " (Declared Symbol");
+            LogConstant((object)operation.MatchesNull, ", AcceptsNull");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
+        }
+
+        public override void VisitRecursivePattern(IRecursivePatternOperation operation)
+        {
+            LogString(nameof(IRecursivePatternOperation));
+            LogSymbol(operation.DeclaredSymbol, " (Declared Symbol");
+            LogType(operation.MatchedType, ", MatchedType");
+            LogSymbol(operation.DeconstructSymbol, ", Deconstruct Symbol");
+            LogString(")");
+            LogNewLine();
+            VisitArray(operation.DeconstructionSubpatterns, "Patterns ", true, true);
+            VisitArrayCommon(operation.PropertySubpatterns, "Properties ", true, true, subpat => {
+                LogSymbol(subpat.Item1, "Matched Property");
+                Visit(subpat.Item2, ", Pattern");
+            });
         }
 
         public override void VisitIsPattern(IIsPatternOperation operation)

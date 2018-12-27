@@ -701,7 +701,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
                     Expression: 
                       ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
                     Pattern: 
-                      IDeclarationPatternOperation (Declared Symbol: System.Int32 i) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int i')
+                      IDeclarationPatternOperation (Declared Symbol: System.Int32 i, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument, Type: null) (Syntax: '1')
@@ -743,7 +743,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (obj 
       Expression: 
         ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: System.Object) (Syntax: 'obj')
       Pattern: 
-        IDeclarationPatternOperation (Declared Symbol: System.String str) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string str')
+        IDeclarationPatternOperation (Declared Symbol: System.String str, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string str')
   WhenTrue: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(str);')
@@ -854,7 +854,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
                     Expression: 
                       ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
                     Pattern: 
-                      IDeclarationPatternOperation (Declared Symbol: System.Int32 i) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int i')
+                      IDeclarationPatternOperation (Declared Symbol: System.Int32 i, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument, Type: null) (Syntax: '1')
@@ -1250,7 +1250,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
       Expression: 
         ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: System.Object) (Syntax: 'obj')
       Pattern: 
-        IDeclarationPatternOperation (Declared Symbol: System.String str) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string str')
+        IDeclarationPatternOperation (Declared Symbol: System.String str, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string str')
   WhenTrue: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(str);')

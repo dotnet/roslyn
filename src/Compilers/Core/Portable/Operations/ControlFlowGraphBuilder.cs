@@ -6377,7 +6377,9 @@ oneMoreTime:
 
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, int? captureIdForResult)
         {
-            return new DiscardOperation(operation.DiscardSymbol, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new DiscardOperation(
+                operation is IPatternOperation pat ? pat.InputType : operation.DiscardSymbol?.Type,
+                operation.DiscardSymbol, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, int? captureIdForResult)
@@ -6549,14 +6551,29 @@ oneMoreTime:
 
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, int? captureIdForResult)
         {
-            return new ConstantPatternOperation(Visit(operation.Value), semanticModel: null,
+            return new ConstantPatternOperation(operation.InputType, Visit(operation.Value), semanticModel: null,
                 syntax: operation.Syntax, isImplicit: IsImplicit(operation));
         }
 
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, int? captureIdForResult)
         {
-            return new DeclarationPatternOperation(operation.DeclaredSymbol, semanticModel: null,
-                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new DeclarationPatternOperation(
+                inputType: operation.InputType, matchedType: operation.MatchedType, operation.DeclaredSymbol, operation.MatchesNull, semanticModel: null,
+                operation.Syntax, IsImplicit(operation));
+        }
+
+        public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, int? argument)
+        {
+            return new RecursivePatternOperation(
+                inputType: operation.InputType,
+                matchedType: operation.MatchedType,
+                operation.DeconstructSymbol,
+                operation.DeconstructionSubpatterns.SelectAsArray(p => (IPatternOperation)Visit(p)),
+                operation.PropertySubpatterns.SelectAsArray(p => (p.Item1, (IPatternOperation)Visit(p.Item2))),
+                operation.DeclaredSymbol,
+                semanticModel: null,
+                operation.Syntax,
+                operation.IsImplicit);
         }
 
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)

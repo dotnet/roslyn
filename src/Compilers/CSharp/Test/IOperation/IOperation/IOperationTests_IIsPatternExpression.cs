@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_VarPatternDeclaration()
         {
@@ -29,14 +29,14 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
   Expression: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32? y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
+    IDeclarationPatternOperation (Declared Symbol: System.Int32? y, AcceptsNull: True) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_PrimitiveTypePatternDeclaration()
         {
@@ -56,14 +56,14 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
   Expression: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y')
+    IDeclarationPatternOperation (Declared Symbol: System.Int32 y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ReferenceTypePatternDeclaration()
         {
@@ -82,14 +82,14 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
   Expression: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: X) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: X y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y')
+    IDeclarationPatternOperation (Declared Symbol: X y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_TypeParameterTypePatternDeclaration()
         {
@@ -108,14 +108,14 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
   Expression: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: T y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'T y')
+    IDeclarationPatternOperation (Declared Symbol: T y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'T y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_DynamicTypePatternDeclaration()
         {
@@ -134,7 +134,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Expression: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: X) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: dynamic y) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'dynamic y')
+    IDeclarationPatternOperation (Declared Symbol: dynamic y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'dynamic y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8208: It is not legal to use the type 'dynamic' in a pattern.
@@ -145,7 +145,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ConstantPattern()
         {
@@ -174,7 +174,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ConstantPatternWithConversion()
         {
@@ -206,7 +206,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ConstantPatternWithNoImplicitConversion()
         {
@@ -242,7 +242,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_ConstantPatternWithNoValidImplicitOrExplicitConversion()
         {
@@ -278,7 +278,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_UndefinedTypeInPatternDeclaration()
         {
@@ -298,7 +298,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Expression: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: UndefinedType y) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'UndefinedType y')
+    IDeclarationPatternOperation (Declared Symbol: UndefinedType y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'UndefinedType y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0246: The type or namespace name 'UndefinedType' could not be found (are you missing a using directive or an assembly reference?)
@@ -309,7 +309,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidConstantPatternDeclaration()
         {
@@ -342,7 +342,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidTypeInPatternDeclaration()
         {
@@ -362,7 +362,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Expression: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: X y) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'X y')
+    IDeclarationPatternOperation (Declared Symbol: X y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'X y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'X'.
@@ -373,7 +373,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_DuplicateLocalInPatternDeclaration()
         {
@@ -393,7 +393,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Expression: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int y')
+    IDeclarationPatternOperation (Declared Symbol: System.Int32 y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0128: A local variable or function named 'y' is already defined in this scope
@@ -404,7 +404,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidMultipleLocalsInPatternDeclaration()
         {
@@ -424,7 +424,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
   Expression: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 y2) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y2')
+    IDeclarationPatternOperation (Declared Symbol: System.Int32 y2, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1026: ) expected
@@ -453,7 +453,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidConstDeclarationInPatternDeclaration()
         {
@@ -508,7 +508,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidInDefaultParameterInitializer()
         {
@@ -528,7 +528,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
       Instance Receiver: 
         null
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.String y) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'string y')
+    IDeclarationPatternOperation (Declared Symbol: System.String y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'string y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1736: Default parameter value for 'x' must be a compile-time constant
@@ -539,7 +539,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidInFieldInitializer()
         {
@@ -557,14 +557,14 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o 
       Instance Receiver: 
         null
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+    IDeclarationPatternOperation (Declared Symbol: System.Int32 x, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidInConstructorInitializer()
         {
@@ -586,14 +586,14 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o 
   Expression: 
     IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+    IDeclarationPatternOperation (Declared Symbol: System.Int32 x, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestIsPatternExpression_InvalidInAttributeArgument()
         {
@@ -618,7 +618,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
       Instance Receiver: 
         null
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int x')
+    IDeclarationPatternOperation (Declared Symbol: System.Int32 x, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0134: 'C.o' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
@@ -632,9 +632,9 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]
         [Fact]
-        public void IsPattern_NoControlFlow()
+        public void IsPattern_NoControlFlow_01()
         {
             string source = @"
 class C
@@ -668,7 +668,7 @@ Block[B0] - Entry
                       Expression: 
                         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
                       Pattern: 
-                        IDeclarationPatternOperation (Declared Symbol: System.Int32? y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
+                        IDeclarationPatternOperation (Declared Symbol: System.Int32? y, AcceptsNull: True) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
 
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b2 = x2 is 1;')
               Expression: 
@@ -697,7 +697,66 @@ Block[B2] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_NoControlFlow_02()
+        {
+            string source = @"
+class C
+{
+    void M((int X, int Y)? x, bool b)
+    /*<bind>*/{
+        b = x is (1, 2) { Item1: var z } p;
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [(System.Int32 X, System.Int32 Y) p] [System.Int32 z]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = x is (1 ...  var z } p;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = x is (1 ... : var z } p')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is (1, 2) ... : var z } p')
+                      Expression: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32 X, System.Int32 Y)?) (Syntax: 'x')
+                      Pattern: 
+                        IRecursivePatternOperation (Declared Symbol: (System.Int32 X, System.Int32 Y) p, MatchedType: (System.Int32 X, System.Int32 Y)?, Deconstruct Symbol: null)
+                          Patterns (2):
+                              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
+                                Value: 
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '2')
+                                Value: 
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                          Properties (1):
+                            Matched Property: System.Int32 (System.Int32 X, System.Int32 Y).Item1, Pattern: 
+                                IDeclarationPatternOperation (Declared Symbol: System.Int32 z, AcceptsNull: True) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var z')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]
         [Fact]
         public void IsPattern_ControlFlowInValue()
         {
@@ -782,7 +841,7 @@ Block[B0] - Entry
                       Expression: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x1 ?? x2')
                       Pattern: 
-                        IDeclarationPatternOperation (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
+                        IDeclarationPatternOperation (Declared Symbol: System.Int32 y, AcceptsNull: True) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
 
         Next (Regular) Block[B6]
             Leaving: {R1}
@@ -797,7 +856,42 @@ Block[B6] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_RecursivePattern()
+        {
+            string source = @"
+class C
+{
+    void M((int X, int Y) tuple, bool b)
+    {
+        if (/*<bind>*/tuple is (1, 2) { Item1: int x } y/*</bind>*/) { }
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'tuple is (1 ... : int x } y')
+  Expression: 
+    IParameterReferenceOperation: tuple (OperationKind.ParameterReference, Type: (System.Int32 X, System.Int32 Y)) (Syntax: 'tuple')
+  Pattern: 
+    IRecursivePatternOperation (Declared Symbol: (System.Int32 X, System.Int32 Y) y, MatchedType: (System.Int32 X, System.Int32 Y), Deconstruct Symbol: null)
+      Patterns (2):
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '2')
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      Properties (1):
+        Matched Property: System.Int32 (System.Int32 X, System.Int32 Y).Item1, Pattern: 
+            IDeclarationPatternOperation (Declared Symbol: System.Int32 x, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]
         [Fact]
         public void IsPattern_ControlFlowInPattern()
         {
@@ -881,7 +975,7 @@ Block[B5] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]
         [Fact]
         public void IsPattern_ControlFlowInValueAndPattern()
         {
