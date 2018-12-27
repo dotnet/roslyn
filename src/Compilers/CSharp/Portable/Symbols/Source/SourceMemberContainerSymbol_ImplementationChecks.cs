@@ -608,7 +608,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)associatedPropertyOrEvent == null)
                     {
-                        diagnostics.Add(ErrorCode.ERR_OverrideNotExpected, overridingMemberLocation, overridingMember);
+                        bool suppressError = false;
+                        if (overridingMemberIsMethod || overridingMember.IsIndexer())
+                        {
+                            var parameterTypes = overridingMemberIsMethod
+                                ? ((MethodSymbol)overridingMember).ParameterTypes
+                                : ((PropertySymbol)overridingMember).ParameterTypes;
+
+                            foreach (var parameterType in parameterTypes)
+                            {
+                                if (isOrContainsErrorType(parameterType.TypeSymbol))
+                                {
+                                    suppressError = true; // The parameter type must be fixed before the override can be found, so suppress error
+                                    break;
+                                }
+                            }
+                            
+                        }
+
+                        if (!suppressError)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_OverrideNotExpected, overridingMemberLocation, overridingMember);
+                        }
                     }
                     else if (associatedPropertyOrEvent.Kind == SymbolKind.Property) //no specific errors for event accessors
                     {
@@ -724,7 +745,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                             {
-                                diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.TypeSymbol);
+                                // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
+                                if (!isOrContainsErrorType(overridingMemberType.TypeSymbol))
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.TypeSymbol);
+                                }
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
@@ -768,7 +793,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // Ignore custom modifiers because this diagnostic is based on the C# semantics.
                             if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                             {
-                                diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.TypeSymbol);
+                                // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
+                                if (!isOrContainsErrorType(overridingMemberType.TypeSymbol))
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.TypeSymbol);
+                                }
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
@@ -798,8 +827,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else if (!overridingMethod.ReturnType.Equals(overriddenMethod.ReturnType, TypeCompareKind.AllIgnoreOptions))
                             {
-                                // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
-                                diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType.TypeSymbol);
+                                // if the Return type is or contains an error type, the return type must be fixed before the override can be found, so suppress error
+                                if (!isOrContainsErrorType(overridingMethod.ReturnType.TypeSymbol))
+                                {
+                                    // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
+                                    diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType.TypeSymbol);
+                                }
                             }
                             else if (overriddenMethod.IsRuntimeFinalizer())
                             {
@@ -872,6 +905,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var ambiguousMethod = runtimeOverriddenMembers[0];
                 diagnostics.Add(ErrorCode.WRN_MultipleRuntimeOverrideMatches, ambiguousMethod.Locations[0], ambiguousMethod, overridingMember);
                 suppressAccessors = true;
+            }
+
+            bool isOrContainsErrorType(TypeSymbol typeSymbol)
+            {
+                return (object)typeSymbol.VisitType((currentTypeSymbol, unused1, unused2) => currentTypeSymbol.IsErrorType(), (object)null) != null;
             }
         }
 
