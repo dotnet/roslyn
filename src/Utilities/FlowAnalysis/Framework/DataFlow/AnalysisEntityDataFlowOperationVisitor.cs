@@ -419,14 +419,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
             bool isLambdaOrLocalFunction)
         {
+            // PERF: For non-lambda and local functions + presence of points to values, we trim down
+            // the initial analysis data passed as input to interprocedural analysis.
+            // We retain the analysis entities for the invocation instance, arguments and this or me instance.
+            // Additionally, we also retain the transitive closure of analysis entities reachable from these
+            // entities via the PointsTo values chain (i.e., recursively compute child analysis entities).
+            // All the remaining entities are not accessible in the callee and are excluded from the initial
+            // interprocedural analysis data.
+
             if (isLambdaOrLocalFunction || pointsToValuesOpt == null)
             {
                 return base.GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstanceOpt,
                     thisOrMeInstanceForCallerOpt, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction);
             }
 
-            var allTrackedEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
-            var interproceduralEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+            var candidateEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+            var interproceduralEntitiesToRetainBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
             var worklistEntities = PooledHashSet<AnalysisEntity>.GetInstance();
             var worklistPointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
             var processedPointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
@@ -434,8 +442,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             try
             {
-                AddTrackedEntities(allTrackedEntitiesBuilder, forInterproceduralAnalysis: true);
-                var allTrackedEntitiesCount = allTrackedEntitiesBuilder.Count;
+                // All tracked entities are candidates to be retained for initial interprocedural
+                // analysis data.
+                AddTrackedEntities(candidateEntitiesBuilder, forInterproceduralAnalysis: true);
+                var candidateEntitiesCount = candidateEntitiesBuilder.Count;
+
+                // Add entities and PointsTo values for invocation instance, this or me instance
+                // and argument values to the initial worklist
 
                 if (invocationInstanceOpt.HasValue)
                 {
@@ -458,20 +471,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
                 }
 
+                // Worklist based algorithm to compute the transitive closure of analysis entities
+                // that are accessible in the callee via the PointsTo value chain.
                 while (worklistEntities.Count > 0 || worklistPointsToValues.Count > 0)
                 {
                     if (worklistEntities.Count > 0)
                     {
-                        interproceduralEntitiesBuilder.AddRange(worklistEntities);
-                        allTrackedEntitiesBuilder.ExceptWith(worklistEntities);
+                        // Add all the worklistEntities to interproceduralEntitiesBuilder
+                        // to ensure these entities are retained.
+                        interproceduralEntitiesToRetainBuilder.AddRange(worklistEntities);
 
-                        foreach (var entity in allTrackedEntitiesBuilder)
+                        // Remove the worklistEntities from tracked candidate entities.
+                        candidateEntitiesBuilder.ExceptWith(worklistEntities);
+
+                        // Add child entities of worklistEntities to childWorklistEntities.
+                        foreach (var candidateEntity in candidateEntitiesBuilder)
                         {
                             foreach (var ancestorEntity in worklistEntities)
                             {
-                                if (IsChildAnalysisEntity(entity, ancestorEntity))
+                                if (IsChildAnalysisEntity(candidateEntity, ancestorEntity))
                                 {
-                                    childWorklistEntities.Add(entity);
+                                    childWorklistEntities.Add(candidateEntity);
                                     break;
                                 }
                             }
@@ -482,14 +502,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                     if (worklistPointsToValues.Count > 0)
                     {
-                        foreach (var entity in allTrackedEntitiesBuilder)
+                        // Add child entities which are accessible from PointsTo chain to childWorklistEntities.
+                        foreach (var candidateEntity in candidateEntitiesBuilder)
                         {
                             foreach (var pointsToValue in worklistPointsToValues)
                             {
                                 Debug.Assert(ShouldProcessPointsToValue(pointsToValue));
-                                if (IsChildAnalysisEntity(entity, pointsToValue))
+                                if (IsChildAnalysisEntity(candidateEntity, pointsToValue))
                                 {
-                                    childWorklistEntities.Add(entity);
+                                    childWorklistEntities.Add(candidateEntity);
                                     break;
                                 }
                             }
@@ -498,6 +519,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         worklistPointsToValues.Clear();
                     }
 
+                    // Move all the child work list entities and their PointsTo values to the worklist.
                     foreach (var childEntity in childWorklistEntities)
                     {
                         AddWorklistEntityAndPointsToValue(childEntity);
@@ -506,17 +528,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     childWorklistEntities.Clear();
                 }
 
-                if (interproceduralEntitiesBuilder.Count == allTrackedEntitiesCount)
+                // If all candidates being retained, just retain the cloned current analysis data.
+                if (interproceduralEntitiesToRetainBuilder.Count == candidateEntitiesCount)
                 {
                     return GetClonedCurrentAnalysisData();
                 }
 
-                return GetTrimmedCurrentAnalysisData(interproceduralEntitiesBuilder);
+                // Otherwise, return cloned current analysis data with trimmed keys.
+                return GetTrimmedCurrentAnalysisData(interproceduralEntitiesToRetainBuilder);
             }
             finally
             {
-                allTrackedEntitiesBuilder.Free();
-                interproceduralEntitiesBuilder.Free();
+                candidateEntitiesBuilder.Free();
+                interproceduralEntitiesToRetainBuilder.Free();
                 worklistEntities.Free();
                 worklistPointsToValues.Free();
                 processedPointsToValues.Free();
@@ -526,7 +550,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Local functions.
             bool AddWorklistEntityAndPointsToValue(AnalysisEntity analysisEntityOpt)
             {
-                if (analysisEntityOpt != null && allTrackedEntitiesBuilder.Contains(analysisEntityOpt))
+                if (analysisEntityOpt != null && candidateEntitiesBuilder.Contains(analysisEntityOpt))
                 {
                     worklistEntities.Add(analysisEntityOpt);
 
@@ -555,7 +579,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                    pointsToValue != PointsToAbstractValue.NoLocation;
         }
 
+        /// <summary>
+        /// Returns a cloned CurrentAnalysisData, trimmed down to only have key-value pairs for the given <paramref name="withEntities"/>.
+        /// </summary>
         protected abstract TAnalysisData GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities);
+
         protected TAnalysisData GetTrimmedCurrentAnalysisDataHelper(
             IEnumerable<AnalysisEntity> withEntities,
             IDictionary<AnalysisEntity, TAbstractAnalysisValue> existingValues,

@@ -1439,6 +1439,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         #region Interprocedural analysis
 
+        /// <summary>
+        /// Gets a new instance of analysis data that should be passed as initial analysis data
+        /// for interprocedural analysis.
+        /// The default implementation returns cloned <see cref="CurrentAnalysisData"/>.
+        /// </summary>
         protected virtual TAnalysisData GetInitialInterproceduralAnalysisData(
             IMethodSymbol invokedMethod,
             (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
@@ -1449,6 +1454,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             bool isLambdaOrLocalFunction)
             => GetClonedCurrentAnalysisData();
 
+        /// <summary>
+        /// Apply the result data from interprocedural analysis to <see cref="CurrentAnalysisData"/>.
+        /// Default implementation is designed for the default implementation of
+        /// <see cref="GetInitialInterproceduralAnalysisData(IMethodSymbol, (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)?, (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)?, ImmutableArray{ArgumentInfo{TAbstractAnalysisValue}}, IDictionary{AnalysisEntity, PointsToAbstractValue}, IDictionary{AnalysisEntity, CopyAbstractValue}, bool)"/>
+        /// and overwrites the <see cref="CurrentAnalysisData"/> with the given <paramref name="resultData"/>.
+        /// </summary>
         protected virtual void ApplyInterproceduralAnalysisResult(TAnalysisData resultData, bool isLambdaOrLocalFunction)
             => CurrentAnalysisData = resultData;
 
