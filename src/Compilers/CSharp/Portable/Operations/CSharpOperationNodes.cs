@@ -1661,8 +1661,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _operand;
 
-        internal CSharpLazyFromEndIndexOperation(CSharpOperationFactory operationFactory, BoundNode operand, bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
-            base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        internal CSharpLazyFromEndIndexOperation(CSharpOperationFactory operationFactory, BoundNode operand, bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
+            base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
         {
             _operationFactory = operationFactory;
             _operand = operand;
@@ -1679,8 +1679,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundRangeExpression _rangeExpression;
 
-        internal CSharpLazyRangeOperation(CSharpOperationFactory operationFactory, BoundRangeExpression rangeExpression, bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
-            base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        internal CSharpLazyRangeOperation(CSharpOperationFactory operationFactory, BoundRangeExpression rangeExpression, bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
+            base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
         {
             _operationFactory = operationFactory;
             _rangeExpression = rangeExpression;
@@ -1702,8 +1702,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundSuppressNullableWarningExpression _suppressionExpression;
 
-        internal CSharpLazySuppressNullableWarningOperation(CSharpOperationFactory operationFactory, BoundSuppressNullableWarningExpression suppressionExpression, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type) :
-            base(isImplicit, semanticModel, syntax, type)
+        internal CSharpLazySuppressNullableWarningOperation(CSharpOperationFactory operationFactory, BoundSuppressNullableWarningExpression suppressionExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, bool isImplicit) :
+            base(semanticModel, syntax, type, suppressionExpression.ConstantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _suppressionExpression = suppressionExpression;

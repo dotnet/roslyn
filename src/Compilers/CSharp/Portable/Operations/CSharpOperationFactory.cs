@@ -1969,13 +1969,13 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new CSharpLazyFromEndIndexOperation(
                 operationFactory: this,
-                operand: boundIndex.Operand,
+                boundIndex.Operand,
                 isLifted: boundIndex.Type.IsNullableType(),
-                isImplicit: boundIndex.WasCompilerGenerated,
                 _semanticModel,
                 boundIndex.Syntax,
                 boundIndex.Type,
-                symbol: boundIndex.MethodOpt);
+                boundIndex.MethodOpt,
+                isImplicit: boundIndex.WasCompilerGenerated);
         }
 
         private IOperation CreateRangeExpressionOperation(BoundRangeExpression boundRange)
@@ -1984,11 +1984,11 @@ namespace Microsoft.CodeAnalysis.Operations
                 operationFactory: this,
                 boundRange,
                 isLifted: boundRange.Type.IsNullableType(),
-                isImplicit: boundRange.WasCompilerGenerated,
                 _semanticModel,
                 boundRange.Syntax,
                 boundRange.Type,
-                symbol: boundRange.MethodOpt);
+                boundRange.MethodOpt,
+                isImplicit: boundRange.WasCompilerGenerated);
         }
 
         private IOperation CreateSuppressNullableWarningExpressionOperation(BoundSuppressNullableWarningExpression boundSuppression)
@@ -1996,10 +1996,10 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazySuppressNullableWarningOperation(
                 operationFactory: this,
                 boundSuppression,
-                isImplicit: boundSuppression.WasCompilerGenerated,
                 _semanticModel,
                 boundSuppression.Syntax,
-                boundSuppression.Type);
+                boundSuppression.Type,
+                isImplicit: boundSuppression.WasCompilerGenerated);
         }
     }
 }

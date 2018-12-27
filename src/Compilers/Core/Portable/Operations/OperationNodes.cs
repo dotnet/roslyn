@@ -9011,7 +9011,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal abstract class BaseFromEndIndexOperation : Operation, IFromEndIndexOperation
     {
-        protected BaseFromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
+        protected BaseFromEndIndexOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
                     base(OperationKind.FromEndIndex, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
         {
             IsLifted = isLifted;
@@ -9047,8 +9047,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed class FromEndIndexOperation : BaseFromEndIndexOperation
     {
-        public FromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation operand, IMethodSymbol symbol) :
-                    base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        public FromEndIndexOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation operand, IMethodSymbol symbol, bool isImplicit) :
+                    base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
         {
             Operand = Operation.SetParentOperation(operand, this);
         }
@@ -9060,8 +9060,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _operandInterlocked = s_unset;
 
-        public LazyFromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
-            base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        public LazyFromEndIndexOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
+            base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
         {
         }
 
@@ -9085,7 +9085,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal abstract class BaseRangeOperation : Operation, IRangeOperation
     {
-        protected BaseRangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
+        protected BaseRangeOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
                     base(OperationKind.Range, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
         {
             IsLifted = isLifted;
@@ -9128,8 +9128,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed class RangeOperation : BaseRangeOperation
     {
-        public RangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation leftOperand, IOperation rightOperand, IMethodSymbol symbol) :
-                    base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        public RangeOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation leftOperand, IOperation rightOperand, IMethodSymbol symbol, bool isImplicit) :
+                    base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
         {
             LeftOperand = Operation.SetParentOperation(leftOperand, this);
             RightOperand = Operation.SetParentOperation(rightOperand, this);
@@ -9144,8 +9144,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _leftOperandInterlocked = s_unset;
         private IOperation _rightOperandInterlocked = s_unset;
 
-        public LazyRangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
-            base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        public LazyRangeOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
+            base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
         {
         }
 
@@ -9185,8 +9185,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal abstract class BaseSuppressNullableWarningOperation : Operation, ISuppressNullableWarningOperation
     {
-        protected BaseSuppressNullableWarningOperation(bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type) :
-            base(OperationKind.SuppressNullableWarning, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
+        protected BaseSuppressNullableWarningOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.SuppressNullableWarning, semanticModel, syntax, type, constantValue, isImplicit: isImplicit)
         {
         }
 
@@ -9196,11 +9196,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
-                IOperation expression = Expression;
-                if (expression != null)
-                {
-                    yield return expression;
-                }
+                yield return Expression;
             }
         }
 
@@ -9217,8 +9213,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed class SuppressNullableWarningOperation : BaseSuppressNullableWarningOperation
     {
-        public SuppressNullableWarningOperation(bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation expression) :
-            base(isImplicit, semanticModel, syntax, type)
+        public SuppressNullableWarningOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation expression, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             Expression = Operation.SetParentOperation(expression, this);
         }
@@ -9230,8 +9226,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _expressionInterlocked = s_unset;
 
-        public LazySuppressNullableWarningOperation(bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type) :
-            base(isImplicit, semanticModel, syntax, type)
+        public LazySuppressNullableWarningOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
