@@ -1176,6 +1176,7 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Make_0_abstract" xml:space="preserve">
     <value>Make '{0}' abstract</value>
+  </data>
   <data name="Use_expression_body_for_local_functions" xml:space="preserve">
     <value>Use expression body for local functions</value>
   </data>

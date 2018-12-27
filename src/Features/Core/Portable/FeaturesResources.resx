@@ -1597,8 +1597,10 @@ This version used in: {2}</value>
   </data>
   <data name="Add_members_to_base_type" xml:space="preserve">
     <value>Add members to base type...</value>
+  </data>
   <data name="Pull_members_up" xml:space="preserve">
     <value>Pull_members_up</value>
+  </data>
   <data name="Use_block_body_for_local_functions" xml:space="preserve">
     <value>Use block body for local functions</value>
   </data>
