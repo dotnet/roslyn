@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Classification;
@@ -128,24 +127,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             }
         }
 
-        private string GetThemeId()
+        private Guid GetThemeId()
         {
-            using (var key = _vsRegistryRoot.OpenSubKey(@"ApplicationPrivateSettings\Microsoft\VisualStudio"))
-            {
-                var keyText = key?.GetValue("ColorTheme", string.Empty) as string;
-                if (string.IsNullOrEmpty(keyText))
-                {
-                    return null;
-                }
+            const string CurrentThemeValueName = "Microsoft.VisualStudio.ColorTheme";
+            const string CurrentThemeValueNameNew = "Microsoft.VisualStudio.ColorThemeNew";
 
-                var keyTextValues = keyText.Split('*');
-                if (keyTextValues.Length < 3)
-                {
-                    return null;
-                }
+            // Look up the value from the new roamed theme property first and
+            // fallback to the original roamed theme property if that fails.
+            var themeIdString = _settingsManager.GetValueOrDefault<string>(CurrentThemeValueNameNew, null)
+                ?? _settingsManager.GetValueOrDefault<string>(CurrentThemeValueName, null);
 
-                return keyTextValues[2];
-            }
+            return Guid.TryParse(themeIdString, out var themeId) ? themeId : Guid.Empty;
         }
 
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
@@ -155,8 +147,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         private sealed class EnhancedColorApplier
         {
             private readonly DTE _dte;
-
-            private const string DarkThemeGuid = "1ded0138-47ce-435e-84ef-9ec1f439b749";
 
             private const uint DefaultForegroundColor = 0x01000000u;
             private const uint DefaultBackgroundColor = 0x01000001u;
@@ -189,7 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 _dte = (DTE)serviceProvider.GetService(typeof(DTE));
             }
 
-            public void SetDefaultColors(string themeId)
+            public void SetDefaultColors(Guid themeId)
             {
                 var colorItemMap = GetColorItemMap();
 
@@ -199,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     return;
                 }
 
-                if (themeId == DarkThemeGuid)
+                if (themeId == KnownColorThemes.Dark)
                 {
                     // Dark Theme
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.LocalName, DarkThemeIdentifier);
@@ -222,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 }
             }
 
-            public void SetEnhancedColors(string themeId)
+            public void SetEnhancedColors(Guid themeId)
             {
                 var colorItemMap = GetColorItemMap();
 
@@ -232,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     return;
                 }
 
-                if (themeId == DarkThemeGuid)
+                if (themeId == KnownColorThemes.Dark)
                 {
                     // Dark Theme
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.LocalName, DarkThemeLocalBlue);
@@ -279,13 +269,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             {
                 colorItemMap[classification].Foreground = foreground;
                 colorItemMap[classification].Background = background;
+                colorItemMap[classification].Bold = false;
             }
 
-            private bool AreColorsDefaulted(Dictionary<string, ColorableItems> colorItemMap, string themeId)
+            private bool AreColorsDefaulted(Dictionary<string, ColorableItems> colorItemMap, Guid themeId)
             {
                 bool areColorsDefaulted;
 
-                if (themeId == DarkThemeGuid)
+                if (themeId == KnownColorThemes.Dark)
                 {
                     // Dark Theme
                     // We also check OperatorOverloaded and ControlKeyword for whether they are the PlainText color.
@@ -334,11 +325,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     color == themeColor;
             }
 
-            private bool AreColorsEnhanced(Dictionary<string, ColorableItems> colorItemMap, string themeId)
+            private bool AreColorsEnhanced(Dictionary<string, ColorableItems> colorItemMap, Guid themeId)
             {
                 bool areColorsEnhanced;
 
-                if (themeId == DarkThemeGuid)
+                if (themeId == KnownColorThemes.Dark)
                 {
                     // Dark Theme
                     areColorsEnhanced = colorItemMap[ClassificationTypeNames.LocalName].Foreground == DarkThemeLocalBlue &&
