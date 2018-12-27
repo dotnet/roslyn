@@ -325,14 +325,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     // Result types cannot have nested types that are lossy unspeakables
                     Assert.Null(entry.VisitType(typeOpt: null,
-                        typeWithAnnotationsPredicateOpt: (tswa, a, b) => !tswa.Equals(entry, TypeCompareKind.ConsiderEverything) && isLossyUnspeakable(tswa),
+                        typeWithAnnotationsPredicateOpt: (tswa, a, b) => !tswa.Equals(entry, TypeCompareKind.ConsiderEverything) && isUnspeakable(tswa),
                         typePredicateOpt: (ts, _, b) => false, arg: (object)null, canDigThroughNullable: true));
                 }
 
                 // Returns true if the application of TypeSymbolWithAnnotations.AsSpeakable would lose information
-                bool isLossyUnspeakable(TypeSymbolWithAnnotations tswa)
+                bool isUnspeakable(TypeSymbolWithAnnotations tswa)
                 {
-                    return tswa.NullableAnnotation == NullableAnnotation.NotNullable && tswa.TypeSymbol.IsTypeParameterDisallowingAnnotation();
+                    return tswa.NullableAnnotation == NullableAnnotation.NotNullable || tswa.NullableAnnotation == NullableAnnotation.Nullable;
                 }
 
                 string toDisplayString(SyntaxNode syntaxOpt)

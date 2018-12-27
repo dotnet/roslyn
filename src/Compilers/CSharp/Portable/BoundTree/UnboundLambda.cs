@@ -171,9 +171,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bestResultType = default;
                     break;
                 case 1:
-                    bestResultType = returns[0].Item2;
+                    bestResultType = returns[0].resultType;
                     break;
                 default:
+                    // Need to handle ref returns. See https://github.com/dotnet/roslyn/issues/30432
                     bestResultType = NullableWalker.BestTypeForLambdaReturns(returns, compilation, node);
                     break;
             }

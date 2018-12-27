@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static NullableAnnotation AsSpeakable(this NullableAnnotation annotation, TypeSymbol type)
         {
+            Debug.Assert((object)type != null);
             switch (annotation)
             {
                 case NullableAnnotation.Unknown:
@@ -479,8 +480,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // There is no loss of information from applying AsSpeakable, because we've called AsSpeakable to adjust top-level nullability in relevant callers,
             // and other callers don't produce this combination (you can't get a nested unspeakable type during nullability analysis).
-            Debug.Assert(this.NullableAnnotation != NullableAnnotation.NotNullable || !this.TypeSymbol.IsTypeParameterDisallowingAnnotation());
-            Debug.Assert(other.NullableAnnotation != NullableAnnotation.NotNullable || !other.TypeSymbol.IsTypeParameterDisallowingAnnotation());
+            Debug.Assert(this.NullableAnnotation != NullableAnnotation.NotNullable && this.NullableAnnotation != NullableAnnotation.Nullable);
+            Debug.Assert(other.NullableAnnotation != NullableAnnotation.NotNullable && other.NullableAnnotation != NullableAnnotation.Nullable);
 
             TypeSymbolWithAnnotations speakableThis = this.AsSpeakable();
             TypeSymbolWithAnnotations speakableOther = other.AsSpeakable();

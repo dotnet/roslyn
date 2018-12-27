@@ -1388,16 +1388,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
-                // collect elements and conversions
-                (BoundExpression element, Conversion conversion) = RemoveConversion(expressions[i], includeExplicitConversions: false);
-                expressions[i] = element;
+                // collect expressions, conversions and result types
+                (BoundExpression expression, Conversion conversion) = RemoveConversion(expressions[i], includeExplicitConversions: false);
+                expressions[i] = expression;
                 conversions.Add(conversion);
-                var resultType = VisitRvalueWithResult(element);
+                var resultType = VisitRvalueWithResult(expression);
                 resultTypes.Add(resultType);
             }
 
-            bool checkNestedNullability = true;
             TypeSymbol bestType = null;
+            bool hadNestedNullabilityMismatch = false;
             if (!node.HasErrors)
             {
                 var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
@@ -1408,11 +1408,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var placeholders = placeholderBuilder.ToImmutableAndFree();
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, out bool hadNullabilityMismatch, ref useSiteDiagnostics);
-                if (hadNullabilityMismatch)
+                bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, out hadNestedNullabilityMismatch, ref useSiteDiagnostics);
+                if (hadNestedNullabilityMismatch)
                 {
-                     ReportSafetyDiagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, node.Syntax);
-                    checkNestedNullability = false;
+                    ReportSafetyDiagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, node.Syntax);
                 }
             }
 
@@ -1420,15 +1419,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (bestType is null)
             {
                 inferredType = elementType.SetUnknownNullabilityForReferenceTypes();
-                checkNestedNullability = false;
             }
             else
             {
                 inferredType = TypeSymbolWithAnnotations.Create(bestType);
             }
 
-            if (checkNestedNullability && !inferredType.IsValueType)
+            if ((object)bestType != null && !inferredType.IsValueType)
             {
+                // Note: so long as we have a best type, we can proceed. But we don't want to report warnings on nested nullability
+
                 // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
                 for (int i = 0; i < n; i++)
                 {
@@ -1436,7 +1436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var element = expressions[i];
                     var resultType = resultTypes[i];
                     resultTypes[i] = ApplyConversion(element, element, conversion, inferredType, resultType, checkConversion: true,
-                        fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportTopLevelWarnings: false);
+                        fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportNestedWarnings: !hadNestedNullabilityMismatch, reportTopLevelWarnings: false);
                 }
 
                 // Set top-level nullability on inferred element type
@@ -1472,7 +1472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var walker = new NullableWalker(compilation, method: null,
                 useMethodSignatureReturnType: false, useMethodSignatureParameterTypes: false, methodSignatureOpt: null,
-                node, returnTypes: null, initialState: null, callbackOpt: null);
+                node, returnTypesOpt: null, initialState: null, callbackOpt: null);
 
             int n = returns.Count;
             var expressions = ArrayBuilder<BoundExpression>.GetInstance();
@@ -1490,23 +1490,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol bestType = BestTypeInferrer.InferBestType(placeholders.ToImmutableAndFree(),
                 walker._conversions, hadNullabilityMismatch: out _, ref useSiteDiagnostics);
 
-            TypeSymbolWithAnnotations inferredType = bestType is null ? default : TypeSymbolWithAnnotations.Create(bestType);
-            if (!inferredType.IsNull)
+            TypeSymbolWithAnnotations inferredType;
+            if ((object)bestType != null)
             {
+                // Note: so long as we have a best type, we can proceed.
+                var bestTypeWithObliviousAnnotation = TypeSymbolWithAnnotations.Create(bestType);
                 for (int i = 0; i < n; i++)
                 {
                     BoundExpression expression = expressions[i];
-                    var conversion = walker._conversions.ClassifyConversionFromExpression(expression, inferredType.TypeSymbol, ref useSiteDiagnostics);
+                    var conversion = walker._conversions.ClassifyConversionFromExpression(expression, bestType, ref useSiteDiagnostics);
                     if (conversion.Exists)
                     {
-                        resultTypes[i] = walker.ApplyConversion(expression, expression, conversion, inferredType, resultTypes[i],
+                        resultTypes[i] = walker.ApplyConversion(expression, expression, conversion, bestTypeWithObliviousAnnotation, resultTypes[i],
                             checkConversion: false, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Return,
                             reportNestedWarnings: false, reportTopLevelWarnings: false);
                     }
                 }
 
                 // Set top-level nullability on inferred type
-                inferredType = TypeSymbolWithAnnotations.Create(inferredType.TypeSymbol, BestTypeInferrer.GetNullableAnnotation(resultTypes));
+                inferredType = TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(resultTypes));
+            }
+            else
+            {
+                inferredType = default;
             }
 
             resultTypes.Free();
