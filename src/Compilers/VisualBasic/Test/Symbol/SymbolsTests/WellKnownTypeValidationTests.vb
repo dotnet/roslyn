@@ -518,9 +518,9 @@ End Namespace
                          WellKnownType.System_Threading_Tasks_ValueTask_T,
                          WellKnownType.System_Threading_Tasks_ValueTask,
                          WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
-                         WellKnownType.System_MatchFailureException,
                          WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
-                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute
+                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -577,9 +577,9 @@ End Namespace
                          WellKnownType.System_Threading_Tasks_ValueTask_T,
                          WellKnownType.System_Threading_Tasks_ValueTask,
                          WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
-                         WellKnownType.System_MatchFailureException,
                          WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
-                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute
+                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -674,8 +674,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
-                         WellKnownMember.System_MatchFailureException__ctor,
-                         WellKnownMember.System_MatchFailureException__ctorObject
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
                         ' Not always available.
                         Continue For
                 End Select
@@ -806,8 +806,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
-                         WellKnownMember.System_MatchFailureException__ctor,
-                         WellKnownMember.System_MatchFailureException__ctorObject
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
                         ' Not always available.
                         Continue For
                 End Select

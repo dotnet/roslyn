@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
 
         System_InvalidOperationException,
-        System_MatchFailureException,
+        System_Runtime_CompilerServices_SwitchExpressionException,
 
         NextAvailable,
 
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder",
 
             "System.InvalidOperationException",
-            "System.MatchFailureException"
+            "System.Runtime.CompilerServices.SwitchExpressionException"
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
