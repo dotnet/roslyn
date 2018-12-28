@@ -1185,6 +1185,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _ = operation.Guard;
             Assert.NotNull(operation.Value);
             VisitLocals(operation.Locals);
+            var children = new[] { operation.Pattern, operation.Guard, operation.Value };
+            AssertEx.Equal(children, operation.Children);
         }
 
         public override void VisitIsPattern(IIsPatternOperation operation)
