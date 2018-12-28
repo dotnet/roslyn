@@ -6604,7 +6604,7 @@ oneMoreTime:
 
         public override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, int? argument)
         {
-            return new FromEndIndexOperation(operation.IsLifted, operation.IsImplicit, semanticModel: null, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol);
+            return new FromEndIndexOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol, isImplicit: IsImplicit(operation));
         }
 
         public override IOperation VisitRangeOperation(IRangeOperation operation, int? argument)
@@ -6622,7 +6622,13 @@ oneMoreTime:
 
             IOperation visitedLeftOperand = operation.LeftOperand is null ? null : PopOperand();
 
-            return new RangeOperation(operation.IsLifted, operation.IsImplicit, semanticModel: null, operation.Syntax, operation.Type, visitedLeftOperand, visitedRightOperand, operation.Method);
+            return new RangeOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, visitedLeftOperand, visitedRightOperand, operation.Method, isImplicit: IsImplicit(operation));
+        }
+
+        public override IOperation VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation, int? argument)
+        {
+            IOperation visitedExpression = Visit(operation.Expression);
+            return new SuppressNullableWarningOperation(semanticModel: null, operation.Syntax, operation.Type, visitedExpression, operation.ConstantValue, isImplicit: IsImplicit(operation));
         }
 
         public IOperation Visit(IOperation operation)

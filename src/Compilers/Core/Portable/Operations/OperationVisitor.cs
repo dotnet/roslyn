@@ -585,6 +585,11 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
+        public virtual void VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitReDim(IReDimOperation operation)
         {
             DefaultVisit(operation);
@@ -785,11 +790,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitArrayElementReference(IArrayElementReferenceOperation operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
-        public virtual TResult VisitSuppressNullableWarningExpression(ISuppressNullableWarningOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -1179,6 +1179,11 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitRangeOperation(IRangeOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

@@ -274,6 +274,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateFromEndIndexExpressionOperation((BoundFromEndIndexExpression)boundNode);
                 case BoundKind.RangeExpression:
                     return CreateRangeExpressionOperation((BoundRangeExpression)boundNode);
+                case BoundKind.SuppressNullableWarningExpression:
+                    return CreateSuppressNullableWarningExpressionOperation((BoundSuppressNullableWarningExpression)boundNode);
                 case BoundKind.SwitchSection:
                     return CreateBoundSwitchSectionOperation((BoundSwitchSection)boundNode);
 
@@ -294,7 +296,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.RefValueOperator:
                 case BoundKind.Sequence:
                 case BoundKind.StackAllocArrayCreation:
-                case BoundKind.SuppressNullableWarningExpression:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
 
@@ -1955,13 +1956,13 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new CSharpLazyFromEndIndexOperation(
                 operationFactory: this,
-                operand: boundIndex.Operand,
+                boundIndex.Operand,
                 isLifted: boundIndex.Type.IsNullableType(),
-                isImplicit: boundIndex.WasCompilerGenerated,
                 _semanticModel,
                 boundIndex.Syntax,
                 boundIndex.Type,
-                symbol: boundIndex.MethodOpt);
+                boundIndex.MethodOpt,
+                isImplicit: boundIndex.WasCompilerGenerated);
         }
 
         private IOperation CreateRangeExpressionOperation(BoundRangeExpression boundRange)
@@ -1970,11 +1971,22 @@ namespace Microsoft.CodeAnalysis.Operations
                 operationFactory: this,
                 boundRange,
                 isLifted: boundRange.Type.IsNullableType(),
-                isImplicit: boundRange.WasCompilerGenerated,
                 _semanticModel,
                 boundRange.Syntax,
                 boundRange.Type,
-                symbol: boundRange.MethodOpt);
+                boundRange.MethodOpt,
+                isImplicit: boundRange.WasCompilerGenerated);
+        }
+
+        private IOperation CreateSuppressNullableWarningExpressionOperation(BoundSuppressNullableWarningExpression boundSuppression)
+        {
+            return new CSharpLazySuppressNullableWarningOperation(
+                operationFactory: this,
+                boundSuppression,
+                _semanticModel,
+                boundSuppression.Syntax,
+                boundSuppression.Type,
+                isImplicit: boundSuppression.WasCompilerGenerated);
         }
 
         private IOperation CreateBoundDiscardPatternOperation(BoundDiscardPattern boundNode)
