@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbol.ContainingType.Accept(this.NotFirstVisitor);
                 AddPunctuation(SyntaxKind.DotToken);
             }
-            
+
             if (symbol.ContainingType.TypeKind == TypeKind.Enum)
             {
                 builder.Add(CreatePart(SymbolDisplayPartKind.EnumMemberName, symbol, symbol.Name));
