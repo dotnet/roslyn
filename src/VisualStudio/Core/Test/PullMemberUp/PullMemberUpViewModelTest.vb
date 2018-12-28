@@ -153,6 +153,51 @@ class MyClass : Level1BaseClass, Level1Interface
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        Public Async Function TestPullMemberUp_SelectInterfaceDisableMakeAbstractCheckbox() As Task
+            Dim markUp = <Text><![CDATA[
+interface Level2Interface
+{
+}
+                             
+interface Level1Interface : Level2Interface
+{
+}
+
+class Level1BaseClass: Level2Interface
+{
+}
+
+class MyClass : Level1BaseClass, Level1Interface
+{
+    public void G$$oo()
+    {
+    }
+
+    public double e => 2.717;
+
+    public const days = 365;
+
+    private double pi => 3.1416;
+
+    protected float goldenRadio = 0.618;
+
+    internal float gravitational = 6.67e-11;
+}"]]></Text>
+            Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
+            Dim baseTypeTree = viewModel.Destinations()
+
+            Assert.Equal("Level1Interface", baseTypeTree(0).SymbolName)
+            viewModel.SelectedDestination = baseTypeTree(0)
+
+            For Each member In viewModel.Members.Where(
+                Function(memberViewModel)
+                    Return Not memberViewModel.Symbol.IsKind(SymbolKind.Field) And Not memberViewModel.Symbol.IsAbstract
+                End Function)
+                Assert.False(member.IsMakeAbstractCheckable)
+            Next
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
         Public Async Function TestPullMemberUp_SelectClassEnableFieldCheckbox() As Task
             Dim markUp = <Text><![CDATA[
 interface Level2Interface
@@ -276,7 +321,6 @@ class MyClass : Level1BaseClass
     public double e => 2.717;
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
             viewModel.SelectDependents()
 
             ' Dependents of Goo
@@ -330,7 +374,6 @@ class MyClass : Level1BaseClass
                     dependentsBuilder.CreateDependentsMap(CancellationToken.None))
             End Using
         End Function
-
     End Class
 End Namespace
 

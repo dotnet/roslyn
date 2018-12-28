@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                     showProgress: true,
                     context =>
                     {
-                        foreach (var member in checkedMembers)
+                        foreach (var member in Members)
                         {
                             DependentsMap[member.Symbol].Wait(context.CancellationToken);
                         }

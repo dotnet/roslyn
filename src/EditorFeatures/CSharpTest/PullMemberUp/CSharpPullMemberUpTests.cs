@@ -1057,6 +1057,182 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullMethodUpAcrossProjectViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <ProjectReference>CSAssembly2</ProjectReference>
+        <Document>
+using Destination;
+public class TestClass : IInterface
+{
+    public int Bar[||]Bar()
+    {
+        return 12345;
+    }
+}
+        </Document>
+  </Project>
+  <Project Language=""C#"" AssemblyName=""CSAssembly2"" CommonReferences=""true"">
+        <Document>
+namespace Destination
+{
+    public interface IInterface
+    {
+    }
+}
+        </Document>
+  </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <ProjectReference>CSAssembly2</ProjectReference>
+        <Document>
+using Destination;
+public class TestClass : IInterface
+{
+    public int Bar[||]Bar()
+    {
+        return 12345;
+    }
+}
+        </Document>
+  </Project>
+  <Project Language=""C#"" AssemblyName=""CSAssembly2"" CommonReferences=""true"">
+        <Document>
+namespace Destination
+{
+    public interface IInterface
+    {
+        int BarBar();
+    }
+}
+        </Document>
+  </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullPropertyUpAcrossProjectViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <ProjectReference>CSAssembly2</ProjectReference>
+        <Document>
+using Destination;
+public class TestClass : IInterface
+{
+    public int F[||]oo
+    {
+        get;
+        set;
+    }
+}
+        </Document>
+  </Project>
+  <Project Language=""C#"" AssemblyName=""CSAssembly2"" CommonReferences=""true"">
+        <Document>
+namespace Destination
+{
+    public interface IInterface
+    {
+    }
+}
+        </Document>
+  </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <ProjectReference>CSAssembly2</ProjectReference>
+        <Document>
+using Destination;
+public class TestClass : IInterface
+{
+    public int Foo
+    {
+        get;
+        set;
+    }
+}
+        </Document>
+  </Project>
+  <Project Language=""C#"" AssemblyName=""CSAssembly2"" CommonReferences=""true"">
+        <Document>
+namespace Destination
+{
+    public interface IInterface
+    {
+        int Foo { get; set; }
+    }
+}
+        </Document>
+  </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullFieldUpAcrossProjectViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <ProjectReference>CSAssembly2</ProjectReference>
+        <Document>
+using Destination;
+public class TestClass : BaseClass
+{
+    private int i, j, [||]k = 10;
+}
+        </Document>
+  </Project>
+  <Project Language=""C#"" AssemblyName=""CSAssembly2"" CommonReferences=""true"">
+        <Document>
+namespace Destination
+{
+    public class BaseClass
+    {
+    }
+}
+        </Document>
+  </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
+        <ProjectReference>CSAssembly2</ProjectReference>
+        <Document>
+using Destination;
+public class TestClass : BaseClass
+{
+    private int i, j;
+}
+        </Document>
+  </Project>
+  <Project Language=""C#"" AssemblyName=""CSAssembly2"" CommonReferences=""true"">
+        <Document>
+namespace Destination
+{
+    public class BaseClass
+    {
+        private int k = 10;
+    }
+}
+        </Document>
+  </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullMethodUpToVBClassViaQuickAction()
         {
             // Moving member from C# to Visual Basic is not supported currently since the FindMostRelevantDeclarationAsync method in 
