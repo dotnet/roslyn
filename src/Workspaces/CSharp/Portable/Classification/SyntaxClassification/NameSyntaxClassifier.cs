@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             // For Namespace parts, we want don't want to classify the QualifiedNameSyntax
             // nodes, we instead wait for the each IdentifierNameSyntax node to avoid
             // creating overlapping ClassifiedSpans.
-            if (symbol is INamespaceSymbol namespaceSymbol && 
+            if (symbol is INamespaceSymbol namespaceSymbol &&
                 name is IdentifierNameSyntax identifierNameSyntax)
             {
                 // Do not classify the global:: namespace. It is already syntactically classified as a keyword.
