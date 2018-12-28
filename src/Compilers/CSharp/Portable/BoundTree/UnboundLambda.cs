@@ -175,7 +175,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 default:
                     // Need to handle ref returns. See https://github.com/dotnet/roslyn/issues/30432
-                    bestResultType = NullableWalker.BestTypeForLambdaReturns(returns, compilation, node);
+                    if (conversions.IncludeNullability)
+                    {
+                        bestResultType = NullableWalker.BestTypeForLambdaReturns(returns, compilation, node);
+                    }
+                    else
+                    {
+                        var typesOnly = ArrayBuilder<TypeSymbol>.GetInstance(n);
+                        foreach (var (_, resultType) in returns)
+                        {
+                            typesOnly.Add(resultType.TypeSymbol);
+                        }
+                        var bestType = BestTypeInferrer.GetBestType(typesOnly, conversions, hadNullabilityMismatch: out _, ref useSiteDiagnostics);
+                        bestResultType = bestType is null ? default : TypeSymbolWithAnnotations.Create(bestType);
+                        typesOnly.Free();
+                    }
                     break;
             }
 
@@ -588,7 +602,7 @@ haveLambdaBodyAndBinders:
             var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)>.GetInstance();
             BoundLambda.BlockReturns.GetReturnTypes(returnTypes, block);
-            var inferredReturnType = BoundLambda.InferReturnType(returnTypes, block, lambdaBodyBinder.Compilation, lambdaBodyBinder.Conversions, delegateType, lambdaSymbol.IsAsync);
+            var inferredReturnType = BoundLambda.InferReturnType(returnTypes, _unboundLambda, lambdaBodyBinder.Compilation, lambdaBodyBinder.Conversions, delegateType, lambdaSymbol.IsAsync);
             returnTypes.Free();
             var result = new BoundLambda(_unboundLambda.Syntax, _unboundLambda, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferredReturnType)
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };

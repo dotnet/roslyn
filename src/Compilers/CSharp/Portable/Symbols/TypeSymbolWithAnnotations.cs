@@ -539,16 +539,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal TypeSymbolWithAnnotations MergeNullability(TypeSymbolWithAnnotations other, VarianceKind variance, out bool hadNullabilityMismatch)
         {
-            // There is no loss of information from applying AsSpeakable, because we've called AsSpeakable to adjust top-level nullability in relevant callers,
-            // and other callers don't produce this combination (you can't get a nested unspeakable type during nullability analysis).
-            Debug.Assert(this.NullableAnnotation != NullableAnnotation.NotNullable || !this.TypeSymbol.IsTypeParameterDisallowingAnnotation());
-            Debug.Assert(other.NullableAnnotation != NullableAnnotation.NotNullable || !other.TypeSymbol.IsTypeParameterDisallowingAnnotation());
+            Debug.Assert(this.NullableAnnotation.IsSpeakable());
+            Debug.Assert(other.NullableAnnotation.IsSpeakable());
 
-            TypeSymbolWithAnnotations speakableThis = this.AsSpeakable();
-            TypeSymbolWithAnnotations speakableOther = other.AsSpeakable();
-
-            TypeSymbol typeSymbol = speakableOther.TypeSymbol;
-            NullableAnnotation nullableAnnotation = MergeNullableAnnotation(speakableThis.NullableAnnotation, speakableOther.NullableAnnotation, variance, out bool hadTopLevelMismatch);
+            TypeSymbol typeSymbol = other.TypeSymbol;
+            NullableAnnotation nullableAnnotation = MergeNullableAnnotation(this.NullableAnnotation, other.NullableAnnotation, variance, out bool hadTopLevelMismatch);
             TypeSymbol type = TypeSymbol.MergeNullability(typeSymbol, variance, out bool hadNestedMismatch);
             Debug.Assert((object)type != null);
             hadNullabilityMismatch = hadTopLevelMismatch | hadNestedMismatch;
@@ -998,6 +993,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var newTypeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
 
             if ((object)newTypeSymbol != typeSymbol)
+            {
+                return WithTypeAndModifiers(newTypeSymbol, CustomModifiers);
+            }
+
+            return this;
+        }
+
+        public TypeSymbolWithAnnotations SetSpeakableNullabilityForReferenceTypes()
+        {
+            var newTypeSymbol = TypeSymbol.SetSpeakableNullabilityForReferenceTypes();
+
+            if (!NullableAnnotation.IsSpeakable())
+            {
+                if (newTypeSymbol.IsValueType)
+                {
+                    return Create(newTypeSymbol, customModifiers: CustomModifiers);
+                }
+
+                return CreateNonLazyType(newTypeSymbol, NullableAnnotation.AsSpeakable(newTypeSymbol), CustomModifiers);
+            }
+
+            if ((object)newTypeSymbol != TypeSymbol)
             {
                 return WithTypeAndModifiers(newTypeSymbol, CustomModifiers);
             }

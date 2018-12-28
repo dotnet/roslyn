@@ -1381,6 +1381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ = VisitOptionalImplicitConversion(expressions[i], elementType, useLegacyWarnings: false, AssignmentKind.Assignment);
                 }
 
+                _resultType = _invalidType;
                 return arrayType;
             }
 
@@ -1396,17 +1397,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultTypes.Add(resultType);
             }
 
+            var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressions[i], resultTypes[i]));
+            }
+            var placeholders = placeholderBuilder.ToImmutableAndFree();
+
             TypeSymbol bestType = null;
             bool hadNestedNullabilityMismatch = false;
             if (!node.HasErrors)
             {
-                var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
-                for (int i = 0; i < n; i++)
-                {
-                    placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressions[i], resultTypes[i]));
-                }
-                var placeholders = placeholderBuilder.ToImmutableAndFree();
-
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, out hadNestedNullabilityMismatch, ref useSiteDiagnostics);
                 if (hadNestedNullabilityMismatch)
@@ -1432,10 +1433,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
                 for (int i = 0; i < n; i++)
                 {
-                    var conversion = conversions[i];
-                    var element = expressions[i];
-                    var resultType = resultTypes[i];
-                    resultTypes[i] = ApplyConversion(element, element, conversion, inferredType, resultType, checkConversion: true,
+                    var placeholder = placeholders[i];
+                    resultTypes[i] = ApplyConversion(placeholder, placeholder, conversions[i], inferredType, resultTypes[i], checkConversion: true,
                         fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportNestedWarnings: !hadNestedNullabilityMismatch, reportTopLevelWarnings: false);
                 }
 
@@ -1444,10 +1443,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 0; i < n; i++)
                 {
-                    var element = expressions[i];
-                    var resultType = resultTypes[i];
+                    var nodeForSyntax = expressions[i];
                     // Report top-level warnings
-                    _ = ApplyConversion(element, operandOpt: null, Conversion.Identity, targetTypeWithNullability: inferredType, operandType: resultType,
+                    _ = ApplyConversion(nodeForSyntax, operandOpt: null, Conversion.Identity, targetTypeWithNullability: inferredType, operandType: resultTypes[i],
                         checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportNestedWarnings: false);
                 }
             }
@@ -1466,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Note: even if some conversions fail, we'll proceed to infer top-level nullability. That is reasonable in common cases.
         /// </summary>
         internal static TypeSymbolWithAnnotations BestTypeForLambdaReturns(
-            ArrayBuilder<(BoundExpression, TypeSymbolWithAnnotations resultType)> returns,
+            ArrayBuilder<(BoundExpression, TypeSymbolWithAnnotations)> returns,
             CSharpCompilation compilation,
             BoundNode node)
         {
@@ -1477,34 +1475,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             int n = returns.Count;
             var expressions = ArrayBuilder<BoundExpression>.GetInstance();
             var resultTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
-            var placeholders = ArrayBuilder<BoundExpression>.GetInstance(n);
+            var placeholdersBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
                 var (returnExpr, resultType) = returns[i];
                 expressions.Add(returnExpr);
-                resultTypes.Add(returns[i].resultType);
-                placeholders.Add(CreatePlaceholderIfNecessary(returnExpr, resultType));
+                resultTypes.Add(resultType);
+                placeholdersBuilder.Add(CreatePlaceholderIfNecessary(returnExpr, resultType));
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            TypeSymbol bestType = BestTypeInferrer.InferBestType(placeholders.ToImmutableAndFree(),
-                walker._conversions, hadNullabilityMismatch: out _, ref useSiteDiagnostics);
+            var placeholders = placeholdersBuilder.ToImmutableAndFree();
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(placeholders, walker._conversions, hadNullabilityMismatch: out _, ref useSiteDiagnostics);
 
             TypeSymbolWithAnnotations inferredType;
             if ((object)bestType != null)
             {
                 // Note: so long as we have a best type, we can proceed.
                 var bestTypeWithObliviousAnnotation = TypeSymbolWithAnnotations.Create(bestType);
+                ConversionsBase conversionsWithoutNullability = walker._conversions.WithNullability(false);
                 for (int i = 0; i < n; i++)
                 {
-                    BoundExpression expression = expressions[i];
-                    var conversion = walker._conversions.ClassifyConversionFromExpression(expression, bestType, ref useSiteDiagnostics);
-                    if (conversion.Exists)
-                    {
-                        resultTypes[i] = walker.ApplyConversion(expression, expression, conversion, bestTypeWithObliviousAnnotation, resultTypes[i],
-                            checkConversion: false, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Return,
-                            reportNestedWarnings: false, reportTopLevelWarnings: false);
-                    }
+                    BoundExpression placeholder = placeholders[i];
+                    Conversion conversion = conversionsWithoutNullability.ClassifyConversionFromExpression(placeholder, bestType, ref useSiteDiagnostics);
+                    resultTypes[i] = walker.ApplyConversion(placeholder, placeholder, conversion, bestTypeWithObliviousAnnotation, resultTypes[i],
+                        checkConversion: false, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Return,
+                        reportNestedWarnings: false, reportTopLevelWarnings: false);
                 }
 
                 // Set top-level nullability on inferred type
@@ -2988,7 +2984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments,
                 out hadNullabilityMismatch,
                 ref useSiteDiagnostics,
-                getNullableAnnotationOpt: expr => GetNullableAnnotation(expr).AsSpeakable(expr.Type));
+                getTypeWithAnnotationOpt: getTypeWithSpeakableAnnotations);
 
             if (!result.Success)
             {
@@ -2999,6 +2995,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportSafetyDiagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, node.Syntax, definition);
             }
             return definition.Construct(result.InferredTypeArguments);
+
+            // Note: although only tuple types can have nested types that are unspeakable, we make all nested types speakable to be sure
+            TypeSymbolWithAnnotations getTypeWithSpeakableAnnotations(BoundExpression expr)
+                => TypeSymbolWithAnnotations.Create(expr.Type, GetNullableAnnotation(expr)).SetSpeakableNullabilityForReferenceTypes();
         }
 
         private ImmutableArray<BoundExpression> GetArgumentsForMethodTypeInference(ImmutableArray<BoundExpression> arguments, ImmutableArray<TypeSymbolWithAnnotations> argumentResults)

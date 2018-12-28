@@ -75,6 +75,46 @@ class C
         }
 
         [Fact]
+        public void SpeakableInference_MethodTypeInference_WithTuple()
+        {
+            var source =
+@"class Program
+{
+    void M<T>(T t)
+    {
+        if (t == null) throw null;
+        var tuple = (t, t);
+        tuple.Item1.ToString();
+        tuple.Item2.ToString();
+
+        var tuple2 = Copy(tuple);
+        tuple2.Item1.ToString(); // warn
+        tuple2.Item2.ToString(); // warn
+
+        var tuple3 = Copy<T, T>(tuple);
+        tuple3.Item1.ToString(); // warn
+        tuple3.Item2.ToString(); // warn
+    }
+    static (T, U) Copy<T, U>((T, U) t) => throw null;
+}";
+            var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         tuple2.Item1.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "tuple2.Item1").WithLocation(11, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         tuple2.Item2.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "tuple2.Item2").WithLocation(12, 9),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         tuple3.Item1.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "tuple3.Item1").WithLocation(15, 9),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         tuple3.Item2.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "tuple3.Item2").WithLocation(16, 9)
+                );
+        }
+
+        [Fact]
         public void SpeakableInference_MethodTypeInference_WithNull()
         {
             var source =
@@ -255,6 +295,9 @@ class C<T>
     {
         var a = new[] { x, y };
         a[0].ToString();
+
+        var b = new[] { y, x };
+        b[0].ToString();
     }
 }";
             // https://github.com/dotnet/roslyn/issues/30480: Should report WRN_NoBestNullabilityArrayElements. Problem in BestTypeInferrer.Better
@@ -265,7 +308,13 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<string>", "C<string?>").WithLocation(12, 25),
                 // (13,9): warning CS8602: Possible dereference of a null reference.
                 //         a[0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a[0]").WithLocation(13, 9)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a[0]").WithLocation(13, 9),
+                // (15,28): warning CS8619: Nullability of reference types in value of type 'C<string>' doesn't match target type 'C<string?>'.
+                //         var b = new[] { y, x };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<string>", "C<string?>").WithLocation(15, 28),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         b[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b[0]").WithLocation(16, 9)
                 );
         }
 
@@ -392,6 +441,50 @@ class C
         }
 
         [Fact]
+        public void SpeakableInference_LambdaReturnTypeInference_ConversionWithNullableOutput2()
+        {
+            var source =
+@"class A<T>
+{
+    public static implicit operator C<T>?(A<T> a) => throw null;
+}
+class B<T> : A<T>
+{
+}
+class C<T>
+{
+    void M(B<string?> x, C<string?> y)
+    {
+        var x1 = F(() =>
+        {
+            bool b = true;
+            if (b) return x;
+            return y;
+        });
+        x1.ToString();
+
+        var x2 = F(() =>
+        {
+            bool b = true;
+            if (b) return y;
+            return x;
+        });
+        x2.ToString();
+    }
+    U F<U>(System.Func<U> f) => throw null;
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         x1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(18, 9),
+                // (26,9): warning CS8602: Possible dereference of a null reference.
+                //         x2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(26, 9)
+                );
+        }
+
+        [Fact]
         public void SpeakableInference_LambdaReturnTypeInference_ConversionWithNullableOutput_WithNestedMismatch()
         {
             var source =
@@ -413,18 +506,33 @@ class C<T>
             return y;
         });
         x1.ToString();
+
+        var x2 = F(() =>
+        {
+            bool b = true;
+            if (b) return y;
+            return x;
+        });
+        x2.ToString();
     }
     U F<U>(System.Func<U> f) => throw null;
 }";
+
             // https://github.com/dotnet/roslyn/issues/30480: Should report WRN_CantInferNullabilityOfMethodTypeArgs
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (15,27): warning CS8619: Nullability of reference types in value of type 'C<string>' doesn't match target type 'C<string?>'.
                 //             if (b) return x;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<string>", "C<string?>").WithLocation(15, 27),
-                // (15,27): warning CS8603: Possible null reference return.
-                //             if (b) return x;
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "x").WithLocation(15, 27)
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         x1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(18, 9),
+                // (24,20): warning CS8619: Nullability of reference types in value of type 'C<string>' doesn't match target type 'C<string?>'.
+                //             return x;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<string>", "C<string?>").WithLocation(24, 20),
+                // (26,9): warning CS8602: Possible dereference of a null reference.
+                //         x2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(26, 9)
                 );
         }
 
