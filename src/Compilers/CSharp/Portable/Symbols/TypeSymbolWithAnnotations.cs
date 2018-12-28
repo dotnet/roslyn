@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static NullableAnnotation AsSpeakable(this NullableAnnotation annotation, TypeSymbol type)
         {
+            if (type is null && annotation == NullableAnnotation.Unknown)
+            {
+                return default;
+            }
+
             Debug.Assert((object)type != null);
             switch (annotation)
             {
@@ -226,6 +231,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return NullableAnnotation.Unknown;
+        }
+
+        /// <summary>
+        /// Check that two nullable annotations are "compatible", which means they could be the same. Return the
+        /// nullable annotation to be used as a result. Also returns through <paramref name="hadNullabilityMismatch"/>
+        /// whether the caller should report a warning because there was an actual mismatch (e.g. nullable vs non-nullable).
+        /// This method can handle unspeakable types (for merging tuple types).
+        /// </summary>
+        public static NullableAnnotation EnsureCompatibleForTuples<T>(this NullableAnnotation a, NullableAnnotation b, T type, Func<T, bool> isPossiblyNullableReferenceTypeTypeParameter, out bool hadNullabilityMismatch)
+        {
+            hadNullabilityMismatch = false;
+            if (a == b)
+            {
+                return a;
+            }
+
+            if (a.IsAnyNullable() && b.IsAnyNullable())
+            {
+                return NullableAnnotation.Annotated;
+            }
+
+            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
+            // If either candidate is "oblivious" - result is the nullability of the other candidate
+            // Otherwise - we declare a mismatch and result is not nullable.
+
+            if (a == NullableAnnotation.Unknown)
+            {
+                return b;
+            }
+
+            if (b == NullableAnnotation.Unknown)
+            {
+                return a;
+            }
+
+            // At this point we know that either nullability of both sides is significantly different NotNullable vs. Nullable,
+            // or we are dealing with different flavors of not nullable for both candidates
+            if ((a == NullableAnnotation.NotAnnotated && b == NullableAnnotation.NotNullable) ||
+                (b == NullableAnnotation.NotAnnotated && a == NullableAnnotation.NotNullable))
+            {
+                if (!isPossiblyNullableReferenceTypeTypeParameter(type))
+                {
+                    // For this type both not nullable annotations are equivalent and therefore match.
+                    return NullableAnnotation.NotAnnotated;
+                }
+
+                // We are dealing with different flavors of not nullable for a possibly nullable reference type parameter,
+                // we don't have a reliable way to merge them since one of them can actually represent a nullable type.
+            }
+            else
+            {
+                Debug.Assert(a.IsAnyNullable() != b.IsAnyNullable());
+            }
+
+            hadNullabilityMismatch = true;
+            return NullableAnnotation.NotAnnotated;
         }
     }
 
@@ -480,8 +541,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // There is no loss of information from applying AsSpeakable, because we've called AsSpeakable to adjust top-level nullability in relevant callers,
             // and other callers don't produce this combination (you can't get a nested unspeakable type during nullability analysis).
-            Debug.Assert(this.NullableAnnotation != NullableAnnotation.NotNullable && this.NullableAnnotation != NullableAnnotation.Nullable);
-            Debug.Assert(other.NullableAnnotation != NullableAnnotation.NotNullable && other.NullableAnnotation != NullableAnnotation.Nullable);
+            Debug.Assert(this.NullableAnnotation != NullableAnnotation.NotNullable || !this.TypeSymbol.IsTypeParameterDisallowingAnnotation());
+            Debug.Assert(other.NullableAnnotation != NullableAnnotation.NotNullable || !other.TypeSymbol.IsTypeParameterDisallowingAnnotation());
 
             TypeSymbolWithAnnotations speakableThis = this.AsSpeakable();
             TypeSymbolWithAnnotations speakableOther = other.AsSpeakable();
