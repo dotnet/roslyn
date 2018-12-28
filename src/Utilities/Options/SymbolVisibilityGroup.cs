@@ -1,0 +1,43 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using Analyzer.Utilities.Extensions;
+
+namespace Analyzer.Utilities
+{
+    /// <summary>
+    /// Describes a group of effective <see cref="SymbolVisibility"/> for symbols.
+    /// </summary>
+    [Flags]
+#pragma warning disable CA1714 // Flags enums should have plural names
+    internal enum SymbolVisibilityGroup
+#pragma warning restore CA1714 // Flags enums should have plural names
+    {
+        None = 0x0,
+        Public = 0x1,
+        Internal = 0x2,
+        Private = 0x4,
+        All = Public | Internal | Private
+    }
+
+    internal static class SymbolVisibilityGroupExtensions
+    {
+        public static bool Contains(this SymbolVisibilityGroup symbolVisibilityGroup, SymbolVisibility symbolVisibility)
+        {
+            switch (symbolVisibility)
+            {
+                case SymbolVisibility.Public:
+                    return (symbolVisibilityGroup & SymbolVisibilityGroup.Public) != 0;
+
+                case SymbolVisibility.Internal:
+                    return (symbolVisibilityGroup & SymbolVisibilityGroup.Internal) != 0;
+
+                case SymbolVisibility.Private:
+                    return (symbolVisibilityGroup & SymbolVisibilityGroup.Private) != 0;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(symbolVisibility), symbolVisibility, null);
+            }
+        }
+    }
+}
