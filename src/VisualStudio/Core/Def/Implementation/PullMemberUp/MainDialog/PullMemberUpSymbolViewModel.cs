@@ -9,27 +9,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 {
     internal class PullMemberUpSymbolViewModel : SymbolViewModel<ISymbol>
     {
+        private bool _isCheckable;
+        private bool _makeAbstract;
+        private bool _isMakeAbstractCheckable;
+        public string MakeAbstractCheckBoxAutomationText => string.Format(ServicesVSResources.Make_0_abstract, Symbol.Name);
+        public string RowSelectionAutomationText => ServicesVSResources.Select_member;
+
         /// <summary>
         /// Property controls the 'Make abstract' check box's Visibility.
         /// The check box is hidden for members impossbile to be made to abstract.
         /// </summary>
         public Visibility MakeAbstractVisibility => Symbol.Kind == SymbolKind.Field || Symbol.IsAbstract ? Visibility.Hidden : Visibility.Visible;
 
-        private bool _makeAbstract;
-
         /// <summary>
         /// Indicates whether 'Make abstract' check box is checked.
         /// </summary>
         public bool MakeAbstract { get => _makeAbstract; set => SetProperty(ref _makeAbstract, value, nameof(MakeAbstract)); }
 
-        private bool _isMakeAbstractCheckable;
-
         /// <summary>
         /// Indicates whether make abstract check box is enabled or not. (e.g. When user selects on interface destination, it will be disabled)
         /// </summary>
         public bool IsMakeAbstractCheckable { get => _isMakeAbstractCheckable; set => SetProperty(ref _isMakeAbstractCheckable, value, nameof(IsMakeAbstractCheckable)); }
-
-        private bool _isCheckable;
 
         /// <summary>
         /// Indicates whether this member checkable.

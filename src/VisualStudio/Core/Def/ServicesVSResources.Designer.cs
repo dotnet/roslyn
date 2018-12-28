@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ServicesVSResources {
@@ -203,6 +203,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Add_to_existing_file {
             get {
                 return ResourceManager.GetString("Add_to_existing_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Additional fixes are needed to complete the refactoring. Review fixes below..
+        /// </summary>
+        internal static string Additional_fixes_are_needed_to_complete_the_refactoring_Review_fixes_below {
+            get {
+                return ResourceManager.GetString("Additional_fixes_are_needed_to_complete_the_refactoring_Review_fixes_below", resourceCulture);
             }
         }
         
@@ -1153,15 +1162,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Found problems:.
-        /// </summary>
-        internal static string Found_problems_colon {
-            get {
-                return ResourceManager.GetString("Found_problems_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Generate .editorconfig file from settings.
         /// </summary>
         internal static string Generate_dot_editorconfig_file_from_settings {
@@ -1452,7 +1452,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make &apos;{0}&apos; abstract.
+        ///   Looks up a localized string similar to Make {0} abstract.
         /// </summary>
         internal static string Make_0_abstract {
             get {
@@ -2269,11 +2269,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pull Members up.
+        ///   Looks up a localized string similar to Pull Members Up.
         /// </summary>
-        internal static string Pull_members_up {
+        internal static string Pull_Members_Up {
             get {
-                return ResourceManager.GetString("Pull_members_up", resourceCulture);
+                return ResourceManager.GetString("Pull_Members_Up", resourceCulture);
             }
         }
         
@@ -2467,11 +2467,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Review problems below..
+        ///   Looks up a localized string similar to Review Fixes.
         /// </summary>
-        internal static string Review_problems_below {
+        internal static string Review_Fixes {
             get {
-                return ResourceManager.GetString("Review_problems_below", resourceCulture);
+                return ResourceManager.GetString("Review_Fixes", resourceCulture);
             }
         }
         
@@ -2544,6 +2544,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Select_destination_colon {
             get {
                 return ResourceManager.GetString("Select_destination_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select member.
+        /// </summary>
+        internal static string Select_member {
+            get {
+                return ResourceManager.GetString("Select_member", resourceCulture);
             }
         }
         

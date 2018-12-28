@@ -17,14 +17,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
     {
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
-        public string PullMembersUpTitle => ServicesVSResources.Pull_members_up;
+        public string PullMembersUpTitle => ServicesVSResources.Pull_Members_Up;
         public string SelectMembers => ServicesVSResources.Select_members_colon;
         public string SelectDestination => ServicesVSResources.Select_destination_colon;
         public string Description => ServicesVSResources.Select_destination_and_members_to_pull_up;
         public string SelectPublic => ServicesVSResources.Select_Public;
         public string SelectDependents => ServicesVSResources.Select_Dependents;
-        public string Members => ServicesVSResources.Members;
-        public string MakeAbstract => ServicesVSResources.Make_abstract;
+        public string MembersHeader => ServicesVSResources.Members;
+        public string MakeAbstractHeader => ServicesVSResources.Make_abstract;
         public string InterfaceCannotHaveField => ServicesVSResources.Interface_cannot_have_field;
 
         internal PullMemberUpDialogViewModel ViewModel { get; }
@@ -38,10 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
         private void OKButton_Click(object sender, RoutedEventArgs e)
         {
-            var result = ViewModel.CreateAnaysisResult();
-            if (result.PullUpOperationCausesError)
+            var options = ViewModel.CreatePullMemberUpOptions();
+            if (options.PullUpOperationCausesError)
             {
-                if (ShowWarningDialog(result))
+                if (ShowWarningDialog(options))
                 {
                     DialogResult = true;
                 }
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
         private void Destination_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            if (Destination.SelectedItem is BaseTypeTreeNodeViewModel memberGraphNode)
+            if (DestinationTreeView.SelectedItem is BaseTypeTreeNodeViewModel memberGraphNode)
             {
                 ViewModel.SelectedDestination = memberGraphNode;
             }

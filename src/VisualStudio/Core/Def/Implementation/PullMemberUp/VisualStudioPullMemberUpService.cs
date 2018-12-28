@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
                 if (result.GetValueOrDefault())
                 {
-                    return dialog.ViewModel.CreateAnaysisResult();
+                    return dialog.ViewModel.CreatePullMemberUpOptions();
                 }
                 else
                 {

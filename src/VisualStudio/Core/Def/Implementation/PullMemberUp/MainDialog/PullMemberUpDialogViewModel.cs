@@ -26,6 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         public bool? SelectAllCheckBoxState { get => _selectAllCheckBoxState; set => SetProperty(ref _selectAllCheckBoxState, value, nameof(SelectAllCheckBoxState)); }
         private bool _selectAllCheckBoxThreeStateEnable;
         public bool SelectAllCheckBoxThreeStateEnable { get => _selectAllCheckBoxThreeStateEnable; set => SetProperty(ref _selectAllCheckBoxThreeStateEnable, value, nameof(SelectAllCheckBoxThreeStateEnable)); }
+        public string SelectAllCheckBoxAutomationText => ServicesVSResources.Select_All;
+        public string DestinationTreeViewAutomationText => ServicesVSResources.Select_destination;
+        public string SelectMemberListViewAutomationText => ServicesVSResources.Select_member;
         private readonly IWaitIndicator _waitIndicator;
 
         public BaseTypeTreeNodeViewModel SelectedDestination
@@ -84,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             _waitIndicator = waitIndicator;
         }
 
-        internal PullMembersUpOptions CreateAnaysisResult()
+        internal PullMembersUpOptions CreatePullMemberUpOptions()
         {
             var selectedOptionFromDialog = Members.
                 WhereAsArray(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable).
@@ -92,10 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                     (member: memberViewModel.Symbol,
                     makeAbstract: memberViewModel.IsMakeAbstractCheckable && memberViewModel.MakeAbstract));
 
-            var result = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(
+            var options = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(
                 SelectedDestination.Symbol,
                 selectedOptionFromDialog);
-            return result;
+            return options;
         }
 
         internal void SelectAllMembers()
@@ -141,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                 Where(member => member.IsChecked && member.IsCheckable);
 
             var waitResult = _waitIndicator.Wait(
-                    title: ServicesVSResources.Pull_members_up,
+                    title: ServicesVSResources.Pull_Members_Up,
                     message: ServicesVSResources.Calculating_dependents,
                     allowCancel: true,
                     showProgress: true,

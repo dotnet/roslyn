@@ -1593,7 +1593,7 @@ This version used in: {2}</value>
     <value>Remove unused parameter '{0}', its initial value is never used</value>
   </data>
   <data name="Pull_0_up" xml:space="preserve">
-    <value>Pull {0} up</value>
+    <value>Pull '{0}' up</value>
   </data>
   <data name="Pull_members_up_to_base_type" xml:space="preserve">
     <value>Pull members up to base type...</value>
@@ -1605,6 +1605,9 @@ This version used in: {2}</value>
     <value>Use expression body for local functions</value>
   </data>
   <data name="Pull_0_up_to_1" xml:space="preserve">
-    <value>Pull {0} up to {1}</value>
+    <value>Pull '{0}' up to '{1}'</value>
+  </data>
+  <data name="Fixes_list" xml:space="preserve">
+    <value>Fixes list</value>
   </data>
 </root>

@@ -7,6 +7,11 @@
         <target state="new">Add to _current file</target>
         <note />
       </trans-unit>
+      <trans-unit id="Additional_fixes_are_needed_to_complete_the_refactoring_Review_fixes_below">
+        <source>Additional fixes are needed to complete the refactoring. Review fixes below.</source>
+        <target state="new">Additional fixes are needed to complete the refactoring. Review fixes below.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="All_methods">
         <source>All methods</source>
         <target state="new">All methods</target>
@@ -67,11 +72,6 @@
         <target state="new">Finish</target>
         <note />
       </trans-unit>
-      <trans-unit id="Found_problems_colon">
-        <source>Found problems:</source>
-        <target state="new">Found problems:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="new">Generate .editorconfig file from settings</target>
@@ -103,8 +103,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
-        <source>Make '{0}' abstract</source>
-        <target state="new">Make '{0}' abstract</target>
+        <source>Make {0} abstract</source>
+        <target state="new">Make {0} abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_abstract">
@@ -157,9 +157,9 @@
         <target state="new">Prefer range operator</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pull_members_up">
-        <source>Pull Members up</source>
-        <target state="new">Pull Members up</target>
+      <trans-unit id="Pull_Members_Up">
+        <source>Pull Members Up</source>
+        <target state="new">Pull Members Up</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -177,9 +177,9 @@
         <target state="translated">Visual Studio の既定のキーマップをリセットします</target>
         <note />
       </trans-unit>
-      <trans-unit id="Review_problems_below">
-        <source>Review problems below.</source>
-        <target state="new">Review problems below.</target>
+      <trans-unit id="Review_Fixes">
+        <source>Review Fixes</source>
+        <target state="new">Review Fixes</target>
         <note />
       </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
@@ -210,6 +210,11 @@
       <trans-unit id="Select_destination_colon">
         <source>Select destination:</source>
         <target state="new">Select destination:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_member">
+        <source>Select member</source>
+        <target state="new">Select member</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_members_colon">

@@ -1459,6 +1459,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fixes list.
+        /// </summary>
+        internal static string Fixes_list {
+            get {
+                return ResourceManager.GetString("Fixes_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Format string contains invalid placeholder.
         /// </summary>
         internal static string Format_string_contains_invalid_placeholder {
@@ -2915,7 +2924,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pull {0} up.
+        ///   Looks up a localized string similar to Pull &apos;{0}&apos; up.
         /// </summary>
         internal static string Pull_0_up {
             get {
@@ -2924,7 +2933,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pull {0} up to {1}.
+        ///   Looks up a localized string similar to Pull &apos;{0}&apos; up to &apos;{1}&apos;.
         /// </summary>
         internal static string Pull_0_up_to_1 {
             get {

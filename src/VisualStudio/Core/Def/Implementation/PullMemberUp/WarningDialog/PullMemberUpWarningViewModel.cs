@@ -11,24 +11,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
     internal class PullMemberUpWarningViewModel : AbstractNotifyPropertyChanged
     {
         public ImmutableArray<string> WarningMessageContainer { get; set; }
+        public string ProblemsListViewAutomationText => ServicesVSResources.Review_Fixes;
 
-        internal PullMemberUpWarningViewModel(PullMembersUpOptions analysisResult)
+        internal PullMemberUpWarningViewModel(PullMembersUpOptions options)
         {
-            WarningMessageContainer = GenerateMessage(analysisResult);
+            WarningMessageContainer = GenerateMessage(options);
         }
 
-        private ImmutableArray<string> GenerateMessage(PullMembersUpOptions analysisResult)
+        private ImmutableArray<string> GenerateMessage(PullMembersUpOptions options)
         {
             var warningMessagesBuilder = ImmutableArray.CreateBuilder<string>();
 
-            if (!analysisResult.Destination.IsAbstract &&
-                analysisResult.MemberAnalysisResults.Any(result => result.ChangeDestinationTypeToAbstract))
+            if (!options.Destination.IsAbstract &&
+                options.MemberAnalysisResults.Any(result => result.ChangeDestinationTypeToAbstract))
             {
                 Logger.Log(FunctionId.PullMembersUpWarning_ChangeTargetToAbstract);
-                warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_abstract, analysisResult.Destination.ToDisplayString()));
+                warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_abstract, options.Destination.ToDisplayString()));
             }
 
-            foreach (var result in analysisResult.MemberAnalysisResults)
+            foreach (var result in options.MemberAnalysisResults)
             {
                 if (result.ChangeOriginalToPublic)
                 {

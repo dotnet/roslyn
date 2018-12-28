@@ -112,6 +112,11 @@
         <target state="translated">修正錯字 '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fixes_list">
+        <source>Fixes list</source>
+        <target state="new">Fixes list</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">正在將文件格式化</target>
@@ -198,13 +203,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
-        <source>Pull {0} up</source>
-        <target state="new">Pull {0} up</target>
+        <source>Pull '{0}' up</source>
+        <target state="new">Pull '{0}' up</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up_to_1">
-        <source>Pull {0} up to {1}</source>
-        <target state="new">Pull {0} up to {1}</target>
+        <source>Pull '{0}' up to '{1}'</source>
+        <target state="new">Pull '{0}' up to '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
