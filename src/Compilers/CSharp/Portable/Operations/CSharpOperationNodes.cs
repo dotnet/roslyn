@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
@@ -1469,8 +1470,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _value;
 
-        internal CSharpLazyConstantPatternOperation(CSharpOperationFactory operationFactory, BoundNode value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(semanticModel, syntax, isImplicit)
+        internal CSharpLazyConstantPatternOperation(ITypeSymbol inputType, CSharpOperationFactory operationFactory, BoundNode value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(inputType, semanticModel, syntax, isImplicit)
         {
             _operationFactory = operationFactory;
             _value = value;
@@ -1479,6 +1480,41 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation CreateValue()
         {
             return _operationFactory.Create(_value);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# recursive pattern.
+    /// </summary>
+    internal sealed partial class CSharpLazyRecursivePatternOperation : LazyRecursivePatternOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly ImmutableArray<BoundSubpattern> _deconstructionSubpatterns;
+        private readonly ImmutableArray<BoundSubpattern> _propertySubpatterns;
+        public CSharpLazyRecursivePatternOperation(
+            CSharpOperationFactory operationFactory,
+            ITypeSymbol inputType,
+            ITypeSymbol matchedType,
+            ISymbol deconstructSymbol,
+            ImmutableArray<BoundSubpattern> deconstructionSubpatterns,
+            ImmutableArray<BoundSubpattern> propertySubpatterns,
+            ISymbol declaredSymbol,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(inputType, matchedType, deconstructSymbol, declaredSymbol, semanticModel, syntax, isImplicit)
+        {
+            _operationFactory = operationFactory;
+            _deconstructionSubpatterns = deconstructionSubpatterns;
+            _propertySubpatterns = propertySubpatterns;
+        }
+        public override ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns()
+        {
+            return _deconstructionSubpatterns.SelectAsArray(p => (IPatternOperation)_operationFactory.Create(p.Pattern));
+        }
+        public override ImmutableArray<(ISymbol, IPatternOperation)> CreatePropertySubpatterns()
+        {
+            return _propertySubpatterns.SelectAsArray(p => ((ISymbol)p.Symbol, (IPatternOperation)_operationFactory.Create(p.Pattern)));
         }
     }
 

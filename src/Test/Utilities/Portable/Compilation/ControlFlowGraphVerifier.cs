@@ -1783,6 +1783,7 @@ endRegion:
                 case OperationKind.ReDimClause:
                 case OperationKind.FromEndIndex:
                 case OperationKind.Range:
+                case OperationKind.RecursivePattern:
                     return true;
             }
 

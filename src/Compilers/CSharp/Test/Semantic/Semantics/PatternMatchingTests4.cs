@@ -1931,7 +1931,7 @@ public class C
         public void UnmatchedInput_02()
         {
             var source =
-@"using System;
+@"using System; using System.Runtime.CompilerServices;
 public class C
 {
     static void Main()
@@ -1941,7 +1941,7 @@ public class C
         {
             _ = t switch { (3, 4) => 1 };
         }
-        catch (MatchFailureException ex)
+        catch (SwitchExpressionException ex)
         {
             Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
         }
@@ -1951,12 +1951,12 @@ public class C
         }
     }
 }
-namespace System
+namespace System.Runtime.CompilerServices
 {
-    public class MatchFailureException : InvalidOperationException
+    public class SwitchExpressionException : InvalidOperationException
     {
-        public MatchFailureException() {}
-        // public MatchFailureException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public SwitchExpressionException() {}
+        // public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
         public object UnmatchedValue { get; }
     }
 }
@@ -1967,14 +1967,14 @@ namespace System
                 //             _ = t switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
                 );
-            CompileAndVerify(compilation, expectedOutput: "MatchFailureException()");
+            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()");
         }
 
         [Fact]
         public void UnmatchedInput_03()
         {
             var source =
-@"using System;
+@"using System; using System.Runtime.CompilerServices;
 public class C
 {
     static void Main()
@@ -1984,7 +1984,7 @@ public class C
         {
             _ = t switch { (3, 4) => 1 };
         }
-        catch (MatchFailureException ex)
+        catch (SwitchExpressionException ex)
         {
             Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
         }
@@ -1994,12 +1994,12 @@ public class C
         }
     }
 }
-namespace System
+namespace System.Runtime.CompilerServices
 {
-    public class MatchFailureException : InvalidOperationException
+    public class SwitchExpressionException : InvalidOperationException
     {
-        public MatchFailureException() {}
-        public MatchFailureException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public SwitchExpressionException() {}
+        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
         public object UnmatchedValue { get; }
     }
 }
@@ -2010,14 +2010,14 @@ namespace System
                 //             _ = t switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
                 );
-            CompileAndVerify(compilation, expectedOutput: "MatchFailureException((1, 2))");
+            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException((1, 2))");
         }
 
         [Fact]
         public void UnmatchedInput_04()
         {
             var source =
-@"using System;
+@"using System; using System.Runtime.CompilerServices;
 public class C
 {
     static void Main()
@@ -2026,7 +2026,7 @@ public class C
         {
             _ = (1, 2) switch { (3, 4) => 1 };
         }
-        catch (MatchFailureException ex)
+        catch (SwitchExpressionException ex)
         {
             Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
         }
@@ -2036,12 +2036,12 @@ public class C
         }
     }
 }
-namespace System
+namespace System.Runtime.CompilerServices
 {
-    public class MatchFailureException : InvalidOperationException
+    public class SwitchExpressionException : InvalidOperationException
     {
-        public MatchFailureException() {}
-        public MatchFailureException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public SwitchExpressionException() {}
+        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
         public object UnmatchedValue { get; }
     }
 }
@@ -2052,14 +2052,14 @@ namespace System
                 //             _ = (1, 2) switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(8, 24)
                 );
-            CompileAndVerify(compilation, expectedOutput: "MatchFailureException()");
+            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()");
         }
 
         [Fact]
         public void UnmatchedInput_05()
         {
             var source =
-@"using System;
+@"using System; using System.Runtime.CompilerServices;
 public class C
 {
     static void Main()
@@ -2069,7 +2069,7 @@ public class C
             R r = new R();
             _ = r switch { (3, 4) => 1 };
         }
-        catch (MatchFailureException ex)
+        catch (SwitchExpressionException ex)
         {
             Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
         }
@@ -2083,12 +2083,12 @@ ref struct R
 {
     public void Deconstruct(out int X, out int Y) => (X, Y) = (1, 2);
 }
-namespace System
+namespace System.Runtime.CompilerServices
 {
-    public class MatchFailureException : InvalidOperationException
+    public class SwitchExpressionException : InvalidOperationException
     {
-        public MatchFailureException() {}
-        public MatchFailureException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public SwitchExpressionException() {}
+        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
         public object UnmatchedValue { get; }
     }
 }
@@ -2099,7 +2099,7 @@ namespace System
                 //             _ = r switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
                 );
-            CompileAndVerify(compilation, expectedOutput: "MatchFailureException()");
+            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()");
         }
 
         [Fact]
@@ -2922,7 +2922,7 @@ class Program
         public void UnmatchedInput_06()
         {
             var source =
-@"using System;
+@"using System; using System.Runtime.CompilerServices;
 public class C
 {
     static void Main()
@@ -2932,7 +2932,7 @@ public class C
         {
             Console.WriteLine(M(1, 3));
         }
-        catch (MatchFailureException ex)
+        catch (SwitchExpressionException ex)
         {
             Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
         }
@@ -2941,12 +2941,12 @@ public class C
         return (x, y) switch { (1, 2) => 3 };
     }
 }
-namespace System
+namespace System.Runtime.CompilerServices
 {
-    public class MatchFailureException : InvalidOperationException
+    public class SwitchExpressionException : InvalidOperationException
     {
-        public MatchFailureException() {}
-        public MatchFailureException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public SwitchExpressionException() {}
+        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
         public object UnmatchedValue { get; }
     }
 }
@@ -2958,7 +2958,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(17, 23)
                 );
             CompileAndVerify(compilation, expectedOutput: @"3
-MatchFailureException()");
+SwitchExpressionException()");
         }
 
         [Fact]

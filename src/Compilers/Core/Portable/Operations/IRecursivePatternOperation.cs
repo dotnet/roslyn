@@ -14,6 +14,28 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IRecursivePatternOperation : IPatternOperation
     {
         /// <summary>
+        /// The explicit type accepted for the recursive pattern, or null if none was specified.
+        /// </summary>
+        ITypeSymbol MatchedType { get; }
+
+        /// <summary>
+        /// The symbol, if any, used for the fetching values for subpatterns. This is either a <code>Deconstruct</code>
+        /// method, the type <code>System.Runtime.CompilerServices.ITuple</code>, or null (for example, in
+        /// error cases or when matching a tuple type).
+        /// </summary>
+        ISymbol DeconstructSymbol { get; }
+
+        /// <summary>
+        /// This contains the patterns contained within a deconstruction or positional subpattern.
+        /// </summary>
+        ImmutableArray<IPatternOperation> DeconstructionSubpatterns { get; }
+
+        /// <summary>
+        /// This contains the (symbol, property) pairs within a property subpattern.
+        /// </summary>
+        ImmutableArray<(ISymbol, IPatternOperation)> PropertySubpatterns { get; }
+
+        /// <summary>
         /// Symbol declared by the pattern.
         /// </summary>
         ISymbol DeclaredSymbol { get; }

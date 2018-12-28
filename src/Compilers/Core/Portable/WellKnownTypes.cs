@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis
         System_Threading_CancellationToken,
 
         System_InvalidOperationException,
-        System_MatchFailureException,
+        System_Runtime_CompilerServices_SwitchExpressionException,
 
         NextAvailable,
 
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.CancellationToken",
 
             "System.InvalidOperationException",
-            "System.MatchFailureException",
+            "System.Runtime.CompilerServices.SwitchExpressionException"
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
