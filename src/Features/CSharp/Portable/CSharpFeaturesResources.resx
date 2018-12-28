@@ -586,4 +586,7 @@
     <value>Introduce 'using' statement</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Make_ref_struct" xml:space="preserve">
+    <value>Make ref struct</value>
+  </data>
 </root>

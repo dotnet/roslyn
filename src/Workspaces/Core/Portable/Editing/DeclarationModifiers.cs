@@ -153,6 +153,11 @@ namespace Microsoft.CodeAnalysis.Editing
             return new DeclarationModifiers(SetFlag(_modifiers, Modifiers.WriteOnly, isWriteOnly));
         }
 
+        public DeclarationModifiers WithIsRef(bool isRef)
+        {
+            return new DeclarationModifiers(SetFlag(_modifiers, Modifiers.Ref, isRef));
+        }
+
         private static Modifiers SetFlag(Modifiers existing, Modifiers modifier, bool isSet)
         {
             return isSet ? (existing | modifier) : (existing & ~modifier);

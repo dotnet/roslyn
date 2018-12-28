@@ -800,6 +800,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make ref struct.
+        /// </summary>
+        internal static string Make_ref_struct {
+            get {
+                return ResourceManager.GetString("Make_ref_struct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;member name&gt; = .
         /// </summary>
         internal static string member_name {

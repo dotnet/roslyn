@@ -1,1 +1,5 @@
-
+Microsoft.CodeAnalysis.CSharp.MakeRefStruct.CSharpMakeRefStructCodeFixProvider
+Microsoft.CodeAnalysis.CSharp.MakeRefStruct.CSharpMakeRefStructCodeFixProvider.CSharpMakeRefStructCodeFixProvider() -> void
+override Microsoft.CodeAnalysis.CSharp.MakeRefStruct.CSharpMakeRefStructCodeFixProvider.FixableDiagnosticIds.get -> System.Collections.Immutable.ImmutableArray<string>
+override Microsoft.CodeAnalysis.CSharp.MakeRefStruct.CSharpMakeRefStructCodeFixProvider.GetFixAllProvider() -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
+override Microsoft.CodeAnalysis.CSharp.MakeRefStruct.CSharpMakeRefStructCodeFixProvider.RegisterCodeFixesAsync(Microsoft.CodeAnalysis.CodeFixes.CodeFixContext context) -> System.Threading.Tasks.Task
