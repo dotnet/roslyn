@@ -4902,10 +4902,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
                     ReportSafetyDiagnostic(isValueType ? ErrorCode.WRN_NullableValueTypeMayBeNull : ErrorCode.WRN_NullReferenceReceiver, syntaxOpt ?? receiverOpt.Syntax);
-                    int slot = MakeSlot(receiverOpt);
-                    if (slot > 0)
+
+                    if (receiverOpt != null)
                     {
-                        this.State[slot] = NullableAnnotation.NotNullable;
+                        var slotBuilder = ArrayBuilder<int>.GetInstance();
+                        GetSlotsToMarkAsNotNullable(receiverOpt, slotBuilder);
+                        if (slotBuilder.Count > 0)
+                        {
+                            MarkSlotsAsNotNullable(slotBuilder, ref State);
+                        }
+                        slotBuilder.Free();
                     }
                 }
             }
