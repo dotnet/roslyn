@@ -577,7 +577,7 @@ namespace System
                     case WellKnownType.System_Threading_Tasks_ValueTask_T:
                     case WellKnownType.System_Threading_Tasks_ValueTask:
                     case WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder:
-                    case WellKnownType.System_MatchFailureException:
+                    case WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -919,8 +919,8 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor:
-                    case WellKnownMember.System_MatchFailureException__ctor:
-                    case WellKnownMember.System_MatchFailureException__ctorObject:
+                    case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

@@ -3342,16 +3342,16 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                                        // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
-                 // System_MatchFailureException__ctor
+                 // System_Runtime_CompilerServices_SwitchExpressionException__ctor
                  (byte)MemberFlags.Constructor,                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_MatchFailureException - WellKnownType.ExtSentinel),             // DeclaringTypeId
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException - WellKnownType.ExtSentinel),// DeclaringTypeId
                  0,                                                                                                                           // Arity
                     0,                                                                                                                        // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
-                 // System_MatchFailureException__ctorObject
+                 // System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
                  (byte)MemberFlags.Constructor,                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_MatchFailureException - WellKnownType.ExtSentinel),             // DeclaringTypeId
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException - WellKnownType.ExtSentinel),// DeclaringTypeId
                  0,                                                                                                                           // Arity
                     1,                                                                                                                        // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
@@ -3778,8 +3778,8 @@ namespace Microsoft.CodeAnalysis
                 "get_Item",                                 // System_Runtime_CompilerServices_ITuple__get_Item
                 "get_Length",                               // System_Runtime_CompilerServices_ITuple__get_Length
                 ".ctor",                                    // System_InvalidOperationException__ctor
-                ".ctor",                                    // System_MatchFailureException__ctor
-                ".ctor",                                    // System_MatchFailureException__ctorObject
+                ".ctor",                                    // System_Runtime_CompilerServices_SwitchExpressionException__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

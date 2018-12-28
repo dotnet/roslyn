@@ -485,8 +485,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ITuple__get_Length,
 
         System_InvalidOperationException__ctor,
-        System_MatchFailureException__ctor,
-        System_MatchFailureException__ctorObject,
+        System_Runtime_CompilerServices_SwitchExpressionException__ctor,
+        System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
 
         Count
 
