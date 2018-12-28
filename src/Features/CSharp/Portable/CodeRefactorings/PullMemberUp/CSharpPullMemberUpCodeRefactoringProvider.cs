@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
                 {
                     // root.FindNode will return the syntax node contains the '(', '=>' and '-',
                     // so move the span one step back to get the declaration syntax node
-                    var relocatedSpan = new TextSpan(span.Start > 0 ? span.Start - 1: 0, length: 0);
+                    var relocatedSpan = new TextSpan(span.Start > 0 ? span.Start - 1 : 0, length: 0);
                     return root.FindNode(relocatedSpan);
                 }
                 else

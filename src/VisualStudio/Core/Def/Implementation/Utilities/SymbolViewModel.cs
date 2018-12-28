@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {
-    internal class SymbolViewModel<T> : AbstractNotifyPropertyChanged where T: ISymbol
+    internal class SymbolViewModel<T> : AbstractNotifyPropertyChanged where T : ISymbol
     {
         private readonly IGlyphService _glyphService;
 
@@ -29,23 +29,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         private bool _isChecked;
         public bool IsChecked
         {
-            get { return _isChecked; }
-            set { SetProperty(ref _isChecked, value); }
+            get => _isChecked;
+            set => SetProperty(ref _isChecked, value);
         }
 
-        public string MemberName
-        {
-            get { return Symbol.ToDisplayString(s_memberDisplayFormat); }
-        }
+        public string MemberName => Symbol.ToDisplayString(s_memberDisplayFormat);
 
-        public ImageSource Glyph
-        {
-            get { return Symbol.GetGlyph().GetImageSource(_glyphService); }
-        }
+        public ImageSource Glyph => Symbol.GetGlyph().GetImageSource(_glyphService);
 
-        public string MemberAutomationText
-        {
-            get { return Symbol.Kind + " " + MemberName; }
-        }
+        public string MemberAutomationText => $"{Symbol.Kind} {MemberName}";
     }
 }

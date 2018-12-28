@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         internal class PullMemberUpWithDialogCodeAction : CodeActionWithOptions
         {
             /// <summary>
-            /// Member which user initially selects. It will be checked initially when the dialog pops up.
+            /// Member which user initially selects. It will be selected initially when the dialog pops up.
             /// </summary>
             private readonly ISymbol _selectedMember;
             private readonly Document _document;
             private readonly IPullMemberUpOptionsService _service;
 
-            public override string Title => FeaturesResources.Add_members_to_base_type;
+            public override string Title => FeaturesResources.Pull_members_up_to_base_type;
 
             internal PullMemberUpWithDialogCodeAction(
                 Document document,
@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 var pullMemberUpOptionService = _service ?? _document.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
                 return pullMemberUpOptionService.GetPullMemberUpOptions(_document, _selectedMember);
             }
-            
+
             protected async override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
-                if (options is PullMembersUpOptions result)
+                if (options is PullMembersUpOptions pullMemberUpOptions)
                 {
-                    var changedSolution = await MembersPuller.PullMembersUpAsync(_document, result, cancellationToken).ConfigureAwait(false);
+                    var changedSolution = await MembersPuller.PullMembersUpAsync(_document, pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
                     return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
                 }
                 else

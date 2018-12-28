@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
     internal class TestPullMemberUpService : IPullMemberUpOptionsService
     {
         private readonly IEnumerable<(string member, bool makeAbstract)> _selectedMembers;
-        
+
         private string DestinationName { get; }
 
         public TestPullMemberUpService(IEnumerable<(string member, bool makeAbstract)> selectedMembers, string destinationName)
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
             var selectedMember = _selectedMembers == null
                 ? members.Select(member => (member, false))
                 : _selectedMembers.Select(selection => (members.Single(symbol => symbol.Name == selection.member), selection.makeAbstract));
-        
+
             var allInterfaces = selectedNodeSymbol.ContainingType.AllInterfaces;
             var baseClass = selectedNodeSymbol.ContainingType.BaseType;
 
@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
             {
                 if (allInterfaces != null)
                 {
-                   destination = allInterfaces.SingleOrDefault(@interface => @interface.Name == DestinationName);
+                    destination = allInterfaces.SingleOrDefault(@interface => @interface.Name == DestinationName);
                 }
-                
+
                 if (baseClass != null && destination == null)
                 {
                     for (var i = baseClass; i != null; i = i.BaseType)

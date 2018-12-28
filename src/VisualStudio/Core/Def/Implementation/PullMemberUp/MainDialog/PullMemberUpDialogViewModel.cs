@@ -122,15 +122,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                 SelectAllCheckBoxThreeStateEnable = false;
             }
         }
-        
+
         internal void SelectDependents()
         {
             var checkedMembers = Members.
                 Where(member => member.IsChecked && member.IsCheckable);
 
             var waitResult = _waitIndicator.Wait(
-                    title: ServicesVSResources.Pull_members_up, 
-                    message: ServicesVSResources.Calculating_dependents, 
+                    title: ServicesVSResources.Pull_members_up,
+                    message: ServicesVSResources.Calculating_dependents,
                     allowCancel: true,
                     showProgress: true,
                     context =>

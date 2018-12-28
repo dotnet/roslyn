@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
                 throw ExceptionUtilities.Unreachable;
             }
 
-            // Check destination is class or interface since destination could be ErrorTypeSymbol
+            // Make sure destination is class or interface since it could be ErrorTypeSymbol
             if (destination.TypeKind != TypeKind.Interface && destination.TypeKind != TypeKind.Class)
             {
                 return false;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
 
             // Don't provide any refactoring option if the destination is not in source.
             // If the destination is generated code, also don't provide refactoring since we can't make sure if we won't break it.
-            var isDestinationInSourceAndNotGeneratedCode = 
+            var isDestinationInSourceAndNotGeneratedCode =
                 destination.DeclaringSyntaxReferences.Length > 0 &&
                 destination.Locations.Any(location => location.IsInSource && !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
             return isDestinationInSourceAndNotGeneratedCode;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             // Static, abstract and accessiblity are not checked here but in PullMembersUpOptionsBuilder.cs since there are
             // two refactoring options provided for pull members up,
             // 1. Quick Action (Only allow members that don't cause error)
-            // 2. Dialog box (Allow modifers may cause errors and will provide fixing)
+            // 2. Dialog box (Allow modifers may cause error and will provide fixing)
             switch (member)
             {
                 case IMethodSymbol methodSymbol:

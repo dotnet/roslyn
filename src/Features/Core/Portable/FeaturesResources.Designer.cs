@@ -197,15 +197,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add members to base type....
-        /// </summary>
-        internal static string Add_members_to_base_type {
-            get {
-                return ResourceManager.GetString("Add_members_to_base_type", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add missing cases.
         /// </summary>
         internal static string Add_missing_cases {
@@ -2929,6 +2920,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Pull_0_up {
             get {
                 return ResourceManager.GetString("Pull_0_up", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull {0} up to {1}.
+        /// </summary>
+        internal static string Pull_0_up_to_1 {
+            get {
+                return ResourceManager.GetString("Pull_0_up_to_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull members up to base type....
+        /// </summary>
+        internal static string Pull_members_up_to_base_type {
+            get {
+                return ResourceManager.GetString("Pull_members_up_to_base_type", resourceCulture);
             }
         }
         

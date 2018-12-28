@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         /// <summary>
         /// Content of the tooltip.
         /// </summary>
-        public string Namespace => string.Format(ServicesVSResources.Namespace_0, Symbol.ContainingNamespace?.ToDisplayString() ?? "global" );
+        public string Namespace => string.Format(ServicesVSResources.Namespace_0, Symbol.ContainingNamespace?.ToDisplayString() ?? "global");
 
         private BaseTypeTreeNodeViewModel(IGlyphService glyphService, INamedTypeSymbol node) : base(node, glyphService)
         {
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             INamedTypeSymbol root,
             CancellationToken cancellationToken)
         {
-            var rootTreeNode = new BaseTypeTreeNodeViewModel(glyphService, root) { IsChecked = false, IsExpanded = true};
+            var rootTreeNode = new BaseTypeTreeNodeViewModel(glyphService, root) { IsChecked = false, IsExpanded = true };
             var queue = new Queue<BaseTypeTreeNodeViewModel>();
             queue.Enqueue(rootTreeNode);
             while (queue.Any())

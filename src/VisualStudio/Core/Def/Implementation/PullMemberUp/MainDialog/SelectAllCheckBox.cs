@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             }
             else
             {
-                IsChecked = !IsChecked.HasValue;  
+                IsChecked = !IsChecked.HasValue;
             }
         }
     }

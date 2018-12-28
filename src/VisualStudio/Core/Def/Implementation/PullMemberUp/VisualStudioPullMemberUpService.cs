@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             var membersInType = selectedMember.ContainingType.GetMembers().
                 WhereAsArray(member => MemberAndDestinationValidator.IsMemberValid(member));
             var memberViewModels = membersInType.
-                SelectAsArray(member => 
+                SelectAsArray(member =>
                     new PullMemberUpSymbolViewModel(_glyphService, member)
                     {
                         // The member user selected will be checked at the begining.
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                     cancellationTokenSource.Token).BaseTypeNodes;
                 var dependentsBuilder = new SymbolDependentsBuilder(document, membersInType);
                 var dependentsMap = dependentsBuilder.CreateDependentsMap(cancellationTokenSource.Token);
-                var viewModel = new PullMemberUpDialogViewModel(_waitIndicator,  memberViewModels, baseTypeRootViewModel, dependentsMap);
+                var viewModel = new PullMemberUpDialogViewModel(_waitIndicator, memberViewModels, baseTypeRootViewModel, dependentsMap);
                 var dialog = new PullMemberUpDialog(viewModel);
                 var result = dialog.ShowModal();
 

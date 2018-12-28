@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             }
 
             // This check is added for methodReferenceOperation due to https://github.com/dotnet/roslyn/issues/26206#issuecomment-382105829
-            if (operation is IInvocationOperation methodReferenceOp && 
+            if (operation is IInvocationOperation methodReferenceOp &&
                 _membersInType.Contains(methodReferenceOp.TargetMethod))
             {
                 _dependents.Add(methodReferenceOp.TargetMethod);

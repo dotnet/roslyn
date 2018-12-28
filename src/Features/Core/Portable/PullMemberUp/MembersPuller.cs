@@ -13,16 +13,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
-using EditorMap = System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.SyntaxTree, Microsoft.CodeAnalysis.Editing.DocumentEditor>;
-using SyntaxMap = System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.ISymbol, Microsoft.CodeAnalysis.SyntaxNode[]>;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
     internal static class MembersPuller
     {
         /// <summary>
-        /// Return the CodeAction to pull <paramref name="selectedMember"/> up to destinationType. If the pulling will cause error,
-        /// it will return null.
+        /// Return the CodeAction to pull <paramref name="selectedMember"/> up to destinationType. If the pulling will cause error, it will return null.
         /// </summary>
         public static CodeAction TryComputeCodeAction(
             Document document,
@@ -37,30 +34,30 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             return new SolutionChangeAction(
-                string.Format(FeaturesResources.Add_to_0, result.Destination),
+                string.Format(FeaturesResources.Pull_0_up_to_1, selectedMember.ToDisplayString(), result.Destination.ToDisplayString()),
                 cancellationToken => PullMembersUpAsync(document, result, cancellationToken));
         }
 
         /// <summary>
-        /// Return the changed solution if all changes in result are applied.
+        /// Return the changed solution if all changes in pullMembersUpOptions are applied.
         /// </summary>
-        /// <param name="result">Contains the members to pull up and all the fix operations</param>>
-        internal async static Task<Solution> PullMembersUpAsync(
+        /// <param name="pullMembersUpOptions">Contains the members to pull up and all the fix operations</param>>
+        internal static Task<Solution> PullMembersUpAsync(
             Document document,
-            PullMembersUpOptions result,
+            PullMembersUpOptions pullMembersUpOptions,
             CancellationToken cancellationToken)
         {
-            if (result.Destination.TypeKind == TypeKind.Interface)
+            if (pullMembersUpOptions.Destination.TypeKind == TypeKind.Interface)
             {
-                return await PullMembersIntoInterfaceAsync(document, result, cancellationToken).ConfigureAwait(false);
+                return PullMembersIntoInterfaceAsync(document, pullMembersUpOptions, document.Project.Solution, cancellationToken);
             }
-            else if (result.Destination.TypeKind == TypeKind.Class)
+            else if (pullMembersUpOptions.Destination.TypeKind == TypeKind.Class)
             {
-                return await PullMembersIntoClassAsync(document, result, cancellationToken).ConfigureAwait(false);
+                return PullMembersIntoClassAsync(document, pullMembersUpOptions, document.Project.Solution, cancellationToken);
             }
             else
             {
-                throw ExceptionUtilities.UnexpectedValue(result.Destination);
+                throw ExceptionUtilities.UnexpectedValue(pullMembersUpOptions.Destination);
             }
         }
 
@@ -84,64 +81,40 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         private async static Task<Solution> PullMembersIntoInterfaceAsync(
             Document document,
-            PullMembersUpOptions result,
+            PullMembersUpOptions pullMemberUpOptions,
+            Solution solution,
             CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
             var solutionEditor = new SolutionEditor(solution);
             var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
-                document.Project.Solution, result.Destination, default, cancellationToken).ConfigureAwait(false);
-            var (editorMap, memberToDeclarationMap) = await InitializeEditorMapsAndSyntaxMapAsync(result, solution, solutionEditor, destinationSyntaxNode, cancellationToken).ConfigureAwait(false);
-            var symbolsToPullUp = result.MemberAnalysisResults.
-                SelectAsArray(analysisResult =>
-                {
-                    // Property is treated differently since we need to make sure it gives right accessor symbol
-                    // to ICodeGenerationService, otherwise ICodeGeneration service won't give the expected declaration.
-                    if (analysisResult.Member is IPropertySymbol propertySymbol)
-                    {
-                        if (analysisResult.ChangeOriginalToPublic)
-                        {
-                            // We are pulling a non-public property, change its getter/setter to public and itself to be public.
-                            return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                                propertySymbol,
-                                accessibility: Accessibility.Public,
-                                getMethod: MakePublicAccessor(propertySymbol.GetMethod),
-                                setMethod: MakePublicAccessor(propertySymbol.SetMethod));
-                        }
-                        else
-                        {
-                            // We are pulling a public property, filter the non-public getter/setter.
-                            return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                                propertySymbol,
-                                getMethod: FilterOutNonPublicAccessor(propertySymbol.GetMethod),
-                                setMethod: FilterOutNonPublicAccessor(propertySymbol.SetMethod));
-                        }
-                    }
-                    else
-                    {
-                        return analysisResult.Member;
-                    }
-                });
+                solution, pullMemberUpOptions.Destination, options: null, cancellationToken).ConfigureAwait(false);
+            var symbolToDeclarationsMap = await InitializeSymbolToDeclarationsMapAsync(pullMemberUpOptions, solution, solutionEditor, destinationSyntaxNode, cancellationToken).ConfigureAwait(false);
+            var symbolsToPullUp = pullMemberUpOptions.MemberAnalysisResults.
+                SelectAsArray(analysisResult => GetSymbolsToPullUp(analysisResult));
 
             // Add members to interface
-            var options = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
-            var destinationWithMembersAdded = codeGenerationService.AddMembers(destinationSyntaxNode, symbolsToPullUp, options: options, cancellationToken: cancellationToken);
-            var destinationEditor = editorMap[destinationSyntaxNode.SyntaxTree];
+            var codeGenerationOptions = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
+            var destinationWithMembersAdded = codeGenerationService.AddMembers(destinationSyntaxNode, symbolsToPullUp, options: codeGenerationOptions, cancellationToken: cancellationToken);
+            var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
+                solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
+                cancellationToken).ConfigureAwait(false);
             destinationEditor.ReplaceNode(destinationSyntaxNode, (syntaxNode, generator) => destinationWithMembersAdded);
 
             // Change original members
-            foreach (var analysisResult in result.MemberAnalysisResults)
+            foreach (var analysisResult in pullMemberUpOptions.MemberAnalysisResults)
             {
-                foreach (var syntax in memberToDeclarationMap[analysisResult.Member])
+                foreach (var declaration in symbolToDeclarationsMap[analysisResult.Member])
                 {
-                    var originalMemberEditor = editorMap[syntax.SyntaxTree];
+                    var originalMemberEditor = await solutionEditor.GetDocumentEditorAsync(
+                        solution.GetDocumentId(declaration.SyntaxTree),
+                        cancellationToken).ConfigureAwait(false);
 
                     if (analysisResult.Member.ContainingType.TypeKind == TypeKind.Interface)
                     {
                         // If we are pulling member from interface to interface, the original member should be removed.
-                        // Also don't need to worry other changes since the member is removed
-                        originalMemberEditor.RemoveNode(originalMemberEditor.Generator.GetDeclaration(syntax));
+                        // Also don't need to worry about other changes since the member is removed
+                        originalMemberEditor.RemoveNode(originalMemberEditor.Generator.GetDeclaration(declaration));
                     }
                     else
                     {
@@ -149,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                         {
                             ChangeMemberToPublicAndNonStatic(
                                 codeGenerationService, originalMemberEditor,
-                                syntax, analysisResult.Member);
+                                declaration, analysisResult.Member);
                         }
                     }
                 }
@@ -158,27 +131,58 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             return solutionEditor.GetChangedSolution();
         }
 
+        private static ISymbol GetSymbolsToPullUp(MemberAnalysisResult analysisResult)
+        {
+            if (analysisResult.Member is IPropertySymbol propertySymbol)
+            {
+                // Property is treated differently since we need to make sure it gives right accessor symbol to ICodeGenerationService,
+                // otherwise ICodeGenerationService won't give the expected declaration.
+                if (analysisResult.ChangeOriginalToPublic)
+                {
+                    // We are pulling a non-public property, change its getter/setter to public and itself to be public.
+                    return CodeGenerationSymbolFactory.CreatePropertySymbol(
+                        propertySymbol,
+                        accessibility: Accessibility.Public,
+                        getMethod: MakePublicAccessor(propertySymbol.GetMethod),
+                        setMethod: MakePublicAccessor(propertySymbol.SetMethod));
+                }
+                else
+                {
+                    // We are pulling a public property, filter the non-public getter/setter.
+                    return CodeGenerationSymbolFactory.CreatePropertySymbol(
+                        propertySymbol,
+                        getMethod: FilterOutNonPublicAccessor(propertySymbol.GetMethod),
+                        setMethod: FilterOutNonPublicAccessor(propertySymbol.SetMethod));
+                }
+            }
+            else
+            {
+                // ICodeGenerationService will give the right result if it is method or event
+                return analysisResult.Member;
+            }
+        }
+
         private static void ChangeMemberToPublicAndNonStatic(
             ICodeGenerationService codeGenerationService,
             DocumentEditor editor,
-            SyntaxNode memberSyntax,
+            SyntaxNode memberDeclaration,
             ISymbol member)
         {
             var modifiers = DeclarationModifiers.From(member).WithIsStatic(false);
-            // Event is different since several events may live in one line.
+            // Event is different since several events may be declared in one line.
             if (member is IEventSymbol eventSymbol)
             {
                 ChangeEventToPublicAndNonStatic(
                     codeGenerationService,
                     editor,
                     eventSymbol,
-                    memberSyntax,
+                    memberDeclaration,
                     modifiers);
             }
             else
             {
-                editor.SetAccessibility(memberSyntax, Accessibility.Public);
-                editor.SetModifiers(memberSyntax, modifiers);
+                editor.SetAccessibility(memberDeclaration, Accessibility.Public);
+                editor.SetModifiers(memberDeclaration, modifiers);
             }
         }
 
@@ -186,36 +190,36 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             ICodeGenerationService codeGenerationService,
             DocumentEditor editor,
             IEventSymbol eventSymbol,
-            SyntaxNode memberSyntax,
+            SyntaxNode eventDeclaration,
             DeclarationModifiers modifiers)
         {
-            var declaration = editor.Generator.GetDeclaration(memberSyntax);
-            if (declaration.Equals(memberSyntax))
+            var declaration = editor.Generator.GetDeclaration(eventDeclaration);
+            var isEventHasExplicitAddOrRemoveMethod =
+                (eventSymbol.AddMethod != null && !eventSymbol.AddMethod.IsImplicitlyDeclared) ||
+                (eventSymbol.RemoveMethod != null && !eventSymbol.RemoveMethod.IsImplicitlyDeclared);
+            // There are three situations here:
+            // 1. Single Event.
+            // 2. Several events exist in one declaration.
+            // 3. Event has add or remove method(user declared).
+            // In situation 1, declaration is EventFieldDeclaration, eventDeclaration is variableDeclaration.
+            // In situation 2, declaration and eventDeclaration are both EventDeclaration, which are same.
+            // In situation 3, it is same as situation 2, but has add or remove method.
+            if (declaration.Equals(eventDeclaration) && !isEventHasExplicitAddOrRemoveMethod)
             {
-                if ((eventSymbol.AddMethod != null && !eventSymbol.AddMethod.IsImplicitlyDeclared) ||
-                    (eventSymbol.RemoveMethod != null && !eventSymbol.RemoveMethod.IsImplicitlyDeclared))
-                {
-                    // One events with add or remove method
-                    editor.SetAccessibility(declaration, Accessibility.Public);
-                    editor.SetModifiers(declaration, modifiers);
-                    return;
-                }
-                else
-                {
-                    // Several events are declared same line
-                    var publicAndNonStaticSymbol = CodeGenerationSymbolFactory.CreateEventSymbol(
-                        eventSymbol,
-                        accessibility: Accessibility.Public,
-                        modifiers: modifiers);
-                    var options = new CodeGenerationOptions(generateMethodBodies: true);
-                    var publicAndNonStaticSyntax = codeGenerationService.CreateEventDeclaration(publicAndNonStaticSymbol, destination: CodeGenerationDestination.ClassType, options: options);
-                    // Insert a new declaration and remove the orginal declaration
-                    editor.InsertAfter(declaration, publicAndNonStaticSyntax);
-                    editor.RemoveNode(memberSyntax);
-                }
+                // Several events are declared in same line
+                var publicAndNonStaticSymbol = CodeGenerationSymbolFactory.CreateEventSymbol(
+                    eventSymbol,
+                    accessibility: Accessibility.Public,
+                    modifiers: modifiers);
+                var options = new CodeGenerationOptions(generateMethodBodies: false);
+                var publicAndNonStaticSyntax = codeGenerationService.CreateEventDeclaration(publicAndNonStaticSymbol, destination: CodeGenerationDestination.ClassType, options: options);
+                // Insert a new declaration and remove the orginal declaration
+                editor.InsertAfter(declaration, publicAndNonStaticSyntax);
+                editor.RemoveNode(eventDeclaration);
             }
             else
             {
+                // Handle both single event and event has add or remove method
                 editor.SetAccessibility(declaration, Accessibility.Public);
                 editor.SetModifiers(declaration, modifiers);
             }
@@ -224,19 +228,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         private async static Task<Solution> PullMembersIntoClassAsync(
             Document document,
             PullMembersUpOptions result,
+            Solution solution,
             CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
             var solutionEditor = new SolutionEditor(solution);
             var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
-                document.Project.Solution, result.Destination, default, cancellationToken).ConfigureAwait(false);
-            var (editorMap, syntaxMap) = await InitializeEditorMapsAndSyntaxMapAsync(result, solution, solutionEditor, destinationSyntaxNode, cancellationToken).ConfigureAwait(false);
+                solution, result.Destination, options: null, cancellationToken).ConfigureAwait(false);
+            var symbolToDeclarations = await InitializeSymbolToDeclarationsMapAsync(result, solution, solutionEditor, destinationSyntaxNode, cancellationToken).ConfigureAwait(false);
             // Add members to destination
             var pullUpMembersSymbols = result.MemberAnalysisResults.SelectAsArray(
                 memberResult =>
                 {
-                    if (memberResult.MakeMemberDeclarationAbstract)
+                    if (memberResult.MakeMemberDeclarationAbstract && !memberResult.Member.IsKind(SymbolKind.Field))
                     {
                         // Change the member to abstract if user choose to make them abstract
                         return GetAbstractMemberSymbol(memberResult.Member);
@@ -251,22 +255,26 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             // Remove some original members since we are pulling members into class.
             // Note: If user chooses to make the member abstract, then the original member won't be touched,
-            // It will just pull abstract declaration up to destination.
+            // It will just pull a abstract declaration up to destination.
             // But if the member is abstract itself, it will still be removed.
             foreach (var analysisResult in result.MemberAnalysisResults)
             {
                 if (!analysisResult.MakeMemberDeclarationAbstract)
                 {
-                    foreach (var syntax in syntaxMap[analysisResult.Member])
+                    foreach (var syntax in symbolToDeclarations[analysisResult.Member])
                     {
-                        var originalMemberEditor = editorMap[syntax.SyntaxTree];
+                        var originalMemberEditor = await solutionEditor.GetDocumentEditorAsync(
+                            solution.GetDocumentId(syntax.SyntaxTree),
+                            cancellationToken).ConfigureAwait(false);
                         originalMemberEditor.RemoveNode(originalMemberEditor.Generator.GetDeclaration(syntax));
                     }
                 }
             }
 
             // Change the destination to abstract class if needed.
-            var destinationEditor = editorMap[destinationSyntaxNode.SyntaxTree];
+            var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
+                solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
+                cancellationToken).ConfigureAwait(false);
             if (!result.Destination.IsAbstract &&
                 result.MemberAnalysisResults.Any(analysis => analysis.Member.IsAbstract || analysis.MakeMemberDeclarationAbstract))
             {
@@ -304,50 +312,25 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
         }
 
-        private async static Task<(EditorMap editorMap, SyntaxMap syntaxMap)> InitializeEditorMapsAndSyntaxMapAsync(
+        private async static Task<ImmutableDictionary<ISymbol, ImmutableArray<SyntaxNode>>> InitializeSymbolToDeclarationsMapAsync(
             PullMembersUpOptions result,
             Solution solution,
             SolutionEditor solutionEditor,
             SyntaxNode destinationSyntaxNode,
             CancellationToken cancellationToken)
         {
-            // Members and destination may come from different documents,
-            // EditorMap is used to save and group all the editors will be used.
-            var editorMapBuilder = ImmutableDictionary.CreateBuilder<SyntaxTree, DocumentEditor>();
-            // One member may have multiple syntaxNodes (e.g partial method).
-            // SyntaxMap is used to find the syntaxNodes need to be changed more easily.
-            var syntaxMapBuilder = ImmutableDictionary.CreateBuilder<ISymbol, SyntaxNode[]>();
+            // One member may have multiple syntax nodes (e.g partial method).
+            // Create a map from ISymbol to SyntaxNode find them more easily.
+            var symbolToDeclarationsBuilder = ImmutableDictionary.CreateBuilder<ISymbol, ImmutableArray<SyntaxNode>>();
 
             foreach (var memberAnalysisResult in result.MemberAnalysisResults)
             {
                 var tasks = memberAnalysisResult.Member.DeclaringSyntaxReferences.SelectAsArray(@ref => @ref.GetSyntaxAsync(cancellationToken));
                 var allSyntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
-                await AddEditorsToEditorMapBuilderAsync(solution, solutionEditor, editorMapBuilder, allSyntaxes).ConfigureAwait(false);
-                syntaxMapBuilder.Add(memberAnalysisResult.Member, allSyntaxes);
+                symbolToDeclarationsBuilder.Add(memberAnalysisResult.Member, allSyntaxes.ToImmutableArray());
             }
 
-            await AddEditorsToEditorMapBuilderAsync(
-                solution,
-                solutionEditor,
-                editorMapBuilder,
-                new[] { destinationSyntaxNode }).ConfigureAwait(false);
-            return (editorMapBuilder.ToImmutableDictionary(), syntaxMapBuilder.ToImmutableDictionary());
-        }
-
-        private async static Task AddEditorsToEditorMapBuilderAsync(
-            Solution solution,
-            SolutionEditor solutionEditor,
-            ImmutableDictionary<SyntaxTree, DocumentEditor>.Builder mapBuilder,
-            SyntaxNode[] syntaxNodes)
-        {
-            foreach (var syntax in syntaxNodes)
-            {
-                if (!mapBuilder.ContainsKey(syntax.SyntaxTree))
-                {
-                    var editor = await solutionEditor.GetDocumentEditorAsync(solution.GetDocumentId(syntax.SyntaxTree)).ConfigureAwait(false);
-                    mapBuilder.Add(syntax.SyntaxTree, editor);
-                }
-            }
+            return symbolToDeclarationsBuilder.ToImmutableDictionary();
         }
 
         /// <summary>
@@ -381,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 {
                     overrideMembersSet.Add(symbol);
                 }
-                
+
                 // Since the destination and selectedMember may belong different language, so use SymbolEquivalenceComparer as comparer
                 return overrideMembersSet.Intersect(destination.GetMembers(), SymbolEquivalenceComparer.Instance).Any();
             }

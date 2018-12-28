@@ -503,7 +503,7 @@ namespace PushUpTest
 }";
             await TestInRegularAndScriptAsync(testText, expected);
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullIndexerWithOnlySetterToInterfaceViaQuickAction()
         {
@@ -1254,7 +1254,7 @@ public class TestClass : VBInterface
         internal Task TestWithPullMemberDialogAsync(
             string initialMarkUp,
             string expectedResult,
-            IEnumerable<(string, bool)> selection = null,
+            IEnumerable<(string name, bool makeAbstract)> selection = null,
             string destinationName = null,
             int index = 0,
             CodeActionPriority? priority = null,
@@ -1486,7 +1486,7 @@ namespace PushUpTest
     }
 }";
 
-    var expected = @"
+            var expected = @"
 using System;
 namespace PushUpTest
 {
@@ -1632,6 +1632,43 @@ namespace PushUpTest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullMultipleAbstractEventsToInterfaceViaDialog()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    public interface ITest 
+    {
+    }
+
+    public abstract class Testclass2 : ITest
+    {
+        protected abstract event EventHandler Event1, Eve[||]nt3, Event4;
+    }
+}";
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    public interface ITest
+    {
+        event EventHandler Event1;
+        event EventHandler Event3;
+        event EventHandler Event4;
+    }
+
+    public abstract class Testclass2 : ITest
+    {
+        public abstract event EventHandler Event1;
+        public abstract event EventHandler Event3;
+        public abstract event EventHandler Event4;
+    }
+}";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task PullAbstractEventToClassViaDialog()
         {
             var testText = @"
@@ -1644,7 +1681,7 @@ namespace PushUpTest
 
     public abstract class Testclass2 : Base2
     {
-        private abstract static event EventHandler Event1, Eve[||]nt3, Event4;
+        private static abstract event EventHandler Event1, Eve[||]nt3, Event4;
     }
 }";
             var expected = @"
@@ -1658,11 +1695,285 @@ namespace PushUpTest
 
     public abstract class Testclass2 : Base2
     {
-        private abstract static event EventHandler Event1, Event4;
+        private static abstract event EventHandler Event1, Event4;
     }
 }";
 
             await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("Event3", false) });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullNonPublicEventToInterfaceViaDialog()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    public interface ITest
+    {
+    }
+
+    public class Testclass2 : ITest
+    {
+        private event EventHandler Eve[||]nt3;
+    }
+}";
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    public interface ITest
+    {
+        event EventHandler Event3;
+    }
+
+    public class Testclass2 : ITest
+    {
+        public event EventHandler Event3;
+    }
+}";
+
+            await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("Event3", false) });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullSingleNonPublicEventToInterfaceViaDialog()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    public interface ITest
+    {
+    }
+
+    public abstract class TestClass2 : ITest
+    {
+        protected event EventHandler Eve[||]nt3;
+    }
+}";
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    public interface ITest
+    {
+        event EventHandler Event3;
+    }
+
+    public abstract class TestClass2 : ITest
+    {
+        public event EventHandler Event3;
+    }
+}";
+
+            await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("Event3", false) });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullNonPublicEventWithAddAndRemoveMethodToInterfaceViaDialog()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    interface IInterface
+    {
+    }
+
+    public class TestClass : IInterface
+    {
+        private event EventHandler Eve[||]nt1
+        {
+            add
+            {
+                System.Console.Writeline(""This is add"");
+            }
+            remove
+            {
+                System.Console.Writeline(""This is remove"");
+            }
+        }
+    }
+}";
+
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    interface IInterface
+    {
+        event EventHandler Event1;
+    }
+
+    public class TestClass : IInterface
+    {
+        public event EventHandler Event1
+        {
+            add
+            {
+                System.Console.Writeline(""This is add"");
+            }
+            remove
+            {
+                System.Console.Writeline(""This is remove"");
+            }
+        }
+    }
+}";
+
+            await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("Event1", false) });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullFieldsToClassViaDialog()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    public class Base2
+    {
+    }
+
+    public class Testclass2 : Base2
+    {
+        public int i, [||]j = 10, k = 100;
+    }
+}";
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    public class Base2
+    {
+        public int i;
+        public int j = 10;
+        public int k = 100;
+    }
+
+    public class Testclass2 : Base2
+    {
+    }
+}";
+
+            await TestWithPullMemberDialogAsync(testText, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullNonPublicPropertyWithArrowToInterfaceViaDialog()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    public interface ITest
+    {
+    }
+
+    public class Testclass2 : ITest
+    {
+        private double Test[||]Property => 2.717;
+    }
+}";
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    public interface ITest
+    {
+        double TestProperty { get; }
+    }
+
+    public class Testclass2 : ITest
+    {
+        public readonly double TestProperty => 2.717;
+    }
+}";
+
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullNonPublicPropertyToInterfaceViaDialog()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    public interface ITest
+    {
+    }
+
+    public class Testclass2 : ITest
+    {
+        private double Test[||]Property
+        {
+            get;
+            set;
+        }
+    }
+}";
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    public interface ITest
+    {
+        double TestProperty { get; set; }
+    }
+
+    public class Testclass2 : ITest
+    {
+        public double TestProperty
+        {
+            get;
+            set;
+        }
+    }
+}";
+
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullNonPublicPropertyWithSingleAccessorToInterfaceViaDialog()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    public interface ITest
+    {
+    }
+
+    public class Testclass2 : ITest
+    {
+        private static double Test[||]Property
+        {
+            set;
+        }
+    }
+}";
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    public interface ITest
+    {
+        double TestProperty { set; }
+    }
+
+    public class Testclass2 : ITest
+    {
+        public double Test[||]Property
+        {
+            set;
+        }
+    }
+}";
+
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         #endregion dialog
