@@ -713,7 +713,7 @@ class C4
         // c1 is obsolete
         using C1 c1 = new C1();
 
-        // no warning, we don't warn on dispose being obsolete becuase it comes through interface
+        // no warning, we don't warn on dispose being obsolete because it comes through interface
         using C2 c2 = new C2();
     
         // warning, we're calling the pattern based obsolete method for the ref struct
