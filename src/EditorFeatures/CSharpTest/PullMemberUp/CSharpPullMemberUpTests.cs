@@ -1247,9 +1247,9 @@ public class TestClass : VBInterface
             await TestQuickActionNotProvidedAsync(input);
         }
 
-        #endregion quick action
+        #endregion Quick Action
 
-        #region dialog
+        #region Dialog
 
         internal Task TestWithPullMemberDialogAsync(
             string initialMarkUp,
@@ -1976,6 +1976,6 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        #endregion dialog
+        #endregion Dialog
     }
 }

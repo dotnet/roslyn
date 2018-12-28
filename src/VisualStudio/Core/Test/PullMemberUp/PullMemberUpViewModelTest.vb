@@ -293,7 +293,7 @@ class MyClass : Level1BaseClass
         End Function
 
         Private Function FindMemberByName(name As String, memberArray As ImmutableArray(Of PullMemberUpSymbolViewModel)) As PullMemberUpSymbolViewModel
-            Dim member = memberArray.FirstOrDefault(Function(memberViewModel) memberViewModel.MemberName.Equals(name))
+            Dim member = memberArray.FirstOrDefault(Function(memberViewModel) memberViewModel.SymbolName.Equals(name))
             If (member Is Nothing) Then
                 Assert.True(False, $"No member called {name} found")
             End If
