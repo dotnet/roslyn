@@ -6645,7 +6645,7 @@ oneMoreTime:
 
             // throw new SwitchExpressionException
             var matchFailureCtor =
-                (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_MatchFailureException__ctor) ??
+                (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor) ??
                 (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_InvalidOperationException__ctor);
             var makeException = (matchFailureCtor is null)
                 ? MakeInvalidOperation(operation.Syntax, type: _compilation.GetSpecialType(SpecialType.System_Object), ImmutableArray<IOperation>.Empty)
