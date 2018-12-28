@@ -30,8 +30,8 @@
                TargetType="{x:Type TreeViewItem}">
             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
             <Setter Property="FontWeight" Value="Normal" />
-            <Setter Property="AutomationProperties.Name" Value="{Binding MemberAutomationText}" />
-            <Setter Property="AutomationProperties.AutomationId" Value="{Binding MemberName}" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding SymbolAutomationText}" />
+            <Setter Property="AutomationProperties.AutomationId" Value="{Binding SymbolName}" />
             <Setter Property="IsExpanded" Value="True"/>
             <Style.Resources>
                 <Style TargetType="{x:Type Border}">
@@ -90,7 +90,7 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                             <Image Source="{Binding Glyph}" Margin="0, 0, 5, 0"/>
                             <TextBlock
-                                Text="{Binding MemberName}"
+                                Text="{Binding SymbolName}"
                                 ToolTip="{Binding Namespace}"/>
                         </StackPanel>
                     </HierarchicalDataTemplate>
@@ -168,8 +168,8 @@
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" MinWidth="186" Width="Auto" Margin="5, 2, 0, 2">
                                         <CheckBox
                                             x:Name="MemberSelectionCheckBox"
-                                            AutomationProperties.Name="{Binding MemberAutomationText}"
-                                            AutomationProperties.AutomationId="{Binding MemberName}"
+                                            AutomationProperties.Name="{Binding SymbolAutomationText}"
+                                            AutomationProperties.AutomationId="{Binding SymbolName}"
                                             IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
                                             Checked="MemberSelectionCheckBox_Checked"
                                             Unchecked="MemberSelectionCheckBox_Unchecked"
@@ -184,7 +184,7 @@
                                            Margin="8,0,5,0"
                                            Source="{Binding Glyph}"/>
                                         <TextBlock x:Uid="MemberName"
-                                                   Text="{Binding MemberName}"
+                                                   Text="{Binding SymbolName}"
                                                    Margin="0, 0, 5, 0"
                                                    ToolTip="{Binding Accessibility}"/>
                                     </StackPanel>

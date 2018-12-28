@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         public T Symbol { get; }
 
-        private static readonly SymbolDisplayFormat s_memberDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_symbolDisplayFormat = new SymbolDisplayFormat(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
             parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeOptionalBrackets,
@@ -33,10 +33,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             set => SetProperty(ref _isChecked, value);
         }
 
-        public string MemberName => Symbol.ToDisplayString(s_memberDisplayFormat);
+        public string SymbolName => Symbol.ToDisplayString(s_symbolDisplayFormat);
 
         public ImageSource Glyph => Symbol.GetGlyph().GetImageSource(_glyphService);
 
-        public string MemberAutomationText => $"{Symbol.Kind} {MemberName}";
+        public string SymbolAutomationText => $"{Symbol.Kind} {SymbolName}";
     }
 }

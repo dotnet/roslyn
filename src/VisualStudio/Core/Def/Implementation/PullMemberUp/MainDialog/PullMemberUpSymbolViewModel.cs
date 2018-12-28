@@ -18,14 +18,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         private bool _makeAbstract;
 
         /// <summary>
-        /// Property indicates whether 'Make abstract' check box is checked.
+        /// Indicates whether 'Make abstract' check box is checked.
         /// </summary>
         public bool MakeAbstract { get => _makeAbstract; set => SetProperty(ref _makeAbstract, value, nameof(MakeAbstract)); }
+
+        private bool _isMakeAbstractCheckable;
+
+        /// <summary>
+        /// Indicates whether make abstract check box is enabled or not. (e.g. When user selects on interface destination, it will be disabled)
+        /// </summary>
+        public bool IsMakeAbstractCheckable { get => _isMakeAbstractCheckable; set => SetProperty(ref _isMakeAbstractCheckable, value, nameof(IsMakeAbstractCheckable)); }
 
         private bool _isCheckable;
 
         /// <summary>
-        /// Property indicates whether this member checkable.
+        /// Indicates whether this member checkable.
         /// </summary>
         public bool IsCheckable { get => _isCheckable; set => SetProperty(ref _isCheckable, value, nameof(IsCheckable)); }
 

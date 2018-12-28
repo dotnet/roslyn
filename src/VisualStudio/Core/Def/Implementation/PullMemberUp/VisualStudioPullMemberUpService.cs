@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PullMemberUp;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
@@ -38,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                         // The member user selected will be checked at the begining.
                         IsChecked = SymbolEquivalenceComparer.Instance.Equals(selectedMember, member),
                         MakeAbstract = false,
+                        IsMakeAbstractCheckable = !member.IsKind(SymbolKind.Field) && !member.IsAbstract,
                         IsCheckable = true
                     });
 

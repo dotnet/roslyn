@@ -36,21 +36,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                 if (SetProperty(ref _selectedDestination, value, nameof(SelectedDestination)))
                 {
                     var fields = Members.WhereAsArray(memberViewModel => memberViewModel.Symbol.IsKind(SymbolKind.Field));
+                    var makeAbstractEnabledCheckboxs = Members.
+                        WhereAsArray(memberViewModel => !memberViewModel.Symbol.IsKind(SymbolKind.Field) && !memberViewModel.Symbol.IsAbstract);
                     if (_selectedDestination.Symbol is INamedTypeSymbol interfaceSymbol &&
                         interfaceSymbol.TypeKind == TypeKind.Interface)
                     {
-                        // Disable field check box if destination is interface
+                        // Disable field check box and make abstract if destination is interface
                         foreach (var member in fields)
                         {
                             member.IsCheckable = false;
                         }
+
+                        foreach (var member in makeAbstractEnabledCheckboxs)
+                        {
+                            member.IsMakeAbstractCheckable = false;
+                        }
                     }
                     else
                     {
-                        // Resume field check box back
+                        // Resume back
                         foreach (var member in fields)
                         {
                             member.IsCheckable = true;
+                        }
+
+                        foreach (var member in makeAbstractEnabledCheckboxs)
+                        {
+                            member.IsMakeAbstractCheckable = true;
                         }
                     }
                     EnableOrDisableOkButton();
@@ -76,9 +88,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         {
             var selectedOptionFromDialog = Members.
                 WhereAsArray(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable).
-                SelectAsArray(memberSymbolView =>
-                    (member: memberSymbolView.Symbol,
-                    makeAbstract: memberSymbolView.MakeAbstract));
+                SelectAsArray(memberViewModel =>
+                    (member: memberViewModel.Symbol,
+                    makeAbstract: memberViewModel.IsMakeAbstractCheckable && memberViewModel.MakeAbstract));
 
             var result = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(
                 SelectedDestination.Symbol,
