@@ -87,10 +87,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             if (!_newCompletionAPIEnabled.HasValue)
             {
-                if (Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
+                int userSetting = 0;
+                if (textView.Options.GlobalOptions.IsOptionDefined(UseAsyncCompletionOptionDefinition.OptionName, localScopeOnly: false))
                 {
-                    var experimentationService = workspace.Services.GetService<IExperimentationService>();
-                    _newCompletionAPIEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.CompletionAPI);
+                    userSetting = textView.Options.GlobalOptions.GetOptionValue<int>(UseAsyncCompletionOptionDefinition.OptionName);
+                }
+
+                if (userSetting == 1)
+                {
+                    _newCompletionAPIEnabled = true;
+                }
+                else if (userSetting == -1)
+                {
+                    _newCompletionAPIEnabled = false;
+                }
+                else
+                {
+                    if (Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
+                    {
+                        var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                        _newCompletionAPIEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.CompletionAPI);
+                    }
                 }
             }
 
