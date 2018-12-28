@@ -1579,7 +1579,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         protected override ImmutableArray<ISwitchExpressionArmOperation> CreateArms()
         {
-            return _switchExpression.SwitchArms.SelectAsArray((a, fac) => (ISwitchExpressionArmOperation)fac.Create(a), _operationFactory);
+            return _operationFactory.CreateFromArray<BoundSwitchExpressionArm, ISwitchExpressionArmOperation>(_switchExpression.SwitchArms);
         }
     }
 
