@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 
