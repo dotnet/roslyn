@@ -1073,6 +1073,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         return true;
                                     }
                                     break;
+
+                                case CSharp.SyntaxKind.SwitchExpression:
+                                    if (((CSharp.Syntax.SwitchExpressionSyntax)syntax.Parent).GoverningExpression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
                             }
                         }
 
