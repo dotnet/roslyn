@@ -274,8 +274,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // For purpose of data flow analysis, awaits create pending branches, so async usings do too
-        public sealed override bool AwaitUsingAddsPendingBranch => true;
+        // For purpose of definite assignment analysis, awaits create pending branches, so async usings and foreachs do too
+        public sealed override bool AwaitUsingAndForeachAddsPendingBranch => true;
 
         protected virtual void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
         {
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected IEnumerable<Symbol> GetCaptured() => _capturedVariables.ToArray();
         protected IEnumerable<Symbol> GetUnsafeAddressTaken() => _unsafeAddressTakenVariables.Keys.ToArray();
 
-#region Tracking reads/writes of variables for warnings
+        #region Tracking reads/writes of variables for warnings
 
         protected virtual void NoteRead(
             Symbol variable,
@@ -1817,7 +1817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
         {
             base.VisitIncrementOperator(node);
-            Assign(node.Operand, value: node); 
+            Assign(node.Operand, value: node);
             return null;
         }
 
@@ -1826,7 +1826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitCompoundAssignmentTarget(node);
             VisitRvalue(node.Right);
             AfterRightHasBeenVisited(node);
-            Assign(node.Left, value: node); 
+            Assign(node.Left, value: node);
             return null;
         }
 
@@ -1887,7 +1887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckAssigned(arg, arg.Syntax);
             }
 
-            Assign(arg, value: null); 
+            Assign(arg, value: null);
 
             // Imitate Dev10 behavior: if the argument is passed by ref/out to an external method, then
             // we assume that external method may write and/or read all of its fields (recursively).

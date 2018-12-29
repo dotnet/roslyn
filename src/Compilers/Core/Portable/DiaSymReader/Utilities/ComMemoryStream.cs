@@ -170,11 +170,11 @@ namespace Microsoft.DiaSymReader
                     newPosition = SetPosition((int)dlibMove);
                     break;
 
-                case STREAM_SEEK_CUR: 
+                case STREAM_SEEK_CUR:
                     newPosition = SetPosition(_position + (int)dlibMove);
                     break;
 
-                case STREAM_SEEK_END: 
+                case STREAM_SEEK_END:
                     newPosition = SetPosition(_length + (int)dlibMove);
                     break;
 

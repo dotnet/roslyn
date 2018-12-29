@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static T WithCommentsFrom<T>(this T node, SyntaxToken leadingToken, SyntaxToken trailingToken)
             where T : SyntaxNode
             => node.WithCommentsFrom(
-                SyntaxNodeOrTokenExtensions.GetTrivia(leadingToken), 
+                SyntaxNodeOrTokenExtensions.GetTrivia(leadingToken),
                 SyntaxNodeOrTokenExtensions.GetTrivia(trailingToken));
 
         public static T WithCommentsFrom<T>(

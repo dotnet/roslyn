@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         /// </summary>
         public IEnumerable<(ISymbol Symbol, IOperation WriteOperation)> GetUnreadSymbolWrites()
             => SymbolWritesMap.Where(kvp => !kvp.Value).Select(kvp => kvp.Key);
-        
+
         /// <summary>
         /// Returns true if the initial value of the parameter from the caller is used.
         /// </summary>

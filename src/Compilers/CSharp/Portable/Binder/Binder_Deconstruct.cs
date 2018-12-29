@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ArrayBuilder<DeconstructionVariable> variables,
                         out Conversion conversion)
         {
-            Debug.Assert(type != null);
+            Debug.Assert((object)type != null);
             ImmutableArray<TypeSymbol> tupleOrDeconstructedTypes;
             conversion = Conversion.Deconstruction;
 
@@ -345,13 +345,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeconstructionVariablePendingInference:
                     {
                         var pending = (DeconstructionVariablePendingInference)expression;
-                        return pending.SetInferredType(TypeSymbolWithAnnotations.Create(NonNullTypesContext, type), this, diagnostics);
+                        return pending.SetInferredType(TypeSymbolWithAnnotations.Create(type), this, diagnostics);
                     }
                 case BoundKind.DiscardExpression:
                     {
                         var pending = (BoundDiscardExpression)expression;
                         Debug.Assert((object)pending.Type == null);
-                        return pending.SetInferredType(TypeSymbolWithAnnotations.Create(NonNullTypesContext, type));
+                        return pending.SetInferredType(TypeSymbolWithAnnotations.Create(type));
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
@@ -847,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!declType.IsNull)
             {
                 var fieldType = field.GetFieldType(this.FieldsBeingBound);
-                Debug.Assert(declType.TypeSymbol == fieldType.TypeSymbol);
+                Debug.Assert(TypeSymbol.Equals(declType.TypeSymbol, fieldType.TypeSymbol, TypeCompareKind.ConsiderEverything2));
                 return new BoundFieldAccess(syntax,
                                             receiver,
                                             field,

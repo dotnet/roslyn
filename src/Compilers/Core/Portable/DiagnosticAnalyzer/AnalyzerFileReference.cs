@@ -143,8 +143,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string message = e.Message.Replace("\r", "").Replace("\n", "");
 
             var errorCode = (typeNameOpt != null) ?
-                AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer : 
-                AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer; 
+                AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer :
+                AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer;
 
             return new AnalyzerLoadFailureEventArgs(errorCode, message, e, typeNameOpt);
         }

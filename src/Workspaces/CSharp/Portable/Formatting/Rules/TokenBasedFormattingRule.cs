@@ -413,8 +413,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // ! *
-            if (previousToken.Kind() == SyntaxKind.ExclamationToken)
+            // ! *, except where ! is the suppress nullable warning operator
+            if (previousToken.Kind() == SyntaxKind.ExclamationToken
+                && previousToken.Parent.Kind() != SyntaxKindEx.SuppressNullableWarningExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

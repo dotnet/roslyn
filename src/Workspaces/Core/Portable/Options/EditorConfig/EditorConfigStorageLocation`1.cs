@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly Func<T, OptionSet, string> _getEditorConfigStringForValue;
 
         public EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue, Func<T, string> getEditorConfigStringForValue)
-            : this (keyName, parseValue, (value, optionSet) => getEditorConfigStringForValue(value))
+            : this(keyName, parseValue, (value, optionSet) => getEditorConfigStringForValue(value))
         {
             if (getEditorConfigStringForValue == null)
             {

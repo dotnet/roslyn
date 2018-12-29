@@ -1354,6 +1354,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(index, children.Length);
         }
 
+        public override void VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation)
+        {
+            Assert.Equal(OperationKind.SuppressNullableWarning, operation.Kind);
+            Assert.NotNull(operation.Expression);
+            Assert.Same(operation.Expression, operation.Children.Single());
+        }
+
         public override void VisitReDim(IReDimOperation operation)
         {
             Assert.Equal(OperationKind.ReDim, operation.Kind);

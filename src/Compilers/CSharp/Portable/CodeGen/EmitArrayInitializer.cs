@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             if (elementCount < 0)
-            { 
+            {
                 return false;
             }
 
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // emitting a value that no one will see
                 return true;
             }
-            
+
             if (elementCount == 0)
             {
                 if (inPlace)

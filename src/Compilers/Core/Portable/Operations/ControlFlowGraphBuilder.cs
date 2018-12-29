@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             builder.EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime));
 
-            switch(body.Kind)
+            switch (body.Kind)
             {
                 case OperationKind.LocalFunction:
                     Debug.Assert(captureIdDispenser != null);
@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// Merge content of <paramref name="subRegion"/> into its enclosing region and free it.
         /// </summary>
-        private static void MergeSubRegionAndFree(RegionBuilder subRegion, ArrayBuilder<BasicBlockBuilder> blocks, PooledDictionary<BasicBlockBuilder, RegionBuilder> regionMap)
+        private static void MergeSubRegionAndFree(RegionBuilder subRegion, ArrayBuilder<BasicBlockBuilder> blocks, PooledDictionary<BasicBlockBuilder, RegionBuilder> regionMap, bool canHaveEmptyRegion = false)
         {
             Debug.Assert(subRegion.Kind != ControlFlowRegionKind.Root);
             RegionBuilder enclosing = subRegion.Enclosing;
@@ -586,6 +586,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 #if DEBUG
             subRegion.AboutToFree();
 #endif
+
+            if (subRegion.FirstBlock is null)
+            {
+                Debug.Assert(canHaveEmptyRegion);
+                Debug.Assert(!subRegion.HasRegions);
+
+                enclosing.Remove(subRegion);
+                subRegion.Free();
+                return;
+            }
 
             int firstBlockToMove = subRegion.FirstBlock.Ordinal;
 
@@ -1658,8 +1668,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     Debug.Assert(toMerge.Locals.IsEmpty);
 
                     _currentRegion.AddCaptureIds(toMerge.CaptureIds);
-                    _currentRegion.ExtendToInclude(toMerge.LastBlock);
-                    MergeSubRegionAndFree(toMerge, _blocks, _regionMap);
+                    // This region can be empty in certain error scenarios, such as `new T {}`, where T does not
+                    // have a class constraint. There are no arguments or initializers, so nothing will have
+                    // been put into the region at this point
+                    if (toMerge.FirstBlock is null)
+                    {
+                        Debug.Assert(toMerge.LastBlock is null);
+                    }
+                    else
+                    {
+                        _currentRegion.ExtendToInclude(toMerge.LastBlock);
+                    }
+                    MergeSubRegionAndFree(toMerge, _blocks, _regionMap, canHaveEmptyRegion: true);
                 }
             }
         }
@@ -2051,7 +2071,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             if (IsBooleanLogicalNot(operation))
             {
-                return VisitConditionalExpression(operation.Operand, sense: false, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
+                return VisitConditionalExpression(operation, sense: true, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
             }
 
             return new UnaryOperation(operation.OperatorKind, Visit(operation.Operand), operation.IsLifted, operation.IsChecked, operation.OperatorMethod,
@@ -4053,7 +4073,7 @@ oneMoreTime:
                     // This must be an error case
                     AddStatement(MakeInvalidOperation(type: null, Visit(operation.Collection)));
                     result = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Collection.Syntax,
-                                                  type: null,constantValue: default, isImplicit: true);
+                                                  type: null, constantValue: default, isImplicit: true);
                 }
 
                 PopStackFrameAndLeaveRegion(getEnumeratorFrame);
@@ -5069,8 +5089,8 @@ oneMoreTime:
                         break;
 
                     case CaseKind.Range:
-                        // A switch section with a range case must have a condition associated with it.
-                        // This point should not be reachable.
+                    // A switch section with a range case must have a condition associated with it.
+                    // This point should not be reachable.
                     default:
                         throw ExceptionUtilities.UnexpectedValue(caseClause.CaseKind);
                 }
@@ -6584,7 +6604,7 @@ oneMoreTime:
 
         public override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, int? argument)
         {
-            return new FromEndIndexOperation(operation.IsLifted, operation.IsImplicit, semanticModel: null, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol);
+            return new FromEndIndexOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol, isImplicit: IsImplicit(operation));
         }
 
         public override IOperation VisitRangeOperation(IRangeOperation operation, int? argument)
@@ -6602,7 +6622,13 @@ oneMoreTime:
 
             IOperation visitedLeftOperand = operation.LeftOperand is null ? null : PopOperand();
 
-            return new RangeOperation(operation.IsLifted, operation.IsImplicit, semanticModel: null, operation.Syntax, operation.Type, visitedLeftOperand, visitedRightOperand, operation.Method);
+            return new RangeOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, visitedLeftOperand, visitedRightOperand, operation.Method, isImplicit: IsImplicit(operation));
+        }
+
+        public override IOperation VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation, int? argument)
+        {
+            IOperation visitedExpression = Visit(operation.Expression);
+            return new SuppressNullableWarningOperation(semanticModel: null, operation.Syntax, operation.Type, visitedExpression, operation.ConstantValue, isImplicit: IsImplicit(operation));
         }
 
         public IOperation Visit(IOperation operation)

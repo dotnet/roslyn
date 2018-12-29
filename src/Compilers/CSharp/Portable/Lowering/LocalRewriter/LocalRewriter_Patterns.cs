@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // This is an evaluation of an indexed property with a constant int value.
                             // The input type must be ITuple, and the property must be a property of ITuple.
-                            Debug.Assert(e.Property.ContainingSymbol == input.Type);
+                            Debug.Assert(e.Property.ContainingSymbol.Equals(input.Type));
                             Debug.Assert(e.Property.GetMethod.ParameterCount == 1);
                             Debug.Assert(e.Property.GetMethod.Parameters[0].Type.SpecialType == SpecialType.System_Int32);
                             TypeSymbol type = e.Property.GetMethod.ReturnType.TypeSymbol;
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoundExpression MakeEqual(BoundExpression loweredLiteral, BoundExpression input)
             {
-                Debug.Assert(loweredLiteral.Type == input.Type);
+                Debug.Assert(loweredLiteral.Type.Equals(input.Type, TypeCompareKind.AllIgnoreOptions));
 
                 if (loweredLiteral.Type.SpecialType == SpecialType.System_Double && double.IsNaN(loweredLiteral.ConstantValue.DoubleValue))
                 {
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (test is BoundDagTypeTest typeDecision &&
                     evaluation is BoundDagTypeEvaluation typeEvaluation &&
                     typeDecision.Type.IsReferenceType &&
-                    typeEvaluation.Type == typeDecision.Type &&
+                    typeEvaluation.Type.Equals(typeDecision.Type, TypeCompareKind.AllIgnoreOptions) &&
                     typeEvaluation.Input == typeDecision.Input
                     )
                 {

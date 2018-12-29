@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //"this" is readonly in members of readonly structs, unless we are in a constructor.
                     if (!thisref.Type.IsValueType ||
                             (RequiresAssignableVariable(valueKind) &&
-                             thisref.Type.IsReadOnly && 
+                             thisref.Type.IsReadOnly &&
                              (this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.Constructor))
                     {
                         // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
@@ -669,9 +669,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         fieldIsStatic == containing.IsStatic &&
                         (fieldIsStatic || fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference) &&
                         (Compilation.FeatureStrictEnabled
-                            ? fieldSymbol.ContainingType == containing.ContainingType
+                            ? TypeSymbol.Equals(fieldSymbol.ContainingType, containing.ContainingType, TypeCompareKind.ConsiderEverything2)
                             // We duplicate a bug in the native compiler for compatibility in non-strict mode
-                            : fieldSymbol.ContainingType.OriginalDefinition == containing.ContainingType.OriginalDefinition))
+                            : TypeSymbol.Equals(fieldSymbol.ContainingType.OriginalDefinition, containing.ContainingType.OriginalDefinition, TypeCompareKind.ConsiderEverything2)))
                     {
                         if (containing.Kind == SymbolKind.Method)
                         {
@@ -1344,7 +1344,7 @@ moreArguments:
 
             if (!argsOpt.IsDefault)
             {
- moreArguments:
+moreArguments:
                 for (var argIndex = 0; argIndex < argsOpt.Length; argIndex++)
                 {
                     // check val escape of all arguments
@@ -1397,7 +1397,7 @@ moreArguments:
 
         /// <summary>
         /// Gets "effective" ref kind of an argument. 
-        /// If the ref kind is 'in', marks that that correwsponding parameter was matched with a value
+        /// If the ref kind is 'in', marks that that corresponding parameter was matched with a value
         /// We need that to detect when there were optional 'in' parameters for which values were not supplied.
         /// 
         /// NOTE: Generally we know if a formal argument is passed as ref/out/in by looking at the call site. 
@@ -1405,10 +1405,10 @@ moreArguments:
         /// There are cases like params/vararg, when a corresponding parameter may not exist, then val cannot become 'in'.
         /// </summary>
         private static RefKind GetEffectiveRefKindAndMarkMatchedInParameter(
-            int argIndex, 
-            ImmutableArray<RefKind> argRefKindsOpt, 
-            ImmutableArray<ParameterSymbol> parameters, 
-            ImmutableArray<int> argsToParamsOpt, 
+            int argIndex,
+            ImmutableArray<RefKind> argRefKindsOpt,
+            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<int> argsToParamsOpt,
             ref ArrayBuilder<bool> inParametersMatchedWithArgs)
         {
             var effectiveRefKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
@@ -2212,7 +2212,7 @@ moreArguments:
                         // the other one is the same or we will be reporting errors anyways.
                         return consEscape;
                     }
-                    
+
                     // val conditional gets narrowest of its operands
                     return Math.Max(consEscape,
                                     GetValEscape(conditional.Alternative, scopeOfTheContainingExpression));
@@ -2349,7 +2349,7 @@ moreArguments:
                 case BoundKind.CollectionElementInitializer:
                     var colElement = (BoundCollectionElementInitializer)expr;
                     return GetValEscape(colElement.Arguments, scopeOfTheContainingExpression);
-                                
+
                 case BoundKind.ObjectInitializerMember:
                     // this node generally makes no sense outside of the context of containing initializer
                     // however binder uses it as a placeholder when binding assignments inside an object initializer
@@ -2618,14 +2618,14 @@ moreArguments:
                     var initializerExpr = objectCreation.InitializerExpressionOpt;
                     if (initializerExpr != null)
                     {
-                        escape = escape && 
+                        escape = escape &&
                             CheckValEscape(
-                                initializerExpr.Syntax, 
-                                initializerExpr, 
-                                escapeFrom, 
-                                escapeTo, 
-                                checkingReceiver:false, 
-                                diagnostics:diagnostics);
+                                initializerExpr.Syntax,
+                                initializerExpr,
+                                escapeFrom,
+                                escapeTo,
+                                checkingReceiver: false,
+                                diagnostics: diagnostics);
                     }
 
                     return escape;
@@ -2669,7 +2669,7 @@ moreArguments:
                     var clauseValue = ((BoundQueryClause)expr).Value;
                     return CheckValEscape(clauseValue.Syntax, clauseValue, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
-                case BoundKind.RangeVariable:  
+                case BoundKind.RangeVariable:
                     var variableValue = ((BoundRangeVariable)expr).Value;
                     return CheckValEscape(variableValue.Syntax, variableValue, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
@@ -2711,131 +2711,131 @@ moreArguments:
                     Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
                     return false;
 
-                #region "cannot produce ref-like values"
-//                case BoundKind.ThrowExpression:
-//                case BoundKind.ArgListOperator:
-//                case BoundKind.ArgList:
-//                case BoundKind.RefTypeOperator:
-//                case BoundKind.AddressOfOperator:
-//                case BoundKind.TypeOfOperator:
-//                case BoundKind.IsOperator:
-//                case BoundKind.SizeOfOperator:
-//                case BoundKind.DynamicMemberAccess:
-//                case BoundKind.DynamicInvocation:
-//                case BoundKind.NewT:
-//                case BoundKind.DelegateCreationExpression:
-//                case BoundKind.ArrayCreation:
-//                case BoundKind.AnonymousObjectCreationExpression:
-//                case BoundKind.NameOfOperator:
-//                case BoundKind.InterpolatedString:
-//                case BoundKind.StringInsert:
-//                case BoundKind.DynamicIndexerAccess:
-//                case BoundKind.Lambda:
-//                case BoundKind.DynamicObjectCreationExpression:
-//                case BoundKind.NoPiaObjectCreationExpression:
-//                case BoundKind.BaseReference:
-//                case BoundKind.Literal:
-//                case BoundKind.IsPatternExpression:
-//                case BoundKind.DeconstructionAssignmentOperator:
-//                case BoundKind.EventAccess:
+                    #region "cannot produce ref-like values"
+                    //                case BoundKind.ThrowExpression:
+                    //                case BoundKind.ArgListOperator:
+                    //                case BoundKind.ArgList:
+                    //                case BoundKind.RefTypeOperator:
+                    //                case BoundKind.AddressOfOperator:
+                    //                case BoundKind.TypeOfOperator:
+                    //                case BoundKind.IsOperator:
+                    //                case BoundKind.SizeOfOperator:
+                    //                case BoundKind.DynamicMemberAccess:
+                    //                case BoundKind.DynamicInvocation:
+                    //                case BoundKind.NewT:
+                    //                case BoundKind.DelegateCreationExpression:
+                    //                case BoundKind.ArrayCreation:
+                    //                case BoundKind.AnonymousObjectCreationExpression:
+                    //                case BoundKind.NameOfOperator:
+                    //                case BoundKind.InterpolatedString:
+                    //                case BoundKind.StringInsert:
+                    //                case BoundKind.DynamicIndexerAccess:
+                    //                case BoundKind.Lambda:
+                    //                case BoundKind.DynamicObjectCreationExpression:
+                    //                case BoundKind.NoPiaObjectCreationExpression:
+                    //                case BoundKind.BaseReference:
+                    //                case BoundKind.Literal:
+                    //                case BoundKind.IsPatternExpression:
+                    //                case BoundKind.DeconstructionAssignmentOperator:
+                    //                case BoundKind.EventAccess:
 
-                #endregion
+                    #endregion
 
-                #region "not expression that can produce a value"
-//                case BoundKind.FieldEqualsValue:
-//                case BoundKind.PropertyEqualsValue:
-//                case BoundKind.ParameterEqualsValue:
-//                case BoundKind.NamespaceExpression:
-//                case BoundKind.TypeExpression:
-//                case BoundKind.BadStatement:
-//                case BoundKind.MethodDefIndex:
-//                case BoundKind.SourceDocumentIndex:
-//                case BoundKind.ArgList:
-//                case BoundKind.ArgListOperator:
-//                case BoundKind.Block:
-//                case BoundKind.Scope:
-//                case BoundKind.NoOpStatement:
-//                case BoundKind.ReturnStatement:
-//                case BoundKind.YieldReturnStatement:
-//                case BoundKind.YieldBreakStatement:
-//                case BoundKind.ThrowStatement:
-//                case BoundKind.ExpressionStatement:
-//                case BoundKind.SwitchStatement:
-//                case BoundKind.SwitchSection:
-//                case BoundKind.SwitchLabel:
-//                case BoundKind.BreakStatement:
-//                case BoundKind.LocalFunctionStatement:
-//                case BoundKind.ContinueStatement:
-//                case BoundKind.SwitchStatement:
-//                case BoundKind.SwitchSection:
-//                case BoundKind.PatternSwitchLabel:
-//                case BoundKind.IfStatement:
-//                case BoundKind.DoStatement:
-//                case BoundKind.WhileStatement:
-//                case BoundKind.ForStatement:
-//                case BoundKind.ForEachStatement:
-//                case BoundKind.ForEachDeconstructStep:
-//                case BoundKind.UsingStatement:
-//                case BoundKind.FixedStatement:
-//                case BoundKind.LockStatement:
-//                case BoundKind.TryStatement:
-//                case BoundKind.CatchBlock:
-//                case BoundKind.LabelStatement:
-//                case BoundKind.GotoStatement:
-//                case BoundKind.LabeledStatement:
-//                case BoundKind.Label:
-//                case BoundKind.StatementList:
-//                case BoundKind.ConditionalGoto:
-//                case BoundKind.LocalDeclaration:
-//                case BoundKind.MultipleLocalDeclarations:
-//                case BoundKind.ArrayInitialization:
-//                case BoundKind.AnonymousPropertyDeclaration:
-//                case BoundKind.MethodGroup:
-//                case BoundKind.PropertyGroup:
-//                case BoundKind.EventAssignmentOperator:
-//                case BoundKind.Attribute:
-//                case BoundKind.FixedLocalCollectionInitializer:
-//                case BoundKind.DynamicObjectInitializerMember:
-//                case BoundKind.DynamicCollectionElementInitializer:
-//                case BoundKind.ImplicitReceiver:
-//                case BoundKind.FieldInitializer:
-//                case BoundKind.GlobalStatementInitializer:
-//                case BoundKind.TypeOrInstanceInitializers:
-//                case BoundKind.DeclarationPattern:
-//                case BoundKind.ConstantPattern:
-//                case BoundKind.WildcardPattern:
+                    #region "not expression that can produce a value"
+                    //                case BoundKind.FieldEqualsValue:
+                    //                case BoundKind.PropertyEqualsValue:
+                    //                case BoundKind.ParameterEqualsValue:
+                    //                case BoundKind.NamespaceExpression:
+                    //                case BoundKind.TypeExpression:
+                    //                case BoundKind.BadStatement:
+                    //                case BoundKind.MethodDefIndex:
+                    //                case BoundKind.SourceDocumentIndex:
+                    //                case BoundKind.ArgList:
+                    //                case BoundKind.ArgListOperator:
+                    //                case BoundKind.Block:
+                    //                case BoundKind.Scope:
+                    //                case BoundKind.NoOpStatement:
+                    //                case BoundKind.ReturnStatement:
+                    //                case BoundKind.YieldReturnStatement:
+                    //                case BoundKind.YieldBreakStatement:
+                    //                case BoundKind.ThrowStatement:
+                    //                case BoundKind.ExpressionStatement:
+                    //                case BoundKind.SwitchStatement:
+                    //                case BoundKind.SwitchSection:
+                    //                case BoundKind.SwitchLabel:
+                    //                case BoundKind.BreakStatement:
+                    //                case BoundKind.LocalFunctionStatement:
+                    //                case BoundKind.ContinueStatement:
+                    //                case BoundKind.PatternSwitchStatement:
+                    //                case BoundKind.PatternSwitchSection:
+                    //                case BoundKind.PatternSwitchLabel:
+                    //                case BoundKind.IfStatement:
+                    //                case BoundKind.DoStatement:
+                    //                case BoundKind.WhileStatement:
+                    //                case BoundKind.ForStatement:
+                    //                case BoundKind.ForEachStatement:
+                    //                case BoundKind.ForEachDeconstructStep:
+                    //                case BoundKind.UsingStatement:
+                    //                case BoundKind.FixedStatement:
+                    //                case BoundKind.LockStatement:
+                    //                case BoundKind.TryStatement:
+                    //                case BoundKind.CatchBlock:
+                    //                case BoundKind.LabelStatement:
+                    //                case BoundKind.GotoStatement:
+                    //                case BoundKind.LabeledStatement:
+                    //                case BoundKind.Label:
+                    //                case BoundKind.StatementList:
+                    //                case BoundKind.ConditionalGoto:
+                    //                case BoundKind.LocalDeclaration:
+                    //                case BoundKind.MultipleLocalDeclarations:
+                    //                case BoundKind.ArrayInitialization:
+                    //                case BoundKind.AnonymousPropertyDeclaration:
+                    //                case BoundKind.MethodGroup:
+                    //                case BoundKind.PropertyGroup:
+                    //                case BoundKind.EventAssignmentOperator:
+                    //                case BoundKind.Attribute:
+                    //                case BoundKind.FixedLocalCollectionInitializer:
+                    //                case BoundKind.DynamicObjectInitializerMember:
+                    //                case BoundKind.DynamicCollectionElementInitializer:
+                    //                case BoundKind.ImplicitReceiver:
+                    //                case BoundKind.FieldInitializer:
+                    //                case BoundKind.GlobalStatementInitializer:
+                    //                case BoundKind.TypeOrInstanceInitializers:
+                    //                case BoundKind.DeclarationPattern:
+                    //                case BoundKind.ConstantPattern:
+                    //                case BoundKind.WildcardPattern:
 
-                #endregion
+                    #endregion
 
-                #region "not found as an operand in no-error unlowered bound tree"
-//                case BoundKind.MaximumMethodDefIndex:
-//                case BoundKind.InstrumentationPayloadRoot:
-//                case BoundKind.ModuleVersionId:
-//                case BoundKind.ModuleVersionIdString:
-//                case BoundKind.Dup:
-//                case BoundKind.TypeOrValueExpression:
-//                case BoundKind.BadExpression:
-//                case BoundKind.ArrayLength:
-//                case BoundKind.MethodInfo:
-//                case BoundKind.FieldInfo:
-//                case BoundKind.SequencePoint:
-//                case BoundKind.SequencePointExpression:
-//                case BoundKind.SequencePointWithSpan:
-//                case BoundKind.StateMachineScope:
-//                case BoundKind.ConditionalReceiver:
-//                case BoundKind.ComplexConditionalReceiver:
-//                case BoundKind.PreviousSubmissionReference:
-//                case BoundKind.HostObjectMemberReference:
-//                case BoundKind.UnboundLambda:
-//                case BoundKind.LoweredConditionalAccess:
-//                case BoundKind.Sequence:
-//                case BoundKind.HoistedFieldAccess:
-//                case BoundKind.OutVariablePendingInference:
-//                case BoundKind.DeconstructionVariablePendingInference:
-//                case BoundKind.OutDeconstructVarPendingInference:
-//                case BoundKind.PseudoVariable:
+                    #region "not found as an operand in no-error unlowered bound tree"
+                    //                case BoundKind.MaximumMethodDefIndex:
+                    //                case BoundKind.InstrumentationPayloadRoot:
+                    //                case BoundKind.ModuleVersionId:
+                    //                case BoundKind.ModuleVersionIdString:
+                    //                case BoundKind.Dup:
+                    //                case BoundKind.TypeOrValueExpression:
+                    //                case BoundKind.BadExpression:
+                    //                case BoundKind.ArrayLength:
+                    //                case BoundKind.MethodInfo:
+                    //                case BoundKind.FieldInfo:
+                    //                case BoundKind.SequencePoint:
+                    //                case BoundKind.SequencePointExpression:
+                    //                case BoundKind.SequencePointWithSpan:
+                    //                case BoundKind.StateMachineScope:
+                    //                case BoundKind.ConditionalReceiver:
+                    //                case BoundKind.ComplexConditionalReceiver:
+                    //                case BoundKind.PreviousSubmissionReference:
+                    //                case BoundKind.HostObjectMemberReference:
+                    //                case BoundKind.UnboundLambda:
+                    //                case BoundKind.LoweredConditionalAccess:
+                    //                case BoundKind.Sequence:
+                    //                case BoundKind.HoistedFieldAccess:
+                    //                case BoundKind.OutVariablePendingInference:
+                    //                case BoundKind.DeconstructionVariablePendingInference:
+                    //                case BoundKind.OutDeconstructVarPendingInference:
+                    //                case BoundKind.PseudoVariable:
 
-                #endregion
+                    #endregion
             }
         }
 
@@ -2971,7 +2971,7 @@ moreArguments:
                     // locals have home unless they are byval stack locals or ref-readonly
                     // locals in a mutating call
                     var local = ((BoundLocal)expression).LocalSymbol;
-                    return !((CodeGenerator.IsStackLocal(local, stackLocalsOpt) && local.RefKind == RefKind.None) || 
+                    return !((CodeGenerator.IsStackLocal(local, stackLocalsOpt) && local.RefKind == RefKind.None) ||
                         (!IsAnyReadOnly(addressKind) && local.RefKind == RefKind.RefReadOnly));
 
                 case BoundKind.Call:
@@ -3023,13 +3023,13 @@ moreArguments:
 
                 case BoundKind.ConditionalOperator:
                     var ternary = (BoundConditionalOperator)expression;
-                    
+
                     // only ref ternary may be referenced as a variable
                     if (!ternary.IsRef)
                     {
                         return false;
                     }
- 
+
                     // branch that has no home will need a temporary
                     // if both have no home, just say whole expression has no home 
                     // so we could just use one temp for the whole thing
@@ -3108,7 +3108,7 @@ moreArguments:
             }
 
             // while readonly fields have home it is not valid to refer to it when not constructing.
-            if (field.ContainingType != method.ContainingType)
+            if (!TypeSymbol.Equals(field.ContainingType, method.ContainingType, TypeCompareKind.ConsiderEverything2))
             {
                 return false;
             }

@@ -231,9 +231,9 @@ namespace BuildBoss
         }
 
         private static bool VerifyNuPackage(
-            TextWriter textWriter, 
-            string nupkgFilePath, 
-            string folderRelativePath, 
+            TextWriter textWriter,
+            string nupkgFilePath,
+            string folderRelativePath,
             IEnumerable<string> dllFileNames)
         {
             Debug.Assert(string.IsNullOrEmpty(folderRelativePath) || folderRelativePath[0] != '\\');

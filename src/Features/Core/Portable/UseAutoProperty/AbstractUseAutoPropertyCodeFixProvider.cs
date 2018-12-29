@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
     {
         protected static SyntaxAnnotation SpecializedFormattingAnnotation = new SyntaxAnnotation();
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds 
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseAutoPropertyDiagnosticId);
 
         public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;

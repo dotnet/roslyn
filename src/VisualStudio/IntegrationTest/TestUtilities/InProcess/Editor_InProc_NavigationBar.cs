@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     internal partial class Editor_InProc
     {
         public string GetSelectedNavBarItem(int comboBoxIndex)
-            =>  ExecuteOnActiveView(v => GetNavigationBarComboBoxes(v)[comboBoxIndex].SelectedItem?.ToString());
+            => ExecuteOnActiveView(v => GetNavigationBarComboBoxes(v)[comboBoxIndex].SelectedItem?.ToString());
 
         public string[] GetNavBarItems(int comboBoxIndex)
             => ExecuteOnActiveView(v =>

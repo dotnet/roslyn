@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -921,6 +922,35 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the project documents in the order by the specified document ids.
+        /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
+        /// </summary>
+        public SolutionState WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (documentIds == null)
+            {
+                throw new ArgumentNullException(nameof(documentIds));
+            }
+
+            CheckContainsProject(projectId);
+
+            var oldProject = this.GetProjectState(projectId);
+            var newProject = oldProject.UpdateDocumentsOrder(documentIds);
+
+            if (oldProject == newProject)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProject, CompilationTranslationAction.ProjectParseOptions(newProject));
+        }
+
+        /// <summary>
         /// Create a new solution instance with the project specified updated to include the 
         /// specified metadata reference.
         /// </summary>
@@ -1658,27 +1688,34 @@ namespace Microsoft.CodeAnalysis
                         _latestSolutionWithPartialCompilation.TryGetTarget(out currentPartialSolution);
                     }
 
-                    // if we don't have one or it is stale, create a new partial solution
-                    if (currentPartialSolution == null
-                        || (DateTime.UtcNow - _timeOfLatestSolutionWithPartialCompilation).TotalSeconds >= 0.1
-                        || _documentIdOfLatestSolutionWithPartialCompilation != documentId)
+                    var reuseExistingPartialSolution =
+                        currentPartialSolution != null &&
+                        (DateTime.UtcNow - _timeOfLatestSolutionWithPartialCompilation).TotalSeconds < 0.1 &&
+                        _documentIdOfLatestSolutionWithPartialCompilation == documentId;
+
+                    if (reuseExistingPartialSolution)
                     {
-                        var tracker = this.GetCompilationTracker(documentId.ProjectId);
-                        var newTracker = tracker.FreezePartialStateWithTree(this, doc, tree, cancellationToken);
-
-                        var newIdToProjectStateMap = _projectIdToProjectStateMap.SetItem(documentId.ProjectId, newTracker.ProjectState);
-                        var newIdToTrackerMap = _projectIdToTrackerMap.SetItem(documentId.ProjectId, newTracker);
-
-                        currentPartialSolution = this.Branch(
-                            idToProjectStateMap: newIdToProjectStateMap,
-                            projectIdToTrackerMap: newIdToTrackerMap,
-                            dependencyGraph: CreateDependencyGraph(_projectIds, newIdToProjectStateMap));
-
-                        _latestSolutionWithPartialCompilation = new WeakReference<SolutionState>(currentPartialSolution);
-                        _timeOfLatestSolutionWithPartialCompilation = DateTime.UtcNow;
-                        _documentIdOfLatestSolutionWithPartialCompilation = documentId;
+                        SolutionLogger.UseExistingPartialSolution();
+                        return currentPartialSolution;
                     }
 
+                    // if we don't have one or it is stale, create a new partial solution
+                    var tracker = this.GetCompilationTracker(documentId.ProjectId);
+                    var newTracker = tracker.FreezePartialStateWithTree(this, doc, tree, cancellationToken);
+
+                    var newIdToProjectStateMap = _projectIdToProjectStateMap.SetItem(documentId.ProjectId, newTracker.ProjectState);
+                    var newIdToTrackerMap = _projectIdToTrackerMap.SetItem(documentId.ProjectId, newTracker);
+
+                    currentPartialSolution = this.Branch(
+                        idToProjectStateMap: newIdToProjectStateMap,
+                        projectIdToTrackerMap: newIdToTrackerMap,
+                        dependencyGraph: CreateDependencyGraph(_projectIds, newIdToProjectStateMap));
+
+                    _latestSolutionWithPartialCompilation = new WeakReference<SolutionState>(currentPartialSolution);
+                    _timeOfLatestSolutionWithPartialCompilation = DateTime.UtcNow;
+                    _documentIdOfLatestSolutionWithPartialCompilation = documentId;
+
+                    SolutionLogger.CreatePartialSolution();
                     return currentPartialSolution;
                 }
             }

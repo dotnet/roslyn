@@ -4486,6 +4486,8 @@
     <Field Name="SettingToken" Type="SyntaxToken">
       <Kind Name="EnableKeyword"/>
       <Kind Name="DisableKeyword"/>
+      <Kind Name="RestoreKeyword"/>
+      <Kind Name="SafeOnlyKeyword"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
       <Kind Name="EndOfDirectiveToken"/>

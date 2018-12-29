@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _analyzer = analyzer;
                 _gate = new object();
             }
-                        
+
             /// <summary>
             /// Task to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
             /// These are run only once per every analyzer. 

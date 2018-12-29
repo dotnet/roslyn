@@ -1625,7 +1625,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "s.x").WithArguments("s").WithLocation(19, 34)
             );
         }
-        
+
         [Fact]
         public void RefMethodGroup()
         {
@@ -1682,7 +1682,7 @@ public class Test
     Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "MR").WithArguments("MR", "method group").WithLocation(23, 24)
             );
         }
-        
+
         [Fact]
         public void RefReadonlyField()
         {

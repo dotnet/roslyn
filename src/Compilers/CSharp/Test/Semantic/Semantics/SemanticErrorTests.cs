@@ -15530,7 +15530,7 @@ unsafe class Test
 }
 ";
 
-            var c = CompileAndVerify(text, expectedOutput: "7788", verify: Verification.Fails, options:TestOptions.UnsafeReleaseExe);
+            var c = CompileAndVerify(text, expectedOutput: "7788", verify: Verification.Fails, options: TestOptions.UnsafeReleaseExe);
 
             c.VerifyIL("Test.example1()", @"
 {

@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.UseAutoProperty;
 namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpUseAutoPropertyCodeFixProvider)), Shared]
-    internal class CSharpUseAutoPropertyCodeFixProvider 
+    internal class CSharpUseAutoPropertyCodeFixProvider
         : AbstractUseAutoPropertyCodeFixProvider<TypeDeclarationSyntax, PropertyDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
     {
         protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
