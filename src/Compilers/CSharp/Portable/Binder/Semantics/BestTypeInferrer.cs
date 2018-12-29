@@ -59,6 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return type;
                     }
 
+                    if (conversions.IncludeNullability)
+                    {
+                        type = type.SetSpeakableNullabilityForReferenceTypes();
+                    }
                     candidateTypes.Add(type);
                 }
             }

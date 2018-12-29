@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -222,6 +221,41 @@ class C
         }
 
         [Fact]
+        public void SpeakableInference_ArrayTypeInference_WithTuple()
+        {
+            var source =
+@"class Program
+{
+    void M<T>(T t)
+    {
+        if (t == null) throw null;
+        var a = new[] { (t, t) };
+        a[0].Item1.ToString();
+        a[0].Item2.ToString();
+
+        var b = new (T, T)[] { (t, t) };
+        b[0].Item1.ToString();
+        b[0].Item2.ToString();
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         a[0].Item1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a[0].Item1").WithLocation(7, 9),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         a[0].Item2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a[0].Item2").WithLocation(8, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         b[0].Item1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b[0].Item1").WithLocation(11, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         b[0].Item2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b[0].Item2").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
         public void SpeakableInference_ArrayTypeInference_WithNull()
         {
             var source =
@@ -393,6 +427,37 @@ class C<T>
                 // (21,9): warning CS8602: Possible dereference of a null reference.
                 //         x2.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(21, 9)
+                );
+        }
+
+        [Fact]
+        public void SpeakableInference_LambdaReturnTypeInference_WithTuple()
+        {
+            var source =
+@"class Program
+{
+    void M<T>(T t)
+    {
+        var x1 = Copy(() =>
+        {
+            if (t == null) throw null;
+            bool b = true;
+            if (b) return (t, t);
+            return (t, t);
+        });
+        x1.Item1.ToString();
+        x1.Item2.ToString();
+    }
+    T Copy<T>(System.Func<T> f) => throw null;
+}";
+            var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         x1.Item1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1.Item1").WithLocation(12, 9),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         x1.Item2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1.Item2").WithLocation(13, 9)
                 );
         }
 
