@@ -1593,6 +1593,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadDynamicAwaitForEach = 8416,
         ERR_NoConvToIAsyncDispWrongAsync = 8417,
         ERR_NoConvToIDispWrongAsync = 8418,
+        ERR_PossibleAsyncIteratorWithoutYield = 8419,
+        ERR_PossibleAsyncIteratorWithoutYieldOrAwait = 8420,
 
         #region diagnostics introduced for recursive patterns
         // 8501, // available
@@ -1649,14 +1651,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NoBestNullabilityConditionalExpression = 8626,
         ERR_NullableUnconstrainedTypeParameter = 8627,
         ERR_AnnotationDisallowedInObjectCreation = 8628,
-        // Available -> 8629,
+        WRN_NullableValueTypeMayBeNull = 8629,
         ERR_NullableOptionNotAvailable = 8630,
         WRN_NullabilityMismatchInTypeParameterConstraint = 8631,
         WRN_MissingNonNullTypesContextForAnnotation = 8632,
         WRN_NullabilityMismatchInConstraintsOnImplicitImplementation = 8633,
         WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint = 8634,
         ERR_TripleDotNotAllowed = 8635,
-        // Available -> 8636,
+        ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
         WRN_CantInferNullabilityOfMethodTypeArgs = 8638,
         WRN_NoBestNullabilityArrayElements = 8639,

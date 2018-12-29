@@ -110,6 +110,31 @@ End Namespace
 "
 
         <Fact>
+        Public Sub TupleNamesInArrayInAttribute()
+
+            Dim comp = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+<My(New (String, bob As String)() { })>
+Public Class MyAttribute
+    Inherits System.Attribute
+
+    Public Sub New(x As (alice As String, String)())
+    End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30045: Attribute constructor has a parameter of type '(alice As String, String)()', which is not an integral, floating-point or Enum type or one of Object, Char, String, Boolean, System.Type or 1-dimensional array of these types.
+<My(New (String, bob As String)() { })>
+ ~~
+                                        ]]></errors>)
+
+        End Sub
+
+        <Fact>
         Public Sub TupleTypeBinding()
 
             Dim verifier = CompileAndVerify(
@@ -18805,7 +18830,7 @@ BC41009: The tuple element name 'c' is ignored because a different name or no na
 
         <Fact>
         <WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")>
-        Public Sub NullCoalesingOperatorWithTupleNames()
+        Public Sub NullCoalescingOperatorWithTupleNames()
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Tuples">

@@ -954,7 +954,7 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
-<![CDATA[
+            <![CDATA[
 GetString
 F1
 F1
@@ -994,7 +994,7 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
-<![CDATA[
+            <![CDATA[
 GetString
 GetString
 F1
@@ -1036,7 +1036,7 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
-<![CDATA[
+            <![CDATA[
 GetString
 F1
 F1
@@ -1077,7 +1077,7 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
-<![CDATA[
+            <![CDATA[
 GetString
 GetString
 F1

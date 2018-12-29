@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // method group info, which is what signature help already does.
                 if (info.Symbol == null)
                 {
-                    var memberGroupMethods = 
+                    var memberGroupMethods =
                         SemanticModel.GetMemberGroup(invocation.Expression, CancellationToken)
                                      .OfType<IMethodSymbol>();
 
@@ -2152,7 +2152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (expr is IdentifierNameSyntax name)
                         {
-                            elementNamesBuilder.Add(name.Identifier.ValueText == "" ? null : 
+                            elementNamesBuilder.Add(name.Identifier.ValueText == "" ? null :
                                 name.Identifier.ValueText);
                             elementTypesBuilder.Add(GetTypes(expr).FirstOrDefault().InferredType ?? this.Compilation.ObjectType);
                         }

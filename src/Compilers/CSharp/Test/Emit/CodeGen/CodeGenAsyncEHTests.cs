@@ -569,7 +569,7 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 }
 ");
         }
-        
+
         [Fact, WorkItem(855080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855080")]
         public void GenericCatchVariableInAsyncMethod()
         {

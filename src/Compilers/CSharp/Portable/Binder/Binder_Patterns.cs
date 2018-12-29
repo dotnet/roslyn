@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            if (convertedExpression.Type == null && constantValueOpt != ConstantValue.Null)
+            if (convertedExpression.Type is null && constantValueOpt != ConstantValue.Null)
             {
                 Debug.Assert(hasErrors);
                 convertedExpression = new BoundConversion(
@@ -812,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol declType = inputType;
-            Symbol foundSymbol = BindTypeOrAliasOrKeyword(node.VarKeyword, node, diagnostics, out bool isVar);
+            Symbol foundSymbol = BindTypeOrAliasOrKeyword(node.VarKeyword, node, diagnostics, out bool isVar).Symbol;
             if (!isVar)
             {
                 // Give an error if there is a bindable type "var" in scope

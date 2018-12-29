@@ -750,14 +750,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             _notificationService = notificationService;
 
             this.AccessList = document.Project.Language == LanguageNames.CSharp
-                ? _csharpAccessList 
+                ? _csharpAccessList
                 : _visualBasicAccessList;
-            this.AccessSelectIndex = this.AccessList.Contains(accessSelectString) 
+            this.AccessSelectIndex = this.AccessList.Contains(accessSelectString)
                 ? this.AccessList.IndexOf(accessSelectString) : 0;
             this.IsAccessListEnabled = true;
 
             this.KindList = document.Project.Language == LanguageNames.CSharp
-                ? _csharpTypeKindList 
+                ? _csharpTypeKindList
                 : _visualBasicTypeKindList;
             this.KindSelectIndex = this.KindList.Contains(typeKindSelectString)
                 ? this.KindList.IndexOf(typeKindSelectString) : 0;

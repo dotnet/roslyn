@@ -3,6 +3,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
@@ -16,6 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 {
     internal abstract class AbstractExtractInterfaceCommandHandler : VSCommanding.ICommandHandler<ExtractInterfaceCommandArgs>
     {
+        private readonly IThreadingContext _threadingContext;
+
+        protected AbstractExtractInterfaceCommandHandler(IThreadingContext threadingContext)
+        {
+            this._threadingContext = threadingContext;
+        }
+
         public string DisplayName => EditorFeaturesResources.Extract_Interface;
 
         public VSCommanding.CommandState GetCommandState(ExtractInterfaceCommandArgs args)
@@ -70,11 +78,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
             // and also will take it into consideration when measuring command handling duration.
             context.OperationContext.TakeOwnership();
             var extractInterfaceService = document.GetLanguageService<AbstractExtractInterfaceService>();
-            var result = extractInterfaceService.ExtractInterface(
-                document,
-                caretPoint.Value.Position,
-                (errorMessage, severity) => workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity),
-                CancellationToken.None);
+            var result = _threadingContext.JoinableTaskFactory.Run(() =>
+                extractInterfaceService.ExtractInterfaceAsync(
+                    document,
+                    caretPoint.Value.Position,
+                    (errorMessage, severity) => workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity),
+                    CancellationToken.None));
 
             if (result == null || !result.Succeeded)
             {

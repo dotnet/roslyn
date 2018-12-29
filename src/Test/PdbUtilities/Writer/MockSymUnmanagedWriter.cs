@@ -15,7 +15,7 @@ namespace Roslyn.Test.Utilities
 
         public override void Dispose()
         {
-            // Dipose shall not throw
+            // Dispose shall not throw
         }
 
         public override void CloseMethod()
@@ -38,7 +38,7 @@ namespace Roslyn.Test.Utilities
             throw MakeException();
         }
 
-        public override int DefineDocument(string name, Guid language, Guid vendor, Guid type, Guid algorithmId, byte[] checksum, byte[] source)
+        public override int DefineDocument(string name, Guid language, Guid vendor, Guid type, Guid algorithmId, ReadOnlySpan<byte> checksum, ReadOnlySpan<byte> source)
         {
             throw MakeException();
         }
@@ -88,7 +88,7 @@ namespace Roslyn.Test.Utilities
             throw MakeException();
         }
 
-        public override void SetAsyncInfo(int moveNextMethodToken, int kickoffMethodToken, int catchHandlerOffset, int[] yieldOffsets, int[] resumeOffsets)
+        public override void SetAsyncInfo(int moveNextMethodToken, int kickoffMethodToken, int catchHandlerOffset, ReadOnlySpan<int> yieldOffsets, ReadOnlySpan<int> resumeOffsets)
         {
             throw MakeException();
         }

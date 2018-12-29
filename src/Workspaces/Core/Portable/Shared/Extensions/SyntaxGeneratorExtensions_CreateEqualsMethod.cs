@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Compilation compilation,
             ParseOptions parseOptions,
             INamedTypeSymbol containingType,
-            ImmutableArray<ISymbol> symbols, 
+            ImmutableArray<ISymbol> symbols,
             string localNameOpt,
             SyntaxAnnotation statementAnnotation,
             CancellationToken cancellationToken)

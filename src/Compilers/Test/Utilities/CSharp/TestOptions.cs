@@ -118,6 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             return options.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(key, value));
         }
+
+        public static CSharpCompilationOptions WithSpecificDiagnosticOptions(this CSharpCompilationOptions options, string key1, string key2, ReportDiagnostic value)
+        {
+            return options.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(key1, value).Add(key2, value));
+        }
     }
 }
 

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
                 pool,
                 p => Allocator(p),
                 (p, sb) => Releaser(p, sb));
-        } 
+        }
 
         public static PooledObject<Stopwatch> Create(ObjectPool<Stopwatch> pool)
         {

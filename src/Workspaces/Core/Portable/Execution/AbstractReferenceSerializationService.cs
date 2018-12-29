@@ -157,48 +157,48 @@ namespace Microsoft.CodeAnalysis.Execution
             switch (reference)
             {
                 case AnalyzerFileReference file:
-                {
-                    // fail to load analyzer assembly
-                    var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
-                    if (assemblyPath == null)
                     {
-                        WriteUnresolvedAnalyzerReferenceTo(reference, writer);
+                        // fail to load analyzer assembly
+                        var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
+                        if (assemblyPath == null)
+                        {
+                            WriteUnresolvedAnalyzerReferenceTo(reference, writer);
+                            return;
+                        }
+
+                        writer.WriteString(nameof(AnalyzerFileReference));
+                        writer.WriteInt32((int)SerializationKinds.FilePath);
+
+                        // TODO: remove this kind of host specific knowledge from common layer.
+                        //       but think moving it to host layer where this implementation detail actually exist.
+                        //
+                        // analyzer assembly path to load analyzer acts like
+                        // snapshot version for analyzer (since it is based on shadow copy)
+                        // we can't send over bits and load analyzer from memory (image) due to CLR not being able
+                        // to find satellite dlls for analyzers.
+                        writer.WriteString(file.FullPath);
+                        writer.WriteString(assemblyPath);
                         return;
                     }
 
-                    writer.WriteString(nameof(AnalyzerFileReference));
-                    writer.WriteInt32((int)SerializationKinds.FilePath);
-
-                    // TODO: remove this kind of host specific knowledge from common layer.
-                    //       but think moving it to host layer where this implementation detail actually exist.
-                    //
-                    // analyzer assembly path to load analyzer acts like
-                    // snapshot version for analyzer (since it is based on shadow copy)
-                    // we can't send over bits and load analyzer from memory (image) due to CLR not being able
-                    // to find satellite dlls for analyzers.
-                    writer.WriteString(file.FullPath);
-                    writer.WriteString(assemblyPath);
-                    return;
-                }
-
                 case UnresolvedAnalyzerReference unresolved:
-                {
-                    WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
-                    return;
-                }
+                    {
+                        WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
+                        return;
+                    }
 
                 case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
-                {
-                    WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
-                    return;
-                }
+                    {
+                        WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
+                        return;
+                    }
 
                 case AnalyzerImageReference _:
-                {
-                    // TODO: think a way to support this or a way to deal with this kind of situation.
-                    // https://github.com/dotnet/roslyn/issues/15783
-                    throw new NotSupportedException(nameof(AnalyzerImageReference));
-                }
+                    {
+                        // TODO: think a way to support this or a way to deal with this kind of situation.
+                        // https://github.com/dotnet/roslyn/issues/15783
+                        throw new NotSupportedException(nameof(AnalyzerImageReference));
+                    }
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(reference);

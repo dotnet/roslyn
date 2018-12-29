@@ -201,8 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
                 }
 
-                if (originalDefinition == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T) ||
-                    originalDefinition == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T))
+                if (TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T), TypeCompareKind.ConsiderEverything2) ||
+                    TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T), TypeCompareKind.ConsiderEverything2))
                 {
                     return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
                 }
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(result.IsClear);
 
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameterKind == SymbolKind.TypeParameter)
             {
                 if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local ||
-                    (newSymbolKind == SymbolKind.Method && 
+                    (newSymbolKind == SymbolKind.Method &&
                      ((MethodSymbol)newSymbol).MethodKind == MethodKind.LocalFunction))
                 {
                     // CS0412: '{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter

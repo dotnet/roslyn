@@ -661,8 +661,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
                             // that are not performed at compile-time.
                             // Only if the set of final applicable candidates is empty we know for sure the call will fail at runtime.
-                            var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult, 
-                                                                                                methodGroup.ReceiverOpt, 
+                            var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult,
+                                                                                                methodGroup.ReceiverOpt,
                                                                                                 methodGroup.TypeArgumentsOpt,
                                                                                                 diagnostics);
                             if (finalApplicableCandidates.Length > 0)
@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private ImmutableArray<TMethodOrPropertySymbol> GetCandidatesPassingFinalValidation<TMethodOrPropertySymbol>(
-            SyntaxNode syntax, 
+            SyntaxNode syntax,
             OverloadResolutionResult<TMethodOrPropertySymbol> overloadResolutionResult,
             BoundExpression receiverOpt,
             ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt,
@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // error CS0029: Cannot implicitly convert type 'A' to 'B'
 
                             // Case 1: receiver is a restricted type, and method called is defined on a parent type
-                            if (call.ReceiverOpt.Type.IsRestrictedType() && call.Method.ContainingType != call.ReceiverOpt.Type)
+                            if (call.ReceiverOpt.Type.IsRestrictedType() && !TypeSymbol.Equals(call.Method.ContainingType, call.ReceiverOpt.Type, TypeCompareKind.ConsiderEverything2))
                             {
                                 SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, call.ReceiverOpt.Type, call.Method.ContainingType);
                                 Error(diagnostics, ErrorCode.ERR_NoImplicitConv, call.ReceiverOpt.Syntax, distinguisher.First, distinguisher.Second);
@@ -1496,7 +1496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     type = returnType;
                 }
-                else if (type != returnType)
+                else if (!TypeSymbol.Equals(type, returnType, TypeCompareKind.ConsiderEverything2))
                 {
                     return null;
                 }

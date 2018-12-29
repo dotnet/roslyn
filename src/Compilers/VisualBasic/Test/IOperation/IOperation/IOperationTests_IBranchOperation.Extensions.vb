@@ -340,7 +340,7 @@ End Class
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(source, fileName)
             Dim compilation = CreateEmptyCompilation({syntaxTree})
-            
+
             Dim outer = GetOperationAndSyntaxForTest(Of TOuterSyntax)(compilation, fileName, 1).operation
             Dim inner = TryCast(GetOperationAndSyntaxForTest(Of TInnerSyntax)(compilation, fileName, 2).operation, IBranchOperation)
             Dim correspondingOfInner = inner?.GetCorrespondingOperation()

@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression variableAccess = declaration.VariableAccess;
             if (variableAccess != null)
             {
-                Debug.Assert(variableAccess.Type == input.Type);
+                Debug.Assert(variableAccess.Type.Equals(input.Type, TypeCompareKind.AllIgnoreOptions));
                 bindings.Add(new BoundPatternBinding(variableAccess, input));
             }
             else
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundDagTest> tests)
         {
             MakeCheckNotNull(input, syntax, tests);
-            if (input.Type != type)
+            if (!input.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
             {
                 TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundDagTest> tests,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
-            Debug.Assert(input.Type.IsErrorType() || recursive.InputType.IsErrorType() || input.Type == recursive.InputType);
+            Debug.Assert(input.Type.IsErrorType() || recursive.InputType.IsErrorType() || input.Type.Equals(recursive.InputType, TypeCompareKind.AllIgnoreOptions));
             var inputType = recursive.DeclaredType?.Type ?? input.Type.StrippedType();
             input = MakeConvertToType(input, recursive.Syntax, inputType, tests);
 
@@ -1259,7 +1259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (x.Kind)
                 {
                     case BoundKind.DagTypeTest:
-                        return ((BoundDagTypeTest)x).Type == ((BoundDagTypeTest)y).Type;
+                        return ((BoundDagTypeTest)x).Type.Equals(((BoundDagTypeTest)y).Type, TypeCompareKind.AllIgnoreOptions);
 
                     case BoundKind.DagValueTest:
                         return ((BoundDagValueTest)x).Value == ((BoundDagValueTest)y).Value;

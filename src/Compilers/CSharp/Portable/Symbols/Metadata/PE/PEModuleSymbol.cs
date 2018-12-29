@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         // being returned.  Do we want to differentiate between no result and ambiguous
                         // results?  There doesn't seem to be an existing error code for "duplicate well-
                         // known type".
-                        if (referencedAssemblyResult != currResult)
+                        if (!TypeSymbol.Equals(referencedAssemblyResult, currResult, TypeCompareKind.ConsiderEverything2))
                         {
                             referencedAssemblyResult = null;
                         }
@@ -696,13 +696,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         public override ModuleMetadata GetMetadata() => _module.GetNonDisposableMetadata();
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
     }
 }
