@@ -104,12 +104,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                     var block = cfg.Blocks[blockOrdinal];
 
-                    // Optimization: We process the block only if all its predecessor blocks have been processed once.
-                    if (HasUnprocessedPredecessorBlock(block))
-                    {
-                        continue;
-                    }
-
                     var needsAtLeastOnePass = pendingBlocksNeedingAtLeastOnePass.Remove(blockOrdinal);
                     var isUnreachableBlock = unreachableBlocks.Contains(block.Ordinal);
 
