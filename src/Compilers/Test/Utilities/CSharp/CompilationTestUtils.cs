@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 foreach (var entry in dictionary.Values.Where(v => !v.IsNull))
                 {
-                    // Result types cannot have nested types that are lossy unspeakables
+                    // Result types cannot have nested types that are unspeakables
                     Assert.Null(entry.VisitType(typeOpt: null,
                         typeWithAnnotationsPredicateOpt: (tswa, a, b) => !tswa.Equals(entry, TypeCompareKind.ConsiderEverything) && !tswa.NullableAnnotation.IsSpeakable(),
                         typePredicateOpt: (ts, _, b) => false, arg: (object)null, canDigThroughNullable: true));

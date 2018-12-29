@@ -431,6 +431,33 @@ class C<T>
         }
 
         [Fact]
+        public void SpeakableInference_LambdaReturnTypeInference_WithSingleReturn()
+        {
+            var source =
+@"class Program
+{
+    void M<T>()
+    {
+        var x1 = Copy(() => """");
+        x1.ToString();
+    }
+    void M2<T>(T t)
+    {
+        if (t == null) throw null;
+        var x1 = Copy(() => t);
+        x1.ToString(); // 1
+    }
+    T Copy<T>(System.Func<T> f) => throw null;
+}";
+            var comp = CreateCompilationWithIndexAndRange(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         x1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
         public void SpeakableInference_LambdaReturnTypeInference_WithTuple()
         {
             var source =
