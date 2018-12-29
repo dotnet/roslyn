@@ -682,6 +682,7 @@ Block[B0] - Entry
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
                   Pattern: 
                     IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32)
+                Leaving: {R2}
 
             Next (Regular) Block[B5]
         Block[B5] - Block
@@ -693,16 +694,16 @@ Block[B0] - Entry
 
             Next (Regular) Block[B7]
                 Leaving: {R2}
-        Block[B6] - Block
-            Predecessors: [B4]
-            Statements (0)
-            Next (Throw) Block[null]
-                IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsImplicit) (Syntax: 'input switc ... }')
-                  Arguments(0)
-                  Initializer: 
-                    null
     }
 
+    Block[B6] - Block
+        Predecessors: [B4]
+        Statements (0)
+        Next (Throw) Block[null]
+            IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsImplicit) (Syntax: 'input switc ... }')
+              Arguments(0)
+              Initializer: 
+                null
     Block[B7] - Block
         Predecessors: [B3] [B5]
         Statements (1)

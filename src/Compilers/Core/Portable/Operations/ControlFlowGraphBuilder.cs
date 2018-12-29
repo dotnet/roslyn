@@ -6670,6 +6670,8 @@ oneMoreTime:
                 LeaveRegion(); // armScopeRegion
             }
 
+            LeaveRegionsUpTo(resultCaptureRegion);
+
             // throw new SwitchExpressionException
             var matchFailureCtor =
                 (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor) ??
@@ -6681,7 +6683,6 @@ oneMoreTime:
                     type: matchFailureCtor.ContainingType, constantValue: default, isImplicit: true);
             LinkThrowStatement(makeException);
             _currentBasicBlock = null;
-            LeaveRegionsUpTo(resultCaptureRegion);
 
             // afterSwitch:
             AppendNewBlock(afterSwitch, linkToPrevious: false);
