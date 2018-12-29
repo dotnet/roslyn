@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 : CodeGenerationSymbolFactory.CreateMethodSymbol(getterOrSetter, accessibility: Accessibility.Public);
         }
 
-        private async static Task<Solution> PullMembersIntoInterfaceAsync(
+        private static async Task<Solution> PullMembersIntoInterfaceAsync(
             Document document,
             PullMembersUpOptions pullMemberUpOptions,
             Solution solution,
@@ -201,9 +201,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             // 1. Single Event.
             // 2. Several events exist in one declaration.
             // 3. Event has add or remove method(user declared).
-            // In situation 1, declaration is EventFieldDeclaration, eventDeclaration is variableDeclaration.
-            // In situation 2, declaration and eventDeclaration are both EventDeclaration, which are same.
-            // In situation 3, it is same as situation 2, but has add or remove method.
+            // For situation 1, declaration is EventFieldDeclaration, eventDeclaration is variableDeclaration.
+            // For situation 2, declaration and eventDeclaration are both EventDeclaration, which are same.
+            // For situation 3, it is same as situation 2, but has add or remove method.
             if (declaration.Equals(eventDeclaration) && !isEventHasExplicitAddOrRemoveMethod)
             {
                 // Several events are declared in same line
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
         }
 
-        private async static Task<Solution> PullMembersIntoClassAsync(
+        private static async Task<Solution> PullMembersIntoClassAsync(
             Document document,
             PullMembersUpOptions result,
             Solution solution,
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     if (memberResult.MakeMemberDeclarationAbstract && !memberResult.Member.IsKind(SymbolKind.Field))
                     {
                         // Change the member to abstract if user choose to make them abstract
-                        return GetAbstractMemberSymbol(memberResult.Member);
+                        return MakeAbstractVersion(memberResult.Member);
                     }
                     else
                     {
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             return solutionEditor.GetChangedSolution();
         }
 
-        private static ISymbol GetAbstractMemberSymbol(ISymbol member)
+        private static ISymbol MakeAbstractVersion(ISymbol member)
         {
             if (member.IsAbstract)
             {
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
         }
 
-        private async static Task<ImmutableDictionary<ISymbol, ImmutableArray<SyntaxNode>>> InitializeSymbolToDeclarationsMapAsync(
+        private static async Task<ImmutableDictionary<ISymbol, ImmutableArray<SyntaxNode>>> InitializeSymbolToDeclarationsMapAsync(
             PullMembersUpOptions result,
             Solution solution,
             SolutionEditor solutionEditor,

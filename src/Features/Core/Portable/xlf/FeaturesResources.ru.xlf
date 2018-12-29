@@ -112,11 +112,6 @@
         <target state="translated">Исправьте опечатку "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fixes_list">
-        <source>Fixes list</source>
-        <target state="new">Fixes list</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">Форматирование документа</target>

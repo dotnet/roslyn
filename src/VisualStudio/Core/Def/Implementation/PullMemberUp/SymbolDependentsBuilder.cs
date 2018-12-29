@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             _dependents = new HashSet<ISymbol>();
         }
 
-        internal ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> CreateDependentsMap(CancellationToken cancellationToken)
+        public ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> CreateDependentsMap(CancellationToken cancellationToken)
         {
             return _membersInType.ToImmutableDictionary(
                 member => member,

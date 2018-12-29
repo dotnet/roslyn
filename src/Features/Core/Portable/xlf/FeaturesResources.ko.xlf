@@ -112,11 +112,6 @@
         <target state="translated">오타 '{0}' 수정</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fixes_list">
-        <source>Fixes list</source>
-        <target state="new">Fixes list</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">문서 서식 지정</target>

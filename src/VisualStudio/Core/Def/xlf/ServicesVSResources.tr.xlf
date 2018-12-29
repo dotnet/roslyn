@@ -103,8 +103,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
-        <source>Make {0} abstract</source>
-        <target state="new">Make {0} abstract</target>
+        <source>Make '{0}' abstract</source>
+        <target state="new">Make '{0}' abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_abstract">
@@ -118,8 +118,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
-        <source>Namespace: {0}</source>
-        <target state="new">Namespace: {0}</target>
+        <source>Namespace: '{0}'</source>
+        <target state="new">Namespace: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -378,18 +378,18 @@
         <note />
       </trans-unit>
       <trans-unit id="_0_will_be_changed_to_abstract">
-        <source>{0} will be changed to abstract.</source>
-        <target state="new">{0} will be changed to abstract.</target>
+        <source>'{0}' will be changed to abstract.</source>
+        <target state="new">'{0}' will be changed to abstract.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_will_be_changed_to_non_static">
-        <source>{0} will be changed to non-static.</source>
-        <target state="new">{0} will be changed to non-static.</target>
+        <source>'{0}' will be changed to non-static.</source>
+        <target state="new">'{0}' will be changed to non-static.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_will_be_changed_to_public">
-        <source>{0} will be changed to public.</source>
-        <target state="new">{0} will be changed to public.</target>
+        <source>'{0}' will be changed to public.</source>
+        <target state="new">'{0}' will be changed to public.</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">

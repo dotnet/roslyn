@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} will be changed to abstract..
+        ///   Looks up a localized string similar to &apos;{0}&apos; will be changed to abstract..
         /// </summary>
         internal static string _0_will_be_changed_to_abstract {
             get {
@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} will be changed to non-static..
+        ///   Looks up a localized string similar to &apos;{0}&apos; will be changed to non-static..
         /// </summary>
         internal static string _0_will_be_changed_to_non_static {
             get {
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} will be changed to public..
+        ///   Looks up a localized string similar to &apos;{0}&apos; will be changed to public..
         /// </summary>
         internal static string _0_will_be_changed_to_public {
             get {
@@ -1452,7 +1452,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make {0} abstract.
+        ///   Looks up a localized string similar to Make &apos;{0}&apos; abstract.
         /// </summary>
         internal static string Make_0_abstract {
             get {
@@ -1623,7 +1623,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Namespace: {0}.
+        ///   Looks up a localized string similar to Namespace: &apos;{0}&apos;.
         /// </summary>
         internal static string Namespace_0 {
             get {
