@@ -1133,7 +1133,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 Assert.NotNull(operation.MatchedType);
             }
 
-            if (!((operation.Syntax as CSharp.Syntax.DeclarationPatternSyntax)?.Designation).IsKind(CSharp.SyntaxKind.DiscardDesignation))
+            var designation = (operation.Syntax as CSharp.Syntax.DeclarationPatternSyntax)?.Designation;
+            if (designation.IsKind(CSharp.SyntaxKind.SingleVariableDesignation))
             {
                 Assert.NotNull(operation.DeclaredSymbol);
             }
@@ -1152,7 +1153,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.NotNull(operation.MatchedType);
             _ = operation.DeconstructSymbol;
 
-            if (!((operation.Syntax as CSharp.Syntax.RecursivePatternSyntax)?.Designation).IsKind(CSharp.SyntaxKind.DiscardDesignation))
+            var designation = (operation.Syntax as CSharp.Syntax.RecursivePatternSyntax)?.Designation;
+            if (designation.IsKind(CSharp.SyntaxKind.SingleVariableDesignation))
             {
                 Assert.NotNull(operation.DeclaredSymbol);
             }

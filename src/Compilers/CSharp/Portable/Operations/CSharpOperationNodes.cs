@@ -1507,11 +1507,13 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public override ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns()
         {
-            return _boundRecursivePattern.Deconstruction.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
+            return _boundRecursivePattern.Deconstruction.IsDefault ? ImmutableArray<IPatternOperation>.Empty :
+                _boundRecursivePattern.Deconstruction.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
         }
         public override ImmutableArray<(ISymbol, IPatternOperation)> CreatePropertySubpatterns()
         {
-            return _boundRecursivePattern.Properties.SelectAsArray((p, fac) => ((ISymbol)p.Symbol, (IPatternOperation)fac.Create(p.Pattern)), _operationFactory);
+            return _boundRecursivePattern.Properties.IsDefault ? ImmutableArray<(ISymbol, IPatternOperation)>.Empty : 
+                _boundRecursivePattern.Properties.SelectAsArray((p, fac) => ((ISymbol)p.Symbol, (IPatternOperation)fac.Create(p.Pattern)), _operationFactory);
         }
     }
 
