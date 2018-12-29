@@ -28320,6 +28320,31 @@ class C
         }
 
         [Fact]
+        public void Await_ExtensionGetAwaiter()
+        {
+            var source = @"
+public class Awaitable
+{
+    async void M()
+    {
+        await Async();
+    }
+    Awaitable? Async() => throw null;
+}
+public static class Extensions
+{
+    public static System.Runtime.CompilerServices.TaskAwaiter GetAwaiter(this Awaitable? x) => throw null;
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,15): warning CS8602: Possible dereference of a null reference.
+                //         await Async();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Async()").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
         public void Await_UpdateExpression()
         {
             var source = @"
@@ -28357,6 +28382,93 @@ class C
                 // (7,15): warning CS8602: Possible dereference of a null reference.
                 //         await c?.M(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c?.M()").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void ArrayAccess_LearnFromNullTest()
+        {
+            var source = @"
+class C
+{
+    string[] field = null!;
+    void M2(C? c)
+    {
+        _ = (c?.field)[0]; // warn
+        c.ToString(); // no cascade
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,14): warning CS8602: Possible dereference of a null reference.
+                //         _ = (c?.field)[0]; // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c?.field").WithLocation(7, 14)
+                );
+        }
+
+        [Fact]
+        public void Call_LearnFromNullTest()
+        {
+            var source = @"
+class C
+{
+    string M() => throw null;
+    C field = null!;
+    void M2(C? c)
+    {
+        _ = (c?.field).M(); // warn
+        c.ToString(); // no cascade
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,14): warning CS8602: Possible dereference of a null reference.
+                //         _ = (c?.field).M(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c?.field").WithLocation(8, 14)
+                );
+        }
+
+        [Fact]
+        public void Indexer_LearnFromNullTest()
+        {
+            var source = @"
+class C
+{
+    string this[int i] => throw null;
+    C field = null!;
+    void M(C? c)
+    {
+        _ = (c?.field)[0]; // warn
+        c.ToString(); // no cascade
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,14): warning CS8602: Possible dereference of a null reference.
+                //         _ = (c?.field)[0]; // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c?.field").WithLocation(8, 14)
+                );
+        }
+
+        [Fact]
+        public void MemberAccess_LearnFromNullTest()
+        {
+            var source = @"
+class C
+{
+    string this[int i] => throw null;
+    C field = null!;
+    void M(C? c)
+    {
+        _ = (c?.field).field; // warn
+        c.ToString(); // no cascade
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,14): warning CS8602: Possible dereference of a null reference.
+                //         _ = (c?.field).field; // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c?.field").WithLocation(8, 14)
                 );
         }
 
