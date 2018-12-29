@@ -259,22 +259,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool HasAwait(PendingBranch pending)
         {
-            if (pending.Branch is null)
+            var pendingBranch = pending.Branch;
+            if (pendingBranch is null)
             {
                 return false;
             }
 
-            BoundKind kind = pending.Branch.Kind;
+            BoundKind kind = pendingBranch.Kind;
             switch (kind)
             {
                 case BoundKind.AwaitExpression:
                     return true;
                 case BoundKind.UsingStatement:
-                    var usingStatement = (BoundUsingStatement)pending.Branch;
+                    var usingStatement = (BoundUsingStatement)pendingBranch;
                     return usingStatement.AwaitOpt != null;
                 case BoundKind.ForEachStatement:
-                    var foreachStatement = (BoundForEachStatement)pending.Branch;
+                    var foreachStatement = (BoundForEachStatement)pendingBranch;
                     return foreachStatement.AwaitOpt != null;
+                case BoundKind.UsingLocalDeclarations:
+                    var localDeclaration = (BoundUsingLocalDeclarations)pendingBranch;
+                    return localDeclaration.AwaitOpt != null;
                 default:
                     return false;
             }

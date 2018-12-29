@@ -84,6 +84,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                     }
                     break;
 
+                case LocalDeclarationStatementSyntax localDeclaration:
+                    if(localDeclaration.AwaitKeyword.Kind() == SyntaxKind.AwaitKeyword && localDeclaration.UsingKeyword.Kind() == SyntaxKind.UsingKeyword)
+                    {
+                        spans.Add(localDeclaration.AwaitKeyword.Span);
+                    }
+                    break;
+
                 case CommonForEachStatementSyntax forEachStatement:
                     if (forEachStatement.AwaitKeyword.Kind() == SyntaxKind.AwaitKeyword)
                     {

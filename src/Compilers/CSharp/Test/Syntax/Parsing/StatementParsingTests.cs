@@ -2354,7 +2354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingVarWithDeclaration()
         {
             var text = "using T a = b;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -2382,7 +2382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestUsingVarWithDeclarationTree()
         {
-            UsingStatement(@"using T a = b;");
+            UsingStatement(@"using T a = b;", options: TestOptions.Regular8);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2449,7 +2449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingVarWithVarDeclaration()
         {
             var text = "using var a = b;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -2478,7 +2478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestUsingVarWithVarDeclarationTree()
         {
-            UsingStatement(@"using var a = b;");
+            UsingStatement(@"using var a = b;", options: TestOptions.Regular8);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2503,6 +2503,203 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 N(SyntaxKind.SemicolonToken);
             }
+        }
+
+        [Fact]
+        public void TestAwaitUsingVarWithDeclarationTree()
+        {
+            UsingStatement(@"await using T a = b;", TestOptions.Regular8);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.AwaitKeyword);
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName, "T");
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName, "b");
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
+        public void TestAwaitUsingWithVarDeclaration()
+        {
+            var text = "await using var a = b;";
+            var statement = this.ParseStatement(text, 0, TestOptions.Regular8);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var us = (LocalDeclarationStatementSyntax)statement;
+            Assert.NotNull(us.AwaitKeyword);
+            Assert.Equal(SyntaxKind.AwaitKeyword, us.AwaitKeyword.ContextualKind());
+            Assert.NotNull(us.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, us.UsingKeyword.Kind());
+
+            Assert.NotNull(us.Declaration);
+            Assert.NotNull(us.Declaration.Type);
+            Assert.Equal("var", us.Declaration.Type.ToString());
+            Assert.Equal(SyntaxKind.IdentifierName, us.Declaration.Type.Kind());
+            Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)us.Declaration.Type).Identifier.Kind());
+            Assert.Equal(1, us.Declaration.Variables.Count);
+            Assert.NotNull(us.Declaration.Variables[0].Identifier);
+            Assert.Equal("a", us.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(us.Declaration.Variables[0].ArgumentList);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.NotNull(us.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal("b", us.Declaration.Variables[0].Initializer.Value.ToString());
+        }
+
+        [Fact]
+        public void TestAwaitUsingVarWithVarDeclarationTree()
+        {
+            UsingStatement(@"await using var a = b;", TestOptions.Regular8);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.AwaitKeyword);
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName, "var");
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName, "b");
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact, WorkItem(30565, "https://github.com/dotnet/roslyn/issues/30565")]
+        public void AwaitUsingVarWithVarDecl_Reversed()
+        {
+            UsingTree(@"
+class C
+{
+    async void M()
+    {
+        using await var x = null;
+    }
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.UsingKeyword);
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "await");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NullLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NullKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestAwaitUsingVarWithVarAndNoUsingDeclarationTree()
+        {
+            UsingStatement(@"await var a = b;", TestOptions.Regular8, expectedErrors:
+                // (1,11): error CS1003: Syntax error, ',' expected
+                // await var a = b;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",", "").WithLocation(1, 11)
+            );
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "await");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -2553,7 +2750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingVarWithDeclarationWithMultipleVariables()
         {
             var text = "using T a = b, c = d;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -2590,7 +2787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestUsingVarWithDeclarationMultipleVariablesTree()
         {
-            UsingStatement(@"using T a = b, c = d;");
+            UsingStatement(@"using T a = b, c = d;", options: TestOptions.Regular8);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2656,7 +2853,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingVarSpecialCase1()
         {
             var text = "using var x = f ? a : b;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -2673,7 +2870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestUsingVarSpecialCase1Tree()
         {
-            UsingStatement(@"using var x = f ? a : b;");
+            UsingStatement(@"using var x = f ? a : b;", options: TestOptions.Regular8);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2717,7 +2914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingSpecialCase2()
         {
             var text = "using (f ? x = a) { }";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
@@ -2739,7 +2936,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingVarSpecialCase2()
         {
             var text = "using f ? x = a;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -2756,7 +2953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestUsingVarSpecialCase2Tree()
         {
-            UsingStatement(@"using f ? x = a;");
+            UsingStatement(@"using f ? x = a;", options: TestOptions.Regular8);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2811,7 +3008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingVarSpecialCase3()
         {
             var text = "using f ? x, y;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: TestOptions.Regular8);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -2828,7 +3025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestUsingVarSpecialCase3Tree()
         {
-            UsingStatement("using f? x, y;");
+            UsingStatement("using f? x, y;", options: TestOptions.Regular8);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2859,7 +3056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestUsingVarRefTree()
         {
-            UsingStatement("using ref int x = ref y;");
+            UsingStatement("using ref int x = ref y;", TestOptions.Regular8);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2897,7 +3094,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestUsingVarRefReadonlyTree()
         {
-            UsingStatement("using ref readonly int x = ref y;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
+            UsingStatement("using ref readonly int x = ref y;", TestOptions.Regular8);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2936,7 +3133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestUsingVarRefVarTree()
         {
-            UsingStatement("using ref var x = ref y;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
+            UsingStatement("using ref var x = ref y;", TestOptions.Regular8);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2974,7 +3171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestUsingVarRefVarIsYTree()
         {
-            UsingStatement("using ref var x = y;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2));
+            UsingStatement("using ref var x = y;", TestOptions.Regular8);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -3008,7 +3205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestUsingVarReadonlyMultipleDeclarations()
         {
-            UsingStatement("using readonly var x, y = ref z;", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2),
+            UsingStatement("using readonly var x, y = ref z;", TestOptions.Regular8,
                 // (1,7): error CS0106: The modifier 'readonly' is not valid for this item
                 // using readonly var x, y = ref z;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1,7));

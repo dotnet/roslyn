@@ -1890,6 +1890,9 @@
 
   <Node Name="LocalDeclarationStatementSyntax" Base="StatementSyntax">
     <Kind Name="LocalDeclarationStatement"/>
+    <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="AwaitKeyword"/>
+    </Field>
     <Field Name="UsingKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="UsingKeyword"/>
     </Field>

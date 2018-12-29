@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // incomplete members must be processed before we add any nodes to the body:
                                 AddIncompleteMembers(ref pendingIncompleteMembers, ref body);
 
-                                body.Members.Add(_syntaxFactory.GlobalStatement(ParseUsingStatement(awaitTokenOpt: default)));
+                                body.Members.Add(_syntaxFactory.GlobalStatement(ParseUsingStatement()));
                                 seen = NamespaceParts.MembersAndStatements;
                             }
                             else
@@ -6695,7 +6695,7 @@ tryAgain:
                     }
                     break;
                 case SyntaxKind.UsingKeyword:
-                    return PeekToken(1).Kind == SyntaxKind.OpenParenToken || (PeekToken(1).ContextualKind == SyntaxKind.AwaitKeyword && PeekToken(2).Kind == SyntaxKind.OpenParenToken) ? this.ParseUsingStatement(awaitTokenOpt: default) : this.ParseLocalDeclarationStatement();
+                    return PeekToken(1).Kind == SyntaxKind.OpenParenToken ? this.ParseUsingStatement() : this.ParseLocalDeclarationStatement();
                 case SyntaxKind.WhileKeyword:
                     return this.ParseWhileStatement();
                 case SyntaxKind.OpenBraceToken:
@@ -6709,7 +6709,14 @@ tryAgain:
                     }
                     else if (isPossibleAwaitUsing())
                     {
-                        return this.ParseUsingStatement(parseAwaitKeywordForAsyncStreams());
+                        if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+                        {
+                            return this.ParseUsingStatement(parseAwaitKeywordForAsyncStreams());
+                        }
+                        else
+                        {
+                            return this.ParseLocalDeclarationStatement(parseAwaitKeywordForAsyncStreams());
+                        }
                     }
                     else if (this.IsPossibleLabeledStatement())
                     {
@@ -8148,7 +8155,7 @@ tryAgain:
             return _syntaxFactory.UnsafeStatement(@unsafe, block);
         }
 
-        private UsingStatementSyntax ParseUsingStatement(SyntaxToken awaitTokenOpt)
+        private UsingStatementSyntax ParseUsingStatement(SyntaxToken awaitTokenOpt = default)
         {
             var @using = this.EatToken(SyntaxKind.UsingKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
@@ -8289,9 +8296,14 @@ tryAgain:
         /// <summary>
         /// Parses any kind of local declaration statement: local variable or local function.
         /// </summary>
-        private StatementSyntax ParseLocalDeclarationStatement()
+        private StatementSyntax ParseLocalDeclarationStatement(SyntaxToken awaitKeywordOpt = default)
         {
             var usingKeyword = this.CurrentToken.Kind == SyntaxKind.UsingKeyword ? this.EatToken() : null;
+            if (usingKeyword != null)
+            {
+                usingKeyword = CheckFeatureAvailability(usingKeyword, MessageID.IDS_FeatureUsingDeclarations);
+            }
+
             var mods = _pool.Allocate();
             this.ParseDeclarationModifiers(mods);
 
@@ -8301,7 +8313,7 @@ tryAgain:
                 TypeSyntax type;
                 LocalFunctionStatementSyntax localFunction;
                 this.ParseLocalDeclaration(variables,
-                    allowLocalFunctions: true,
+                    allowLocalFunctions: usingKeyword == default,
                     mods: mods.ToList(),
                     type: out type,
                     localFunction: out localFunction);
@@ -8332,6 +8344,7 @@ tryAgain:
                 // PROTOTYPE
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
                 return _syntaxFactory.LocalDeclarationStatement(
+                    awaitKeywordOpt,
                     usingKeyword,
                     mods.ToList(),
                     _syntaxFactory.VariableDeclaration(type, variables),

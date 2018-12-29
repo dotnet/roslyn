@@ -11,6 +11,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
     /// </summary>
     public class UsingDeclarationTests : CompilingTestBase
     {
+        //PROTOTYPE: remove this and use CSharpTestBase.AsyncStreamTypes when merged
+        private const string _asyncDisposable = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}";
+
         [Fact]
         public void UsingVariableIsNotReportedAsUnused()
         {
@@ -619,6 +629,109 @@ class C
             var compilation = CreateCompilationWithTasksExtensions(source, options: TestOptions.DebugExe).VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: "after c1; after c2; Dispose c2; Dispose c1; ");
+        }
+
+        [Fact]
+        public void UsingDeclarationsWithLangVer7_3()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        using IDisposable x = null;
+    }
+}
+";
+            CreateCompilation(source,  parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (7,9): error CS8370: Feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         using IDisposable x = null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "using").WithArguments("using declarations", "8.0").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void AwaitUsingDeclarationsWithLangVer7_3()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        await using IAsyncDisposable x = null;
+    }
+}
+";
+            CreateCompilationWithTasksExtensions(source + _asyncDisposable, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (8,9): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         await using IAsyncDisposable x = null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(8, 9),
+                // (8,15): error CS8370: Feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         await using IAsyncDisposable x = null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "using").WithArguments("using declarations", "8.0").WithLocation(8, 15)
+                );
+        }
+
+        [Fact]
+        public void UsingDeclarationsWithObsoleteTypes()
+        {
+            var source = @"
+using System;
+
+[Obsolete]
+class C1 : IDisposable
+{
+    [Obsolete]
+    public void Dispose()  
+    {
+    }
+}
+
+class C2 : IDisposable
+{
+    [Obsolete]
+    public void Dispose()  
+    {
+    }
+}
+
+ref struct S3
+{
+    [Obsolete]
+    public void Dispose()
+    {
+    }
+}
+
+class C4
+{
+    static void Main()
+    {
+        // c1 is obsolete
+        using C1 c1 = new C1();
+
+        // no warning, we don't warn on dispose being obsolete because it comes through interface
+        using C2 c2 = new C2();
+    
+        // warning, we're calling the pattern based obsolete method for the ref struct
+        using S3 S3 = new S3();
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (34,15): warning CS0612: 'C1' is obsolete
+                //         using C1 c1 = new C1();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C1").WithArguments("C1").WithLocation(34, 15),
+                // (34,27): warning CS0612: 'C1' is obsolete
+                //         using C1 c1 = new C1();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C1").WithArguments("C1").WithLocation(34, 27),
+                // (40,15): warning CS0612: 'S3.Dispose()' is obsolete
+                //         using S3 S3 = new S3();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "S3 S3 = new S3()").WithArguments("S3.Dispose()").WithLocation(40, 15)
+                );
         }
     }
 }

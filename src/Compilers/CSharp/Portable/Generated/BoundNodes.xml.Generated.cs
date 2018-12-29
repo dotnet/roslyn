@@ -2685,7 +2685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUsingLocalDeclarations : BoundMultipleLocalDeclarations
     {
-        public BoundUsingLocalDeclarations(SyntaxNode syntax, MethodSymbol disposeMethodOpt, Conversion iDisposableConversion, ImmutableArray<BoundLocalDeclaration> localDeclarations, bool hasErrors = false)
+        public BoundUsingLocalDeclarations(SyntaxNode syntax, MethodSymbol disposeMethodOpt, Conversion iDisposableConversion, AwaitableInfo awaitOpt, ImmutableArray<BoundLocalDeclaration> localDeclarations, bool hasErrors = false)
             : base(BoundKind.UsingLocalDeclarations, syntax, localDeclarations, hasErrors || localDeclarations.HasErrors())
         {
 
@@ -2693,6 +2693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.DisposeMethodOpt = disposeMethodOpt;
             this.IDisposableConversion = iDisposableConversion;
+            this.AwaitOpt = awaitOpt;
         }
 
 
@@ -2700,16 +2701,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public Conversion IDisposableConversion { get; }
 
+        public AwaitableInfo AwaitOpt { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitUsingLocalDeclarations(this);
         }
 
-        public BoundUsingLocalDeclarations Update(MethodSymbol disposeMethodOpt, Conversion iDisposableConversion, ImmutableArray<BoundLocalDeclaration> localDeclarations)
+        public BoundUsingLocalDeclarations Update(MethodSymbol disposeMethodOpt, Conversion iDisposableConversion, AwaitableInfo awaitOpt, ImmutableArray<BoundLocalDeclaration> localDeclarations)
         {
-            if (disposeMethodOpt != this.DisposeMethodOpt || iDisposableConversion != this.IDisposableConversion || localDeclarations != this.LocalDeclarations)
+            if (disposeMethodOpt != this.DisposeMethodOpt || iDisposableConversion != this.IDisposableConversion || awaitOpt != this.AwaitOpt || localDeclarations != this.LocalDeclarations)
             {
-                var result = new BoundUsingLocalDeclarations(this.Syntax, disposeMethodOpt, iDisposableConversion, localDeclarations, this.HasErrors);
+                var result = new BoundUsingLocalDeclarations(this.Syntax, disposeMethodOpt, iDisposableConversion, awaitOpt, localDeclarations, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9538,7 +9541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
         {
             ImmutableArray<BoundLocalDeclaration> localDeclarations = (ImmutableArray<BoundLocalDeclaration>)this.VisitList(node.LocalDeclarations);
-            return node.Update(node.DisposeMethodOpt, node.IDisposableConversion, localDeclarations);
+            return node.Update(node.DisposeMethodOpt, node.IDisposableConversion, node.AwaitOpt, localDeclarations);
         }
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
@@ -10783,6 +10786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 new TreeDumperNode("disposeMethodOpt", node.DisposeMethodOpt, null),
                 new TreeDumperNode("iDisposableConversion", node.IDisposableConversion, null),
+                new TreeDumperNode("awaitOpt", node.AwaitOpt, null),
                 new TreeDumperNode("localDeclarations", null, from x in node.LocalDeclarations select Visit(x, null))
             }
             );

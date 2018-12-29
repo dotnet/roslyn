@@ -138,7 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tryStatementSyntax.IsKind(SyntaxKind.TryStatement) ||
                 tryStatementSyntax.IsKind(SyntaxKind.UsingStatement) ||
                 tryStatementSyntax.IsKind(SyntaxKind.ForEachStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.ForEachVariableStatement));
+                tryStatementSyntax.IsKind(SyntaxKind.ForEachVariableStatement) ||
+                tryStatementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement));   //PROTOTYPE: Test this with Edit-and-Continue
 
             BoundStatement finalizedRegion;
             BoundBlock rewrittenFinally;
@@ -893,10 +894,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(parent != null);
                 Debug.Assert(statementSyntax != null);
 
-                Debug.Assert(statementSyntax.Kind() == SyntaxKind.TryStatement || 
+                Debug.Assert(statementSyntax.Kind() == SyntaxKind.TryStatement ||
                     (statementSyntax.Kind() == SyntaxKind.UsingStatement && ((UsingStatementSyntax)statementSyntax).AwaitKeyword != default) ||
                     (statementSyntax.Kind() == SyntaxKind.ForEachStatement && ((CommonForEachStatementSyntax)statementSyntax).AwaitKeyword != default) ||
-                    (statementSyntax.Kind() == SyntaxKind.ForEachVariableStatement && ((CommonForEachStatementSyntax)statementSyntax).AwaitKeyword != default));
+                    (statementSyntax.Kind() == SyntaxKind.ForEachVariableStatement && ((CommonForEachStatementSyntax)statementSyntax).AwaitKeyword != default) ||
+                    (statementSyntax.Kind() == SyntaxKind.LocalDeclarationStatement && ((LocalDeclarationStatementSyntax)statementSyntax).AwaitKeyword != default));
 
                 this.ParentOpt = parent;
                 this.LabelsOpt = labelsOpt;

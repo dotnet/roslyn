@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Lower "using var x = (expression)" to a try-finally block.
+        /// Lower "[await] using var x = (expression)" to a try-finally block.
         /// </summary>
         private BoundStatement MakeLocalUsingDeclarationStatement(BoundUsingLocalDeclarations usingDeclarations, ImmutableArray<BoundStatement> statements)
         {
-            SyntaxNode syntax = usingDeclarations.Syntax;
+            LocalDeclarationStatementSyntax syntax = (LocalDeclarationStatementSyntax)usingDeclarations.Syntax;
             BoundBlock body = new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements);
             
             //PROTOTYPE: need to handle await using when boundMultipleLocalDeclarations supports it
@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                usingDeclarations.LocalDeclarations, 
                                                                usingDeclarations.IDisposableConversion,
                                                                usingDeclarations.DisposeMethodOpt, 
-                                                               awaitOpt: null, 
-                                                               awaitKeyword: default);
+                                                               awaitOpt: usingDeclarations.AwaitOpt, 
+                                                               awaitKeyword: syntax.AwaitKeyword);
 
             return usingStatement;
         }

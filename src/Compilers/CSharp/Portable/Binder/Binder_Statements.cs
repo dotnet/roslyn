@@ -635,16 +635,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Conversion iDisposableConversion;
             MethodSymbol disposeMethod;
+            bool hasAwait = node.AwaitKeyword != default;
             var declarations = BindUsingVariableDeclaration(
                                                 this,
                                                 diagnostics,
                                                 diagnostics.HasAnyErrors(),
                                                 node,
                                                 node.Declaration,
-                                                hasAwait: false,
+                                                hasAwait,
                                                 out iDisposableConversion,
                                                 out disposeMethod);
-            return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, declarations);
+
+            AwaitableInfo awaitOpt = null;
+            bool hasErrors = false;
+            if (hasAwait)
+            {
+                awaitOpt = BindAsyncDisposeAwaiter(node, node.AwaitKeyword, disposeMethod, diagnostics, ref hasErrors);
+            }
+
+            return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, awaitOpt, declarations, hasErrors);
         }
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
@@ -761,6 +770,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return disposeMethod;
         }
+
+        /// <summary>
+        /// Binds an awaiter for asynchronous dispose
+        /// </summary>
+        /// <param name="node">The syntax node to bind for</param>
+        /// <param name="awaitKeyword">The await keyword of the syntax</param>
+        /// <param name="disposeMethodOpt">The dispose method to call, or null to use IAsyncDisposable.DisposeAsync</param>
+        /// <param name="diagnostics">Populated with any errors</param>
+        /// <param name="hasErrors">True if errors occurred during binding</param>
+        /// <returns>An <see cref="AwaitableInfo"/> with the bound information</returns>
+        protected AwaitableInfo BindAsyncDisposeAwaiter(SyntaxNode node, SyntaxToken awaitKeyword, MethodSymbol disposeMethodOpt, DiagnosticBag diagnostics, ref bool hasErrors)
+        {
+            TypeSymbol taskType = disposeMethodOpt is null
+                                    ? this.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask)
+                                    : disposeMethodOpt.ReturnType.TypeSymbol;
+
+            hasErrors |= ReportUseSiteDiagnostics(taskType, diagnostics, awaitKeyword);
+
+            BoundExpression placeholder = new BoundAwaitableValuePlaceholder(node, taskType).MakeCompilerGenerated();
+            AwaitableInfo awaitOpt = BindAwaitInfo(placeholder, node, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+            return awaitOpt;
+        }
+
 
         private TypeSymbolWithAnnotations BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
         {
