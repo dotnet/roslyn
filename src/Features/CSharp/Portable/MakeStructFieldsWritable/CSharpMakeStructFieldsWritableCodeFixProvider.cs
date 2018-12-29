@@ -27,14 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             return Task.CompletedTask;
         }
 
-        protected override async Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
             CancellationToken cancellationToken)
         {
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
             var emptyToken = SyntaxFactory.Token(SyntaxKind.None);
 
             foreach (var diagnostic in diagnostics)
@@ -59,6 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                     }
                 }
             }
+
+            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
