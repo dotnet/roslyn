@@ -77,7 +77,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
 
             if (syntaxFacts.IsExpressionOfInvocationExpression(invocation.Parent))
             {
-                return null;
+                // Do not offer fix on `MethodAsync()$$.ConfigureAwait()`
+                // Do offer fix on `MethodAsync()$$.Invalid()`
+                if (!model.GetTypeInfo(invocation.Parent.Parent).Type.IsErrorType())
+                {
+                    return null;
+                }
             }
 
             if (syntaxFacts.IsExpressionOfAwaitExpression(invocation))

@@ -286,5 +286,29 @@ class Program
     }
 }");
         }
+
+        [Fact]
+        public async Task ChainedInvocation_ExpressionOfInvalidInvocation()
+        {
+            await TestInRegularAndScript1Async(@"
+using System.Threading.Tasks;
+class Program
+{
+    Task<int> GetNumberAsync() => throw null;
+    async void M()
+    {
+        var x = GetNumberAsync()[||].Invalid();
+    }
+}", @"
+using System.Threading.Tasks;
+class Program
+{
+    Task<int> GetNumberAsync() => throw null;
+    async void M()
+    {
+        var x = (await GetNumberAsync()).Invalid();
+    }
+}");
+        }
     }
 }
