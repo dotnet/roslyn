@@ -6597,8 +6597,9 @@ oneMoreTime:
 
             INamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             SpillEvalStack();
+            RegionBuilder resultCaptureRegion = _currentRegion;
+            int captureOutput = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
             var capturedInput = VisitAndCapture(operation.Value);
-            int captureOutput = captureIdForResult ?? GetNextCaptureId(_currentRegion);
             var afterSwitch = new BasicBlockBuilder(BasicBlockKind.Block);
 
             foreach (var arm in operation.Arms)
@@ -6654,6 +6655,7 @@ oneMoreTime:
                     type: matchFailureCtor.ContainingType, constantValue: default, isImplicit: true);
             LinkThrowStatement(makeException);
             _currentBasicBlock = null;
+            LeaveRegionsUpTo(resultCaptureRegion);
 
             // afterSwitch:
             AppendNewBlock(afterSwitch, linkToPrevious: false);

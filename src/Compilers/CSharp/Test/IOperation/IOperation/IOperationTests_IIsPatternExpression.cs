@@ -20,7 +20,7 @@ class X
     void M()
     {
         int? x = 12;
-        if (/*<bind>*/x is var y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is var y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
@@ -47,7 +47,7 @@ class X
     void M()
     {
         int? x = 12;
-        if (/*<bind>*/x is int y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is int y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
@@ -73,7 +73,7 @@ class X
 {
     void M(X x)
     {
-        if (/*<bind>*/x is X y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is X y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
@@ -99,7 +99,7 @@ class X
 {
     void M<T>(T x) where T: class
     {
-        if (/*<bind>*/x is T y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is T y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
@@ -125,7 +125,7 @@ class X
 {
     void M(X x)
     {
-        if (/*<bind>*/x is dynamic y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is dynamic y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
@@ -156,7 +156,7 @@ class X
     void M()
     {
         int? x = 12, y = 12;
-        if (/*<bind>*/x is 12/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is 12/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
@@ -185,7 +185,7 @@ class X
     void M()
     {
         int? x = 12, y = 12;
-        if (/*<bind>*/x is (int)12.0/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is (int)12.0/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
@@ -217,7 +217,7 @@ class X
     void M()
     {
         int? x = 12, y = 12;
-        if (/*<bind>*/x is 12.0/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is 12.0/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
@@ -253,7 +253,7 @@ class X
     void M()
     {
         int x = 12, y = 12;
-        if (/*<bind>*/x is null/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is null/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
@@ -289,7 +289,7 @@ class X
     void M()
     {
         int? x = 12;
-        if (/*<bind>*/x is UndefinedType y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is UndefinedType y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
@@ -320,7 +320,7 @@ class X
     void M()
     {
         int? x = 12, y = 12;
-        if (/*<bind>*/x is y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
@@ -353,7 +353,7 @@ class X
     void M()
     {
         int? x = 12;
-        if (/*<bind>*/x is X y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is X y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
@@ -384,7 +384,7 @@ class X
     void M()
     {
         int? x = 12, y = 12;
-        if (/*<bind>*/x is int y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is int y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
@@ -415,7 +415,7 @@ class X
     void M()
     {
         int? x = 12, y = 12;
-        if (/*<bind>*/x is int y2/*</bind>*/, y3) Console.WriteLine(y);        
+        if (/*<bind>*/x is int y2/*</bind>*/, y3) Console.WriteLine(y);
     }
 }
 ";
@@ -464,7 +464,7 @@ class X
     void M()
     {
         int x = 12;
-        if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);        
+        if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
     }
 }
 ";
@@ -764,7 +764,7 @@ class C
 {
     void M(int? x1, int x2, bool b)
     /*<bind>*/{
-        b = (x1 ?? x2) is var y;       
+        b = (x1 ?? x2) is var y;
     }/*</bind>*/
 }
 ";

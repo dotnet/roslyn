@@ -626,7 +626,7 @@ public sealed class MyClass
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
             string expectedFlowGraph = @"
-PROTOTYPE(recursive-patterns): this test is not working yet.
+This test is not working yet.
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }

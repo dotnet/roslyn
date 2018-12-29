@@ -1133,7 +1133,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 Assert.NotNull(operation.MatchedType);
             }
 
-            var designation = (operation.Syntax as CSharp.Syntax.DeclarationPatternSyntax)?.Designation;
+            var designation =
+                (operation.Syntax as CSharp.Syntax.DeclarationPatternSyntax)?.Designation ??
+                (operation.Syntax as CSharp.Syntax.VarPatternSyntax)?.Designation;
             if (designation.IsKind(CSharp.SyntaxKind.SingleVariableDesignation))
             {
                 Assert.NotNull(operation.DeclaredSymbol);
@@ -1187,7 +1189,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _ = operation.Guard;
             Assert.NotNull(operation.Value);
             VisitLocals(operation.Locals);
-            var children = new[] { operation.Pattern, operation.Guard, operation.Value };
+            var children = operation.Guard == null
+                ? new[] { operation.Pattern, operation.Value }
+                : new[] { operation.Pattern, operation.Guard, operation.Value };
             AssertEx.Equal(children, operation.Children);
         }
 
