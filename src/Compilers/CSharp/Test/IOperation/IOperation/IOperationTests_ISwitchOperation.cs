@@ -134,12 +134,12 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null) 
           Clauses:
               IPatternCaseClauseOperation (Label Id: 1) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case int x:')
                 Pattern: 
-                  IDeclarationPatternOperation (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+                  IDeclarationPatternOperation (Declared Symbol: System.Int32 x, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
                 Guard Expression: 
                   null
               IPatternCaseClauseOperation (Label Id: 2) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case long y:')
                 Pattern: 
-                  IDeclarationPatternOperation (Declared Symbol: System.Int64 y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'long y')
+                  IDeclarationPatternOperation (Declared Symbol: System.Int64 y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'long y')
                 Guard Expression: 
                   null
           Body:
@@ -182,7 +182,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null) 
           Clauses:
               IPatternCaseClauseOperation (Label Id: 1) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case int y:')
                 Pattern: 
-                  IDeclarationPatternOperation (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y')
+                  IDeclarationPatternOperation (Declared Symbol: System.Int32 y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y')
                 Guard Expression: 
                   null
           Body:
@@ -2680,7 +2680,7 @@ Block[B0] - Entry
                   Expression: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
                   Pattern: 
-                    IDeclarationPatternOperation (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+                    IDeclarationPatternOperation (Declared Symbol: System.Int32 x, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
                 Leaving: {R2} {R1}
 
             Next (Regular) Block[B3]
@@ -2757,7 +2757,7 @@ Block[B0] - Entry
                   Expression: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input1')
                   Pattern: 
-                    IDeclarationPatternOperation (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+                    IDeclarationPatternOperation (Declared Symbol: System.Int32 x, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
                 Leaving: {R2} {R1}
 
             Next (Regular) Block[B3]
@@ -3261,7 +3261,7 @@ Block[B0] - Entry
                       Expression: 
                         IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?, IsInvalid) (Syntax: 'input')
                       Pattern: 
-                        IDeclarationPatternOperation (Declared Symbol: System.Int32 x1) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int x1')
+                        IDeclarationPatternOperation (Declared Symbol: System.Int32 x1, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int x1')
 
                 Next (Regular) Block[B3]
             Block[B3] - Block

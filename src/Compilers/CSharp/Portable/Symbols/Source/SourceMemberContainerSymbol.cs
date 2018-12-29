@@ -2095,7 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (instanceMap.TryGetValue(tOriginal, out oldInstance))
             {
                 // short circuit when we find a cycle, but only return true when the cycle contains the top struct
-                return (oldInstance != t) && ReferenceEquals(tOriginal, top);
+                return (!TypeSymbol.Equals(oldInstance, t, TypeCompareKind.ConsiderEverything2)) && ReferenceEquals(tOriginal, top);
             }
             else
             {
@@ -2542,7 +2542,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return builder.ToImmutableAndFree();
         }
-        
+
         /// <summary>
         /// Report an error if a member (other than a method) exists with the same name
         /// as the property accessor, or if a method exists with the same name and signature.

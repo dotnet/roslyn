@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 var systemVoid = Binder.GetSpecialType(compilation, SpecialType.System_Void, DummySyntax(), diagnostics);
-                return new ScriptEntryPoint(containingType, TypeSymbolWithAnnotations.Create(nonNullTypesContext: containingType, systemVoid));
+                return new ScriptEntryPoint(containingType, TypeSymbolWithAnnotations.Create(systemVoid));
             }
         }
 
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
 
-            public override TypeSymbolWithAnnotations ReturnType => TypeSymbolWithAnnotations.Create(nonNullTypesContext: ContainingModule, _getAwaiterGetResultCall.Type);
+            public override TypeSymbolWithAnnotations ReturnType => TypeSymbolWithAnnotations.Create(_getAwaiterGetResultCall.Type);
 
             internal override BoundBlock CreateBody(DiagnosticBag diagnostics)
             {
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(containingType.IsSubmissionClass);
                 Debug.Assert(returnType.SpecialType != SpecialType.System_Void);
                 _parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(this,
-                    TypeSymbolWithAnnotations.Create(nonNullTypesContext: ContainingModule, submissionArrayType), 0, RefKind.None, "submissionArray"));
+                    TypeSymbolWithAnnotations.Create(submissionArrayType), 0, RefKind.None, "submissionArray"));
 
                 _returnType = returnType;
             }
@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax,
                     submissionLocal,
                     initializer);
-                Debug.Assert(initializeResult.Type == _returnType.TypeSymbol);
+                Debug.Assert(TypeSymbol.Equals(initializeResult.Type, _returnType.TypeSymbol, TypeCompareKind.ConsiderEverything2));
                 var returnStatement = new BoundReturnStatement(
                     syntax,
                     RefKind.None,

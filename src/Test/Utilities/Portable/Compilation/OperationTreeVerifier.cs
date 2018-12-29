@@ -1738,8 +1738,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IDeclarationPatternOperation));
             LogSymbol(operation.DeclaredSymbol, " (Declared Symbol");
+            LogConstant((object)operation.MatchesNull, ", AcceptsNull");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
+        }
+
+        public override void VisitRecursivePattern(IRecursivePatternOperation operation)
+        {
+            LogString(nameof(IRecursivePatternOperation));
+            LogSymbol(operation.DeclaredSymbol, " (Declared Symbol");
+            LogType(operation.MatchedType, ", MatchedType");
+            LogSymbol(operation.DeconstructSymbol, ", Deconstruct Symbol");
+            LogString(")");
+            LogNewLine();
+            VisitArray(operation.DeconstructionSubpatterns, "Patterns ", true, true);
+            VisitArrayCommon(operation.PropertySubpatterns, "Properties ", true, true, subpat => {
+                LogSymbol(subpat.Item1, "Matched Property");
+                Visit(subpat.Item2, ", Pattern");
+            });
         }
 
         public override void VisitIsPattern(IIsPatternOperation operation)
@@ -1841,6 +1857,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.LeftOperand, nameof(operation.LeftOperand));
             Visit(operation.RightOperand, nameof(operation.RightOperand));
+        }
+
+        public override void VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation)
+        {
+            LogString(nameof(ISuppressNullableWarningOperation));
+
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, nameof(operation.Expression));
         }
 
         public override void VisitReDim(IReDimOperation operation)

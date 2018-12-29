@@ -100,7 +100,7 @@ class C7 : A<string>.B<object> { }";
                 {
                     var typeB = types[j];
                     bool expectedEqual = (i == 5) && (j == 6);
-                    Assert.Equal(typeA == typeB, expectedEqual);
+                    Assert.Equal(TypeSymbol.Equals(typeA, typeB, TypeCompareKind.ConsiderEverything2), expectedEqual);
                 }
             }
         }

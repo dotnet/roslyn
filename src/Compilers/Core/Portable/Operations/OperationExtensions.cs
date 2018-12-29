@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         /// <summary>
-        /// Gets the variable initialzer for the given <paramref name="declarationOperation"/>, checking to see if there is a parent initializer
+        /// Gets the variable initializer for the given <paramref name="declarationOperation"/>, checking to see if there is a parent initializer
         /// if the single variable initializer is null.
         /// </summary>
         /// <param name="declarationOperation">Single variable declaration to retrieve initializer for.</param>
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 throw new InvalidOperationException(CodeAnalysisResources.OperationMustNotBeControlFlowGraphPart);
             }
-            
+
             if (operation.BranchKind != BranchKind.Break && operation.BranchKind != BranchKind.Continue)
             {
                 return null;
@@ -351,12 +351,12 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 return null;
             }
-            
+
             for (IOperation current = operation; current.Parent != null; current = current.Parent)
             {
                 switch (current)
                 {
-                    case ILoopOperation correspondingLoop when operation.Target.Equals(correspondingLoop.ExitLabel) || 
+                    case ILoopOperation correspondingLoop when operation.Target.Equals(correspondingLoop.ExitLabel) ||
                                                                operation.Target.Equals(correspondingLoop.ContinueLabel):
                         return correspondingLoop;
                     case ISwitchOperation correspondingSwitch when operation.Target.Equals(correspondingSwitch.ExitLabel):

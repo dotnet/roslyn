@@ -11,7 +11,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     public class BasicSquigglesNetCore : BasicSquigglesCommon
     {
         public BasicSquigglesNetCore(VisualStudioInstanceFactory instanceFactory)
-            :base(instanceFactory, WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
+            : base(instanceFactory, WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
         {
         }
 

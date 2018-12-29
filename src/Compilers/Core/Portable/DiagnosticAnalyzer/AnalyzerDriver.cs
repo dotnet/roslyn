@@ -1136,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var success = true;
             ArrayBuilder<DiagnosticAnalyzer> subsetProcessedAnalyzersBuilderOpt = null;
-            for(int i = 0; i < analysisScope.Analyzers.Length; i++)
+            for (int i = 0; i < analysisScope.Analyzers.Length; i++)
             {
                 var analyzer = analysisScope.Analyzers[i];
                 var analyzerSuccess = true;
@@ -1168,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Debug.Assert(!success);
                 Debug.Assert(subsetProcessedAnalyzersBuilderOpt.Count < analysisScope.Analyzers.Length);
 
-                if(subsetProcessedAnalyzersBuilderOpt.Count > 0)
+                if (subsetProcessedAnalyzersBuilderOpt.Count > 0)
                 {
                     subsetProcessedAnalyzers = subsetProcessedAnalyzersBuilderOpt.ToImmutableAndFree();
                 }
@@ -2146,7 +2146,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // These are newly added root operation nodes for C# method and constructor bodies.
                     // However, to avoid a breaking change for existing operation block analyzers,
                     // we have decided to retain the current behavior of making operation block callbacks with the contained
-                    // method body and/or constructor initialer operation nodes.
+                    // method body and/or constructor initializer operation nodes.
                     // Hence we detect here if the operation block is parented by IMethodBodyOperation or IConstructorBodyOperation and
                     // add them to 'operationsToAnalyze' so that analyzers that explicitly register for these operation kinds
                     // can get callbacks for these nodes.

@@ -1411,8 +1411,8 @@ class Program
         var x = S1[1];       
         var y = new S1(S1, 1);
     }
-}");           
-            
+}");
+
             comp.VerifyDiagnostics(
                 // (14,9): error CS0120: An object reference is required for the non-static field, method, or property 'Program.S1.Test(int)'
                 //         S1.Test(1);

@@ -149,7 +149,12 @@ then
 
   # Run this script with the same arguments (except for --docker) in a container that has Mono installed.
   BUILD_COMMAND=/opt/code/eng/build.sh "$scriptroot"/docker/mono.sh $args
-  
+  lastexitcode=$?
+  if [[ $lastexitcode != 0 ]]; then
+    echo "Docker build failed (exit code '$lastexitcode')." >&2
+    exit $lastexitcode
+  fi
+
   # Ensure that all docker containers are stopped.
   # Hence exit with true even if "kill" failed as it will fail if they stopped gracefully
   if [[ "$prepare_machine" == true ]]; then
@@ -209,6 +214,12 @@ function BuildSolution {
     enable_analyzers=false
   fi
 
+  # NuGet often exceeds the limit of open files on Mac and Linux
+  # https://github.com/NuGet/Home/issues/2163
+  if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
+    ulimit -n 6500
+  fi
+
   local quiet_restore=""
   if [[ "$ci" != true ]]; then
     quiet_restore=true
@@ -256,8 +267,6 @@ function BuildSolution {
 }
 
 InitializeDotNetCli $restore
-
-export PATH="$DOTNET_INSTALL_DIR:$PATH"
 
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then

@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var newType = VisitType(local.Type.TypeSymbol);
-            if (newType == local.Type.TypeSymbol)
+            if (TypeSymbol.Equals(newType, local.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 newLocal = local;
             }
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
             var rewritten = (BoundObjectCreationExpression)base.VisitObjectCreationExpression(node);
-            if (rewritten.Type != node.Type && (object)node.Constructor != null)
+            if (!TypeSymbol.Equals(rewritten.Type, node.Type, TypeCompareKind.ConsiderEverything2) && (object)node.Constructor != null)
             {
                 MethodSymbol ctor = VisitMethodSymbol(node.Constructor);
                 rewritten = rewritten.Update(

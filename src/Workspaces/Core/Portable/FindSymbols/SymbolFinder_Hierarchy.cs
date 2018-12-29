@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         var sourceMember = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                         var bestMember = sourceMember ?? m;
-                        
+
                         if (IsOverride(solution, bestMember, symbol, cancellationToken))
                         {
                             results.Add(new SymbolAndProjectId(bestMember, type.ProjectId));

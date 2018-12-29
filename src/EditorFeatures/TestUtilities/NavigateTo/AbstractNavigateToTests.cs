@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         internal async Task TestAsync(
-            string content, Func<TestWorkspace, Task> body, bool outOfProcess, 
+            string content, Func<TestWorkspace, Task> body, bool outOfProcess,
             Func<TestWorkspace, IDocumentTrackingService> createTrackingService)
         {
             using (var workspace = SetupWorkspace(
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         private protected TestWorkspace SetupWorkspace(
-            XElement workspaceElement, ExportProvider exportProvider, 
+            XElement workspaceElement, ExportProvider exportProvider,
             Func<TestWorkspace, IDocumentTrackingService> createTrackingService)
         {
             var workspace = TestWorkspace.Create(workspaceElement, exportProvider: exportProvider);
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         private protected TestWorkspace SetupWorkspace(
-            string content, ExportProvider exportProvider, 
+            string content, ExportProvider exportProvider,
             Func<TestWorkspace, IDocumentTrackingService> createTrackingService)
         {
             var workspace = CreateWorkspace(content, exportProvider);
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         internal void VerifyNavigateToResultItem(
-            NavigateToItem result, string name, string displayMarkup, 
+            NavigateToItem result, string name, string displayMarkup,
             PatternMatchKind matchKind, string navigateToItemKind,
             Glyph glyph, string additionalInfo = null)
         {

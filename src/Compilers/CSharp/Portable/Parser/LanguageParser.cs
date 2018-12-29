@@ -1019,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var argNodes = _pool.AllocateSeparated<AttributeArgumentSyntax>();
                 try
                 {
-                    tryAgain:
+tryAgain:
                     if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                     {
                         if (this.IsPossibleAttributeArgument() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return DeclarationModifiers.None;
             }
         }
-        
+
         private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors)
         {
             while (true)
@@ -1191,7 +1191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             modTok = CheckFeatureAvailability(modTok,
                                 isPartialType ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod);
                         }
-                        else if(nextToken.Kind == SyntaxKind.NamespaceKeyword)
+                        else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
                         {
                             // Error reported in binding
                             modTok = ConvertToKeyword(this.EatToken());
@@ -7967,13 +7967,13 @@ tryAgain:
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var statement = firstTokenIsElse ? this.ParseExpressionStatement() : this.ParseEmbeddedStatement();
             var elseClause = this.ParseElseClauseOpt();
-            
+
             return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
         }
 
         private ElseClauseSyntax ParseElseClauseOpt()
         {
-           if (this.CurrentToken.Kind != SyntaxKind.ElseKeyword)
+            if (this.CurrentToken.Kind != SyntaxKind.ElseKeyword)
             {
                 return null;
             }

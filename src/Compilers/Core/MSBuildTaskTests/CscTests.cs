@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.ChecksumAlgorithm = "";
             Assert.Equal("/out:test.exe /checksumalgorithm: test.cs", csc.GenerateResponseFileContents());
         }
-        
+
         [Fact]
         public void InstrumentTestNamesFlag()
         {
@@ -334,23 +334,49 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void NullableReferenceTypes_True()
+        public void NullableReferenceTypes_Enabled()
         {
             var csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            csc.NullableReferenceTypes = true;
-            Assert.Equal("/nullable+ /out:test.exe test.cs", csc.GenerateResponseFileContents());
+            csc.NullableContextOptions = "enable";
+            Assert.Equal("/nullable:enable /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
 
         [Fact]
-        public void NullableReferenceTypes_False()
+        public void NullableReferenceTypes_Disabled()
         {
             var csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            csc.NullableReferenceTypes = false;
-            Assert.Equal("/nullable- /out:test.exe test.cs", csc.GenerateResponseFileContents());
+            csc.NullableContextOptions = "disable";
+            Assert.Equal("/nullable:disable /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
-        
+
+        [Fact]
+        public void NullableReferenceTypes_Safeonly()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.NullableContextOptions = "safeonly";
+            Assert.Equal("/nullable:safeonly /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_Default_01()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.NullableContextOptions = null;
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_Default_02()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
         [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
         public void DisableSdkPath()
         {

@@ -209,7 +209,7 @@ End Module
 ");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.Debugger.Go(waitForBreakMode: false);
-            VisualStudio.ActivateMainWindow(skipAttachingThreads: true);
+            VisualStudio.ActivateMainWindow();
             VisualStudio.SolutionExplorer.OpenFile(project, module1FileName);
 
             VisualStudio.SendKeys.Send(VirtualKey.T);

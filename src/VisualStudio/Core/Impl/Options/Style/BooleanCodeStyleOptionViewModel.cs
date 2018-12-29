@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public override string GetPreview() 
+        public override string GetPreview()
             => SelectedPreference.IsChecked ? _truePreview : _falsePreview;
     }
 }

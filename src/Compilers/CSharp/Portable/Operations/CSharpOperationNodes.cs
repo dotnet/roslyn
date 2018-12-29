@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
@@ -1025,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<BoundExpression> arguments;
             ImmutableArray<BoundAnonymousPropertyDeclaration> declarations;
 
-            switch(_anonymousObjectCreation)
+            switch (_anonymousObjectCreation)
             {
                 case BoundAnonymousObjectCreationExpression anonymousObjectCreationExpression:
                     arguments = anonymousObjectCreationExpression.Arguments;
@@ -1469,8 +1470,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _value;
 
-        internal CSharpLazyConstantPatternOperation(CSharpOperationFactory operationFactory, BoundNode value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
-            base(semanticModel, syntax, isImplicit)
+        internal CSharpLazyConstantPatternOperation(ITypeSymbol inputType, CSharpOperationFactory operationFactory, BoundNode value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(inputType, semanticModel, syntax, isImplicit)
         {
             _operationFactory = operationFactory;
             _value = value;
@@ -1479,6 +1480,41 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation CreateValue()
         {
             return _operationFactory.Create(_value);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# recursive pattern.
+    /// </summary>
+    internal sealed partial class CSharpLazyRecursivePatternOperation : LazyRecursivePatternOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly ImmutableArray<BoundSubpattern> _deconstructionSubpatterns;
+        private readonly ImmutableArray<BoundSubpattern> _propertySubpatterns;
+        public CSharpLazyRecursivePatternOperation(
+            CSharpOperationFactory operationFactory,
+            ITypeSymbol inputType,
+            ITypeSymbol matchedType,
+            ISymbol deconstructSymbol,
+            ImmutableArray<BoundSubpattern> deconstructionSubpatterns,
+            ImmutableArray<BoundSubpattern> propertySubpatterns,
+            ISymbol declaredSymbol,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(inputType, matchedType, deconstructSymbol, declaredSymbol, semanticModel, syntax, isImplicit)
+        {
+            _operationFactory = operationFactory;
+            _deconstructionSubpatterns = deconstructionSubpatterns;
+            _propertySubpatterns = propertySubpatterns;
+        }
+        public override ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns()
+        {
+            return _deconstructionSubpatterns.SelectAsArray(p => (IPatternOperation)_operationFactory.Create(p.Pattern));
+        }
+        public override ImmutableArray<(ISymbol, IPatternOperation)> CreatePropertySubpatterns()
+        {
+            return _propertySubpatterns.SelectAsArray(p => ((ISymbol)p.Symbol, (IPatternOperation)_operationFactory.Create(p.Pattern)));
         }
     }
 
@@ -1661,8 +1697,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _operand;
 
-        internal CSharpLazyFromEndIndexOperation(CSharpOperationFactory operationFactory, BoundNode operand, bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
-            base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        internal CSharpLazyFromEndIndexOperation(CSharpOperationFactory operationFactory, BoundNode operand, bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
+            base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
         {
             _operationFactory = operationFactory;
             _operand = operand;
@@ -1679,8 +1715,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundRangeExpression _rangeExpression;
 
-        internal CSharpLazyRangeOperation(CSharpOperationFactory operationFactory, BoundRangeExpression rangeExpression, bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
-            base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        internal CSharpLazyRangeOperation(CSharpOperationFactory operationFactory, BoundRangeExpression rangeExpression, bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
+            base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
         {
             _operationFactory = operationFactory;
             _rangeExpression = rangeExpression;
@@ -1694,6 +1730,24 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation CreateRightOperand()
         {
             return _operationFactory.Create(_rangeExpression.RightOperand);
+        }
+    }
+
+    internal sealed class CSharpLazySuppressNullableWarningOperation : LazySuppressNullableWarningOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundSuppressNullableWarningExpression _suppressionExpression;
+
+        internal CSharpLazySuppressNullableWarningOperation(CSharpOperationFactory operationFactory, BoundSuppressNullableWarningExpression suppressionExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, bool isImplicit) :
+            base(semanticModel, syntax, type, suppressionExpression.ConstantValue, isImplicit)
+        {
+            _operationFactory = operationFactory;
+            _suppressionExpression = suppressionExpression;
+        }
+
+        protected override IOperation CreateExpression()
+        {
+            return _operationFactory.Create(_suppressionExpression.Expression);
         }
     }
 }

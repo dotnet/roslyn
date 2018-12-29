@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (tk)
             {
                 case SyntaxKind.IdentifierToken when this.CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken:
-                    // We permit a type named `_` on the right-hand-side of an is operator, but not inside of a pattern.
+                // We permit a type named `_` on the right-hand-side of an is operator, but not inside of a pattern.
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
                 case SyntaxKind.CloseBraceToken:
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var list = _pool.AllocateSeparated<SubpatternSyntax>();
             try
             {
-                tryAgain:
+tryAgain:
 
                 if (this.IsPossibleSubpatternElement() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {

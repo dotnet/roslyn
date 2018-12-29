@@ -28,6 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.EndOfLine(text)
         End Function
 
+        Friend Overrides Function Whitespace(text As String) As SyntaxTrivia
+            Return SyntaxFactory.Whitespace(text)
+        End Function
+
         Friend Overrides Function SeparatedList(Of TElement As SyntaxNode)(list As SyntaxNodeOrTokenList) As SeparatedSyntaxList(Of TElement)
             Return SyntaxFactory.SeparatedList(Of TElement)(list)
         End Function
@@ -1765,12 +1769,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.FunctionBlock,
                      SyntaxKind.SubBlock,
                      SyntaxKind.ConstructorBlock
-                    Return DirectCast(node, MethodBlockSyntax).BlockStatement.AttributeLists
+                    Return DirectCast(node, MethodBlockBaseSyntax).BlockStatement.AttributeLists
                 Case SyntaxKind.FunctionStatement,
                      SyntaxKind.SubStatement
                     Return DirectCast(node, MethodStatementSyntax).AttributeLists
-                Case SyntaxKind.ConstructorBlock
-                    Return DirectCast(node, ConstructorBlockSyntax).BlockStatement.AttributeLists
                 Case SyntaxKind.SubNewStatement
                     Return DirectCast(node, SubNewStatementSyntax).AttributeLists
                 Case SyntaxKind.Parameter
@@ -3085,11 +3087,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function GetParameters(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
             Dim list = GetParameterList(declaration)
-            If list IsNot Nothing Then
-                Return list.Parameters
-            Else
-                Return SpecializedCollections.EmptyReadOnlyList(Of SyntaxNode)
-            End If
+            Return If(list IsNot Nothing,
+                      list.Parameters,
+                      SpecializedCollections.EmptyReadOnlyList(Of SyntaxNode))
         End Function
 
         Public Overrides Function InsertParameters(declaration As SyntaxNode, index As Integer, parameters As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -3119,6 +3119,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Return statement.WithCaseBlocks(
                 statement.CaseBlocks.InsertRange(index, switchSections.Cast(Of CaseBlockSyntax)))
+        End Function
+
+        Friend Overrides Function GetParameterListNode(declaration As SyntaxNode) As SyntaxNode
+            Return GetParameterList(declaration)
         End Function
 
         Friend Shared Function GetParameterList(declaration As SyntaxNode) As ParameterListSyntax

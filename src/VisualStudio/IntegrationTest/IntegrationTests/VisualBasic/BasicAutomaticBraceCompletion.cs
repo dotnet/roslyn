@@ -29,15 +29,15 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim x = {");
-             VisualStudio.Editor.Verify.CurrentLineText("Dim x = {$$}", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("Dim x = {");
+            VisualStudio.Editor.Verify.CurrentLineText("Dim x = {$$}", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys(
-                "New Object",
-                VirtualKey.Escape,
-                VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys(
+               "New Object",
+               VirtualKey.Escape,
+               VirtualKey.Tab);
 
-             VisualStudio.Editor.Verify.CurrentLineText("Dim x = {New Object}$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("Dim x = {New Object}$$", assertCaretPosition: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -50,9 +50,9 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim x = {");
-             VisualStudio.Editor.SendKeys('}');
-             VisualStudio.Editor.Verify.CurrentLineText("Dim x = {}$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("Dim x = {");
+            VisualStudio.Editor.SendKeys('}');
+            VisualStudio.Editor.Verify.CurrentLineText("Dim x = {}$$", assertCaretPosition: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -65,17 +65,17 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Console.Write(");
-             VisualStudio.Editor.Verify.CurrentLineText("Console.Write($$)", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("Console.Write(");
+            VisualStudio.Editor.Verify.CurrentLineText("Console.Write($$)", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys('"');
-             VisualStudio.Editor.Verify.CurrentLineText("Console.Write(\"$$\")", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys('"');
+            VisualStudio.Editor.Verify.CurrentLineText("Console.Write(\"$$\")", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys('"');
-             VisualStudio.Editor.Verify.CurrentLineText("Console.Write(\"\"$$)", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys('"');
+            VisualStudio.Editor.Verify.CurrentLineText("Console.Write(\"\"$$)", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys(')');
-             VisualStudio.Editor.Verify.CurrentLineText("Console.Write(\"\")$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys(')');
+            VisualStudio.Editor.Verify.CurrentLineText("Console.Write(\"\")$$", assertCaretPosition: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -88,10 +88,10 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim x = {");
-             VisualStudio.Editor.SendKeys(VirtualKey.Enter);
-             VisualStudio.Editor.Verify.CurrentLineText("            $$}", assertCaretPosition: true, trimWhitespace: false);
-             VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudio.Editor.SendKeys("Dim x = {");
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.Verify.CurrentLineText("            $$}", assertCaretPosition: true, trimWhitespace: false);
+            VisualStudio.Editor.Verify.TextContains(@"
 Class C
     Sub Goo()
         Dim x = {
@@ -109,13 +109,13 @@ Class C
     $$
 End Class");
 
-             VisualStudio.Editor.SendKeys("Sub Goo(");
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("Sub Goo(");
+            VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys("x As Long");
-             VisualStudio.Editor.SendKeys(VirtualKey.Escape);
-             VisualStudio.Editor.SendKeys(VirtualKey.Tab);
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo(x As Long)$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("x As Long");
+            VisualStudio.Editor.SendKeys(VirtualKey.Escape);
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("Sub Goo(x As Long)$$", assertCaretPosition: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -126,12 +126,12 @@ Class C
     $$
 End Class");
 
-             VisualStudio.Editor.SendKeys("Sub Goo(");
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("Sub Goo(");
+            VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys(VirtualKey.Escape);
-             VisualStudio.Editor.SendKeys(')');
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo()$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys(VirtualKey.Escape);
+            VisualStudio.Editor.SendKeys(')');
+            VisualStudio.Editor.Verify.CurrentLineText("Sub Goo()$$", assertCaretPosition: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -144,8 +144,8 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim [Dim");
-             VisualStudio.Editor.Verify.CurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("Dim [Dim");
+            VisualStudio.Editor.Verify.CurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -158,11 +158,11 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim [Dim");
-             VisualStudio.Editor.Verify.CurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("Dim [Dim");
+            VisualStudio.Editor.Verify.CurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys("] As Long");
-             VisualStudio.Editor.Verify.CurrentLineText("Dim [Dim] As Long$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("] As Long");
+            VisualStudio.Editor.Verify.CurrentLineText("Dim [Dim] As Long$$", assertCaretPosition: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -175,11 +175,11 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim str = \"");
-             VisualStudio.Editor.Verify.CurrentLineText("Dim str = \"$$\"", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("Dim str = \"");
+            VisualStudio.Editor.Verify.CurrentLineText("Dim str = \"$$\"", assertCaretPosition: true);
 
-             VisualStudio.Editor.SendKeys(VirtualKey.Tab);
-             VisualStudio.Editor.Verify.CurrentLineText("Dim str = \"\"$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("Dim str = \"\"$$", assertCaretPosition: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -195,11 +195,11 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys(
-                "Dim y = {New C([dim",
-                VirtualKey.Escape,
-                "]:=\"hello({[\")}",
-                VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(
+               "Dim y = {New C([dim",
+               VirtualKey.Escape,
+               "]:=\"hello({[\")}",
+               VirtualKey.Enter);
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains("Dim y = {New C([dim]:=\"hello({[\")}", actualText);
         }
@@ -217,15 +217,15 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys(
-                "Dim y = {New C([dim",
-                VirtualKey.Escape,
-                VirtualKey.Tab,
-                ":=\"hello({[",
-                VirtualKey.Tab,
-                VirtualKey.Tab,
-                VirtualKey.Tab,
-                VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(
+               "Dim y = {New C([dim",
+               VirtualKey.Escape,
+               VirtualKey.Tab,
+               ":=\"hello({[",
+               VirtualKey.Tab,
+               VirtualKey.Tab,
+               VirtualKey.Tab,
+               VirtualKey.Enter);
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains("Dim y = {New C([dim]:=\"hello({[\")}", actualText);
         }
@@ -240,8 +240,8 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("{([\"");
-             VisualStudio.Editor.Verify.CurrentLineText("' {([\"$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("{([\"");
+            VisualStudio.Editor.Verify.CurrentLineText("' {([\"$$", assertCaretPosition: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -254,8 +254,8 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim s = \"{([");
-             VisualStudio.Editor.Verify.CurrentLineText("Dim s = \"{([$$\"", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("Dim s = \"{([");
+            VisualStudio.Editor.Verify.CurrentLineText("Dim s = \"{([$$\"", assertCaretPosition: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -266,12 +266,12 @@ $$
 Class C
 End Class");
 
-             VisualStudio.Editor.SendKeys("'''");
-             VisualStudio.Editor.SendKeys('{');
-             VisualStudio.Editor.SendKeys('(');
-             VisualStudio.Editor.SendKeys('[');
-             VisualStudio.Editor.SendKeys('"');
-             VisualStudio.Editor.Verify.CurrentLineText("''' {([\"$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("'''");
+            VisualStudio.Editor.SendKeys('{');
+            VisualStudio.Editor.SendKeys('(');
+            VisualStudio.Editor.SendKeys('[');
+            VisualStudio.Editor.SendKeys('"');
+            VisualStudio.Editor.Verify.CurrentLineText("''' {([\"$$", assertCaretPosition: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -286,8 +286,8 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("(");
-             VisualStudio.Editor.Verify.CurrentLineText("''' <see></see>($$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("(");
+            VisualStudio.Editor.Verify.CurrentLineText("''' <see></see>($$", assertCaretPosition: true);
         }
 
         [WorkItem(652015, "DevDiv")]
@@ -301,8 +301,8 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Dim x=\"\" '");
-             VisualStudio.Editor.Verify.CurrentLineText("Dim x=\"\" '$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("Dim x=\"\" '");
+            VisualStudio.Editor.Verify.CurrentLineText("Dim x=\"\" '$$", assertCaretPosition: true);
         }
 
         [WorkItem(653399, "DevDiv")]
@@ -315,11 +315,11 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys(VirtualKey.Enter);
-             VisualStudio.Editor.SendKeys('(');
-             VisualStudio.Editor.SendKeys(VirtualKey.Backspace);
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys('(');
+            VisualStudio.Editor.SendKeys(VirtualKey.Backspace);
 
-             VisualStudio.Editor.Verify.CurrentLineText("        $$", assertCaretPosition: true, trimWhitespace: false);
+            VisualStudio.Editor.Verify.CurrentLineText("        $$", assertCaretPosition: true, trimWhitespace: false);
         }
 
         [WorkItem(659684, "DevDiv")]
@@ -335,8 +335,8 @@ Class C
     End Sub
 End Class");
 
-             VisualStudio.Editor.SendKeys("Goo(");
-             VisualStudio.Editor.Verify.CurrentLineText("Goo($$)", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("Goo(");
+            VisualStudio.Editor.Verify.CurrentLineText("Goo($$)", assertCaretPosition: true);
         }
 
         [WorkItem(657451, "DevDiv")]
@@ -347,8 +347,8 @@ End Class");
 Class C
     $$");
 
-             VisualStudio.Editor.SendKeys("Sub Goo(");
-             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("Sub Goo(");
+            VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
         }
     }
 }

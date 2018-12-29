@@ -473,7 +473,12 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult,
         System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus,
         System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted,
-        System_Threading_Tasks_ValueTask_T__ctor,
+        System_Threading_Tasks_Sources_IValueTaskSource__GetResult,
+        System_Threading_Tasks_Sources_IValueTaskSource__GetStatus,
+        System_Threading_Tasks_Sources_IValueTaskSource__OnCompleted,
+        System_Threading_Tasks_ValueTask_T__ctorSourceAndToken,
+        System_Threading_Tasks_ValueTask_T__ctorValue,
+        System_Threading_Tasks_ValueTask__ctor,
 
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create,
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete,
@@ -485,8 +490,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ITuple__get_Length,
 
         System_InvalidOperationException__ctor,
-        System_MatchFailureException__ctor,
-        System_MatchFailureException__ctorObject,
+        System_Runtime_CompilerServices_SwitchExpressionException__ctor,
+        System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
 
         Count
 

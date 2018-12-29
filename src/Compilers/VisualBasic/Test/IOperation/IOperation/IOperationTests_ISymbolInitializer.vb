@@ -317,7 +317,7 @@ Class C
     End Function
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IFieldInitializerOperation (Field: C.i1 As System.Int32) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
   IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: '1 + F()')
     Left: 
@@ -346,7 +346,7 @@ Class C
     End Function
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IPropertyInitializerOperation (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializer, Type: null) (Syntax: '= 1 + F()')
   IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: '1 + F()')
     Left: 

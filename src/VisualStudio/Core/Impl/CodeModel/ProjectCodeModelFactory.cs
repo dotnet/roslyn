@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory
     {
         private readonly ConcurrentDictionary<ProjectId, ProjectCodeModel> _projectCodeModels = new ConcurrentDictionary<ProjectId, ProjectCodeModel>();
-        
+
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
         private readonly IServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;

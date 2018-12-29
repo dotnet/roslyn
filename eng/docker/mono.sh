@@ -7,7 +7,7 @@
 set -e
 
 dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-dockerfile="$dir"/docker/mono
+dockerfile="$dir"/Mono
 
 [ -z "$CONTAINER_TAG" ] && CONTAINER_TAG="roslyn-build"
 [ -z "$CONTAINER_NAME" ] && CONTAINER_NAME="roslyn-build-container-mono-nightly"

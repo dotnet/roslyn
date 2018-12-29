@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInferredTupleNames = MessageBase + 12719,
         IDS_FeatureGenericPatternMatching = MessageBase + 12720,
         IDS_FeatureAsyncMain = MessageBase + 12721,
-        IDS_LangVersions = MessageBase +  12722,
+        IDS_LangVersions = MessageBase + 12722,
 
         IDS_FeatureLeadingDigitSeparator = MessageBase + 12723,
         IDS_FeatureNonTrailingNamedArguments = MessageBase + 12724,
