@@ -44,5 +44,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(c.TypeParameters[0], t.Type.TypeSymbol);
             Assert.Equal("t", t.Name);
         }
+
+        [Fact]
+        public void GeneratedProperties()
+        {
+            var comp = CreateCompilation("class C(int x, int y);");
+            comp.VerifyDiagnostics();
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+
+            var x = c.GetProperty("x");
+            Assert.Equal(SpecialType.System_Int32, x.Type.SpecialType);
+            Assert.True(x.IsReadOnly);
+            Assert.Equal(Accessibility.Public, x.DeclaredAccessibility);
+            Assert.False(x.IsVirtual);
+            Assert.False(x.IsStatic);
+
+            var y = c.GetProperty("y");
+            Assert.Equal(SpecialType.System_Int32, y.Type.SpecialType);
+            Assert.True(y.IsReadOnly);
+            Assert.Equal(Accessibility.Public, y.DeclaredAccessibility);
+            Assert.False(x.IsVirtual);
+            Assert.False(x.IsStatic);
+        }
     }
 }
