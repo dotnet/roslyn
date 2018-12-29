@@ -2984,7 +2984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments,
                 out hadNullabilityMismatch,
                 ref useSiteDiagnostics,
-                getTypeWithAnnotationOpt: getTypeWithSpeakableAnnotations);
+                getTypeWithAnnotationOpt: s_getTypeWithSpeakableAnnotations);
 
             if (!result.Success)
             {
@@ -2995,11 +2995,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportSafetyDiagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, node.Syntax, definition);
             }
             return definition.Construct(result.InferredTypeArguments);
-
-            // Note: although only tuple types can have nested types that are unspeakable, we make all nested types speakable to be sure
-            TypeSymbolWithAnnotations getTypeWithSpeakableAnnotations(BoundExpression expr)
-                => TypeSymbolWithAnnotations.Create(expr.Type, GetNullableAnnotation(expr)).SetSpeakableNullabilityForReferenceTypes();
         }
+
+        // Note: although only tuple types can have nested types that are unspeakable, we make all nested types speakable to be sure
+        private readonly static Func<BoundExpression, TypeSymbolWithAnnotations> s_getTypeWithSpeakableAnnotations =
+            (expr) => TypeSymbolWithAnnotations.Create(expr.Type, GetNullableAnnotation(expr)).SetSpeakableNullabilityForReferenceTypes();
 
         private ImmutableArray<BoundExpression> GetArgumentsForMethodTypeInference(ImmutableArray<BoundExpression> arguments, ImmutableArray<TypeSymbolWithAnnotations> argumentResults)
         {

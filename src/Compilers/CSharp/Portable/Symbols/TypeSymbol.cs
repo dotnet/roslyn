@@ -633,23 +633,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result);
 
-        internal abstract TypeSymbol SetNullabilityForReferenceTypes(Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> predicate);
+        internal abstract TypeSymbol SetNullabilityForReferenceTypes(Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> transform);
 
         internal TypeSymbol SetUnknownNullabilityForReferenceTypes()
         {
-            return SetNullabilityForReferenceTypes(setUnknownNullability);
-
-            TypeSymbolWithAnnotations setUnknownNullability(TypeSymbolWithAnnotations type)
-                => type.SetUnknownNullabilityForReferenceTypes();
+            return SetNullabilityForReferenceTypes(s_setUnknownNullability);
         }
+
+        private readonly static Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> s_setUnknownNullability =
+            (type) => type.SetUnknownNullabilityForReferenceTypes();
 
         internal TypeSymbol SetSpeakableNullabilityForReferenceTypes()
         {
-            return SetNullabilityForReferenceTypes(setSpeakableNullability);
-
-            TypeSymbolWithAnnotations setSpeakableNullability(TypeSymbolWithAnnotations type)
-                => type.SetSpeakableNullabilityForReferenceTypes();
+            return SetNullabilityForReferenceTypes(s_setSpeakableNullability);
         }
+
+        private readonly static Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> s_setSpeakableNullability =
+           (type) => type.SetSpeakableNullabilityForReferenceTypes();
 
         /// <summary>
         /// Merges nested nullability from an otherwise identical type.

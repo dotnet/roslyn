@@ -1002,6 +1002,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeSymbolWithAnnotations SetSpeakableNullabilityForReferenceTypes()
         {
+            if (IsNull)
+            {
+                return default;
+            }
+
             var newTypeSymbol = TypeSymbol.SetSpeakableNullabilityForReferenceTypes();
 
             if (!NullableAnnotation.IsSpeakable())

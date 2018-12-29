@@ -2444,7 +2444,7 @@ OuterBreak:
         {
             if (_conversions.IncludeNullability && _getTypeWithAnnotationOpt != null)
             {
-                return _getTypeWithAnnotationOpt.Invoke(expr);
+                return _getTypeWithAnnotationOpt(expr);
             }
             return TypeSymbolWithAnnotations.Create(expr.Type);
         }
