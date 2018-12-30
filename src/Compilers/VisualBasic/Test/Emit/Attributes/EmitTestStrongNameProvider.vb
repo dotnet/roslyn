@@ -33,20 +33,15 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
             Return _underlyingProvider.GetHashCode()
         End Function
 
-        Friend Overrides Function CreateInputStream() As Stream
-            ThrownException = New IOException("This is a test IOException")
-            Throw ThrownException
-        End Function
-
         Friend Overrides Function CreateKeys(keyFilePath As String, keyContainerName As String, hasCounterSigature As Boolean, messageProvider As CommonMessageProvider) As StrongNameKeys
             Return _underlyingProvider.CreateKeys(keyFilePath, keyContainerName, hasCounterSigature, messageProvider)
         End Function
 
-        Friend Overrides Sub SignStream(keys As StrongNameKeys, inputStream As Stream, outputStream As Stream)
-            _underlyingProvider.SignStream(keys, inputStream, outputStream)
+        Friend Overrides Sub SignFile(keys As StrongNameKeys, filePath As String)
+            Throw ThrownException
         End Sub
 
-        Friend Overrides Sub SignPeBuilder(peWriter As ExtendedPEBuilder, peBlob As BlobBuilder, privkey As RSAParameters)
+        Friend Overrides Sub SignBuilder(peWriter As ExtendedPEBuilder, peBlob As BlobBuilder, privkey As RSAParameters)
             Throw ThrownException
         End Sub
     End Class

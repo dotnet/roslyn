@@ -245,7 +245,9 @@ namespace Microsoft.Cci
 
             if (privateKeyOpt != null && corFlags.HasFlag(CorFlags.StrongNameSigned))
             {
-                strongNameProvider.SignPeBuilder(peBuilder, peBlob, privateKeyOpt.Value);
+                // TODO: write a test to verify that SignBuilder isn't called when
+                // signing with the legacy provider.
+                strongNameProvider.SignBuilder(peBuilder, peBlob, privateKeyOpt.Value);
             }
 
             try

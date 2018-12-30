@@ -20,36 +20,20 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        // TODO: delete these they don't matter anymore.
         public abstract override int GetHashCode();
         public override abstract bool Equals(object other);
 
         internal abstract StrongNameFileSystem FileSystem { get; }
 
         /// <summary>
-        /// Create a <see cref="Stream"/> for use in when not signing with a builder (<see cref="Compilation.SignUsingBuilder"/>).
-        /// </summary>
-        // TODO: delete this entirely as the stream management is now done via EmitStream
-        // TOOD: Create and expose a SigningStream. This avoids unnecessary casting in the SignStream method
-        internal virtual Stream CreateInputStream() => throw new NotSupportedException();
-
-        /// <summary>
-        /// Signs the <paramref name="inputStream"/> value using <paramref name="keys"/> and copies the final result
-        /// to <paramref name="outputStream"/>
-        /// </summary>
-        // TODO: delete this entirely as the stream management is now done via EmitStream
-        internal virtual void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream) => throw new NotSupportedException();
-
-        /// <summary>
         /// Signs the <paramref name="filePath"/> value using <paramref name="keys"/>.
         /// </summary>
-        internal virtual void SignFile(StrongNameKeys keys, string filePath) => throw new NotSupportedException();
+        internal abstract void SignFile(StrongNameKeys keys, string filePath);
 
         /// <summary>
         /// Signs the contents of <paramref name="peBuilder"/> using <paramref name="privateKey"/>.
         /// </summary>
-        // TODO: rename to SignBuilder
-        internal virtual void SignPeBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey) => throw new NotSupportedException();
+        internal abstract void SignBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey);
 
         /// <summary>
         /// Create a <see cref="StrongNameKeys"/> for the provided information.

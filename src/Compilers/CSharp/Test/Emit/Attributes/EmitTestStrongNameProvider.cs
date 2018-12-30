@@ -14,43 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class InternalsVisibleToAndStrongNameTests : CSharpTestBase
     {
-        /// <summary>
-        /// A strong name provider which throws an IOException while creating
-        /// the input stream.
-        /// </summary>
-        private class StrongNameProviderWithBadInputStream : StrongNameProvider
-        {
-            private StrongNameProvider _underlyingProvider;
-
-            public Exception ThrownException;
-
-            internal override StrongNameFileSystem FileSystem => ThrowingStrongNameFileSystem.Instance;
-
-            public StrongNameProviderWithBadInputStream(StrongNameProvider underlyingProvider)
-            {
-                _underlyingProvider = underlyingProvider;
-            }
-
-            public override bool Equals(object other) => this == other;
-
-            public override int GetHashCode() => _underlyingProvider.GetHashCode();
-
-            internal override Stream CreateInputStream()
-            {
-                ThrownException = new IOException("This is a test IOException");
-                throw ThrownException;
-            }
-
-            internal override void SignFile(StrongNameKeys keys, string filePath) =>
-                _underlyingProvider.SignFile(keys, filePath);
-
-            internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, bool hasSignatureKey, CommonMessageProvider messageProvider) =>
-                _underlyingProvider.CreateKeys(keyFilePath, keyContainerName, hasSignatureKey, messageProvider);
-
-            internal override void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream) =>
-                _underlyingProvider.SignStream(keys, inputStream, outputStream);
-        }
-
         private class TestDesktopStrongNameProvider : DesktopStrongNameProvider
         {
             private class TestStrongNameFileSystem : StrongNameFileSystem

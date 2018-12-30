@@ -19,94 +19,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public class DesktopStrongNameProvider : StrongNameProvider
     {
-        // TODO: delete this
-        internal sealed class TempFileStream : Stream
-        {
-            private readonly string _path;
-            private readonly Stream _stream;
-
-            public string Path
-            {
-                get { return _path; }
-            }
-
-            public TempFileStream(string path, Stream stream)
-            {
-                _path = path;
-                _stream = stream;
-            }
-
-            public void DisposeUnderlyingStream()
-            {
-                _stream.Dispose();
-            }
-
-            protected override void Dispose(bool disposing)
-            {
-                base.Dispose(disposing);
-
-                _stream.Dispose();
-                try
-                {
-                    File.Delete(_path);
-                }
-                catch
-                {
-                }
-            }
-
-            public override bool CanRead
-            {
-                get { return _stream.CanRead; }
-            }
-
-            public override bool CanSeek
-            {
-                get { return _stream.CanSeek; }
-            }
-
-            public override bool CanWrite
-            {
-                get { return _stream.CanWrite; }
-            }
-
-            public override void Flush()
-            {
-                _stream.Flush();
-            }
-
-            public override long Length
-            {
-                get { return _stream.Length; }
-            }
-
-            public override long Position
-            {
-                get { return _stream.Position; }
-                set { _stream.Position = value; }
-            }
-
-            public override int Read(byte[] buffer, int offset, int count)
-            {
-                return _stream.Read(buffer, offset, count);
-            }
-
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                return _stream.Seek(offset, origin);
-            }
-
-            public override void SetLength(long value)
-            {
-                _stream.SetLength(value);
-            }
-
-            public override void Write(byte[] buffer, int offset, int count)
-            {
-                _stream.Write(buffer, offset, count);
-            }
-        }
-
         // This exception is only used to detect when the acquisition of IClrStrongName fails
         // and the likely reason is that we're running on CoreCLR on a non-Windows platform.
         // The place where the acquisition fails does not have access to localization,
@@ -151,16 +63,6 @@ namespace Microsoft.CodeAnalysis
 
             FileSystem = strongNameFileSystem ?? StrongNameFileSystem.Instance;
             _keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
-        }
-
-        internal override Stream CreateInputStream()
-        {
-            Func<string, Stream> streamConstructor = lPath => new TempFileStream(lPath,
-                new FileStream(lPath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite));
-
-            var tempPath = FileSystem.GetTempPath();
-            var tempName = Path.Combine(tempPath, Guid.NewGuid().ToString("N"));
-            return FileUtilities.CreateFileStreamChecked(streamConstructor, tempName);
         }
 
         internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, bool hasCounterSignature, CommonMessageProvider messageProvider)
@@ -272,22 +174,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal override void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream)
-        {
-            Debug.Assert(inputStream is TempFileStream);
-
-            var tempStream = (TempFileStream)inputStream;
-            string assemblyFilePath = tempStream.Path;
-            tempStream.DisposeUnderlyingStream();
-            SignFile(keys, assemblyFilePath);
-
-            using (var fileToSign = new FileStream(assemblyFilePath, FileMode.Open))
-            {
-                fileToSign.CopyTo(outputStream);
-            }
-        }
-
-        internal override void SignPeBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey)
+        internal override void SignBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey)
         {
             peBuilder.Sign(peBlob, content => SigningUtilities.CalculateRsaSignature(content, privateKey));
         }

@@ -17,20 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var tempDir = Temp.CreateDirectory();
             var provider = new DesktopStrongNameProvider(tempPath: tempDir.Path);
-            using (var stream = (DesktopStrongNameProvider.TempFileStream)provider.CreateInputStream())
-            {
-                Assert.Equal(tempDir.Path, Path.GetDirectoryName(stream.Path));
-            }
+            Assert.Equal(tempDir.Path, provider.FileSystem.GetTempPath());
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void RespectDefaultTempPath()
         {
             var provider = new DesktopStrongNameProvider(tempPath: null);
-            using (var stream = (DesktopStrongNameProvider.TempFileStream)provider.CreateInputStream())
-            {
-                Assert.Equal(Path.GetTempPath(), Path.GetDirectoryName(stream.Path) + @"\");
-            }
+            Assert.Equal(Path.GetTempPath(), provider.FileSystem.GetTempPath());
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
