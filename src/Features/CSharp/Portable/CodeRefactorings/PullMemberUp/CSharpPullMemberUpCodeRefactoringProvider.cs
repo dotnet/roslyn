@@ -55,26 +55,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         protected async override Task<SyntaxNode> GetMatchedNodeAsync(Document document, TextSpan span)
         {
             var root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
-            if (span.IsEmpty)
+            // root.FindNode() will return the syntax node contains the parenthesis or equal sign in the following scenario,
+            // void Bar[||]();
+            // int i[||]= 0;
+            // int j[||]=> 100;
+            // int k[||]{set; }
+            // but refactoring should be provide in for this cases, so move the cursor back
+            // one step to get the syntax node.
+            var token = root.FindToken(span.Start);
+            var isSpecialCaseToken =
+                token.IsKind(SyntaxKind.OpenParenToken) ||
+                token.IsKind(SyntaxKind.OpenBraceToken) ||
+                token.IsKind(SyntaxKind.EqualsGreaterThanToken) ||
+                token.IsKind(SyntaxKind.EqualsToken);
+            if (span.IsEmpty && isSpecialCaseToken)
             {
-                // Still provide the refactoring for following cases when the cursor stands on the rightest of the identifier
-                // void Bar();
-                // int i= 0;
-                // int j=> 100;
-                var token = root.FindToken(span.Start);
-                if (token.IsKind(SyntaxKind.OpenParenToken) ||
-                    token.IsKind(SyntaxKind.EqualsGreaterThanToken) ||
-                    token.IsKind(SyntaxKind.EqualsToken))
-                {
-                    // root.FindNode will return the syntax node contains the '(', '=>' and '-',
-                    // so move the span one step back to get the declaration syntax node
-                    var relocatedSpan = new TextSpan(span.Start > 0 ? span.Start - 1 : 0, length: 0);
-                    return root.FindNode(relocatedSpan);
-                }
-                else
-                {
-                    return root.FindNode(span);
-                }
+                // move the span one step back
+                var relocatedSpan = new TextSpan(span.Start > 0 ? span.Start - 1 : 0, length: 0);
+                // Symbol of this node will be checked later to make sure it is a member
+                return root.FindNode(relocatedSpan);
             }
             else
             {

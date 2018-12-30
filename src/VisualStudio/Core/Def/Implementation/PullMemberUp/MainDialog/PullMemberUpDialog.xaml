@@ -1,46 +1,46 @@
 ﻿<vs:DialogWindow
-     x:Uid="PullMemberUpDialog" 
-     x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog.PullMemberUpDialog"
-     x:ClassModifier="internal"
-     x:Name="dialog"
-     xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
-     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-     xmlns:sys="clr-namespace:System;assembly=mscorlib"
-     xmlns:self="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog"
-     mc:Ignorable="d" 
-     WindowStartupLocation="CenterOwner"
-     Height="498"
-     Width="500"
-     MinHeight="498"
-     MinWidth="500"
-     HasDialogFrame="True"
-     ShowInTaskbar="False"
-     ResizeMode="CanResizeWithGrip"
-     HasHelpButton="True"
-     Title="{Binding ElementName=dialog, Path=PullMembersUpTitle}">
+    x:Uid="PullMemberUpDialog"
+    x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog.PullMemberUpDialog"
+    x:ClassModifier="internal"
+    x:Name="dialog"
+    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:self="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog"
+    mc:Ignorable="d"
+    WindowStartupLocation="CenterOwner"
+    Height="498"
+    Width="500"
+    MinHeight="498"
+    MinWidth="500"
+    HasDialogFrame="True"
+    ShowInTaskbar="False"
+    ResizeMode="CanResizeWithGrip"
+    HasHelpButton="True"
+    Title="{Binding ElementName=dialog, Path=PullMembersUpTitle}">
     <Window.Resources>
         <Thickness x:Key="OkAndCancelButtonPadding">9, 2, 9, 2</Thickness>
         <Thickness x:Key="SelectDependantsButtonPadding">2, 4, 4, 2</Thickness>
         <sys:Double x:Key="ButtonWidth">75</sys:Double>
         <sys:Double x:Key="ButtonHeight">23</sys:Double>
         <Style x:Key="LibraryTreeViewItemStyle" TargetType="{x:Type TreeViewItem}">
-            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
             <Setter Property="FontWeight" Value="Normal" />
-            <Setter Property="AutomationProperties.Name" Value="{Binding SymbolAutomationText}" />
-            <Setter Property="AutomationProperties.AutomationId" Value="{Binding SymbolName}" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding SymbolAutomationText}"/>
+            <Setter Property="AutomationProperties.AutomationId" Value="{Binding SymbolName}"/>
             <Setter Property="IsExpanded" Value="True"/>
             <Style.Resources>
                 <Style TargetType="{x:Type Border}">
-                    <Setter Property="Grid.ColumnSpan" Value="2" />
+                    <Setter Property="Grid.ColumnSpan" Value="2"/>
                 </Style>
             </Style.Resources>
             <Style.Triggers>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                    <Setter Property="FontWeight" Value="Bold" />
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -59,7 +59,7 @@
             <RowDefinition Height="60*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Label 
+        <Label
             Grid.Row="0"
             x:Uid="TitleDescription"
             x:Name="TitleDescription"
@@ -209,7 +209,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <CheckBox
-                                        x:Name="MakeAbstract"
+                                        x:Name="MakeAbstractCheckBox"
                                         Style="{StaticResource CenterCheckbox}"
                                         Visibility="{Binding MakeAbstractVisibility}"
                                         IsEnabled="{Binding IsMakeAbstractCheckable, UpdateSourceTrigger=PropertyChanged}"
