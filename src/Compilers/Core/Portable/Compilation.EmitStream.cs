@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis
             SignedWithFile,
         }
 
+        /// <summary>
+        /// This type abstracts away the legacy COM based signing implementation for PE streams. Under the hood
+        /// a temporary file must be created on disk (at the last possible moment), emitted to, signed on disk
+        /// and then copied back to the original <see cref="Stream"/>. Only when legacy signing is enabled though.
+        /// </summary>
         internal sealed class EmitStream
         {
             private readonly EmitStreamProvider _emitStreamProvider;

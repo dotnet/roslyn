@@ -182,22 +182,19 @@ public class Test
 
             string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""..\", keyFileName, @""")] public class C {}");
             var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs", TestOptions.RegularWithLegacyStrongName);
-
-            var options = TestOptions.ReleaseDll
-                .WithStrongNameProvider(GetProviderWithPath(PathUtilities.CombineAbsoluteAndRelativePaths(keyFileDir, @"TempSubDir\")));
+            var provider = new TestDesktopStrongNameProvider(
+                ImmutableArray.Create(PathUtilities.CombineAbsoluteAndRelativePaths(keyFileDir, @"TempSubDir\")),
+                new VirtualizedStrongNameFileSystem())
+            {
+                GetStrongNameInterfaceFunc = () => throw new DllNotFoundException("aaa.dll not found.")
+            };
+            var options = TestOptions.ReleaseDll.WithStrongNameProvider(provider);
 
             // verify failure
             var comp = CreateCompilation(
                 assemblyName: GetUniqueName(),
                 source: new[] { syntaxTree },
                 options: options);
-
-            var provider = (DesktopStrongNameProvider)comp.Options.StrongNameProvider;
-
-            provider.TestStrongNameInterfaceFactory = () =>
-            {
-                throw new DllNotFoundException("aaa.dll not found.");
-            };
 
             comp.VerifyEmitDiagnostics(
                 // error CS7027: Error signing output with public key from file '..\KeyPair_6187d0d6-f691-47fd-985b-03570bc0668d.snk' -- aaa.dll not found.
@@ -2662,6 +2659,34 @@ class B
                 Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
         }
 
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasCOMInterop)]
+        public void LegacyDoesNotUseBuilder()
+        {
+            var provider = new TestDesktopStrongNameProvider(fileSystem: new VirtualizedStrongNameFileSystem())
+            {
+                SignBuilderFunc = delegate { throw null; }
+            };
+
+            var options = TestOptions.ReleaseDll
+                .WithStrongNameProvider(provider)
+                .WithCryptoKeyFile(s_keyPairFile);
+            var other = CreateCompilation(
+            @"
+public class C
+{
+  static void Goo() {}
+}", options: options, parseOptions: TestOptions.RegularWithLegacyStrongName);
+
+            var tempFile = Temp.CreateFile();
+
+            using (var outStrm = tempFile.Open())
+            {
+                var success = other.Emit(outStrm);
+                Assert.True(success.Success);
+            }
+
+            Assert.True(IsFileFullSigned(tempFile));
+        }
         #endregion
     }
 }

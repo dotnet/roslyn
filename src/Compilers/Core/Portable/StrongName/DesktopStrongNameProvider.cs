@@ -35,9 +35,6 @@ namespace Microsoft.CodeAnalysis
         private readonly ImmutableArray<string> _keyFileSearchPaths;
         internal override StrongNameFileSystem FileSystem { get; }
 
-        // for testing/mocking
-        internal Func<IClrStrongName> TestStrongNameInterfaceFactory;
-
         public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths) : this(keyFileSearchPaths, StrongNameFileSystem.Instance)
         {
 
@@ -185,16 +182,8 @@ namespace Microsoft.CodeAnalysis
         // public key to establish the assembly name and another to do
         // the actual signing
 
-        // internal for testing
-        internal IClrStrongName GetStrongNameInterface()
+        internal virtual IClrStrongName GetStrongNameInterface()
         {
-            var factoryCreated = TestStrongNameInterfaceFactory?.Invoke();
-
-            if (factoryCreated != null)
-            {
-                return factoryCreated;
-            }
-
             try
             {
                 return ClrStrongName.GetInstance();
@@ -251,7 +240,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <exception cref="IOException"/>
         private unsafe void Sign(string filePath, ImmutableArray<byte> keyPair)
         {
             try

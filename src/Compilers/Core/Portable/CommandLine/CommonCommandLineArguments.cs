@@ -282,9 +282,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CultureInfo PreferredUILang { get; internal set; }
 
-        internal StrongNameProvider GetStrongNameProvider(
-            StrongNameFileSystem fileSystem,
-            string tempDirectory) => new DesktopStrongNameProvider(KeyFileSearchPaths, fileSystem);
+        internal StrongNameProvider GetStrongNameProvider(StrongNameFileSystem fileSystem)
+            => new DesktopStrongNameProvider(KeyFileSearchPaths, fileSystem);
 
         internal CommandLineArguments()
         {

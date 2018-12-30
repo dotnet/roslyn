@@ -35,15 +35,20 @@ namespace Roslyn.Test.Utilities
 
         internal static object s_keyInstalledLock = new object();
 
-        // Modifies machine wide state.
+        /// <summary>
+        /// Installs the keys used for testing into the machine cache on Windows.
+        /// </summary>
         internal unsafe static void InstallKey()
         {
-            lock (s_keyInstalledLock)
+            if (ExecutionConditionUtil.IsWindows)
             {
-                if (!s_keyInstalled)
+                lock (s_keyInstalledLock)
                 {
-                    InstallKey(TestResources.General.snKey, TestContainerName);
-                    s_keyInstalled = true;
+                    if (!s_keyInstalled)
+                    {
+                        InstallKey(TestResources.General.snKey, TestContainerName);
+                        s_keyInstalled = true;
+                    }
                 }
             }
         }
