@@ -147,6 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 }");
         }
 
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task SingleReadonlyField_ThisAssigmentInMethod_ReportDiagnostic()
         {
@@ -197,6 +198,145 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
     public void Test()
     {
         [|this = new MyStruct()|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        public async Task SingleProperty_ThisAssigmentInMethod()
+        {
+            await TestDiagnosticMissingAsync(
+@"struct MyStruct
+{
+    public int Value { get; set; }
+
+    public MyStruct(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        [|this = new MyStruct(5)|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        public async Task SingleGetterProperty_ThisAssigmentInMethod()
+        {
+            await TestDiagnosticMissingAsync(
+@"struct MyStruct
+{
+    public int Value { get; }
+
+    public MyStruct(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        [|this = new MyStruct(5)|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        public async Task MultipleStructDeclaration_SingleReadonlyField_ThisAssigmentInMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct MyStruct
+{
+    public readonly int Value;
+
+    public MyStruct(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        this = new MyStruct(5);
+    }
+}
+
+struct MyStruct2
+{
+    public readonly int Value;
+
+    public MyStruct2(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        [|this = new MyStruct2(5)|];
+    }
+}",
+@"struct MyStruct
+{
+    public readonly int Value;
+
+    public MyStruct(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        this = new MyStruct(5);
+    }
+}
+
+struct MyStruct2
+{
+    public int Value;
+
+    public MyStruct2(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        this = new MyStruct2(5);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        public async Task MultipleStructDeclaration_SingleReadonlyField_ThisAssigmentInMethod_ShouldNotReprotDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"struct MyStruct
+{
+    public int Value;
+
+    public MyStruct(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        [|this = new MyStruct(5)|];
+    }
+}
+
+struct MyStruct2
+{
+    public readonly int Value;
+
+    public MyStruct2(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        this = new MyStruct2(5);
     }
 }");
         }
