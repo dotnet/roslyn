@@ -147,6 +147,11 @@
         <target state="translated">'readonly' değiştiricileri, '{0}' özelliğinin veya dizin oluşturucusunun her iki erişimcisinde de belirtilemez. Bunun yerine özelliğin kendisine bir 'readonly' değiştiricisi koyun.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateRecordConstructor">
+        <source>There cannot be a primary constructor and a member constructor with the same parameter types.</source>
+        <target state="new">There cannot be a primary constructor and a member constructor with the same parameter types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">'else' bir deyim başlatamaz.</target>

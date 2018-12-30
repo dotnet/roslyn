@@ -147,6 +147,11 @@
         <target state="translated">'{0}' 속성 또는 인덱서의 두 접근자에 'readonly' 한정자를 지정할 수 없습니다. 대신 속성 자체에 'readonly' 한정자를 지정하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateRecordConstructor">
+        <source>There cannot be a primary constructor and a member constructor with the same parameter types.</source>
+        <target state="new">There cannot be a primary constructor and a member constructor with the same parameter types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">'else'로 문을 시작할 수 없습니다.</target>

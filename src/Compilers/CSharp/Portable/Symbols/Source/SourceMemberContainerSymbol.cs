@@ -2323,6 +2323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Struct:
                     CheckForStructBadInitializers(builder, diagnostics);
                     CheckForStructDefaultConstructors(builder.NonTypeNonIndexerMembers, isEnum: false, diagnostics: diagnostics);
+                    AddSynthesizedRecordMembersIfNecessary(builder, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
                     break;
 
@@ -2334,6 +2335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Class:
                 case TypeKind.Interface:
                 case TypeKind.Submission:
+                    AddSynthesizedRecordMembersIfNecessary(builder, diagnostics);
                     // No additional checking required.
                     AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
                     break;
@@ -2846,9 +2848,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void AddSynthesizedRecordMembersIfNecessary(ArrayBuilder<Symbol> members, DiagnosticBag diagnostics)
+        private void AddSynthesizedRecordMembersIfNecessary(MembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
         {
-            Debug.Assert(declaration.Kind == DeclarationKind.Class || declaration.Kind == DeclarationKind.Struct);
+            switch (declaration.Kind)
+            {
+                case DeclarationKind.Class:
+                case DeclarationKind.Struct:
+                    break;
+
+                default:
+                    return;
+            }
+
+            var members = builder.NonTypeNonIndexerMembers;
 
             ParameterListSyntax? paramList = null;
             foreach (SingleTypeDeclaration decl in declaration.Declarations)
@@ -2901,6 +2913,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 members.Add(ctor);
             }
+            else
+            {
+                diagnostics.Add(ErrorCode.ERR_DuplicateRecordConstructor, paramList.Location);
+            }
+
+            foreach (ParameterSymbol param in ctor.Parameters)
+            {
+                string name = GeneratedNames.MakeBackingFieldName(param.Name);
+                var property = new SynthesizedRecordPropertySymbol(this, param);
+                if (memberSignatures.Add(property) && memberSignatures.Add(property.GetMethod))
+                {
+                    members.Add(property);
+                    members.Add(property.GetMethod);
+                    members.Add(property.BackingField);
+                }
+            }
         }
 
         private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers, DiagnosticBag diagnostics)
@@ -2909,7 +2937,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case DeclarationKind.Class:
                 case DeclarationKind.Struct:
-                    AddSynthesizedRecordMembersIfNecessary(members, diagnostics);
                     break;
             }
 

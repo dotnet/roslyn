@@ -1592,7 +1592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 propertySymbol = propertySymbol.OriginalDefinition;
             }
 
-            var sourceProperty = propertySymbol as SourcePropertySymbol;
+            var sourceProperty = propertySymbol as SourceOrRecordPropertySymbol;
             var propertyIsStatic = propertySymbol.IsStatic;
 
             return (object)sourceProperty != null &&

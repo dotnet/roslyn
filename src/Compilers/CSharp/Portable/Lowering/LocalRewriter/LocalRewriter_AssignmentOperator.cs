@@ -294,10 +294,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)setMethod == null)
             {
-                Debug.Assert((property as SourcePropertySymbol)?.IsAutoProperty == true,
+                Debug.Assert(property is SourceOrRecordPropertySymbol { IsAutoProperty: true },
                     "only autoproperties can be assignable without having setters");
 
-                var backingField = (property as SourcePropertySymbol).BackingField;
+                var backingField = (property as SourceOrRecordPropertySymbol).BackingField;
                 return _factory.AssignmentExpression(
                     _factory.Field(rewrittenReceiver, backingField),
                     rewrittenRight);

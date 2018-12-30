@@ -147,6 +147,11 @@
         <target state="translated">Non è possibile specificare i modificatori 'readonly' in entrambe le funzioni di accesso della proprietà o dell'indicizzatore '{0}'. Inserire invece un modificatore 'readonly' nella proprietà stessa.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateRecordConstructor">
+        <source>There cannot be a primary constructor and a member constructor with the same parameter types.</source>
+        <target state="new">There cannot be a primary constructor and a member constructor with the same parameter types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">Un'istruzione non può iniziare con 'else'.</target>

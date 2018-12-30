@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddSynthesizedMethod(
                             frame.Constructor,
                             FlowAnalysisPass.AppendImplicitReturn(
-                                MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                                MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, Diagnostics),
                                 frame.Constructor));
                     }
 
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSynthesizedMethod(
                         frame.Constructor,
                         FlowAnalysisPass.AppendImplicitReturn(
-                            MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                            MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, diagnostics),
                             frame.Constructor));
 
                     // add cctor

@@ -147,6 +147,11 @@
         <target state="translated">プロパティまたはインデクサー '{0}' の両方のアクセサーで 'readonly' 修飾子を指定することはできません。代わりに、プロパティ自体に 'readonly' 修飾子を指定してください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateRecordConstructor">
+        <source>There cannot be a primary constructor and a member constructor with the same parameter types.</source>
+        <target state="new">There cannot be a primary constructor and a member constructor with the same parameter types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">'else' でステートメントを開始することはできません。</target>

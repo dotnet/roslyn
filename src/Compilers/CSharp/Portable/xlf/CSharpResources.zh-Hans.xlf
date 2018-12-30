@@ -147,6 +147,11 @@
         <target state="translated">不能在属性或索引器 "{0}" 的两个访问器上指定 "readonly" 修饰符。而应在属性本身上指定 "readonly" 修饰符。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateRecordConstructor">
+        <source>There cannot be a primary constructor and a member constructor with the same parameter types.</source>
+        <target state="new">There cannot be a primary constructor and a member constructor with the same parameter types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">"else" 不能用在语句的开头。</target>

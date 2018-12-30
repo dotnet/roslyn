@@ -1739,6 +1739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_ExternEventInitializer = 8760,
         ERR_BadRecordDeclaration = 8761,
+        ERR_DuplicateRecordConstructor = 8762,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

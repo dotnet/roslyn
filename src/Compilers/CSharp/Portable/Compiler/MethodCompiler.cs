@@ -1741,6 +1741,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
             }
+            else if (method is SynthesizedInstanceConstructor ctor)
+            {
+                // Synthesized instance constructors may partially synthesize
+                // their body
+                var node = ctor.GetNonNullSyntaxNode();
+                var factory = new SyntheticBoundNodeFactory(ctor, node, compilationState, diagnostics);
+                var stmts = ArrayBuilder<BoundStatement>.GetInstance();
+                ctor.GenerateMethodBodyStatements(factory, stmts, diagnostics);
+                body = BoundBlock.SynthesizedNoLocals(node, stmts.ToImmutableAndFree());
+            }
             else
             {
                 // synthesized methods should return their bound bodies

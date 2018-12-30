@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             factory.CloseMethod(block);
         }
 
-        protected virtual void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics)
+        internal virtual void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics)
         {
             // overridden in a derived class to add extra statements to the body of the generated constructor
         }
