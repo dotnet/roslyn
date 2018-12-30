@@ -40,27 +40,27 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
             public static void CreateAndRegisterActions(CompilationStartAnalysisContext compilationStartContext)
             {
-                var compilationAnalyzer = new CompilationAnalyzer();
-                compilationAnalyzer.RegisterActions(compilationStartContext);
-            }
-
-            private void RegisterActions(CompilationStartAnalysisContext context)
-            {
-                // We report diagnostic only if these requirements are met:
-                // 1. The type is struct
-                // 2. Struct contains at least one readonly field
-                // 3. Struct contains assignment to 'this' outside the scope of constructor
-
-                context.RegisterSymbolStartAction(symbolStartContext =>
+                compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
                 {
                     // We are only interested in struct declarations
                     var namedTypeSymbol = (INamedTypeSymbol)symbolStartContext.Symbol;
                     if (namedTypeSymbol.TypeKind != TypeKind.Struct) return;
 
-                    symbolStartContext.RegisterSyntaxNodeAction(AnalyzeIfFieldIsReadonly, SyntaxKind.FieldDeclaration);
-                    symbolStartContext.RegisterOperationAction(AnalyzeAssignment, OperationKind.SimpleAssignment);
-                    symbolStartContext.RegisterSymbolEndAction(SymbolEndAction);
+                    var compilationAnalyzer = new CompilationAnalyzer();
+                    compilationAnalyzer.RegisterActions(symbolStartContext);
                 }, SymbolKind.NamedType);
+            }
+
+            private void RegisterActions(SymbolStartAnalysisContext symbolStartContext)
+            {
+                // We report diagnostic only if these requirements are met:
+                // 1. The type is struct
+                // 2. Struct contains at least one 'readonly' field
+                // 3. Struct contains assignment to 'this' outside the scope of constructor
+
+                symbolStartContext.RegisterSyntaxNodeAction(AnalyzeIfFieldIsReadonly, SyntaxKind.FieldDeclaration);
+                symbolStartContext.RegisterOperationAction(AnalyzeAssignment, OperationKind.SimpleAssignment);
+                symbolStartContext.RegisterSymbolEndAction(SymbolEndAction);
             }
 
             private void AnalyzeIfFieldIsReadonly(SyntaxNodeAnalysisContext nodeContext)
