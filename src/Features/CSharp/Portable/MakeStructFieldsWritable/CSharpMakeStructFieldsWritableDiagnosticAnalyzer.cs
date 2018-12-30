@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             IDEDiagnosticIds.MakeStructFieldsWritable,
             new LocalizableResourceString(nameof(FeaturesResources.Make_readonly_fields_writable), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             new LocalizableResourceString(nameof(FeaturesResources.Make_readonly_fields_writable), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            isUnneccessary: true);
+            isUnneccessary: false);
 
         public CSharpMakeStructFieldsWritableDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_diagnosticDescriptor), GeneratedCodeAnalysisFlags.ReportDiagnostics)
