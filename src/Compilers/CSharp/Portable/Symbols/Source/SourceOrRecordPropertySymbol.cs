@@ -30,7 +30,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AllowedAttributeLocations;
 
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => DefaultAttributeLocation;
-
-        public override ImmutableArray<CSharpAttributeData> GetAttributes() => ImmutableArray<CSharpAttributeData>.Empty;
     }
 }

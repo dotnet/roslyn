@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override CallingConvention CallingConvention => throw new NotImplementedException();
 
-        internal override bool MustCallMethodsDirectly => throw new NotImplementedException();
+        internal override bool MustCallMethodsDirectly => false;
 
         internal override ObsoleteAttributeData ObsoleteAttributeData => throw new NotImplementedException();
 
@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override AttributeLocation AllowedAttributeLocations => AttributeLocation.None;
 
         protected override AttributeLocation DefaultAttributeLocation => AttributeLocation.None;
+
+        public override ImmutableArray<CSharpAttributeData> GetAttributes() => ImmutableArray<CSharpAttributeData>.Empty;
 
         internal override bool HasPointerType => Type.IsPointerType();
 
