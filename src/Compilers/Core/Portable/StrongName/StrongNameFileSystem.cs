@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis
                 : () => tempPath;
         }
 
+        internal virtual FileStream CreateFileStream(string filePath, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
+        {
+            return new FileStream(filePath, fileMode, fileAccess, fileShare);
+        }
+
         internal virtual byte[] ReadAllBytes(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));

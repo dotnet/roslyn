@@ -1515,7 +1515,7 @@ public class C {}";
 
             var options = TestOptions.SigningReleaseModule.WithCryptoKeyContainer("roslynTestContainer");
 
-            var other = CreateCompilation(s, options: options);
+            var other = CreateCompilation(s, options: options, parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);

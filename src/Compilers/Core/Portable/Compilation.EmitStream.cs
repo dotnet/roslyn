@@ -97,9 +97,10 @@ namespace Microsoft.CodeAnalysis
 
                     try
                     {
-                        Func<string, Stream> streamConstructor = path => new FileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+                        var fileSystem = _strongNameProvider.FileSystem;
+                        Func<string, Stream> streamConstructor = path => fileSystem.CreateFileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
 
-                        var tempDir = _strongNameProvider.FileSystem.GetTempPath();
+                        var tempDir = fileSystem.GetTempPath();
                         var tempFilePath = Path.Combine(tempDir, Guid.NewGuid().ToString("N"));
                         var tempStream = FileUtilities.CreateFileStreamChecked(streamConstructor, tempFilePath);
 

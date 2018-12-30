@@ -18,10 +18,12 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
     Public Sub BadInputStream()
         SigningTestHelpers.InstallKey()
         Dim thrownException = New IOException("This is a test IOException")
-        Dim testProvider = New TestDesktopStrongNameProvider() With {
-            .SignFileFunc = Sub(a, b) Throw thrownException
+        Dim testFileSystem = New TestStrongNameFileSystem() With {
+            .CreateFileStreamFunc = Function(filePath As String, fileMode As FileMode, fileAccess As FileAccess, fileShare As FileShare) As FileStream
+                                        Throw thrownException
+                                    End Function
         }
-
+        Dim testProvider = New TestDesktopStrongNameProvider(fileSystem:=testFileSystem)
         Dim options = TestOptions.DebugDll.WithStrongNameProvider(testProvider).WithCryptoKeyContainer("RoslynTestContainer")
 
         Dim comp = CreateCompilationWithMscorlib40(
