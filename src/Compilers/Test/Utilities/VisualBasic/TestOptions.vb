@@ -31,7 +31,7 @@ Public Class TestOptions
     Public Shared ReadOnly SigningReleaseExe As VisualBasicCompilationOptions = ReleaseExe.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
     Public Shared ReadOnly SigningDebugDll As VisualBasicCompilationOptions = DebugDll.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
     Public Shared ReadOnly SigningDebugExe As VisualBasicCompilationOptions = DebugExe.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
-    Public Shared ReadOnly SigningReleaseModule As VisualBasicCompilationOptions = SigningReleaseModule.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
+    Public Shared ReadOnly SigningReleaseModule As VisualBasicCompilationOptions = ReleaseModule.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
 End Class
 
 Friend Module TestOptionExtensions

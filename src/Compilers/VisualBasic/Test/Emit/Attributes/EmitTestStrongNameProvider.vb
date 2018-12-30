@@ -20,10 +20,10 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
 
         Friend Overrides ReadOnly Property FileSystem As StrongNameFileSystem = ThrowingStrongNameFileSystem.Instance
 
-        Public Sub New(underlyingProvider As StrongNameProvider)
+        Public Sub New(underlyingProvider As StrongNameProvider, thrownException As Exception)
             _underlyingProvider = underlyingProvider
+            Me.ThrownException = thrownException
         End Sub
-
 
         Public Overrides Function Equals(other As Object) As Boolean
             Return Me Is other
@@ -49,7 +49,8 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
     <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     Public Sub BadInputStream()
         SigningTestHelpers.InstallKey()
-        Dim testProvider = New StrongNameProviderWithBadInputStream(DefaultDesktopStrongNameProvider)
+        Dim thrownException = New IOException("This is a test IOException")
+        Dim testProvider = New StrongNameProviderWithBadInputStream(DefaultDesktopStrongNameProvider, thrownException)
         Dim options = TestOptions.DebugDll.WithStrongNameProvider(testProvider).WithCryptoKeyContainer("RoslynTestContainer")
 
         Dim comp = CreateCompilationWithMscorlib40(
