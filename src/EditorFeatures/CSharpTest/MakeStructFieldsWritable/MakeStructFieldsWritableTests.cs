@@ -54,18 +54,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
             await TestDiagnosticMissingAsync(
 @"struct MyStruct
 {
-    public int Third;
+    public int Value;
 
-    public MyStruct(int first, int second, int third)
+    public MyStruct(int value)
     {
-        First = first;
-        Second = second;
-        Third = third;
+        Value = value;
     }
 
     public void Test()
     {
-        [|this = new MyStruct(5, 3, 1)|];
+        [|this = new MyStruct(5)|];
     }
 }");
         }
@@ -146,7 +144,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
     }
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task SingleReadonlyField_ThisAssigmentInMethod_ReportDiagnostic()
