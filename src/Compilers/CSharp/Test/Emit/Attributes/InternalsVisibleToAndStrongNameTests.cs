@@ -1023,7 +1023,7 @@ public class Test
             requestor.VerifyDiagnostics();
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IVTDeferredSuccess(CSharpParseOptions parseOptions)
         {
@@ -1151,7 +1151,7 @@ public class A
             Assert.Empty(requestor.GetDiagnostics());
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IVTDeferredFailKeyMismatchIAssembly(CSharpParseOptions parseOptions)
         {
