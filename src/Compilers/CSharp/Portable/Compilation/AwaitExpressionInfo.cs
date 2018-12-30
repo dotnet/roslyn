@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly AwaitableInfo _awaitableInfo;
 
-        public IMethodSymbol GetAwaiterMethod => _awaitableInfo.GetAwaiter;
+        public IMethodSymbol GetAwaiterMethod => _awaitableInfo?.GetAwaiter;
 
-        public IPropertySymbol IsCompletedProperty => _awaitableInfo.IsCompleted;
+        public IPropertySymbol IsCompletedProperty => _awaitableInfo?.IsCompleted;
 
-        public IMethodSymbol GetResultMethod => _awaitableInfo.GetResult;
+        public IMethodSymbol GetResultMethod => _awaitableInfo?.GetResult;
 
-        public bool IsDynamic => _awaitableInfo.IsDynamic;
+        public bool IsDynamic => _awaitableInfo?.IsDynamic == true;
 
         internal AwaitExpressionInfo(AwaitableInfo awaitableInfo)
         {
