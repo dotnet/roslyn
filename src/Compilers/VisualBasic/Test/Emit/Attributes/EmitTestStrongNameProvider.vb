@@ -14,7 +14,7 @@ Imports Roslyn.Test.Utilities.SigningTestHelpers
 Partial Public Class InternalsVisibleToAndStrongNameTests
     Inherits BasicTestBase
 
-    <Fact>
+    <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     Public Sub BadInputStream()
         SigningTestHelpers.InstallKey()
         Dim thrownException = New IOException("This is a test IOException")

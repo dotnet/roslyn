@@ -145,7 +145,7 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestHasWindowsPaths)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void PubKeyFromKeyFileAttribute_AssemblyKeyFileResolver_RelativeToCurrentParent(CSharpParseOptions parseOptions)
         {
@@ -174,7 +174,7 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestHasWindowsPaths)]
         public void SigningNotAvailable001()
         {
             string keyFileDir = Path.GetDirectoryName(s_keyPairFile);
@@ -202,7 +202,7 @@ public class Test
             );
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void PubKeyFromKeyContainerAttribute(CSharpParseOptions parseOptions)
         {
@@ -345,7 +345,7 @@ public class Test
         }
 
         [WorkItem(5662, "https://github.com/dotnet/roslyn/issues/5662")]
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void PubKeyContainerBogusOptions(CSharpParseOptions parseOptions)
         {
@@ -375,7 +375,7 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void KeyContainerAttributeOptionConflict(CSharpParseOptions parseOptions)
         {
@@ -831,7 +831,7 @@ public class C {}",
             Assert.Empty(c2.GetDiagnostics());
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IVTSigned(CSharpParseOptions parseOptions)
         {
@@ -1053,7 +1053,7 @@ public class A
             Assert.Empty(requestor.GetDiagnostics());
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IVTDeferredFailSignMismatch(CSharpParseOptions parseOptions)
         {
@@ -1083,7 +1083,7 @@ public class A
                 Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" }));
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IVTDeferredFailKeyMismatch(CSharpParseOptions parseOptions)
         {
@@ -1121,7 +1121,7 @@ public class A
                 );
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IVTSuccessThroughIAssembly(CSharpParseOptions parseOptions)
         {
@@ -1266,7 +1266,7 @@ public class C
 
         #region Signing
 
-        [Theory]
+        [ConditionalTheory(typeof(DesktopOnly), Reason = "TODO track down why this key size won't load on CoreClr")]
         [MemberData(nameof(AllProviderParseOptions))]
         public void MaxSizeKey(CSharpParseOptions parseOptions)
         {
@@ -1417,7 +1417,7 @@ public class Z
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute, parseOptions);
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void SignModuleKeyContainerAttr(CSharpParseOptions parseOptions)
         {
@@ -1430,7 +1430,7 @@ public class Z
         }
 
         [WorkItem(5665, "https://github.com/dotnet/roslyn/issues/5665")]
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void SignModuleKeyContainerBogus(CSharpParseOptions parseOptions)
         {
@@ -1489,7 +1489,7 @@ public class Z
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void SignModuleKeyContainerCmdLine(CSharpParseOptions parseOptions)
         {
@@ -1506,7 +1506,7 @@ public class Z
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void SignModuleKeyContainerCmdLine_1(CSharpParseOptions parseOptions)
         {
@@ -2305,7 +2305,7 @@ e29df38b5c72727c1333f32001949a0a0e2c10f8af0a344300ab2123052840cb16e30176c7281810
         }
 #endif
 
-        [Theory]
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void AssemblySignatureKeyAttribute_1(CSharpParseOptions parseOptions)
         {

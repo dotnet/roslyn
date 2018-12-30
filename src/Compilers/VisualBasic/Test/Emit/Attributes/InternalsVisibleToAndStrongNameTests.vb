@@ -110,7 +110,7 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
         Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey))
     End Sub
 
-    <Theory>
+    <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub PubKeyFromKeyFileAttribute_AssemblyKeyFileResolver_RelativeToCurrentParent(parseOptions As VisualBasicParseOptions)
         Dim keyFileDir = Path.GetDirectoryName(s_keyPairFile)
@@ -140,7 +140,7 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
         Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey))
     End Sub
 
-    <Theory>
+    <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub PubKeyFromKeyContainerAttribute(parseOptions As VisualBasicParseOptions)
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
@@ -478,7 +478,7 @@ End Class
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
 
-    <Theory>
+    <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub PubKeyContainerBogusOptions(parseOptions As VisualBasicParseOptions)
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
@@ -627,7 +627,7 @@ End Class
         c2.VerifyDiagnostics()
     End Sub
 
-    <Theory>
+    <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub SignModuleKeyContainerBogus(parseOptions As VisualBasicParseOptions)
         Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib40(
@@ -693,7 +693,7 @@ End Class
         c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments("bogus", CodeAnalysisResources.FileNotFound))
     End Sub
 
-    <Theory>
+    <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub IVTSigned(parseOptions As VisualBasicParseOptions)
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
@@ -833,7 +833,7 @@ End Class
 
     End Sub
 
-    <Theory>
+    <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub IVTDeferredSuccess(parseOptions As VisualBasicParseOptions)
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
@@ -865,7 +865,7 @@ End Class
         requestor.AssertNoDiagnostics()
     End Sub
 
-    <Theory>
+    <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub IVTDeferredFailSignMismatch(parseOptions As VisualBasicParseOptions)
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
@@ -898,7 +898,7 @@ End Class
             <error>BC36958: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the strong name signing state of the output assembly does not match that of the granting assembly.</error>)
     End Sub
 
-    <Theory>
+    <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub IVTDeferredFailKeyMismatch(parseOptions As VisualBasicParseOptions)
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
@@ -932,7 +932,7 @@ End Class
 
     End Sub
 
-    <Theory>
+    <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub IVTSuccessThroughIAssembly(parseOptions As VisualBasicParseOptions)
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
@@ -1082,7 +1082,7 @@ BC31535: Friend assembly reference 'WantsIVTAccess' is invalid. Strong-name sign
 
 #Region "Signing"
 
-    <Theory>
+    <ConditionalTheory(GetType(DesktopOnly), Reason:="TODO: find out why this won't load on CoreClr")>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub MaxSizeKey(parseOptions As VisualBasicParseOptions)
         Dim pubKey = TestResources.General.snMaxSizePublicKeyString
@@ -1427,7 +1427,7 @@ End Class
         End Using
     End Sub
 
-    <Theory>
+    <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub SignModuleKeyContainerAttr(parseOptions As VisualBasicParseOptions)
         Dim source =
@@ -1453,7 +1453,7 @@ End Class
     End Sub
 
     <WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
-    <Theory>
+    <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub SignModuleKeyContainerCmdLine(parseOptions As VisualBasicParseOptions)
         Dim source =
@@ -1477,7 +1477,7 @@ End Class
     End Sub
 
     <WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")>
-    <Theory>
+    <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub SignModuleKeyContainerCmdLine_1(parseOptions As VisualBasicParseOptions)
         Dim source =
@@ -1707,7 +1707,7 @@ BC41997: Referenced assembly 'Unsigned, Version=0.0.0.0, Culture=neutral, Public
         Next
     End Sub
 
-    <Theory>
+    <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub AssemblySignatureKeyAttribute_1(parseOptions As VisualBasicParseOptions)
         Dim other As VisualBasicCompilation = CreateEmptyCompilationWithReferences(
@@ -1762,7 +1762,7 @@ BC37209: Invalid signature public key specified in AssemblySignatureKeyAttribute
 </expected>)
     End Sub
 
-    <Theory>
+    <ConditionalTheory(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub AssemblySignatureKeyAttribute_3(parseOptions As VisualBasicParseOptions)
         Dim other As VisualBasicCompilation = CreateEmptyCompilationWithReferences(
