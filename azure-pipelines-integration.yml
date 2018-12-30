@@ -1,3 +1,13 @@
+# Branches that trigger a build on commit
+trigger:
+- master
+- master-vs-deps
+
+# Branches that trigger builds on PR   
+pr:
+- master
+- master-vs-deps
+
 jobs:
 - job: Windows_VisualStudio_Integration_Tests
   pool: dotnet-external-temp-vs2017
