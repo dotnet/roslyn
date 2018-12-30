@@ -46,6 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
             private void RegisterActions(CompilationStartAnalysisContext context)
             {
+                // We report diagnostic only if these requirements are met:
+                // 1. The type is struct
+                // 2. Struct contains at least one readonly field
+                // 3. Struct contains assignment to 'this' outside the scope of constructor
+
                 context.RegisterSymbolStartAction(symbolStartContext =>
                 {
                     // We are only interested in struct declarations
@@ -60,12 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
             private void AnalyzeIfFieldIsReadonly(SyntaxNodeAnalysisContext nodeContext)
             {
+                // We are looking for at least one 'readonly' field
                 var fieldSymbol = (IFieldSymbol)nodeContext.ContainingSymbol;
                 _hasReadonlyField |= fieldSymbol.IsReadOnly;
             }
 
             private void AnalyzeAssignment(OperationAnalysisContext operationContext)
             {
+                // We are looking for assignment to 'this' outside the constructor scope
                 var operationAssigmnent = (IAssignmentOperation)operationContext.Operation;
                 _hasTypeInstanceAssigment = operationAssigmnent.Target is IInstanceReferenceOperation instance &&
                                             instance.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance;
