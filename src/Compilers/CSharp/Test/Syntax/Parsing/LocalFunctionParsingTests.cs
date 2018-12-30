@@ -607,5 +607,74 @@ class c
 }");
             file.SyntaxTree.GetDiagnostics().Verify();
         }
+
+        [Fact]
+        public void StaticFunction()
+        {
+            const string text =
+@"class Program
+{
+    void M()
+    {
+        static void F() { }
+    }
+}";
+
+            UsingDeclaration(text, options: TestOptions.Regular7_3,
+                // (5,9): error CS8421: To use 'static' local functions, please use language version 8.0 or greater.
+                //         static void F() { }
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionModifier, "static").WithArguments("8.0").WithLocation(5, 9));
+            checkNodes();
+
+            UsingDeclaration(text, options: TestOptions.Regular8);
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
     }
 }

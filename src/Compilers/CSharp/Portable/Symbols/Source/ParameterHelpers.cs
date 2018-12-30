@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 methodOwner.TypeParameters :
                 default(ImmutableArray<TypeParameterSymbol>);
 
-            binder.ValidateParameterNameConflicts(typeParameters, parameters, diagnostics);
+            binder.ValidateParameterNameConflicts(typeParameters, parameters, isLocalFunction: methodOwner?.MethodKind == MethodKind.LocalFunction, diagnostics);
             return parameters;
         }
 

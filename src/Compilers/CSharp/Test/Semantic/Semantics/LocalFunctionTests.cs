@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         internal static readonly CSharpParseOptions DefaultParseOptions = TestOptions.Regular;
 
-        internal void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
+        internal static void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
         {
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
 
-        internal void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
+        internal static void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
         {
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
@@ -1088,12 +1088,6 @@ class C
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (9,23): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //             int Local<T>() => 0; // Should conflict with above
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(9, 23),
-                // (14,19): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //             int T<T>() => 0;
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(14, 19),
                 // (18,26): error CS0692: Duplicate type parameter 'T'
                 //             int Local<T, T>() => 0;
                 Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(18, 26),
@@ -1784,11 +1778,7 @@ class Program
     }
 }
 ";
-            VerifyDiagnostics(source,
-    // (7,24): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         void Param(int x) { }
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(7, 24)
-    );
+            VerifyDiagnostics(source);
         }
 
         [Fact]
@@ -1806,13 +1796,9 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (7,22): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         void Generic<T>() { }
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(7, 22),
-    // (6,13): warning CS0168: The variable 'T' is declared but never used
-    //         int T;
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "T").WithArguments("T").WithLocation(6, 13)
-    );
+                // (6,13): warning CS0168: The variable 'T' is declared but never used
+                //         int T;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "T").WithArguments("T").WithLocation(6, 13));
         }
 
         [Fact]
@@ -3890,6 +3876,228 @@ var lambda = new System.Action(() =>
 });";
             CreateSubmission(source, previous: previous)
                 .VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowName_Local_01()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System.Linq;
+class Program
+{
+    static void M()
+    {
+        object x = null;
+        void F1() { object x = 0; } // local
+        void F2(string x) { } // parameter
+        void F3() { void x() { } } // method
+        void F4<x>() { } // type parameter
+        void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F3() { void x() { } } // method
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 26),
+                // (13,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 30));
+        }
+
+        [Fact]
+        public void ShadowName_Local_02()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System.Linq;
+class Program
+{
+    static void M()
+    {
+        void F1() { object x = 0; } // local
+        void F2(string x) { } // parameter
+        void F3() { void x() { } } // method
+        void F4<x>() { } // type parameter
+        void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+        object x = null;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F3() { void x() { } } // method
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 26),
+                // (12,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(12, 30));
+        }
+
+        [Fact]
+        public void ShadowName_Parameter()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System.Linq;
+class Program
+{
+    static void M(object x)
+    {
+        void F1() { object x = 0; } // local
+        void F2(string x) { } // parameter
+        void F3() { void x() { } } // method
+        void F4<x>() { } // type parameter
+        void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F3() { void x() { } } // method
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 26),
+                // (12,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(12, 30));
+        }
+
+        [Fact]
+        public void ShadowName_TypeParameter()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System.Linq;
+class Program
+{
+    static void M<x>()
+    {
+        void F1() { object x = 0; } // local
+        void F2(string x) { } // parameter
+        void F3() { void x() { } } // method
+        void F4<x>() { } // type parameter
+        void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,26): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         void F3() { void x() { } } // method
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(10, 26),
+                // (11,17): warning CS8387: Type parameter 'x' has the same name as the type parameter from outer method 'Program.M<x>()'
+                //         void F4<x>() { } // type parameter
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "x").WithArguments("x", "Program.M<x>()").WithLocation(11, 17),
+                // (12,30): error CS1948: The range variable 'x' cannot have the same name as a method type parameter
+                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "x").WithArguments("x").WithLocation(12, 30));
+        }
+
+        [Fact]
+        public void StaticWithThisReference()
+        {
+            var source =
+@"#pragma warning disable 8321
+class C
+{
+    void M()
+    {
+        static object F1() => this.GetHashCode();
+        static object F2() => base.GetHashCode();
+        static void F3()
+        {
+            object G3() => ToString();
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,31): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                //         static object F1() => this.GetHashCode();
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(6, 31),
+                // (7,31): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                //         static object F2() => base.GetHashCode();
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "base").WithLocation(7, 31),
+                // (10,28): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                //             object G3() => ToString();
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "ToString").WithLocation(10, 28));
+        }
+
+        [Fact]
+        public void StaticWithVariableReference()
+        {
+            var source =
+@"#pragma warning disable 8321
+class C
+{
+    static void M(object x)
+    {
+        object y = null;
+        static object F1() => x;
+        static object F2() => y;
+        static void F3()
+        {
+            object G3() => x;
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,31): error CS8423: A static local function cannot contain a reference to 'x'.
+                //         static object F1() => x;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(7, 31),
+                // (8,31): error CS8423: A static local function cannot contain a reference to 'y'.
+                //         static object F2() => y;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "y").WithArguments("y").WithLocation(8, 31),
+                // (11,28): error CS8423: A static local function cannot contain a reference to 'x'.
+                //             object G3() => x;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(11, 28));
+        }
+
+        [Fact]
+        public void StaticWithLocalFunctionVariableReference()
+        {
+            var source =
+@"#pragma warning disable 8321
+class C
+{
+    static void M()
+    {
+        static void F(object x)
+        {
+            object y = null;
+            object G1() => x ?? y;
+            static object G2() => x ?? y;
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,35): error CS8423: A static local function cannot contain a reference to 'x'.
+                //             static object G2() => x ?? y;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(10, 35),
+                // (10,40): error CS8423: A static local function cannot contain a reference to 'y'.
+                //             static object G2() => x ?? y;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "y").WithArguments("y").WithLocation(10, 40));
+        }
+
+        [Fact]
+        public void StaticWithNameOf()
+        {
+            var source =
+@"#pragma warning disable 8321
+class C
+{
+    void M(object x)
+    {
+        static object F1() => nameof(this.M);
+        static object F2() => nameof(x);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

@@ -510,6 +510,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             closure.CapturedVariables.Add(symbol);
 
+                            if ((closure.OriginalMethodSymbol as LocalFunctionSymbol)?.IsStaticLocalFunction == true)
+                            {
+                                var diagInfo = (symbol as ParameterSymbol)?.IsThis == true ?
+                                    new CSDiagnosticInfo(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis) :
+                                    new CSDiagnosticInfo(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, new FormattedSymbol(symbol, SymbolDisplayFormat.ShortFormat));
+                                _diagnostics.Add(diagInfo, syntax.Location);
+                            }
+
                             // Also mark captured in enclosing scopes
                             while (scope.ContainingClosureOpt == closure)
                             {

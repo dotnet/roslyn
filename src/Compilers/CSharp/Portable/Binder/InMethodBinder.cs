@@ -320,9 +320,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
         {
-            Symbol existingDeclaration;
-
-
             var parameters = _methodSymbol.Parameters;
             var typeParameters = _methodSymbol.TypeParameters;
 
@@ -342,6 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _lazyDefinitionMap = map;
             }
 
+            Symbol existingDeclaration;
             if (map.TryGetValue(name, out existingDeclaration))
             {
                 return ReportConflictWithParameter(existingDeclaration, symbol, name, location, diagnostics);

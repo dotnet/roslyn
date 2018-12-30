@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void ValidateParameterNameConflicts(
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ParameterSymbol> parameters,
+            bool isLocalFunction,
             DiagnosticBag diagnostics)
         {
             PooledHashSet<string> tpNames = null;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Type parameter declaration name conflicts are detected elsewhere
                     }
-                    else
+                    else if (!isLocalFunction)
                     {
                         ValidateDeclarationNameConflictsInScope(tp, diagnostics);
                     }
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // The parameter name '{0}' is a duplicate
                         diagnostics.Add(ErrorCode.ERR_DuplicateParamName, GetLocation(p), name);
                     }
-                    else
+                    else if (!isLocalFunction)
                     {
                         ValidateDeclarationNameConflictsInScope(p, diagnostics);
                     }
@@ -111,6 +112,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
 
+                // symbols inside local function shadow names in scopes outside local function
+                var method = (binder as InMethodBinder)?.ContainingMemberOrLambda as MethodSymbol;
+                if (method?.MethodKind == MethodKind.LocalFunction)
+                {
+                    switch (symbol?.Kind)
+                    {
+                        case SymbolKind.Local:
+                        case SymbolKind.Parameter:
+                        case SymbolKind.TypeParameter:
+                            Debug.Assert(!error); // If the assert fails, add a corresponding test.
+                            goto End;
+                    }
+                }
+
                 var scope = binder as LocalScopeBinder;
                 if (scope != null)
                 {
@@ -118,6 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+End:
             return error;
         }
     }
