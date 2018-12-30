@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public class DesktopStrongNameProvider : StrongNameProvider
     {
+        // TODO: delete this
         internal sealed class TempFileStream : Stream
         {
             private readonly string _path;
@@ -259,6 +260,18 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal override void SignFile(StrongNameKeys keys, string filePath)
+        {
+            if (keys.KeyContainer != null)
+            {
+                Sign(filePath, keys.KeyContainer);
+            }
+            else
+            {
+                Sign(filePath, keys.KeyPair);
+            }
+        }
+
         internal override void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream)
         {
             Debug.Assert(inputStream is TempFileStream);
@@ -266,15 +279,7 @@ namespace Microsoft.CodeAnalysis
             var tempStream = (TempFileStream)inputStream;
             string assemblyFilePath = tempStream.Path;
             tempStream.DisposeUnderlyingStream();
-
-            if (keys.KeyContainer != null)
-            {
-                Sign(assemblyFilePath, keys.KeyContainer);
-            }
-            else
-            {
-                Sign(assemblyFilePath, keys.KeyPair);
-            }
+            SignFile(keys, assemblyFilePath);
 
             using (var fileToSign = new FileStream(assemblyFilePath, FileMode.Open))
             {

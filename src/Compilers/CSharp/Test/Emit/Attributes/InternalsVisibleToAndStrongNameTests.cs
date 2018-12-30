@@ -124,10 +124,10 @@ public class Test
             string keyFileName = Path.GetFileName(s_keyPairFile);
 
             string s = string.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", keyFileName, @""")] public class C {}");
-            var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs");
+            var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs", parseOptions);
 
             // verify failure with default assembly key file resolver
-            var comp = CreateCompilation(syntaxTree, options: TestOptions.ReleaseDll, parseOptions: parseOptions);
+            var comp = CreateCompilation(syntaxTree, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(keyFileName, "Assembly signing not supported."));
 
@@ -153,10 +153,10 @@ public class Test
             string keyFileName = Path.GetFileName(s_keyPairFile);
 
             string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""..\", keyFileName, @""")] public class C {}");
-            var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs");
+            var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs", parseOptions);
 
             // verify failure with default assembly key file resolver
-            var comp = CreateCompilation(syntaxTree, options: TestOptions.ReleaseDll, parseOptions: parseOptions);
+            var comp = CreateCompilation(syntaxTree, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // error CS7027: Error extracting public key from file '..\KeyPairFile.snk' -- File not found.
                 Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(@"..\" + keyFileName, "Assembly signing not supported."));
@@ -174,9 +174,8 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
         }
 
-        [Theory]
-        [MemberData(nameof(AllProviderParseOptions))]
-        public void SigningNotAvailable001(CSharpParseOptions parseOptions)
+        [Fact]
+        public void SigningNotAvailable001()
         {
             string keyFileDir = Path.GetDirectoryName(s_keyPairFile);
             string keyFileName = Path.GetFileName(s_keyPairFile);
@@ -191,9 +190,7 @@ public class Test
             var comp = CreateCompilation(
                 assemblyName: GetUniqueName(),
                 source: new[] { syntaxTree },
-                references: new[] { MscorlibRef },
-                options: options,
-                parseOptions: parseOptions);
+                options: options);
 
             var provider = (DesktopStrongNameProvider)comp.Options.StrongNameProvider;
 
@@ -1558,7 +1555,7 @@ public class C {}";
             string s = "public class C {}";
 
             var options = TestOptions.SigningReleaseModule.WithCryptoKeyFile(s_keyPairFile);
-            var other = CreateCompilation(s, options: options);
+            var other = CreateCompilation(s, options: options, parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);
@@ -1618,7 +1615,7 @@ public class C {}";
             string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", x, @""")] public class C {}");
 
             var options = TestOptions.SigningReleaseModule.WithCryptoKeyFile(s_keyPairFile);
-            var other = CreateCompilation(s, options: options);
+            var other = CreateCompilation(s, options: options, parseOptions: parseOptions);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);

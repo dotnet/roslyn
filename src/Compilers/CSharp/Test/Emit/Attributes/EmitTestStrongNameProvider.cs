@@ -41,6 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 throw ThrownException;
             }
 
+            internal override void SignFile(StrongNameKeys keys, string filePath) =>
+                _underlyingProvider.SignFile(keys, filePath);
+
             internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, bool hasSignatureKey, CommonMessageProvider messageProvider) =>
                 _underlyingProvider.CreateKeys(keyFilePath, keyContainerName, hasSignatureKey, messageProvider);
 
@@ -139,26 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // error CS7028: Error signing output with public key from container 'RoslynTestContainer' -- Crazy exception you could never have predicted!
                 Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("RoslynTestContainer", ex.Message).WithLocation(1, 1));
-        }
-
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
-        public void BadInputStream()
-        {
-            string src = @"
-class C
-{
-    public static void Main(string[] args) { }
-}";
-            var testProvider = new StrongNameProviderWithBadInputStream(DefaultDesktopStrongNameProvider);
-            var options = TestOptions.DebugExe
-                .WithStrongNameProvider(testProvider)
-                .WithCryptoKeyContainer("RoslynTestContainer");
-
-            var comp = CreateCompilation(src, options: options);
-
-            comp.Emit(new MemoryStream()).Diagnostics.Verify(
-                // error CS8104: An error occurred while writing the Portable Executable file.
-                Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(testProvider.ThrownException.ToString()).WithLocation(1, 1));
         }
     }
 }
