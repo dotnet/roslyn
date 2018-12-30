@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LookupPositionTests : CompilingTestBase
     {
         private const char KeyPositionMarker = '`';
-        
+
         [Fact]
         public void PositionalRecord1()
         {
@@ -49,6 +49,8 @@ class C(int x, int y);";
                 Add( // C Type parameters
                     "T"),
                 Add( // Members
+                    "System.Int32 C<T>.x { get; }",
+                    "T C<T>.t { get; }",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
