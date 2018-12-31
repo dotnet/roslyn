@@ -6638,6 +6638,60 @@ class Program
         }
 
         [Fact]
+        public void NormalInitializerType_ArrayOfGenericStruct8()
+        {
+            var text = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        var a = new MyStruct<int>[2];
+        a[0].field = 42;
+
+        fixed (MyStruct<int>* p = a)
+        {
+            System.Console.Write(p->field);
+        }
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "42");
+        }
+
+        [Fact]
+        public void NormalInitializerType_ArrayOfGenericStruct_RequiresCSharp8()
+        {
+            var text = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        var a = new MyStruct<int>[2];
+
+        fixed (void* p = a)
+        {
+        }
+    }
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (13,26): error CS8370: Feature 'unmanaged generic structs' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         fixed (void* p = a)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "a").WithArguments("unmanaged generic structs", "8.0").WithLocation(13, 26)
+            );
+        }
+
+        [Fact]
         public void NormalInitializerType_Array()
         {
             var text = @"
