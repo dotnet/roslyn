@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 methodOwner.TypeParameters :
                 default(ImmutableArray<TypeParameterSymbol>);
 
-            binder.ValidateParameterNameConflicts(typeParameters, parameters, isLocalFunction: methodOwner?.MethodKind == MethodKind.LocalFunction, diagnostics);
+            bool allowShadowing = methodOwner?.MethodKind == MethodKind.LocalFunction && binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticLocalFunctions);
+            binder.ValidateParameterNameConflicts(typeParameters, parameters, checkContainingScopes: !allowShadowing, diagnostics);
             return parameters;
         }
 

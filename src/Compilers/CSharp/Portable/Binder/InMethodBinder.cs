@@ -280,6 +280,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
+                if (newSymbolKind == SymbolKind.TypeParameter)
+                {
+                    // Type parameter declaration name conflicts are not reported, for backwards compatibility.
+                    return false;
+                }
+
                 if (newSymbolKind == SymbolKind.RangeVariable)
                 {
                     // The range variable '{0}' conflicts with a previous declaration of '{0}'

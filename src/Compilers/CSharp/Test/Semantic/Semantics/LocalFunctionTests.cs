@@ -19,12 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
-
-        internal static void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
-        {
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(expected);
-        }
     }
 
     [CompilerTrait(CompilerFeature.LocalFunctions)]
@@ -1934,7 +1928,8 @@ class Program
     }
 }
 ";
-            VerifyDiagnostics(source, TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2419,20 +2414,32 @@ class Program
     }
 }
 ";
-            VerifyDiagnostics(source,
-    // (6,9): error CS0106: The modifier 'const' is not valid for this item
-    //         const void LocalConst()
-    Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(6, 9),
-    // (9,9): error CS0106: The modifier 'static' is not valid for this item
-    //         static void LocalStatic()
-    Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(9, 9),
-    // (12,9): error CS0106: The modifier 'readonly' is not valid for this item
-    //         readonly void LocalReadonly()
-    Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(12, 9),
-    // (15,9): error CS0106: The modifier 'volatile' is not valid for this item
-    //         volatile void LocalVolatile()
-    Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(15, 9)
-                );
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0106: The modifier 'const' is not valid for this item
+                //         const void LocalConst()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(6, 9),
+                // (9,9): error CS8421: To use 'static' local functions, please use language version 8.0 or greater.
+                //         static void LocalStatic()
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionModifier, "static").WithArguments("8.0").WithLocation(9, 9),
+                // (12,9): error CS0106: The modifier 'readonly' is not valid for this item
+                //         readonly void LocalReadonly()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(12, 9),
+                // (15,9): error CS0106: The modifier 'volatile' is not valid for this item
+                //         volatile void LocalVolatile()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(15, 9));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0106: The modifier 'const' is not valid for this item
+                //         const void LocalConst()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(6, 9),
+                // (12,9): error CS0106: The modifier 'readonly' is not valid for this item
+                //         readonly void LocalReadonly()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(12, 9),
+                // (15,9): error CS0106: The modifier 'volatile' is not valid for this item
+                //         volatile void LocalVolatile()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(15, 9));
         }
 
         [Fact]
@@ -2659,37 +2666,37 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (6,16): error CS1002: ; expected
-    //         int Goo
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 16),
-    // (8,16): error CS1002: ; expected
-    //             get
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 16),
-    // (13,17): error CS1003: Syntax error, ',' expected
-    //         int Bar => 2;
-    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(13, 17),
-    // (13,20): error CS1002: ; expected
-    //         int Bar => 2;
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "2").WithLocation(13, 20),
-    // (8,13): error CS0103: The name 'get' does not exist in the current context
-    //             get
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "get").WithArguments("get").WithLocation(8, 13),
-    // (10,17): error CS0127: Since 'Program.Main(string[])' returns void, a return keyword must not be followed by an object expression
-    //                 return 2;
-    Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.Main(string[])").WithLocation(10, 17),
-    // (13,20): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-    //         int Bar => 2;
-    Diagnostic(ErrorCode.ERR_IllegalStatement, "2").WithLocation(13, 20),
-    // (13,9): warning CS0162: Unreachable code detected
-    //         int Bar => 2;
-    Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(13, 9),
-    // (6,13): warning CS0168: The variable 'Goo' is declared but never used
-    //         int Goo
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Goo").WithArguments("Goo").WithLocation(6, 13),
-    // (13,13): warning CS0168: The variable 'Bar' is declared but never used
-    //         int Bar => 2;
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Bar").WithArguments("Bar").WithLocation(13, 13)
-    );
+                // (6,16): error CS1002: ; expected
+                //         int Goo
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 16),
+                // (8,16): error CS1002: ; expected
+                //             get
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 16),
+                // (13,17): error CS1003: Syntax error, ',' expected
+                //         int Bar => 2;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(13, 17),
+                // (13,20): error CS1002: ; expected
+                //         int Bar => 2;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "2").WithLocation(13, 20),
+                // (8,13): error CS0103: The name 'get' does not exist in the current context
+                //             get
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "get").WithArguments("get").WithLocation(8, 13),
+                // (10,17): error CS0127: Since 'Program.Main(string[])' returns void, a return keyword must not be followed by an object expression
+                //                 return 2;
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.Main(string[])").WithLocation(10, 17),
+                // (13,20): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         int Bar => 2;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "2").WithLocation(13, 20),
+                // (13,9): warning CS0162: Unreachable code detected
+                //         int Bar => 2;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(13, 9),
+                // (6,13): warning CS0168: The variable 'Goo' is declared but never used
+                //         int Goo
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Goo").WithArguments("Goo").WithLocation(6, 13),
+                // (13,13): warning CS0168: The variable 'Bar' is declared but never used
+                //         int Bar => 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Bar").WithArguments("Bar").WithLocation(13, 13)
+                );
         }
 
         [Fact]
@@ -3897,7 +3904,25 @@ class Program
         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (9,28): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F1() { object x = 0; } // local
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(9, 28),
+                // (10,24): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F2(string x) { } // parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 24),
+                // (11,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F3() { void x() { } } // method
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 26),
+                // (12,17): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F4<x>() { } // type parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(12, 17),
+                // (13,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 30));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //         void F3() { void x() { } } // method
@@ -3926,7 +3951,25 @@ class Program
         object x = null;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (8,28): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F1() { object x = 0; } // local
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(8, 28),
+                // (9,24): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F2(string x) { } // parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(9, 24),
+                // (10,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F3() { void x() { } } // method
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 26),
+                // (11,17): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F4<x>() { } // type parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 17),
+                // (12,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(12, 30));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //         void F3() { void x() { } } // method
@@ -3954,7 +3997,24 @@ class Program
         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            // The conflict between the type parameter in F4<x>() and the parameter
+            // in M(object x) is not reported, for backwards compatibility.
+            comp.VerifyDiagnostics(
+                // (8,28): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F1() { object x = 0; } // local
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(8, 28),
+                // (9,24): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F2(string x) { } // parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(9, 24),
+                // (10,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F3() { void x() { } } // method
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 26),
+                // (12,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(12, 30));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //         void F3() { void x() { } } // method
@@ -3982,7 +4042,25 @@ class Program
         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (8,28): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         void F1() { object x = 0; } // local
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(8, 28),
+                // (9,24): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         void F2(string x) { } // parameter
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(9, 24),
+                // (10,26): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         void F3() { void x() { } } // method
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(10, 26),
+                // (11,17): warning CS8387: Type parameter 'x' has the same name as the type parameter from outer method 'Program.M<x>()'
+                //         void F4<x>() { } // type parameter
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "x").WithArguments("x", "Program.M<x>()").WithLocation(11, 17),
+                // (12,30): error CS1948: The range variable 'x' cannot have the same name as a method type parameter
+                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "x").WithArguments("x").WithLocation(12, 30));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,26): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //         void F3() { void x() { } } // method
@@ -3993,6 +4071,136 @@ class Program
                 // (12,30): error CS1948: The range variable 'x' cannot have the same name as a method type parameter
                 //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "x").WithArguments("x").WithLocation(12, 30));
+        }
+
+        [Fact]
+        public void ShadowName_LocalFunction()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System.Linq;
+class Program
+{
+    static void M()
+    {
+        void x() { }
+        void F1() { object x = 0; } // local
+        void F2(string x) { } // parameter
+        void F3() { void x() { } } // method
+        void F4<x>() { } // type parameter
+        void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (9,28): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F1() { object x = 0; } // local
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(9, 28),
+                // (10,24): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F2(string x) { } // parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 24),
+                // (11,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F3() { void x() { } } // method
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 26),
+                // (12,17): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F4<x>() { } // type parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(12, 17),
+                // (13,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 30));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (11,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F3() { void x() { } } // method
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 26),
+                // (13,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 30));
+        }
+
+        [Fact]
+        public void ShadowName_ThisLocalFunction()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System.Linq;
+class Program
+{
+    static void M()
+    {
+        void F1() { object F1 = 0; } // local
+        void F2(string F2) { } // parameter
+        void F3() { void F3() { } } // method
+        void F4<F4>() { } // type parameter
+        void F5() { _ = from F5 in new[] { 1, 2, 3 } select F5; } // range variable
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (8,28): error CS0136: A local or parameter named 'F1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F1() { object F1 = 0; } // local
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "F1").WithArguments("F1").WithLocation(8, 28),
+                // (9,24): error CS0136: A local or parameter named 'F2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F2(string F2) { } // parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "F2").WithArguments("F2").WithLocation(9, 24),
+                // (10,26): error CS0136: A local or parameter named 'F3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F3() { void F3() { } } // method
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "F3").WithArguments("F3").WithLocation(10, 26),
+                // (11,17): error CS0136: A local or parameter named 'F4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F4<F4>() { } // type parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "F4").WithArguments("F4").WithLocation(11, 17),
+                // (12,30): error CS1931: The range variable 'F5' conflicts with a previous declaration of 'F5'
+                //         void F5() { _ = from F5 in new[] { 1, 2, 3 } select F5; } // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "F5").WithArguments("F5").WithLocation(12, 30));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE: Should we report errors for F1, F2, F4 as well?
+            comp.VerifyDiagnostics(
+                // (10,26): error CS0136: A local or parameter named 'F3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void F3() { void F3() { } } // method
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "F3").WithArguments("F3").WithLocation(10, 26),
+                // (12,30): error CS1931: The range variable 'F5' conflicts with a previous declaration of 'F5'
+                //         void F5() { _ = from F5 in new[] { 1, 2, 3 } select F5; } // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "F5").WithArguments("F5").WithLocation(12, 30));
+        }
+
+        [Fact]
+        public void ShadowName_Other()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+class Program
+{
+    static void M()
+    {
+        void F1(object x, string y, int x) { }
+        void F2(object M, string Program) { }
+        void F3<T, U>(object T, string U) { }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            verifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            verifyDiagnostics();
+
+            void verifyDiagnostics()
+            {
+                comp.VerifyDiagnostics(
+                // (7,41): error CS0100: The parameter name 'x' is a duplicate
+                //         void F1(object x, string y, int x) { }
+                Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x").WithLocation(7, 41),
+                // (9,30): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         void F3<T, U>(object T, string U) { }
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(9, 30),
+                // (9,40): error CS0412: 'U': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         void F3<T, U>(object T, string U) { }
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "U").WithArguments("U").WithLocation(9, 40));
+            }
         }
 
         [Fact]

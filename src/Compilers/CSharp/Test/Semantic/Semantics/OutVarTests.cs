@@ -4418,7 +4418,23 @@ public class X
                 // (18,30): error CS0841: Cannot use local variable 'x4' before it is declared
                 //         bool f (object o) => x4 && TakeOutParam(o, out int x4);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(18, 30),
-                // (25,67): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (25,67): error CS0128: A local variable or function named 'x5' is already defined in this scope
+                //                                          TakeOutParam(o2, out int x5) && 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(25, 67),
+                // (39,15): error CS0103: The name 'x7' does not exist in the current context
+                //         Dummy(x7, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(39, 15),
+                // (43,15): error CS0103: The name 'x7' does not exist in the current context
+                //         Dummy(x7, 2); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(43, 15)
+                );
+
+            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
+            compilation.VerifyDiagnostics(
+                // (18,30): error CS0841: Cannot use local variable 'x4' before it is declared
+                //         bool f (object o) => x4 && TakeOutParam(o, out int x4);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(18, 30),
+                // (25,67): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //                                          TakeOutParam(o2, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(25, 67),
                 // (39,15): error CS0103: The name 'x7' does not exist in the current context

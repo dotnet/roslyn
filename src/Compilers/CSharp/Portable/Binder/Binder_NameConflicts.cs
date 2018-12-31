@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void ValidateParameterNameConflicts(
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ParameterSymbol> parameters,
-            bool isLocalFunction,
+            bool checkContainingScopes,
             DiagnosticBag diagnostics)
         {
             PooledHashSet<string> tpNames = null;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Type parameter declaration name conflicts are detected elsewhere
                     }
-                    else if (!isLocalFunction)
+                    else if (checkContainingScopes)
                     {
                         ValidateDeclarationNameConflictsInScope(tp, diagnostics);
                     }
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // The parameter name '{0}' is a duplicate
                         diagnostics.Add(ErrorCode.ERR_DuplicateParamName, GetLocation(p), name);
                     }
-                    else if (!isLocalFunction)
+                    else if (checkContainingScopes)
                     {
                         ValidateDeclarationNameConflictsInScope(p, diagnostics);
                     }
@@ -103,38 +103,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            bool error = false;
             for (Binder binder = this; binder != null; binder = binder.Next)
             {
                 // no local scopes enclose members
-                if (binder is InContainerBinder || error)
+                if (binder is InContainerBinder)
                 {
-                    break;
+                    return false;
                 }
 
                 // symbols inside local function shadow names in scopes outside local function
-                var method = (binder as InMethodBinder)?.ContainingMemberOrLambda as MethodSymbol;
-                if (method?.MethodKind == MethodKind.LocalFunction)
+                if ((object)symbol != null &&
+                    ((binder as InMethodBinder)?.ContainingMemberOrLambda as MethodSymbol)?.MethodKind == MethodKind.LocalFunction &&
+                    Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticLocalFunctions))
                 {
-                    switch (symbol?.Kind)
+                    switch (symbol.Kind)
                     {
                         case SymbolKind.Local:
                         case SymbolKind.Parameter:
                         case SymbolKind.TypeParameter:
-                            Debug.Assert(!error); // If the assert fails, add a corresponding test.
-                            goto End;
+                            return false;
                     }
                 }
 
                 var scope = binder as LocalScopeBinder;
-                if (scope != null)
+                if (scope?.EnsureSingleDefinition(symbol, name, location, diagnostics) == true)
                 {
-                    error |= scope.EnsureSingleDefinition(symbol, name, location, diagnostics);
+                    return true;
                 }
             }
 
-End:
-            return error;
+            return false;
         }
     }
 }
