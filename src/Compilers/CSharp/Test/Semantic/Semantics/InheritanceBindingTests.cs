@@ -7708,5 +7708,80 @@ namespace Ns1
                 Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("Ns1.I1<Ns1.C0<C1T1, C1T2>>.M()").WithLocation(18, 11)
                 );
         }
+
+        [Fact]
+        public void DynamicMismatch_01()
+        {
+            var source = @"
+public interface I0<T> { }
+public interface I1 : I0<object> { }
+public interface I2 : I0<dynamic> { }
+public interface I3 : I0<object> { }
+
+public class C : I1, I2 { }
+public class D : I1, I3 { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,23): error CS1966: 'I2': cannot implement a dynamic interface 'I0<dynamic>'
+                // public interface I2 : I0<dynamic> { }
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I0<dynamic>").WithArguments("I2", "I0<dynamic>").WithLocation(4, 23)
+                );
+        }
+
+        [Fact]
+        public void DynamicMismatch_02()
+        {
+            var source = @"
+public interface I0<T> 
+{
+    void M();
+}
+
+public class C : I0<object>
+{
+    void I0<object>.M(){}
+}
+public class D : C, I0<dynamic>
+{ }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,21): error CS1966: 'D': cannot implement a dynamic interface 'I0<dynamic>'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I0<dynamic>").WithArguments("D", "I0<dynamic>").WithLocation(11, 21),
+                // (11,21): error CS0535: 'D' does not implement interface member 'I0<dynamic>.M()'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0<dynamic>").WithArguments("D", "I0<dynamic>.M()").WithLocation(11, 21)
+                );
+        }
+
+        [Fact]
+        public void DynamicMismatch_03()
+        {
+            var source = @"
+public interface I0<T> 
+{
+    void M();
+}
+
+public class C : I0<object>
+{
+    void I0<object>.M(){}
+    public void M(){}
+}
+public class D : C, I0<dynamic>
+{ }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,21): error CS1966: 'D': cannot implement a dynamic interface 'I0<dynamic>'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I0<dynamic>").WithArguments("D", "I0<dynamic>").WithLocation(12, 21),
+                // (12,21): error CS0535: 'D' does not implement interface member 'I0<dynamic>.M()'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0<dynamic>").WithArguments("D", "I0<dynamic>.M()").WithLocation(12, 21)
+                );
+        }
     }
 }

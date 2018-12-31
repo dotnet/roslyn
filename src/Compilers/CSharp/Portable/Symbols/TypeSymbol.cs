@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> interfacesAndTheirBaseInterfaces;
 
             internal readonly static MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> EmptyInterfacesAndTheirBaseInterfaces =
-                                                new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(0, EqualsAllIgnoreOptionsPlusCustomModifiersAndArraySizesAndLowerBounds);
+                                                new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(0, EqualsCLRSignatureComparer);
 
             // Key is implemented member (method, property, or event), value is implementing member (from the 
             // perspective of this type).  Don't allocate until someone needs it.
@@ -69,7 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // key = interface method/property/event, value = explicitly implementing method/property/event declared on this type
+            /// <summary>
+            /// key = interface method/property/event compared using <see cref="ExplicitInterfaceImplementationTargetMemberEqualityComparer"/>,
+            /// value = explicitly implementing methods/properties/events declared on this type (normally a single value, multiple in case of
+            /// an error).
+            /// </summary>
             internal MultiDictionary<Symbol, Symbol> explicitInterfaceImplementationMap;
 
             internal bool IsDefaultValue()
@@ -125,8 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer =
                                                                   new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference));
 
-        internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusCustomModifiersAndArraySizesAndLowerBounds =
-                                                                  new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds);
+        internal static readonly EqualityComparer<TypeSymbol> EqualsCLRSignatureComparer = new TypeSymbolComparer(TypeCompareKind.CLRSignatureCompareOptions);
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in
@@ -393,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Gets the set of interfaces that this type directly implements, plus the base interfaces
-        /// of all such types. Keys are compared using <see cref="EqualsAllIgnoreOptionsPlusCustomModifiersAndArraySizesAndLowerBounds"/>,
+        /// of all such types. Keys are compared using <see cref="EqualsCLRSignatureComparer"/>,
         /// values are distinct interfaces corresponding to the key, according to <see cref="TypeCompareKind.ConsiderEverything"/> rules.
         /// </summary>
         /// <remarks>
@@ -426,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // indirectly.
         private static MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> MakeInterfacesAndTheirBaseInterfaces(ImmutableArray<NamedTypeSymbol> declaredInterfaces)
         {
-            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(declaredInterfaces.Length, EqualsAllIgnoreOptionsPlusCustomModifiersAndArraySizesAndLowerBounds);
+            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(declaredInterfaces.Length, EqualsCLRSignatureComparer);
             foreach (var @interface in declaredInterfaces)
             {
                 if (resultBuilder.Add(@interface, @interface))
@@ -1479,7 +1482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public bool Equals(Symbol x, Symbol y)
             {
                 return x.OriginalDefinition == y.OriginalDefinition &&
-                       x.ContainingType.Equals(y.ContainingType, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds);
+                       x.ContainingType.Equals(y.ContainingType, TypeCompareKind.CLRSignatureCompareOptions);
             }
 
             public int GetHashCode(Symbol obj)
