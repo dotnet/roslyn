@@ -14,21 +14,23 @@ namespace Analyzer.Utilities
     /// 
     /// .editorconfig format:
     ///  1) General configuration option:
-    ///     (a) "OptionName = OptionValue"
+    ///     (a) "dotnet_code_quality.OptionName = OptionValue"
     ///  2) Specific configuration option:
-    ///     (a) "RuleId.OptionName = OptionValue"
-    ///     (b) "RuleCategory.OptionName = OptionValue"
+    ///     (a) "dotnet_code_quality.RuleId.OptionName = OptionValue"
+    ///     (b) "dotnet_code_quality.RuleCategory.OptionName = OptionValue"
     ///    
     /// .editorconfig examples to configure API surface analyzed by analyzers:
     ///  1) General configuration option:
-    ///     (a) "visibility = all"
+    ///     (a) "dotnet_code_quality.api_surface = all"
     ///  2) Specific configuration option:
-    ///     (a) "CA1040.visibility = public, internal"
-    ///     (b) "Naming.visibility = public"
+    ///     (a) "dotnet_code_quality.CA1040.api_surface = public, internal"
+    ///     (b) "dotnet_code_quality.Naming.api_surface = public"
     ///  See <see cref="SymbolVisibilityGroup"/> for allowed symbol visibility value combinations.
     /// </summary>
     internal sealed class CategorizedAnalyzerConfigOptions
     {
+        private const string KeyPrefix = "dotnet_code_quality.";
+
         public static readonly CategorizedAnalyzerConfigOptions Empty = new CategorizedAnalyzerConfigOptions(
             ImmutableDictionary<string, string>.Empty,
             ImmutableDictionary<string, ImmutableDictionary<string, string>>.Empty);
@@ -60,6 +62,12 @@ namespace Analyzer.Utilities
                 var key = kvp.Key;
                 var value = kvp.Value;
 
+                if (!key.StartsWith(KeyPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                key = key.Substring(KeyPrefix.Length);
                 var keyParts = key.Split('.').Select(s => s.Trim()).ToImmutableArray();
                 switch (keyParts.Length)
                 {

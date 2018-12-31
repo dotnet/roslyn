@@ -16,7 +16,7 @@ namespace Analyzer.Utilities
             DiagnosticDescriptor rule,
             SymbolVisibilityGroup defaultValue,
             CancellationToken cancellationToken)
-            => options.GetEnumOptionValue("visibility", rule, defaultValue, cancellationToken);
+            => options.GetEnumOptionValue("api_surface", rule, defaultValue, cancellationToken);
 
         private static TEnum GetEnumOptionValue<TEnum>(
             this AnalyzerOptions options,

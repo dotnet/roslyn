@@ -16,8 +16,6 @@ namespace Analyzer.Utilities
     /// </summary>
     internal static class EditorConfigParser
     {
-        // Matches EditorConfig section header such as "[*.{js,py}]", see http://editorconfig.org for details
-        private static readonly Regex s_sectionMatcher = new Regex(@"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$", RegexOptions.Compiled);
         // Matches EditorConfig property such as "indent_style = space", see http://editorconfig.org for details
         private static readonly Regex s_propertyMatcher = new Regex(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$", RegexOptions.Compiled);
 
@@ -62,12 +60,8 @@ namespace Analyzer.Utilities
             => s_cachedOptions.GetValue(text, s_cachedOptionsCreateValueCallback);
 
         private static CategorizedAnalyzerConfigOptions ParseCore(SourceText text)
-            => ParseCore(text, out _);
-
-        private static CategorizedAnalyzerConfigOptions ParseCore(SourceText text, out ImmutableArray<string> invalidLines)
         {
             var parsedOptions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            var invalidLinesBuilder = ImmutableArray.CreateBuilder<string>();
 
             foreach (var textLine in text.Lines)
             {
@@ -97,17 +91,8 @@ namespace Analyzer.Utilities
                     parsedOptions[key] = value ?? "";
                     continue;
                 }
-                else if (s_sectionMatcher.IsMatch(line))
-                {
-                    // Ignore section line
-                    continue;
-                }
-
-                // Unable to parse this line
-                invalidLinesBuilder.Add(line);
             }
 
-            invalidLines = invalidLinesBuilder.ToImmutable();
             return CategorizedAnalyzerConfigOptions.Create(parsedOptions);
         }
 
