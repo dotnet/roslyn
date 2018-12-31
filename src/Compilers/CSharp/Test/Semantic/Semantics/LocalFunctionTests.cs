@@ -2363,7 +2363,7 @@ class Program
         }
 
         [Fact]
-        public void Extension()
+        public void Extension_01()
         {
             var source = @"
 using System;
@@ -2380,11 +2380,35 @@ class Program
     }
 }
 ";
-            VerifyDiagnostics(source,
-    // (8,13): error CS1106: Extension method must be defined in a non-generic static class
-    //         int Local(this int x)
-    Diagnostic(ErrorCode.ERR_BadExtensionAgg, "Local").WithLocation(8, 13)
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,13): error CS1106: Extension method must be defined in a non-generic static class
+                //         int Local(this int x)
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "Local").WithLocation(8, 13)
                 );
+        }
+
+        [Fact]
+        public void Extension_02()
+        {
+            var source =
+@"#pragma warning disable 8321
+static class E
+{
+    static void M()
+    {
+        void F1(this string s) { }
+        static void F2(this string s) { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,14): error CS1106: Extension method must be defined in a non-generic static class
+                //         void F1(this string s) { }
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "F1").WithLocation(6, 14),
+                // (7,21): error CS1106: Extension method must be defined in a non-generic static class
+                //         static void F2(this string s) { }
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "F2").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2419,7 +2443,7 @@ class Program
                 // (6,9): error CS0106: The modifier 'const' is not valid for this item
                 //         const void LocalConst()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(6, 9),
-                // (9,9): error CS8421: To use 'static' local functions, please use language version 8.0 or greater.
+                // (9,9): error CS8421: To use the 'static' modifier for local functions, please use language version 8.0 or greater.
                 //         static void LocalStatic()
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionModifier, "static").WithArguments("8.0").WithLocation(9, 9),
                 // (12,9): error CS0106: The modifier 'readonly' is not valid for this item
@@ -3980,6 +4004,35 @@ class Program
         }
 
         [Fact]
+        public void ShadowName_Local_03()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System.Linq;
+class Program
+{
+    static void M()
+    {
+        static void F1() { object x = 0; } // local
+        static void F2(string x) { } // parameter
+        static void F3() { void x() { } } // method
+        static void F4<x>() { } // type parameter
+        static void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+        object x = null;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,33): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         static void F3() { void x() { } } // method
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 33),
+                // (12,37): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                //         static void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(12, 37));
+        }
+
+        [Fact]
         public void ShadowName_Parameter()
         {
             var source =
@@ -4074,7 +4127,7 @@ class Program
         }
 
         [Fact]
-        public void ShadowName_LocalFunction()
+        public void ShadowName_LocalFunction_01()
         {
             var source =
 @"#pragma warning disable 0219
@@ -4118,6 +4171,53 @@ class Program
                 // (13,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
                 //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 30));
+        }
+
+        [Fact]
+        public void ShadowName_LocalFunction_02()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+class Program
+{
+    static void M1()
+    {
+        void M1() { }
+    }
+    static void M2(object x)
+    {
+        void x() { }
+    }
+    static void M3()
+    {
+        object x = null;
+        void x() { }
+    }
+    static void M4<T>()
+    {
+        void T() { }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            verifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            verifyDiagnostics();
+
+            void verifyDiagnostics()
+            {
+                comp.VerifyDiagnostics(
+                    // (11,14): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //         void x() { }
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 14),
+                    // (16,14): error CS0128: A local variable or function named 'x' is already defined in this scope
+                    //         void x() { }
+                    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(16, 14),
+                    // (20,14): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                    //         void T() { }
+                    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(20, 14));
+            }
         }
 
         [Fact]
@@ -4165,6 +4265,74 @@ class Program
                 // (12,30): error CS1931: The range variable 'F5' conflicts with a previous declaration of 'F5'
                 //         void F5() { _ = from F5 in new[] { 1, 2, 3 } select F5; } // range variable
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "F5").WithArguments("F5").WithLocation(12, 30));
+        }
+
+        [Fact]
+        public void ShadowName_Nested_01()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+class C
+{
+    static void M<T>(object x)
+    {
+        void F()
+        {
+            void G1(int x) { }
+            void G2() { int T = 0; }
+            void G3<T>() { }
+        }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (9,25): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             void G1(int x) { }
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(9, 25),
+                // (10,29): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //             void G2() { int T = 0; }
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(10, 29),
+                // (11,21): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M<T>(object)'
+                //             void G3<T>() { }
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M<T>(object)").WithLocation(11, 21));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (11,21): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M<T>(object)'
+                //             void G3<T>() { }
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M<T>(object)").WithLocation(11, 21));
+        }
+
+        [Fact]
+        public void ShadowName_Nested_02()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+class C
+{
+    static void M<T>(object x)
+    {
+        static void F1()
+        {
+            void G1(int x) { }
+        }
+        void F2()
+        {
+            static void G2() { int T = 0; }
+        }
+        static void F3()
+        {
+            static void G3<T>() { }
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (17,28): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M<T>(object)'
+                //             static void G3<T>() { }
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M<T>(object)").WithLocation(17, 28));
         }
 
         [Fact]

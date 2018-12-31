@@ -188,8 +188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticLocalFunctionModifier">
-        <source>To use 'static' local functions, please use language version {0} or greater.</source>
-        <target state="new">To use 'static' local functions, please use language version {0} or greater.</target>
+        <source>To use the 'static' modifier for local functions, please use language version {0} or greater.</source>
+        <target state="new">To use the 'static' modifier for local functions, please use language version {0} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TripleDotNotAllowed">

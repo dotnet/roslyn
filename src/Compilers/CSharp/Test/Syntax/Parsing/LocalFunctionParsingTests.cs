@@ -609,7 +609,7 @@ class c
         }
 
         [Fact]
-        public void StaticFunction()
+        public void StaticFunctions()
         {
             const string text =
 @"class Program
@@ -621,7 +621,7 @@ class c
 }";
 
             UsingDeclaration(text, options: TestOptions.Regular7_3,
-                // (5,9): error CS8421: To use 'static' local functions, please use language version 8.0 or greater.
+                // (5,9): error CS8421: To use the 'static' modifier for local functions, please use language version 8.0 or greater.
                 //         static void F() { }
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionModifier, "static").WithArguments("8.0").WithLocation(5, 9));
             checkNodes();
@@ -656,6 +656,209 @@ class c
                                     N(SyntaxKind.PredefinedType);
                                     N(SyntaxKind.VoidKeyword);
                                     N(SyntaxKind.IdentifierToken, "F");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void AsyncStaticFunctions()
+        {
+            const string text =
+@"class Program
+{
+    void M()
+    {
+        static async void F1() { }
+        async static void F2() { }
+    }
+}";
+
+            UsingDeclaration(text, options: TestOptions.Regular7_3,
+                // (5,9): error CS8421: To use the 'static' modifier for local functions, please use language version 8.0 or greater.
+                //         static async void F1() { }
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionModifier, "static").WithArguments("8.0").WithLocation(5, 9),
+                // (6,15): error CS8421: To use the 'static' modifier for local functions, please use language version 8.0 or greater.
+                //         async static void F2() { }
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionModifier, "static").WithArguments("8.0").WithLocation(6, 15));
+            checkNodes();
+
+            UsingDeclaration(text, options: TestOptions.Regular8);
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F1");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F2");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void DuplicateStatic()
+        {
+            const string text =
+@"class Program
+{
+    void M()
+    {
+        static static void F1() { }
+        static async static void F2() { }
+    }
+}";
+
+            UsingDeclaration(text, options: TestOptions.Regular7_3,
+                // (5,9): error CS8421: To use the 'static' modifier for local functions, please use language version 8.0 or greater.
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionModifier, "static").WithArguments("8.0").WithLocation(5, 9),
+                // (5,16): error CS1031: Type expected
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
+                // (5,16): error CS8421: To use the 'static' modifier for local functions, please use language version 8.0 or greater.
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionModifier, "static").WithArguments("8.0").WithLocation(5, 16),
+                // (6,9): error CS8421: To use the 'static' modifier for local functions, please use language version 8.0 or greater.
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionModifier, "static").WithArguments("8.0").WithLocation(6, 9),
+                // (6,22): error CS1031: Type expected
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22),
+                // (6,22): error CS8421: To use the 'static' modifier for local functions, please use language version 8.0 or greater.
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionModifier, "static").WithArguments("8.0").WithLocation(6, 22));
+            checkNodes();
+
+            UsingDeclaration(text, options: TestOptions.Regular8,
+                // (5,16): error CS1031: Type expected
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
+                // (6,22): error CS1031: Type expected
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22));
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F1");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F2");
                                     N(SyntaxKind.ParameterList);
                                     {
                                         N(SyntaxKind.OpenParenToken);

@@ -9565,7 +9565,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to To use &apos;static&apos; local functions, please use language version {0} or greater..
+        ///   Looks up a localized string similar to To use the &apos;static&apos; modifier for local functions, please use language version {0} or greater..
         /// </summary>
         internal static string ERR_StaticLocalFunctionModifier {
             get {

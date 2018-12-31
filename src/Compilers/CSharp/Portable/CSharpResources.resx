@@ -2651,7 +2651,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</value>
   </data>
   <data name="ERR_StaticLocalFunctionModifier" xml:space="preserve">
-    <value>To use 'static' local functions, please use language version {0} or greater.</value>
+    <value>To use the 'static' modifier for local functions, please use language version {0} or greater.</value>
   </data>
   <data name="ERR_StaticLocalFunctionCannotCaptureThis" xml:space="preserve">
     <value>A static local function cannot contain a reference to 'this' or 'base'.</value>
