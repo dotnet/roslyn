@@ -44,7 +44,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return builder.ToImmutableArray();
             }
 
-            protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder)
+            protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
                 => CurrentAnalysisData.AddTrackedEntities(builder);
 
             protected override bool Equals(TaintedDataAnalysisData value1, TaintedDataAnalysisData value2)
@@ -104,9 +104,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     // Only track tainted data, or sanitized data.
                     // If it's new, and it's untainted, we don't care.
-                    this.CurrentAnalysisData.SetAbstractValue(analysisEntity, value);
+                    SetAbstractValueCore(CurrentAnalysisData, analysisEntity, value);
                 }
             }
+
+            private static void SetAbstractValueCore(TaintedDataAnalysisData taintedAnalysisData, AnalysisEntity analysisEntity, TaintedDataAbstractValue value)
+                => taintedAnalysisData.SetAbstractValue(analysisEntity, value);
 
             protected override void StopTrackingEntity(AnalysisEntity analysisEntity)
             {
@@ -503,6 +506,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                              || a.Parameter.RefKind == RefKind.Ref
                              || a.Parameter.RefKind == RefKind.In));
             }
+
+            protected override void ApplyInterproceduralAnalysisResultCore(TaintedDataAnalysisData resultData)
+                => ApplyInterproceduralAnalysisResultHelper(resultData.CoreAnalysisData);
+
+            protected override TaintedDataAnalysisData GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities)
+                => GetTrimmedCurrentAnalysisDataHelper(withEntities, CurrentAnalysisData.CoreAnalysisData, SetAbstractValueCore);
+
         }
     }
 }

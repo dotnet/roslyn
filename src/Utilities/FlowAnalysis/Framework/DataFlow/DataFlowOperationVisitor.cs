@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 var invocationInstance = analysisContext.InterproceduralAnalysisDataOpt.InvocationInstanceOpt.Value;
                 ThisOrMePointsToAbstractValue = invocationInstance.PointsToValue;
-                interproceduralInvocationInstanceOpt = invocationInstance.Instance;
+                interproceduralInvocationInstanceOpt = invocationInstance.InstanceOpt;
             }
             else
             {
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected CopyAbstractValue TryGetAddressSharedCopyValue(AnalysisEntity analysisEntity)
             => _addressSharedEntitiesProvider.TryGetAddressSharedCopyValue(analysisEntity);
 
-        public (TAbstractAnalysisValue, PredicateValueKind)? GetReturnValueAndPredicateKind()
+        public virtual (TAbstractAnalysisValue Value, PredicateValueKind PredicateValueKind)? GetReturnValueAndPredicateKind()
         {
             if (_returnValueOperationsOpt == null ||
                 _returnValueOperationsOpt.Count == 0)
@@ -243,6 +243,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             return (mergedValue, mergedPredicateValueKind ?? PredicateValueKind.Unknown);
         }
+
         private static PointsToAbstractValue GetThisOrMeInstancePointsToValue(ISymbol owningSymbol)
         {
             if (!owningSymbol.IsStatic &&
@@ -325,6 +326,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected abstract void StopTrackingDataForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity);
 
+        protected virtual void StopTrackingDataForParameters(ImmutableDictionary<IParameterSymbol, AnalysisEntity> parameterEntities)
+        {
+            foreach (var kvp in parameterEntities)
+            {
+                IParameterSymbol parameter = kvp.Key;
+                AnalysisEntity analysisEntity = kvp.Value;
+
+                // Stop tracking parameter values on exit.
+                StopTrackingDataForParameter(parameter, analysisEntity);
+            }
+        }
+
         private void OnStartEntryBlockAnalysis(BasicBlock entryBlock)
         {
             Debug.Assert(entryBlock.Kind == BasicBlockKind.Entry);
@@ -387,15 +400,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 // Reset address shared entities to caller's address shared entities.
                 _addressSharedEntitiesProvider.SetAddressSharedEntities(DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.AddressSharedEntities);
-
-                foreach (var kvp in _lazyParameterEntities)
-                {
-                    IParameterSymbol parameter = kvp.Key;
-                    AnalysisEntity analysisEntity = kvp.Value;
-
-                    // Stop tracking parameter values on exit.
-                    StopTrackingDataForParameter(parameter, analysisEntity);
-                }
+                StopTrackingDataForParameters(_lazyParameterEntities);
             }
         }
 
@@ -590,7 +595,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public ImmutableDictionary<IOperation, PredicateValueKind> GetPredicateValueKindMap() => _predicateValueKindCacheBuilder.ToImmutable();
 
-        public TAnalysisData GetMergedDataForUnhandledThrowOperations()
+        public virtual TAnalysisData GetMergedDataForUnhandledThrowOperations()
         {
             if (AnalysisDataForUnhandledThrowOperations == null)
             {
@@ -1434,6 +1439,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         #region Interprocedural analysis
 
+        /// <summary>
+        /// Gets a new instance of analysis data that should be passed as initial analysis data
+        /// for interprocedural analysis.
+        /// The default implementation returns cloned <see cref="CurrentAnalysisData"/>.
+        /// </summary>
+        protected virtual TAnalysisData GetInitialInterproceduralAnalysisData(
+            IMethodSymbol invokedMethod,
+            (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
+            (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCallerOpt,
+            ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> arguments,
+            IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
+            IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
+            bool isLambdaOrLocalFunction)
+            => GetClonedCurrentAnalysisData();
+
+        /// <summary>
+        /// Apply the result data from interprocedural analysis to <see cref="CurrentAnalysisData"/>.
+        /// Default implementation is designed for the default implementation of
+        /// <see cref="GetInitialInterproceduralAnalysisData(IMethodSymbol, (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)?, (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)?, ImmutableArray{ArgumentInfo{TAbstractAnalysisValue}}, IDictionary{AnalysisEntity, PointsToAbstractValue}, IDictionary{AnalysisEntity, CopyAbstractValue}, bool)"/>
+        /// and overwrites the <see cref="CurrentAnalysisData"/> with the given <paramref name="resultData"/>.
+        /// </summary>
+        protected virtual void ApplyInterproceduralAnalysisResult(TAnalysisData resultData, bool isLambdaOrLocalFunction)
+            => CurrentAnalysisData = resultData;
+
         protected bool TryGetInterproceduralAnalysisResult(IOperation operation, out TAnalysisResult analysisResult)
         {
             if (_interproceduralResultsBuilder.TryGetValue(operation, out var computedAnalysisResult))
@@ -1538,7 +1567,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Update the current analysis data based on interprocedural analysis result.
             if (isContextSensitive)
             {
-                CurrentAnalysisData = GetAnalysisDataAtBlockEnd(analysisResult, cfg.GetExit());
+                var resultData = GetAnalysisDataAtBlockEnd(analysisResult, cfg.GetExit());
+                ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction);
                 Debug.Assert(arguments.All(arg => !_pendingArgumentsToReset.Contains(arg)));
             }
             else
@@ -1591,18 +1621,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> ComputeInterproceduralAnalysisData()
             {
-                // TODO(Perf): https://github.com/dotnet/roslyn-analyzers/issues/1811
-                // For non-lambda/local function invocations, we should remove the part of data that
-                // is not accessible in the callee and add it back to result data.
-                // This will avoid duplicate interprocedural analysis for cases where initial analysis data
-                // just differs by non-accessible part of data.
-                var initialAnalysisData = GetClonedCurrentAnalysisData();
+                var invocationInstance = GetInvocationInstance();
+                var thisOrMeInstance = GetThisOrMeInstance();
+                var argumentValues = GetArgumentValues();
+                var pointsToValuesOpt = pointsToAnalysisResultOpt?[cfg.GetEntry()].InputData;
+                var copyValuesOpt = copyAnalysisResultOpt?[cfg.GetEntry()].InputData;
+                var initialAnalysisData = GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstance,
+                    thisOrMeInstance, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction);
 
                 return new InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>(
                     initialAnalysisData,
-                    GetInvocationInstance(),
-                    GetThisOrMeInstance(),
-                    GetArgumentValues(),
+                    invocationInstance,
+                    thisOrMeInstance,
+                    argumentValues,
                     GetCapturedVariablesMap(),
                     _addressSharedEntitiesProvider.GetAddressedSharedEntityMap(),
                     ImmutableStack.CreateRange(_interproceduralCallStack),
@@ -1611,10 +1642,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     getInterproceduralControlFlowGraph: GetInterproceduralControlFlowGraph,
                     getAnalysisEntityForFlowCapture: GetAnalysisEntityForFlowCapture);
 
+                // Local functions.
                 (AnalysisEntity, PointsToAbstractValue)? GetInvocationInstance()
                 {
-                    if (instanceReceiver != null && AnalysisEntityFactory.TryCreate(instanceReceiver, out var receiverAnalysisEntity))
+                    if (isLambdaOrLocalFunction)
                     {
+                        return (AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue);
+                    }
+                    else if (instanceReceiver != null)
+                    {
+                        if (!AnalysisEntityFactory.TryCreate(instanceReceiver, out var receiverAnalysisEntityOpt))
+                        {
+                            receiverAnalysisEntityOpt = null;
+                        }
+
                         var instancePointsToValue = GetPointsToAbstractValue(instanceReceiver);
                         if (instancePointsToValue.Kind == PointsToAbstractValueKind.Undefined)
                         {
@@ -1623,11 +1664,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             instancePointsToValue = PointsToAbstractValue.Unknown;
                         }
 
-                        return (receiverAnalysisEntity, instancePointsToValue);
-                    }
-                    else if (isLambdaOrLocalFunction)
-                    {
-                        return (AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue);
+                        return (receiverAnalysisEntityOpt, instancePointsToValue);
                     }
                     else
                     {
