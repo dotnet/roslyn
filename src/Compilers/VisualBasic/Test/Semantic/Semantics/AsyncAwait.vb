@@ -49,6 +49,7 @@ End Module
             Assert.Null(awaitInfo.GetAwaiterMethod)
             Assert.Null(awaitInfo.IsCompletedProperty)
             Assert.Null(awaitInfo.GetResultMethod)
+            Assert.Equal(0, info.GetHashCode())
         End Sub
 
         <Fact()>

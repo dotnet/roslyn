@@ -41,6 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override int GetHashCode()
         {
+            if (_awaitableInfo is null)
+            {
+                return 0;
+            }
             return Hash.Combine(GetAwaiterMethod, Hash.Combine(IsCompletedProperty, GetResultMethod.GetHashCode()));
         }
     }

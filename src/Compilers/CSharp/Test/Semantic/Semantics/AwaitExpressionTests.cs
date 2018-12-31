@@ -63,6 +63,7 @@ public class C {
             Assert.Null(info.GetResultMethod);
             Assert.Null(info.IsCompletedProperty);
             Assert.False(info.IsDynamic);
+            Assert.Equal(0, info.GetHashCode());
         }
 
         private AwaitExpressionInfo GetAwaitExpressionInfo(string text, out CSharpCompilation compilation, params DiagnosticDescription[] diagnostics)
