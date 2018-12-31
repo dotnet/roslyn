@@ -2345,6 +2345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Struct:
                     CheckForStructBadInitializers(builder, diagnostics);
                     CheckForStructDefaultConstructors(builder.NonTypeNonIndexerMembers, isEnum: false, diagnostics: diagnostics);
+                    AddSynthesizedRecordMembersIfNecessary(builder.NonTypeNonIndexerMembers, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
                     break;
 
@@ -2356,6 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Class:
                 case TypeKind.Submission:
                     // No additional checking required.
+                    AddSynthesizedRecordMembersIfNecessary(builder.NonTypeNonIndexerMembers, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
                     break;
 
@@ -2900,19 +2902,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // PROTOTYPE: This adds members unconditionally, but instead we should check if
             // the members are already written in user code
-            var ctor = new SynthesizedRecordConstructor(this, binder, paramList, diagnostics);
+            var ctor = new SynthesizedRecordConstructor(
+                this,
+                binder,
+                paramList,
+                diagnostics);
             members.Add(ctor);
-            foreach (ParameterSymbol param in ctor.Parameters)
+            foreach (SynthesizedRecordPropertySymbol property in ctor.Properties)
             {
-                string name = GeneratedNames.MakeBackingFieldName(param.Name);
-                var property = new SynthesizedRecordPropertySymbol(this, param);
+                members.Add(property.BackingField);
+                members.Add(property.GetMethod);
                 members.Add(property);
-                members.Add(new SynthesizedBackingFieldSymbol(
-                    property,
-                    name,
-                    isReadOnly: true,
-                    isStatic: false,
-                    hasInitializer: param.HasExplicitDefaultValue));
             }
         }
 
@@ -2922,7 +2922,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case DeclarationKind.Class:
                 case DeclarationKind.Struct:
-                    AddSynthesizedRecordMembersIfNecessary(members, diagnostics);
                     break;
             }
 
