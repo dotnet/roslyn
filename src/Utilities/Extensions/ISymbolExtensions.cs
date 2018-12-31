@@ -20,10 +20,47 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsAccessorMethod(this ISymbol symbol)
         {
-            var accessorSymbol = symbol as IMethodSymbol;
-            return accessorSymbol != null &&
-                (accessorSymbol.MethodKind == MethodKind.PropertySet || accessorSymbol.MethodKind == MethodKind.PropertyGet ||
-                accessorSymbol.MethodKind == MethodKind.EventRemove || accessorSymbol.MethodKind == MethodKind.EventAdd);
+            return symbol is IMethodSymbol accessorSymbol &&
+                (accessorSymbol.IsPropertyAccessor() || accessorSymbol.IsEventAccessor());
+        }
+
+        public static IEnumerable<IMethodSymbol> GetAccessors(this ISymbol symbol)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Property:
+                    var property = (IPropertySymbol)symbol;
+                    if (property.GetMethod != null)
+                    {
+                        yield return property.GetMethod;
+                    }
+
+                    if (property.SetMethod != null)
+                    {
+                        yield return property.SetMethod;
+                    }
+
+                    break;
+
+                case SymbolKind.Event:
+                    var eventSymbol = (IEventSymbol)symbol;
+                    if (eventSymbol.AddMethod != null)
+                    {
+                        yield return eventSymbol.AddMethod;
+                    }
+
+                    if (eventSymbol.RemoveMethod != null)
+                    {
+                        yield return eventSymbol.RemoveMethod;
+                    }
+
+                    if (eventSymbol.RaiseMethod != null)
+                    {
+                        yield return eventSymbol.RaiseMethod;
+                    }
+
+                    break;
+            }
         }
 
         public static bool IsDefaultConstructor(this ISymbol symbol)
