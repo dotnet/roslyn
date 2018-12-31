@@ -144,6 +144,14 @@ jobs:
       continueOnError: true
       condition: not(succeeded())
 
+    - task: PublishBuildArtifacts@1
+      displayName: NuPkg
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
+        ArtifactName: 'NuPkg'
+        publishLocation: Container
+      condition: succeeded()
+
 - job: Linux_Test
   pool: DotNetCore-Linux
   strategy:
