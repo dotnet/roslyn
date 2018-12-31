@@ -1266,7 +1266,7 @@ public class C
 
         #region Signing
 
-        [ConditionalTheory(typeof(DesktopOnly), Reason = "TODO track down why this key size won't load on CoreClr")]
+        [ConditionalTheory(typeof(DesktopOnly), Reason = "https://github.com/dotnet/coreclr/issues/21723")]
         [MemberData(nameof(AllProviderParseOptions))]
         public void MaxSizeKey(CSharpParseOptions parseOptions)
         {

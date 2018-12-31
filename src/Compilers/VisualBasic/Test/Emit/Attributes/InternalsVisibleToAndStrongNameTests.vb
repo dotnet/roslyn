@@ -1082,7 +1082,7 @@ BC31535: Friend assembly reference 'WantsIVTAccess' is invalid. Strong-name sign
 
 #Region "Signing"
 
-    <ConditionalTheory(GetType(DesktopOnly), Reason:="TODO: find out why this won't load on CoreClr")>
+    <ConditionalTheory(GetType(DesktopOnly), Reason:="https://github.com/dotnet/coreclr/issues/21723")>
     <MemberData(NameOf(AllProviderParseOptions))>
     Public Sub MaxSizeKey(parseOptions As VisualBasicParseOptions)
         Dim pubKey = TestResources.General.snMaxSizePublicKeyString
