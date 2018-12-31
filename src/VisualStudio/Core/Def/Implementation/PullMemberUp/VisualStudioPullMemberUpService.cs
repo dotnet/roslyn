@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -50,8 +52,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                     document.Project.Solution,
                     selectedMember.ContainingType,
                     cancellationTokenSource.Token).BaseTypeNodes;
-                var dependentsBuilder = new SymbolDependentsBuilder(document, membersInType);
-                var dependentsMap = dependentsBuilder.CreateDependentsMap(cancellationTokenSource.Token);
+                var dependentsMap = membersInType.ToImmutableDictionary(
+                    member => member,
+                    member =>
+                    {
+                        var builder = new SymbolDependentsBuilder(document, membersInType, member);
+                        return Task.Run(() => builder.FindMemberDependentsAsync(cancellationTokenSource.Token),
+                            cancellationTokenSource.Token);
+                    });
+
                 var viewModel = new PullMemberUpDialogViewModel(_waitIndicator, memberViewModels, baseTypeRootViewModel, dependentsMap);
                 var dialog = new PullMemberUpDialog(viewModel);
                 var result = dialog.ShowModal();

@@ -12,33 +12,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 {
     internal class SymbolDependentsBuilder : OperationWalker
     {
-        private readonly HashSet<ISymbol> _dependents;
         private readonly ImmutableHashSet<ISymbol> _membersInType;
         private readonly Document _document;
+        private readonly HashSet<ISymbol> _dependents;
+        private readonly ISymbol _member;
 
-        internal SymbolDependentsBuilder(Document document, ImmutableArray<ISymbol> membersInType)
+        internal SymbolDependentsBuilder(
+            Document document,
+            ImmutableArray<ISymbol> membersInType,
+            ISymbol member)
         {
             _document = document;
             _membersInType = membersInType.ToImmutableHashSet();
             _dependents = new HashSet<ISymbol>();
+            _member = member;
         }
 
-        public ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> CreateDependentsMap(CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ISymbol>> FindMemberDependentsAsync(CancellationToken cancellationToken)
         {
-            return _membersInType.ToImmutableDictionary(
-                member => member,
-                member => Task.Run(() => FindMemberDependentsAsync(_document, member, cancellationToken), cancellationToken));
-        }
-
-        private async Task<ImmutableArray<ISymbol>> FindMemberDependentsAsync(
-            Document document,
-            ISymbol member,
-            CancellationToken cancellationToken)
-        {
-            var tasks = member.DeclaringSyntaxReferences.Select(@ref => @ref.GetSyntaxAsync(cancellationToken));
+            var tasks = _member.DeclaringSyntaxReferences.Select(@ref => @ref.GetSyntaxAsync(cancellationToken));
             var syntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
+            var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             foreach (var syntax in syntaxes)
             {
                 Visit(compilation.GetSemanticModel(syntax.SyntaxTree).GetOperation(syntax, cancellationToken));
@@ -55,7 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 _dependents.Add(memberReferenceOp.Member);
             }
 
-            // This check is added for methodReferenceOperation due to https://github.com/dotnet/roslyn/issues/26206#issuecomment-382105829
+            // This check is added for checking method invoked in the member
+            // It is seperated since IInvocationOperation is not a sub type of IMemberReferenceOperation
+            // issue for this https://github.com/dotnet/roslyn/issues/26206#issuecomment-382105829
             if (operation is IInvocationOperation methodReferenceOp &&
                 _membersInType.Contains(methodReferenceOp.TargetMethod))
             {

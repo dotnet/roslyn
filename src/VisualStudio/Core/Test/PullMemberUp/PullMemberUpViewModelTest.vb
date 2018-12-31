@@ -363,15 +363,21 @@ class MyClass : Level1BaseClass
                 Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
                 Dim memberSymbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
                 Dim baseTypeTree = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(glyphService:=Nothing, workspaceDoc.Project.Solution, memberSymbol.ContainingType, CancellationToken.None)
-                Dim validMembers = memberSymbol.ContainingType.GetMembers().WhereAsArray(Function(member) MemberAndDestinationValidator.IsMemberValid(member))
-                Dim membersViewModel = validMembers.SelectAsArray(
+                Dim membersInType = memberSymbol.ContainingType.GetMembers().WhereAsArray(Function(member) MemberAndDestinationValidator.IsMemberValid(member))
+                Dim membersViewModel = membersInType.SelectAsArray(
                     Function(member) New PullMemberUpSymbolViewModel(glyphService:=Nothing, member) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
-                Dim dependentsBuilder = New SymbolDependentsBuilder(workspaceDoc, validMembers)
+                Dim memberToDependents = membersInType.ToImmutableDictionary(
+                    Function(member) member,
+                    Function(member)
+                        Dim dependentsBuilder = New SymbolDependentsBuilder(workspaceDoc, membersInType, member)
+                        Return Task.Run(Function() dependentsBuilder.FindMemberDependentsAsync(CancellationToken.None), CancellationToken.None)
+                    End Function)
+
                 Return New PullMemberUpDialogViewModel(
                     workspace.GetService(Of IWaitIndicator),
                     membersViewModel,
                     baseTypeTree.BaseTypeNodes,
-                    dependentsBuilder.CreateDependentsMap(CancellationToken.None))
+                    memberToDependents)
             End Using
         End Function
     End Class
