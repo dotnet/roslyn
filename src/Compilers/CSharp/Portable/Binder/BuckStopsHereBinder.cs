@@ -159,7 +159,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool IsNullableGloballyEnabled()
         {
-            return Compilation.Options.NullableContextOptions != NullableContextOptions.Disable;
+            switch (Compilation.Options.NullableContextOptions)
+            {
+                case NullableContextOptions.Enable:
+                case NullableContextOptions.SafeOnly:
+                    return true;
+
+                case NullableContextOptions.Disable:
+                case NullableContextOptions.Warnings:
+                case NullableContextOptions.SafeOnlyWarnings:
+                    return false;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(Compilation.Options.NullableContextOptions);
+            }
         }
 
         internal override Binder GetBinder(SyntaxNode node)

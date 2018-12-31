@@ -4603,8 +4603,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               `latest` (latest version, including minor versions),
                               or specific versions like `6` or `7.1`
 -nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|safeonly}
-                              Specify nullable context option enable|disable|safeonly.
+-nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
+                              Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -5647,6 +5647,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree may not contain a null coalescing assignment</value>
   </data>
   <data name="ERR_BadNullableContextOption" xml:space="preserve">
-    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'safeonly'</value>
+    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'</value>
   </data>
 </root>
