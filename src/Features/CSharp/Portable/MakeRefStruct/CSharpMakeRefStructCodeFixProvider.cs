@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -8,12 +10,13 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    public class CSharpMakeRefStructCodeFixProvider : CodeFixProvider
+    internal class CSharpMakeRefStructCodeFixProvider : CodeFixProvider
     {
         // Error CS8345: Field or auto-implemented property cannot be of certain type unless it is an instance member of a ref struct.
         private const string CS8345 = nameof(CS8345);
@@ -30,17 +33,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var structDeclaration = FindContainingStruct(root, span);
 
-            if (!structDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.RefKeyword)))
+            // CS8345 could be triggered when struct is already marked with `ref` but a property is static
+            if (structDeclaration != null && !structDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.RefKeyword)))
             {
-                var gen = SyntaxGenerator.GetGenerator(document);
-                var refStructDeclaration = gen.WithModifiers(structDeclaration,
-                    gen.GetModifiers(structDeclaration).WithIsRef(true));
-
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        c => FixCodeAsync(context.Document, context.Span, refStructDeclaration, c),
-                        CSharpFeaturesResources.Make_ref_struct),
-                    context.Diagnostics.First());
+                        CSharpFeaturesResources.Make_ref_struct,
+                        c => FixCodeAsync(context.Document, context.Span, c)),
+                    context.Diagnostics);
             }
         }
 
@@ -49,25 +49,34 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
             return WellKnownFixAllProviders.BatchFixer;
         }
 
-        private async Task<Document> FixCodeAsync(Document document, TextSpan span, SyntaxNode refStructDeclaration, CancellationToken c)
+        private async Task<Document> FixCodeAsync(Document document, TextSpan span, CancellationToken c)
         {
             var root = await document.GetSyntaxRootAsync(c).ConfigureAwait(false);
 
             var structDeclaration = FindContainingStruct(root, span);
-            root = root.ReplaceNode(structDeclaration, refStructDeclaration);
+            var newStruct = UpdateStructDeclaration(document, structDeclaration);
+            var newRoot = root.ReplaceNode(structDeclaration, newStruct);
 
-            return document.WithSyntaxRoot(root);
+            return document.WithSyntaxRoot(newRoot);
         }
 
         private StructDeclarationSyntax FindContainingStruct(SyntaxNode root, TextSpan span)
         {
             var member = root.FindNode(span);
-            return member.FirstAncestorOrSelf<StructDeclarationSyntax>();
+            // Could be declared in a class or even in a nested class inside a struct,
+            // so find only the first parent declaration
+            return member.GetAncestor<TypeDeclarationSyntax>() as StructDeclarationSyntax;
+        }
+
+        private SyntaxNode UpdateStructDeclaration(Document document, StructDeclarationSyntax decl)
+        {
+            var gen = SyntaxGenerator.GetGenerator(document);
+            return gen.WithModifiers(decl, gen.GetModifiers(decl).WithIsRef(true));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string title)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument, title)
             {
             }
