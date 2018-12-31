@@ -399,9 +399,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
+        internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> transform)
         {
-            return WithElementType(ElementType.SetUnknownNullabilityForReferenceTypes());
+            return WithElementType(transform(ElementType));
         }
 
         internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)

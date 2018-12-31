@@ -1446,9 +1446,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
+        internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> transform)
         {
-            var underlyingType = (NamedTypeSymbol)_underlyingType.SetUnknownNullabilityForReferenceTypes();
+            var underlyingType = (NamedTypeSymbol)_underlyingType.SetNullabilityForReferenceTypes(transform);
             if ((object)underlyingType == _underlyingType)
             {
                 return this;
@@ -1497,7 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TypeSymbolWithAnnotations typeArgumentA = typeArgumentsA[i];
                 TypeSymbolWithAnnotations typeArgumentB = typeArgumentsB[i];
-                TypeSymbolWithAnnotations merged = typeArgumentA.MergeNullability(typeArgumentB, variance, out bool hadMismatch);
+                TypeSymbolWithAnnotations merged = mergeNullability(typeArgumentA, typeArgumentB, out bool hadMismatch);
                 hadNullabilityMismatch |= hadMismatch;
                 allTypeArguments.Add(merged);
                 if (!typeArgumentA.IsSameAs(merged))
@@ -1514,7 +1514,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allTypeArguments.Free();
             return haveChanges;
+
+            // We use special rules for merging tuples, allowing nested types to remain unspeakable
+            TypeSymbolWithAnnotations mergeNullability(TypeSymbolWithAnnotations one, TypeSymbolWithAnnotations other, out bool nullabilityMismatch)
+            {
+                TypeSymbol typeSymbol = other.TypeSymbol;
+                NullableAnnotation nullableAnnotation = mergeNullableAnnotation(typeSymbol, one.NullableAnnotation, other.NullableAnnotation, out bool hadTopLevelMismatch);
+                TypeSymbol type = one.TypeSymbol.MergeNullability(typeSymbol, variance, out bool hadNestedMismatch);
+                Debug.Assert((object)type != null);
+                nullabilityMismatch = hadTopLevelMismatch | hadNestedMismatch;
+                return TypeSymbolWithAnnotations.Create(type, nullableAnnotation, one.CustomModifiers);
+            }
+
+            NullableAnnotation mergeNullableAnnotation(TypeSymbol type, NullableAnnotation a, NullableAnnotation b, out bool nullabilityMismatch)
+            {
+                nullabilityMismatch = false;
+                switch (variance)
+                {
+                    case VarianceKind.In:
+                        return a.MeetForFlowAnalysisFinally(b);
+                    case VarianceKind.Out:
+                        return a.JoinForFlowAnalysisBranches(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
+                    case VarianceKind.None:
+                        return a.EnsureCompatibleForTuples(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate, out nullabilityMismatch);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(variance);
+                }
+            }
         }
+
+        private readonly static Func<TypeSymbol, bool> _IsPossiblyNullableReferenceTypeTypeParameterDelegate = type => type.IsPossiblyNullableReferenceTypeTypeParameter();
 
         #region Use-Site Diagnostics
 
