@@ -34381,6 +34381,7 @@ class C
 
         [Fact]
         [WorkItem(29909, "https://github.com/dotnet/roslyn/issues/29909")]
+        [WorkItem(30310, "https://github.com/dotnet/roslyn/issues/30310")]
         public void IsPattern_02()
         {
             var source =
@@ -34392,6 +34393,40 @@ class C
         if (s is string t)
         {
             F(t);
+            F(s);
+        }
+        else
+        {
+            F(s); // warn
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,15): warning CS8604: Possible null reference argument for parameter 's' in 'void C.F(string s)'.
+                //             F(s); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("s", "void C.F(string s)").WithLocation(13, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem(30310, "https://github.com/dotnet/roslyn/issues/30310")]
+        public void IsPattern_02_WithNullTest()
+        {
+            var source =
+@"class C
+{
+    static void F(string s) { }
+    static void G(string? s)
+    {
+        if (s == null) throw null;
+        if (s is string t)
+        {
+            F(t);
+            F(s);
+        }
+        else
+        {
             F(s);
         }
     }
