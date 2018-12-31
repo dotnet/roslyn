@@ -52,15 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                     document.Project.Solution,
                     selectedMember.ContainingType,
                     cancellationTokenSource.Token).BaseTypeNodes;
-                var dependentsMap = membersInType.ToImmutableDictionary(
-                    member => member,
-                    member =>
-                    {
-                        var builder = new SymbolDependentsBuilder(document, membersInType, member);
-                        return Task.Run(() => builder.FindMemberDependentsAsync(cancellationTokenSource.Token),
-                            cancellationTokenSource.Token);
-                    });
-
+                var dependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(document, membersInType, cancellationTokenSource.Token);
                 var viewModel = new PullMemberUpDialogViewModel(_waitIndicator, memberViewModels, baseTypeRootViewModel, dependentsMap);
                 var dialog = new PullMemberUpDialog(viewModel);
                 var result = dialog.ShowModal();

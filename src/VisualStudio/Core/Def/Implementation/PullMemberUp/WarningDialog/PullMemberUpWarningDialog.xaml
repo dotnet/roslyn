@@ -17,11 +17,12 @@
     MinHeight="390"
     MinWidth="533"
     HasDialogFrame="True"
+    HasHelpButton="True"
     ShowInTaskbar="False"
     ResizeMode="CanResizeWithGrip"
     Title="{Binding ElementName=dialog, Path=WarningDialogTitle}">
     <Window.Resources>
-        <Thickness x:Key="okAndCancelButtonPadding">9, 2, 9, 2</Thickness>
+        <Thickness x:Key="ButtonPadding">9, 2, 9, 2</Thickness>
         <sys:Double x:Key="ButtonWidth">75</sys:Double>
         <sys:Double x:Key="ButtonHeight">23</sys:Double>
     </Window.Resources>
@@ -69,14 +70,14 @@
                 Click="FinishButton_Click"
                 IsDefault="True"
                 Margin="3, 0, 0, 0"
-                Padding= "{StaticResource ResourceKey=okAndCancelButtonPadding}"
+                Padding= "{StaticResource ResourceKey=ButtonPadding}"
                 Content="{Binding ElementName=dialog, Path=Finish}"
                 Width= "{StaticResource ResourceKey=ButtonWidth}"
                 Height="{StaticResource ResourceKey=ButtonHeight}"/>
             <vs:DialogButton
                 x:Uid="BackButton"
                 IsCancel="True"
-                Padding= "{StaticResource ResourceKey=okAndCancelButtonPadding}"
+                Padding= "{StaticResource ResourceKey=ButtonPadding}"
                 Click="BackButton_Click"
                 Margin="7, 0, 3, 0"
                 Width= "{StaticResource ResourceKey=ButtonWidth}"

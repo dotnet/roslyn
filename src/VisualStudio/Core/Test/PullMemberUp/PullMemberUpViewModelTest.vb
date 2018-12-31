@@ -111,6 +111,51 @@ class MyClass : Level1BaseClass, Level1Interface
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        Public Async Function TestPullMemberUp_SelectInterfaceDisableMakeAbstractCheckbox() As Task
+            Dim markUp = <Text><![CDATA[
+interface Level2Interface
+{
+}
+                             
+interface Level1Interface : Level2Interface
+{
+}
+
+class Level1BaseClass: Level2Interface
+{
+}
+
+class MyClass : Level1BaseClass, Level1Interface
+{
+    public void G$$oo()
+    {
+    }
+
+    public double e => 2.717;
+
+    public const days = 365;
+
+    private double pi => 3.1416;
+
+    protected float goldenRadio = 0.618;
+
+    internal float gravitational = 6.67e-11;
+}"]]></Text>
+            Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
+            Dim baseTypeTree = viewModel.Destinations()
+
+            Assert.Equal("Level1Interface", baseTypeTree(0).SymbolName)
+            viewModel.SelectedDestination = baseTypeTree(0)
+
+            For Each member In viewModel.Members.WhereAsArray(
+                Function(memberViewModel)
+                    Return Not memberViewModel.Symbol.IsKind(SymbolKind.Field) And Not memberViewModel.Symbol.IsAbstract
+                End Function)
+                Assert.False(member.IsMakeAbstractCheckable)
+            Next
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
         Public Async Function TestPullMemberUp_SelectInterfaceDisableFieldCheckbox() As Task
             Dim markUp = <Text><![CDATA[
 interface Level2Interface
@@ -149,51 +194,6 @@ class MyClass : Level1BaseClass, Level1Interface
 
             For Each member In viewModel.Members.Where(Function(memberViewModel) memberViewModel.Symbol.IsKind(SymbolKind.Field))
                 Assert.False(member.IsCheckable)
-            Next
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
-        Public Async Function TestPullMemberUp_SelectInterfaceDisableMakeAbstractCheckbox() As Task
-            Dim markUp = <Text><![CDATA[
-interface Level2Interface
-{
-}
-                             
-interface Level1Interface : Level2Interface
-{
-}
-
-class Level1BaseClass: Level2Interface
-{
-}
-
-class MyClass : Level1BaseClass, Level1Interface
-{
-    public void G$$oo()
-    {
-    }
-
-    public double e => 2.717;
-
-    public const days = 365;
-
-    private double pi => 3.1416;
-
-    protected float goldenRadio = 0.618;
-
-    internal float gravitational = 6.67e-11;
-}"]]></Text>
-            Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
-            Dim baseTypeTree = viewModel.Destinations()
-
-            Assert.Equal("Level1Interface", baseTypeTree(0).SymbolName)
-            viewModel.SelectedDestination = baseTypeTree(0)
-
-            For Each member In viewModel.Members.Where(
-                Function(memberViewModel)
-                    Return Not memberViewModel.Symbol.IsKind(SymbolKind.Field) And Not memberViewModel.Symbol.IsAbstract
-                End Function)
-                Assert.False(member.IsMakeAbstractCheckable)
             Next
         End Function
 
@@ -284,6 +284,49 @@ class MyClass : Level1BaseClass, Level1Interface
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        Public Async Function TestPullMemberUpDont_PullDisableItem() As Task
+            Dim markUp = <Text><![CDATA[
+interface Level2Interface
+{
+}
+                             
+interface Level1Interface : Level2Interface
+{
+}
+
+class Level1BaseClass: Level2Interface
+{
+}
+
+class MyClass : Level1BaseClass, Level1Interface
+{
+    public void G$$oo()
+    {
+    }
+
+    public double e => 2.717;
+
+    public const days = 365;
+
+    private double pi => 3.1416;
+
+    protected float goldenRadio = 0.618;
+
+    internal float gravitational = 6.67e-11;
+}"]]></Text>
+            Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
+            Dim baseTypeTree = viewModel.Destinations()
+            viewModel.SelectAllMembers()
+            ' select an interface, all checkbox of field will be disable
+            Assert.Equal("Level1Interface", baseTypeTree(0).SymbolName)
+            viewModel.SelectedDestination = baseTypeTree(0)
+
+            Dim options = viewModel.CreatePullMemberUpOptions()
+            ' Make sure fields are pulled to interface
+            Assert.Empty(options.MemberAnalysisResults.WhereAsArray(Function(analysisResult) analysisResult.Member.IsKind(SymbolKind.Field)))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
         Public Async Function TestPullMemberUp_SelectDependents() As Task
             Dim markUp = <Text><![CDATA[
 using System;
@@ -366,13 +409,7 @@ class MyClass : Level1BaseClass
                 Dim membersInType = memberSymbol.ContainingType.GetMembers().WhereAsArray(Function(member) MemberAndDestinationValidator.IsMemberValid(member))
                 Dim membersViewModel = membersInType.SelectAsArray(
                     Function(member) New PullMemberUpSymbolViewModel(glyphService:=Nothing, member) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
-                Dim memberToDependents = membersInType.ToImmutableDictionary(
-                    Function(member) member,
-                    Function(member)
-                        Dim dependentsBuilder = New SymbolDependentsBuilder(workspaceDoc, membersInType, member)
-                        Return Task.Run(Function() dependentsBuilder.FindMemberDependentsAsync(CancellationToken.None), CancellationToken.None)
-                    End Function)
-
+                Dim memberToDependents = SymbolDependentsBuilder.FindMemberToDependentsMap(workspaceDoc, membersInType, CancellationToken.None)
                 Return New PullMemberUpDialogViewModel(
                     workspace.GetService(Of IWaitIndicator),
                     membersViewModel,

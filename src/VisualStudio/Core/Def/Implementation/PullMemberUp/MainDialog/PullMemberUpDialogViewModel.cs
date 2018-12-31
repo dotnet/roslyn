@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         internal PullMembersUpOptions CreatePullMemberUpOptions()
         {
             var selectedOptionFromDialog = Members.
-                WhereAsArray(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable).
+                Where(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable).
                 SelectAsArray(memberViewModel =>
                     (member: memberViewModel.Symbol,
                     makeAbstract: memberViewModel.IsMakeAbstractCheckable && memberViewModel.MakeAbstract));
