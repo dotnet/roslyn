@@ -6376,7 +6376,7 @@ public class C
             Assert.Equal(1, peHeaders.PEHeader.MinorSubsystemVersion);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [Fact]
         public void CreateCompilationWithKeyFile()
         {
             string source = @"

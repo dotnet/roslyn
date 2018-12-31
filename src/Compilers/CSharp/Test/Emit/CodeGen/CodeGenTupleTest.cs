@@ -21738,8 +21738,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "92872377-08d1-4723-8906-a43b03e56ed3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        // https://github.com/dotnet/roslyn/issues/25141
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [Fact]
         public void ValueTupleBase_AssemblyUnification()
         {
             var source0v1 =

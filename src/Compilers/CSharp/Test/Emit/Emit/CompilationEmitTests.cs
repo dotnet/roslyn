@@ -1521,7 +1521,7 @@ comp => comp.VerifyDiagnostics(
             VerifyIdentitiesMatch(image, refOnlyImage, expectPublicKey: true);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [Fact]
         public void RefAssembly_StrongNameProvider()
         {
             var signedDllOptions = TestOptions.SigningReleaseDll.
@@ -1539,7 +1539,7 @@ comp => comp.VerifyDiagnostics(
             VerifyIdentitiesMatch(image, refOnlyImage, expectPublicKey: true);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [Fact]
         public void RefAssembly_StrongNameProvider_Arm64()
         {
             var signedDllOptions = TestOptions.SigningReleaseDll.
@@ -1559,7 +1559,7 @@ comp => comp.VerifyDiagnostics(
             VerifyIdentitiesMatch(image, refOnlyImage, expectPublicKey: true);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [Fact]
         public void RefAssembly_StrongNameProviderAndDelaySign()
         {
             var signedDllOptions = TestOptions.SigningReleaseDll
