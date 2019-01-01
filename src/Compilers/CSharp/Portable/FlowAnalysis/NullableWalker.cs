@@ -4585,6 +4585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             var result = base.VisitAwaitExpression(node);
+            CheckPossibleNullReceiver(node.Expression);
             if (node.Type.IsValueType || node.HasErrors || (object)node.AwaitableInfo.GetResult == null)
             {
                 SetResult(node);
@@ -4995,11 +4996,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
                     ReportSafetyDiagnostic(isValueType ? ErrorCode.WRN_NullableValueTypeMayBeNull : ErrorCode.WRN_NullReferenceReceiver, syntaxOpt ?? receiverOpt.Syntax);
-                    int slot = MakeSlot(receiverOpt);
-                    if (slot > 0)
+
+                    var slotBuilder = ArrayBuilder<int>.GetInstance();
+                    GetSlotsToMarkAsNotNullable(receiverOpt, slotBuilder);
+                    if (slotBuilder.Count > 0)
                     {
-                        this.State[slot] = NullableAnnotation.NotNullable;
+                        MarkSlotsAsNotNullable(slotBuilder, ref State);
                     }
+                    slotBuilder.Free();
                 }
             }
         }
