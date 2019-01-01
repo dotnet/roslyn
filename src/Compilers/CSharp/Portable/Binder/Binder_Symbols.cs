@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var conversions = this.Conversions.WithNullability(includeNullability: true);
                             type.CheckConstraints(this.Compilation, conversions, location, diagnostics);
                         }
-                        else if (constructedType.TypeSymbol.IsUnconstrainedTypeParameter())
+                        else if (constructedType.TypeSymbol.IsTypeParameterDisallowingAnnotation())
                         {
                             diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, syntax.Location);
                         }
