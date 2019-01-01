@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool Equals(object obj)
         {
-            return obj is AwaitExpressionInfo && Equals((AwaitExpressionInfo)obj);
+            return obj is AwaitExpressionInfo otherAwait && Equals(otherAwait);
         }
 
         public bool Equals(AwaitExpressionInfo other)
