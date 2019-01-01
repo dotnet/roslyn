@@ -1080,29 +1080,43 @@ class C
     public void V<V>() { }
 }
 ";
-            var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (18,26): error CS0692: Duplicate type parameter 'T'
-                //             int Local<T, T>() => 0;
-                Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(18, 26),
-                // (25,23): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M2<T>()'
-                //             int Local<T>() => 0;
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(25, 23),
-                // (31,28): warning CS8387: Type parameter 'V' has the same name as the type parameter from outer method 'Local1<V>()'
-                //                 int Local2<V>() => 0;
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "V").WithArguments("V", "Local1<V>()").WithLocation(31, 28),
-                // (37,17): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //             int T() => 0;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(37, 17),
-                // (43,21): error CS0412: 'V': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //                 int V() => 0;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "V").WithArguments("V").WithLocation(43, 21),
-                // (54,25): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //                     int T() => 0;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(54, 25),
-                // (67,32): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M2<T>()'
-                //                     int Local3<T>() => 0;
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(67, 32));
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular7_3);
+            verifyDiagnostics();
+
+            comp = CreateCompilation(src, parseOptions: TestOptions.Regular8);
+            verifyDiagnostics();
+
+            void verifyDiagnostics()
+            {
+                comp.VerifyDiagnostics(
+                    // (9,23): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //             int Local<T>() => 0; // Should conflict with above
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(9, 23),
+                    // (14,19): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //             int T<T>() => 0;
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(14, 19),
+                    // (18,26): error CS0692: Duplicate type parameter 'T'
+                    //             int Local<T, T>() => 0;
+                    Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(18, 26),
+                    // (25,23): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M2<T>()'
+                    //             int Local<T>() => 0;
+                    Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(25, 23),
+                    // (31,28): warning CS8387: Type parameter 'V' has the same name as the type parameter from outer method 'Local1<V>()'
+                    //                 int Local2<V>() => 0;
+                    Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "V").WithArguments("V", "Local1<V>()").WithLocation(31, 28),
+                    // (37,17): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                    //             int T() => 0;
+                    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(37, 17),
+                    // (43,21): error CS0412: 'V': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                    //                 int V() => 0;
+                    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "V").WithArguments("V").WithLocation(43, 21),
+                    // (54,25): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                    //                     int T() => 0;
+                    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(54, 25),
+                    // (67,32): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M2<T>()'
+                    //                     int Local3<T>() => 0;
+                    Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(67, 32));
+            }
         }
 
         [Fact]
@@ -1772,7 +1786,14 @@ class Program
     }
 }
 ";
-            VerifyDiagnostics(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (7,24): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void Param(int x) { }
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(7, 24));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1789,7 +1810,17 @@ class Program
     }
 }
 ";
-            VerifyDiagnostics(source,
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (7,22): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void Generic<T>() { }
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(7, 22),
+                // (6,13): warning CS0168: The variable 'T' is declared but never used
+                //         int T;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "T").WithArguments("T").WithLocation(6, 13));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
                 // (6,13): warning CS0168: The variable 'T' is declared but never used
                 //         int T;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "T").WithArguments("T").WithLocation(6, 13));
@@ -3947,13 +3978,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 30));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (11,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         void F3() { void x() { } } // method
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 26),
-                // (13,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
-                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 30));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3994,13 +4019,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(12, 30));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (10,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         void F3() { void x() { } } // method
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 26),
-                // (12,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
-                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(12, 30));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4023,13 +4042,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (10,33): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         static void F3() { void x() { } } // method
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 33),
-                // (12,37): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
-                //         static void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(12, 37));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4068,13 +4081,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(12, 30));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (10,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         void F3() { void x() { } } // method
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 26),
-                // (12,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
-                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(12, 30));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4096,34 +4103,30 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics(
-                // (8,28): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //         void F1() { object x = 0; } // local
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(8, 28),
-                // (9,24): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //         void F2(string x) { } // parameter
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(9, 24),
-                // (10,26): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //         void F3() { void x() { } } // method
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(10, 26),
-                // (11,17): warning CS8387: Type parameter 'x' has the same name as the type parameter from outer method 'Program.M<x>()'
-                //         void F4<x>() { } // type parameter
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "x").WithArguments("x", "Program.M<x>()").WithLocation(11, 17),
-                // (12,30): error CS1948: The range variable 'x' cannot have the same name as a method type parameter
-                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "x").WithArguments("x").WithLocation(12, 30));
+            verifyDiagnostics();
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (10,26): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //         void F3() { void x() { } } // method
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(10, 26),
-                // (11,17): warning CS8387: Type parameter 'x' has the same name as the type parameter from outer method 'Program.M<x>()'
-                //         void F4<x>() { } // type parameter
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "x").WithArguments("x", "Program.M<x>()").WithLocation(11, 17),
-                // (12,30): error CS1948: The range variable 'x' cannot have the same name as a method type parameter
-                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "x").WithArguments("x").WithLocation(12, 30));
+            verifyDiagnostics();
+
+            void verifyDiagnostics()
+            {
+                comp.VerifyDiagnostics(
+                    // (8,28): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                    //         void F1() { object x = 0; } // local
+                    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(8, 28),
+                    // (9,24): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                    //         void F2(string x) { } // parameter
+                    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(9, 24),
+                    // (10,26): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                    //         void F3() { void x() { } } // method
+                    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(10, 26),
+                    // (11,17): warning CS8387: Type parameter 'x' has the same name as the type parameter from outer method 'Program.M<x>()'
+                    //         void F4<x>() { } // type parameter
+                    Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "x").WithArguments("x", "Program.M<x>()").WithLocation(11, 17),
+                    // (12,30): error CS1948: The range variable 'x' cannot have the same name as a method type parameter
+                    //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
+                    Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "x").WithArguments("x").WithLocation(12, 30));
+            }
         }
 
         [Fact]
@@ -4164,13 +4167,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 30));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (11,26): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         void F3() { void x() { } } // method
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 26),
-                // (13,30): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
-                //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 30));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4257,14 +4254,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "F5").WithArguments("F5").WithLocation(12, 30));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE: Should we report errors for F1, F2, F4 as well?
-            comp.VerifyDiagnostics(
-                // (10,26): error CS0136: A local or parameter named 'F3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         void F3() { void F3() { } } // method
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "F3").WithArguments("F3").WithLocation(10, 26),
-                // (12,30): error CS1931: The range variable 'F5' conflicts with a previous declaration of 'F5'
-                //         void F5() { _ = from F5 in new[] { 1, 2, 3 } select F5; } // range variable
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "F5").WithArguments("F5").WithLocation(12, 30));
+            // PROTOTYPE: Should we report errors for these cases, even in C#8?
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4299,6 +4290,9 @@ class C
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (10,29): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //             void G2() { int T = 0; }
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(10, 29),
                 // (11,21): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M<T>(object)'
                 //             void G3<T>() { }
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M<T>(object)").WithLocation(11, 21));
@@ -4330,13 +4324,16 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (13,36): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //             static void G2() { int T = 0; }
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(13, 36),
                 // (17,28): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M<T>(object)'
                 //             static void G3<T>() { }
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M<T>(object)").WithLocation(17, 28));
         }
 
         [Fact]
-        public void ShadowName_Other()
+        public void DuplicateNames()
         {
             var source =
 @"#pragma warning disable 0219
@@ -4345,9 +4342,11 @@ class Program
 {
     static void M()
     {
-        void F1(object x, string y, int x) { }
-        void F2(object M, string Program) { }
-        void F3<T, U>(object T, string U) { }
+        void F1(object x) { string x = null; } // local
+        void F2(object x, string y, int x) { } // parameter
+        void F3(object x) { void x() { } } // method
+        void F4<x, y>(object x) { void y() { } } // type parameter
+        void F5(object M, string Program) { }
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
@@ -4359,15 +4358,21 @@ class Program
             void verifyDiagnostics()
             {
                 comp.VerifyDiagnostics(
-                // (7,41): error CS0100: The parameter name 'x' is a duplicate
-                //         void F1(object x, string y, int x) { }
-                Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x").WithLocation(7, 41),
-                // (9,30): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //         void F3<T, U>(object T, string U) { }
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(9, 30),
-                // (9,40): error CS0412: 'U': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //         void F3<T, U>(object T, string U) { }
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "U").WithArguments("U").WithLocation(9, 40));
+                    // (7,36): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //         void F1(object x) { string x = null; } // local
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(7, 36),
+                    // (8,41): error CS0100: The parameter name 'x' is a duplicate
+                    //         void F2(object x, string y, int x) { } // parameter
+                    Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x").WithLocation(8, 41),
+                    // (9,34): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //         void F3(object x) { void x() { } } // method
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(9, 34),
+                    // (10,30): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                    //         void F4<x, y>(object x) { void y() { } } // type parameter
+                    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(10, 30),
+                    // (10,40): error CS0412: 'y': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                    //         void F4<x, y>(object x) { void y() { } } // type parameter
+                    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y").WithArguments("y").WithLocation(10, 40));
             }
         }
 
