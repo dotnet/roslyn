@@ -195,7 +195,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                         // N->E or S->E. If ReSharper was just installed and is enabled, reset NeedsReset.
                         options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
                     }
-
                     else if (currentStatus == ReSharperStatus.Suspended && _isFirstRun)
                     {
                         // S->VS closed and restarted. If ReSharper was suspended and the user closed and reopened VS, we want to reset the gold bar.
@@ -288,7 +287,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var hr_suspend = await QueryStatusAsync(cmds_suspend).ConfigureAwait(false);
-                var hr_resume = await QueryStatusAsync(cmds_resume).ConfigureAwait(false);
 
                 // In the case of an error when attempting to get the status, pretend that ReSharper isn't enabled. We also
                 // shut down monitoring so we don't keep hitting this.
@@ -300,7 +298,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     return ReSharperStatus.NotInstalledOrDisabled;
                 }
 
-                else if (ErrorHandler.Failed((hr_resume)))
+                var hr_resume = await QueryStatusAsync(cmds_resume).ConfigureAwait(false);
+                if (ErrorHandler.Failed((hr_resume)))
                 {
                     FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr_resume));
                     await ShutdownAsync().ConfigureAwait(false);
@@ -320,7 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     return ReSharperStatus.Enabled;
                 }
 
-                //otherwise sleep for a bit and check again
+                // ReSharper has not finished initializing, so try again later
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken).ConfigureAwait(false);
             }
 
@@ -339,6 +338,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 }
 
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
 
                 _oleCommandTarget = _serviceProvider.GetService<IOleCommandTarget, SUIHostCommandDispatcher>();
             }
