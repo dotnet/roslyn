@@ -1615,6 +1615,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(31732, "https://github.com/dotnet/roslyn/issues/31732")]
         public void SuppressionOnUnconstrainedTypeParameter()
         {
             var source = @"
@@ -1623,6 +1624,7 @@ class C
     void M<T>(T t)
     {
         t!.ToString();
+        t.ToString();
     }
 }
 ";
@@ -1631,6 +1633,50 @@ class C
 
             c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(31732, "https://github.com/dotnet/roslyn/issues/31732")]
+        public void SuppressionOnNullableValueType()
+        {
+            var source = @"
+class C
+{
+    void M(int? i)
+    {
+        i!!.Value.ToString();
+        i.Value.ToString();
+    }
+}
+";
+            var c = CreateCompilation(new[] { source });
+            c.VerifyDiagnostics();
+
+            c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(31732, "https://github.com/dotnet/roslyn/issues/31732")]
+        public void SuppressionOnArgument()
+        {
+            var source = @"
+class C
+{
+    void M(string? s)
+    {
+        NonNull(s!);
+        s.ToString(); // warn
+    }
+    void NonNull(string s) => throw null;
+}
+";
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 9)
+                );
         }
 
         [Fact]
@@ -54221,8 +54267,8 @@ static class E
     static void G1(C? x)
     {
         x?.F1(x);
-        x!.F1(x); // 1
-        x.F1(x); // 2
+        x!.F1(x);
+        x.F1(x);
         x.F1(x);
     }
     static void G2(C? y)
@@ -54239,12 +54285,6 @@ static class E
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (7,15): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.F1(C x)'.
-                //         x!.F1(x); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "void C.F1(C x)").WithLocation(7, 15),
-                // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         x.F1(x); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 9),
                 // (14,15): warning CS8604: Possible null reference argument for parameter 'y' in 'void E.F2(C x, C y)'.
                 //         y!.F2(y); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void E.F2(C x, C y)").WithLocation(14, 15),
