@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [InlineData("M_bar", "bar")]
         [InlineData("S_bar", "bar")]
         [InlineData("T_bar", "bar")]
-        [InlineData("_Bar", "bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
+        [InlineData("_Bar", "bar")]
         [InlineData("__Bar", "bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
         [InlineData("M_s__t_Bar", "bar")]
         [InlineData("m_bar", "bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
