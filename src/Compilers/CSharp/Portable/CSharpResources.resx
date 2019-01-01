@@ -5433,12 +5433,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NullableUnconstrainedTypeParameter" xml:space="preserve">
     <value>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</value>
   </data>
-  <data name="WRN_SuppressionOperatorNotReferenceType" xml:space="preserve">
-    <value>The suppression operator (!) can only be applied to reference types and nullable value types.</value>
-  </data>
-  <data name="WRN_SuppressionOperatorNotReferenceType_Title" xml:space="preserve">
-    <value>The suppression operator (!) can only be applied to reference types and nullable value types.</value>
-  </data>
   <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</value>
   </data>
