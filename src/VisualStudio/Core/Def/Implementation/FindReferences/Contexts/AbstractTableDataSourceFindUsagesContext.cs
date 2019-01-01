@@ -27,11 +27,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-            private ITableDataSink _tableDataSink;
+            private ImmutableList<ITableDataSink> _tableDataSinks = ImmutableList<ITableDataSink>.Empty;
 
             public readonly StreamingFindUsagesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
             protected readonly IWpfTableControl2 TableControl;
+
+            /// <summary>
+            /// Indicates the last stable state communicated with sinks.
+            /// </summary>
+            private bool _isStable;
 
             protected readonly object Gate = new object();
 
@@ -47,16 +52,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// The list of all definitions we've heard about.  This may be a superset of the
             /// keys in <see cref="_definitionToBucket"/> because we may encounter definitions
             /// we don't create definition buckets for.  For example, if the definition asks
-            /// us to not display it if it has no references, and we don't run into any 
+            /// us to not display it if it has no references, and we don't run into any
             /// references for it (common with implicitly declared symbols).
             /// </summary>
             protected readonly List<DefinitionItem> Definitions = new List<DefinitionItem>();
 
             /// <summary>
-            /// We will hear about the same definition over and over again.  i.e. for each reference 
+            /// We will hear about the same definition over and over again.  i.e. for each reference
             /// to a definition, we will be told about the same definition.  However, we only want to
             /// create a single actual <see cref="DefinitionBucket"/> for the definition. To accomplish
-            /// this we keep a map from the definition to the task that we're using to create the 
+            /// this we keep a map from the definition to the task that we're using to create the
             /// bucket for it.  The first time we hear about a definition we'll make a single task
             /// and then always return that for all future references found.
             /// </summary>
@@ -109,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 // After adding us as the source, the manager should immediately call into us to
                 // tell us what the data sink is.
-                Debug.Assert(_tableDataSink != null);
+                Debug.Assert(_tableDataSinks.Count > 0);
 
                 // Initialize custom column states at start of the FAR query.
                 _customColumnTitleToStatesMap = GetInitialCustomColumnStates(findReferencesWindow.TableControl.ColumnStates, customColumns);
@@ -162,7 +167,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             protected void NotifyChange()
-                => _tableDataSink.FactorySnapshotChanged(this);
+            {
+                foreach (var sink in _tableDataSinks)
+                {
+                    sink.FactorySnapshotChanged(this);
+                }
+            }
 
             private void OnFindReferencesWindowClosed(object sender, EventArgs e)
             {
@@ -235,7 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 lock (Gate)
                 {
                     // Mark ourselves as clear so that no further changes are made.
-                    // Note: we don't actually mutate any of our entry-lists.  Instead, 
+                    // Note: we don't actually mutate any of our entry-lists.  Instead,
                     // GetCurrentSnapshot will simply ignore them if it sees that _cleared
                     // is true.  This way we don't have to do anything complicated if we
                     // keep hearing about definitions/references on the background.
@@ -262,13 +272,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 Presenter.AssertIsForeground();
 
-                Debug.Assert(_tableDataSink == null);
-                _tableDataSink = sink;
+                _tableDataSinks = _tableDataSinks.Add(sink);
 
-                _tableDataSink.AddFactory(this, removeAllFactories: true);
-                _tableDataSink.IsStable = false;
+                sink.AddFactory(this, removeAllFactories: true);
 
-                return this;
+                // A sink can be added at any point, even after we're stable.
+                sink.IsStable = _isStable;
+
+                return new DisposableSubscription(this, sink);
             }
 
             #endregion
@@ -286,7 +297,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 await OnCompletedAsyncWorkerAsync().ConfigureAwait(false);
 
-                _tableDataSink.IsStable = true;
+                _isStable = true;
+                foreach (var sink in _tableDataSinks)
+                {
+                    sink.IsStable = true;
+                }
             }
 
             protected abstract Task OnCompletedAsyncWorkerAsync();
@@ -305,9 +320,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected async Task<(Guid, string projectName, SourceText)> GetGuidAndProjectNameAndSourceTextAsync(Document document)
             {
-                // The FAR system needs to know the guid for the project that a def/reference is 
+                // The FAR system needs to know the guid for the project that a def/reference is
                 // from (to support features like filtering).  Normally that would mean we could
-                // only support this from a VisualStudioWorkspace.  However, we want till work 
+                // only support this from a VisualStudioWorkspace.  However, we want till work
                 // in cases like Any-Code (which does not use a VSWorkspace).  So we are tolerant
                 // when we have another type of workspace.  This means we will show results, but
                 // certain features (like filtering) may not work in that context.
@@ -512,7 +527,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 #if false
                 try
                 {
-                    // The original FAR window exposed a SetProgress(double). Ensure that we 
+                    // The original FAR window exposed a SetProgress(double). Ensure that we
                     // don't crash if this code is running on a machine without the new API.
                     _findReferencesWindow.SetProgress(current, maximum);
                 }
@@ -576,23 +591,47 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             void IDisposable.Dispose()
             {
-                this.Presenter.AssertIsForeground();
-
-                // VS is letting go of us.  i.e. because a new FAR call is happening, or because
-                // of some other event (like the solution being closed).  Remove us from the set
-                // of sources for the window so that the existing data is cleared out.
-                Debug.Assert(_findReferencesWindow.Manager.Sources.Count == 1);
-                Debug.Assert(_findReferencesWindow.Manager.Sources[0] == this);
-
-                _findReferencesWindow.Manager.RemoveSource(this);
-
-                CancelSearch();
-
-                // Remove ourselves from the list of contexts that are currently active.
-                Presenter._currentContexts.Remove(this);
             }
 
             #endregion
+
+            private void RemoveSink(ITableDataSink sink)
+            {
+                // TODO: Why is this a safe assumption? Where is the contract that these subscriptions are only disposed on the main thread?
+                //       Even if VS always does it, other folks can add their own sinks, and if the requirement isn't documented,
+                //       others may dispose on another thread.
+                Presenter.AssertIsForeground();
+
+                _tableDataSinks = _tableDataSinks.Remove(sink);
+
+                if (_tableDataSinks.IsEmpty)
+                {
+                    // VS is letting go of us.  i.e. because a new FAR call is happening, or because
+                    // of some other event (like the solution being closed).  Remove us from the set
+                    // of sources for the window so that the existing data is cleared out.
+                    _findReferencesWindow.Manager.RemoveSource(this);
+
+                    CancelSearch();
+
+                    // Remove ourselves from the list of contexts that are currently active.
+                    Presenter._currentContexts.Remove(this);
+                }
+            }
+
+            private class DisposableSubscription : IDisposable
+            {
+                private readonly AbstractTableDataSourceFindUsagesContext _owner;
+                private readonly ITableDataSink _sink;
+
+                internal DisposableSubscription(AbstractTableDataSourceFindUsagesContext owner, ITableDataSink sink)
+                {
+                    _owner = owner ?? throw new ArgumentNullException(nameof(owner));
+                    _sink = sink ?? throw new ArgumentNullException(nameof(sink));
+                }
+
+                public void Dispose()
+                    => _owner.RemoveSink(_sink);
+            }
         }
     }
 }
