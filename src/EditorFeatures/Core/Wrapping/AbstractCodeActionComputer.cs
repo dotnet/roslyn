@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                     {
                         var span = TextSpan.FromBounds(edit.Left.Span.End, edit.Right.Span.Start);
                         var text = OriginalSourceText.ToString(span);
-                        if (!string.IsNullOrWhiteSpace(text))
+                        if (!IsSafeToRemove(text))
                         {
                             // editing some piece of non-whitespace trivia.  We don't support this.
                             return default;
@@ -184,6 +185,20 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                     leftTokenToTrailingTrivia.Free();
                     rightTokenToLeadingTrivia.Free();
                 }
+            }
+
+            private static bool IsSafeToRemove(string text)
+            {
+                foreach (var ch in text)
+                {
+                    // It's safe to remove whitespace between tokens, or the VB line-continuation character.
+                    if (!char.IsWhiteSpace(ch) && ch != '_')
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
             private async Task<(SyntaxNode root, SyntaxNode rewrittenRoot, TextSpan spanToFormat)> RewriteTreeAsync(
@@ -224,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                         }
 
                         return newToken;
-                    }, 
+                    },
                     trivia: null,
                     computeReplacementTrivia: null);
 

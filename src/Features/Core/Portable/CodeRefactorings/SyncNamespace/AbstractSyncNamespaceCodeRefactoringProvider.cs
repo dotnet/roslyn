@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             // No change namespace action if we can't construct a valid namespace from rootnamespace and folder names.
             if (state.TargetNamespace != null)
-            { 
+            {
                 // This code action tries to change the name of the namespace declaration to 
                 // match the folder hierarchy of the document. The new namespace is constructed 
                 // by concatenating the default namespace of the project and all the folders in 
@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var service = document.GetLanguageService<IChangeNamespaceService>();
 
                 var solutionChangeAction = new ChangeNamespaceCodeAction(
-                    state.TargetNamespace.Length == 0 
+                    state.TargetNamespace.Length == 0
                         ? FeaturesResources.Change_to_global_namespace
-                        : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace), 
+                        : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace),
                     token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, token));
 
                 context.RegisterRefactoring(solutionChangeAction);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
         private class ChangeNamespaceCodeAction : SolutionChangeAction
         {
-            public ChangeNamespaceCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution) : 
+            public ChangeNamespaceCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution) :
                 base(title, createChangedSolution)
             {
             }

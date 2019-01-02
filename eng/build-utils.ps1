@@ -177,22 +177,6 @@ function Get-PackageDir([string]$name, [string]$version = "") {
     return $p
 }
 
-# Restore a single project
-function Restore-Project([string]$projectFileName, [string]$logFilePath = "") {
-    $projectFilePath = $projectFileName
-    if (-not (Test-Path $projectFilePath)) {
-        $projectFilePath = Join-Path $RepoRoot $projectFileName
-    }
-
-    $logArg = ""
-    if ($logFilePath -ne "") {
-        $logArg = " /bl:$logFilePath"
-    }
-
-    $buildTool = InitializeBuildTool
-    Exec-Console $buildTool.Path "$($buildTool.Command) `"$projectFilePath`" /t:Restore /m /nologo /clp:None /v:quiet /nr:false /warnaserror $logArg $args"
-}
-
 function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$summary = $true, [switch]$warnAsError = $true, [string]$configuration = $script:configuration) {
     # Because we override the C#/VB toolset to build against our LKG package, it is important
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,

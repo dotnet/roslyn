@@ -7,6 +7,9 @@ Microsoft.CodeAnalysis.OperationKind.MethodBody = 88 -> Microsoft.CodeAnalysis.O
 Microsoft.CodeAnalysis.OperationKind.Range = 99 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.TupleBinary = 87 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Unary = 31 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.SymbolDisplayPartKind.ConstantName = 30 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
+Microsoft.CodeAnalysis.SymbolDisplayPartKind.EnumMemberName = 28 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
+Microsoft.CodeAnalysis.SymbolDisplayPartKind.ExtensionMethodName = 29 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
@@ -193,6 +196,7 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitReDim(Microsoft.
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitReDimClause(Microsoft.CodeAnalysis.Operations.IReDimClauseOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitStaticLocalInitializationSemaphore(Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSuppressNullableWarningExpression(Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSuppressNullableWarningOperation(Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCaughtException(Microsoft.CodeAnalysis.FlowAnalysis.ICaughtExceptionOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCoalesceAssignment(Microsoft.CodeAnalysis.Operations.ICoalesceAssignmentOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFlowAnonymousFunction(Microsoft.CodeAnalysis.FlowAnalysis.IFlowAnonymousFunctionOperation operation, TArgument argument) -> TResult
@@ -204,4 +208,4 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitReDim(Microsoft.CodeAnalysis.Operations.IReDimOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitReDimClause(Microsoft.CodeAnalysis.Operations.IReDimClauseOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitStaticLocalInitializationSemaphore(Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation operation, TArgument argument) -> TResult
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitSuppressNullableWarningExpression(Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitSuppressNullableWarningOperation(Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation operation, TArgument argument) -> TResult

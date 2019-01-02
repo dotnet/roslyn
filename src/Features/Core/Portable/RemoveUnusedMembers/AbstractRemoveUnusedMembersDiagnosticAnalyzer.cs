@@ -259,7 +259,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     {
                         Debug.Assert(memberReference.Parent is ICompoundAssignmentOperation compoundAssignment &&
                             compoundAssignment.Target == memberReference ||
-                            memberReference.Parent is IIncrementOrDecrementOperation);
+                            memberReference.Parent is IIncrementOrDecrementOperation ||
+                            memberReference.Parent is IReDimClauseOperation reDimClause && reDimClause.Operand == memberReference);
 
                         // Compound assignment or increment whose value is being dropped (parent is an expression statement)
                         // is treated as a Write as the value was never actually 'read' in a way that is observable.

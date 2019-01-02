@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // descend through Rest fields
                 // force corresponding slots if do not exist
-                while (containingType != symbol.ContainingType)
+                while (!TypeSymbol.Equals(containingType, symbol.ContainingType, TypeCompareKind.ConsiderEverything2))
                 {
                     var restField = containingType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
                     if ((object)restField == null)
@@ -205,8 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
-                    // https://github.com/dotnet/roslyn/issues/29617 Not handling `this` or `base` in lambda.
-                    // See NullableReferenceTypesTests.ThisAndBaseMemberInLambda unit test.
                     return (object)MethodThisParameter != null ? GetOrCreateSlot(MethodThisParameter) : -1;
                 case BoundKind.Local:
                     return GetOrCreateSlot(((BoundLocal)node).LocalSymbol);

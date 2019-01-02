@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ServicesVSResources {
@@ -212,6 +212,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string ALL_UPPER {
             get {
                 return ResourceManager.GetString("ALL_UPPER", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Allow:.
+        /// </summary>
+        internal static string Allow_colon {
+            get {
+                return ResourceManager.GetString("Allow_colon", resourceCulture);
             }
         }
         
@@ -2856,6 +2865,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Use_expression_body_for_lambdas {
             get {
                 return ResourceManager.GetString("Use_expression_body_for_lambdas", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for local functions.
+        /// </summary>
+        internal static string Use_expression_body_for_local_functions {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_local_functions", resourceCulture);
             }
         }
         

@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets the set of interfaces that this type directly implements. This set does not include
         /// interfaces that are base interfaces of directly implemented interfaces.
         /// </summary>
-        internal abstract ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null);
+        internal abstract ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved = null);
 
         /// <summary>
         /// The list of all interfaces of which this type is a declared subtype, excluding this type
@@ -633,7 +633,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result);
 
-        internal abstract TypeSymbol SetUnknownNullabilityForReferenceTypes();
+        internal abstract TypeSymbol SetNullabilityForReferenceTypes(Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> transform);
+
+        internal TypeSymbol SetUnknownNullabilityForReferenceTypes()
+        {
+            return SetNullabilityForReferenceTypes(s_setUnknownNullability);
+        }
+
+        private readonly static Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> s_setUnknownNullability =
+            (type) => type.SetUnknownNullabilityForReferenceTypes();
+
+        internal TypeSymbol SetSpeakableNullabilityForReferenceTypes()
+        {
+            return SetNullabilityForReferenceTypes(s_setSpeakableNullability);
+        }
+
+        private readonly static Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> s_setSpeakableNullability =
+           (type) => type.SetSpeakableNullabilityForReferenceTypes();
 
         /// <summary>
         /// Merges nested nullability from an otherwise identical type.
@@ -648,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsByRefLikeType { get; }
 
         /// <summary>
-        /// Returns true if the type is a readonly sruct
+        /// Returns true if the type is a readonly struct
         /// </summary>
         internal abstract bool IsReadOnly { get; }
 
@@ -1030,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // then it's not a valid match.
                 implicitImpl = null;
             }
-            else if ((object)correspondingImplementingAccessor != null && ((object)implicitImpl == null || correspondingImplementingAccessor.ContainingType == implicitImpl.ContainingType))
+            else if ((object)correspondingImplementingAccessor != null && ((object)implicitImpl == null || TypeSymbol.Equals(correspondingImplementingAccessor.ContainingType, implicitImpl.ContainingType, TypeCompareKind.ConsiderEverything2)))
             {
                 // Suppose the interface accessor and the implementing accessor have different names.
                 // In Dev10, as long as the corresponding properties have an implementation relationship,
@@ -1315,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static Location GetImplicitImplementationDiagnosticLocation(Symbol interfaceMember, TypeSymbol implementingType, Symbol member)
         {
-            if (member.ContainingType == implementingType)
+            if (TypeSymbol.Equals(member.ContainingType, implementingType, TypeCompareKind.ConsiderEverything2))
             {
                 return member.Locations[0];
             }
@@ -1547,5 +1563,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        public static bool Equals(TypeSymbol left, TypeSymbol right, TypeCompareKind comparison)
+        {
+            if (left is null)
+            {
+                return right is null;
+            }
+
+            return left.Equals(right, comparison);
+        }
+
+        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
+        public static bool operator ==(TypeSymbol left, TypeSymbol right)
+            => throw ExceptionUtilities.Unreachable;
+
+        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
+        public static bool operator !=(TypeSymbol left, TypeSymbol right)
+            => throw ExceptionUtilities.Unreachable;
+
+        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
+        public static bool operator ==(Symbol left, TypeSymbol right)
+            => throw ExceptionUtilities.Unreachable;
+
+        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
+        public static bool operator !=(Symbol left, TypeSymbol right)
+            => throw ExceptionUtilities.Unreachable;
+
+        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
+        public static bool operator ==(TypeSymbol left, Symbol right)
+            => throw ExceptionUtilities.Unreachable;
+
+        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
+        public static bool operator !=(TypeSymbol left, Symbol right)
+            => throw ExceptionUtilities.Unreachable;
     }
 }

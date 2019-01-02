@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -806,7 +807,13 @@ namespace System
         [Fact]
         public void MissingTypeAndMembers_ValueTaskT()
         {
-            VerifyMissingMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor,
+            VerifyMissingMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken,
+                // (5,64): error CS0656: Missing compiler required member 'System.Threading.Tasks.ValueTask`1..ctor'
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Threading.Tasks.ValueTask`1", ".ctor").WithLocation(5, 64)
+                );
+
+            VerifyMissingMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue,
                 // (5,64): error CS0656: Missing compiler required member 'System.Threading.Tasks.ValueTask`1..ctor'
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Threading.Tasks.ValueTask`1", ".ctor").WithLocation(5, 64)
@@ -816,6 +823,9 @@ namespace System
                 // (5,64): error CS0656: Missing compiler required member 'System.Collections.Generic.IAsyncEnumerator`1.MoveNextAsync'
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Collections.Generic.IAsyncEnumerator`1", "MoveNextAsync").WithLocation(5, 64),
+                // (5,64): error CS0656: Missing compiler required member 'System.Threading.Tasks.ValueTask`1..ctor'
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Threading.Tasks.ValueTask`1", ".ctor").WithLocation(5, 64),
                 // (5,64): error CS0656: Missing compiler required member 'System.Threading.Tasks.ValueTask`1..ctor'
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Threading.Tasks.ValueTask`1", ".ctor").WithLocation(5, 64)
@@ -1200,6 +1210,161 @@ class C
                 );
         }
 
+        [Fact]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
+        public void AsyncIterator_WithThrowOnly()
+        {
+            string source = @"
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        throw new System.NotImplementedException();
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74)
+                );
+            comp.VerifyEmitDiagnostics(
+                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
+                // (4,74): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(4, 74)
+                );
+
+            var m = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            Assert.False(m.IsIterator);
+            Assert.True(m.IsAsync);
+        }
+
+        [Fact]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
+        public void AsyncIteratorReturningEnumerator_WithThrowOnly()
+        {
+            string source = @"
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+        throw new System.NotImplementedException();
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74)
+                );
+            comp.VerifyEmitDiagnostics(
+                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
+                // (4,74): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.
+                //     public static async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 74)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
+        public void AsyncIteratorReturningEnumerator_WithAwaitAndThrow()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        throw new System.NotImplementedException();
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (4,60): error CS8419: The body of an async-iterator method must contain a 'yield' statement.
+                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYield, "M").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 60)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
+        public void AsyncIteratorReturningEnumerator_WithThrow_WithAwaitInLambda()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+        System.Func<System.Threading.Tasks.Task> lambda = async () => { await System.Threading.Tasks.Task.CompletedTask; };
+        throw new System.NotImplementedException();
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60)
+                );
+            comp.VerifyEmitDiagnostics(
+                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60),
+                // (4,60): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing `async` from the method declaration.
+                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 60)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
+        public void AsyncIterator_WithEmptyBody()
+        {
+            string source = @"
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
+                // (4,74): error CS0161: 'C.M()': not all code paths return a value
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 74)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31552, "https://github.com/dotnet/roslyn/issues/31552")]
+        public void AsyncIteratorReturningEnumerator_WithoutBody()
+        {
+            string source = @"
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74),
+                // (4,74): error CS0161: 'C.M()': not all code paths return a value
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 74)
+                );
+        }
+
         [ConditionalFact(typeof(WindowsDesktopOnly))]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithoutAwait()
@@ -1328,7 +1493,7 @@ class C
                     "C.<M>d__0..ctor(System.Int32 <>1__state)",
                     "void C.<M>d__0.MoveNext()",
                     "void C.<M>d__0.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine)",
-                    "System.Collections.Generic.IAsyncEnumerator<System.Int32> C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
+                    "System.Collections.Generic.IAsyncEnumerator<System.Int32> C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator(System.Threading.CancellationToken token)",
                     "System.Threading.Tasks.ValueTask<System.Boolean> C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
                     "System.Int32 C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current.get",
                     "System.Boolean C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult(System.Int16 token)",
@@ -1625,17 +1790,18 @@ class C
 }");
                 verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()", @"
 {
-  // Code size       64 (0x40)
+  // Code size       99 (0x63)
   .maxstack  2
   .locals init (C.<M>d__0 V_0,
-                System.Threading.Tasks.ValueTask<bool> V_1)
+                short V_1,
+                System.Threading.Tasks.ValueTask<bool> V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
   IL_0006:  ldc.i4.s   -2
   IL_0008:  bne.un.s   IL_0014
-  IL_000a:  ldloca.s   V_1
+  IL_000a:  ldloca.s   V_2
   IL_000c:  initobj    ""System.Threading.Tasks.ValueTask<bool>""
-  IL_0012:  ldloc.1
+  IL_0012:  ldloc.2
   IL_0013:  ret
   IL_0014:  ldarg.0
   IL_0015:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
@@ -1647,11 +1813,25 @@ class C
   IL_0027:  ldloca.s   V_0
   IL_0029:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.MoveNext<C.<M>d__0>(ref C.<M>d__0)""
   IL_002e:  ldarg.0
-  IL_002f:  ldarg.0
-  IL_0030:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_0035:  call       ""short System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.Version.get""
-  IL_003a:  newobj     ""System.Threading.Tasks.ValueTask<bool>..ctor(System.Threading.Tasks.Sources.IValueTaskSource<bool>, short)""
-  IL_003f:  ret
+  IL_002f:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0034:  call       ""short System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.Version.get""
+  IL_0039:  stloc.1
+  IL_003a:  ldarg.0
+  IL_003b:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0040:  ldloc.1
+  IL_0041:  call       ""System.Threading.Tasks.Sources.ValueTaskSourceStatus System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.GetStatus(short)""
+  IL_0046:  ldc.i4.1
+  IL_0047:  bne.un.s   IL_005b
+  IL_0049:  ldarg.0
+  IL_004a:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_004f:  ldloc.1
+  IL_0050:  call       ""bool System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.GetResult(short)""
+  IL_0055:  newobj     ""System.Threading.Tasks.ValueTask<bool>..ctor(bool)""
+  IL_005a:  ret
+  IL_005b:  ldarg.0
+  IL_005c:  ldloc.1
+  IL_005d:  newobj     ""System.Threading.Tasks.ValueTask<bool>..ctor(System.Threading.Tasks.Sources.IValueTaskSource<bool>, short)""
+  IL_0062:  ret
 }");
                 verifier.VerifyIL("C.<M>d__0.System.IAsyncDisposable.DisposeAsync()", @"
 {
@@ -1691,7 +1871,7 @@ class C
   IL_004f:  ret
 }
 ");
-                verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator()", @"
+                verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
@@ -2246,7 +2426,7 @@ public class C : System.Collections.Generic.IAsyncEnumerable<int>
     {
         return new C();
     }
-    public async System.Collections.Generic.IAsyncEnumerator<int> GetAsyncEnumerator()
+    public async System.Collections.Generic.IAsyncEnumerator<int> GetAsyncEnumerator(System.Threading.CancellationToken token)
     {
         yield return 1;
         await System.Threading.Tasks.Task.Delay(10);
@@ -4098,8 +4278,11 @@ class C
             verifyType(WellKnownType.System_Threading_Tasks_ValueTask,
                 "System.Threading.Tasks.ValueTask");
 
-            verifyMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor,
+            verifyMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken,
                 "System.Threading.Tasks.ValueTask<TResult>..ctor(System.Threading.Tasks.Sources.IValueTaskSource<TResult> source, System.Int16 token)");
+
+            verifyMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue,
+                "System.Threading.Tasks.ValueTask<TResult>..ctor(TResult result)");
 
             void verifyType(WellKnownType type, string expected)
             {
@@ -4262,6 +4445,70 @@ static class M1
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "B1::F;D::F;B1::F;");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void AsyncIteratorReturningEnumerator_UsingCancellationToken()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading;
+using System.Threading.Tasks;
+public class D
+{
+    static async Task Main()
+    {
+        var enumerable = new MyEnumerable(42);
+        using (CancellationTokenSource source = new CancellationTokenSource())
+        {
+            CancellationToken token = source.Token;
+            await using (var enumerator = enumerable.GetAsyncEnumerator(token))
+            {
+                if (!await enumerator.MoveNextAsync()) throw null;
+                System.Console.Write($""{enumerator.Current} ""); // 42
+
+                if (!await enumerator.MoveNextAsync()) throw null;
+                System.Console.Write($""{enumerator.Current} ""); // 43
+
+                var task = enumerator.MoveNextAsync(); // starts long computation
+                source.Cancel();
+
+                try
+                {
+                    await task;
+                }
+                catch (System.OperationCanceledException)
+                {
+                    Write(""Cancelled"");
+                }
+            }
+        }
+    }
+}
+public class MyEnumerable
+{
+    private int value;
+    public MyEnumerable(int value)
+    {
+        this.value = value;
+    }
+    public async System.Collections.Generic.IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken token)
+    {
+        yield return value++;
+        yield return value;
+        System.Console.Write($""Long "");
+        bool b = true;
+        while (b)
+        {
+            await Task.Delay(100);
+            token.ThrowIfCancellationRequested();
+        }
+        System.Console.Write($""SKIPPED"");
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42 43 Long Cancelled");
         }
     }
 }

@@ -129,8 +129,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         }
 
         public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(
-            ExtractInterfaceTypeAnalysisResult refactoringResult, 
-            ExtractInterfaceOptionsResult extractInterfaceOptions, 
+            ExtractInterfaceTypeAnalysisResult refactoringResult,
+            ExtractInterfaceOptionsResult extractInterfaceOptions,
             CancellationToken cancellationToken)
         {
             var solution = refactoringResult.DocumentToExtractFrom.Project.Solution;
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
             var completedSolution = await GetFormattedSolutionAsync(
                 completedUnformattedSolution,
-                symbolMapping.DocumentIds.Concat(unformattedInterfaceDocument.Id), 
+                symbolMapping.DocumentIds.Concat(unformattedInterfaceDocument.Id),
                 cancellationToken).ConfigureAwait(false);
 
             return new ExtractInterfaceResult(
@@ -249,8 +249,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 extractInterfaceOptions.IncludedMembers, symbolMapping.SymbolToDeclarationAnnotationMap, cancellationToken).ConfigureAwait(false);
 
             var completedSolution = await GetFormattedSolutionAsync(
-                unformattedSolutionWithUpdatedType, 
-                symbolMapping.DocumentIds.Concat(refactoringResult.DocumentToExtractFrom.Id), 
+                unformattedSolutionWithUpdatedType,
+                symbolMapping.DocumentIds.Concat(refactoringResult.DocumentToExtractFrom.Id),
                 cancellationToken).ConfigureAwait(false);
 
             return new ExtractInterfaceResult(
@@ -366,8 +366,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var simplifiedDocument = await Simplifier.ReduceAsync(
-                    formattedDocument, 
-                    Simplifier.Annotation, 
+                    formattedDocument,
+                    Simplifier.Annotation,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 formattedSolution = simplifiedDocument.Project.Solution;

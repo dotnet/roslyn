@@ -4060,6 +4060,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use block body for local functions.
+        /// </summary>
+        internal static string Use_block_body_for_local_functions {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_local_functions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use block body for methods.
         /// </summary>
         internal static string Use_block_body_for_methods {
@@ -4164,6 +4173,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_expression_body_for_lambda_expressions {
             get {
                 return ResourceManager.GetString("Use_expression_body_for_lambda_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for local functions.
+        /// </summary>
+        internal static string Use_expression_body_for_local_functions {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_local_functions", resourceCulture);
             }
         }
         
@@ -4458,15 +4476,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Wrap expression (including operators).
-        /// </summary>
-        internal static string Wrap_expression_including_operators {
-            get {
-                return ResourceManager.GetString("Wrap_expression_including_operators", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Wrap long argument list.
         /// </summary>
         internal static string Wrap_long_argument_list {
@@ -4481,6 +4490,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Wrap_long_parameter_list {
             get {
                 return ResourceManager.GetString("Wrap_long_parameter_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrapping.
+        /// </summary>
+        internal static string Wrapping {
+            get {
+                return ResourceManager.GetString("Wrapping", resourceCulture);
             }
         }
         

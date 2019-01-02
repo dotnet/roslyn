@@ -17882,7 +17882,7 @@ public class C
 
         [Fact]
         [WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")]
-        public void NullCoalesingOperatorWithTupleNames()
+        public void NullCoalescingOperatorWithTupleNames()
         {
             // See section 7.13 of the spec, regarding the null-coalescing operator
             var source = @"
@@ -18087,9 +18087,12 @@ public class C
             Assert.Equal("(System.Int32 a, System.Int32) x1", x1.ToTestDisplayString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/32006")]
         public void LambdaTypeInferenceWithDynamic()
         {
+            // See https://github.com/dotnet/roslyn/issues/32006
+            // need to relax assertion in GetImplicitTupleLiteralConversion
+
             var source = @"
 public class C
 {

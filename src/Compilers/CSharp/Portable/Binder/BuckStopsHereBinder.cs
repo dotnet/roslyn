@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override Imports GetImports(ConsList<Symbol> basesBeingResolved)
+        internal override Imports GetImports(ConsList<TypeSymbol> basesBeingResolved)
         {
             return Imports.Empty;
         }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool InExecutableBinder => false;
 
-        internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
+        internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved)
         {
             failedThroughTypeCheck = false;
             return IsSymbolAccessibleConditional(symbol, Compilation.Assembly, ref useSiteDiagnostics);
@@ -159,7 +159,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool IsNullableGloballyEnabled()
         {
-            return Compilation.Options.Nullable;
+            switch (Compilation.Options.NullableContextOptions)
+            {
+                case NullableContextOptions.Enable:
+                case NullableContextOptions.SafeOnly:
+                    return true;
+
+                case NullableContextOptions.Disable:
+                case NullableContextOptions.Warnings:
+                case NullableContextOptions.SafeOnlyWarnings:
+                    return false;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(Compilation.Options.NullableContextOptions);
+            }
         }
 
         internal override Binder GetBinder(SyntaxNode node)

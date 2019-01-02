@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// The method whose body is being analyzed, or the field whose initializer is being analyzed.
-        /// It is used for
-        /// references to method parameters. Thus, 'member' should not be used directly, but
+        /// May be a top-level member or a lambda or local function. It is used for
+        /// references to method parameters. Thus, '_symbol' should not be used directly, but
         /// 'MethodParameters', 'MethodThisParameter' and 'AnalyzeOutParameters(...)' should be used
         /// instead.
         /// </summary>
-        protected readonly Symbol _member;
+        protected readonly Symbol _symbol;
 
         /// <summary>
         /// The bound node of the method or initializer being analyzed.
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected AbstractFlowPass(
             CSharpCompilation compilation,
-            Symbol member,
+            Symbol symbol,
             BoundNode node,
             BoundNode firstInRegion = null,
             BoundNode lastInRegion = null,
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _labels = PooledDictionary<LabelSymbol, TLocalState>.GetInstance();
             this.Diagnostics = DiagnosticBag.GetInstance();
             this.compilation = compilation;
-            _member = member;
+            _symbol = symbol;
             this.methodMainNode = node;
             this.firstInRegion = firstInRegion;
             this.lastInRegion = lastInRegion;
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = _member as MethodSymbol;
+                var method = _symbol as MethodSymbol;
                 return (object)method == null ? ImmutableArray<ParameterSymbol>.Empty : method.Parameters;
             }
         }
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = _member as MethodSymbol;
+                var method = _symbol as MethodSymbol;
                 return (object)method == null ? null : method.ThisParameter;
             }
         }
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>true if the out parameters of the method should be analyzed</returns>
         protected bool ShouldAnalyzeOutParameters(out Location location)
         {
-            var method = _member as MethodSymbol;
+            var method = _symbol as MethodSymbol;
             if ((object)method == null || method.Locations.Length != 1)
             {
                 location = null;
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     var access = (BoundPropertyAccess)node;
 
-                    if (Binder.AccessingAutoPropertyFromConstructor(access, _member))
+                    if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol))
                     {
                         var backingField = (access.PropertySymbol as SourcePropertySymbol)?.BackingField;
                         if (backingField != null)
@@ -1742,7 +1742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _member);
+            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _symbol);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -1877,7 +1877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var property = node.PropertySymbol;
 
-            if (Binder.AccessingAutoPropertyFromConstructor(node, _member))
+            if (Binder.AccessingAutoPropertyFromConstructor(node, _symbol))
             {
                 var backingField = (property as SourcePropertySymbol)?.BackingField;
                 if (backingField != null)

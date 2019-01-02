@@ -2071,7 +2071,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             if (IsBooleanLogicalNot(operation))
             {
-                return VisitConditionalExpression(operation.Operand, sense: false, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
+                return VisitConditionalExpression(operation, sense: true, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
             }
 
             return new UnaryOperation(operation.OperatorKind, Visit(operation.Operand), operation.IsLifted, operation.IsChecked, operation.OperatorMethod,
@@ -6587,7 +6587,7 @@ oneMoreTime:
 
         public override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, int? argument)
         {
-            return new FromEndIndexOperation(operation.IsLifted, operation.IsImplicit, semanticModel: null, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol);
+            return new FromEndIndexOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol, isImplicit: IsImplicit(operation));
         }
 
         public override IOperation VisitRangeOperation(IRangeOperation operation, int? argument)
@@ -6605,7 +6605,13 @@ oneMoreTime:
 
             IOperation visitedLeftOperand = operation.LeftOperand is null ? null : PopOperand();
 
-            return new RangeOperation(operation.IsLifted, operation.IsImplicit, semanticModel: null, operation.Syntax, operation.Type, visitedLeftOperand, visitedRightOperand, operation.Method);
+            return new RangeOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, visitedLeftOperand, visitedRightOperand, operation.Method, isImplicit: IsImplicit(operation));
+        }
+
+        public override IOperation VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation, int? argument)
+        {
+            IOperation visitedExpression = Visit(operation.Expression);
+            return new SuppressNullableWarningOperation(semanticModel: null, operation.Syntax, operation.Type, visitedExpression, operation.ConstantValue, isImplicit: IsImplicit(operation));
         }
 
         public IOperation Visit(IOperation operation)

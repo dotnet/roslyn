@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal void SetAssociatedEvent(PEEventSymbol eventSymbol)
         {
             Debug.Assert((object)eventSymbol != null);
-            Debug.Assert(eventSymbol.ContainingType == _containingType);
+            Debug.Assert(TypeSymbol.Equals(eventSymbol.ContainingType, _containingType, TypeCompareKind.ConsiderEverything2));
 
             // This should always be true in valid metadata - there should only
             // be one event with a given name in a given type.

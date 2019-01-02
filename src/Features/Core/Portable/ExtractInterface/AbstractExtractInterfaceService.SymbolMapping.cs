@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         private readonly struct SymbolMapping
         {
             public SymbolMapping(
-                Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap, 
-                Solution annotatedSolution, 
-                List<DocumentId> documentIds, 
+                Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
+                Solution annotatedSolution,
+                List<DocumentId> documentIds,
                 SyntaxAnnotation typeNodeAnnotation)
             {
                 SymbolToDeclarationAnnotationMap = symbolToDeclarationAnnotationMap;
