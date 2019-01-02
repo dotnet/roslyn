@@ -127,6 +127,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return true;
             }
+            switch (newSymbolOpt.Kind)
+            {
+                case SymbolKind.Local:
+                case SymbolKind.Parameter:
+                case SymbolKind.RangeVariable:
+                case SymbolKind.Method:
+                    break;
+                default:
+                    return true;
+            }
             if (!symbol.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticLocalFunctions))
             {
                 return true;
