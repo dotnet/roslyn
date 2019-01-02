@@ -97,8 +97,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return;
             }
 
+            var isCaretAtEndOfLine = ((SnapshotPoint)caret).Position == ((SnapshotPoint)caret).GetContainingLine().End;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!LooksLikeNodeInArgumentList(currentNode, caret, syntaxFacts, CancellationToken.None))
+            if (!LooksLikeNodeInArgumentList(currentNode, caret, isCaretAtEndOfLine, syntaxFacts))
             {
                 return;
             }
@@ -161,8 +162,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// list, where the immediately-containing statement resembles an "expression statement". This method returns
         /// <see langword="true"/> if the node matches a recognizable pattern of this form.</para>
         /// </remarks>
-        private static bool LooksLikeNodeInArgumentList(SyntaxNode currentNode, int caret,
-            ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+        private static bool LooksLikeNodeInArgumentList(SyntaxNode currentNode,
+            int caret, bool isCaretAtEndOfLine, ISyntaxFactsService syntaxFacts)
         {
             // work our way up the tree, looking for a node of interest within the current statement
             bool nodeFound = false;
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
                 // No special action is performed at this time if `;` is typed inside a string, including
                 // interpolated strings.  
-                if (syntaxFacts.IsInNonUserCode(currentNode.SyntaxTree, caret, cancellationToken))
+                if (IsInAString(currentNode, isCaretAtEndOfLine))
                 {
                     return false;
                 }
@@ -203,6 +204,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private static bool IsStatementOrFieldDeclaration(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts)
             => syntaxFacts.IsStatement(currentNode) || currentNode.IsKind(SyntaxKind.FieldDeclaration);
 
+        private static bool IsInAString(SyntaxNode currentNode, bool isCaretAtEndOfLine)
+                     // If caret is at the end of the line, it is outside the string	
+                     => (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
+                         && !isCaretAtEndOfLine);
 
         private static bool StatementIsACandidate(SyntaxNode currentNode, int caretPosition)
         {
@@ -385,6 +390,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     var arrayRankSpecifierSyntax = (ArrayRankSpecifierSyntax)currentNode;
                     return !arrayRankSpecifierSyntax.CloseBracketToken.IsMissing;
 
+                //case SyntaxKind.ElementAccessExpression:
+                //    var elementAccessExpressionSyntax = (ElementAccessExpressionSyntax)currentNode;
+                //    return false;
                 default:
                     // Type of node does not require a closing delimiter
                     return true;

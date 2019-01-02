@@ -1202,7 +1202,7 @@ public class Goo
 
         #endregion
 
-        #region indexer
+        #region Indexer
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void Indexer()
@@ -1212,25 +1212,8 @@ public class Goo
 class SampleCollection<T>
 {
     private T[] arr = new T[100];
-    public T this[int i]
-    {
-        get { return arr[i]$$ }
-        set { arr[i] = value; }
-    }
-}";
-
-            VerifyNoSpecialSemicolonHandling(code);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void IndexerWithArrayElementAccess()
-        {
-            var code =
-@"
-class SampleCollection<T>
-{
-    private T[] arr = new T[100];
-    public T this[int i]
+    private int i;
+    public int Property
     {
         get { return arr[i$$] }
         set { arr[i] = value; }
@@ -1241,7 +1224,8 @@ class SampleCollection<T>
 class SampleCollection<T>
 {
     private T[] arr = new T[100];
-    public T this[int i]
+    private int i;
+    public int Property
     {
         get { return arr[i];$$ }
         set { arr[i] = value; }
@@ -1249,6 +1233,99 @@ class SampleCollection<T>
 }";
 
             VerifyTypingSemicolon(code,expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void Indexer2()
+        {
+            var code =
+@"
+class test
+{
+    int[] array = { 1, 2, 3 };
+
+    void M()
+    {
+        var i = array[1$$]
+    }
+}
+";
+            var expected =
+@"
+class test
+{
+    int[] array = { 1, 2, 3 };
+
+    void M()
+    {
+        var i = array[1];$$
+    }
+}
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void Indexer3()
+        {
+            var code =
+@"
+class C
+{
+    int[] array = { 1, 2, 3 };
+
+    void M()
+    {
+        var i = array[Math.Min(2,3$$)]
+    }
+}
+";
+            var expected =
+@"
+class C
+{
+    int[] array = { 1, 2, 3 };
+
+    void M()
+    {
+        var i = array[Math.Min(2,3)];$$
+    }
+}
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void Indexer4()
+        {
+            var code =
+@"
+class C
+{
+    int[] array = { 1, 2, 3 };
+
+    void M()
+    {
+        var i = array[Math.Min(2,3$$)
+    }
+}
+";
+            var expected =
+@"
+class C
+{
+    int[] array = { 1, 2, 3 };
+
+    void M()
+    {
+        var i = array[Math.Min(2,3;$$)
+    }
+}
+";
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         #endregion
@@ -2577,6 +2654,38 @@ class Program
         public void DontComplete_SemicolonAfterEquals()
         {
             var code = CreateTestWithMethodCall(@"var test =$$ ClassC.MethodM(x,y)");
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_String()
+        {
+            var code = CreateTestWithMethodCall(@"var s=""Test $$Test""");
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_String2()
+        {
+            var code = CreateTestWithMethodCall(@"var s=""Test Test$$""");
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_String3()
+        {
+            var code = CreateTestWithMethodCall(@"var s=""Test Test""$$");
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_InterpolatedString()
+        {
+            var code = CreateTestWithMethodCall(@"var s=$""obj.ToString($$)""");
 
             VerifyNoSpecialSemicolonHandling(code);
         }
