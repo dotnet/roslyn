@@ -1169,11 +1169,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (elementType.GetArity() != 0)
             {
-                var unsupported = MessageID.IDS_FeatureUnmanagedGenericStructs.RequiredVersion() > Compilation.LanguageVersion;
-                if (unsupported)
+                var supported = CheckFeatureAvailability(initializerSyntax, MessageID.IDS_FeatureUnmanagedGenericStructs, diagnostics);
+                if (!supported)
                 {
-                    // PROTOTYPE
-                    MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, initializerSyntax.Location);
                     hasErrors = true;
                 }
             }

@@ -2140,7 +2140,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (operandType.GetArity() != 0)
                     {
-                        MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, node.Location);
+                        var supported = CheckFeatureAvailability(node, MessageID.IDS_FeatureUnmanagedGenericStructs, diagnostics);
+                        if (!supported)
+                        {
+                            hasErrors = true;
+                        }
                     }
                 }
 
