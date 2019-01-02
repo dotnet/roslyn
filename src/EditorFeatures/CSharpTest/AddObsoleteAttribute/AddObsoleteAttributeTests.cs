@@ -58,6 +58,40 @@ class Derived : Base {
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        public async Task TestObsoleteClassWithMessageAndErrorFalse()
+        {
+            await TestInRegularAndScript1Async(
+@"
+[System.Obsolete(""message"", error: false)]
+class Base {}
+
+class Derived : [||]Base {
+}
+",
+@"
+[System.Obsolete(""message"", error: false)]
+class Base {}
+
+[System.Obsolete]
+class Derived : Base {
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        public async Task TestObsoleteClassWithMessageAndErrorTrue()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+[System.Obsolete(""message"", error: true)]
+class Base {}
+
+class Derived : [||]Base {
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
         public async Task TestObsoleteClassUsedInField()
         {
             await TestInRegularAndScript1Async(
