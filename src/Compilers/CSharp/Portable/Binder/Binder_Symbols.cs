@@ -467,15 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            if (elementType.IsManagedType)
-                            {
-                                // "Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')"
-                                Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, elementType.TypeSymbol);
-                            }
-                            else if (elementType.TypeSymbol.GetArity() != 0)
-                            {
-                                MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(Compilation.LanguageVersion, diagnostics, syntax.Location);
-                            }
+                            CheckManagedAddr(elementType.TypeSymbol, node, diagnostics);
                         }
 
                         return TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(elementType));

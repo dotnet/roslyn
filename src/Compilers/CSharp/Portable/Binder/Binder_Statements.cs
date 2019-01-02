@@ -1162,18 +1162,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-            if (elementType.IsManagedType)
+            if (CheckManagedAddr(elementType, initializerSyntax, diagnostics))
             {
-                Error(diagnostics, ErrorCode.ERR_ManagedAddr, initializerSyntax, elementType);
                 hasErrors = true;
-            }
-            else if (elementType.GetArity() != 0)
-            {
-                var supported = CheckFeatureAvailability(initializerSyntax, MessageID.IDS_FeatureUnmanagedGenericStructs, diagnostics);
-                if (!supported)
-                {
-                    hasErrors = true;
-                }
             }
 
             initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, fixedPatternMethod, hasErrors, diagnostics);

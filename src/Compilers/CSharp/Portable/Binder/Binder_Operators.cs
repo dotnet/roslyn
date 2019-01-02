@@ -2133,19 +2133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!hasErrors)
                 {
-                    if (isManagedType)
-                    {
-                        hasErrors = true;
-                        Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, operandType);
-                    }
-                    else if (operandType.GetArity() != 0)
-                    {
-                        var supported = CheckFeatureAvailability(node, MessageID.IDS_FeatureUnmanagedGenericStructs, diagnostics);
-                        if (!supported)
-                        {
-                            hasErrors = true;
-                        }
-                    }
+                    hasErrors = CheckManagedAddr(operandType, node, diagnostics);
                 }
 
                 if (!hasErrors)
