@@ -1056,14 +1056,14 @@ class Program
                s == program.s;
     }
 
-    public static bool operator ==(Program program1, Program program2)
+    public static bool operator ==(Program left, Program right)
     {
-        return EqualityComparer<Program>.Default.Equals(program1, program2);
+        return EqualityComparer<Program>.Default.Equals(left, right);
     }
 
-    public static bool operator !=(Program program1, Program program2)
+    public static bool operator !=(Program left, Program right)
     {
-        return !(program1 == program2);
+        return !(left == right);
     }
 }",
 chosenSymbols: null,
@@ -1096,8 +1096,8 @@ class Program
                s == program.s;
     }
 
-    public static bool operator ==(Program program1, Program program2) => EqualityComparer<Program>.Default.Equals(program1, program2);
-    public static bool operator !=(Program program1, Program program2) => !(program1 == program2);
+    public static bool operator ==(Program left, Program right) => EqualityComparer<Program>.Default.Equals(left, right);
+    public static bool operator !=(Program left, Program right) => !(left == right);
 }",
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
@@ -1117,7 +1117,7 @@ class Program
     public string s;
     [||]
 
-    public static bool operator ==(Program program1, Program program2) => true;
+    public static bool operator ==(Program left, Program right) => true;
 }",
 @"
 using System.Collections.Generic;
@@ -1133,7 +1133,7 @@ class Program
                s == program.s;
     }
 
-    public static bool operator ==(Program program1, Program program2) => true;
+    public static bool operator ==(Program left, Program right) => true;
 }",
 chosenSymbols: null,
 optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)));
@@ -1169,14 +1169,14 @@ struct Program
         return s == program.s;
     }
 
-    public static bool operator ==(Program program1, Program program2)
+    public static bool operator ==(Program left, Program right)
     {
-        return program1.Equals(program2);
+        return left.Equals(right);
     }
 
-    public static bool operator !=(Program program1, Program program2)
+    public static bool operator !=(Program left, Program right)
     {
-        return !(program1 == program2);
+        return !(left == right);
     }
 }",
 chosenSymbols: null,
@@ -1307,7 +1307,7 @@ public class Class1
 {
     int i;
 
-    public override System.Boolean Equals(System.Object obj)
+    public override global::System.Boolean Equals(global::System.Object obj)
     {
         var @class = obj as Class1;
         return @class != null;
@@ -1317,7 +1317,7 @@ public class Class1
     {
     }
 
-    public override System.Int32 GetHashCode()
+    public override global::System.Int32 GetHashCode()
     {
         return 0;
     }

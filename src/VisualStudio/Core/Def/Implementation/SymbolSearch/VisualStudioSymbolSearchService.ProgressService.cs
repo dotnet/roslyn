@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         [ImportingConstructor]
         public VisualStudioSymbolSearchProgressService(VSShell.SVsServiceProvider serviceProvider)
         {
-            _taskCenterServiceOpt = new Lazy<IVsTaskStatusCenterService>(() => 
+            _taskCenterServiceOpt = new Lazy<IVsTaskStatusCenterService>(() =>
                 (IVsTaskStatusCenterService)serviceProvider.GetService(typeof(SVsTaskStatusCenterService)));
         }
 

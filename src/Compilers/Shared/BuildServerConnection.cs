@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             return $"{pipeName}.client";
         }
-  
+
         /// <summary>
         /// Gets the value of the temporary path for the current environment assuming the working directory
         /// is <paramref name="workingDir"/>.  This function must emulate <see cref="Path.GetTempPath"/> as 

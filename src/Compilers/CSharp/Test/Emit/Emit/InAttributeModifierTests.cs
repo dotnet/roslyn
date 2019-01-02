@@ -202,7 +202,7 @@ public class Test
             CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
             CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
-        
+
         [Fact]
         public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_IL_Methods_Parameters()
         {
@@ -2395,7 +2395,7 @@ public class Test
   {
   }
 }";
-            
+
             var code = @"
 public class Test
 {
@@ -3714,7 +3714,7 @@ public class Test
             CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
             CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
-        
+
         [Fact]
         public void CreatingLambdasOfDelegatesWithModifiersCanBeExecuted_Parameters_DuplicateModifierTypes()
         {
@@ -3980,7 +3980,7 @@ public class Test
 
             CompileAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
-        
+
         [Fact]
         public void OverloadResolutionShouldBeAbleToPickOverloadsWithNoModreqsOverOnesWithModreq_Indexers_Parameters()
         {

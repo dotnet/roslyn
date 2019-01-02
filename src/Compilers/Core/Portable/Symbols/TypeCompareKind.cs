@@ -10,7 +10,10 @@ namespace Microsoft.CodeAnalysis
     [Flags]
     internal enum TypeCompareKind
     {
-        ConsiderEverything = 0, // Perhaps rename since this does not consider nullable modifiers.
+        ConsiderEverything = 0,
+
+        // This comparison option is temporary. All usages should be reviewed, and it should be removed. https://github.com/dotnet/roslyn/issues/31742
+        ConsiderEverything2 = ConsiderEverything,
         IgnoreCustomModifiersAndArraySizesAndLowerBounds = 1,
         IgnoreDynamic = 2,
         IgnoreTupleNames = 4,
@@ -19,7 +22,14 @@ namespace Microsoft.CodeAnalysis
         IgnoreNullableModifiersForReferenceTypes = 8,
         UnknownNullableModifierMatchesAny = 16,
 
-        AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | UnknownNullableModifierMatchesAny,
+        /// <summary>
+        /// Different flavors of Nullable are equivalent,
+        /// different flavors of Not-Nullable are equivalent unless the type is possibly nullable reference type parameter.
+        /// This option can cause cycles in binding if used too early!
+        /// </summary>
+        IgnoreInsignificantNullableModifiersDifference = 32,
+
+        AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | UnknownNullableModifierMatchesAny | IgnoreInsignificantNullableModifiersDifference,
         AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames | AllNullableIgnoreOptions,
         AllIgnoreOptionsForVB = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreTupleNames
     }

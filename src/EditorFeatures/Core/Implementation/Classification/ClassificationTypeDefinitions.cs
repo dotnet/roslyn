@@ -33,6 +33,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition StringEscapeCharacterTypeDefinition;
         #endregion
+        #region Keyword - Control
+        // Keyword - Control sets its BaseDefinitions to be Keyword so that
+        // in the absence of specific styling they will appear as keywords.  
+        [Export]
+        [Name(ClassificationTypeNames.ControlKeyword)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Keyword)]
+        internal ClassificationTypeDefinition ControlKeywordTypeDefinition;
+        #endregion
 
         #region User Types - Classes
         [Export]
@@ -77,59 +85,75 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         internal readonly ClassificationTypeDefinition UserTypeTypeParametersTypeDefinition;
         #endregion
 
-        #region Field Name
+        // User Members - * set their BaseDefinitions to be Identifier so that
+        // in the absence of specific styling they will appear as identifiers. 
+        // Extension Methods are an exception and their base definition is Method
+        // since it is a more specific type of method.
+        #region User Members - Fields
         [Export]
         [Name(ClassificationTypeNames.FieldName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
-        internal readonly ClassificationTypeDefinition FieldNameTypeDefinition;
+        internal readonly ClassificationTypeDefinition UserMembersFieldsTypeDefinition;
         #endregion
-        #region Enum Member Name
+        #region User Members - Enum Memberd
         [Export]
         [Name(ClassificationTypeNames.EnumMemberName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
-        internal readonly ClassificationTypeDefinition EnumMemberNameTypeDefinition;
+        internal readonly ClassificationTypeDefinition UserMembersEnumMembersTypeDefinition;
         #endregion
-        #region Constant Name
+        #region User Members - Constants
         [Export]
         [Name(ClassificationTypeNames.ConstantName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
-        internal readonly ClassificationTypeDefinition ConstantNameTypeDefinition;
+        internal readonly ClassificationTypeDefinition UserMembersConstantsTypeDefinition;
         #endregion
-        #region Local Name
+        #region User Memebers - Locals
         [Export]
         [Name(ClassificationTypeNames.LocalName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
-        internal readonly ClassificationTypeDefinition LocalNameTypeDefinition;
+        internal readonly ClassificationTypeDefinition UserMembersLocalsTypeDefinition;
         #endregion
-        #region Parameter Name
+        #region User Members - Parameters
         [Export]
         [Name(ClassificationTypeNames.ParameterName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
-        internal readonly ClassificationTypeDefinition ParameterNameTypeDefinition;
+        internal readonly ClassificationTypeDefinition UserMembersParametersTypeDefinition;
         #endregion
-        #region Method Name
+        #region User Members - Methods
         [Export]
         [Name(ClassificationTypeNames.MethodName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
-        internal readonly ClassificationTypeDefinition MethodNameTypeDefinition;
+        internal readonly ClassificationTypeDefinition UserMembersMethodsTypeDefinition;
         #endregion
-        #region Extension Method Name
+        #region User Members - Extension Methods
         [Export]
         [Name(ClassificationTypeNames.ExtensionMethodName)]
-        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
-        internal readonly ClassificationTypeDefinition ExtensionMethodNameTypeDefinition;
+        [BaseDefinition(ClassificationTypeNames.MethodName)]
+        internal readonly ClassificationTypeDefinition UserMembersExtensionMethodsTypeDefinition;
         #endregion
-        #region Property Name
+        #region User Members - Properties
         [Export]
         [Name(ClassificationTypeNames.PropertyName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
-        internal readonly ClassificationTypeDefinition PropertyNameTypeDefinition;
+        internal readonly ClassificationTypeDefinition UserMembersPropertiesTypeDefinition;
         #endregion
-        #region Event Name
+        #region User Members - Events
         [Export]
         [Name(ClassificationTypeNames.EventName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
-        internal readonly ClassificationTypeDefinition EventNameTypeDefinition;
+        internal readonly ClassificationTypeDefinition UserMembersEventsTypeDefinition;
+        #endregion
+        #region User Members - Namespaces
+        [Export]
+        [Name(ClassificationTypeNames.NamespaceName)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+        internal readonly ClassificationTypeDefinition UserMembersNamespacesTypeDefinition;
+        #endregion
+        #region User Members - Labels
+        [Export]
+        [Name(ClassificationTypeNames.LabelName)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
+        internal readonly ClassificationTypeDefinition UserMembersLabelsTypeDefinition;
         #endregion
 
         #region XML Doc Comments - Attribute Name 
@@ -305,6 +329,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralText)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition XmlLiteralTextTypeDefinition;
+        #endregion
+
+        #region Static Symbol
+        [Export]
+        [Name(ClassificationTypeNames.StaticSymbol)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition StaticSymbolTypeDefinition;
+        #endregion
+
+        #region Operator - Overloaded
+        // Operator - Overloaded sets its BaseDefinitions to be Operator so that
+        // in the absence of specific styling they will appear as operators.  
+        [Export]
+        [Name(ClassificationTypeNames.OperatorOverloaded)]
+        [BaseDefinition(PredefinedClassificationTypeNames.Operator)]
+        internal readonly ClassificationTypeDefinition OperatorOverloadTypeDefinition;
         #endregion
     }
 }

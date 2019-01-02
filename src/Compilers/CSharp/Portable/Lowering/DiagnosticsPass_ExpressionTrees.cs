@@ -614,6 +614,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitNullCoalescingOperator(node);
         }
 
+        public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeCantContainNullCoalescingAssignment, node);
+            }
+
+            return base.VisitNullCoalescingAssignmentOperator(node);
+        }
+
         public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
         {
             if (_inExpressionLambda)

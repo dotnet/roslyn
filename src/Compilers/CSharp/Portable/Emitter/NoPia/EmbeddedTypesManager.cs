@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     typeSymbol = null;
                 }
 
-                if (Interlocked.CompareExchange(ref _lazySystemStringType, typeSymbol, ErrorTypeSymbol.UnknownResultType) == ErrorTypeSymbol.UnknownResultType)
+                if (TypeSymbol.Equals(Interlocked.CompareExchange(ref _lazySystemStringType, typeSymbol, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything2))
                 {
                     if (info != null)
                     {

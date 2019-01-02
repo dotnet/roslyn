@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringNullableComparer = new TypeSymbolComparer(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
 
         internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer =
-                                                                  new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
+                                                                  new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference));
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets the set of interfaces that this type directly implements. This set does not include
         /// interfaces that are base interfaces of directly implemented interfaces.
         /// </summary>
-        internal abstract ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null);
+        internal abstract ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved = null);
 
         /// <summary>
         /// The list of all interfaces of which this type is a declared subtype, excluding this type
@@ -624,21 +624,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract bool IsManagedType { get; }
 
-        internal bool ContainsNullableReferenceTypes()
+        internal bool NeedsNullableAttribute()
         {
-            return TypeSymbolWithAnnotations.ContainsNullableReferenceTypes(typeWithAnnotationsOpt: default, typeOpt: this);
+            return TypeSymbolWithAnnotations.NeedsNullableAttribute(typeWithAnnotationsOpt: default, typeOpt: this);
         }
 
-        internal bool ContainsAnnotatedUnconstrainedTypeParameter()
+        internal abstract void AddNullableTransforms(ArrayBuilder<byte> transforms);
+
+        internal abstract bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result);
+
+        internal abstract TypeSymbol SetNullabilityForReferenceTypes(Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> transform);
+
+        internal TypeSymbol SetUnknownNullabilityForReferenceTypes()
         {
-            return TypeSymbolWithAnnotations.ContainsAnnotatedUnconstrainedTypeParameter(typeWithAnnotationsOpt: default, typeOpt: this);
+            return SetNullabilityForReferenceTypes(s_setUnknownNullability);
         }
 
-        internal abstract void AddNullableTransforms(ArrayBuilder<bool> transforms);
+        private readonly static Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> s_setUnknownNullability =
+            (type) => type.SetUnknownNullabilityForReferenceTypes();
 
-        internal abstract bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result);
+        internal TypeSymbol SetSpeakableNullabilityForReferenceTypes()
+        {
+            return SetNullabilityForReferenceTypes(s_setSpeakableNullability);
+        }
 
-        internal abstract TypeSymbol SetUnknownNullabilityForReferenceTypes();
+        private readonly static Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> s_setSpeakableNullability =
+           (type) => type.SetSpeakableNullabilityForReferenceTypes();
 
         /// <summary>
         /// Merges nested nullability from an otherwise identical type.
@@ -653,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsByRefLikeType { get; }
 
         /// <summary>
-        /// Returns true if the type is a readonly sruct
+        /// Returns true if the type is a readonly struct
         /// </summary>
         internal abstract bool IsReadOnly { get; }
 
@@ -1035,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // then it's not a valid match.
                 implicitImpl = null;
             }
-            else if ((object)correspondingImplementingAccessor != null && ((object)implicitImpl == null || correspondingImplementingAccessor.ContainingType == implicitImpl.ContainingType))
+            else if ((object)correspondingImplementingAccessor != null && ((object)implicitImpl == null || TypeSymbol.Equals(correspondingImplementingAccessor.ContainingType, implicitImpl.ContainingType, TypeCompareKind.ConsiderEverything2)))
             {
                 // Suppose the interface accessor and the implementing accessor have different names.
                 // In Dev10, as long as the corresponding properties have an implementation relationship,
@@ -1095,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // CS0629: Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'
                         diagnostics.Add(ErrorCode.ERR_InterfaceImplementedByConditional, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, implicitImpl), implicitImpl, interfaceMethod, implementingType);
                     }
-                    else if(ReportAnyMismatchedConstraints(interfaceMethod, implementingType, implicitImplMethod, diagnostics))
+                    else if (ReportAnyMismatchedConstraints(interfaceMethod, implementingType, implicitImplMethod, diagnostics))
                     {
                         reportedAnError = true;
                     }
@@ -1117,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // In constructed types, it is possible to see multiple members with the same (runtime) signature.
             // Now that we know which member will implement the interface member, confirm that it is the only
             // such member.
-                if (!implicitImpl.ContainingType.IsDefinition)
+            if (!implicitImpl.ContainingType.IsDefinition)
             {
                 foreach (Symbol member in implicitImpl.ContainingType.GetMembers(implicitImpl.Name))
                 {
@@ -1157,16 +1168,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbolWithAnnotations implementingMemberType = implementingMember.GetTypeOrReturnType();
                 TypeSymbolWithAnnotations implementedMemberType = implementedMember.GetTypeOrReturnType();
 
-                if (!implementingMemberType.Equals(implementedMemberType, 
-                                                   TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) &&
+                if (!implementingMemberType.Equals(implementedMemberType,
+                                                   TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)) &&
                     implementingMemberType.Equals(implementedMemberType, TypeCompareKind.AllIgnoreOptions))
                 {
                     diagnostics.Add(implementingMember.Kind == SymbolKind.Method ?
-                                        (isExplicit ? 
-                                            ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation : 
+                                        (isExplicit ?
+                                            ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation :
                                             ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation) :
-                                        (isExplicit ? 
-                                            ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation : 
+                                        (isExplicit ?
+                                            ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation :
                                             ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation),
                                     implementingMember.Locations[0], new FormattedSymbol(interfaceMember, SymbolDisplayFormat.MinimallyQualifiedFormat));
                 }
@@ -1179,12 +1190,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var implementedParameterType = implementedParameters[i].Type;
 
                     if (!implementingParameters[i].Type.Equals(implementedParameterType,
-                                                               TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) &&
+                                                               TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)) &&
                         implementingParameters[i].Type.Equals(implementedParameterType, TypeCompareKind.AllIgnoreOptions))
                     {
                         diagnostics.Add(isExplicit ?
                                             ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation :
-                                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, 
+                                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
                                         implementingMember.Locations[0],
                                         new FormattedSymbol(implementingParameters[i], SymbolDisplayFormat.ShortFormat),
                                         new FormattedSymbol(interfaceMember, SymbolDisplayFormat.MinimallyQualifiedFormat));
@@ -1320,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static Location GetImplicitImplementationDiagnosticLocation(Symbol interfaceMember, TypeSymbol implementingType, Symbol member)
         {
-            if (member.ContainingType == implementingType)
+            if (TypeSymbol.Equals(member.ContainingType, implementingType, TypeCompareKind.ConsiderEverything2))
             {
                 return member.Locations[0];
             }
@@ -1552,5 +1563,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        public static bool Equals(TypeSymbol left, TypeSymbol right, TypeCompareKind comparison)
+        {
+            if (left is null)
+            {
+                return right is null;
+            }
+
+            return left.Equals(right, comparison);
+        }
+
+        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
+        public static bool operator ==(TypeSymbol left, TypeSymbol right)
+            => throw ExceptionUtilities.Unreachable;
+
+        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
+        public static bool operator !=(TypeSymbol left, TypeSymbol right)
+            => throw ExceptionUtilities.Unreachable;
+
+        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
+        public static bool operator ==(Symbol left, TypeSymbol right)
+            => throw ExceptionUtilities.Unreachable;
+
+        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
+        public static bool operator !=(Symbol left, TypeSymbol right)
+            => throw ExceptionUtilities.Unreachable;
+
+        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
+        public static bool operator ==(TypeSymbol left, Symbol right)
+            => throw ExceptionUtilities.Unreachable;
+
+        [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
+        public static bool operator !=(TypeSymbol left, Symbol right)
+            => throw ExceptionUtilities.Unreachable;
     }
 }

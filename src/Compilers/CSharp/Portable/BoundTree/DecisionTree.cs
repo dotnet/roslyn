@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The three different kinds of nodes in the decision tree.
         /// </summary>
-        public enum DecisionKind {
+        public enum DecisionKind
+        {
             /// <summary>
             /// For the type <see cref="DecisionTree.ByType"/>
             /// </summary>
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Type = type;
             this.Temp = temp;
             Debug.Assert(this.Expression != null);
-            Debug.Assert(this.Type != null);
+            Debug.Assert((object)this.Type != null);
         }
 
         /// <summary>

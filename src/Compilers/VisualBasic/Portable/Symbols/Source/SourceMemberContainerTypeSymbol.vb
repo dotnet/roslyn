@@ -1714,10 +1714,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim added As Boolean = s_SymbolsBuildingMembersAndInitializers.Add(Me)
-
             Debug.Assert(added)
-            Try
 #End If
+
+            Try
                 ' Get type members
                 Dim typeMembers = GetTypeMembersDictionary()
 
@@ -1738,14 +1738,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         membersAndInitializers.Members(name) = nontypeSymbols.Concat(StaticCast(Of Symbol).From(typeSymbols))
                     End If
                 Next
-
-#If DEBUG Then
             Finally
+#If DEBUG Then
                 If added Then
                     s_SymbolsBuildingMembersAndInitializers.Remove(Me)
                 End If
-            End Try
 #End If
+            End Try
+
             Return membersAndInitializers
         End Function
 

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Syntax = syntax;
         }
 
-        protected BoundNode(BoundKind kind, SyntaxNode syntax, bool hasErrors) 
+        protected BoundNode(BoundKind kind, SyntaxNode syntax, bool hasErrors)
             : this(kind, syntax)
         {
             if (hasErrors)

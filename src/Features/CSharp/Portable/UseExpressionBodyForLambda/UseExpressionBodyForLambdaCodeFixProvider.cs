@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         }
 
         private void AddEdits(
-            SyntaxEditor editor, SemanticModel semanticModel, 
+            SyntaxEditor editor, SemanticModel semanticModel,
             Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];

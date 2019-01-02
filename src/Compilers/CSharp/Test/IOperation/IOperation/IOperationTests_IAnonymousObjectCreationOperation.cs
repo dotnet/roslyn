@@ -407,7 +407,7 @@ Block[B1] - Block
                                                     Predecessors: [B0#A2]
                                                     Statements (0)
                                                     Next (Return) Block[B2#A2]
-                                                        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x == 0')
+                                                        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x == 0')
                                                           Left: 
                                                             IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.String y>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
                                                               Instance Receiver: 
@@ -578,7 +578,7 @@ Block[B1] - Block
                                                     Predecessors: [B0#A1]
                                                     Statements (0)
                                                     Next (Return) Block[B2#A1]
-                                                        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x == 0')
+                                                        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x == 0')
                                                           Left: 
                                                             IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
                                                               Instance Receiver: 

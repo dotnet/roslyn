@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             if (joinableTaskContext is null)
             {
-               (joinableTaskContext, _) = CreateJoinableTaskContext();
+                (joinableTaskContext, _) = CreateJoinableTaskContext();
             }
 
             HasMainThread = joinableTaskContext.MainThread.IsAlive;

@@ -36,8 +36,8 @@ End Class
 ]]>
     </file>
 </compilation>
-            Using(new EnsureEnglishUICulture()) 
-            
+            Using (new EnsureEnglishUICulture())
+
                 Dim comp = CreateCompilationWithMscorlib40(sources)
                 Dim diags = New DiagnosticBag()
                 Dim badStream = New BrokenStream()
@@ -51,7 +51,7 @@ End Class
                     cancellationToken:=Nothing)
 
                 AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
-									   <errors><![CDATA[
+                                       <errors><![CDATA[
 BC37258: Error writing to XML documentation file: I/O error occurred.
                                    ]]></errors>)
             End Using

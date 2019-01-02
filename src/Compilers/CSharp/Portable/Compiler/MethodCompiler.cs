@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             AsyncStateMachine asyncStateMachine;
                             loweredBody = AsyncRewriter.Rewrite(loweredBody, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out asyncStateMachine);
 
-                            Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
+                            Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
                             stateMachine = stateMachine ?? asyncStateMachine;
                         }
 
@@ -934,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     body = BoundBlock.SynthesizedNoLocals(initializerStatements.Syntax, initializerStatements.Statements);
 
                     var unusedDiagnostics = DiagnosticBag.GetInstance();
-                    DataFlowPass.Analyze(_compilation, methodSymbol, initializerStatements, unusedDiagnostics, requireOutParamsAssigned: false);
+                    DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, initializerStatements, unusedDiagnostics, requireOutParamsAssigned: false);
                     DiagnosticsPass.IssueDiagnostics(_compilation, initializerStatements, unusedDiagnostics, methodSymbol);
                     unusedDiagnostics.Free();
                 }
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // Flow analysis over the initializers is necessary in order to find assignments to fields.
                                 // Bodies of implicit constructors do not get flow analysis later, so the initializers
                                 // are analyzed here.
-                                DataFlowPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                                DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
                             }
 
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // These analyses check for diagnostics in lambdas.
                             // Control flow analysis and implicit return insertion are unnecessary.
-                            DataFlowPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
+                            DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod, requireOutParamsAssigned: false);
                             DiagnosticsPass.IssueDiagnostics(_compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
                         }
                     }
@@ -1285,7 +1285,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // The reason why this rewrite happens before the lambda rewrite 
                     // is that we may need access to exception locals and it would be fairly hard to do
                     // if these locals are captured into closures (possibly nested ones).
-                    Debug.Assert(!method.IsIterator);
                     loweredBody = AsyncExceptionHandlerRewriter.Rewrite(
                         method,
                         method.ContainingType,
@@ -1335,10 +1334,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return bodyWithoutIterators;
                 }
 
+                // Rewrite async and async-iterator methods
                 AsyncStateMachine asyncStateMachine;
                 BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics, out asyncStateMachine);
 
-                Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
+                Debug.Assert((object)iteratorStateMachine == null || (object)asyncStateMachine == null);
                 stateMachineTypeOpt = (StateMachineTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
 
                 return bodyWithoutAsync;
@@ -1464,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var stateMachineHoistedLocalSlots = default(ImmutableArray<EncHoistedLocalInfo>);
                 var stateMachineAwaiterSlots = default(ImmutableArray<Cci.ITypeReference>);
-                if (optimizations == OptimizationLevel.Debug && stateMachineTypeOpt != null)
+                if (optimizations == OptimizationLevel.Debug && (object)stateMachineTypeOpt != null)
                 {
                     Debug.Assert(method.IsAsync || method.IsIterator);
                     GetStateMachineSlotDebugInfo(moduleBuilder, moduleBuilder.GetSynthesizedFields(stateMachineTypeOpt), variableSlotAllocatorOpt, diagnosticsForThisMethod, out stateMachineHoistedLocalSlots, out stateMachineAwaiterSlots);
@@ -1578,8 +1578,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // NOTE: can return null if the method has no body.
-        private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics, 
-                                                 out ImportChain importChain, out bool originalBodyNested, 
+        private static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics,
+                                                 out ImportChain importChain, out bool originalBodyNested,
                                                  out (SyntaxNode Syntax, BoundNode Body, ExecutableCodeBinder Binder) forSemanticModel)
         {
             originalBodyNested = false;
@@ -1743,7 +1743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void ReportCtorInitializerCycles(MethodSymbol method, BoundExpression initializerInvocation, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             var ctorCall = initializerInvocation as BoundCall;
-            if (ctorCall != null && !ctorCall.HasAnyErrors && ctorCall.Method != method && ctorCall.Method.ContainingType == method.ContainingType)
+            if (ctorCall != null && !ctorCall.HasAnyErrors && ctorCall.Method != method && TypeSymbol.Equals(ctorCall.Method.ContainingType, method.ContainingType, TypeCompareKind.ConsiderEverything2))
             {
                 // Detect and report indirect cycles in the ctor-initializer call graph.
                 compilationState.ReportCtorInitializerCycles(method, ctorCall.Method, ctorCall.Syntax, diagnostics);
@@ -1810,7 +1810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxToken bodyToken = GetImplicitConstructorBodyToken(containerNode);
                 outerBinder = compilation.GetBinderFactory(containerNode.SyntaxTree).GetBinder(containerNode, bodyToken.Position);
             }
-            else 
+            else
             {
                 // We have a ctor in source but no explicit constructor initializer.  We can't just use the binder for the
                 // type containing the ctor because the ctor might be marked unsafe.  Use the binder for the parameter list

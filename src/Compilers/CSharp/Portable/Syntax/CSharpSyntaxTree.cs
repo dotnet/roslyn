@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="id">Error code.</param>
         /// <param name="position">Source location.</param>
-        internal ReportDiagnostic GetPragmaDirectiveWarningState(string id, int position)
+        internal PragmaWarningState GetPragmaDirectiveWarningState(string id, int position)
         {
             if (_lazyPragmaWarningStateMap == null)
             {
@@ -595,7 +595,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns true if the `#nullable` directive preceding the position is
-        /// `enable`, false if `disable`, and null if no preceding directive.
+        /// `enable` or `safeonly`, false if `disable`, and null if no preceding directive,
+        /// or directive preceding the position is `restore`.
         /// </summary>
         internal bool? GetNullableDirectiveState(int position)
         {

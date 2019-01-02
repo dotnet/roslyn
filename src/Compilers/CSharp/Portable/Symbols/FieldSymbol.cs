@@ -157,15 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes);
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                Debug.Assert(IsDefinition);
-                return (AssociatedSymbol ?? ContainingType)?.NonNullTypes;
-            }
-        }
-
         /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>

@@ -15,7 +15,7 @@
     <!-- Do not build again when publishing -->
     <NoBuild>true</NoBuild>
 
-    <PublishDir>$(ArtifactsDir)Tools\ILAsm\</PublishDir>
+    <PublishDir>$(ArtifactsDir)tools\ILAsm\$(Configuration)\</PublishDir>
   </PropertyGroup>
 
   <Choose>
