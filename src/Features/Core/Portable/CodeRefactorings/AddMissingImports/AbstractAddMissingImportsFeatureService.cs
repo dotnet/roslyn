@@ -202,8 +202,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 return document;
             }
 
-            // The last text change should end where the insert span ends
-            Debug.Assert(textChanges.Last().Span.End == insertSpan.End);
+            // The last text change should include where the insert span ends
+            Debug.Assert(textChanges.Last().Span.IntersectsWith(insertSpan.End));
 
             // If there are changes then, this was a case where there were no
             // previous imports statements. We need to retain the final extra
