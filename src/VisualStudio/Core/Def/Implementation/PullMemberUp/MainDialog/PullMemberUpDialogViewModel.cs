@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -141,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         internal void SelectDependents()
         {
             var checkedMembers = Members.
-                Where(member => member.IsChecked && member.IsCheckable);
+                WhereAsArray(member => member.IsChecked && member.IsCheckable);
 
             var waitResult = _waitIndicator.Wait(
                     title: ServicesVSResources.Pull_Members_Up,
@@ -160,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             {
                 foreach (var member in checkedMembers)
                 {
-                    var membersToSelected = DependentsMap[member.Symbol].Result.SelectAsArray(symbol => SymbolToMemberViewMap[symbol]);
+                    var membersToSelected = FindDependentsRecursively(member.Symbol).SelectAsArray(symbol => SymbolToMemberViewMap[symbol]);
                     SelectMembers(membersToSelected);
                 }
             }
@@ -175,6 +176,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
             CheckAndSetStateOfSelectAllCheckBox();
             EnableOrDisableOkButton();
+        }
+
+        private ImmutableHashSet<ISymbol> FindDependentsRecursively(ISymbol member)
+        {
+            var queue = new Queue<ISymbol>();
+            var visited = new HashSet<ISymbol>();
+            var result = new HashSet<ISymbol>();
+            queue.Enqueue(member);
+            visited.Add(member);
+            while (!queue.IsEmpty())
+            {
+                var currentMember = queue.Dequeue();
+                result.Add(currentMember);
+                visited.Add(currentMember);
+                foreach (var dependent in DependentsMap[currentMember].Result)
+                {
+                    if (!visited.Contains(dependent))
+                    {
+                        queue.Enqueue(dependent);
+                    }
+                }
+            }
+
+            return result.ToImmutableHashSet();
         }
 
         private void SelectMembers(ImmutableArray<PullMemberUpSymbolViewModel> memberViewModels)
