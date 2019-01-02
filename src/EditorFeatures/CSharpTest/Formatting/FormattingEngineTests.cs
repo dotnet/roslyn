@@ -1974,7 +1974,7 @@ class MyClass
 
         [WorkItem(30518, "https://github.com/dotnet/roslyn/issues/30518")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatGeneratedNodeInInitializer()
+        public void FormatGeneratedNodeInInitializer()
         {
             var code = @"new bool[] {
     true,
@@ -1991,7 +1991,7 @@ true == false, true
 
             var entry = SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression), SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression));
             var newRoot = root.InsertNodesBefore(root.DescendantNodes().Last(), new[] { entry });
-            await AssertFormatOnArbitraryNodeAsync(newRoot, expected);
+            AssertFormatOnArbitraryNode(newRoot, expected);
         }
 
         private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
