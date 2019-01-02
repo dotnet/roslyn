@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// States for `yield return` are decreasing from -3.
         /// </summary>
-        private int _nextYieldReturnState = StateMachineStates.FinishedStateMachine - 1;  // -3
+        private int _nextYieldReturnState = StateMachineStates.InitialAsyncIteratorStateMachine;  // -3
 
         internal AsyncIteratorMethodToStateMachineRewriter(MethodSymbol method,
             int methodOrdinal,

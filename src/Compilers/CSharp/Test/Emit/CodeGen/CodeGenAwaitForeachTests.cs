@@ -121,14 +121,14 @@ public class C : IAsyncEnumerable<uint>
         public uint Current => 0xFFFFFFFF;
         public async ValueTask<bool> MoveNextAsync()
         {
-            await Task.Delay(10);
+            await Task.Yield();
             bool result = firstValue;
             firstValue = false;
             return result;
         }
         public async ValueTask DisposeAsync()
         {
-            await Task.Delay(10);
+            await Task.Yield();
         }
     }
 }
@@ -769,7 +769,7 @@ class C
         public async ValueTask DisposeAsync()
         {
             Write($""Dispose({i}) "");
-            await Task.Delay(10);
+            await Task.Yield();
         }
     }
 }
@@ -821,7 +821,7 @@ public class C
         }
         public async ValueTask DisposeAsync()
         {
-            await Task.Delay(10);
+            await Task.Yield();
         }
     }
 }";
@@ -878,7 +878,7 @@ class C<T> where T : IntContainer, new()
         public async ValueTask DisposeAsync()
         {
             Write($""Dispose({i}) "");
-            await Task.Delay(10);
+            await Task.Yield();
         }
     }
 }";
@@ -962,7 +962,7 @@ public class C
         public async ValueTask DisposeAsync()
         {
             Write(""dispose "");
-            await Task.Delay(10);
+            await Task.Yield();
         }
     }
 }";
@@ -1003,13 +1003,13 @@ public class C
         public async Task<bool> MoveNextAsync()
         {
             Write(""wait "");
-            await Task.Delay(10);
+            await Task.Yield();
             return true;
         }
         public async ValueTask DisposeAsync()
         {
             Write(""dispose "");
-            await Task.Delay(10);
+            await Task.Yield();
         }
     }
 }";
@@ -1049,7 +1049,7 @@ public class C
         public async Task<bool> MoveNextAsync()
         {
             Write(""wait "");
-            await Task.Delay(10);
+            await Task.Yield();
             return false;
         }
         public ValueTask DisposeAsync()
@@ -1774,7 +1774,7 @@ public class C
         }
         public async ValueTask DisposeAsync()
         {
-            await Task.Delay(10);
+            await Task.Yield();
         }
     }
 }
@@ -1918,7 +1918,7 @@ class C
         public async ValueTask DisposeAsync()
         {
             Write($""Dispose({i}) "");
-            await new ValueTask(Task.Delay(10));
+            await Task.Yield();
         }
     }
 }";
@@ -1970,7 +1970,7 @@ class C
         public async ValueTask DisposeAsync()
         {
             Write($""Dispose({i}) "");
-            await new ValueTask(Task.Delay(10));
+            await Task.Yield();
         }
     }
 }";
@@ -2031,7 +2031,7 @@ public class C
         public async ValueTask DisposeAsync()
         {
             Write($""Disp"");
-            await Task.Delay(10);
+            await Task.Yield();
             Write($""ose({i}) "");
         }
     }
@@ -2095,7 +2095,7 @@ public class C
         public async ValueTask DisposeAsync()
         {
             Write($""Disp"");
-            await Task.Delay(10);
+            await Task.Yield();
             Write($""ose({i}) "");
         }
     }
@@ -2393,7 +2393,7 @@ class C
         public async ValueTask DisposeAsync()
         {
             Write($""Disp"");
-            await Task.Delay(10);
+            await Task.Yield();
             Write($""ose({i}) "");
         }
     }
@@ -2427,7 +2427,7 @@ public class C
         public Task<bool> MoveNextAsync() => throw null;
         public async ValueTask DisposeAsync()
         {
-            await new ValueTask(Task.Delay(10));
+            await Task.Yield();
         }
     }
 }";
@@ -2559,7 +2559,7 @@ class C : IAsyncEnumerable<int>
         public async ValueTask DisposeAsync()
         {
             Write($""Disp"");
-            await Task.Delay(10);
+            await Task.Yield();
             Write($""ose({i}) "");
         }
     }
@@ -2686,7 +2686,7 @@ class C : IAsyncEnumerable<int>
         public async ValueTask DisposeAsync()
         {
             Write($""Disp"");
-            await Task.Delay(10);
+            await Task.Yield();
             Write($""ose({i}) "");
         }
     }
@@ -2743,7 +2743,7 @@ class C : IAsyncEnumerable<int>
         public async ValueTask DisposeAsync()
         {
             Write($""Disp"");
-            await Task.Delay(10);
+            await Task.Yield();
             Write($""ose({i}) "");
         }
     }
@@ -2800,7 +2800,7 @@ class C : IAsyncEnumerable<int>
         public async ValueTask DisposeAsync()
         {
             Write($""Dispose({i}) "");
-            await Task.Delay(10);
+            await Task.Yield();
         }
     }
 }";
@@ -2951,7 +2951,7 @@ class C : IAsyncEnumerable<int>
         public async ValueTask DisposeAsync()
         {
             Write($""Disp"");
-            await Task.Delay(10);
+            await Task.Yield();
             Write($""ose({i}) "");
         }
     }
@@ -3033,7 +3033,7 @@ class C : IAsyncEnumerable<int>
         public async ValueTask DisposeAsync()
         {
             Write($""Disp"");
-            await Task.Delay(10);
+            await Task.Yield();
             Write($""ose({i}) "");
         }
     }
@@ -3113,7 +3113,7 @@ struct C : IAsyncEnumerable<int>
         public async ValueTask DisposeAsync()
         {
             Write($""Disp"");
-            await Task.Delay(10);
+            await Task.Yield();
             Write($""ose({i}) "");
         }
     }
@@ -3220,7 +3220,7 @@ class C : IAsyncEnumerable<int>
         public async ValueTask DisposeAsync()
         {
             Write($""Dispose({i}) "");
-            await new ValueTask(Task.Delay(10));
+            await Task.Yield();
         }
     }
 }
@@ -3324,7 +3324,7 @@ class C : IAsyncEnumerable<(string, int)>
         public async ValueTask DisposeAsync()
         {
             Write($""Dispose({i}) "");
-            await new ValueTask(Task.Delay(10));
+            await Task.Yield();
         }
     }
 }";
@@ -3398,7 +3398,7 @@ class C : IAsyncEnumerable<int>
         public async ValueTask DisposeAsync()
         {
             Write($""Disp"");
-            await Task.Delay(10);
+            await Task.Yield();
             Write($""ose({i}) "");
         }
     }
@@ -3540,7 +3540,7 @@ class Collection<T> : IAsyncEnumerable<T>
         public async ValueTask DisposeAsync()
         {
             Write($""Dispose({i}) "");
-            await new ValueTask(Task.Delay(10));
+            await Task.Yield();
         }
     }
 }

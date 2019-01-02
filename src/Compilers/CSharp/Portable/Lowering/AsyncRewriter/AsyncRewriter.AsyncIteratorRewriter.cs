@@ -23,9 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // false if it implements IAsyncEnumerator<T>
             private readonly bool _isEnumerable;
 
-            // We use state=-3 to distinguish the initial state from the running state (-1)
-            private const int InitialState = -3;
-
             internal AsyncIteratorRewriter(
                 BoundStatement body,
                 MethodSymbol method,
@@ -170,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override void InitializeStateMachine(ArrayBuilder<BoundStatement> bodyBuilder, NamedTypeSymbol frameType, LocalSymbol stateMachineLocal)
             {
                 // var stateMachineLocal = new {StateMachineType}({initialState})
-                int initialState = _isEnumerable ? StateMachineStates.FinishedStateMachine : InitialState;
+                int initialState = _isEnumerable ? StateMachineStates.FinishedStateMachine : StateMachineStates.InitialAsyncIteratorStateMachine;
                 bodyBuilder.Add(
                     F.Assignment(
                         F.Local(stateMachineLocal),
@@ -534,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .AsMember(IAsyncEnumerableOfElementType);
 
                 BoundExpression managedThreadId = null;
-                GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, ref managedThreadId, initialState: InitialState);
+                GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, ref managedThreadId, initialState: StateMachineStates.InitialAsyncIteratorStateMachine);
             }
 
             protected override BoundStatement GetExtraResetForIteratorGetEnumerator()

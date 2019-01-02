@@ -1458,15 +1458,15 @@ class C
     {
         yield return 0;
         Write(""1 "");
-        await Task.Delay(10);
+        await Task.Yield();
         Write(""2 "");
         yield return 3;
-        await Task.Delay(10);
+        await Task.Yield();
         Write(""4 "");
         value++;
-        await Task.Delay(10);
+        await Task.Yield();
         Write($""{value} "");
-        await Task.Delay(10);
+        await Task.Yield();
     }
     static async Task Main()
     {
@@ -1476,7 +1476,7 @@ class C
             Write($""Stream1:{item1} "");
         }
         Write(""Await "");
-        await Task.Delay(10);
+        await Task.Yield();
         await foreach (var item2 in enumerable)
         {
             Write($""Stream2:{item2} "");
@@ -1502,7 +1502,7 @@ class C
         try
         {
             yield return 1;
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             yield return 2;
         }
         finally
@@ -1837,7 +1837,7 @@ class C
     {
         Write($""p:{parameter} "");
         parameter++;
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         Write($""p:{parameter} "");
         parameter++;
         yield return 42;
@@ -1870,7 +1870,7 @@ class C
     {
         Write($""f:{this.field} "");
         this.field++;
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         Write($""f:{this.field} "");
         this.field++;
         yield return 42;
@@ -1985,7 +1985,7 @@ class C
         Write(""1 "");
         yield return 2;
         Write(""3 "");
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
     }
     static async System.Threading.Tasks.Task Main()
     {
@@ -2155,8 +2155,8 @@ class C
                             counter++;
                             break;
                         case AwaitSlow:
-                            //await System.Threading.Tasks.Task.Delay(10);
-                            builder.AppendLine("await System.Threading.Tasks.Task.Delay(10);");
+                            //await System.Threading.Tasks.Task.Yield();
+                            builder.AppendLine("await System.Threading.Tasks.Task.Yield();");
                             break;
                         case AwaitFast:
                             //await new System.Threading.Tasks.Task.CompletedTask;
@@ -2183,11 +2183,11 @@ class C
     static async System.Collections.Generic.IAsyncEnumerable<int> M()
     {
         Write(""1 "");
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         Write(""2 "");
         yield return 3;
         Write(""4 "");
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
     }
     static async System.Threading.Tasks.Task Main()
     {
@@ -2221,7 +2221,7 @@ public class C
         int counter = 0;
         start:
         yield return counter++;
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         try
         {
             yield return counter++;
@@ -2230,7 +2230,7 @@ public class C
         finally
         {
             Write(""Finally "");
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
         }
     }
 }";
@@ -2254,12 +2254,12 @@ public class C : System.Collections.Generic.IAsyncEnumerable<int>
     public async System.Collections.Generic.IAsyncEnumerator<int> GetAsyncEnumerator()
     {
         yield return 1;
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         try
         {
             try
             {
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
                 Write(""Break "");
                 yield break;
             }
@@ -2272,13 +2272,13 @@ public class C : System.Collections.Generic.IAsyncEnumerable<int>
         catch
         {
             Write(""Caught "");
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             yield break;
         }
         finally
         {
             Write(""Finally "");
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
         }
     }
 }";
@@ -2413,7 +2413,7 @@ public class C
     public static async System.Collections.Generic.IAsyncEnumerable<int> M2()
     {
         yield return 1;
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         yield return 2;
     }
 }
@@ -2446,7 +2446,7 @@ public class C : System.IAsyncDisposable
             {
                 await System.Threading.Tasks.Task.CompletedTask;
                 Write(""Caught "");
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
                 bool b = true;
                 Write(""Throw2 "");
                 if (b) throw null;
@@ -2482,7 +2482,7 @@ public class C
             Write(""Try "");
             await foreach (var i in M2())
             {
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
                 Write($""Item{i} "");
                 if (i > 1)
                 {
@@ -2496,7 +2496,7 @@ public class C
             Write(""Finally "");
             await foreach (var j in M2())
             {
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
                 Write($""Item{j} "");
                 if (j > 1)
                 {
@@ -2511,7 +2511,7 @@ public class C
     public static async System.Collections.Generic.IAsyncEnumerable<int> M2()
     {
         yield return 1;
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         yield return 2;
     }
 }
@@ -2537,7 +2537,7 @@ public class C
         {
             try
             {
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
                 Write(""Throw "");
                 bool b = true;
                 if (b) throw null;
@@ -2581,7 +2581,7 @@ public class C
         {
             try
             {
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
                 Write(""Throw "");
                 bool b = true;
                 if (b) throw null;
@@ -2590,7 +2590,7 @@ public class C
             catch
             {
                 Write(""Caught "");
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
                 yield break;
             }
             yield return 42;
@@ -2598,7 +2598,7 @@ public class C
         }
         finally
         {
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             Write(""Finally "");
         }
         yield return 42;
@@ -2627,7 +2627,7 @@ public class C
             yield return 1;
             try
             {
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
                 Write(""Throw "");
                 bool b = true;
                 if (b) throw null;
@@ -2637,7 +2637,7 @@ public class C
                 Write(""Caught "");
                 try
                 {
-                    await System.Threading.Tasks.Task.Delay(10);
+                    await System.Threading.Tasks.Task.Yield();
                     Write(""Break "");
                     bool b = true;
                     if (b) yield break;
@@ -2652,7 +2652,7 @@ public class C
         }
         finally
         {
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             Write(""Finally2 "");
         }
         Write(""SKIPPED"");
@@ -2679,7 +2679,7 @@ public class C
         try
         {
             yield return 1;
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             Write(""Break "");
             bool b = true;
             if (b) yield break;
@@ -2757,7 +2757,7 @@ public class C
             finally
             {
                 Write(""Finally1 "");
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
                 Write(""Finally2 "");
             }
 
@@ -2772,7 +2772,7 @@ public class C
             finally
             {
                 Write(""Finally3 "");
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
                 Write(""Finally4 "");
             }
             yield return 6;
@@ -2780,7 +2780,7 @@ public class C
         finally
         {
             Write(""Finally5 "");
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             Write(""Finally6 "");
         }
 
@@ -2841,7 +2841,7 @@ public class C
 {
     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
     {
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         try
         {
             yield return 1;
@@ -2870,7 +2870,7 @@ public class C
 {
     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
     {
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         try
         {
             yield return 1;
@@ -2908,11 +2908,11 @@ public class C
         {
             await System.Threading.Tasks.Task.CompletedTask;
             Write(""Try "");
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
         }
         finally
         {
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             Write(""Finally "");
             await System.Threading.Tasks.Task.CompletedTask;
         }
@@ -2940,11 +2940,11 @@ public class C
         yield return 1;
         try
         {
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             Write(""Throw "");
             bool b = true;
             if (b) throw null;
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             Write(""SKIPPED"");
         }
         finally
@@ -2974,10 +2974,10 @@ public class C
         yield return 1;
         try
         {
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             await SlowThrowAsync();
             Write(""SKIPPED"");
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
         }
         finally
         {
@@ -2988,7 +2988,7 @@ public class C
     static async System.Threading.Tasks.Task SlowThrowAsync()
     {
         Write(""Throw1 "");
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         Write(""Throw2 "");
         throw null;
     }
@@ -3013,7 +3013,7 @@ public class C
         yield return 1;
         try
         {
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             await FastThrowAsync();
             Write(""SKIPPED"");
             await System.Threading.Tasks.Task.CompletedTask;
@@ -3141,14 +3141,14 @@ class C
         {
             Write(""1 "");
             ThrowIf(1);
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             ThrowIf(2);
 
             try
             {
                 Write(""2 "");
                 ThrowIf(3);
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
                 ThrowIf(4);
                 await System.Threading.Tasks.Task.CompletedTask;
                 ThrowIf(5);
@@ -3164,7 +3164,7 @@ class C
                 ThrowIf(6);
                 await System.Threading.Tasks.Task.CompletedTask;
                 ThrowIf(7);
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
                 ThrowIf(8);
             }
             finally
@@ -3233,7 +3233,7 @@ public class C
         {
             await System.Threading.Tasks.Task.CompletedTask;
             Write(""Caught1 "");
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             Write(""Caught2 "");
         }
         Write(""After "");
@@ -3711,12 +3711,12 @@ public class C
             try
             {
                 yield return counter++;
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
             }
             finally
             {
                 Write($""Finally{counter++} "");
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
             }
 
             Write($""Again "");
@@ -3746,12 +3746,12 @@ public class C
         try
         {
             yield return 1;
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
         }
         finally
         {
             Write($""Finally "");
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             bool b = true;
             if (b) throw null;
         }
@@ -3782,12 +3782,12 @@ public class C
             try
             {
                 yield return 1;
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
             }
             finally
             {
                 Write($""Finally1 "");
-                await System.Threading.Tasks.Task.Delay(10);
+                await System.Threading.Tasks.Task.Yield();
                 bool b = true;
                 if (b) throw null;
             }
@@ -3823,7 +3823,7 @@ public class C
         try
         {
             Write(""Try1 "");
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             Write(""Try2 "");
             throw new System.Exception();
         }
@@ -3834,7 +3834,7 @@ public class C
         finally
         {
             Write(""Finally1 "");
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             Write(""Finally2 "");
         }
     }
@@ -3861,7 +3861,7 @@ public class C
         {
             Write(""Try1 "");
             yield return 1;
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             Write(""Throw "");
             bool b = true;
             if (b) throw new System.Exception();
@@ -3869,7 +3869,7 @@ public class C
         finally
         {
             Write(""Finally1 "");
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             Write(""Finally2 "");
         }
         Write(""SKIPPED"");
@@ -3898,13 +3898,13 @@ public class C
         {
             Write(""Try1 "");
             yield return 1;
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             Write(""Try2 "");
         }
         finally
         {
             Write(""Finally1 "");
-            await System.Threading.Tasks.Task.Delay(10);
+            await System.Threading.Tasks.Task.Yield();
             Write(""Finally2 "");
         }
     }
@@ -4157,11 +4157,11 @@ class C
         yield return 1;
         while (true)
         {
-            await Task.Delay(10);
+            await Task.Yield();
             token.ThrowIfCancellationRequested();
         }
     }
-    public static async System.Threading.Tasks.Task Main()
+    public static async Task Main()
     {
         CancellationTokenSource source = new CancellationTokenSource();
         CancellationToken token = source.Token;
@@ -4175,7 +4175,7 @@ class C
         }
         catch (System.NotSupportedException)
         {
-            System.Console.Write(""DisposeAsync threw"");
+            System.Console.Write(""DisposeAsync threw. "");
         }
 
         source.Cancel();
@@ -4183,12 +4183,15 @@ class C
         {
             await task;
         }
-        catch (System.OperationCanceledException) { }
+        catch (System.OperationCanceledException)
+        {
+            System.Console.Write(""Already cancelled"");
+        }
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "DisposeAsync threw");
+            CompileAndVerify(comp, expectedOutput: "DisposeAsync threw. Already cancelled");
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
