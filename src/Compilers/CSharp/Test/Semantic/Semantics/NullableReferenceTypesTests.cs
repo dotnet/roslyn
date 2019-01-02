@@ -1705,6 +1705,25 @@ public class C
 
         [Fact]
         [WorkItem(31732, "https://github.com/dotnet/roslyn/issues/31732")]
+        public void SuppressionOnNullableReferenceType_AppliedOnField2()
+        {
+            var source = @"
+public class C
+{
+    public string? field;
+    void M(C? c)
+    {
+        c?.field!.ToString();
+        c.ToString(); // We learned from suppressed dereference that `c` isn't null
+    }
+}
+";
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(31732, "https://github.com/dotnet/roslyn/issues/31732")]
         public void SuppressionOnArgument()
         {
             var source = @"
