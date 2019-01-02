@@ -115,13 +115,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             var applyEnhancedColors = (useFlightValue && _inUseEnhancedColorsFlight) || useEnhancedColorsSetting == 1;
             var removeEnhancedColors = !applyEnhancedColors || _inStopEnhancedColorsFlight;
 
+            // Try to set colors appropriately. We will only set colors if the user
+            // has not customized colors and we consider ourselves the color owner.
             if (removeEnhancedColors)
             {
-                _colorApplier.SetDefaultColors(currentThemeId);
+                _colorApplier.TrySetDefaultColors(currentThemeId);
             }
             else
             {
-                _colorApplier.SetEnhancedColors(currentThemeId);
+                _colorApplier.TrySetEnhancedColors(currentThemeId);
             }
         }
 
@@ -177,11 +179,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 _dte = (DTE)serviceProvider.GetService(typeof(DTE));
             }
 
-            public void SetDefaultColors(Guid themeId)
+            public void TrySetDefaultColors(Guid themeId)
             {
                 var colorItemMap = GetColorItemMap();
 
-                // Only set default colors if the users hasn't customized their colors
+                // We consider ourselves the owner of the colors and set
+                // default colors only when every classification we are
+                // updating matches our enhanced color for the current theme.
                 if (!AreColorsEnhanced(colorItemMap, themeId))
                 {
                     return;
@@ -197,6 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.OperatorOverloaded, DarkThemeOperator);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ControlKeyword, DarkThemeKeyword);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.StructName, DarkThemeClass);
+                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticSymbol, DefaultForegroundColor, DefaultBackgroundColor);
                 }
                 else
                 {
@@ -207,14 +212,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ExtensionMethodName, LightThemeIdentifier);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.OperatorOverloaded, LightThemeOperator);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ControlKeyword, LightThemeKeyword);
+                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticSymbol, DefaultForegroundColor, DefaultBackgroundColor);
                 }
             }
 
-            public void SetEnhancedColors(Guid themeId)
+            public void TrySetEnhancedColors(Guid themeId)
             {
                 var colorItemMap = GetColorItemMap();
 
-                // Only update colors if the users hasn't customized their colors
+                // We consider ourselves the owner of the colors and set
+                // enhanced colors only when every classification we are
+                // updating matches their default color for the current theme.
                 if (!AreColorsDefaulted(colorItemMap, themeId))
                 {
                     return;
@@ -230,6 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.OperatorOverloaded, DarkThemeMethodYellow);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ControlKeyword, DarkThemeControlKeywordPurple);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.StructName, DarkThemeStructMint);
+                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticSymbol, DefaultForegroundColor, DefaultBackgroundColor, isBold: true);
                 }
                 else
                 {
@@ -240,6 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ExtensionMethodName, LightThemeMethodYellow);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.OperatorOverloaded, LightThemeMethodYellow);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ControlKeyword, LightThemeControlKeywordPurple);
+                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticSymbol, DefaultForegroundColor, DefaultBackgroundColor, isBold: true);
                 }
             }
 
@@ -258,22 +268,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     [ClassificationTypeNames.OperatorOverloaded] = fontsAndColorsItems.Item(ClassificationTypeNames.OperatorOverloaded),
                     [ClassificationTypeNames.ControlKeyword] = fontsAndColorsItems.Item(ClassificationTypeNames.ControlKeyword),
                     [ClassificationTypeNames.StructName] = fontsAndColorsItems.Item(ClassificationTypeNames.StructName),
+                    [ClassificationTypeNames.StaticSymbol] = fontsAndColorsItems.Item(ClassificationTypeNames.StaticSymbol),
                 };
 
                 return colorItemMap;
             }
 
-            private void UpdateColorItem(IDictionary<string, ColorableItems> colorItemMap, string classification, uint foreground, uint background = DefaultBackgroundColor)
+            private void UpdateColorItem(IDictionary<string, ColorableItems> colorItemMap, string classification, uint foreground, uint background = DefaultBackgroundColor, bool isBold = false)
             {
                 colorItemMap[classification].Foreground = foreground;
                 colorItemMap[classification].Background = background;
-                colorItemMap[classification].Bold = false;
+                colorItemMap[classification].Bold = isBold;
             }
 
             private bool AreColorsDefaulted(Dictionary<string, ColorableItems> colorItemMap, Guid themeId)
             {
                 bool areColorsDefaulted;
 
+                // Determines if the default colors are applied for the current theme. This is how
+                // we determine if we are the color owner when trying to set enhanced colors.
                 if (themeId == KnownColorThemes.Dark)
                 {
                     // Dark Theme
@@ -327,6 +340,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             {
                 bool areColorsEnhanced;
 
+                // Determines if our enhanced colors are applied for the current theme. This is how
+                // we determine if we are the color owner when trying to set default colors.
                 if (themeId == KnownColorThemes.Dark)
                 {
                     // Dark Theme
