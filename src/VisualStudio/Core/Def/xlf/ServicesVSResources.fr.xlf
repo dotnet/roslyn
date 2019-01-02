@@ -7,9 +7,9 @@
         <target state="new">Add to _current file</target>
         <note />
       </trans-unit>
-      <trans-unit id="Additional_fixes_are_needed_to_complete_the_refactoring_Review_fixes_below">
-        <source>Additional fixes are needed to complete the refactoring. Review fixes below.</source>
-        <target state="new">Additional fixes are needed to complete the refactoring. Review fixes below.</target>
+      <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
+        <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
+        <target state="new">Additional changes are needed to complete the refactoring. Review changes below.</target>
         <note />
       </trans-unit>
       <trans-unit id="All_methods">
@@ -177,9 +177,9 @@
         <target state="translated">Réinitialiser la configuration du clavier par défaut de Visual Studio</target>
         <note />
       </trans-unit>
-      <trans-unit id="Review_Fixes">
-        <source>Review Fixes</source>
-        <target state="new">Review Fixes</target>
+      <trans-unit id="Review_Changes">
+        <source>Review Changes</source>
+        <target state="new">Review Changes</target>
         <note />
       </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">

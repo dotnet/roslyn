@@ -207,11 +207,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Additional fixes are needed to complete the refactoring. Review fixes below..
+        ///   Looks up a localized string similar to Additional changes are needed to complete the refactoring. Review changes below..
         /// </summary>
-        internal static string Additional_fixes_are_needed_to_complete_the_refactoring_Review_fixes_below {
+        internal static string Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below {
             get {
-                return ResourceManager.GetString("Additional_fixes_are_needed_to_complete_the_refactoring_Review_fixes_below", resourceCulture);
+                return ResourceManager.GetString("Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below", resourceCulture);
             }
         }
         
@@ -2467,11 +2467,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Review Fixes.
+        ///   Looks up a localized string similar to Review Changes.
         /// </summary>
-        internal static string Review_Fixes {
+        internal static string Review_Changes {
             get {
-                return ResourceManager.GetString("Review_Fixes", resourceCulture);
+                return ResourceManager.GetString("Review_Changes", resourceCulture);
             }
         }
         

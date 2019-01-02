@@ -13,8 +13,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
     {
         public string Back => ServicesVSResources.Back;
         public string Finish => ServicesVSResources.Finish;
-        public string WarningDialogTitle => ServicesVSResources.Review_Fixes;
-        public string Description => ServicesVSResources.Additional_fixes_are_needed_to_complete_the_refactoring_Review_fixes_below;
+        public string WarningDialogTitle => ServicesVSResources.Review_Changes;
+        public string Description => ServicesVSResources.Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below;
 
         internal PullMemberUpWarningDialog(PullMemberUpWarningViewModel viewModel)
         {

@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.PullMemberUp
 interface Level2Interface
 {
 }
-                             
+
 interface Level1Interface : Level2Interface
 {
 }
@@ -47,12 +47,50 @@ class MyClass : Level1BaseClass, Level1Interface
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        Public Async Function TestPullMemberUp_NoVBDestinationAppearInCSharpProject() As Task
+            Dim markUp = <Text><![CDATA[
+<Workspace>
+    <Project Language="C#" AssemblyName="CSAssembly" CommonReferences="true">
+        <ProjectReference>VBAssembly</ProjectReference>
+        <Document>
+            using VBAssembly;
+            public interface ITestInterface
+            {
+            }
+
+            public class TestClass : VBClass, ITestInterface
+            {
+                public int Bar$$bar()
+                {
+                    return 12345;
+                }
+            }
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
+        <Document>
+            Public Class VBClass
+            End Class
+        </Document>
+    </Project>
+</Workspace>]]></Text>
+
+            Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
+            Dim baseTypeTree = viewModel.Destinations
+
+            ' C# types will be showed
+            Assert.Equal("ITestInterface", baseTypeTree(0).SymbolName)
+            ' Make sure Visual basic types are not showed since we are not ready to support cross language scenario
+            Assert.Single(baseTypeTree)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
         Public Async Function TestPullMemberUp_SelectAllMemberMakeSelectAllBecomeChecked() As Task
             Dim markUp = <Text><![CDATA[
 interface Level2Interface
 {
 }
-                             
+
 interface Level1Interface : Level2Interface
 {
 }
@@ -84,7 +122,7 @@ class MyClass : Level1BaseClass, Level1Interface
 interface Level2Interface
 {
 }
-                             
+
 interface Level1Interface : Level2Interface
 {
 }
@@ -116,7 +154,7 @@ class MyClass : Level1BaseClass, Level1Interface
 interface Level2Interface
 {
 }
-                             
+
 interface Level1Interface : Level2Interface
 {
 }
@@ -161,7 +199,7 @@ class MyClass : Level1BaseClass, Level1Interface
 interface Level2Interface
 {
 }
-                             
+
 interface Level1Interface : Level2Interface
 {
 }
@@ -203,7 +241,7 @@ class MyClass : Level1BaseClass, Level1Interface
 interface Level2Interface
 {
 }
-                             
+
 interface Level1Interface : Level2Interface
 {
 }
@@ -249,7 +287,7 @@ class MyClass : Level1BaseClass, Level1Interface
 interface Level2Interface
 {
 }
-                             
+
 interface Level1Interface : Level2Interface
 {
 }
@@ -289,7 +327,7 @@ class MyClass : Level1BaseClass, Level1Interface
 interface Level2Interface
 {
 }
-                             
+
 interface Level1Interface : Level2Interface
 {
 }
@@ -419,4 +457,3 @@ class MyClass : Level1BaseClass
         End Function
     End Class
 End Namespace
-

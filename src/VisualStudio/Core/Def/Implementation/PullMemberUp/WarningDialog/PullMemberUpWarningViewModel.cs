@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
     internal class PullMemberUpWarningViewModel : AbstractNotifyPropertyChanged
     {
         public ImmutableArray<string> WarningMessageContainer { get; set; }
-        public string ProblemsListViewAutomationText => ServicesVSResources.Review_Fixes;
+        public string ProblemsListViewAutomationText => ServicesVSResources.Review_Changes;
 
         internal PullMemberUpWarningViewModel(PullMembersUpOptions options)
         {

@@ -450,7 +450,7 @@ namespace PushUpTest
 
     public class TestClass : IInterface
     {
-        public int TestPr[||]operty { private get; set; }
+        public int TestProperty[||]{ private get; set; }
     }
 }";
 
@@ -465,7 +465,7 @@ namespace PushUpTest
 
     public class TestClass : IInterface
     {
-        public int TestProperty { private get; set; }
+        public int TestProperty{ private get; set; }
     }
 }";
             await TestInRegularAndScriptAsync(testText, expected);
@@ -740,7 +740,7 @@ namespace PushUpTest
 
     public class TestClass : Base
     {
-        public int yo[||]u = 10086;
+        public int you[||]= 10086;
     }
 }";
 

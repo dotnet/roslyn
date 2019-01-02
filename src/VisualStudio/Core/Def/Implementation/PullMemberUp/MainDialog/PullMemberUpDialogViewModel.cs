@@ -18,19 +18,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
     {
         public ImmutableArray<PullMemberUpSymbolViewModel> Members { get; set; }
         public ImmutableArray<BaseTypeTreeNodeViewModel> Destinations { get; set; }
-        private BaseTypeTreeNodeViewModel _selectedDestination;
-        public ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> DependentsMap { get; }
-        public ImmutableDictionary<ISymbol, PullMemberUpSymbolViewModel> SymbolToMemberViewMap { get; }
-        private bool _okButtonEnabled;
         public bool OkButtonEnabled { get => _okButtonEnabled; set => SetProperty(ref _okButtonEnabled, value, nameof(OkButtonEnabled)); }
-        private bool? _selectAllCheckBoxState;
         public bool? SelectAllCheckBoxState { get => _selectAllCheckBoxState; set => SetProperty(ref _selectAllCheckBoxState, value, nameof(SelectAllCheckBoxState)); }
-        private bool _selectAllCheckBoxThreeStateEnable;
         public bool SelectAllCheckBoxThreeStateEnable { get => _selectAllCheckBoxThreeStateEnable; set => SetProperty(ref _selectAllCheckBoxThreeStateEnable, value, nameof(SelectAllCheckBoxThreeStateEnable)); }
         public string SelectAllCheckBoxAutomationText => ServicesVSResources.Select_All;
         public string DestinationTreeViewAutomationText => ServicesVSResources.Select_destination;
         public string SelectMemberListViewAutomationText => ServicesVSResources.Select_member;
+        private bool _selectAllCheckBoxThreeStateEnable;
+        private bool? _selectAllCheckBoxState;
         private readonly IWaitIndicator _waitIndicator;
+        private BaseTypeTreeNodeViewModel _selectedDestination;
+        private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> _symbolToDependentsMap;
+        private readonly ImmutableDictionary<ISymbol, PullMemberUpSymbolViewModel> _symbolToMemberViewMap;
+        private bool _okButtonEnabled;
 
         public BaseTypeTreeNodeViewModel SelectedDestination
         {
@@ -82,9 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap)
         {
             Destinations = destinations;
-            DependentsMap = dependentsMap;
+            _symbolToDependentsMap = dependentsMap;
             Members = members;
-            SymbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
+            _symbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
             _waitIndicator = waitIndicator;
         }
 
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                     {
                         foreach (var member in Members)
                         {
-                            DependentsMap[member.Symbol].Wait(context.CancellationToken);
+                            _symbolToDependentsMap[member.Symbol].Wait(context.CancellationToken);
                         }
                     });
 
@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             {
                 foreach (var member in checkedMembers)
                 {
-                    var membersToSelected = FindDependentsRecursively(member.Symbol).SelectAsArray(symbol => SymbolToMemberViewMap[symbol]);
+                    var membersToSelected = FindDependentsRecursively(member.Symbol).SelectAsArray(symbol => _symbolToMemberViewMap[symbol]);
                     SelectMembers(membersToSelected);
                 }
             }
@@ -190,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                 var currentMember = queue.Dequeue();
                 result.Add(currentMember);
                 visited.Add(currentMember);
-                foreach (var dependent in DependentsMap[currentMember].Result)
+                foreach (var dependent in _symbolToDependentsMap[currentMember].Result)
                 {
                     if (!visited.Contains(dependent))
                     {
