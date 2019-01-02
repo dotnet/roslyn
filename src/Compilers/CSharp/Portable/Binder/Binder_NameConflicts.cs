@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -115,11 +116,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static bool ShouldReportSymbolConflict(Symbol symbol, Symbol newSymbol)
+        /// <summary>
+        /// Avoid reporting name conflicts for parameters and locals in local functions
+        /// that conflict with a symbol in a containing scope.
+        /// </summary>
+        internal static bool ShouldReportNameConflict(Symbol symbol, Symbol newSymbolOpt)
         {
-            var compilation = symbol.DeclaringCompilation;
-            return !compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticLocalFunctions) ||
-                newSymbol.ContainingSymbol == symbol.ContainingSymbol;
+            Debug.Assert((object)symbol != null);
+            if (newSymbolOpt is null)
+            {
+                return true;
+            }
+            if (!symbol.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticLocalFunctions))
+            {
+                return true;
+            }
+            var newContainer = newSymbolOpt.ContainingSymbol;
+            if ((newContainer as MethodSymbol)?.MethodKind != MethodKind.LocalFunction)
+            {
+                return true;
+            }
+            return newContainer == symbol.ContainingSymbol;
         }
     }
 }
