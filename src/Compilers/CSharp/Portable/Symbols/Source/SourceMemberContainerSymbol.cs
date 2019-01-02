@@ -2355,9 +2355,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 case TypeKind.Class:
+                    AddSynthesizedRecordMembersIfNecessary(builder.NonTypeNonIndexerMembers, diagnostics);
+                    AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
+                    break;
+
                 case TypeKind.Submission:
                     // No additional checking required.
-                    AddSynthesizedRecordMembersIfNecessary(builder.NonTypeNonIndexerMembers, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
                     break;
 
@@ -2863,10 +2866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddSynthesizedRecordMembersIfNecessary(ArrayBuilder<Symbol> members, DiagnosticBag diagnostics)
         {
-            Debug.Assert(declaration.Kind == DeclarationKind.Class ||
-                declaration.Kind == DeclarationKind.Struct ||
-                declaration.Kind == DeclarationKind.Submission ||
-                declaration.Kind == DeclarationKind.Script);
+            Debug.Assert(TypeKind == TypeKind.Class || TypeKind == TypeKind.Struct);
 
             ParameterListSyntax paramList = null;
             foreach (SingleTypeDeclaration decl in declaration.Declarations)
