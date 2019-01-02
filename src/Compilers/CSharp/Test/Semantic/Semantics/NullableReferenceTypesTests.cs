@@ -9201,7 +9201,45 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("object[]", "object?[]", "y", "object C.operator +(C x, params object?[] y)").WithLocation(4, 45));
         }
 
-        [Fact]
+        [Fact, WorkItem(29954, "https://github.com/dotnet/roslyn/issues/29954")]
+        public void RefLocals_01()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+class C
+{
+    void Test1(C y1)
+    {
+        ref C x1 = ref y1;
+        y1 = x1;
+    }
+
+    void Test2(C y2)
+    {
+        ref C? x2 = ref y2;
+        y2 = x2;
+    }
+
+    void Test3(C? y3)
+    {
+        ref C x3 = ref y3;
+        y3 = x3;
+    }
+
+    void Test4(C? y4)
+    {
+        ref C? x4 = ref y4;
+        y4 = x4;
+    }
+}" }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (18,24): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         ref C x3 = ref y3;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y3").WithLocation(18, 24)
+                );
+        }
+
+        [Fact, WorkItem(29954, "https://github.com/dotnet/roslyn/issues/29954")]
         public void RefOutParameters_01()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -9252,25 +9290,19 @@ class CL1
 " }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
-                 // (15,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         y2 = x2;
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x2").WithLocation(15, 14),
-                 // (21,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         y3 = x3;
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(21, 14),
-                 // (26,14): error CS0269: Use of unassigned out parameter 'x4'
-                 //         y4 = x4;
-                 Diagnostic(ErrorCode.ERR_UseDefViolationOut, "x4").WithArguments("x4").WithLocation(26, 14),
-                 // (32,14): error CS0269: Use of unassigned out parameter 'x5'
-                 //         y5 = x5;
-                 Diagnostic(ErrorCode.ERR_UseDefViolationOut, "x5").WithArguments("x5").WithLocation(32, 14),
-                 // (39,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         y6 = x6;
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x6").WithLocation(39, 14)
+                // (15,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y2 = x2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x2").WithLocation(15, 14),
+                // (26,14): error CS0269: Use of unassigned out parameter 'x4'
+                //         y4 = x4;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "x4").WithArguments("x4").WithLocation(26, 14),
+                // (32,14): error CS0269: Use of unassigned out parameter 'x5'
+                //         y5 = x5;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "x5").WithArguments("x5").WithLocation(32, 14)
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(29954, "https://github.com/dotnet/roslyn/issues/29954")]
         public void RefOutParameters_02()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -9330,21 +9362,15 @@ struct S1
 " }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
-                 // (15,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         y2 = x2.F2;
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x2.F2").WithLocation(15, 14),
-                 // (21,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         y3 = x3.F2;
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3.F2").WithLocation(21, 14),
-                 // (26,14): error CS0170: Use of possibly unassigned field 'F1'
-                 //         y4 = x4.F1;
-                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "x4.F1").WithArguments("F1").WithLocation(26, 14),
-                 // (33,14): error CS0170: Use of possibly unassigned field 'F2'
-                 //         y5 = x5.F2;
-                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "x5.F2").WithArguments("F2").WithLocation(33, 14),
-                 // (42,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         y6 = x6.F2;
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x6.F2").WithLocation(42, 14)
+                // (15,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y2 = x2.F2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x2.F2").WithLocation(15, 14),
+                // (26,14): error CS0170: Use of possibly unassigned field 'F1'
+                //         y4 = x4.F1;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "x4.F1").WithArguments("F1").WithLocation(26, 14),
+                // (33,14): error CS0170: Use of possibly unassigned field 'F2'
+                //         y5 = x5.F2;
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "x5.F2").WithArguments("F2").WithLocation(33, 14)
                 );
         }
 
@@ -36061,18 +36087,13 @@ class A : System.Attribute
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29954: Should not report warning for
-            // c.ToString(); // 3
             comp.VerifyDiagnostics(
                 // (5,9): error CS0269: Use of unassigned out parameter 'c'
                 //         c.ToString(); // 1
                 Diagnostic(ErrorCode.ERR_UseDefViolationOut, "c").WithArguments("c").WithLocation(5, 9),
                 // (7,9): warning CS8602: Possible dereference of a null reference.
                 //         c.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(7, 9),
-                // (9,9): warning CS8602: Possible dereference of a null reference.
-                //         c.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(9, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(7, 9));
         }
 
         [Fact]

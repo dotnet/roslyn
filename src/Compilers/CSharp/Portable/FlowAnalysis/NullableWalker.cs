@@ -666,15 +666,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                bool isByRefTarget = IsByRefTarget(targetSlot);
                 if (targetSlot >= this.State.Capacity) Normalize(ref this.State);
 
-                // https://github.com/dotnet/roslyn/issues/29968 Remove isByRefTarget check?
-                var newState = isByRefTarget ?
-                    // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
-                    // regardless of what value is being assigned.
-                    targetType.NullableAnnotation.IsAnyNullable() ? targetType.NullableAnnotation : NullableAnnotation.Unknown :
-                    valueType.NullableAnnotation;
+                var newState = valueType.NullableAnnotation;
                 this.State[targetSlot] = newState;
                 if (newState.IsAnyNullable() && _tryState.HasValue)
                 {
@@ -704,6 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (valueSlot > 0)
                         {
+                            bool isByRefTarget = IsByRefTarget(targetSlot);
                             InheritNullableStateOfTrackableType(targetSlot, valueSlot, isByRefTarget, slotWatermark: GetSlotWatermark());
                         }
                     }
