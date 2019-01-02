@@ -1096,7 +1096,7 @@ class C
     static void Main(string[] args)
     {
         string s = ""abcdefghij"";
-        for (int i = s.IndexOf(""bcd""); i < s.IndexOf(""x""); i = i.IndexOf(""x"");$$)
+        for (int i = s.IndexOf(""bcd""); i < s.IndexOf(""x""); i = i.IndexOf(""x"";$$))
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1196,22 +1196,8 @@ public class Goo
     public string s;
 }
 ";
-            var expected =
-@"
-class C
-{
-    static void Main(string[] args)
-    {
-        for (Goo f = new Goo { i = 0, s = ""abc"";$$
-    }
-}
-public class Goo
-{
-    public int i;
-    public string s;
-}
-";
-            VerifyTypingSemicolon(code,expected);
+
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         #endregion
@@ -1234,6 +1220,35 @@ class SampleCollection<T>
 }";
 
             VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void IndexerWithArrayElementAccess()
+        {
+            var code =
+@"
+class SampleCollection<T>
+{
+    private T[] arr = new T[100];
+    public T this[int i]
+    {
+        get { return arr[i$$] }
+        set { arr[i] = value; }
+    }
+}";
+            var expected =
+@"
+class SampleCollection<T>
+{
+    private T[] arr = new T[100];
+    public T this[int i]
+    {
+        get { return arr[i];$$ }
+        set { arr[i] = value; }
+    }
+}";
+
+            VerifyTypingSemicolon(code,expected);
         }
 
         #endregion
@@ -2497,7 +2512,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_ClassNameOfMethodInvocation1()
         {
-            var code = CreateTestWithMethodCall(@"var test = $$ClassC.MethodM(x,y);");
+            var code = CreateTestWithMethodCall(@"var test = $$ClassC.MethodM(x,y)");
 
             VerifyNoSpecialSemicolonHandling(code);
         }
@@ -2505,7 +2520,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_ClassNameOfMethodInvocation2()
         {
-            var code = CreateTestWithMethodCall(@"var test = C$$lassC.MethodM(x,y);");
+            var code = CreateTestWithMethodCall(@"var test = C$$lassC.MethodM(x,y)");
 
             VerifyNoSpecialSemicolonHandling(code);
         }
@@ -2513,7 +2528,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_ClassNameOfMethodInvocation3()
         {
-            var code = CreateTestWithMethodCall(@"var test = Class$$C.MethodM(x,y);");
+            var code = CreateTestWithMethodCall(@"var test = Class$$C.MethodM(x,y)");
 
             VerifyNoSpecialSemicolonHandling(code);
         }
@@ -2521,7 +2536,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_ClassNameOfMethodInvocation4()
         {
-            var code = CreateTestWithMethodCall(@"var test = ClassC$$.MethodM(x,y);");
+            var code = CreateTestWithMethodCall(@"var test = ClassC$$.MethodM(x,y)");
 
             VerifyNoSpecialSemicolonHandling(code);
         }
@@ -2529,7 +2544,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_MethodNameOfMethodInvocation1()
         {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.Meth$$odM(x,y);");
+            var code = CreateTestWithMethodCall(@"var test = ClassC.Meth$$odM(x,y)");
 
             VerifyNoSpecialSemicolonHandling(code);
         }
@@ -2537,7 +2552,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_MethodNameOfMethodInvocation2()
         {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.$$MethodM(x,y);");
+            var code = CreateTestWithMethodCall(@"var test = ClassC.$$MethodM(x,y)");
 
             VerifyNoSpecialSemicolonHandling(code);
         }
@@ -2545,7 +2560,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_MethodNameOfMethodInvocation3()
         {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM$$(x,y);");
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM$$(x,y)");
 
             VerifyNoSpecialSemicolonHandling(code);
         }
@@ -2553,7 +2568,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_SemicolonBeforeEquals()
         {
-            var code = CreateTestWithMethodCall(@"var test $$= ClassC.MethodM(x,y);");
+            var code = CreateTestWithMethodCall(@"var test $$= ClassC.MethodM(x,y)");
 
             VerifyNoSpecialSemicolonHandling(code);
         }
@@ -2561,7 +2576,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_SemicolonAfterEquals()
         {
-            var code = CreateTestWithMethodCall(@"var test =$$ ClassC.MethodM(x,y);");
+            var code = CreateTestWithMethodCall(@"var test =$$ ClassC.MethodM(x,y)");
 
             VerifyNoSpecialSemicolonHandling(code);
         }

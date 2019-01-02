@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -34,6 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
+        public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextCommandHandler) => nextCommandHandler();
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompleteStatementCommandHandler(ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService)
@@ -57,28 +60,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return;
             }
 
-            var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            if (!caret.HasValue)
+            var caretOpt = args.TextView.GetCaretPoint(args.SubjectBuffer);
+            if (!caretOpt.HasValue)
             {
                 return;
             }
 
-            var isCaretAtEndOfLine = ((SnapshotPoint)caret).Position == ((SnapshotPoint)caret).GetContainingLine().End;
-            var document = caret.Value.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var caret = caretOpt.Value;
+
+            var document = caret.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
-      
+
             {
                 return;
             }
 
             var root = document.GetSyntaxRootSynchronously(executionContext.OperationContext.UserCancellationToken);
-            var caretPosition = caret.Value.Position;
+            var caretPosition = caret.Position;
 
             var token = root.FindToken(caretPosition);
 
             var currentNode = token.Parent;
 
-            // If cursor is right before an opening delimiter, start with node outside of delimiters. 
+            // If cursor is right before an opening delimiter, start with node outside of delimiters since analysis 
+            // starting with a node containing delimiters assumes the caret is placed inside those delimiters. 
             // This covers cases like `obj.ToString$()`, where `token` references `(` but the caret isn't actually 
             // inside the argument list.
             if (token.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.OpenBracketToken, SyntaxKind.OpenParenToken)
@@ -93,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!LooksLikeNodeInArgumentListForStatementCompletion(currentNode, syntaxFacts, isCaretAtEndOfLine))
+            if (!LooksLikeNodeInArgumentList(currentNode, caret, syntaxFacts, CancellationToken.None))
             {
                 return;
             }
@@ -116,11 +121,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             // if the statement syntax itself requires a closing delimeter, verify it is there
-                if (StatementClosingDelimiterIsMissing(currentNode))
-                {
-                    // Example: missing final `)` in `do { } while (x$$`
-                    return;
-                }
+            if (StatementClosingDelimiterIsMissing(currentNode))
+            {
+                // Example: missing final `)` in `do { } while (x$$`
+                return;
+            }
 
             var semicolonPosition = GetSemicolonLocation(currentNode, caretPosition);
 
@@ -143,8 +148,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 {
                     return forStatementSyntax.Declaration.FullSpan.End;
                 }
-
-                return forStatementSyntax.Incrementors.FullSpan.End;
             }
 
             return currentNode.Span.End;
@@ -158,14 +161,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// list, where the immediately-containing statement resembles an "expression statement". This method returns
         /// <see langword="true"/> if the node matches a recognizable pattern of this form.</para>
         /// </remarks>
-        private static bool LooksLikeNodeInArgumentListForStatementCompletion(SyntaxNode currentNode, 
-            ISyntaxFactsService syntaxFacts, bool isCaretAtEndOfLine)
+        private static bool LooksLikeNodeInArgumentList(SyntaxNode currentNode, int caret,
+            ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
             // work our way up the tree, looking for a node of interest within the current statement
             bool nodeFound = false;
             while (!IsStatementOrFieldDeclaration(currentNode, syntaxFacts))
             {
-                if (currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier, SyntaxKind.ParenthesizedExpression))
+                if (currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier, SyntaxKind.ElementAccessExpression, SyntaxKind.ParenthesizedExpression))
                 {
                     // It's a node of interest
                     nodeFound = true;
@@ -173,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
                 // No special action is performed at this time if `;` is typed inside a string, including
                 // interpolated strings.  
-                if (IsInAString(currentNode, isCaretAtEndOfLine))
+                if (syntaxFacts.IsInNonUserCode(currentNode.SyntaxTree, caret, cancellationToken))
                 {
                     return false;
                 }
@@ -188,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             // if we never found a statement, or a node of interest, or the statement kind is not a candidate for completion, return
-            if (currentNode == null || !nodeFound || !StatementIsACandidate(currentNode))
+            if (currentNode == null || !nodeFound || !StatementIsACandidate(currentNode, caret))
             {
                 return false;
             }
@@ -198,14 +201,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         }
 
         private static bool IsStatementOrFieldDeclaration(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts)
-            => (syntaxFacts.IsStatement(currentNode) || currentNode.IsKind(SyntaxKind.FieldDeclaration));
+            => syntaxFacts.IsStatement(currentNode) || currentNode.IsKind(SyntaxKind.FieldDeclaration);
 
-        private static bool IsInAString(SyntaxNode currentNode, bool isCaretAtEndOfLine)
-            // If caret is at the end of the line, it is outside the string
-            => (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
-                && !isCaretAtEndOfLine);
 
-        private static bool StatementIsACandidate(SyntaxNode currentNode)
+        private static bool StatementIsACandidate(SyntaxNode currentNode, int caretPosition)
         {
             // if the statement kind ends in a semicolon, return true
             switch (currentNode.Kind())
@@ -216,9 +215,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.ReturnStatement:
                 case SyntaxKind.ThrowStatement:
-                case SyntaxKind.ForStatement:
                 case SyntaxKind.FieldDeclaration:
                     return true;
+                case SyntaxKind.ForStatement:
+                    var forStatementSyntax = (ForStatementSyntax)currentNode;
+                    if (caretPosition > forStatementSyntax.Incrementors.Span.Start && caretPosition < forStatementSyntax.Incrementors.Span.End)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 default:
                     return false;
             }
@@ -376,6 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.ArrayRankSpecifier:
                     var arrayRankSpecifierSyntax = (ArrayRankSpecifierSyntax)currentNode;
                     return !arrayRankSpecifierSyntax.CloseBracketToken.IsMissing;
+
                 default:
                     // Type of node does not require a closing delimiter
                     return true;
@@ -384,14 +393,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static int GetEndPosition(SyntaxNode root, int end, SyntaxKind nodeKind)
         {
-
             // If "end" is at the end of a line, the token has trailing end of line trivia.
             // We want to put our cursor before that trivia, so use previous token for placement.
             var token = root.FindToken(end);
             return token.GetPreviousToken().Span.End;
         }
-
-        public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextCommandHandler) => nextCommandHandler();
-
     }
 }
