@@ -57,7 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document,
                 originalNodes,
-                t => {
+                t =>
+                {
                     var additionalNodesToTrack = ArrayBuilder<SyntaxNode>.GetInstance(2);
                     additionalNodesToTrack.Add(t.identifier);
                     additionalNodesToTrack.Add(t.declarator);
@@ -88,9 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         private SyntaxNode ReplaceIdentifierWithInlineDeclaration(
-            OptionSet options, SemanticModel semanticModel, 
-            SyntaxNode currentRoot, VariableDeclaratorSyntax declarator, 
-            IdentifierNameSyntax identifier, SyntaxNode invocationOrCreation, 
+            OptionSet options, SemanticModel semanticModel,
+            SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
+            IdentifierNameSyntax identifier, SyntaxNode invocationOrCreation,
             SyntaxNode currentNode)
         {
             declarator = currentRoot.GetCurrentNode(declarator);
