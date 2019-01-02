@@ -2863,7 +2863,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddSynthesizedRecordMembersIfNecessary(ArrayBuilder<Symbol> members, DiagnosticBag diagnostics)
         {
-            Debug.Assert(declaration.Kind == DeclarationKind.Class || declaration.Kind == DeclarationKind.Struct);
+            Debug.Assert(declaration.Kind == DeclarationKind.Class ||
+                declaration.Kind == DeclarationKind.Struct ||
+                declaration.Kind == DeclarationKind.Submission ||
+                declaration.Kind == DeclarationKind.Script);
 
             ParameterListSyntax paramList = null;
             foreach (SingleTypeDeclaration decl in declaration.Declarations)

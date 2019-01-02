@@ -24,5 +24,25 @@ class C
     }
 }", expectedOutput: "1 3");
         }
+
+        [Fact]
+        public void RecordWithInitializer()
+        {
+            CompileAndVerify(@"
+using System;
+class Point(int x, int y)
+{
+    public int Z { get; } = 5;
+}
+class C
+{
+
+    public static void Main()
+    {
+        var p = new Point(1, 3);
+        Console.WriteLine(p.x + "" "" + p.y + "" "" + p.Z);
+    }
+}", expectedOutput: "1 3 5");
+        }
     }
 }

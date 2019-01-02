@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Properties = propertiesBuilder.ToImmutableAndFree();
         }
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal BoundBlock MakeMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             //  Method body:
             //
@@ -53,17 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int paramCount = this.ParameterCount;
 
             // List of statements
-            var statements = ArrayBuilder<BoundStatement>.GetInstance(paramCount + 2);
-
-            //  explicit base constructor call
-            Debug.Assert(ContainingType.BaseTypeNoUseSiteDiagnostics.SpecialType == SpecialType.System_Object);
-            BoundExpression call = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
-            if (call == null)
-            {
-                // This may happen if Object..ctor is not found or is inaccessible
-                return;
-            }
-            statements.Add(F.ExpressionStatement(call));
+            var statements = ArrayBuilder<BoundStatement>.GetInstance(paramCount + 1);
 
             // Assign fields
             for (int index = 0; index < paramCount; index++)
@@ -77,9 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             statements.Add(F.Return());
 
             // Create a bound block 
-            F.CloseMethod(F.Block(statements.ToImmutableAndFree()));
+            return F.Block(statements.ToImmutableAndFree());
         }
-
-        internal override bool SynthesizesLoweredBoundBody => true;
     }
 }
