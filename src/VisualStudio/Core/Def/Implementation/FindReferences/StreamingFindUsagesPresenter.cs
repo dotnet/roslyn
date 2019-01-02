@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             var window = _vsFindAllReferencesService.StartSearch(title);
 
             // Keep track of the users preference for grouping by definition if we don't already know it.
-            // We need this because we disable the Definition column when wer're not showing references
+            // We need this because we disable the Definition column when we're not showing references
             // (i.e. GoToImplementation/GoToDef).  However, we want to restore the user's choice if they
             // then do another FindAllReferences.
             var desiredGroupingPriority = _workspace.Options.GetOption(FindUsagesOptions.DefinitionGroupingPriority);
