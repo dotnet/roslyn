@@ -160,13 +160,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Now we need to walk up the scopes to find environment captures
                         var oldEnv = curScope?.DeclaredEnvironments[0];
+                        curScope = curScope?.Parent;
                         while (curScope != null)
                         {
                             if (capturedEnvs.Count == 0)
                             {
                                 break;
                             }
-
+                            
                             var envs = curScope.DeclaredEnvironments.Where(e => !e.IsStruct);
                             if (!envs.IsEmpty())
                             {
