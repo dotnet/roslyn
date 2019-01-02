@@ -271,57 +271,63 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (parameterKind == SymbolKind.Parameter)
             {
-                if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local ||
-                    (newSymbolKind == SymbolKind.Method &&
-                     ((MethodSymbol)newSymbol).MethodKind == MethodKind.LocalFunction))
+                switch (newSymbolKind)
                 {
-                    if (ShouldReportNameConflict(parameter, newSymbol))
-                    {
-                        // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                        diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
-                    }
-                    return true;
-                }
+                    case SymbolKind.Parameter:
+                    case SymbolKind.Local:
+                        if (ShouldReportNameConflict(parameter, newSymbol))
+                        {
+                            // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                            diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
+                        }
+                        return true;
 
-                if (newSymbolKind == SymbolKind.TypeParameter)
-                {
-                    // Type parameter declaration name conflicts are not reported, for backwards compatibility.
-                    return false;
-                }
+                    case SymbolKind.Method:
+                        if (((MethodSymbol)newSymbol).MethodKind == MethodKind.LocalFunction)
+                        {
+                            goto case SymbolKind.Parameter;
+                        }
+                        break;
 
-                if (newSymbolKind == SymbolKind.RangeVariable)
-                {
-                    if (ShouldReportNameConflict(parameter, newSymbol))
-                    {
-                        // The range variable '{0}' conflicts with a previous declaration of '{0}'
-                        diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
-                    }
-                    return true;
+                    case SymbolKind.TypeParameter:
+                        // Type parameter declaration name conflicts are not reported, for backwards compatibility.
+                        return false;
+
+                    case SymbolKind.RangeVariable:
+                        if (ShouldReportNameConflict(parameter, newSymbol))
+                        {
+                            // The range variable '{0}' conflicts with a previous declaration of '{0}'
+                            diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
+                        }
+                        return true;
                 }
             }
 
             if (parameterKind == SymbolKind.TypeParameter)
             {
-                if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local ||
-                    (newSymbolKind == SymbolKind.Method &&
-                     ((MethodSymbol)newSymbol).MethodKind == MethodKind.LocalFunction))
+                switch (newSymbolKind)
                 {
-                    // CS0412: '{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                    diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
-                    return true;
-                }
+                    case SymbolKind.Parameter:
+                    case SymbolKind.Local:
+                        // CS0412: '{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                        diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
+                        return true;
 
-                if (newSymbolKind == SymbolKind.TypeParameter)
-                {
-                    // Type parameter declaration name conflicts are detected elsewhere
-                    return false;
-                }
+                    case SymbolKind.Method:
+                        if (((MethodSymbol)newSymbol).MethodKind == MethodKind.LocalFunction)
+                        {
+                            goto case SymbolKind.Parameter;
+                        }
+                        break;
 
-                if (newSymbolKind == SymbolKind.RangeVariable)
-                {
-                    // The range variable '{0}' cannot have the same name as a method type parameter
-                    diagnostics.Add(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, newLocation, name);
-                    return true;
+                    case SymbolKind.TypeParameter:
+                        // Type parameter declaration name conflicts are detected elsewhere
+                        return false;
+
+                    case SymbolKind.RangeVariable:
+                        // The range variable '{0}' cannot have the same name as a method type parameter
+                        diagnostics.Add(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, newLocation, name);
+                        return true;
                 }
             }
 
