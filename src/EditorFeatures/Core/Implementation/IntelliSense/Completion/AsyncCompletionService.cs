@@ -85,12 +85,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private bool UseLegacyCompletion(ITextView textView, ITextBuffer subjectBuffer)
         {
+            const string useAsyncCompletionOptionName = "UseAsyncCompletion";
             if (!_newCompletionAPIEnabled.HasValue)
             {
                 int userSetting = 0;
-                if (textView.Options.GlobalOptions.IsOptionDefined(UseAsyncCompletionOptionDefinition.OptionName, localScopeOnly: false))
+                if (textView.Options.GlobalOptions.IsOptionDefined(useAsyncCompletionOptionName, localScopeOnly: false))
                 {
-                    userSetting = textView.Options.GlobalOptions.GetOptionValue<int>(UseAsyncCompletionOptionDefinition.OptionName);
+                    userSetting = textView.Options.GlobalOptions.GetOptionValue<int>(useAsyncCompletionOptionName);
                 }
 
                 if (userSetting == 1)
