@@ -5032,10 +5032,11 @@ namespace NS2
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WorkItem(24960, "https://github.com/dotnet/roslyn/issues/24960")>
-        Public Async Function TypeParameterTOnType() As Task
-            Using state = TestState.CreateCSharpTestState(
+        Public Async Function TypeParameterTOnType(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 class C<T>
 {
@@ -5049,10 +5050,11 @@ class C<T>
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WorkItem(24960, "https://github.com/dotnet/roslyn/issues/24960")>
-        Public Async Function TypeParameterTOnMethod() As Task
-            Using state = TestState.CreateCSharpTestState(
+        Public Async Function TypeParameterTOnMethod(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 class C
 {
