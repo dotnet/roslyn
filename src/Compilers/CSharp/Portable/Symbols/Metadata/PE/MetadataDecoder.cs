@@ -513,10 +513,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // We only want to consider members that are at or above "scope" in the type hierarchy.
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if (scope != targetTypeSymbol &&
+                if (!TypeSymbol.Equals(scope, targetTypeSymbol, TypeCompareKind.ConsiderEverything2) &&
                     !(targetTypeSymbol.IsInterfaceType()
-                        ? scope.AllInterfacesNoUseSiteDiagnostics.Contains((NamedTypeSymbol)targetTypeSymbol)
-                        : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics)))
+                        ? scope.AllInterfacesNoUseSiteDiagnostics.IndexOf((NamedTypeSymbol)targetTypeSymbol, 0, TypeSymbol.EqualsIgnoringNullableComparer) != -1
+                        : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes, useSiteDiagnostics: ref useSiteDiagnostics)))
                 {
                     return null;
                 }

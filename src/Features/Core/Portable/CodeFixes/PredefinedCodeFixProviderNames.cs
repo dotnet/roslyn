@@ -41,10 +41,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string MoveToTopOfFile = nameof(MoveToTopOfFile);
         public const string PopulateSwitch = nameof(PopulateSwitch);
         public const string QualifyMemberAccess = nameof(QualifyMemberAccess);
+        public const string ReplaceDefaultLiteral = nameof(ReplaceDefaultLiteral);
         public const string RemoveUnnecessaryCast = nameof(RemoveUnnecessaryCast);
         public const string DeclareAsNullable = nameof(DeclareAsNullable);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
         public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
+        public const string RemoveUnusedValues = nameof(RemoveUnusedValues);
         public const string RemoveUnusedLocalFunction = nameof(RemoveUnusedLocalFunction);
         public const string RemoveUnusedMembers = nameof(RemoveUnusedMembers);
         public const string RemoveUnusedVariable = nameof(RemoveUnusedVariable);

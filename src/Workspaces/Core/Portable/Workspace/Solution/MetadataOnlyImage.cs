@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
         /// A map to ensure that the streams from the temporary storage service that back the metadata we create stay alive as long
         /// as the metadata is alive.
         /// </summary>
-        private static readonly ConditionalWeakTable<AssemblyMetadata, ISupportDirectMemoryAccess> s_lifetime 
+        private static readonly ConditionalWeakTable<AssemblyMetadata, ISupportDirectMemoryAccess> s_lifetime
             = new ConditionalWeakTable<AssemblyMetadata, ISupportDirectMemoryAccess>();
 
         public MetadataReference CreateReference(ImmutableArray<string> aliases, bool embedInteropTypes, DocumentationProvider documentationProvider)
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
                 s_lifetime.Add(metadata, supportNativeMemory);
             }
             else
-            { 
+            {
                 // Otherwise, we just let it use stream. Unfortunately, if we give stream, compiler will
                 // internally copy it to native memory again. since compiler owns lifetime of stream,
                 // it would be great if compiler can be little bit smarter on how it deals with stream.

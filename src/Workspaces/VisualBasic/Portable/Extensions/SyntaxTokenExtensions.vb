@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
-    Friend Module SyntaxTokenExtensions
+    Partial Friend Module SyntaxTokenExtensions
         <Extension()>
         Public Function IsKindOrHasMatchingText(token As SyntaxToken, kind As SyntaxKind) As Boolean
             Return token.Kind = kind OrElse
@@ -17,17 +17,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function HasMatchingText(token As SyntaxToken, kind As SyntaxKind) As Boolean
             Return String.Equals(token.ToString(), SyntaxFacts.GetText(kind), StringComparison.OrdinalIgnoreCase)
-        End Function
-
-        <Extension()>
-        Public Function IsKind(token As SyntaxToken, kind1 As SyntaxKind, kind2 As SyntaxKind) As Boolean
-            Return token.Kind = kind1 OrElse
-                   token.Kind = kind2
-        End Function
-
-        <Extension()>
-        Public Function IsKind(token As SyntaxToken, ParamArray kinds As SyntaxKind()) As Boolean
-            Return kinds.Contains(token.Kind)
         End Function
 
         <Extension()>

@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
                 WriteOptionTo(options, option, writer, cancellationToken);
             }
 
+            WriteOptionTo(options, CSharpCodeStyleOptions.PreferBraces, writer, cancellationToken);
             WriteOptionTo(options, CSharpCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken);
         }
 
@@ -67,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
                 options = ReadOptionFrom(options, option, reader, cancellationToken);
             }
 
+            options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferBraces, reader, cancellationToken);
             options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken);
 
             return options;

@@ -1411,7 +1411,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput:@"42");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
 
             comp.VerifyIL("Program.Main", @"
 {

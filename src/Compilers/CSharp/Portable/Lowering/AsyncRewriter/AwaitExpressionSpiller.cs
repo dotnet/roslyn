@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, _F.Syntax.Location, call.Method);
                         }
                         // method call is not referentially transparent, we can only spill the result value. 
-                        refKind = RefKind.None; 
+                        refKind = RefKind.None;
                         goto default;
 
                     case BoundKind.ConditionalOperator:
@@ -587,6 +587,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundSpillSequenceBuilder builder = null;
             var expression = VisitExpression(ref builder, node.ExpressionOpt);
             return UpdateStatement(builder, node.Update(node.RefKind, expression), substituteTemps: true);
+        }
+
+        public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
+        {
+            EnterStatement(node);
+
+            BoundSpillSequenceBuilder builder = null;
+            var expression = VisitExpression(ref builder, node.Expression);
+            return UpdateStatement(builder, node.Update(expression), substituteTemps: true);
         }
 
 #if DEBUG
@@ -800,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return UpdateExpression(builder, node.Update(node.OperatorKind, left, right, node.ConstantValue, node.MethodOpt, node.ResultKind, node.Type));
+            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValue, node.MethodOpt, node.ResultKind, left, right, node.Type));
         }
 
         public override BoundNode VisitCall(BoundCall node)

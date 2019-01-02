@@ -194,7 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         AsyncKeyword = 8435,
         AwaitKeyword = 8436,
         WhenKeyword = 8437,
+        /// when adding a contextual keyword following functions must be adapted:
+        /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
+        /// <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
 
+        // keywords with an enum value less than ElifKeyword are considered i.a. contextual keywords
         // additional preprocessor keywords
         ElifKeyword = 8467,
         EndIfKeyword = 8468,
@@ -220,6 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         LoadKeyword = 8485,
         NullableKeyword = 8486,
         EnableKeyword = 8487,
+        SafeOnlyKeyword = 8488,
 
         // Other
         UnderscoreToken = 8491,

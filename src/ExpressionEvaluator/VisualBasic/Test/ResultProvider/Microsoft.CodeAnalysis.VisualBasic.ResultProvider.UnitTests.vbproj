@@ -6,8 +6,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.UnitTests</AssemblyName>
-    <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
+    <TargetFramework>net472</TargetFramework>
     <VBRuntime>Default</VBRuntime>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>

@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-#if NET46
+#if NET472
         internal static bool CheckIdentityUnix(PipeStream stream)
         {
             // Identity verification is unavailable in the MSBuild task,
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             return $"{pipeName}.client";
         }
-  
+
         /// <summary>
         /// Gets the value of the temporary path for the current environment assuming the working directory
         /// is <paramref name="workingDir"/>.  This function must emulate <see cref="Path.GetTempPath"/> as 

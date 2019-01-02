@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol returnTypeWithCustomModifiers = sourceMethodReturnType.TypeSymbol;
             if (returnTypeSymbol.Equals(returnTypeWithCustomModifiers, TypeCompareKind.AllIgnoreOptions))
             {
-                returnType = returnType.WithTypeAndModifiers(CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnTypeSymbol, destinationMethod.ContainingAssembly, nonNullTypesContext: destinationMethod),
+                returnType = returnType.WithTypeAndModifiers(CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnTypeSymbol, destinationMethod.ContainingAssembly),
                                                sourceMethodReturnType.CustomModifiers);
             }
         }
@@ -61,12 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="sourceType">Type that already has custom modifiers.</param>
         /// <param name="destinationType">Same as <paramref name="sourceType"/>, but without custom modifiers.  May differ in object/dynamic.</param>
         /// <param name="containingAssembly">The assembly containing the signature referring to the destination type.</param>
-        /// <param name="nonNullTypesContext">The NonNullTypes context at the destination.</param>
         /// <returns><paramref name="destinationType"/> with custom modifiers copied from <paramref name="sourceType"/>.</returns>
-        internal static TypeSymbol CopyTypeCustomModifiers(TypeSymbol sourceType, TypeSymbol destinationType, AssemblySymbol containingAssembly, INonNullTypesContext nonNullTypesContext)
+        internal static TypeSymbol CopyTypeCustomModifiers(TypeSymbol sourceType, TypeSymbol destinationType, AssemblySymbol containingAssembly)
         {
             Debug.Assert(sourceType.Equals(destinationType, TypeCompareKind.AllIgnoreOptions));
-            Debug.Assert(nonNullTypesContext != null);
 
             const RefKind refKind = RefKind.None;
 
@@ -78,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol typeWithDynamic = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
 
             TypeSymbol resultType;
-            if (destinationType.ContainsTuple() && !sourceType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
+            if (destinationType.ContainsTuple() && !sourceType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamic))
             {
                 // We also preserve tuple names, if present and different
                 ImmutableArray<string> names = CSharpCompilation.TupleNamesEncoder.Encode(destinationType);
@@ -94,17 +92,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If the destination had some of those annotations but not all, then clearly the destination
             // was incorrect. Or if the destination is C#7, then the destination will advertise annotations
             // that the author did not write and did not validate.
-            var flagsBuilder = ArrayBuilder<bool>.GetInstance();
+            var flagsBuilder = ArrayBuilder<byte>.GetInstance();
             destinationType.AddNullableTransforms(flagsBuilder);
             int position = 0;
             int length = flagsBuilder.Count;
-            bool transformResult = resultType.ApplyNullableTransforms(flagsBuilder.ToImmutableAndFree(), nonNullTypesContext, ref position, out resultType);
+            bool transformResult = resultType.ApplyNullableTransforms(defaultTransformFlag: 0, flagsBuilder.ToImmutableAndFree(), ref position, out resultType);
             Debug.Assert(transformResult && position == length);
 
-            Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames)); // Same custom modifiers as source type.
-            // Note: We would want to check nullability, but that would pull on NonNullTypes too early (ie. cause cycles).
+            Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)); // Same custom modifiers as source type.
+
             Debug.Assert(resultType.Equals(destinationType,
-                TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds)); // Same object/dynamic and tuple names as destination type.
+                TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)); // Same object/dynamic and tuple names as destination type.
 
             return resultType;
         }

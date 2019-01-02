@@ -1592,6 +1592,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ForEachMissingMemberWrongAsync = 8414,
         ERR_AwaitForEachMissingMemberWrongAsync = 8415,
         ERR_BadDynamicAwaitForEach = 8416,
+        ERR_NoConvToIAsyncDispWrongAsync = 8417,
+        ERR_NoConvToIDispWrongAsync = 8418,
+        ERR_PossibleAsyncIteratorWithoutYield = 8419,
+        ERR_PossibleAsyncIteratorWithoutYieldOrAwait = 8420,
 
         WRN_ConvertingNullableToNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,
@@ -1622,17 +1626,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NoBestNullabilityConditionalExpression = 8626,
         ERR_NullableUnconstrainedTypeParameter = 8627,
         ERR_AnnotationDisallowedInObjectCreation = 8628,
-        WRN_MissingNonNullTypesContext = 8629,
+        WRN_NullableValueTypeMayBeNull = 8629,
         ERR_NullableOptionNotAvailable = 8630,
         WRN_NullabilityMismatchInTypeParameterConstraint = 8631,
         WRN_MissingNonNullTypesContextForAnnotation = 8632,
         WRN_NullabilityMismatchInConstraintsOnImplicitImplementation = 8633,
         WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint = 8634,
         ERR_TripleDotNotAllowed = 8635,
-        ERR_ExplicitNonNullTypesAttribute = 8636,
+        ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
         WRN_CantInferNullabilityOfMethodTypeArgs = 8638,
         WRN_NoBestNullabilityArrayElements = 8639,
+        ERR_ExpressionTreeCantContainRefStruct = 8640,
+        ERR_ElseCannotStartStatement = 8641,
+        ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642
 
         #endregion diagnostics introduced for C# 8.0
 

@@ -11,6 +11,12 @@
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- 
+      Mono serialization errors breaking tests that have traits
+      https://github.com/mono/mono/issues/10945
+    -->
+    <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
@@ -25,9 +31,5 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Linq.Parallel" Version="$(SystemLinqParallelVersion)" />
-    <PackageReference Include="System.Reflection.TypeExtensions" Version="$(SystemReflectionTypeExtensionsVersion)" />
   </ItemGroup>
 </Project>

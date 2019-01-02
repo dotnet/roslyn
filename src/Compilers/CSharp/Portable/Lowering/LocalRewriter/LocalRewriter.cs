@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilation = compilation;
             _factory = factory;
             _factory.CurrentFunction = containingMethod;
-            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
+            Debug.Assert(TypeSymbol.Equals(factory.CurrentType, (containingType ?? containingMethod.ContainingType), TypeCompareKind.ConsiderEverything2));
             _dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Dynamic type will be erased in emit phase. It is considered equivalent to Object in lowered bound trees.
             // Unused deconstructions are lowered to produce a return value that isn't a tuple type.
             Debug.Assert(visited == null || visited.HasErrors || ReferenceEquals(visited.Type, node.Type) ||
-                    visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames) ||
+                    visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) ||
                     IsUnusedDeconstruction(node));
 
             if (visited != null && visited != node)
@@ -244,15 +244,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
             }
 
-            bool hasConstraintsWithNullableReferenceTypes = typeParameters.Any(
-               typeParameter => typeParameter.ReferenceTypeConstraintIsNullable == true ||
+            bool constraintsNeedNullableAttribute = typeParameters.Any(
+               typeParameter => (typeParameter.HasReferenceTypeConstraint && typeParameter.ReferenceTypeConstraintIsNullable != null) ||
                                 typeParameter.ConstraintTypesNoUseSiteDiagnostics.Any(
-                                    typeConstraint => typeConstraint.ContainsNullableReferenceTypes()));
+                                    typeConstraint => typeConstraint.NeedsNullableAttribute()));
 
-            bool hasReturnTypeWithNullableReferenceTypes = node.Symbol.ReturnType.ContainsNullableReferenceTypes();
-            bool hasParametersWithNullableReferenceTypes = node.Symbol.ParameterTypes.Any(parameter => parameter.ContainsNullableReferenceTypes());
+            bool returnTypeNeedsNullableAttribute = node.Symbol.ReturnType.NeedsNullableAttribute();
+            bool parametersNeedNullableAttribute = node.Symbol.ParameterTypes.Any(parameter => parameter.NeedsNullableAttribute());
 
-            if (hasConstraintsWithNullableReferenceTypes || hasReturnTypeWithNullableReferenceTypes || hasParametersWithNullableReferenceTypes)
+            if (constraintsNeedNullableAttribute || returnTypeNeedsNullableAttribute || parametersNeedNullableAttribute)
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
             }
@@ -538,8 +538,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol rawIndexType = node.Indices[0].Type;
-            if (!(rawIndexType == _compilation.GetWellKnownType(WellKnownType.System_Index) ||
-                  rawIndexType == _compilation.GetWellKnownType(WellKnownType.System_Range)))
+            if (!(TypeSymbol.Equals(rawIndexType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything2) ||
+                  TypeSymbol.Equals(rawIndexType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2)))
             {
                 return base.VisitArrayAccess(node);
             }
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var indexFromEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__FromEnd);
 
             BoundExpression resultExpr;
-            if (indexType == _compilation.GetWellKnownType(WellKnownType.System_Index))
+            if (TypeSymbol.Equals(indexType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything2))
             {
 
                 // array[Index] is translated to:
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         F.ArrayAccess(arrayLocal, ImmutableArray.Create(indexValueExpr)),
                         node.Type));
             }
-            else if (indexType == _compilation.GetWellKnownType(WellKnownType.System_Range))
+            else if (TypeSymbol.Equals(indexType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2))
             {
                 // array[Range] is translated to:
                 // var start = range.Start.FromEnd ? array.Length - range.Start.Value : range.Start.Value;
@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     new LocalRewritingValidator().Visit(node);
                 }
-                catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+                catch (InsufficientExecutionStackException)
                 {
                     // Intentionally ignored to let the overflow get caught in a more crucial visitor
                 }

@@ -1,7 +1,13 @@
-﻿using System.ComponentModel.Composition;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -11,42 +17,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+        private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
 
         [ImportingConstructor]
         // TODO: remove the AllowDefault = true on HostDiagnosticUpdateSource by making it a proper mock
-        public VisualStudioProjectFactory(VisualStudioWorkspaceImpl visualStudioWorkspaceImpl, [Import(AllowDefault = true)] HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+        public VisualStudioProjectFactory(
+            VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
+            [ImportMany]IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
+            [Import(AllowDefault = true)] HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
+            _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
-        public VisualStudioProject CreateAndAddToWorkspace(string projectUniqueName, string language)
+        public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language)
         {
-            return CreateAndAddToWorkspace(projectUniqueName, language, new VisualStudioProjectCreationInfo());
+            return CreateAndAddToWorkspace(projectSystemName, language, new VisualStudioProjectCreationInfo());
         }
 
-        public VisualStudioProject CreateAndAddToWorkspace(string projectUniqueName, string language, VisualStudioProjectCreationInfo creationInfo)
+        public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo)
         {
             // HACK: Fetch this service to ensure it's still created on the UI thread; once this is moved off we'll need to fix up it's constructor to be free-threaded.
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
-            var id = ProjectId.CreateNewId(projectUniqueName);
+            var id = ProjectId.CreateNewId(projectSystemName);
             var directoryNameOpt = creationInfo.FilePath != null ? Path.GetDirectoryName(creationInfo.FilePath) : null;
-            var project = new VisualStudioProject(_visualStudioWorkspaceImpl, _hostDiagnosticUpdateSource, id, projectUniqueName, language, directoryNameOpt);
+
+            // We will use the project system name as the default display name of the project
+            var project = new VisualStudioProject(_visualStudioWorkspaceImpl, _dynamicFileInfoProviders, _hostDiagnosticUpdateSource, id, displayName: projectSystemName, language, directoryNameOpt);
 
             var versionStamp = creationInfo.FilePath != null ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
                                                              : VersionStamp.Create();
 
-            var assemblyName = creationInfo.AssemblyName ?? projectUniqueName;
+            var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
 
-            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectUniqueName);
+            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 
             _visualStudioWorkspaceImpl.ApplyChangeToWorkspace(w =>
             {
                 var projectInfo = ProjectInfo.Create(
                         id,
                         versionStamp,
-                        name: projectUniqueName,
+                        name: projectSystemName,
                         assemblyName: assemblyName,
                         language: language,
                         filePath: creationInfo.FilePath,
@@ -73,6 +86,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             VersionStamp.Create(),
                             solutionPathToSetWithOnSolutionAdded,
                             projects: new[] { projectInfo }));
+
+                    // set working folder for the persistent service
+                    var persistenceService = w.Services.GetRequiredService<IPersistentStorageLocationService>() as VisualStudioPersistentStorageLocationService;
+                    persistenceService?.UpdateForVisualStudioWorkspace(w);
                 }
                 else
                 {

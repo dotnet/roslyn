@@ -3123,7 +3123,7 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void HugeTupleCreationParses()
         {
             StringBuilder b = new StringBuilder();
@@ -3146,7 +3146,7 @@ class C
             CreateCompilation(source);
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void HugeTupleDeclarationParses()
         {
             StringBuilder b = new StringBuilder();
@@ -3886,7 +3886,7 @@ class C
 
             var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 targetFramework: TargetFramework.Mscorlib46Extended,
-                expectedOutput:"1");
+                expectedOutput: "1");
             verifier.VerifyDiagnostics();
         }
 
@@ -11410,7 +11410,7 @@ class C
                 );
         }
 
-       [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_08()
         {
             var source = @"
@@ -17882,7 +17882,7 @@ public class C
 
         [Fact]
         [WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")]
-        public void NullCoalesingOperatorWithTupleNames()
+        public void NullCoalescingOperatorWithTupleNames()
         {
             // See section 7.13 of the spec, regarding the null-coalescing operator
             var source = @"
@@ -18087,9 +18087,12 @@ public class C
             Assert.Equal("(System.Int32 a, System.Int32) x1", x1.ToTestDisplayString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/32006")]
         public void LambdaTypeInferenceWithDynamic()
         {
+            // See https://github.com/dotnet/roslyn/issues/32006
+            // need to relax assertion in GetImplicitTupleLiteralConversion
+
             var source = @"
 public class C
 {
@@ -23439,7 +23442,7 @@ class P
         var x1 = (1, 1) is (int, int a)?;
     }
 }";
-            var comp = CreateCompilationWithMscorlib40( source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,29): error CS1525: Invalid expression term 'int'
                 //         var x1 = (1, 1) is (int, int a)?;

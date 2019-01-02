@@ -960,7 +960,7 @@ class Test
             IEnumerable<IGrouping<TypeSymbol, FieldSymbol>> spillFieldsByType = stateMachineClass.GetMembers().Where(m => m.Kind == SymbolKind.Field && m.Name.StartsWith("<>7__wrap", StringComparison.Ordinal)).Cast<FieldSymbol>().GroupBy(x => x.Type.TypeSymbol);
 
             Assert.Equal(1, spillFieldsByType.Count());
-            Assert.Equal(1, spillFieldsByType.Single(x => x.Key == comp.GetSpecialType(SpecialType.System_Int32)).Count());
+            Assert.Equal(1, spillFieldsByType.Single(x => TypeSymbol.Equals(x.Key, comp.GetSpecialType(SpecialType.System_Int32), TypeCompareKind.ConsiderEverything2)).Count());
         }
 
         [Fact]
@@ -1687,7 +1687,7 @@ class Test
 
             verifier = CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: @"2");
 
-            // NOTE: two separate histed int locals: 
+            // NOTE: two separate hoisted int locals: 
             //       int Test.<MainAsync>d__1.<a>5__1  and  
             //       int Test.<MainAsync>d__1.<b>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
@@ -2014,7 +2014,7 @@ class Test
 
             verifier = CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: @"2");
 
-            // NOTE: two separate histed int locals: 
+            // NOTE: two separate hoisted int locals: 
             //       int Test.<MainAsync>d__1.<a>5__1  and  
             //       int Test.<MainAsync>d__1.<b>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",

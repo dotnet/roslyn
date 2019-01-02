@@ -143,14 +143,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             // the new PascalCased name we've picked for the new properties that will go in
             // the named type.
             await ReplacePropertyReferencesAsync(
-                document, editor, containingMember, 
+                document, editor, containingMember,
                 propertyMap, cancellationToken).ConfigureAwait(false);
 
             // Next, go through and replace all matching anonymous types in this method with a call
             // to construct the new named type we've generated.  
             await ReplaceMatchingAnonymousTypesAsync(
                 document, editor, namedTypeSymbol,
-                containingMember, anonymousObject, 
+                containingMember, anonymousObject,
                 anonymousType, cancellationToken).ConfigureAwait(false);
 
             // Then, actually insert the new class in the appropriate container.
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
 
         private async Task ReplaceMatchingAnonymousTypesAsync(
             Document document, SyntaxEditor editor, INamedTypeSymbol classSymbol,
-            SyntaxNode containingMember, TAnonymousObjectCreationExpressionSyntax creationNode, 
+            SyntaxNode containingMember, TAnonymousObjectCreationExpressionSyntax creationNode,
             INamedTypeSymbol anonymousType, CancellationToken cancellationToken)
         {
             // When invoked we want to fixup all creations of the "same" anonymous type within the
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
 
                     var classNameNode = classSymbol.TypeParameters.Length == 0
                         ? (TNameSyntax)g.IdentifierName(classNameToken)
-                        : (TNameSyntax)g.GenericName(classNameToken, 
+                        : (TNameSyntax)g.GenericName(classNameToken,
                             classSymbol.TypeParameters.Select(tp => g.IdentifierName(tp.Name)));
 
                     return CreateObjectCreationExpression(classNameNode, currentAnonymousObject)
@@ -306,9 +306,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                 properties.WhereAsArray(p => p.SetMethod == null));
 
             var equalsAndGetHashCodeService = document.GetLanguageService<IGenerateEqualsAndGetHashCodeService>();
-                        
+
             var equalsMethod = await equalsAndGetHashCodeService.GenerateEqualsMethodAsync(
-                document, namedTypeWithoutMembers, readonlyProperties, 
+                document, namedTypeWithoutMembers, readonlyProperties,
                 localNameOpt: SyntaxGeneratorExtensions.OtherName, cancellationToken).ConfigureAwait(false);
             var getHashCodeMethod = await equalsAndGetHashCodeService.GenerateGetHashCodeMethodAsync(
                 document, namedTypeWithoutMembers,
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             string className, ImmutableArray<ITypeParameterSymbol> capturedTypeParameters, ImmutableArray<ISymbol> members)
         {
             return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                attributes: default, Accessibility.Internal, modifiers: default, 
+                attributes: default, Accessibility.Internal, modifiers: default,
                 TypeKind.Class, className, capturedTypeParameters, members: members);
         }
 
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             // use this to update reference to the old anonymous-type properties to the new
             // names.
             var builder = ImmutableDictionary.CreateBuilder<IPropertySymbol, string>();
-            for (var i = 0; i< originalProperties.Length; i++)
+            for (var i = 0; i < originalProperties.Length; i++)
             {
                 var originalProperty = originalProperties[i];
                 var newProperty = newProperties[i];

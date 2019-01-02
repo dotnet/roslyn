@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (!(expression is ObjectCreationExpressionSyntax) && 
+            if (!(expression is ObjectCreationExpressionSyntax) &&
                 !(expression is AnonymousObjectCreationExpressionSyntax) &&
                 !expression.IsLeftSideOfAssignExpression())
             {

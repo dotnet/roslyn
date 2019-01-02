@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var parameter in parameters)
             {
-                if (parameter.Type.ContainsNullableReferenceTypes())
+                if (parameter.Type.NeedsNullableAttribute())
                 {
                     // These parameters might not come from a compilation (example: lambdas evaluated in EE).
                     // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.InKeyword:
-                        if(seenIn)
+                        if (seenIn)
                         {
                             diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword));
                         }
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
                         }
-                        else if(seenRef)
+                        else if (seenRef)
                         {
                             diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
                         }
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Location loc = parameterSyntax.Identifier.GetNextToken(includeZeroWidth: true).GetLocation(); //could be missing
                 diagnostics.Add(ErrorCode.ERR_DefaultValueBeforeRequiredValue, loc);
             }
-            else if (parameter.RefKind != RefKind.None && 
+            else if (parameter.RefKind != RefKind.None &&
                 parameter.Type.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 // CS1601: Cannot make reference to variable of type 'System.TypedReference'

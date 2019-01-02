@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             DeclarationModifiers modifiers,
             string name,
-            SyntaxReference syntax, 
+            SyntaxReference syntax,
             Location location)
             : base(containingType, name, syntax, location)
         {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!this.IsFixed, "Subclasses representing fixed fields must override");
+                Debug.Assert(!this.IsFixedSizeBuffer, "Subclasses representing fixed fields must override");
                 state.NotePartComplete(CompletionPart.FixedSize);
                 return 0;
             }
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
         {
-            Debug.Assert(!this.IsFixed, "Subclasses representing fixed fields must override");
+            Debug.Assert(!this.IsFixedSizeBuffer, "Subclasses representing fixed fields must override");
             return null;
         }
     }
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if ((object)initializerOpt.Type != null && !initializerOpt.Type.IsErrorType())
                                 {
-                                    type = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, initializerOpt.Type);
+                                    type = TypeSymbolWithAnnotations.Create(initializerOpt.Type);
                                 }
 
                                 _lazyFieldTypeInferred = 1;
@@ -482,12 +482,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (type.IsNull)
                         {
-                            type = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, binder.CreateErrorType("var"));
+                            type = TypeSymbolWithAnnotations.Create(binder.CreateErrorType("var"));
                         }
                     }
                 }
 
-                if (IsFixed)
+                if (IsFixedSizeBuffer)
                 {
                     type = TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(type));
 

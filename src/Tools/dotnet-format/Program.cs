@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                 .OnExecute(typeof(Program).GetMethod(nameof(Run)))
                 .Build();
 
-            return await parser.InvokeAsync(args);
+            return await parser.InvokeAsync(args).ConfigureAwait(false);
         }
 
         public static async Task<int> Run(string workspace, string verbosity, IConsole console = null)
@@ -63,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                 MSBuildEnvironment.ApplyEnvironmentVariables(workspaceDirectory);
                 MSBuildCoreLoader.LoadDotnetInstance(workspaceDirectory);
 
-                return await CodeFormatter.FormatWorkspaceAsync(logger, workspacePath, isSolution, cancellationTokenSource.Token);
+                return await CodeFormatter.FormatWorkspaceAsync(
+                    logger, workspacePath, isSolution, logAllWorkspaceWarnings: logLevel == LogLevel.Trace, cancellationTokenSource.Token).ConfigureAwait(false);
             }
             catch (FileNotFoundException fex)
             {

@@ -50,6 +50,7 @@
          DebugType="$(DebugType)"
          DefineConstants="$(FinalDefineConstants)"
          DelaySign="$(DelaySign)"
+         DisableSdkPath="$(DisableSdkPath)"
          DisabledWarnings="$(NoWarn)"
          DocumentationFile="@(DocFileItem)"
          EmbedAllSources="$(EmbedAllSources)"

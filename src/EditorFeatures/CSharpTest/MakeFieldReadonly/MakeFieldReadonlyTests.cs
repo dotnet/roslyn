@@ -31,7 +31,7 @@ $@"class MyClass
     {accessibility} int[| _goo |];
 }}");
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldIsEvent()
         {
@@ -1104,6 +1104,17 @@ class MyClass
     void M()
     {
     }
+}");
+        }
+
+        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldIsFixed()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"unsafe struct S
+{
+    [|private fixed byte b[8];|]
 }");
         }
     }

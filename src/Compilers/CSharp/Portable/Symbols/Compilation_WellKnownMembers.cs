@@ -166,14 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // Well-known types that are injected cannot be referenced from another assembly
-                    bool includeReferences = type != WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute &&
-                        type != WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute;
-
                     // well-known types introduced before CSharp7 allow lookup ambiguity and report a warning
                     DiagnosticBag legacyWarnings = (type <= WellKnownType.CSharp7Sentinel) ? warnings : null;
                     result = this.Assembly.GetTypeByMetadataName(
-                        mdName, includeReferences: includeReferences, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, conflicts: out conflicts,
+                        mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, conflicts: out conflicts,
                         warnings: legacyWarnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
                 }
 
@@ -205,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)Interlocked.CompareExchange(ref _lazyWellKnownTypes[index], result, null) != null)
                 {
                     Debug.Assert(
-                        result == _lazyWellKnownTypes[index] || (_lazyWellKnownTypes[index].IsErrorType() && result.IsErrorType())
+                        TypeSymbol.Equals(result, _lazyWellKnownTypes[index], TypeCompareKind.ConsiderEverything2) || (_lazyWellKnownTypes[index].IsErrorType() && result.IsErrorType())
                     );
                 }
                 else
@@ -237,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsReadOnlySpanType(TypeSymbol type)
         {
-            return type.OriginalDefinition == GetWellKnownType(WellKnownType.System_ReadOnlySpan_T);
+            return TypeSymbol.Equals(type.OriginalDefinition, GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything2);
         }
 
         internal bool IsEqualOrDerivedFromWellKnownClass(TypeSymbol type, WellKnownType wellKnownType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -256,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool IsSystemTypeReference(ITypeSymbol type)
         {
-            return (TypeSymbol)type == GetWellKnownType(WellKnownType.System_Type);
+            return TypeSymbol.Equals((TypeSymbol)type, GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.ConsiderEverything2);
         }
 
         internal override ISymbol CommonGetWellKnownTypeMember(WellKnownMember member)
@@ -447,13 +443,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SynthesizedAttributeData(ctorSymbol, arguments, namedStringArguments);
         }
 
-        internal SynthesizedAttributeData TrySynthesizeNonNullTypesAttribute(bool value)
-        {
-            return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NonNullTypesAttribute__ctor,
-                                          ImmutableArray.Create(new TypedConstant(GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, value)),
-                                          isOptionalUse: true);
-        }
-
         internal SynthesizedAttributeData SynthesizeDecimalConstantAttribute(decimal value)
         {
             bool isNegative;
@@ -552,9 +541,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool CheckIfIsReadOnlyAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
         {
             return CheckIfAttributeShouldBeEmbedded(
-                diagnosticsOpt, 
-                locationOpt, 
-                WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, 
+                diagnosticsOpt,
+                locationOpt,
+                WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                 WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
         }
 
@@ -583,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnosticsOpt,
                 locationOpt,
                 WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
-                WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
+                WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                 WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags);
         }
 
@@ -1076,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
 
-                    return type == type.OriginalDefinition;
+                    return type.Equals(type.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
                 }
 
                 return false;
@@ -1097,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WellKnownType wellKnownId = (WellKnownType)typeId;
                 if (wellKnownId.IsWellKnownType())
                 {
-                    return (type == _compilation.GetWellKnownType(wellKnownId));
+                    return type.Equals(_compilation.GetWellKnownType(wellKnownId), TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
                 }
 
                 return base.MatchTypeToTypeId(type, typeId);

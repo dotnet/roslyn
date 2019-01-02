@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
-            return new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, default(ConstantValue), method, default(LookupResultKind), type);
+            return new BoundBinaryOperator(syntax, operatorKind, default(ConstantValue), method, default(LookupResultKind), loweredLeft, loweredRight, type);
         }
 
         /// <summary>

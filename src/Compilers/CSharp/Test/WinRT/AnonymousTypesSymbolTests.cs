@@ -230,7 +230,7 @@ class Program
 
         private void TestAnonymousTypeFieldSymbols_InQuery(ImmutableArray<byte> image)
         {
-            Assembly refAsm = CorLightup.Desktop.LoadAssembly(image.ToArray());
+            Assembly refAsm = Assembly.Load(image.ToArray());
             Type type = refAsm.GetType("<>f__AnonymousType0`2");
             Assert.NotNull(type);
             Assert.Equal(2, type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Count());

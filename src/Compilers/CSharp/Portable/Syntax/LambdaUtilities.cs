@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // expressions that may introduce pattern variables.
                     if (node.Parent != null)
                     {
-                        switch(node.Parent.Kind())
+                        switch (node.Parent.Kind())
                         {
                             case SyntaxKind.EqualsValueClause:
                                 return true;

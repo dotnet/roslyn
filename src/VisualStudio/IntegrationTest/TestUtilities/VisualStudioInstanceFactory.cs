@@ -244,7 +244,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 Debug.WriteLine($"An environment variable named 'VSInstallDir' (or equivalent) was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
             }
 
-            var instances = EnumerateVisualStudioInstances().Where((instance) => {
+            var instances = EnumerateVisualStudioInstances().Where((instance) =>
+            {
                 var isMatch = true;
                 {
                     isMatch &= instance.GetInstallationVersion().StartsWith(VsProductVersion);

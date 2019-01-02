@@ -1,7 +1,7 @@
 ﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <RoslynProjectType>Custom</RoslynProjectType>
 
     <!-- The package is inserted to Visual Studio CoreXT package store -->
@@ -62,64 +62,60 @@
   </ItemGroup>
 
   <Target Name="_GetFilesToPackage">
-    <PropertyGroup>
-      <_Dlls>$(ArtifactsConfigurationDir)Dlls\</_Dlls>
-      <_Vsix>$(ArtifactsConfigurationDir)Vsix\</_Vsix>
-    </PropertyGroup>
-
     <ItemGroup>
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis\Microsoft.CodeAnalysis.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp.EditorFeatures\Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp.Features\Microsoft.CodeAnalysis.CSharp.Features.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp.Workspaces\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp\Microsoft.CodeAnalysis.CSharp.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.EditorFeatures.Text\Microsoft.CodeAnalysis.EditorFeatures.Text.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.EditorFeatures.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.EditorFeatures\Microsoft.CodeAnalysis.EditorFeatures.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Features\Microsoft.CodeAnalysis.Features.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Remote.Razor.ServiceHub\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Remote.ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Remote.Workspaces\Microsoft.CodeAnalysis.Remote.Workspaces.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.EditorFeatures\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.Features\Microsoft.CodeAnalysis.VisualBasic.Features.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.Workspaces\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic\Microsoft.CodeAnalysis.VisualBasic.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces.Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces.MSBuild\net46\Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.Workspaces\Microsoft.CodeAnalysis.Workspaces.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices.CSharp\Microsoft.VisualStudio.LanguageServices.CSharp.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices.Implementation\Microsoft.VisualStudio.LanguageServices.Implementation.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices.SolutionExplorer\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices.VisualBasic\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices.Xaml\Microsoft.VisualStudio.LanguageServices.Xaml.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices\Microsoft.VisualStudio.LanguageServices.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.EditorFeatures\$(Configuration)\net472\Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Features.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.EditorFeatures.Text\$(Configuration)\net472\Microsoft.CodeAnalysis.EditorFeatures.Text.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.EditorFeatures.Wpf\$(Configuration)\net472\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.EditorFeatures\$(Configuration)\net472\Microsoft.CodeAnalysis.EditorFeatures.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Features.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Remote.Razor.ServiceHub\$(Configuration)\net472\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Remote.ServiceHub\$(Configuration)\net472\Microsoft.CodeAnalysis.Remote.ServiceHub.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Remote.Workspaces\$(Configuration)\net472\Microsoft.CodeAnalysis.Remote.Workspaces.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.EditorFeatures\$(Configuration)\net472\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.Features.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces.MSBuild\$(Configuration)\net472\Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Workspaces.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces.Desktop\$(Configuration)\net472\Microsoft.CodeAnalysis.Workspaces.Desktop.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.CSharp\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.CSharp.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.Implementation\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.Implementation.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.SolutionExplorer\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.VisualBasic\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.Xaml\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.Xaml.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.dll" TargetDir="" />
 
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.ResultProvider\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp.ResultProvider\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.ResultProvider\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.FunctionResolver\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp.ExpressionCompiler\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll" TargetDir="" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.ExpressionCompiler\Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ResultProvider\$(Configuration)\netstandard1.3\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.ResultProvider\$(Configuration)\netstandard1.3\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.ResultProvider\$(Configuration)\netstandard1.3\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.FunctionResolver\$(Configuration)\netstandard1.3\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.ExpressionCompiler\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExpressionCompiler\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll" TargetDir="" />
 
-      <_File Include="$(_Dlls)BasicResultProvider.NetFX20\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll" TargetDir="Dlls\BasicResultProvider.NetFX20" />
-      <_File Include="$(_Dlls)CSharpResultProvider.NetFX20\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll" TargetDir="Dlls\CSharpResultProvider.NetFX20" />
-      <_File Include="$(_Dlls)ResultProvider.NetFX20\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll" TargetDir="Dlls\ResultProvider.NetFX20" />
+      <_File Include="$(ArtifactsBinDir)BasicResultProvider.NetFX20\$(Configuration)\net20\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll" TargetDir="RemoteDebugger\net20" />
+      <_File Include="$(ArtifactsBinDir)CSharpResultProvider.NetFX20\$(Configuration)\net20\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll" TargetDir="RemoteDebugger\net20" />
+      <_File Include="$(ArtifactsBinDir)ResultProvider.NetFX20\$(Configuration)\net20\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll" TargetDir="RemoteDebugger\net20" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.FunctionResolver\$(Configuration)\net45\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll" TargetDir="RemoteDebugger\net45" />
 
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp.ResultProvider\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp.ExpressionCompiler\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.ResultProvider\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
-      <_File Include="$(_Dlls)Microsoft.VisualStudio.LanguageServices\Microsoft.VisualStudio.LanguageServices.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.FunctionResolver\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
-      <_File Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.ResultProvider\$(Configuration)\netstandard1.3\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.ExpressionCompiler\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.ResultProvider\$(Configuration)\netstandard1.3\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.FunctionResolver\$(Configuration)\netstandard1.3\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.vsdconfig" TargetDir="LanguageServiceRegistration\ExpressionEvaluatorPackage" />
 
       <!-- Include a few dependencies of Roslyn. These right now are consumed out of the ExternalAPIs NuGet package to do assembly consistency checking in the main VS
            repo. We should remove these and insert the packages directly, but for now we'll include these to limit the work needed to consume this package. -->
-      <_File Include="$(_Vsix)Roslyn.VisualStudio.Setup\Humanizer.dll" TargetDir="" />
-      <_File Include="$(_Vsix)Roslyn.VisualStudio.Setup\ICSharpCode.Decompiler.dll" TargetDir="" />
-      <_File Include="$(_Vsix)Roslyn.VisualStudio.Setup\System.Composition.Hosting.dll" TargetDir="" />
-      <_File Include="$(_Vsix)Roslyn.VisualStudio.Setup\System.Composition.TypedParts.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\Humanizer.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\ICSharpCode.Decompiler.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\System.Composition.Hosting.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Roslyn.VisualStudio.Setup\$(Configuration)\net472\System.Composition.TypedParts.dll" TargetDir="" />
     </ItemGroup>
 
     <!-- Add xml doc comment files -->

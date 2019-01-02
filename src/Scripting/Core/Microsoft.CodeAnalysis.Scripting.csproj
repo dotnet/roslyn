@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Scripting</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
 
     <!-- NuGet -->
@@ -32,7 +32,6 @@
       is .NET Core.
     -->
     <PackageReference Include="RoslynTools.LightUp.System.Runtime.Loader" Version="$(RoslynToolsLightUpSystemRuntimeLoaderFixedVersion)" PrivateAssets="all" />
-    <PackageReference Include="System.Diagnostics.StackTrace" Version="$(SystemDiagnosticsStackTraceVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
