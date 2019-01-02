@@ -416,6 +416,32 @@ class C
         }
 
         [Fact]
+        public void UsingVariableCanBeInitializedWithExistingRefStructDisposable()
+        {
+            var source = @"
+using System;
+ref struct C2
+{
+    public void Dispose()
+    {
+        Console.Write(""Disposed; ""); 
+    }
+}
+class C
+{
+    static void Main()
+    {
+        var x = new C2();
+        using var x2 = x;
+        using var x3 = x2;
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "Disposed; Disposed; ");
+        }
+
+        [Fact]
         public void UsingVariableCannotBeReAssigned()
         {
             var source = @"

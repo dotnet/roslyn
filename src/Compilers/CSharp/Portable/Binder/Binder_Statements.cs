@@ -751,13 +751,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!(expr.Type is null));
             Debug.Assert(expr.Type.IsValueType && expr.Type.IsByRefLikeType); // pattern dispose lookup is only valid on ref structs
 
-            // For dispose on nullable value types, we always perform lookup on the underlying type, as we'll never actually call in the null case
-            // this emulates the same behavior as x?.Dispose(); 
-            if (expr.Type.IsNullableType())
-            {
-                expr = new BoundDisposableValuePlaceholder(expr.Syntax, expr.Type.GetNullableUnderlyingType());
-            }
-
             var result = FindPatternMethodRelaxed(expr,
                                                   hasAwait ? WellKnownMemberNames.DisposeAsyncMethodName : WellKnownMemberNames.DisposeMethodName,
                                                   syntaxNode,

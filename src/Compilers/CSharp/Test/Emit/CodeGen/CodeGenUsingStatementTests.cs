@@ -1433,7 +1433,11 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass"));
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (res) // Invalid
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass").WithLocation(7, 16)
+                );
         }
 
         [Fact]
@@ -1456,7 +1460,11 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass"));
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (res) // Invalid
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass").WithLocation(7, 16)
+                );
         }
 
         // Implicit implement IDisposable
