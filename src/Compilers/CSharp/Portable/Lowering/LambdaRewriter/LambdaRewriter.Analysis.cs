@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -40,16 +39,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private readonly MethodSymbol _topLevelMethod;
             private readonly int _topLevelMethodOrdinal;
-            private readonly MethodSymbol _substitutedSourceMethod;
             private readonly VariableSlotAllocator _slotAllocatorOpt;
             private readonly TypeCompilationState _compilationState;
+            private Dictionary<Scope, HashSet<Closure>> _closuresCapturingScopeVariables;
 
             private Analysis(
                 Scope scopeTree,
                 PooledHashSet<MethodSymbol> methodsConvertedToDelegates,
                 MethodSymbol topLevelMethod,
                 int topLevelMethodOrdinal,
-                MethodSymbol substitutedSourceMethod,
                 VariableSlotAllocator slotAllocatorOpt,
                 TypeCompilationState compilationState)
             {
@@ -57,7 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodsConvertedToDelegates = methodsConvertedToDelegates;
                 _topLevelMethod = topLevelMethod;
                 _topLevelMethodOrdinal = topLevelMethodOrdinal;
-                _substitutedSourceMethod = substitutedSourceMethod;
                 _slotAllocatorOpt = slotAllocatorOpt;
                 _compilationState = compilationState;
             }
@@ -85,12 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodsConvertedToDelegates,
                     method,
                     topLevelMethodOrdinal,
-                    substitutedSourceMethod,
                     slotAllocatorOpt,
                     compilationState);
 
                 analysis.MakeAndAssignEnvironments();
-                analysis.ComputeLambdaScopesAndFrameCaptures(method.ThisParameter);
+                analysis.ComputeLambdaScopesAndFrameCaptures();
+                analysis.MergeEnvironments();
                 analysis.InlineThisOnlyEnvironments();
                 return analysis;
             }
@@ -134,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// the number of indirections we may have to traverse to access captured
             /// variables.
             /// </summary>
-            private void ComputeLambdaScopesAndFrameCaptures(ParameterSymbol thisParam)
+            private void ComputeLambdaScopesAndFrameCaptures()
             {
                 VisitClosures(ScopeTree, (scope, closure) =>
                 {
@@ -279,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void MakeAndAssignEnvironments()
             {
+                var closuresCapturingScopeVariables = new Dictionary<Scope, HashSet<Closure>>();
                 VisitScopeTree(ScopeTree, scope =>
                 {
                     // Currently all variables declared in the same scope are added
@@ -326,20 +324,212 @@ namespace Microsoft.CodeAnalysis.CSharp
                         });
                     } while (addedItem == true);
 
+
                     // Next create the environment and add it to the declaration scope
                     var env = new ClosureEnvironment(variablesInEnvironment, isStruct);
                     scope.DeclaredEnvironments.Add(env);
 
                     _topLevelMethod.TryGetThisParameter(out var thisParam);
+                    var capturingClosures = new HashSet<Closure>();
                     foreach (var closure in closures)
                     {
+                        capturingClosures.Add(closure);
+
                         closure.CapturedEnvironments.Add(env);
                         if (thisParam != null && env.CapturedVariables.Contains(thisParam))
                         {
                             closure.CapturesThis = true;
                         }
                     }
+
+                    closuresCapturingScopeVariables.Add(scope, capturingClosures);
                 });
+
+                _closuresCapturingScopeVariables = closuresCapturingScopeVariables;
+            }
+
+            /// <summary>
+            /// Must be called only after <see cref="MakeAndAssignEnvironments"/> and <see cref="ComputeLambdaScopesAndFrameCaptures"/>
+            /// 
+            /// In order to reduce allocations, merge environments into a parent environment when it is safe to do so.
+            /// This must be done whilst preserving semantics.
+            /// 
+            /// We also have to make sure not to extend the life of any variable.
+            /// This means that we can only merge an environment into its parent if exactly the same closures directly or indirectly reference both environments.
+            /// </summary>
+            private void MergeEnvironments()
+            {
+                // for now we don't analyze jumps to check if it is safe to optimize, and instead return.
+                if (containsJumps(ScopeTree.BoundNode.Syntax))
+                    return;
+
+                // if a closure captures a scope, which captures its parent, then the closure also captures the parents scope.
+                // we update _closuresCapturingScopeVariables to reflect this.
+                foreach (var (scope, capturingClosures) in _closuresCapturingScopeVariables)
+                {
+                    if (scope.DeclaredEnvironments.Count == 0)
+                        continue;
+                    // Right now we only create one environment per scope
+                    Debug.Assert(scope.DeclaredEnvironments.Count == 1);
+                    var env = scope.DeclaredEnvironments[0];
+
+                    if (env.CapturesParent)
+                    {
+                        var currentScope = scope.Parent;
+                        while (true)
+                        {
+                            if (currentScope == null)
+                            {
+                                throw ExceptionUtilities.Unreachable;
+                            }
+
+                            if (currentScope.DeclaredEnvironments.Count == 0 || currentScope.DeclaredEnvironments[0].IsStruct)
+                            {
+                                currentScope = currentScope.Parent;
+                                continue;
+                            }
+
+                            _closuresCapturingScopeVariables[currentScope].AddAll(capturingClosures);
+
+                            // Right now we only create one environment per scope
+                            Debug.Assert(scope.DeclaredEnvironments.Count == 1);
+                            if (currentScope.DeclaredEnvironments[0].CapturesParent)
+                            {
+                                currentScope = currentScope.Parent;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // now we merge environments into their parent environments if it is safe to do so
+                foreach (var (scope, capturingClosures) in _closuresCapturingScopeVariables)
+                {
+                    if (capturingClosures.Count == 0)
+                        continue;
+
+                    var scopeEnv = scope.DeclaredEnvironments[0];
+                    if (scopeEnv.IsStruct)
+                        continue;
+
+                    var bestScope = scope;
+                    var currentScope = scope;
+
+                    while (currentScope.Parent != null)
+                    {
+                        if (!semanticallySafeToUseParentEvironment(currentScope))
+                            break;
+
+                        var parentScope = currentScope.Parent;
+
+                        if (!_closuresCapturingScopeVariables.TryGetValue(parentScope, out var parentCapturingClosures)
+                            || parentScope.DeclaredEnvironments.Count == 0)
+                        {
+                            currentScope = parentScope;
+                            continue;
+                        }
+
+                        // if more closures reference one scope's environments than the other scope's environments,
+                        // then merging the two environments would increase the number of objects referencing some variables, 
+                        // which may prevent the variables being garbage collected.
+                        if (!parentCapturingClosures.SetEquals(capturingClosures))
+                            break;
+
+                        // Right now we only create one environment per scope
+                        Debug.Assert(parentScope.DeclaredEnvironments.Count == 1);
+                        if (!parentScope.DeclaredEnvironments[0].IsStruct)
+                            bestScope = parentScope;
+
+                        currentScope = parentScope;
+                    }
+
+                    if (bestScope == scope)
+                        continue;
+
+                    var targetEnv = bestScope.DeclaredEnvironments[0];
+
+                    foreach (var variable in scopeEnv.CapturedVariables)
+                    {
+                        targetEnv.CapturedVariables.Add(variable);
+                    }
+
+                    scope.DeclaredEnvironments.Clear();
+
+                    foreach (var closure in capturingClosures)
+                    {
+                        closure.CapturedEnvironments.Remove(scopeEnv);
+
+                        if (!closure.CapturedEnvironments.Contains(targetEnv))
+                        {
+                            closure.CapturedEnvironments.Add(targetEnv);
+                        }
+
+                        if (closure.ContainingEnvironmentOpt == scopeEnv)
+                        {
+                            closure.ContainingEnvironmentOpt = targetEnv;
+                        }
+                    }
+
+                    capturingClosures.Clear();
+                }
+
+                // Recursively checks if a syntax tree contains GOTO statements
+                bool containsJumps(SyntaxNode node)
+                {
+                    if (node.Kind() == SyntaxKind.GotoStatement)
+                        return true;
+
+                    foreach (var childNode in node.ChildNodes())
+                        if (containsJumps(childNode))
+                            return true;
+
+                    return false;
+                }
+
+                // Checks if (aside from GOTOs) it is semantically safe to merge a capture environment into it's parent's scope's capture environments.
+                // So long as the scopes are passed through in a linear fashion it is always safe to do so. Only looping construct (for, foreach, while, do-while) require special rules.
+                bool semanticallySafeToUseParentEvironment(Scope scope)
+                {
+                    switch (scope.BoundNode.Syntax.Kind())
+                    {
+                        case SyntaxKind.ForEachStatement:
+                        case SyntaxKind.WhileStatement:
+                            return false;
+                        default:
+                            switch (scope.Parent.BoundNode.Syntax.Kind())
+                            {
+                                case SyntaxKind.ForStatement:
+                                    return false;
+                                default:
+                                    // a do statement doesn't create a separate scope, so we have to check if a Parent syntax node in between here and the parent scope is a do statement
+                                    var currentSyntaxNode = scope.BoundNode.Syntax;
+                                    while (currentSyntaxNode.Position >= scope.Parent.BoundNode.Syntax.Position)
+                                    {
+                                        if (currentSyntaxNode.Kind() == SyntaxKind.DoStatement)
+                                        {
+                                            return false;
+                                        }
+
+                                        if (currentSyntaxNode.Parent == null)
+                                        {
+                                            if (currentSyntaxNode.Position == scope.Parent.BoundNode.Syntax.Position)
+                                            {
+                                                return true;
+                                            }
+
+                                            throw ExceptionUtilities.Unreachable;
+                                        }
+
+                                        currentSyntaxNode = currentSyntaxNode.Parent;
+                                    }
+
+                                    return true;
+                            }
+                    }
+                }
             }
 
             internal DebugId GetTopLevelMethodId()
