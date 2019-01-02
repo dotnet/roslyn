@@ -331,5 +331,60 @@ class Derived {
 }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        public async Task TestObsoleteCollectionAddMethodWithMessageAndErrorFalse()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Collection : System.Collections.Generic.IEnumerable<int> {
+    [System.Obsolete(""message"", error: false)]
+    public void Add(int i) { }
+}
+
+class Derived {
+    void Goo() {
+        var c = new Collection {
+            [||]1, 2, 3
+        };
+    }
+}
+",
+@"
+class Collection : System.Collections.Generic.IEnumerable<int> {
+    [System.Obsolete(""message"", error: false)]
+    public void Add(int i) { }
+}
+
+class Derived {
+    [System.Obsolete]
+    void Goo() {
+        var c = new Collection {
+            1, 2, 3
+        };
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
+        public async Task TestObsoleteCollectionAddMethodWithMessageAndErrorTrue()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class Collection : System.Collections.Generic.IEnumerable<int> {
+    [System.Obsolete(""message"", error: true)]
+    public void Add(int i) { }
+}
+
+class Derived {
+    void Goo() {
+        var c = new Collection {
+            [||]1, 2, 3
+        };
+    }
+}
+");
+        }
     }
 }
