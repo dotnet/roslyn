@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// <summary>
                 /// True if this environment captures a reference to a class environment
                 /// declared in a higher scope. Assigned by
-                /// <see cref="ComputeLambdaScopesAndFrameCaptures(ParameterSymbol)"/>
+                /// <see cref="ComputeLambdaScopesAndFrameCaptures()"/>
                 /// </summary>
                 public bool CapturesParent;
 
