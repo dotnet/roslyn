@@ -1644,7 +1644,7 @@ class C
 {
     void M(int? i)
     {
-        i!!.Value.ToString();
+        i!!.Value.ToString(); // intentional double !
         i.Value.ToString();
     }
 }
@@ -1654,6 +1654,53 @@ class C
 
             c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(31732, "https://github.com/dotnet/roslyn/issues/31732")]
+        public void SuppressionOnNullableValueType_AppliedOnField()
+        {
+            var source = @"
+public struct S
+{
+    public string? field;
+}
+class C
+{
+    void M(S? s)
+    {
+        s.Value.field!.ToString();
+    }
+}
+";
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            c.VerifyDiagnostics(
+                // (10,9): warning CS8629: Nullable value type may be null.
+                //         s.Value.field!.ToString();
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s.Value").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31732, "https://github.com/dotnet/roslyn/issues/31732")]
+        public void SuppressionOnNullableReferenceType_AppliedOnField()
+        {
+            var source = @"
+public class C
+{
+    public string? field;
+    void M(C? c)
+    {
+        c.field!.ToString();
+    }
+}
+";
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         c.field!.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(7, 9)
+                );
         }
 
         [Fact]
@@ -54269,14 +54316,12 @@ static class E
         x?.F1(x);
         x!.F1(x);
         x.F1(x);
-        x.F1(x);
     }
     static void G2(C? y)
     {
         y?.F2(y);
         y!.F2(y); // 3
         y.F2(y); // 4, 5
-        y.F2(y); // 6, 7
     }
 }
 static class E
@@ -54285,21 +54330,15 @@ static class E
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (14,15): warning CS8604: Possible null reference argument for parameter 'y' in 'void E.F2(C x, C y)'.
+                // (13,15): warning CS8604: Possible null reference argument for parameter 'y' in 'void E.F2(C x, C y)'.
                 //         y!.F2(y); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void E.F2(C x, C y)").WithLocation(14, 15),
-                // (15,9): warning CS8604: Possible null reference argument for parameter 'x' in 'void E.F2(C x, C y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void E.F2(C x, C y)").WithLocation(13, 15),
+                // (14,9): warning CS8604: Possible null reference argument for parameter 'x' in 'void E.F2(C x, C y)'.
                 //         y.F2(y); // 4, 5
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void E.F2(C x, C y)").WithLocation(15, 9),
-                // (15,14): warning CS8604: Possible null reference argument for parameter 'y' in 'void E.F2(C x, C y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void E.F2(C x, C y)").WithLocation(14, 9),
+                // (14,14): warning CS8604: Possible null reference argument for parameter 'y' in 'void E.F2(C x, C y)'.
                 //         y.F2(y); // 4, 5
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void E.F2(C x, C y)").WithLocation(15, 14),
-                // (16,9): warning CS8604: Possible null reference argument for parameter 'x' in 'void E.F2(C x, C y)'.
-                //         y.F2(y); // 6, 7
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void E.F2(C x, C y)").WithLocation(16, 9),
-                // (16,14): warning CS8604: Possible null reference argument for parameter 'y' in 'void E.F2(C x, C y)'.
-                //         y.F2(y); // 6, 7
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void E.F2(C x, C y)").WithLocation(16, 14));
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void E.F2(C x, C y)").WithLocation(14, 14));
         }
 
         [Fact]

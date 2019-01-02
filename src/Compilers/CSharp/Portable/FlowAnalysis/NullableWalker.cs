@@ -5007,10 +5007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var slotBuilder = ArrayBuilder<int>.GetInstance();
                 GetSlotsToMarkAsNotNullable(receiverOpt, slotBuilder);
-                if (slotBuilder.Count > 0)
-                {
-                    MarkSlotsAsNotNullable(slotBuilder, ref State);
-                }
+                MarkSlotsAsNotNullable(slotBuilder, ref State);
                 slotBuilder.Free();
             }
         }
