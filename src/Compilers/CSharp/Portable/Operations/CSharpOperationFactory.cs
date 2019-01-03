@@ -2127,7 +2127,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             //TODO: Implement UsingLocalDeclaration operations correctly.
             //      For now we return an implicit operationNone, with a single child consisting of the using declaration parsed as if it were a standard variable declaration
-            //      
+            //      See: https://github.com/dotnet/roslyn/issues/32100
             return Operation.CreateOperationNone(_semanticModel,
                                                  boundNode.Syntax,
                                                  constantValue: default,
