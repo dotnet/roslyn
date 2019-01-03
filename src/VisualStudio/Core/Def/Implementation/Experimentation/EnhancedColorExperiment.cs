@@ -92,8 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 
         private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
         {
-            AssertIsForeground();
-
             // Wait until things have settled down from the theme change, since we will potentially be changing theme colors.
             VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, UpdateThemeColors);
         }
