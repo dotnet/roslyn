@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
     [Export(typeof(IWpfTextViewConnectionListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Analyzable)]
-    internal class EnhancedColorExperiment : ForegroundThreadAffinitizedObject, IWpfTextViewConnectionListener
+    internal class EnhancedColorExperiment : ForegroundThreadAffinitizedObject, IWpfTextViewConnectionListener, IDisposable
     {
         private const string UseEnhancedColorsFlight = "UseEnhancedColors";
         private const string StopEnhancedColorsFlight = "StopEnhancedColors";
@@ -36,16 +36,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         private EnhancedColorApplier _colorApplier;
         private ISettingsManager _settingsManager;
 
+        private bool _isDisposed = false;
         private bool _inUseEnhancedColorsFlight;
         private bool _inStopEnhancedColorsFlight;
         private bool _hasTextViewOpened;
 
         [ImportingConstructor]
+        [Obsolete]
         private EnhancedColorExperiment(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, VisualStudioExperimentationService experimentationService)
             : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             _experimentationService = experimentationService;
+        }
+
+        public void Dispose()
+        {
+            // Dispose is invoked when the MEF container is disposed. This will be our
+            // signal that VS is shutting down and we shouldn't try and perform any work.
+            _isDisposed = true;
         }
 
         public void SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
@@ -59,15 +68,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 _colorApplier = new EnhancedColorApplier(_serviceProvider);
 
                 // Check which experimental flights we are in
-                _inUseEnhancedColorsFlight = _experimentationService?.IsExperimentEnabled(UseEnhancedColorsFlight) ?? false;
-                _inStopEnhancedColorsFlight = _experimentationService?.IsExperimentEnabled(StopEnhancedColorsFlight) ?? false;
+                _inUseEnhancedColorsFlight = _experimentationService.IsExperimentEnabled(UseEnhancedColorsFlight);
+                _inStopEnhancedColorsFlight = _experimentationService.IsExperimentEnabled(StopEnhancedColorsFlight);
+
+                _settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
 
                 // Do not hook settings changed if we have stopped the experiment. 
                 // We will simply remove the enhanced colors if they are applied.
                 if (!_inStopEnhancedColorsFlight)
                 {
-                    _settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
-
                     // We need to update the theme whenever the Preview Setting changes or the VS Theme changes.
                     _settingsManager.GetSubset(UseEnhancedColorsSetting).SettingChangedAsync += UseEnhancedColorsSettingChangedAsync;
                     VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
@@ -89,41 +98,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, UpdateThemeColors);
         }
 
-        private Task UseEnhancedColorsSettingChangedAsync(object sender, PropertyChangedEventArgs args)
+        private async Task UseEnhancedColorsSettingChangedAsync(object sender, PropertyChangedEventArgs args)
         {
-            AssertIsForeground();
-
-            UpdateThemeColors();
-
-            return Task.CompletedTask;
+            await VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, UpdateThemeColors);
         }
 
         private void UpdateThemeColors()
         {
             AssertIsForeground();
 
+            // Simply return if we were queued to run during shutdown.
+            if (_isDisposed)
+            {
+                return;
+            }
+
             var currentThemeId = GetThemeId();
 
             // Get the preview feature flag value.
-            var useEnhancedColorsSetting = _settingsManager?.GetValueOrDefault(name: UseEnhancedColorsSetting, defaultValue: 0) ?? 0;
+            var useEnhancedColorsSetting = _settingsManager.GetValueOrDefault(UseEnhancedColorsSetting, defaultValue: 0);
 
             // useEnhancedColorsSetting
             //  0 -> use value from flight.
             //  1 -> always use enhanced colors (unless the kill flight is active).
             // -1 -> never use enhanced colors.
-            var useFlightValue = useEnhancedColorsSetting == 0;
-            var applyEnhancedColors = (useFlightValue && _inUseEnhancedColorsFlight) || useEnhancedColorsSetting == 1;
-            var removeEnhancedColors = !applyEnhancedColors || _inStopEnhancedColorsFlight;
+            var inEnhancedFlightOrOptIn = _inUseEnhancedColorsFlight || useEnhancedColorsSetting == 1;
+            var inStopFlightOrOptOut = _inStopEnhancedColorsFlight || useEnhancedColorsSetting == -1;
 
             // Try to set colors appropriately. We will only set colors if the user
             // has not customized colors and we consider ourselves the color owner.
-            if (removeEnhancedColors)
+            if (!inStopFlightOrOptOut && inEnhancedFlightOrOptIn)
             {
-                _colorApplier.TrySetDefaultColors(currentThemeId);
+                _colorApplier.TrySetEnhancedColors(currentThemeId);
             }
             else
             {
-                _colorApplier.TrySetEnhancedColors(currentThemeId);
+                _colorApplier.TrySetDefaultColors(currentThemeId);
             }
         }
 
@@ -281,12 +291,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 colorItemMap[classification].Bold = isBold;
             }
 
+            /// <summary>
+            /// Determines if the default colors are applied for the current theme. This is how we determine
+            /// if the default colors are applied for the current theme.
+            /// </summary>
             private bool AreColorsDefaulted(Dictionary<string, ColorableItems> colorItemMap, Guid themeId)
             {
-                bool areColorsDefaulted;
-
-                // Determines if the default colors are applied for the current theme. This is how
-                // we determine if we are the color owner when trying to set enhanced colors.
                 if (themeId == KnownColorThemes.Dark)
                 {
                     // Dark Theme
@@ -297,55 +307,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     // happens to be the same as PlainText so an extra check isn't necessary. StructName doesn't need
                     // an additional check because it has a color defined in the PKGDEF. The Editor is smart enough
                     // to follow the BaseClassification hierarchy and render the colors appropriately.
-                    areColorsDefaulted = IsDefaultForeground(colorItemMap, ClassificationTypeNames.LocalName, DarkThemeIdentifier) &&
-                        IsDefaultForeground(colorItemMap, ClassificationTypeNames.ParameterName, DarkThemeIdentifier) &&
-                        IsDefaultForeground(colorItemMap, ClassificationTypeNames.MethodName, DarkThemeIdentifier) &&
-                        IsDefaultForeground(colorItemMap, ClassificationTypeNames.ExtensionMethodName, DarkThemeIdentifier) &&
-                        (IsDefaultForeground(colorItemMap, ClassificationTypeNames.OperatorOverloaded, DarkThemePlainText) ||
-                        IsDefaultForeground(colorItemMap, ClassificationTypeNames.OperatorOverloaded, DarkThemeOperator)) &&
-                        (IsDefaultForeground(colorItemMap, ClassificationTypeNames.ControlKeyword, DarkThemePlainText) ||
-                        IsDefaultForeground(colorItemMap, ClassificationTypeNames.ControlKeyword, DarkThemeKeyword)) &&
-                        IsDefaultForeground(colorItemMap, ClassificationTypeNames.StructName, DarkThemeClass);
+                    return colorItemMap[ClassificationTypeNames.LocalName].Foreground == DarkThemeIdentifier &&
+                        colorItemMap[ClassificationTypeNames.ParameterName].Foreground == DarkThemeIdentifier &&
+                        colorItemMap[ClassificationTypeNames.MethodName].Foreground == DarkThemeIdentifier &&
+                        colorItemMap[ClassificationTypeNames.ExtensionMethodName].Foreground == DarkThemeIdentifier &&
+                        (colorItemMap[ClassificationTypeNames.OperatorOverloaded].Foreground == DarkThemePlainText ||
+                            colorItemMap[ClassificationTypeNames.OperatorOverloaded].Foreground == DarkThemeOperator) &&
+                        (colorItemMap[ClassificationTypeNames.ControlKeyword].Foreground == DarkThemePlainText ||
+                            colorItemMap[ClassificationTypeNames.ControlKeyword].Foreground == DarkThemeKeyword) &&
+                        colorItemMap[ClassificationTypeNames.StructName].Foreground == DarkThemeClass;
                 }
                 else
                 {
                     // Light or Blue themes
-                    // Same as above, we also scheck ControlKeyword for whether it is the PlainText color. OperatorOverload and
+                    // Same as above, we also check ControlKeyword for whether it is the PlainText color. OperatorOverload and
                     // the other Identifier types do not need an additional check because their default color is the same
                     // as PlainText.
-                    areColorsDefaulted = IsDefaultForeground(colorItemMap, ClassificationTypeNames.LocalName, LightThemeIdentifier) &&
-                        IsDefaultForeground(colorItemMap, ClassificationTypeNames.ParameterName, LightThemeIdentifier) &&
-                        IsDefaultForeground(colorItemMap, ClassificationTypeNames.MethodName, LightThemeIdentifier) &&
-                        IsDefaultForeground(colorItemMap, ClassificationTypeNames.ExtensionMethodName, LightThemeIdentifier) &&
-                        IsDefaultForeground(colorItemMap, ClassificationTypeNames.OperatorOverloaded, LightThemeOperator) &&
-                        (IsDefaultForeground(colorItemMap, ClassificationTypeNames.ControlKeyword, LightThemePlainText) ||
-                        IsDefaultForeground(colorItemMap, ClassificationTypeNames.ControlKeyword, LightThemeKeyword));
+                    return colorItemMap[ClassificationTypeNames.LocalName].Foreground == LightThemeIdentifier &&
+                        colorItemMap[ClassificationTypeNames.ParameterName].Foreground == LightThemeIdentifier &&
+                        colorItemMap[ClassificationTypeNames.MethodName].Foreground == LightThemeIdentifier &&
+                        colorItemMap[ClassificationTypeNames.ExtensionMethodName].Foreground == LightThemeIdentifier &&
+                        colorItemMap[ClassificationTypeNames.OperatorOverloaded].Foreground == LightThemeOperator &&
+                        (colorItemMap[ClassificationTypeNames.ControlKeyword].Foreground == LightThemePlainText ||
+                            colorItemMap[ClassificationTypeNames.ControlKeyword].Foreground == LightThemeKeyword);
                 }
-
-                return areColorsDefaulted;
             }
 
-            private bool IsDefaultForeground(Dictionary<string, ColorableItems> colorItemMap, string classification, uint themeColor)
-            {
-                var color = colorItemMap[classification].Foreground;
-
-                // The color value isn't always consistent. Sometimes it'll come back as DefaultColor
-                // other times it'll come back as the theme color. Just covering all the bases.
-                return color == DefaultForegroundColor ||
-                    color == AutomaticForegroundColor ||
-                    color == themeColor;
-            }
-
+            /// <summary>
+            /// Determines if our enhanced colors are applied for the current theme. This is how we determine
+            /// if we are the color owner when trying to set default colors.
+            /// </summary>
             private bool AreColorsEnhanced(Dictionary<string, ColorableItems> colorItemMap, Guid themeId)
             {
-                bool areColorsEnhanced;
-
-                // Determines if our enhanced colors are applied for the current theme. This is how
-                // we determine if we are the color owner when trying to set default colors.
                 if (themeId == KnownColorThemes.Dark)
                 {
                     // Dark Theme
-                    areColorsEnhanced = colorItemMap[ClassificationTypeNames.LocalName].Foreground == DarkThemeLocalBlue &&
+                    return colorItemMap[ClassificationTypeNames.LocalName].Foreground == DarkThemeLocalBlue &&
                         colorItemMap[ClassificationTypeNames.ParameterName].Foreground == DarkThemeLocalBlue &&
                         colorItemMap[ClassificationTypeNames.MethodName].Foreground == DarkThemeMethodYellow &&
                         colorItemMap[ClassificationTypeNames.ExtensionMethodName].Foreground == DarkThemeMethodYellow &&
@@ -356,15 +353,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 else
                 {
                     // Light or Blue themes
-                    areColorsEnhanced = colorItemMap[ClassificationTypeNames.LocalName].Foreground == LightThemeLocalBlue &&
+                    return colorItemMap[ClassificationTypeNames.LocalName].Foreground == LightThemeLocalBlue &&
                         colorItemMap[ClassificationTypeNames.ParameterName].Foreground == LightThemeLocalBlue &&
                         colorItemMap[ClassificationTypeNames.MethodName].Foreground == LightThemeMethodYellow &&
                         colorItemMap[ClassificationTypeNames.ExtensionMethodName].Foreground == LightThemeMethodYellow &&
                         colorItemMap[ClassificationTypeNames.OperatorOverloaded].Foreground == LightThemeMethodYellow &&
                         colorItemMap[ClassificationTypeNames.ControlKeyword].Foreground == LightThemeControlKeywordPurple;
                 }
-
-                return areColorsEnhanced;
             }
         }
     }
