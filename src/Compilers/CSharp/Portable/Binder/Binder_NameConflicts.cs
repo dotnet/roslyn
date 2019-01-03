@@ -99,9 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the symbol is defined in a local function and shadowing is enabled,
             // avoid checking for conflicts outside of the local function.
-            var stopAtLocalFunction =
-                symbol?.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticLocalFunctions) == true ?
-                symbol.ContainingSymbol as LocalFunctionSymbol :
+            var stopAtLocalFunction = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticLocalFunctions) == true ?
+                symbol?.ContainingSymbol as LocalFunctionSymbol :
                 null;
 
             if ((object)stopAtLocalFunction != null && outsideContainingSymbol)
