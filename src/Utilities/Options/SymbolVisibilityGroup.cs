@@ -10,13 +10,17 @@ namespace Analyzer.Utilities
     /// </summary>
     [Flags]
 #pragma warning disable CA1714 // Flags enums should have plural names
-    internal enum SymbolVisibilityGroup
+    public enum SymbolVisibilityGroup
 #pragma warning restore CA1714 // Flags enums should have plural names
     {
+        // NOTE: Below fields names are used in the .editorconfig specification
+        //       for symbol visibility analyzer option. Hence the names should *not* be modified,
+        //       as that would be a breaking change for .editorconfig specification.
         None = 0x0,
         Public = 0x1,
         Internal = 0x2,
         Private = 0x4,
+        Friend = Internal,
         All = Public | Internal | Private
     }
 
