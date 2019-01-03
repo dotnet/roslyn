@@ -3977,6 +3977,9 @@ class Program
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             verifyDiagnostics();
 
+            comp = CreateCompilation(source);
+            verifyDiagnostics();
+
             void verifyDiagnostics()
             {
                 comp.VerifyDiagnostics(
@@ -4037,6 +4040,9 @@ class Program
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4076,7 +4082,7 @@ class Program
                 //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(12, 30));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -4138,7 +4144,7 @@ class Program
                 //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(12, 30));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -4178,7 +4184,7 @@ class Program
                 //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "x").WithArguments("x").WithLocation(12, 30));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,17): warning CS8387: Type parameter 'x' has the same name as the type parameter from outer method 'Program.M<x>()'
                 //         void F4<x>() { } // type parameter
@@ -4222,7 +4228,7 @@ class Program
                 //         void F5() { _ = from x in new[] { 1, 2, 3 } select x; } // range variable
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 30));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -4255,7 +4261,7 @@ class Program
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             verifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source);
             verifyDiagnostics();
 
             void verifyDiagnostics()
@@ -4309,7 +4315,7 @@ class Program
                 //         void F5() { _ = from F5 in new[] { 1, 2, 3 } select F5; } // range variable
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "F5").WithArguments("F5").WithLocation(12, 30));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -4343,7 +4349,7 @@ class Program
                 //             void G3<T>() { }
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "Program.M<T>(object)").WithLocation(11, 21));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,21): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'Program.M<T>(object)'
                 //             void G3<T>() { }
@@ -4413,7 +4419,7 @@ class Program
                 //             void F2<T>() { }
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(16, 21));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -4442,7 +4448,7 @@ class Program
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             verifyDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source);
             verifyDiagnostics();
 
             void verifyDiagnostics()
@@ -4498,7 +4504,7 @@ class Program
                 //                 Action<int> b2 = (int T) => { };
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(18, 39));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
