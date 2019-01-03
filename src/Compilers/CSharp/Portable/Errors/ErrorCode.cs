@@ -1639,7 +1639,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NoBestNullabilityArrayElements = 8639,
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
-        ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642
+        ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,
+
+        ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 
         #endregion diagnostics introduced for C# 8.0
 
