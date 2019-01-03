@@ -91,10 +91,10 @@ End Module");
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.Workspace.SetOptionInfer(project.Name, true);
             VisualStudio.Editor.InvokeQuickInfo();
-            Assert.Equal("Sub‎ Program.M‎(p‎ As‎ Integer‎)‎ ‎(‎+‎ 1‎ overload‎)", VisualStudio.Editor.GetQuickInfo());
+            Assert.Equal("Sub Program.M(p As Integer) (+ 1 overload)", VisualStudio.Editor.GetQuickInfo());
             VisualStudio.Workspace.SetOptionInfer(project.Name, false);
             VisualStudio.Editor.InvokeQuickInfo();
-            Assert.Equal("Sub‎ Program.M‎(p‎ As‎ Object‎)‎ ‎(‎+‎ 1‎ overload‎)", VisualStudio.Editor.GetQuickInfo());
+            Assert.Equal("Sub Program.M(p As Object) (+ 1 overload)", VisualStudio.Editor.GetQuickInfo());
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30599")]
