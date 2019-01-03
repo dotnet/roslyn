@@ -1439,10 +1439,10 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
   Locals: Local_1: System.Int32 x
   LoopControlVariable: 
     IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is int x')
-      Expression: 
+      Value: 
         IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
       Pattern: 
-        IDeclarationPatternOperation (Declared Symbol: System.Int32 x, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, DeclaredSymbol: System.Int32 x, MatchesNull: False)
   Collection: 
     ILocalReferenceOperation: arr (OperationKind.LocalReference, Type: System.Int32[]) (Syntax: 'arr')
   Body: 

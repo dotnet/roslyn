@@ -8023,10 +8023,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit)
             : base(inputType, matchedType, deconstructSymbol, declaredSymbol, semanticModel, syntax, isImplicit)
         {
-            foreach (var p in deconstructionSubpatterns)
-            {
-                SetParentOperation(p, this);
-            }
+            SetParentOperation(deconstructionSubpatterns, this);
             DeconstructionSubpatterns = deconstructionSubpatterns;
             foreach (var p in propertySubpatterns)
             {
@@ -8079,9 +8076,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (_lazyPropertySubpatterns.IsDefault)
                 {
                     var propertySubpatterns = CreatePropertySubpatterns();
-                    foreach (var d in propertySubpatterns)
+                    foreach (var propertySubpattern in propertySubpatterns)
                     {
-                        SetParentOperation(d.Item2, this);
+                        SetParentOperation(propertySubpattern.Item2, this);
                     }
 
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyPropertySubpatterns, propertySubpatterns);
@@ -8195,6 +8192,224 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
 
                 return _lazyGuardExpressionInterlocked;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# switch expression.
+    /// </summary>
+    internal abstract partial class BaseSwitchExpressionOperation : Operation, ISwitchExpressionOperation
+    {
+        public BaseSwitchExpressionOperation(
+            ITypeSymbol type,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(OperationKind.SwitchExpression, semanticModel, syntax, type: type, constantValue: default, isImplicit)
+        {
+        }
+        public abstract IOperation Value { get; }
+        public abstract ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+                foreach (var arm in Arms)
+                {
+                    yield return arm;
+                }
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSwitchExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSwitchExpression(this, argument);
+        }
+    }
+
+    internal sealed partial class SwitchExpressionOperation : BaseSwitchExpressionOperation
+    {
+        public SwitchExpressionOperation(
+            ITypeSymbol type,
+            IOperation value,
+            ImmutableArray<ISwitchExpressionArmOperation> arms,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(type, semanticModel, syntax, isImplicit)
+        {
+            Value = SetParentOperation(value, this);
+            Arms = SetParentOperation(arms, this);
+        }
+        public override IOperation Value { get; }
+        public override ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
+    }
+
+    internal abstract partial class LazySwitchExpressionOperation : BaseSwitchExpressionOperation
+    {
+        private IOperation _lazyValue = s_unset;
+        private ImmutableArray<ISwitchExpressionArmOperation> _lazyArms = default;
+        public LazySwitchExpressionOperation(
+            ITypeSymbol type,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(type, semanticModel, syntax, isImplicit)
+        {
+        }
+        protected abstract IOperation CreateValue();
+        protected abstract ImmutableArray<ISwitchExpressionArmOperation> CreateArms();
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValue == s_unset)
+                {
+                    var value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
+                }
+
+                return _lazyValue;
+            }
+        }
+        public override ImmutableArray<ISwitchExpressionArmOperation> Arms
+        {
+            get
+            {
+                if (_lazyArms.IsDefault)
+                {
+                    var arms = CreateArms();
+                    SetParentOperation(arms, this);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArms, arms);
+                }
+
+                return _lazyArms;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# switch expression arm.
+    /// </summary>
+    internal abstract partial class BaseSwitchExpressionArmOperation : Operation, ISwitchExpressionArmOperation
+    {
+        public BaseSwitchExpressionArmOperation(
+            ImmutableArray<ILocalSymbol> locals,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(OperationKind.SwitchExpressionArm, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+        {
+            this.Locals = locals;
+        }
+        public ImmutableArray<ILocalSymbol> Locals { get; }
+        public abstract IPatternOperation Pattern { get; }
+        public abstract IOperation Guard { get; }
+        public abstract IOperation Value { get; }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Pattern;
+                if (Guard != null)
+                    yield return Guard;
+                yield return Value;
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSwitchExpressionArm(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSwitchExpressionArm(this, argument);
+        }
+    }
+
+    internal sealed partial class SwitchExpressionArmOperation : BaseSwitchExpressionArmOperation
+    {
+        public SwitchExpressionArmOperation(
+            ImmutableArray<ILocalSymbol> locals,
+            IPatternOperation pattern,
+            IOperation guard,
+            IOperation value,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(locals, semanticModel, syntax, isImplicit)
+        {
+            Pattern = SetParentOperation(pattern, this);
+            Guard = SetParentOperation(guard, this);
+            Value = SetParentOperation(value, this);
+        }
+        public sealed override IPatternOperation Pattern { get; }
+        public sealed override IOperation Guard { get; }
+        public sealed override IOperation Value { get; }
+    }
+
+    internal abstract partial class LazySwitchExpressionArmOperation : BaseSwitchExpressionArmOperation
+    {
+        private IPatternOperation _lazyPattern = s_unsetPattern;
+        private IOperation _lazyGuard = s_unset;
+        private IOperation _lazyValue = s_unset;
+        public LazySwitchExpressionArmOperation(
+            ImmutableArray<ILocalSymbol> locals,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(locals, semanticModel, syntax, isImplicit)
+        {
+        }
+        protected abstract IPatternOperation CreatePattern();
+        protected abstract IOperation CreateGuard();
+        protected abstract IOperation CreateValue();
+        public override IPatternOperation Pattern
+        {
+            get
+            {
+                if (_lazyPattern == s_unsetPattern)
+                {
+                    var pattern = CreatePattern();
+                    SetParentOperation(pattern, this);
+                    Interlocked.CompareExchange(ref _lazyPattern, pattern, s_unsetPattern);
+                }
+
+                return _lazyPattern;
+            }
+        }
+        public override IOperation Guard
+        {
+            get
+            {
+                if (_lazyGuard == s_unset)
+                {
+                    var guard = CreateGuard();
+                    SetParentOperation(guard, this);
+                    Interlocked.CompareExchange(ref _lazyGuard, guard, s_unset);
+                }
+
+                return _lazyGuard;
+            }
+        }
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValue == s_unset)
+                {
+                    var value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
+                }
+
+                return _lazyValue;
             }
         }
     }
@@ -8956,20 +9171,17 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class DiscardOperation : Operation, IDiscardOperation, IPatternOperation
+    internal sealed class DiscardOperation : Operation, IDiscardOperation
     {
-        public DiscardOperation(ITypeSymbol inputType, IDiscardSymbol discardSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public DiscardOperation(IDiscardSymbol discardSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.Discard, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            InputType = inputType;
             DiscardSymbol = discardSymbol;
         }
 
         public IDiscardSymbol DiscardSymbol { get; }
 
         public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
-
-        public ITypeSymbol InputType { get; }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -8979,6 +9191,25 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitDiscardOperation(this, argument);
+        }
+    }
+
+    internal sealed class DiscardPatternOperation : Operation, IDiscardPatternOperation
+    {
+        public DiscardPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(OperationKind.DiscardPattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+        {
+            InputType = inputType;
+        }
+        public ITypeSymbol InputType { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDiscardPattern(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDiscardPattern(this, argument);
         }
     }
 

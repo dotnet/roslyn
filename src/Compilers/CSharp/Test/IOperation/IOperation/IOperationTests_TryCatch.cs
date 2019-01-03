@@ -643,10 +643,10 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
           null
         Filter: 
           IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is string s')
-            Expression: 
+            Value: 
               IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
             Pattern: 
-              IDeclarationPatternOperation (Declared Symbol: System.String s, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string s')
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string s') (InputType: System.Object, DeclaredSymbol: System.String s, MatchesNull: False)
         Handler: 
           IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 
@@ -691,10 +691,10 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
               null
         Filter: 
           IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is string s')
-            Expression: 
+            Value: 
               IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
             Pattern: 
-              IDeclarationPatternOperation (Declared Symbol: System.String s, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string s')
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string s') (InputType: System.Object, DeclaredSymbol: System.String s, MatchesNull: False)
         Handler: 
           IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 

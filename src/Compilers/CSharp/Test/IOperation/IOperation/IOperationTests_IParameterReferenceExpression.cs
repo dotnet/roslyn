@@ -848,8 +848,8 @@ ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, T
     Clauses:
         IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case var y  ...  (x >= 10):')
           Pattern: 
-            IDeclarationPatternOperation (Declared Symbol: System.Int32 y, AcceptsNull: True) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
-          Guard Expression: 
+            IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y') (InputType: System.Int32, DeclaredSymbol: System.Int32 y, MatchesNull: True)
+          Guard: 
             IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x >= 10')
               Left: 
                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
@@ -1037,10 +1037,10 @@ class Class1
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is int y')
-  Expression: 
+  Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y') (InputType: System.Object, DeclaredSymbol: System.Int32 y, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
