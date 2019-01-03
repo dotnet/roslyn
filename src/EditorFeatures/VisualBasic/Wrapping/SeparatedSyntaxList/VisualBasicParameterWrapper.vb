@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Utilities
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping.SeparatedSyntaxList
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.SeparatedSyntaxList
     Partial Friend Class VisualBasicParameterWrapper
         Inherits AbstractVisualBasicSeparatedSyntaxListWrapper(Of ParameterListSyntax, ParameterSyntax)
 

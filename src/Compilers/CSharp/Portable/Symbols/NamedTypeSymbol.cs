@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
+        internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> transform)
         {
             if (!IsGenericType)
             {
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < allTypeArguments.Count; i++)
             {
                 TypeSymbolWithAnnotations oldTypeArgument = allTypeArguments[i];
-                TypeSymbolWithAnnotations newTypeArgument = oldTypeArgument.SetUnknownNullabilityForReferenceTypes();
+                TypeSymbolWithAnnotations newTypeArgument = transform(oldTypeArgument);
                 if (!oldTypeArgument.IsSameAs(newTypeArgument))
                 {
                     allTypeArguments[i] = newTypeArgument;
@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var typeArgumentsA = typeA.TypeArgumentsNoUseSiteDiagnostics;
                     var typeArgumentsB = typeB.TypeArgumentsNoUseSiteDiagnostics;
-                    allTypeParameters.AddRange(definition.TypeParameters);
+                    allTypeParameters.AddRange(typeParameters);
                     for (int i = 0; i < typeArgumentsA.Length; i++)
                     {
                         TypeSymbolWithAnnotations typeArgumentA = typeArgumentsA[i];
