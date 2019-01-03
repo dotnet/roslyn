@@ -935,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                return ((AttributeListSyntax)node).WithTarget(null);
+                return (AttributeListSyntax)node;
             }
         }
 

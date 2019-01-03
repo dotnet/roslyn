@@ -1167,7 +1167,6 @@ lVbRuntimePlus:
                             Continue For
 
                         Case "additionalfile"
-                            value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
                                 Continue For
@@ -1177,7 +1176,6 @@ lVbRuntimePlus:
                             Continue For
 
                         Case "embed"
-                            value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 embedAllSourceFiles = True
                                 Continue For
