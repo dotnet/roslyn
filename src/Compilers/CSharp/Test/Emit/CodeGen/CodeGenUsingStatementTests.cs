@@ -1221,6 +1221,31 @@ class C3
 ");
         }
 
+        [Fact]
+        public void UsingPatternExtensionMethodWithDefaultArgumentsAndWithParams()
+        {
+            var source = @"
+ref struct S1
+{
+}
+
+static class C2 
+{
+    internal static void Dispose(this S1 s1, int a = 1) { System.Console.WriteLine($""Dispose default param {a}""); }
+}
+
+class C3
+{
+    static void Main()
+    {
+       using (S1 s = new S1())
+       {
+       }
+    }
+}";
+            CompileAndVerify(source, expectedOutput: "Dispose default param 1");
+        }
+
         // The object could be created outside the "using" statement 
         [Fact]
         public void ObjectCreateOutsideUsing()

@@ -616,6 +616,44 @@ class C4
         }
 
         [Fact]
+        public void UsingPatternExtensionMethodWithDefaultArgumentsAmbiguous()
+        {
+            var source = @"
+ref struct S1
+{
+}
+
+static class C2 
+{
+    internal static void Dispose(this S1 s1, int a = 1) { }
+
+}
+
+static class C3
+{
+    internal static void Dispose(this S1 s1, int b = 2) { }
+}
+
+class C4
+{
+    static void Main()
+    {
+       using (S1 s = new S1())
+       {
+       }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (21,15): error CS0121: The call is ambiguous between the following methods or properties: 'C2.Dispose(S1, int)' and 'C3.Dispose(S1, int)'
+                //        using (S1 s = new S1())
+                Diagnostic(ErrorCode.ERR_AmbigCall, "S1 s = new S1()").WithArguments("C2.Dispose(S1, int)", "C3.Dispose(S1, int)").WithLocation(21, 15),
+                // (21,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //        using (S1 s = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(21, 15)
+                );
+        }
+
+        [Fact]
         public void UsingPatternExtensionMethodNonPublic()
         {
             var source = @"
@@ -637,6 +675,68 @@ class C3
        }
        S1 s1b = new S1();
        using (s1b) { }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodWithInvalidInstanceMethod()
+        {
+            var source = @"
+ref struct S1
+{
+    public int Dispose() 
+    {
+        return 0;
+    }
+}
+
+static class C2 
+{
+   internal static void Dispose(this S1 s1) { }
+}
+
+class C3
+{
+    static void Main()
+    {
+       using (S1 s = new S1())
+       {
+       }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (19,15): warning CS0280: 'S1' does not implement the 'disposable' pattern. 'S1.Dispose()' has the wrong signature.
+                //        using (S1 s = new S1())
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "S1 s = new S1()").WithArguments("S1", "disposable", "S1.Dispose()").WithLocation(19, 15),
+                // (19,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //        using (S1 s = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(19, 15)
+                );
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodWithInvalidInstanceProperty()
+        {
+            var source = @"
+ref struct S1
+{
+    public int Dispose => 0;
+}
+
+static class C2 
+{
+   internal static void Dispose(this S1 s1) { }
+}
+
+class C3
+{
+    static void Main()
+    {
+       using (S1 s = new S1())
+       {
+       }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
