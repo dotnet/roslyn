@@ -3369,6 +3369,42 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                                                         // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericMethodParameter, 0,
+                 // System_Runtime_CompilerServices_ITuple__get_Item
+                 (byte)(MemberFlags.PropertyGet | MemberFlags.Virtual),                                                                       // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ITuple - WellKnownType.ExtSentinel),   // DeclaringTypeId
+                 0,                                                                                                                           // Arity
+                    1,                                                                                                                        // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                 // System_Runtime_CompilerServices_ITuple__get_Length
+                 (byte)(MemberFlags.PropertyGet | MemberFlags.Virtual),                                                                       // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ITuple - WellKnownType.ExtSentinel),   // DeclaringTypeId
+                 0,                                                                                                                           // Arity
+                    0,                                                                                                                        // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
+
+                 // System_InvalidOperationException__ctor
+                 (byte)MemberFlags.Constructor,                                                                                               // Flags
+                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_InvalidOperationException - WellKnownType.ExtSentinel),        // DeclaringTypeId
+                 0,                                                                                                                           // Arity
+                    0,                                                                                                                        // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+
+                 // System_Runtime_CompilerServices_SwitchExpressionException__ctor
+                 (byte)MemberFlags.Constructor,                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException - WellKnownType.ExtSentinel),// DeclaringTypeId
+                 0,                                                                                                                           // Arity
+                    0,                                                                                                                        // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+
+                 // System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
+                 (byte)MemberFlags.Constructor,                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException - WellKnownType.ExtSentinel),// DeclaringTypeId
+                 0,                                                                                                                           // Arity
+                    1,                                                                                                                        // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3792,6 +3828,11 @@ namespace Microsoft.CodeAnalysis
                 "AwaitOnCompleted",                         // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted
                 "AwaitUnsafeOnCompleted",                   // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted
                 "MoveNext",                                 // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T
+                "get_Item",                                 // System_Runtime_CompilerServices_ITuple__get_Item
+                "get_Length",                               // System_Runtime_CompilerServices_ITuple__get_Length
+                ".ctor",                                    // System_InvalidOperationException__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_SwitchExpressionException__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

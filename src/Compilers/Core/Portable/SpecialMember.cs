@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis
         System_String__Chars,
         System_String__Format,
 
+        System_Double__IsNaN,
+        System_Single__IsNaN,
+
         System_Delegate__Combine,
         System_Delegate__Remove,
         System_Delegate__op_Equality,

@@ -357,7 +357,7 @@ Block[B5] - Exit
 
         [WorkItem(27086, "https://github.com/dotnet/roslyn/issues/27086")]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29297")]
         public void DiscardFlow_06()
         {
             string source = @"

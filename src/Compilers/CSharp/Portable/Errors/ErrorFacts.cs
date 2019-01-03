@@ -393,6 +393,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                 case ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs:
                 case ErrorCode.WRN_NoBestNullabilityArrayElements:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustive:
+                case ErrorCode.WRN_IsTypeNamedUnderscore:
+                case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
+                case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
+                case ErrorCode.WRN_CaseConstantNamedUnderscore:
                     return 1;
                 default:
                     return 0;

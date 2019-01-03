@@ -247,6 +247,10 @@ class X
                         case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                         case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                         case ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustive:
+                        case ErrorCode.WRN_IsTypeNamedUnderscore:
+                        case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
+                        case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -289,6 +293,7 @@ class X
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                         case ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs:
                         case ErrorCode.WRN_NoBestNullabilityArrayElements:
+                        case ErrorCode.WRN_CaseConstantNamedUnderscore:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

@@ -1615,6 +1615,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(31732, "https://github.com/dotnet/roslyn/issues/31732")]
         public void SuppressionOnUnconstrainedTypeParameter()
         {
             var source = @"
@@ -1623,6 +1624,7 @@ class C
     void M<T>(T t)
     {
         t!.ToString();
+        t.ToString();
     }
 }
 ";
@@ -1631,6 +1633,116 @@ class C
 
             c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(31732, "https://github.com/dotnet/roslyn/issues/31732")]
+        public void SuppressionOnNullableValueType()
+        {
+            var source = @"
+class C
+{
+    void M(int? i)
+    {
+        i!!.Value.ToString(); // intentional double !
+        i.Value.ToString();
+    }
+}
+";
+            var c = CreateCompilation(new[] { source });
+            c.VerifyDiagnostics();
+
+            c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(31732, "https://github.com/dotnet/roslyn/issues/31732")]
+        public void SuppressionOnNullableValueType_AppliedOnField()
+        {
+            var source = @"
+public struct S
+{
+    public string? field;
+}
+class C
+{
+    void M(S? s)
+    {
+        s.Value.field!.ToString();
+    }
+}
+";
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            c.VerifyDiagnostics(
+                // (10,9): warning CS8629: Nullable value type may be null.
+                //         s.Value.field!.ToString();
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s.Value").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31732, "https://github.com/dotnet/roslyn/issues/31732")]
+        public void SuppressionOnNullableReferenceType_AppliedOnField()
+        {
+            var source = @"
+public class C
+{
+    public string? field;
+    void M(C? c)
+    {
+        c.field!.ToString();
+    }
+}
+";
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         c.field!.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31732, "https://github.com/dotnet/roslyn/issues/31732")]
+        public void SuppressionOnNullableReferenceType_AppliedOnField2()
+        {
+            var source = @"
+public class C
+{
+    public string? field;
+    void M(C? c)
+    {
+        c?.field!.ToString();
+        c.ToString(); // We learned from suppressed dereference that `c` isn't null
+    }
+}
+";
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(31732, "https://github.com/dotnet/roslyn/issues/31732")]
+        public void SuppressionOnArgument()
+        {
+            var source = @"
+class C
+{
+    void M(string? s)
+    {
+        NonNull(s!);
+        s.ToString(); // warn
+    }
+    void NonNull(string s) => throw null;
+}
+";
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 9)
+                );
         }
 
         [Fact]
@@ -15556,7 +15668,7 @@ class C
         }
         else
         {
-            x.ToString(); // warn 3
+            x.ToString();
         }
     }
 }
@@ -15597,7 +15709,10 @@ class C
             c.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
                 //             x.ToString(); // warn 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 13)
                 );
         }
 
@@ -49256,9 +49371,6 @@ class C
 
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (12,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //             t1 = default; // 1
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(12, 18),
                 // (15,9): warning CS8602: Possible dereference of a null reference.
                 //         t1.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(15, 9),
@@ -54459,8 +54571,7 @@ static class E
     static void G1(C? x)
     {
         x?.F1(x);
-        x!.F1(x); // 1
-        x.F1(x); // 2
+        x!.F1(x);
         x.F1(x);
     }
     static void G2(C? y)
@@ -54468,7 +54579,6 @@ static class E
         y?.F2(y);
         y!.F2(y); // 3
         y.F2(y); // 4, 5
-        y.F2(y); // 6, 7
     }
 }
 static class E
@@ -54477,27 +54587,15 @@ static class E
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (7,15): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.F1(C x)'.
-                //         x!.F1(x); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "void C.F1(C x)").WithLocation(7, 15),
-                // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         x.F1(x); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 9),
-                // (14,15): warning CS8604: Possible null reference argument for parameter 'y' in 'void E.F2(C x, C y)'.
+                // (13,15): warning CS8604: Possible null reference argument for parameter 'y' in 'void E.F2(C x, C y)'.
                 //         y!.F2(y); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void E.F2(C x, C y)").WithLocation(14, 15),
-                // (15,9): warning CS8604: Possible null reference argument for parameter 'x' in 'void E.F2(C x, C y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void E.F2(C x, C y)").WithLocation(13, 15),
+                // (14,9): warning CS8604: Possible null reference argument for parameter 'x' in 'void E.F2(C x, C y)'.
                 //         y.F2(y); // 4, 5
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void E.F2(C x, C y)").WithLocation(15, 9),
-                // (15,14): warning CS8604: Possible null reference argument for parameter 'y' in 'void E.F2(C x, C y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void E.F2(C x, C y)").WithLocation(14, 9),
+                // (14,14): warning CS8604: Possible null reference argument for parameter 'y' in 'void E.F2(C x, C y)'.
                 //         y.F2(y); // 4, 5
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void E.F2(C x, C y)").WithLocation(15, 14),
-                // (16,9): warning CS8604: Possible null reference argument for parameter 'x' in 'void E.F2(C x, C y)'.
-                //         y.F2(y); // 6, 7
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void E.F2(C x, C y)").WithLocation(16, 9),
-                // (16,14): warning CS8604: Possible null reference argument for parameter 'y' in 'void E.F2(C x, C y)'.
-                //         y.F2(y); // 6, 7
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void E.F2(C x, C y)").WithLocation(16, 14));
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void E.F2(C x, C y)").WithLocation(14, 14));
         }
 
         [Fact]
@@ -57837,12 +57935,6 @@ class Outer
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,19): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
-                //         if (x0 is null) return;
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(6, 19),
-                // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         x0.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x0").WithLocation(7, 9)
                 );
         }
 
@@ -57987,9 +58079,9 @@ class Outer
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,19): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                // (6,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (x0 is default) return;
-                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(6, 19),
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 19),
                 // (6,19): error CS0150: A constant value is expected
                 //         if (x0 is default) return;
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "default").WithLocation(6, 19),
