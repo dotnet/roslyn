@@ -623,7 +623,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     break;
                                 }
                             }
-                            
                         }
 
                         if (!suppressError)

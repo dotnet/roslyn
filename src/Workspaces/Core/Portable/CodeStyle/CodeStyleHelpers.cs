@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     arg, out string value, out NotificationOption notificationOpt))
             {
                 // First value has to be true or false.  Anything else is unsupported.
-                if (bool.TryParse(value.Trim(), out var isEnabled))
+                if (bool.TryParse(value, out var isEnabled))
                 {
                     // We allow 'false' to be provided without a notification option.  However,
                     // 'true' must always be provided with a notification option.

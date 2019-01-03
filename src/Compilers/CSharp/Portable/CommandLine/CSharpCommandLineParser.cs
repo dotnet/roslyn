@@ -347,6 +347,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         Debug.Assert(loweredValue == nameof(NullableContextOptions.SafeOnly).ToLower());
                                         nullableContextOptions = NullableContextOptions.SafeOnly;
                                         break;
+                                    case "warnings":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.Warnings).ToLower());
+                                        nullableContextOptions = NullableContextOptions.Warnings;
+                                        break;
+                                    case "safeonlywarnings":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.SafeOnlyWarnings).ToLower());
+                                        nullableContextOptions = NullableContextOptions.SafeOnlyWarnings;
+                                        break;
                                     default:
                                         AddDiagnostic(diagnostics, ErrorCode.ERR_BadNullableContextOption, value);
                                         break;
