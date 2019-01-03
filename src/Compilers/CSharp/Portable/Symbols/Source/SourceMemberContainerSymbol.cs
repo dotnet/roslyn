@@ -2355,6 +2355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Struct:
                     CheckForStructBadInitializers(builder, diagnostics);
                     CheckForStructDefaultConstructors(builder.NonTypeNonIndexerMembers, isEnum: false, diagnostics: diagnostics);
+                    AddSynthesizedRecordMembersIfNecessary(builder.NonTypeNonIndexerMembers, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
                     break;
 
@@ -2364,6 +2365,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 case TypeKind.Class:
+                    AddSynthesizedRecordMembersIfNecessary(builder.NonTypeNonIndexerMembers, diagnostics);
+                    AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
+                    break;
+
                 case TypeKind.Interface:
                 case TypeKind.Submission:
                     // No additional checking required.
@@ -2873,7 +2878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddSynthesizedRecordMembersIfNecessary(ArrayBuilder<Symbol> members, DiagnosticBag diagnostics)
         {
-            Debug.Assert(declaration.Kind == DeclarationKind.Class || declaration.Kind == DeclarationKind.Struct);
+            Debug.Assert(TypeKind == TypeKind.Class || TypeKind == TypeKind.Struct);
 
             ParameterListSyntax paramList = null;
             foreach (SingleTypeDeclaration decl in declaration.Declarations)
@@ -2912,19 +2917,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // PROTOTYPE: This adds members unconditionally, but instead we should check if
             // the members are already written in user code
-            var ctor = new SynthesizedRecordConstructor(this, binder, paramList, diagnostics);
+            var ctor = new SynthesizedRecordConstructor(
+                this,
+                binder,
+                paramList,
+                diagnostics);
             members.Add(ctor);
-            foreach (ParameterSymbol param in ctor.Parameters)
+            foreach (SynthesizedRecordPropertySymbol property in ctor.Properties)
             {
-                string name = GeneratedNames.MakeBackingFieldName(param.Name);
-                var property = new SynthesizedRecordPropertySymbol(this, param);
+                members.Add(property.BackingField);
+                members.Add(property.GetMethod);
                 members.Add(property);
-                members.Add(new SynthesizedBackingFieldSymbol(
-                    property,
-                    name,
-                    isReadOnly: true,
-                    isStatic: false,
-                    hasInitializer: param.HasExplicitDefaultValue));
             }
         }
 
@@ -2934,7 +2937,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case DeclarationKind.Class:
                 case DeclarationKind.Struct:
-                    AddSynthesizedRecordMembersIfNecessary(members, diagnostics);
                     break;
             }
 
