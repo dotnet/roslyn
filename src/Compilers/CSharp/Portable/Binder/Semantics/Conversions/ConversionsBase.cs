@@ -805,6 +805,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
+            // There is a conversion from expression `e!` if there is a conversion from expression `e`
+            sourceExpression = sourceExpression.RemoveSuppressions();
+
             if (HasImplicitEnumerationConversion(sourceExpression, destination))
             {
                 return Conversion.ImplicitEnumeration;
@@ -835,15 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.SuppressNullableWarningExpression:
-                    {
-                        var innerExpression = ((BoundSuppressNullableWarningExpression)sourceExpression).Expression;
-                        var innerConversion = ClassifyImplicitBuiltInConversionFromExpression(innerExpression, innerExpression.Type, destination, ref useSiteDiagnostics);
-                        if (innerConversion.Exists)
-                        {
-                            return innerConversion;
-                        }
-                        break;
-                    }
+                    throw ExceptionUtilities.Unreachable;
 
                 case BoundKind.ExpressionWithNullability:
                     {

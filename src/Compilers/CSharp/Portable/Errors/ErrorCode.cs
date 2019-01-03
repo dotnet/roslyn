@@ -1584,6 +1584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
         WRN_DefaultLiteralConvertedToNullIsNotIntended = 8402,
         ERR_IteratorMustBeAsync = 8403,
+        ERR_ExpressionTreeCantContainSuppressNullableWarning = 8404,
 
         ERR_NoConvToIAsyncDisp = 8410,
         ERR_AwaitForEachMissingMember = 8411,
@@ -1625,6 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DiscardPatternInSwitchStatement = 8523,
         #endregion diagnostics introduced for recursive patterns
 
+        ERR_IllegalSuppression = 8598,
         WRN_IllegalPPWarningSafeOnly = 8599,
         WRN_ConvertingNullableToNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,

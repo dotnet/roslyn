@@ -457,6 +457,31 @@ class C
         }
 
         [Fact]
+        public void SuppressNullableWarning_FakeIndexIndexerArray()
+        {
+            string source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var x = new[] { 1, 2, 3, 11 };
+        M(x);
+    }
+
+    public static void M(int[] array)
+    {
+        Console.Write(array[new Index(1, false)!]);
+        Console.Write(array[(^1)!]);
+    }
+}";
+            // cover case in ConvertToArrayIndex
+            var comp = CreateCompilationWithIndex(source, WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "211");
+        }
+
+        [Fact]
         public void FakeIndexIndexerArrayNoValue()
         {
             var comp = CreateCompilation(@"

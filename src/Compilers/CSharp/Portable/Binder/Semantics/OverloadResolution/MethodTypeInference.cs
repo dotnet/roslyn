@@ -542,13 +542,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: * Otherwise, no inference is made for this argument
 
-            if (argument.Kind == BoundKind.UnboundLambda)
+            if (argument.KindIgnoringSuppressions() == BoundKind.UnboundLambda)
             {
                 ExplicitParameterTypeInference(argument, target, ref useSiteDiagnostics);
             }
             else if (argument.Kind != BoundKind.TupleLiteral ||
                 !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, kind, ref useSiteDiagnostics))
             {
+                // We need to handle suppressed tuple literals as well
+                // Tracked by https://github.com/dotnet/roslyn/issues/32553
+
                 // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let's try to infer from argument type
                 if (IsReallyAType(argument.Type))
                 {
@@ -833,7 +836,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // No input types.
             }
 
-            if (argument.Kind != BoundKind.UnboundLambda && argument.Kind != BoundKind.MethodGroup)
+            BoundKind argumentKindIgnoringSuppressions = argument.KindIgnoringSuppressions();
+            if (argumentKindIgnoringSuppressions != BoundKind.UnboundLambda && argumentKindIgnoringSuppressions != BoundKind.MethodGroup)
             {
                 return false; // No input types.
             }
@@ -887,7 +891,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (argument.Kind != BoundKind.UnboundLambda && argument.Kind != BoundKind.MethodGroup)
+            BoundKind argumentKindIgnoringSuppressions = argument.KindIgnoringSuppressions();
+            if (argumentKindIgnoringSuppressions != BoundKind.UnboundLambda && argumentKindIgnoringSuppressions != BoundKind.MethodGroup)
             {
                 return false;
             }
@@ -1247,7 +1252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   yields a single method with return type U then a lower-bound
             // SPEC:   inference is made from U to Tb.
 
-            if (source.Kind != BoundKind.MethodGroup)
+            if (source.KindIgnoringSuppressions() != BoundKind.MethodGroup)
             {
                 return false;
             }
@@ -1278,7 +1283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var returnType = MethodGroupReturnType(binder, (BoundMethodGroup)source, fixedDelegateParameters, delegateInvokeMethod.RefKind, ref useSiteDiagnostics);
+            var returnType = MethodGroupReturnType(binder, (BoundMethodGroup)source.RemoveSuppressions(), fixedDelegateParameters, delegateInvokeMethod.RefKind, ref useSiteDiagnostics);
             if ((object)returnType == null || returnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
@@ -1337,12 +1342,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: parameter types V1...Vk then for each Ui an exact inference is made
             // SPEC: from Ui to the corresponding Vi.
 
-            if (source.Kind != BoundKind.UnboundLambda)
+            if (source.KindIgnoringSuppressions() != BoundKind.UnboundLambda)
             {
                 return;
             }
 
-            UnboundLambda anonymousFunction = (UnboundLambda)source;
+            var anonymousFunction = (UnboundLambda)source.RemoveSuppressions();
 
             if (!anonymousFunction.HasExplicitlyTypedParameterList)
             {
@@ -2575,12 +2580,12 @@ OuterBreak:
             //   inferred return type of F is T.
             // * Otherwise, a return type cannot be inferred for F.
 
-            if (source.Kind != BoundKind.UnboundLambda)
+            if (source.KindIgnoringSuppressions() != BoundKind.UnboundLambda)
             {
                 return default;
             }
 
-            var anonymousFunction = (UnboundLambda)source;
+            var anonymousFunction = (UnboundLambda)source.RemoveSuppressions();
             if (anonymousFunction.HasSignature)
             {
                 // Optimization: 

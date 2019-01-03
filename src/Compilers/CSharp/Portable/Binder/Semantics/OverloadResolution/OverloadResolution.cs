@@ -2078,7 +2078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Determine whether t1 or t2 is a better conversion target from node.
         private BetterResult BetterConversionFromExpression(BoundExpression node, TypeSymbol t1, TypeSymbol t2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(node.Kind != BoundKind.UnboundLambda);
+            Debug.Assert(node.KindIgnoringSuppressions() != BoundKind.UnboundLambda);
             bool ignore;
             return BetterConversionFromExpression(
                 node,
@@ -2207,6 +2207,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Kind == BoundKind.TupleLiteral)
             {
+                // We need to handle suppressed tuple literals as well
+                // Tracked by https://github.com/dotnet/roslyn/issues/32553
+
                 // Recurse into tuple constituent arguments.
                 // Even if the tuple literal has a natural type and conversion 
                 // from that type is not identity, we still have to do this 
@@ -2221,12 +2224,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol invoke;
             TypeSymbol y;
 
-            if (node.Kind == BoundKind.UnboundLambda &&
+            if (node.KindIgnoringSuppressions() == BoundKind.UnboundLambda &&
                 (object)(d = t.GetDelegateType()) != null &&
                 (object)(invoke = d.DelegateInvokeMethod) != null &&
                 (y = invoke.ReturnType.TypeSymbol).SpecialType != SpecialType.System_Void)
             {
-                BoundLambda lambda = ((UnboundLambda)node).BindForReturnTypeInference(d);
+                BoundLambda lambda = ((UnboundLambda)node.RemoveSuppressions()).BindForReturnTypeInference(d);
 
                 // - an inferred return type X exists for E in the context of the parameter list of D(§7.5.2.12), and an identity conversion exists from X to Y
                 var x = lambda.GetInferredReturnType(ref useSiteDiagnostics);

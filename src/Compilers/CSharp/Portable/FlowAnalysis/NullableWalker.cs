@@ -2121,6 +2121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundExpressionWithNullability)expr).NullableAnnotation;
                 case BoundKind.MethodGroup:
                 case BoundKind.UnboundLambda:
+                case BoundKind.SuppressNullableWarningExpression:
                     return NullableAnnotation.Unknown;
                 default:
                     Debug.Assert(false); // unexpected value
@@ -3189,12 +3190,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression getArgumentForMethodTypeInference(BoundExpression argument, TypeSymbolWithAnnotations argumentType)
             {
-                if (argument.Kind == BoundKind.Lambda)
+                if (argument.KindIgnoringSuppressions() == BoundKind.Lambda)
                 {
                     // MethodTypeInferrer must infer nullability for lambdas based on the nullability
                     // from flow analysis rather than the declared nullability. To allow that, we need
                     // to re-bind lambdas in MethodTypeInferrer.
-                    return GetUnboundLambda((BoundLambda)argument, GetVariableState());
+                    return GetUnboundLambda((BoundLambda)argument.RemoveSuppressions(), GetVariableState()).WrapWithSuppressionsFrom(argument);
                 }
                 if (argumentType.IsNull)
                 {
@@ -3280,6 +3281,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             return (expr, group?.Conversion ?? Conversion.Identity);
+        }
+
+        /// <summary>
+        /// Returns true if the expression had a suppression.
+        /// </summary>
+        bool RemoveSuppressions(ref BoundExpression expression)
+        {
+            var original = expression;
+            expression = expression.RemoveSuppressions();
+            return expression != original;
         }
 
         // See Binder.BindNullCoalescingOperator for initial binding.
@@ -3485,6 +3496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(expr, includeExplicitConversions: false);
+
             var operandType = VisitRvalueWithResult(operand);
             // If an explicit conversion was used in place of an implicit conversion, the explicit
             // conversion was created by initial binding after reporting "error CS0266:
@@ -3765,18 +3777,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableAnnotation resultAnnotation = NullableAnnotation.Unknown;
             bool forceOperandAnnotationForResult = false;
             bool canConvertNestedNullability = true;
+            bool isSuppressed = false;
 
             if (operandOpt?.Kind == BoundKind.SuppressNullableWarningExpression)
             {
                 reportTopLevelWarnings = false;
                 reportRemainingWarnings = false;
+                operandOpt = operandOpt.RemoveSuppressions();
+                isSuppressed = true;
             }
 
             TypeSymbol targetType = targetTypeWithNullability.TypeSymbol;
             switch (conversion.Kind)
             {
                 case ConversionKind.MethodGroup:
-                    if (!fromExplicitCast)
+                    if (reportRemainingWarnings)
                     {
                         ReportNullabilityMismatchWithTargetDelegate(node.Syntax, targetType.GetDelegateType(), conversion.Method);
                     }
@@ -3793,7 +3808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: null, initialState: variableState);
                         var unboundLambda = GetUnboundLambda(lambda, variableState);
                         var boundLambda = unboundLambda.Bind(delegateType);
-                        if (!fromExplicitCast)
+                        if (reportRemainingWarnings)
                         {
                             ReportNullabilityMismatchWithTargetDelegate(node.Syntax, delegateType, unboundLambda);
                         }
@@ -4076,6 +4091,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     Debug.Assert(targetType.IsValueType);
                     break;
+            }
+
+            if (isSuppressed)
+            {
+                resultAnnotation = NullableAnnotation.NotNullable;
             }
 
             var resultType = TypeSymbolWithAnnotations.Create(targetType, resultAnnotation);

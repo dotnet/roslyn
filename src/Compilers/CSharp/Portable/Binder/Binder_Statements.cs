@@ -1670,7 +1670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // error lambdas like "Action<int> f = x=>{ x. };" because IntelliSense
             // needs to know that x is of type int. 
 
-            if (expression.HasAnyErrors && expression.Kind != BoundKind.UnboundLambda)
+            if (expression.HasAnyErrors && expression.KindIgnoringSuppressions() != BoundKind.UnboundLambda)
             {
                 diagnostics = new DiagnosticBag();
             }
@@ -1994,11 +1994,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return;
             }
-            while (operand.Kind == BoundKind.SuppressNullableWarningExpression)
-            {
-                operand = ((BoundSuppressNullableWarningExpression)operand).Expression;
-            }
 
+            operand = operand.RemoveSuppressions();
             switch (operand.Kind)
             {
                 case BoundKind.BadExpression:
@@ -2096,7 +2093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            Debug.Assert(operand.HasAnyErrors && operand.Kind != BoundKind.UnboundLambda, "Missing a case in implicit conversion error reporting");
+            Debug.Assert(operand.HasAnyErrors && operand.KindIgnoringSuppressions() != BoundKind.UnboundLambda, "Missing a case in implicit conversion error reporting");
         }
 
         private void GenerateImplicitConversionErrorsForTupleLiteralArguments(

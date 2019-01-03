@@ -4498,6 +4498,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression tree cannot contain a suppression operator..
+        /// </summary>
+        internal static string ERR_ExpressionTreeCantContainSuppressNullableWarning {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeCantContainSuppressNullableWarning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain an anonymous method expression.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsAnonymousMethod {
@@ -5430,6 +5439,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_IllegalStatement {
             get {
                 return ResourceManager.GetString("ERR_IllegalStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The suppression operator is not allowed in this context.
+        /// </summary>
+        internal static string ERR_IllegalSuppression {
+            get {
+                return ResourceManager.GetString("ERR_IllegalSuppression", resourceCulture);
             }
         }
         
