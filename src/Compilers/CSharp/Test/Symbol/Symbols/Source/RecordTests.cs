@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
@@ -8,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class RecordTests : CSharpTestBase
     {
         [Fact]
-        public void GeneratedConstructor()
+        public void GeneratedConstructorClass()
         {
             var comp = CreateCompilation(@"class C(int x, string y);");
             comp.VerifyDiagnostics();
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void GeneratedConstructorDefaultValues()
+        public void GeneratedConstructorDefaultValuesClass()
         {
             var comp = CreateCompilation(@"class C<T>(int x, T t = default);");
             comp.VerifyDiagnostics();
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void GeneratedProperties()
+        public void GeneratedPropertiesClass()
         {
             var comp = CreateCompilation("class C(int x, int y);");
             comp.VerifyDiagnostics();
@@ -65,6 +66,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(Accessibility.Public, y.DeclaredAccessibility);
             Assert.False(x.IsVirtual);
             Assert.False(x.IsStatic);
+        }
+
+        [Fact]
+        public void GeneratedExplicitEqualsClass()
+        {
+            var comp = CreateCompilation("class C(int x, int y);");
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+
+            var eqs = c.GetMethod("Equals");
+            var param = Assert.Single(eqs.Parameters);
+            Assert.False(param.Type.IsNull);
+            Assert.Equal(c, param.Type.TypeSymbol);
         }
     }
 }
