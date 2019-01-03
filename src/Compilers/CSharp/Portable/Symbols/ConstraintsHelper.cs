@@ -905,11 +905,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (typeParameter.HasUnmanagedTypeConstraint && (typeArgument.IsManagedType || !typeArgument.TypeSymbol.IsNonNullableValueType()))
+            if (typeParameter.HasUnmanagedTypeConstraint)
             {
-                // "The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'"
-                diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.TypeSymbol)));
-                return false;
+                if (typeArgument.IsManagedType || !typeArgument.TypeSymbol.IsNonNullableValueType())
+                {
+                    // "The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'"
+                    diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.TypeSymbol)));
+                    return false;
+                }
+                else if (typeArgument.TypeSymbol.GetArity() > 0 &&
+                    currentCompilation is CSharpCompilation csCompilation &&
+                    csCompilation.LanguageVersion < MessageID.IDS_FeatureUnmanagedGenericStructs.RequiredVersion())
+                {
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(csCompilation.LanguageVersion, diagnostics, typeArgument.TypeSymbol.Locations[0]);
+                    foreach (var diagnostic in diagnostics.AsEnumerable())
+                    {
+                        // PROTOTYPE
+                        var typeParameterDiagnostic = new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo((ErrorCode) diagnostic.Code, diagnostic.Arguments));
+                        diagnosticsBuilder.Add(typeParameterDiagnostic);
+                    }
+                }
             }
 
             if (typeParameter.HasValueTypeConstraint && !typeArgument.TypeSymbol.IsNonNullableValueType())
