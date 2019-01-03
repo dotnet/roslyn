@@ -69,7 +69,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
 
-            if (!document.Project.Solution.Workspace.Options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language))
+            var workspace = document.Project.Solution.Workspace;
+
+            // LiveShare does not want Roslyn to participate in completion if the workspace is of RemoteLanguageServiceWorkspace.
+            if (workspace.GetType().Name == "RemoteLanguageServiceWorkspace")
+            {
+                return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
+            }
+
+            if (!workspace.Options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language))
             {
                 _textView.Options.GlobalOptions.SetOptionValue(NonBlockingCompletionEditorOption, true);
             }
