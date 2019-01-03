@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this,
                 TypeSymbolWithAnnotations.Create(containingType),
                 ordinal: 0,
-                RefKind.None));
+                RefKind.None,
+                "value"));
         }
 
         public override string Name => "Equals";
