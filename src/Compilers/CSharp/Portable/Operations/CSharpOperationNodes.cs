@@ -1517,6 +1517,38 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
+    /// <summary>
+    /// Represents a C# recursive pattern.
+    /// </summary>
+    internal sealed partial class CSharpLazyITuplePatternOperation : LazyRecursivePatternOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundITuplePattern _boundITuplePattern;
+
+        public CSharpLazyITuplePatternOperation(CSharpOperationFactory operationFactory, BoundITuplePattern boundITuplePattern, SemanticModel semanticModel)
+            : base(inputType: boundITuplePattern.InputType,
+                   matchedType: boundITuplePattern.InputType.StrippedType(),
+                   deconstructSymbol: boundITuplePattern.GetLengthMethod.ContainingType,
+                   declaredSymbol: null,
+                   semanticModel: semanticModel,
+                   syntax: boundITuplePattern.Syntax,
+                   isImplicit: boundITuplePattern.WasCompilerGenerated)
+        {
+            this._operationFactory = operationFactory;
+            this._boundITuplePattern = boundITuplePattern;
+
+        }
+        public override ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns()
+        {
+            return _boundITuplePattern.Subpatterns.IsDefault ? ImmutableArray<IPatternOperation>.Empty :
+                _boundITuplePattern.Subpatterns.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
+        }
+        public override ImmutableArray<(ISymbol, IPatternOperation)> CreatePropertySubpatterns()
+        {
+            return ImmutableArray<(ISymbol, IPatternOperation)>.Empty;
+        }
+    }
+
     internal sealed class CSharpLazyPatternCaseClauseOperation : LazyPatternCaseClauseOperation
     {
         private readonly CSharpOperationFactory _operationFactory;

@@ -1122,7 +1122,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.DeclarationPattern, operation.Kind);
             VisitPatternCommon(operation);
-            if (operation.Syntax is CSharp.Syntax.VarPatternSyntax)
+            if (operation.Syntax.IsKind(CSharp.SyntaxKind.VarPattern) ||
+                // in `var (x, y)`, the syntax here is the designation `x`.
+                operation.Syntax.IsKind(CSharp.SyntaxKind.SingleVariableDesignation))
             {
                 Assert.True(operation.MatchesNull);
                 Assert.Null(operation.MatchedType);
@@ -1135,7 +1137,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var designation =
                 (operation.Syntax as CSharp.Syntax.DeclarationPatternSyntax)?.Designation ??
-                (operation.Syntax as CSharp.Syntax.VarPatternSyntax)?.Designation;
+                (operation.Syntax as CSharp.Syntax.VarPatternSyntax)?.Designation ??
+                (operation.Syntax as CSharp.Syntax.VariableDesignationSyntax);
             if (designation.IsKind(CSharp.SyntaxKind.SingleVariableDesignation))
             {
                 Assert.NotNull(operation.DeclaredSymbol);

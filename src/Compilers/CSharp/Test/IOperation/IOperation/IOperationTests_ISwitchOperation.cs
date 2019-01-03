@@ -3318,5 +3318,80 @@ Block[B7] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns, CompilerFeature.Dataflow)]
+        [Fact]
+        public void EmptySwitchExpressionFlow()
+        {
+            string source = @"
+class Program
+{
+    public static void Main()
+    /*<bind>*/{
+        var r = 1 switch { };
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(6,17): error CS8506: No best type was found for the switch expression.
+                //         var r = 1 switch { };
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "1 switch { }").WithLocation(6, 17),
+                // file.cs(6,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         var r = 1 switch { };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 19)
+            };
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.locals {R1}
+{
+    Locals: [? r]
+    CaptureIds: [0]
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
+
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (0)
+        Next (Throw) Block[null]
+            IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsInvalid, IsImplicit) (Syntax: '1 switch { }')
+              Arguments(0)
+              Initializer: 
+                null
+    Block[B3] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'r = 1 switch { }')
+              Left: 
+                ILocalReferenceOperation: r (IsDeclaration: True) (OperationKind.LocalReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'r = 1 switch { }')
+              Right: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '1 switch { }')
+
+        Next (Regular) Block[B4]
+            Leaving: {R1}
+}
+
+Block[B4] - Exit [UnReachable]
+    Predecessors: [B3]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

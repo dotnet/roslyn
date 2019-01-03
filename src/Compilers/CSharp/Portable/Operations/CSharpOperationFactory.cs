@@ -248,6 +248,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundDeclarationPatternOperation((BoundDeclarationPattern)boundNode);
                 case BoundKind.RecursivePattern:
                     return CreateBoundRecursivePatternOperation((BoundRecursivePattern)boundNode);
+                case BoundKind.ITuplePattern:
+                    return CreateBoundRecursivePatternOperation((BoundITuplePattern)boundNode);
                 case BoundKind.DiscardPattern:
                     return CreateBoundDiscardPatternOperation((BoundDiscardPattern)boundNode);
                 case BoundKind.SwitchStatement:
@@ -1854,6 +1856,11 @@ namespace Microsoft.CodeAnalysis.Operations
         private IRecursivePatternOperation CreateBoundRecursivePatternOperation(BoundRecursivePattern boundRecursivePattern)
         {
             return new CSharpLazyRecursivePatternOperation(this, boundRecursivePattern, _semanticModel);
+        }
+
+        private IRecursivePatternOperation CreateBoundRecursivePatternOperation(BoundITuplePattern boundITuplePattern)
+        {
+            return new CSharpLazyITuplePatternOperation(this, boundITuplePattern, _semanticModel);
         }
 
         private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)
