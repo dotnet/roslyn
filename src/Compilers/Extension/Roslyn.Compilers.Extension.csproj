@@ -36,6 +36,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Numerics.Vectors" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
+    <NuGetPackageToIncludeInVsix Include="System.Runtime.CompilerServices.Unsafe" />
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
   </ItemGroup>
   <ItemGroup>
