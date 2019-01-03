@@ -27,9 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         public string MakeAbstractHeader => ServicesVSResources.Make_abstract;
         public string InterfaceCannotHaveField => ServicesVSResources.Interface_cannot_have_field;
 
-        internal PullMemberUpDialogViewModel ViewModel { get; }
+        public PullMemberUpDialogViewModel ViewModel { get; }
 
-        internal PullMemberUpDialog(PullMemberUpDialogViewModel pullMemberUpViewModel)
+        public PullMemberUpDialog(PullMemberUpDialogViewModel pullMemberUpViewModel)
         {
             ViewModel = pullMemberUpViewModel;
             DataContext = pullMemberUpViewModel;

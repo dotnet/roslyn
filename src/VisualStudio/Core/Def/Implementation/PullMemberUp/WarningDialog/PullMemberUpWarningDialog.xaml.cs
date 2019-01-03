@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
         public string WarningDialogTitle => ServicesVSResources.Review_Changes;
         public string Description => ServicesVSResources.Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below;
 
-        internal PullMemberUpWarningDialog(PullMemberUpWarningViewModel viewModel)
+        public PullMemberUpWarningDialog(PullMemberUpWarningViewModel viewModel)
         {
             DataContext = viewModel;
             InitializeComponent();

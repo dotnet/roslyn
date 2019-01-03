@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         /// <summary>
         /// Use breadth first search to create the inheritance tree. Only non-generated types in the solution will be included in the tree.
         /// </summary>
-        internal static BaseTypeTreeNodeViewModel CreateBaseTypeTree(
+        public static BaseTypeTreeNodeViewModel CreateBaseTypeTree(
             IGlyphService glyphService,
             Solution solution,
             INamedTypeSymbol root,
@@ -50,11 +50,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                 var currentTreeNode = queue.Dequeue();
                 var currentTypeSymbol = currentTreeNode.Symbol;
 
-                currentTreeNode.BaseTypeNodes = currentTypeSymbol.Interfaces.
-                    Concat(currentTypeSymbol.BaseType).
-                    Where(baseType => baseType != null && MemberAndDestinationValidator.IsDestinationValid(solution, baseType, cancellationToken)).
-                    Select(baseType => new BaseTypeTreeNodeViewModel(glyphService, baseType) { IsChecked = false, IsExpanded = true }).
-                    ToImmutableArray();
+                currentTreeNode.BaseTypeNodes = currentTypeSymbol.Interfaces
+                    .Concat(currentTypeSymbol.BaseType)
+                    .Where(baseType => baseType != null && MemberAndDestinationValidator.IsDestinationValid(solution, baseType, cancellationToken))
+                    .Select(baseType => new BaseTypeTreeNodeViewModel(glyphService, baseType) { IsChecked = false, IsExpanded = true })
+                    .ToImmutableArray();
 
                 foreach (var node in currentTreeNode.BaseTypeNodes)
                 {

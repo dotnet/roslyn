@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             }
         }
 
-        internal PullMemberUpDialogViewModel(
+        public PullMemberUpDialogViewModel(
             IWaitIndicator waitIndicator,
             ImmutableArray<PullMemberUpSymbolViewModel> members,
             ImmutableArray<BaseTypeTreeNodeViewModel> destinations,
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             _waitIndicator = waitIndicator;
         }
 
-        internal PullMembersUpOptions CreatePullMemberUpOptions()
+        public PullMembersUpOptions CreatePullMemberUpOptions()
         {
             var selectedOptionFromDialog = Members.
                 Where(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable).
@@ -102,24 +102,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             return options;
         }
 
-        internal void SelectAllMembers()
+        public void SelectAllMembers()
         {
             SelectMembers(Members);
         }
 
-        internal void SelectPublicMembers()
+        public void SelectPublicMembers()
         {
             SelectMembers(Members.WhereAsArray(memberViewModel => memberViewModel.Symbol.DeclaredAccessibility == Accessibility.Public));
         }
 
-        internal void EnableOrDisableOkButton()
+        public void EnableOrDisableOkButton()
         {
-            var selectedMembers = Members.
-                WhereAsArray(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable);
+            var selectedMembers = Members
+                .WhereAsArray(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable);
             OkButtonEnabled = SelectedDestination != null && selectedMembers.Count() != 0;
         }
 
-        internal void CheckAndSetStateOfSelectAllCheckBox()
+        public void CheckAndSetStateOfSelectAllCheckBox()
         {
             var checkableMembers = Members.WhereAsArray(member => member.IsCheckable);
             if (checkableMembers.All(member => member.IsChecked))
@@ -139,10 +139,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             }
         }
 
-        internal void SelectDependents()
+        public void SelectDependents()
         {
-            var checkedMembers = Members.
-                WhereAsArray(member => member.IsChecked && member.IsCheckable);
+            var checkedMembers = Members
+                .WhereAsArray(member => member.IsChecked && member.IsCheckable);
 
             var waitResult = _waitIndicator.Wait(
                     title: ServicesVSResources.Pull_Members_Up,
@@ -167,7 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             }
         }
 
-        internal void DeSelectAllMembers()
+        public void DeSelectAllMembers()
         {
             foreach (var member in Members.WhereAsArray(viewModel => viewModel.IsCheckable))
             {

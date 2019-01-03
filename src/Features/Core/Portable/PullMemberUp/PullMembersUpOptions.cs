@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         /// </summary>
         public readonly bool PullUpOperationCausesError;
 
-        internal PullMembersUpOptions(
+        public PullMembersUpOptions(
             INamedTypeSymbol destination,
             ImmutableArray<MemberAnalysisResult> memberAnalysisResults)
         {

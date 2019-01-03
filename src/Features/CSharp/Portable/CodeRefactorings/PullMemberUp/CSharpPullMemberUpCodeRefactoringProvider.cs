@@ -2,7 +2,6 @@
 
 using System;
 using System.Composition;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
@@ -19,13 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         /// <summary>
         /// Test purpose only.
         /// </summary>
-        internal CSharpPullMemberUpCodeRefactoringProvider(IPullMemberUpOptionsService service) : base(service)
+        public CSharpPullMemberUpCodeRefactoringProvider(IPullMemberUpOptionsService service) : base(service)
         {
         }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal CSharpPullMemberUpCodeRefactoringProvider() : base(null)
+        public CSharpPullMemberUpCodeRefactoringProvider() : base(null)
         {
         }
 
@@ -49,35 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
             else
             {
                 return false;
-            }
-        }
-
-        protected async override Task<SyntaxNode> GetMatchedNodeAsync(Document document, TextSpan span)
-        {
-            var root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
-            // root.FindNode() will return the syntax node contains the parenthesis or equal sign in the following scenario,
-            // void Bar[||]();
-            // int i[||]= 0;
-            // int j[||]=> 100;
-            // int k[||]{set; }
-            // but refactoring should be provide in for this cases, so move the cursor back
-            // one step to get the syntax node.
-            var token = root.FindToken(span.Start);
-            var isSpecialCaseToken =
-                token.IsKind(SyntaxKind.OpenParenToken) ||
-                token.IsKind(SyntaxKind.OpenBraceToken) ||
-                token.IsKind(SyntaxKind.EqualsGreaterThanToken) ||
-                token.IsKind(SyntaxKind.EqualsToken);
-            if (span.IsEmpty && isSpecialCaseToken)
-            {
-                // move the span one step back
-                var relocatedSpan = new TextSpan(span.Start > 0 ? span.Start - 1 : 0, length: 0);
-                // Symbol of this node will be checked later to make sure it is a member
-                return root.FindNode(relocatedSpan);
-            }
-            else
-            {
-                return root.FindNode(span);
             }
         }
 

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
     internal abstract partial class AbstractPullMemberUpRefactoringProvider
     {
-        internal class PullMemberUpWithDialogCodeAction : CodeActionWithOptions
+        private class PullMemberUpWithDialogCodeAction : CodeActionWithOptions
         {
             /// <summary>
             /// Member which user initially selects. It will be selected initially when the dialog pops up.
@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             public override string Title => FeaturesResources.Pull_members_up_to_base_type;
 
-            internal PullMemberUpWithDialogCodeAction(
+            public PullMemberUpWithDialogCodeAction(
                 Document document,
                 ISymbol selectedMember,
-                AbstractPullMemberUpRefactoringProvider provider)
+                IPullMemberUpOptionsService service)
             {
                 _document = document;
                 _selectedMember = selectedMember;
-                _service = provider._service;
+                _service = service;
             }
 
             public override object GetOptions(CancellationToken cancellationToken)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 if (options is PullMembersUpOptions pullMemberUpOptions)
                 {
                     var changedSolution = await MembersPuller.PullMembersUpAsync(_document, pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
-                    return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
+                    return new[] { new ApplyChangesOperation(changedSolution) };
                 }
                 else
                 {

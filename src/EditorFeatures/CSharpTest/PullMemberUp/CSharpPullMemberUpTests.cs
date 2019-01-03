@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
                 if (actions.Length == 1)
                 {
                     // The dialog shows up, not quick action
-                    Assert.IsType<AbstractPullMemberUpRefactoringProvider.PullMemberUpWithDialogCodeAction>(actions.First());
+                    Assert.Equal(actions.First().Title, FeaturesResources.Pull_members_up_to_base_type);
                 }
                 else if (actions.Length > 1)
                 {

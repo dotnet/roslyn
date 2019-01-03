@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
     internal class PullMembersUpOptionsBuilder
     {
-        internal static PullMembersUpOptions BuildPullMembersUpOptions(
+        public static PullMembersUpOptions BuildPullMembersUpOptions(
             INamedTypeSymbol destination,
             ImmutableArray<(ISymbol member, bool makeAbstract)> members)
         {

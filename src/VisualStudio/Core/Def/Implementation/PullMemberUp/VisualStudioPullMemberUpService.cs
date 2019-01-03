@@ -32,8 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             var membersInType = selectedMember.ContainingType.GetMembers().
                 WhereAsArray(member => MemberAndDestinationValidator.IsMemberValid(member));
-            var memberViewModels = membersInType.
-                SelectAsArray(member =>
+            var memberViewModels = membersInType
+                .SelectAsArray(member =>
                     new PullMemberUpSymbolViewModel(_glyphService, member)
                     {
                         // The member user selected will be checked at the begining.
@@ -57,7 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
                 // Dialog has finshed its work, cancel finding dependents task.
                 cancellationTokenSource.Cancel();
-
                 if (result.GetValueOrDefault())
                 {
                     return dialog.ViewModel.CreatePullMemberUpOptions();

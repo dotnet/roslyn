@@ -12,18 +12,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 {
     internal static class SymbolDependentsBuilder
     {
-        internal static ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> FindMemberToDependentsMap(
+        public static ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> FindMemberToDependentsMap(
             Document document,
             ImmutableArray<ISymbol> membersInType,
             CancellationToken cancellationToken)
         {
             return membersInType.ToImmutableDictionary(
                 member => member,
-                member =>
+                member => Task.Run(() =>
                 {
                     var builder = new SymbolWalker(document, membersInType, member);
-                    return Task.Run(() => builder.FindMemberDependentsAsync(cancellationToken), cancellationToken);
-                });
+                    return builder.FindMemberDependentsAsync(cancellationToken);
+                }, cancellationToken));
         }
 
         private class SymbolWalker : OperationWalker
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             private readonly HashSet<ISymbol> _dependents;
             private readonly ISymbol _member;
 
-            internal SymbolWalker(
+            public SymbolWalker(
                 Document document,
                 ImmutableArray<ISymbol> membersInType,
                 ISymbol member)
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 _member = member;
             }
 
-            internal async Task<ImmutableArray<ISymbol>> FindMemberDependentsAsync(CancellationToken cancellationToken)
+            public async Task<ImmutableArray<ISymbol>> FindMemberDependentsAsync(CancellationToken cancellationToken)
             {
                 var tasks = _member.DeclaringSyntaxReferences.Select(@ref => @ref.GetSyntaxAsync(cancellationToken));
                 var syntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);

@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
         public ImmutableArray<string> WarningMessageContainer { get; set; }
         public string ProblemsListViewAutomationText => ServicesVSResources.Review_Changes;
 
-        internal PullMemberUpWarningViewModel(PullMembersUpOptions options)
+        public PullMemberUpWarningViewModel(PullMembersUpOptions options)
         {
             WarningMessageContainer = GenerateMessage(options);
         }

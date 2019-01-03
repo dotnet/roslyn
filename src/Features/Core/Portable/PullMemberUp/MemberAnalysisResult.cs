@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         /// </summary>
         public bool PullMemberUpCausesError => ChangeOriginalToPublic || ChangeOriginalToNonStatic || ChangeDestinationTypeToAbstract;
 
-        internal MemberAnalysisResult(
+        public MemberAnalysisResult(
             ISymbol member,
             bool changeOriginalToPublic,
             bool changeOriginalToNonStatic,

@@ -3,19 +3,13 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PullMemberUp
 {
     internal static class MemberAndDestinationValidator
     {
-        internal static bool IsDestinationValid(Solution solution, INamedTypeSymbol destination, CancellationToken cancellationToken)
+        public static bool IsDestinationValid(Solution solution, INamedTypeSymbol destination, CancellationToken cancellationToken)
         {
-            if (destination == null)
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-
             // Make sure destination is class or interface since it could be ErrorTypeSymbol
             if (destination.TypeKind != TypeKind.Interface && destination.TypeKind != TypeKind.Class)
             {
@@ -25,12 +19,11 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             // Don't provide any refactoring option if the destination is not in source.
             // If the destination is generated code, also don't provide refactoring since we can't make sure if we won't break it.
             var isDestinationInSourceAndNotGeneratedCode =
-                destination.DeclaringSyntaxReferences.Length > 0 &&
                 destination.Locations.Any(location => location.IsInSource && !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
             return isDestinationInSourceAndNotGeneratedCode;
         }
 
-        internal static bool IsMemberValid(ISymbol member)
+        public static bool IsMemberValid(ISymbol member)
         {
             // Static, abstract and accessiblity are not checked here but in PullMembersUpOptionsBuilder.cs since there are
             // two refactoring options provided for pull members up,
