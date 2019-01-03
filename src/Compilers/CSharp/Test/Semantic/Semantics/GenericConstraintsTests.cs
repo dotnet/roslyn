@@ -3852,6 +3852,32 @@ public unsafe struct OtherStruct
         }
 
         [Fact]
+        public void StructContainingTuple_Pointer_RequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct
+{
+    public (int, int) field;
+}
+
+public class C
+{
+    public unsafe void M<T>() where T : unmanaged { var t = default(T); var ptr = &t; }
+
+    public void M2()
+    {
+        M<MyStruct>();
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // PROTOTYPE: placeholder while we figure out how to get the compiler to produce the error in this context
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct")
+                );
+        }
+
+        [Fact]
         public void GenericRefStructAddressOf()
         {
             var code = @"
