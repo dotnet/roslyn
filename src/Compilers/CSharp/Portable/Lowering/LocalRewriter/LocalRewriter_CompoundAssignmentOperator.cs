@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   receiver.EV += handler
                 // Rewritten:
                 //   dynamic memberAccessReceiver = receiver;
-                //   bool isEvent = is_Event(memberAccessReceiver, "EV");
-                //   dynamic possibleEvent = !isEvent ? memberAccessReceiver.EV : null;
-                //   var loweredRight = handler; // Only necessary if handler can change values
-                //   isEvent ? add_Event(memberAccessReceiver, "EV", rhs) : transformedLHS = possibleEvent + rhs;
+                //   bool isEvent = Runtime.IsEvent(memberAccessReceiver, "EV");
+                //   dynamic storeNonEvent = !isEvent ? memberAccessReceiver.EV : null;
+                //   var loweredRight = handler; // Only necessary if handler can change values, or is something like a lambda
+                //   isEvent ? add_Event(memberAccessReceiver, "EV", loweredRight) : transformedLHS = storeNonEvent + loweredRight;
                 //
                 // This is to ensure that if handler is something like a lambda, we evaluate fully evaluate the left
                 // side before storing the lambda to a temp for use in both possible branches.
@@ -54,20 +54,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var eventTemps = ArrayBuilder<LocalSymbol>.GetInstance();
                 var sequence = ArrayBuilder<BoundExpression>.GetInstance();
 
+                //   dynamic memberAccessReceiver = receiver;
                 var memberAccess = (BoundDynamicMemberAccess)transformedLHS;
 
+                //   bool isEvent = Runtime.IsEvent(memberAccessReceiver, "EV");
                 var isEvent = _factory.StoreToTemp(_dynamicFactory.MakeDynamicIsEventTest(memberAccess.Name, memberAccess.Receiver).ToExpression(), out BoundAssignmentOperator isEventAssignment);
                 eventTemps.Add(isEvent.LocalSymbol);
                 sequence.Add(isEventAssignment);
 
-                // if (!isEvent) possibleEvent = receiver.EV;
+                // dynamic storeNonEvent = !isEvent ? memberAccessReceiver.EV : null;
                 lhsRead = _factory.StoreToTemp(lhsRead, out BoundAssignmentOperator receiverAssignment);
                 eventTemps.Add(((BoundLocal)lhsRead).LocalSymbol);
-                var storeNonEvent = _factory.StoreToTemp(_factory.Conditional(_factory.Not(isEvent), receiverAssignment, _factory.Null(receiverAssignment.Type), receiverAssignment.Type), out BoundAssignmentOperator lhsStore);
+                var storeNonEvent = _factory.StoreToTemp(_factory.Conditional(_factory.Not(isEvent), receiverAssignment, _factory.Null(receiverAssignment.Type), receiverAssignment.Type), out BoundAssignmentOperator nonEventStore);
                 eventTemps.Add(storeNonEvent.LocalSymbol);
-                sequence.Add(lhsStore);
+                sequence.Add(nonEventStore);
 
-                // var rhs = handler;
+                // var loweredRight = handler;
                 if (CanChangeValueBetweenReads(loweredRight))
                 {
                     loweredRight = _factory.StoreToTemp(loweredRight, out BoundAssignmentOperator possibleHandlerAssignment);
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     memberAccess.Receiver,
                     loweredRight);
 
-                // possibleEvent += rhs;
+                // transformedLHS = storeNonEvent + loweredRight
                 rewrittenAssignment = rewriteAssignment(lhsRead);
 
                 // Final conditional
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxNode syntax = node.Syntax;
 
                 // OK, we now have the temporary declarations, the temporary stores, and the transformed left hand side.
-                // We need to generate 
+                // We need to generate
                 //
                 // xlhs = (FINAL)((LEFT)xlhs op rhs)
                 //

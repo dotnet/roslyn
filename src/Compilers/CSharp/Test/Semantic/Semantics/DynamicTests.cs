@@ -993,7 +993,7 @@ class DynamicTest
     public event EventHandler<object> Event
     {
         add { Console.WriteLine(""add_Event""); }
-        remove {}
+        remove { Console.WriteLine(""remove_Event""); }
     }
 
     static dynamic GetDynamic()
@@ -1022,6 +1022,8 @@ class DynamicTest
         GetDynamic().Property &= GetInt();
         Console.WriteLine(""Compound Add Event"");
         GetDynamic().Event += GetHandler();
+        Console.WriteLine(""Compound Remove Event"");
+        GetDynamic().Event -= GetHandler();
     }
 }", targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: @"
 Compound Add
@@ -1038,6 +1040,10 @@ Compound Add Event
 GetDynamic
 GetHandler
 add_Event
+Compound Remove Event
+GetDynamic
+GetHandler
+remove_Event
 ");
         }
 
