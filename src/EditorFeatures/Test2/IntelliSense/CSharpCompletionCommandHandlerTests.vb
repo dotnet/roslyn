@@ -4180,6 +4180,29 @@ class C
             End Using
         End Function
 
+        <WorkItem(30097, "https://github.com/dotnet/roslyn/issues/30097")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNamedParameterDoesNotAddExtraColon(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    public double M(double some) => m;
+
+    public void Test()
+    {    
+        $$
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars("M(some:M(some:")
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("        M(some:M(some:", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
