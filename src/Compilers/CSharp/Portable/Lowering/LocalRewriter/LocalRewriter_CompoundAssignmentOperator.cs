@@ -31,92 +31,73 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
             BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Left, stores, temps, isDynamic);
-
-            // if LHS is a member access and the operation is += or -=, we need to check at runtime if the LHS is an event.
-            // We rewrite dyn.Member op= RHS to the following:
-            //
-            //   IsEvent("Member", dyn) ? InvokeMember("{add|remove}_Member", dyn, RHS) : SetMember(BinaryOperation("op=", GetMember("Member", dyn)), RHS)
-            //
-            bool isPossibleEventHandlerOperation = node.Left.Kind == BoundKind.DynamicMemberAccess &&
-                (binaryOperator == BinaryOperatorKind.Addition || binaryOperator == BinaryOperatorKind.Subtraction);
-
             var lhsRead = MakeRValue(transformedLHS);
+            BoundExpression rewrittenAssignment;
 
-            // If RHS needs to be saved to a temp, we save the LHS read to a temp first to ensure order
-            // of operations is preserved
-            if (isPossibleEventHandlerOperation && CanChangeValueBetweenReads(loweredRight))
+            if (node.Left.Kind == BoundKind.DynamicMemberAccess &&
+                (binaryOperator == BinaryOperatorKind.Addition || binaryOperator == BinaryOperatorKind.Subtraction))
             {
-                lhsRead = storeToTemp(lhsRead);
-                loweredRight = storeToTemp(loweredRight);
+                // If this could be an event assignment at runtime, we need to rewrite to the following form:
+                // Original:
+                //   receiver.EV += handler
+                // Rewritten:
+                //   dynamic memberAccessReceiver = receiver;
+                //   bool isEvent = is_Event(memberAccessReceiver, "EV");
+                //   dynamic possibleEvent = !isEvent ? memberAccessReceiver.EV : null;
+                //   var loweredRight = handler; // Only necessary if handler can change values
+                //   isEvent ? add_Event(memberAccessReceiver, "EV", rhs) : transformedLHS = possibleEvent + rhs;
+                //
+                // This is to ensure that if handler is something like a lambda, we evaluate fully evaluate the left
+                // side before storing the lambda to a temp for use in both possible branches.
+                // The first store to memberAccessReceiver has already been taken care of above by TransformCompoundAssignmentLHS
 
-                BoundExpression storeToTemp(BoundExpression expression)
-                {
-                    var temp = _factory.StoreToTemp(expression, out BoundAssignmentOperator assignmentToTemp);
-                    stores.Add(assignmentToTemp);
-                    temps.Add(temp.LocalSymbol);
-                    return temp;
-                }
-            }
+                var eventTemps = ArrayBuilder<LocalSymbol>.GetInstance();
+                var sequence = ArrayBuilder<BoundExpression>.GetInstance();
 
-            SyntaxNode syntax = node.Syntax;
-
-            // OK, we now have the temporary declarations, the temporary stores, and the transformed left hand side.
-            // We need to generate 
-            //
-            // xlhs = (FINAL)((LEFT)xlhs op rhs)
-            //
-            // And then wrap it up with the generated temporaries.
-            //
-            // (The right hand side has already been converted to the type expected by the operator.)
-
-            BoundExpression opLHS = isDynamic ? lhsRead : MakeConversionNode(
-                syntax: syntax,
-                rewrittenOperand: lhsRead,
-                conversion: node.LeftConversion,
-                rewrittenType: node.Operator.LeftType,
-                @checked: isChecked);
-
-            BoundExpression operand = MakeBinaryOperator(syntax, node.Operator.Kind, opLHS, loweredRight, node.Operator.ReturnType, node.Operator.Method, isCompoundAssignment: true);
-
-            BoundExpression opFinal = MakeConversionNode(
-                syntax: syntax,
-                rewrittenOperand: operand,
-                conversion: node.FinalConversion,
-                rewrittenType: node.Left.Type,
-                explicitCastInCode: isDynamic,
-                @checked: isChecked);
-
-            BoundExpression rewrittenAssignment = MakeAssignmentOperator(syntax, transformedLHS, opFinal, node.Left.Type, used: used, isChecked: isChecked, isCompoundAssignment: true);
-
-            // OK, at this point we have:
-            //
-            // * temps evaluating and storing portions of the LHS that must be evaluated only once.
-            // * the "transformed" left hand side, rebuilt to use temps where necessary
-            // * the assignment "xlhs = (FINAL)((LEFT)xlhs op (RIGHT)rhs)"
-            // 
-            // Notice that we have recursively rewritten the bound nodes that are things stored in
-            // the temps, and by calling the "Make" methods we have rewritten the conversions and
-            // assignments too, if necessary.
-
-            if (isPossibleEventHandlerOperation)
-            {
-                // IsEvent("Goo", dyn) ? InvokeMember("{add|remove}_Goo", dyn, RHS) : rewrittenAssignment
                 var memberAccess = (BoundDynamicMemberAccess)transformedLHS;
 
-                var isEventCondition = _dynamicFactory.MakeDynamicIsEventTest(memberAccess.Name, memberAccess.Receiver);
+                var isEvent = _factory.StoreToTemp(_dynamicFactory.MakeDynamicIsEventTest(memberAccess.Name, memberAccess.Receiver).ToExpression(), out BoundAssignmentOperator isEventAssignment);
+                eventTemps.Add(isEvent.LocalSymbol);
+                sequence.Add(isEventAssignment);
 
+                // if (!isEvent) possibleEvent = receiver.EV;
+                lhsRead = _factory.StoreToTemp(lhsRead, out BoundAssignmentOperator receiverAssignment);
+                eventTemps.Add(((BoundLocal)lhsRead).LocalSymbol);
+                var storeNonEvent = _factory.StoreToTemp(_factory.Conditional(_factory.Not(isEvent), receiverAssignment, _factory.Null(receiverAssignment.Type), receiverAssignment.Type), out BoundAssignmentOperator lhsStore);
+                eventTemps.Add(storeNonEvent.LocalSymbol);
+                sequence.Add(lhsStore);
+
+                // var rhs = handler;
+                if (CanChangeValueBetweenReads(loweredRight))
+                {
+                    loweredRight = _factory.StoreToTemp(loweredRight, out BoundAssignmentOperator possibleHandlerAssignment);
+                    eventTemps.Add(((BoundLocal)loweredRight).LocalSymbol);
+                    sequence.Add(possibleHandlerAssignment);
+                }
+
+                // add_Event(t1, "add_EV");
                 var invokeEventAccessor = _dynamicFactory.MakeDynamicEventAccessorInvocation(
                     (binaryOperator == BinaryOperatorKind.Addition ? "add_" : "remove_") + memberAccess.Name,
                     memberAccess.Receiver,
                     loweredRight);
 
-                rewrittenAssignment = _factory.Conditional(isEventCondition.ToExpression(), invokeEventAccessor.ToExpression(), rewrittenAssignment, rewrittenAssignment.Type);
+                // possibleEvent += rhs;
+                rewrittenAssignment = rewriteAssignment(lhsRead);
+
+                // Final conditional
+                var condition = _factory.Conditional(isEvent, invokeEventAccessor.ToExpression(), rewrittenAssignment, rewrittenAssignment.Type);
+
+                rewrittenAssignment = new BoundSequence(node.Syntax, eventTemps.ToImmutableAndFree(), sequence.ToImmutableAndFree(), condition, condition.Type);
+            }
+            else
+            {
+                rewrittenAssignment = rewriteAssignment(lhsRead);
             }
 
             BoundExpression result = (temps.Count == 0 && stores.Count == 0) ?
                 rewrittenAssignment :
                 new BoundSequence(
-                    syntax,
+                    node.Syntax,
                     temps.ToImmutable(),
                     stores.ToImmutable(),
                     rewrittenAssignment,
@@ -125,6 +106,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             temps.Free();
             stores.Free();
             return result;
+
+            BoundExpression rewriteAssignment(BoundExpression leftRead)
+            {
+                SyntaxNode syntax = node.Syntax;
+
+                // OK, we now have the temporary declarations, the temporary stores, and the transformed left hand side.
+                // We need to generate 
+                //
+                // xlhs = (FINAL)((LEFT)xlhs op rhs)
+                //
+                // And then wrap it up with the generated temporaries.
+                //
+                // (The right hand side has already been converted to the type expected by the operator.)
+
+                BoundExpression opLHS = isDynamic ? leftRead : MakeConversionNode(
+                    syntax: syntax,
+                    rewrittenOperand: leftRead,
+                    conversion: node.LeftConversion,
+                    rewrittenType: node.Operator.LeftType,
+                    @checked: isChecked);
+
+                BoundExpression operand = MakeBinaryOperator(syntax, node.Operator.Kind, opLHS, loweredRight, node.Operator.ReturnType, node.Operator.Method, isCompoundAssignment: true);
+
+                BoundExpression opFinal = MakeConversionNode(
+                    syntax: syntax,
+                    rewrittenOperand: operand,
+                    conversion: node.FinalConversion,
+                    rewrittenType: node.Left.Type,
+                    explicitCastInCode: isDynamic,
+                    @checked: isChecked);
+
+                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, node.Left.Type, used: used, isChecked: isChecked, isCompoundAssignment: true);
+            }
         }
 
         private BoundExpression TransformPropertyOrEventReceiver(Symbol propertyOrEvent, BoundExpression receiverOpt, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
