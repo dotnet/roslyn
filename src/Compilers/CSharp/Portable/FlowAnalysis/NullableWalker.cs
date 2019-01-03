@@ -1722,6 +1722,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int slot;
                 switch (operand.Kind)
                 {
+                    case BoundKind.SuppressNullableWarningExpression:
+                        operand = ((BoundSuppressNullableWarningExpression)operand).Expression;
+                        continue;
                     case BoundKind.Conversion:
                         // https://github.com/dotnet/roslyn/issues/29953 Detect when conversion has a nullable operand
                         operand = ((BoundConversion)operand).Operand;
@@ -4987,8 +4990,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(receiverOpt.Type is null || _resultType.TypeSymbol is null || AreCloseEnough(receiverOpt.Type, _resultType.TypeSymbol));
 #endif
                 var resultType = _resultType.TypeSymbol;
-                if ((object)resultType != null &&
-                    _resultType.GetValueNullableAnnotation().IsAnyNullable())
+                if (resultType is null)
+                {
+                    return;
+                }
+
+                if (_resultType.GetValueNullableAnnotation().IsAnyNullable())
                 {
                     bool isValueType = resultType.IsValueType;
                     if (isValueType && (!checkNullableValueType || !resultType.IsNullableType()))
@@ -4996,15 +5003,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
                     ReportSafetyDiagnostic(isValueType ? ErrorCode.WRN_NullableValueTypeMayBeNull : ErrorCode.WRN_NullReferenceReceiver, syntaxOpt ?? receiverOpt.Syntax);
-
-                    var slotBuilder = ArrayBuilder<int>.GetInstance();
-                    GetSlotsToMarkAsNotNullable(receiverOpt, slotBuilder);
-                    if (slotBuilder.Count > 0)
-                    {
-                        MarkSlotsAsNotNullable(slotBuilder, ref State);
-                    }
-                    slotBuilder.Free();
                 }
+
+                var slotBuilder = ArrayBuilder<int>.GetInstance();
+                GetSlotsToMarkAsNotNullable(receiverOpt, slotBuilder);
+                MarkSlotsAsNotNullable(slotBuilder, ref State);
+                slotBuilder.Free();
             }
         }
 
