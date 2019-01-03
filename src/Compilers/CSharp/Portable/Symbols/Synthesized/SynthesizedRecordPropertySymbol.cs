@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly NamedTypeSymbol _containingType;
         private readonly ParameterSymbol _backingParameter;
 
+        public SynthesizedBackingFieldSymbol BackingField { get; }
+
         public SynthesizedRecordPropertySymbol(
             NamedTypeSymbol containingType,
             ParameterSymbol backingParameter)
@@ -24,6 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = containingType;
             GetMethod = new GetAccessorSymbol(this);
             _backingParameter = backingParameter;
+            string name = GeneratedNames.MakeBackingFieldName(backingParameter.Name);
+            BackingField = new SynthesizedBackingFieldSymbol(
+                    this,
+                    name,
+                    isReadOnly: true,
+                    isStatic: false,
+                    hasInitializer: backingParameter.HasExplicitDefaultValue);
         }
 
         public override RefKind RefKind => RefKind.None;
@@ -64,11 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasSpecialName => false;
 
-        internal override CallingConvention CallingConvention => throw new NotImplementedException();
+        internal override CallingConvention CallingConvention => CallingConvention.Default;
 
         internal override bool MustCallMethodsDirectly => false;
 
-        internal override ObsoleteAttributeData ObsoleteAttributeData => throw new NotImplementedException();
+        internal override ObsoleteAttributeData ObsoleteAttributeData => null;
 
         public override string Name => _backingParameter.Name;
 
@@ -82,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasPointerType => Type.IsPointerType();
 
-        public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList => throw new NotImplementedException();
+        public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList => default;
 
         private sealed class GetAccessorSymbol : SynthesizedInstanceMethodSymbol
         {
@@ -93,15 +102,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _property = property;
             }
 
-            public override MethodKind MethodKind => throw new NotImplementedException();
+            public override string Name => SourcePropertyAccessorSymbol.GetAccessorName(
+                _property.Name,
+                getNotSet: true,
+                // winmdobj output only effects setters, so we can always set this to false
+                isWinMdOutput: false);
 
-            public override int Arity => throw new NotImplementedException();
+            public override MethodKind MethodKind => MethodKind.PropertyGet;
 
-            public override bool IsExtensionMethod => throw new NotImplementedException();
+            public override int Arity => 0;
 
-            public override bool HidesBaseMethodsByName => throw new NotImplementedException();
+            public override bool IsExtensionMethod => false;
 
-            public override bool IsVararg => throw new NotImplementedException();
+            public override bool HidesBaseMethodsByName => false;
+
+            public override bool IsVararg => false;
 
             public override bool ReturnsVoid => false;
 
@@ -141,24 +156,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool IsExtern => _property.IsExtern;
 
-            internal override bool HasSpecialName => _property.HasSpecialName;
+            internal override bool HasSpecialName => true;
 
-            internal override MethodImplAttributes ImplementationAttributes => throw new NotImplementedException();
+            internal override MethodImplAttributes ImplementationAttributes => default;
 
-            internal override bool HasDeclarativeSecurity => throw new NotImplementedException();
+            internal override bool HasDeclarativeSecurity => false;
 
-            internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation => throw new NotImplementedException();
+            internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation => null;
 
-            internal override bool RequiresSecurityObject => throw new NotImplementedException();
+            internal override bool RequiresSecurityObject => false;
 
-            internal override CallingConvention CallingConvention => throw new NotImplementedException();
+            internal override CallingConvention CallingConvention => CallingConvention.HasThis;
 
-            internal override bool GenerateDebugInfo => throw new NotImplementedException();
+            internal override bool GenerateDebugInfo => false;
 
-            public override DllImportData GetDllImportData()
-            {
-                throw new NotImplementedException();
-            }
+            public override DllImportData GetDllImportData() => null;
 
             internal override ImmutableArray<string> GetAppliedConditionalSymbols()
             {
@@ -172,12 +184,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
             {
-                throw new NotImplementedException();
+                return false;
             }
 
             internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
             {
-                throw new NotImplementedException();
+                return false;
+            }
+
+            internal override bool SynthesizesLoweredBoundBody => true;
+
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            {
+                //  Method body:
+                //
+                //  {
+                //      return this.backingField;
+                //  }
+
+                var F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+                F.CurrentFunction = this;
+                F.CloseMethod(F.Block(F.Return(F.Field(F.This(), _property.BackingField))));
             }
         }
     }
