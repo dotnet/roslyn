@@ -128,30 +128,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return;
             }
 
-            var semicolonPosition = GetSemicolonLocation(currentNode, caretPosition);
+            var semicolonPosition = GetSemicolonLocation(root, currentNode, caretPosition);
 
             // Place cursor after the statement
-            args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(GetEndPosition(root, semicolonPosition, currentNode.Kind())));
+            args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(semicolonPosition));
         }
 
-        private int GetSemicolonLocation(SyntaxNode currentNode, int caretPosition)
+        private int GetSemicolonLocation(SyntaxNode root, SyntaxNode currentNode, int caretPosition)
         {
+            int end;
             if (currentNode.IsKind(SyntaxKind.ForStatement))
             {
                 // in for statements, semicolon can go after initializer or after condition, depending on where the caret is located
                 var forStatementSyntax = (ForStatementSyntax)currentNode;
-                if (caretPosition > forStatementSyntax.Condition.SpanStart  && caretPosition < forStatementSyntax.Condition.Span.End)
+                if (CaretIsInForStatementCondition(caretPosition, forStatementSyntax))
                 {
-                    return forStatementSyntax.Condition.FullSpan.End;
+                    end = forStatementSyntax.Condition.FullSpan.End;
                 }
-
-                if (caretPosition > forStatementSyntax.Declaration.Span.Start && caretPosition < forStatementSyntax.Declaration.Span.End)
+                else if (CaretIsInForStatementDeclaration(caretPosition, forStatementSyntax))
                 {
-                    return forStatementSyntax.Declaration.FullSpan.End;
+                    end = forStatementSyntax.Declaration.FullSpan.End;
+                }
+                else
+                {
+                    // Should not be reachable because we returned earlier for this case
+                    end = 0;
+                    Debug.Fail("Complete statement not supported on For statement iterator");
                 }
             }
+            else
+            {
+                end = currentNode.Span.End;
+            }
 
-            return currentNode.Span.End;
+            // If a node's semicolon is missing, the trailing trivia (including new line) is associated with the last token.
+            // To avoid placing the semicolon on the next line or after comments, we need to adjust the position.
+            return root.FindToken(end).GetPreviousToken().Span.End;
+        }
+
+        private static bool CaretIsInForStatementDeclaration(int caretPosition, ForStatementSyntax forStatementSyntax)
+        {
+            return caretPosition > forStatementSyntax.Declaration.Span.Start && caretPosition < forStatementSyntax.Declaration.Span.End;
+        }
+
+        private static bool CaretIsInForStatementCondition(int caretPosition, ForStatementSyntax forStatementSyntax)
+        {
+            return caretPosition > forStatementSyntax.Condition.SpanStart && caretPosition < forStatementSyntax.Condition.Span.End;
         }
 
         /// <summary>
@@ -169,9 +191,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             bool nodeFound = false;
             while (!IsStatementOrFieldDeclaration(currentNode, syntaxFacts))
             {
+                // Look for the following types of nodes:
+                // ArgumentList: covers method invocations like object.Method(arg)
+                // ArrayRankSpecifier: covers new Type[dim]
+                // ElementAccessExpression: covers indexer invocations like array[index]
+                // ParenthesizedExpression: covers (3*(x+y))
                 if (currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier, SyntaxKind.ElementAccessExpression, SyntaxKind.ParenthesizedExpression))
                 {
-                    // It's a node of interest
                     nodeFound = true;
                 }
 
@@ -224,13 +250,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     return true;
                 case SyntaxKind.ForStatement:
                     var forStatementSyntax = (ForStatementSyntax)currentNode;
-                    if (caretPosition > forStatementSyntax.Incrementors.Span.Start && caretPosition < forStatementSyntax.Incrementors.Span.End)
+                    if (CaretIsInForStatementCondition(caretPosition, forStatementSyntax) ||
+                        CaretIsInForStatementDeclaration(caretPosition,forStatementSyntax))
                     {
-                        return false;
+                        return true;
                     }
                     else
                     {
-                        return true;
+                        return false;
                     }
                 default:
                     return false;
@@ -390,21 +417,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     var arrayRankSpecifierSyntax = (ArrayRankSpecifierSyntax)currentNode;
                     return !arrayRankSpecifierSyntax.CloseBracketToken.IsMissing;
 
-                //case SyntaxKind.ElementAccessExpression:
-                //    var elementAccessExpressionSyntax = (ElementAccessExpressionSyntax)currentNode;
-                //    return false;
                 default:
                     // Type of node does not require a closing delimiter
                     return true;
             }
-        }
-
-        private static int GetEndPosition(SyntaxNode root, int end, SyntaxKind nodeKind)
-        {
-            // If "end" is at the end of a line, the token has trailing end of line trivia.
-            // We want to put our cursor before that trivia, so use previous token for placement.
-            var token = root.FindToken(end);
-            return token.GetPreviousToken().Span.End;
         }
     }
 }
