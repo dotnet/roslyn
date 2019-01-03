@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                            ? ImmutableArray.Create(disposedExpression)
                            : ImmutableArray<BoundExpression>.Empty;
 
-                var refs = methodOpt.IsExtensionMethod && !methodOpt.ParameterRefKinds.IsDefault
+                var refs = methodOpt.IsExtensionMethod && !methodOpt.ParameterRefKinds.IsDefaultOrEmpty
                            ? ImmutableArray.Create(methodOpt.ParameterRefKinds[0])
                            : default;
 
