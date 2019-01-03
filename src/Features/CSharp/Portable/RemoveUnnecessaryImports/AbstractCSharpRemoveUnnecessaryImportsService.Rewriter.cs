@@ -65,18 +65,20 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                             // then place it on that.
                             if (i < usings.Count - 1)
                             {
-                                var nextUsing = currentUsings[i + 1];
+                                var nextIndex = i + 1;
+                                var nextUsing = currentUsings[nextIndex];
+
                                 if (ShouldPreserveTrivia(nextUsing.GetLeadingTrivia()))
                                 {
                                     // If we need to preserve the next trivia too then, prepend
                                     // the two together.
-                                    currentUsings[i + 1] = nextUsing.WithPrependedLeadingTrivia(leadingTrivia);
+                                    currentUsings[nextIndex] = nextUsing.WithPrependedLeadingTrivia(leadingTrivia);
                                 }
                                 else
                                 {
                                     // Otherwise, replace the next trivia with this trivia that we
                                     // want to preserve.
-                                    currentUsings[i + 1] = nextUsing.WithLeadingTrivia(leadingTrivia);
+                                    currentUsings[nextIndex] = nextUsing.WithLeadingTrivia(leadingTrivia);
                                 }
                             }
                             else

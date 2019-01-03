@@ -55,16 +55,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                             ' then copy this trivia out so that our caller can place it on the next token.
                             ' If there is any import following us, then place it on that.
                             If i < oldImports.Count - 1 Then
-                                Dim nextImport = oldImports(i + 1)
+                                Dim nextIndex = i + 1
+                                Dim nextImport = oldImports(nextIndex)
 
                                 If ShouldPreserveTrivia(nextImport.GetLeadingTrivia()) Then
                                     ' If we need to preserve the next trivia too then, prepend
                                     ' the two together.
-                                    oldImports(i + 1) = nextImport.WithPrependedLeadingTrivia(leadingTrivia)
+                                    oldImports(nextIndex) = nextImport.WithPrependedLeadingTrivia(leadingTrivia)
                                 Else
                                     ' Otherwise, replace the next trivia with this trivia that we
                                     ' want to preserve.
-                                    oldImports(i + 1) = nextImport.WithLeadingTrivia(leadingTrivia)
+                                    oldImports(nextIndex) = nextImport.WithLeadingTrivia(leadingTrivia)
                                 End If
                             Else
                                 remainingTrivia = leadingTrivia
