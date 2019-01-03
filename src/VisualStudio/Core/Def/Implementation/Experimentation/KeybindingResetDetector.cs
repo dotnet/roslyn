@@ -326,6 +326,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             async Task<int> QueryStatusAsync(OLECMD[] cmds)
             {
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
 
                 return _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
             }
