@@ -258,7 +258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 selectedItem.Span,
                 // Do not insert colon on <Tab> so that user can complete out a variable name that does not currently exist.
                 // ch == null is to support the old completion only.
-                (ch == null || ch == '\t') ? selectedItem.DisplayText : selectedItem.GetEntireDisplayText()));
+                // Do not insert an extra colon if colon has been explicitly typed.
+                (ch == null || ch == '\t' || ch == ':') ? selectedItem.DisplayText : selectedItem.GetEntireDisplayText()));
         }
     }
 }
