@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var cancellationToken = context.CancellationToken;
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var selectedMemberNode = await GetMathedNodeAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
+            var selectedMemberNode = await GetMatchedNodeAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
 
             if (selectedMemberNode == null)
             {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             return allDestinations.WhereAsArray(destination => MemberAndDestinationValidator.IsDestinationValid(solution, destination, cancellationToken));
         }
 
-        private async Task<SyntaxNode> GetMathedNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> GetMatchedNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (span.IsEmpty)
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 // int i[||]= 0;
                 // int j[||]=> 100;
                 // int k[||]{set; }
-                // but refactoring should be provided in for this cases
+                // but refactoring should be provided in for those cases
                 var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                 var token = await root.SyntaxTree.GetTouchingWordAsync(span.Start, syntaxFactsService, cancellationToken).ConfigureAwait(false);
                 if (token.RawKind != None)
