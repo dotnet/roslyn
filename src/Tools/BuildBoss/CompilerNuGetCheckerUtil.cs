@@ -99,7 +99,7 @@ namespace BuildBoss
             allGood &= VerifyVsix(
                         textWriter,
                         FindVsix("Roslyn.Compilers.Extension"),
-                        dllRelativeNames);
+                        dllRelativeNames.Concat(new[] { "Roslyn.Compilers.Extension.dll" }));
             return allGood;
         }
 
