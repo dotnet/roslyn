@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
 
@@ -4312,7 +4313,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "F5").WithArguments("F5").WithLocation(12, 30));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE: Should we report errors for all these cases, even in C#8?
             comp.VerifyDiagnostics(
                 // (11,17): error CS0136: A local or parameter named 'F4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //         void F4<F4>() { } // type parameter
@@ -4360,6 +4360,40 @@ class Program
         }
 
         [Fact]
+        public void ShadowNames_LocalFunctionInsideLocalFunction_02()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+class Program
+{
+    static void M<T>(object x)
+    {
+        static void F1()
+        {
+            void G1(int x) { }
+        }
+        void F2()
+        {
+            static void G2() { int T = 0; }
+        }
+        static void F3()
+        {
+            static void G3<T>() { }
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,36): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //             static void G2() { int T = 0; }
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(13, 36),
+                // (17,28): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'Program.M<T>(object)'
+                //             static void G3<T>() { }
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "Program.M<T>(object)").WithLocation(17, 28));
+        }
+
+        [Fact]
         public void ShadowNames_LocalFunctionInsideLambda()
         {
             var source =
@@ -4396,40 +4430,6 @@ class Program
                 // (16,21): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             void F2<T>() { }
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(16, 21));
-        }
-
-        [Fact]
-        public void ShadowNames_LocalFunctionInsideLocalFunction_02()
-        {
-            var source =
-@"#pragma warning disable 0219
-#pragma warning disable 8321
-class Program
-{
-    static void M<T>(object x)
-    {
-        static void F1()
-        {
-            void G1(int x) { }
-        }
-        void F2()
-        {
-            static void G2() { int T = 0; }
-        }
-        static void F3()
-        {
-            static void G3<T>() { }
-        }
-    }
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (13,36): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //             static void G2() { int T = 0; }
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(13, 36),
-                // (17,28): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'Program.M<T>(object)'
-                //             static void G3<T>() { }
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "Program.M<T>(object)").WithLocation(17, 28));
         }
 
         [Fact]
@@ -4561,20 +4561,145 @@ class C
         }
 
         [Fact]
-        public void StaticWithNameOf()
+        public void Conditional_ThisReferenceInStatic()
+        {
+            var source =
+@"#pragma warning disable 0649
+#pragma warning disable 8321
+using System.Diagnostics;
+class A
+{
+    internal object _f;
+}
+class B : A
+{
+    [Conditional(""MyDefine"")]
+    static void F(object o)
+    {
+    }
+    void M()
+    {
+        static void F1() { F(this); }
+        static void F2() { F(base._f); }
+        static void F3() { F(_f); }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8.WithPreprocessorSymbols("MyDefine"));
+            comp.VerifyEmitDiagnostics(
+                // (16,30): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                //         static void F1() { F(this); }
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(16, 30),
+                // (17,30): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                //         static void F2() { F(base._f); }
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "base").WithLocation(17, 30),
+                // (18,30): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                //         static void F3() { F(_f); }
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "_f").WithLocation(18, 30));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE: Should we report the same errors when "MyDefine" is not set?
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void NameOf_ThisReferenceInStatic()
         {
             var source =
 @"#pragma warning disable 8321
 class C
 {
-    void M(object x)
+    void M()
     {
-        static object F1() => nameof(this.M);
-        static object F2() => nameof(x);
+        static object F1() => nameof(this.ToString);
+        static object F2() => nameof(base.GetHashCode);
+        static object F3() => nameof(M);
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void NameOf_InstanceMemberInStatic()
+        {
+            var source =
+@"#pragma warning disable 0649
+#pragma warning disable 8321
+class C
+{
+    object _f;
+    static void M()
+    {
+        _ = nameof(_f);
+        static object F() => nameof(_f);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = GetNameOfExpressions(tree)[1];
+            var symbol = model.GetSymbolInfo(expr).Symbol;
+            Assert.Equal("System.Object C._f", symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NameOf_CapturedVariableInStatic()
+        {
+            var source =
+@"#pragma warning disable 8321
+class C
+{
+    static void M(object x)
+    {
+        static object F() => nameof(x);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = GetNameOfExpressions(tree)[0];
+            var symbol = model.GetSymbolInfo(expr).Symbol;
+            Assert.Equal("System.Object x", symbol.ToTestDisplayString());
+        }
+
+        /// <summary>
+        /// nameof(identifier) should bind to shadowing variable.
+        /// </summary>
+        [Fact]
+        public void NameOf_ShadowedVariable()
+        {
+            var source =
+@"#pragma warning disable 8321
+class C
+{
+    static void M(object x)
+    {
+        object F()
+        {
+            int x = 0;
+            return nameof(x);
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = GetNameOfExpressions(tree)[0];
+            var symbol = model.GetSymbolInfo(expr).Symbol;
+            Assert.Equal(SymbolKind.Local, symbol.Kind);
+            Assert.Equal("System.Int32 x", symbol.ToTestDisplayString());
+        }
+
+        private static ImmutableArray<ExpressionSyntax> GetNameOfExpressions(SyntaxTree tree)
+        {
+            return tree.GetRoot().DescendantNodes().
+                OfType<InvocationExpressionSyntax>().
+                Where(n => n.Expression.ToString() == "nameof").
+                Select(n => n.ArgumentList.Arguments[0].Expression).
+                ToImmutableArray();
         }
     }
 }
