@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -422,9 +423,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                disposeCall = methodOpt.IsExtensionMethod
-                   ? BoundCall.Synthesized(syntax, receiverOpt: null, methodOpt, disposedExpression)
-                   : BoundCall.Synthesized(syntax, disposedExpression, methodOpt);
+                var receiver = methodOpt.IsExtensionMethod
+                               ? null
+                               : disposedExpression;
+
+                var args = methodOpt.IsExtensionMethod
+                           ? ImmutableArray.Create(disposedExpression)
+                           : ImmutableArray<BoundExpression>.Empty;
+
+                var refs = methodOpt.IsExtensionMethod && !methodOpt.ParameterRefKinds.IsDefaultOrEmpty
+                           ? ImmutableArray.Create(methodOpt.ParameterRefKinds[0])
+                           : default;
+
+                disposeCall = MakeCall(syntax: syntax,
+                                       rewrittenReceiver: receiver,
+                                       method: methodOpt,
+                                       rewrittenArguments: args,
+                                       argumentRefKindsOpt: refs,
+                                       expanded: methodOpt.HasParamsParameter(),
+                                       invokedAsExtensionMethod: methodOpt.IsExtensionMethod,
+                                       argsToParamsOpt: default,
+                                       resultKind: LookupResultKind.Viable,
+                                       type: methodOpt.ReturnType.TypeSymbol,
+                                       nodeOpt: null);
 
                 if (!(awaitOpt is null))
                 {

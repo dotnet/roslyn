@@ -890,12 +890,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
-            {
-                Fail(node);
-                return null;
-            }
-
             public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
             {
                 Fail(node);

@@ -90,7 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!iDisposableConversion.IsImplicit)
                 {
-                    if (!(expressionType is null))
+                    // only search pattern dispose for ref structs
+                    if (!(expressionType is null) && expressionType.IsValueType && expressionType.IsByRefLikeType)
                     {
                         disposeMethod = TryFindDisposePatternMethod(expressionOpt, expressionSyntax, hasAwait, diagnostics);
                     }

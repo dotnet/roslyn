@@ -1033,12 +1033,11 @@ class Program
         {
             var source = @"
 using System;
-class C1
+ref struct S1
 {
-    public C1() { }
     public void Dispose()
     {
-        Console.WriteLine(""C1.Dispose()"");
+        Console.WriteLine(""S1.Dispose()"");
     }
 }
 
@@ -1046,32 +1045,31 @@ class C2
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 s = new S1())
         {
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "C1.Dispose()").VerifyIL("C2.Main()", @"
+            CompileAndVerify(source, expectedOutput: "S1.Dispose()").VerifyIL("C2.Main()", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
-  .locals init (C1 V_0) //c
-  IL_0000:  newobj     ""C1..ctor()""
-  IL_0005:  stloc.0
+  .locals init (S1 V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S1""
   .try
   {
-    IL_0006:  leave.s    IL_0012
+    IL_0008:  leave.s    IL_0012
   }
   finally
   {
-    IL_0008:  ldloc.0
-    IL_0009:  brfalse.s  IL_0011
-    IL_000b:  ldloc.0
-    IL_000c:  callvirt   ""void C1.Dispose()""
+    IL_000a:  ldloca.s   V_0
+    IL_000c:  call       ""void S1.Dispose()""
     IL_0011:  endfinally
   }
   IL_0012:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -1079,16 +1077,15 @@ class C2
         {
             var source = @"
 using System;
-class C1
+ref struct S1
 {
-    public C1() { }
     public void Dispose()
     {
-        Console.WriteLine(""C1.Dispose()"");
+        Console.WriteLine(""S1.Dispose()"");
     }
     public void Dispose(int x) 
     {
-        Console.WriteLine(""C1.Dispose(int)"");
+        Console.WriteLine(""S1.Dispose(int)"");
     }
 }
 
@@ -1096,84 +1093,32 @@ class C2
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 s = new S1())
         {
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "C1.Dispose()").VerifyIL("C2.Main()", @"
+            CompileAndVerify(source, expectedOutput: "S1.Dispose()").VerifyIL("C2.Main()", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
-  .locals init (C1 V_0) //c
-  IL_0000:  newobj     ""C1..ctor()""
-  IL_0005:  stloc.0
+  .locals init (S1 V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S1""
   .try
   {
-    IL_0006:  leave.s    IL_0012
+    IL_0008:  leave.s    IL_0012
   }
   finally
   {
-    IL_0008:  ldloc.0
-    IL_0009:  brfalse.s  IL_0011
-    IL_000b:  ldloc.0
-    IL_000c:  callvirt   ""void C1.Dispose()""
+    IL_000a:  ldloca.s   V_0
+    IL_000c:  call       ""void S1.Dispose()""
     IL_0011:  endfinally
   }
   IL_0012:  ret
-}"
+}
+"
             );
-        }
-
-        [Fact]
-        public void UsingPatternInheritedTest()
-        {
-            var source = @"
-using System;
-class C1
-{
-    public C1() { }
-    public void Dispose()
-    {
-        Console.WriteLine(""C1.Dispose()"");
-    }   
-}
-
-class C2 : C1
-{
-    internal void Dispose(int x) { } 
-}
-
-class C3
-{
-    static void Main()
-    {
-        using (C2 c = new C2())
-        {
-        }
-    }
-}";
-            CompileAndVerify(source, expectedOutput: "C1.Dispose()").VerifyIL("C3.Main()", @"
-{
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (C2 V_0) //c
-  IL_0000:  newobj     ""C2..ctor()""
-  IL_0005:  stloc.0
-  .try
-  {
-    IL_0006:  leave.s    IL_0012
-  }
-  finally
-  {
-    IL_0008:  ldloc.0
-    IL_0009:  brfalse.s  IL_0011
-    IL_000b:  ldloc.0
-    IL_000c:  callvirt   ""void C1.Dispose()""
-    IL_0011:  endfinally
-  }
-  IL_0012:  ret
-}");
         }
 
         [Fact]
@@ -1181,16 +1126,15 @@ class C3
         {
             var source = @"
 using System;
-class C1
+ref struct S1
 {
-    public C1() { }
 }
 
 static class C2
 {
-    public static void Dispose(this C1 c1) 
+    public static void Dispose(this S1 s1) 
     {
-        Console.WriteLine(""C2.Dispose(C1)"");
+        Console.WriteLine(""C2.Dispose(S1)"");
     }
 }
 
@@ -1198,32 +1142,31 @@ class C3
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 s = new S1())
         {
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "C2.Dispose(C1)").VerifyIL("C3.Main()", @"
+            CompileAndVerify(source, expectedOutput: "C2.Dispose(S1)").VerifyIL("C3.Main()", @"
 {
-  // Code size       19 (0x13)
+  // Code size       18 (0x12)
   .maxstack  1
-  .locals init (C1 V_0) //c
-  IL_0000:  newobj     ""C1..ctor()""
-  IL_0005:  stloc.0
+  .locals init (S1 V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S1""
   .try
   {
-    IL_0006:  leave.s    IL_0012
+    IL_0008:  leave.s    IL_0011
   }
   finally
   {
-    IL_0008:  ldloc.0
-    IL_0009:  brfalse.s  IL_0011
-    IL_000b:  ldloc.0
-    IL_000c:  call       ""void C2.Dispose(C1)""
-    IL_0011:  endfinally
+    IL_000a:  ldloc.0
+    IL_000b:  call       ""void C2.Dispose(S1)""
+    IL_0010:  endfinally
   }
-  IL_0012:  ret
-}");
+  IL_0011:  ret
+}
+");
         }
 
         [Fact]
@@ -1231,19 +1174,19 @@ class C3
         {
             var source = @"
 using System;
-class C1
+ref struct S1
 {
     public void Dispose()
     {
-        Console.WriteLine(""C1.Dispose()"");
+        Console.WriteLine(""S1.Dispose()"");
     }
 }
 
 static class C2
 {
-    public static void Dispose(this C1 c1)
+    public static void Dispose(this S1 s1)
     { 
-        Console.WriteLine(""C2.Dispose(C1)"");
+        Console.WriteLine(""C2.Dispose(S1)"");
     }
 }
 
@@ -1251,32 +1194,81 @@ class C3
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 s = new S1())
         {
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "C1.Dispose()").VerifyIL("C3.Main()", @"
+            CompileAndVerify(source, expectedOutput: "S1.Dispose()").VerifyIL("C3.Main()", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
-  .locals init (C1 V_0) //c
-  IL_0000:  newobj     ""C1..ctor()""
-  IL_0005:  stloc.0
+  .locals init (S1 V_0) //s
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S1""
   .try
   {
-    IL_0006:  leave.s    IL_0012
+    IL_0008:  leave.s    IL_0012
   }
   finally
   {
-    IL_0008:  ldloc.0
-    IL_0009:  brfalse.s  IL_0011
-    IL_000b:  ldloc.0
-    IL_000c:  callvirt   ""void C1.Dispose()""
+    IL_000a:  ldloca.s   V_0
+    IL_000c:  call       ""void S1.Dispose()""
     IL_0011:  endfinally
   }
   IL_0012:  ret
-}");
+}
+");
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodWithDefaultArguments()
+        {
+            var source = @"
+ref struct S1
+{
+}
+
+static class C2 
+{
+    internal static void Dispose(this S1 s1, int a = 1) { System.Console.WriteLine($""Dispose default param {a}""); }
+}
+
+class C3
+{
+    static void Main()
+    {
+       using (S1 s = new S1())
+       {
+       }
+    }
+}";
+            CompileAndVerify(source, expectedOutput: "Dispose default param 1");
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodWithParams()
+        {
+            var source = @"
+ref struct S1
+{
+}
+
+static class C2 
+{
+    internal static void Dispose(this S1 s1, params int[] args) { System.Console.WriteLine($""Dispose params {args.Length}""); }
+}
+
+class C3
+{
+    static void Main()
+    {
+       using (S1 s = new S1())
+       {
+       }
+    }
+}";
+            CompileAndVerify(source, expectedOutput: "Dispose params 0");
         }
 
         // The object could be created outside the "using" statement 
@@ -1491,7 +1483,11 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (res) // Invalid
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass").WithLocation(7, 16)
+                );
         }
 
         [Fact]
@@ -1514,7 +1510,11 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (res) // Invalid
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass").WithLocation(7, 16)
+                );
         }
 
         // Implicit implement IDisposable

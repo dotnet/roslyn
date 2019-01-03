@@ -1105,7 +1105,7 @@ Dispose Async Finally
         {
             var source = @"
     using System;
-    class C1
+    ref struct S1
     {
         public void M()
         {
@@ -1120,8 +1120,8 @@ Dispose Async Finally
     {
         static void Main(string[] args)
         {
-            using C1 o1 = new C1();
-            o1.M();
+            using S1 s1 = new S1();
+            s1.M();
         }
     }";
 
@@ -1129,27 +1129,26 @@ Dispose Async Finally
 This object has been properly disposed.";
             CompileAndVerify(source, expectedOutput: output).VerifyIL("Program.Main", @"
 {
-  // Code size       25 (0x19)
+  // Code size       26 (0x1a)
   .maxstack  1
-  .locals init (C1 V_0) //o1
-  IL_0000:  newobj     ""C1..ctor()""
-  IL_0005:  stloc.0
+  .locals init (S1 V_0) //s1
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S1""
   .try
   {
-    IL_0006:  ldloc.0
-    IL_0007:  callvirt   ""void C1.M()""
-    IL_000c:  leave.s    IL_0018
+    IL_0008:  ldloca.s   V_0
+    IL_000a:  call       ""void S1.M()""
+    IL_000f:  leave.s    IL_0019
   }
   finally
   {
-    IL_000e:  ldloc.0
-    IL_000f:  brfalse.s  IL_0017
-    IL_0011:  ldloc.0
-    IL_0012:  callvirt   ""void C1.Dispose()""
-    IL_0017:  endfinally
+    IL_0011:  ldloca.s   V_0
+    IL_0013:  call       ""void S1.Dispose()""
+    IL_0018:  endfinally
   }
-  IL_0018:  ret
-}");
+  IL_0019:  ret
+}
+");
         }
 
         [Fact]
@@ -1213,12 +1212,12 @@ This object has been disposed by IDisposable.Dispose().";
         {
             var source = @"
     using System;
-    class C1
+    ref struct S1
     {
     }
     internal static class C2
     {
-        internal static void Dispose(this C1 c1)
+        internal static void Dispose(this S1 s1)
         {
             Console.Write(""Disposed; "");
         }
@@ -1227,31 +1226,29 @@ This object has been disposed by IDisposable.Dispose().";
     {
         static void Main(string[] args)
         {
-            using C1 o1 = new C1();
+            using S1 s1 = new S1();
         }
     }";
 
             var output = @"Disposed; ";
             CompileAndVerify(source, expectedOutput: output).VerifyIL("Program.Main", @"
 {
-  // Code size       19 (0x13)
+  // Code size       18 (0x12)
   .maxstack  1
-  .locals init (C1 V_0) //o1
-  IL_0000:  newobj     ""C1..ctor()""
-  IL_0005:  stloc.0
+  .locals init (S1 V_0) //s1
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S1""
   .try
   {
-    IL_0006:  leave.s    IL_0012
+    IL_0008:  leave.s    IL_0011
   }
   finally
   {
-    IL_0008:  ldloc.0
-    IL_0009:  brfalse.s  IL_0011
-    IL_000b:  ldloc.0
-    IL_000c:  call       ""void C2.Dispose(C1)""
-    IL_0011:  endfinally
+    IL_000a:  ldloc.0
+    IL_000b:  call       ""void C2.Dispose(S1)""
+    IL_0010:  endfinally
   }
-  IL_0012:  ret
+  IL_0011:  ret
 }
 ");
         }
@@ -1627,39 +1624,6 @@ class C2
         }
 
         [Fact]
-        public void UsingDeclarationAsyncPattern()
-        {
-            var source = @"
-using System;
-using System.Threading.Tasks;
-class C1
-{
-    public C1() 
-    {
-        Console.Write(""Created C1; "");
-    }
-
-    public Task DisposeAsync() 
-    { 
-        System.Console.Write(""Dispose async; "");
-        return Task.CompletedTask;
-    }
-}
-
-class C2
-{
-    static async Task Main()
-    {
-        await using C1 c = new C1();
-        Console.Write(""After declaration; "");
-    }
-}";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
-
-            CompileAndVerify(compilation, expectedOutput: "Created C1; After declaration; Dispose async; ");
-        }
-
-        [Fact]
         public void UsingDeclarationAsyncWithMultipleDeclarations()
         {
             var source = @"
@@ -1748,92 +1712,6 @@ Dispose async first
 
             var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
-        }
-
-        [Fact]
-        public void UsingDeclarationAsyncPatternWithTaskLikeReturnTest()
-        {
-            var source = @"
-using System;
-using System.Runtime.CompilerServices;
-class C1
-{
-    public C1() { }
-    public MyTask DisposeAsync() {  Console.Write(""Dispose Async; ""); return new MyTask(); }
-}
-
-[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
-struct MyTask
-{
-    internal Awaiter GetAwaiter() => new Awaiter();
-    internal class Awaiter : INotifyCompletion
-    {
-        public void OnCompleted(Action a) { }
-        internal bool IsCompleted => true;
-        internal void GetResult() { }
-    }
-}
-
-struct MyTaskMethodBuilder
-{
-    private MyTask _task;
-    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder(new MyTask());
-    internal MyTaskMethodBuilder(MyTask task)
-    {
-        _task = task;
-    }
-    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
-    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
-    {
-        stateMachine.MoveNext();
-    }
-    public void SetException(Exception e) { }
-    public void SetResult() { }
-    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public MyTask Task => _task;
-}
-
-class C2
-{
-    static async System.Threading.Tasks.Task Main()
-    {
-        await using C1 c = new C1();
-    }
-}";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
-
-            CompileAndVerify(compilation, expectedOutput: "Dispose Async; ");
-        }
-
-        [Fact]
-        public void UsingDeclarationAsyncPatternExtensionMethod()
-        {
-            var source = @"
-using System.Threading.Tasks;
-class C1
-{
-}
-
-static class C2
-{
-    public static Task DisposeAsync(this C1 c1) 
-    { 
-        System.Console.WriteLine(""Dispose async"");
-        return Task.CompletedTask;
-    }
-}
-
-class C3
-{
-    static async Task Main()
-    {
-        await using C1 c = new C1();
-    }
-}";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
-
-            CompileAndVerify(compilation, expectedOutput: "Dispose async");
         }
 
         [Fact]

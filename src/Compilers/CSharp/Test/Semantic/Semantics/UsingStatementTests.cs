@@ -100,12 +100,11 @@ class C
         }
 
         [Fact]
-        public void UsingPatternTest()
+        public void UsingPatternRefStructTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
     public void Dispose() { }
 }
 
@@ -113,7 +112,7 @@ class C2
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 s = new S1())
         {
         }
     }
@@ -122,12 +121,36 @@ class C2
         }
 
         [Fact]
-        public void UsingPatternSameSignatureAmbiguousTest()
+        public void UsingPatternReferenceTypeTest()
         {
             var source = @"
 class C1
 {
-    public C1() { }
+    public void Dispose() { }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (C1 c1 = new C1())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (11,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (C1 c1 = new C1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c1 = new C1()").WithArguments("C1").WithLocation(11, 16)
+                );
+        }
+
+        [Fact]
+        public void UsingPatternSameSignatureAmbiguousTest()
+        {
+            var source = @"
+ref struct S1
+{
     public void Dispose() { }
     public void Dispose() { }
 }
@@ -136,21 +159,21 @@ class C2
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 s = new S1())
         {
         }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,17): error CS0111: Type 'C1' already defines a member called 'Dispose' with the same parameter types
+                // (5,17): error CS0111: Type 'S1' already defines a member called 'Dispose' with the same parameter types
                 //     public void Dispose() { }
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dispose").WithArguments("Dispose", "C1").WithLocation(6, 17),
-                // (13,16): error CS0121: The call is ambiguous between the following methods or properties: 'C1.Dispose()' and 'C1.Dispose()'
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_AmbigCall, "C1 c = new C1()").WithArguments("C1.Dispose()", "C1.Dispose()").WithLocation(13, 16),
-                // (13,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() instance method.
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(13, 16)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dispose").WithArguments("Dispose", "S1").WithLocation(5, 17),
+                // (12,16): error CS0121: The call is ambiguous between the following methods or properties: 'S1.Dispose()' and 'S1.Dispose()'
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_AmbigCall, "S1 s = new S1()").WithArguments("S1.Dispose()", "S1.Dispose()").WithLocation(12, 16),
+                // (12,16): error CS1674: 'S1': type used in a using statement must have a public void-returning Dispose() instance method.
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(12, 16)
                 );
         }
 
@@ -158,9 +181,8 @@ class C2
         public void UsingPatternAmbiguousOverloadTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
     public void Dispose() { }
     public bool Dispose() { return false; }
 }
@@ -169,29 +191,29 @@ class C2
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 s = new S1())
         {
         }
-        C1 c1b = new C1();
-        using (c1b) { }
+        S1 s1b = new S1();
+        using (s1b) { }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,17): error CS0111: Type 'C1' already defines a member called 'Dispose' with the same parameter types
+                // (5,17): error CS0111: Type 'S1' already defines a member called 'Dispose' with the same parameter types
                 //     public bool Dispose() { return false; }
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dispose").WithArguments("Dispose", "C1").WithLocation(6, 17),
-                // (13,16): error CS0121: The call is ambiguous between the following methods or properties: 'C1.Dispose()' and 'C1.Dispose()'
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_AmbigCall, "C1 c = new C1()").WithArguments("C1.Dispose()", "C1.Dispose()").WithLocation(13, 16),
-                // (13,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(13, 16),
-                // (17,16): error CS0121: The call is ambiguous between the following methods or properties: 'C1.Dispose()' and 'C1.Dispose()'
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dispose").WithArguments("Dispose", "S1").WithLocation(5, 17),
+                // (12,16): error CS0121: The call is ambiguous between the following methods or properties: 'S1.Dispose()' and 'S1.Dispose()'
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_AmbigCall, "S1 s = new S1()").WithArguments("S1.Dispose()", "S1.Dispose()").WithLocation(12, 16),
+                // (12,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(12, 16),
+                // (16,16): error CS0121: The call is ambiguous between the following methods or properties: 'S1.Dispose()' and 'S1.Dispose()'
                 //         using (c1b) { }
-                Diagnostic(ErrorCode.ERR_AmbigCall, "c1b").WithArguments("C1.Dispose()", "C1.Dispose()").WithLocation(17, 16),
-                // (17,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                Diagnostic(ErrorCode.ERR_AmbigCall, "s1b").WithArguments("S1.Dispose()", "S1.Dispose()").WithLocation(16, 16),
+                // (16,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
                 //         using (c1b) { }
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "c1b").WithArguments("C1").WithLocation(17, 16)
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "s1b").WithArguments("S1").WithLocation(16, 16)
                 );
         }
 
@@ -199,9 +221,8 @@ class C2
         public void UsingPatternDifferentParameterOverloadTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
     public void Dispose() { }
     public void Dispose(int x) { }
 }
@@ -210,11 +231,11 @@ class C2
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 s = new S1())
         {
         }
-        C1 c1b = new C1();
-        using (c1b) { }
+        S1 s1b = new S1();
+        using (s1b) { }
     }
 }";
             // Shouldn't throw an error as the method signatures are different.
@@ -225,9 +246,8 @@ class C2
         public void UsingPatternInaccessibleAmbiguousTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
     public void Dispose() { }
     internal void Dispose() { }
 }
@@ -236,84 +256,29 @@ class C2
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 s = new S1())
         {
         }
-        C1 c1b = new C1();
-        using (c1b) { }
+        S1 s1b = new S1();
+        using (s1b) { }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,19): error CS0111: Type 'C1' already defines a member called 'Dispose' with the same parameter types
+                // (5,19): error CS0111: Type 'S1' already defines a member called 'Dispose' with the same parameter types
                 //     internal void Dispose() { }
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dispose").WithArguments("Dispose", "C1").WithLocation(6, 19),
-                // (13,16): error CS0121: The call is ambiguous between the following methods or properties: 'C1.Dispose()' and 'C1.Dispose()'
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_AmbigCall, "C1 c = new C1()").WithArguments("C1.Dispose()", "C1.Dispose()").WithLocation(13, 16),
-                // (13,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() instance method.
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(13, 16),
-                // (17,16): error CS0121: The call is ambiguous between the following methods or properties: 'C1.Dispose()' and 'C1.Dispose()'
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dispose").WithArguments("Dispose", "S1").WithLocation(5, 19),
+                // (12,16): error CS0121: The call is ambiguous between the following methods or properties: 'S1.Dispose()' and 'S1.Dispose()'
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_AmbigCall, "S1 s = new S1()").WithArguments("S1.Dispose()", "S1.Dispose()").WithLocation(12, 16),
+                // (12,16): error CS1674: 'S1': type used in a using statement must have a public void-returning Dispose() instance method.
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(12, 16),
+                // (16,16): error CS0121: The call is ambiguous between the following methods or properties: 'S1.Dispose()' and 'S1.Dispose()'
                 //         using (c1b) { }
-                Diagnostic(ErrorCode.ERR_AmbigCall, "c1b").WithArguments("C1.Dispose()", "C1.Dispose()").WithLocation(17, 16),
-                // (17,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() instance method.
+                Diagnostic(ErrorCode.ERR_AmbigCall, "s1b").WithArguments("S1.Dispose()", "S1.Dispose()").WithLocation(16, 16),
+                // (16,16): error CS1674: 'S1': type used in a using statement must have a public void-returning Dispose() instance method.
                 //         using (c1b) { }
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "c1b").WithArguments("C1").WithLocation(17, 16)
-                );
-        }
-
-        [Fact]
-        public void UsingPatternInheritedTest()
-        {
-            var source = @"
-class C1
-{
-    public C1() { }
-    public void Dispose() { }
-}
-
-class C2 : C1
-{
-    internal void Dispose(int x) { } 
-}
-
-class C3
-{
-    static void Main()
-    {
-        using (C2 c = new C2())
-        {
-        }
-        C2 c2b = new C2();
-        using (c2b) { }
-    }
-}";
-            CreateCompilation(source).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void UsingPatternLessDerivedAssignement()
-        {
-            var source = @"
-class C1
-{
-    public C1() { }
-    public void Dispose() { }
-}
-
-class C2
-{
-    static void Main()
-    {
-        using (object c1 = new C1())
-        {
-        }
-    }
-}";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (12,16): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //         using (object c = new C1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "object c1 = new C1()").WithArguments("object").WithLocation(12, 16)
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "s1b").WithArguments("S1").WithLocation(16, 16)
                 );
         }
 
@@ -321,15 +286,14 @@ class C2
         public void UsingPatternImplicitConversionToDisposable()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
     public void Dispose() { }
 
-    //  User-defined implicit conversion from C2 to C1
-    public static implicit operator C1(C2 o)
+    //  User-defined implicit conversion from C2 to S1
+    public static implicit operator S1(C2 o)
     {
-        return new C1();
+        return new S1();
     }
 }
 
@@ -341,7 +305,7 @@ class C3
 {
     static void Main()
     {
-        using (C1 c = new C2())
+        using (S1 s = new C2())
         {
         }
     }
@@ -349,124 +313,29 @@ class C3
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [Fact]
-        public void UsingPatternHidingInheritedWithNonMatchingMethodTest()
-        {
-            var source = @"
-class C1
-{
-    public C1() { }
-    public void Dispose() { }
-}
-
-class C2 : C1
-{
-    public new int Dispose() { return 0; } 
-}
-
-class C3
-{
-    static void Main()
-    {
-        using (C2 c = new C2())
-        {
-        }
-    }
-}";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (17,16): warning CS0280: 'C2' does not implement the 'disposable' pattern. 'C2.Dispose()' has the wrong signature.
-                //         using (C2 c = new C2())
-                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C2 c = new C2()").WithArguments("C2", "disposable", "C2.Dispose()").WithLocation(17, 16),
-                // (17,16): error CS1674: 'C2': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //         using (C2 c = new C2())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C2 c = new C2()").WithArguments("C2").WithLocation(17, 16)
-                );
-        }
-
-        [Fact]
-        public void UsingPatternHidingInheritedWithPropertyTest()
-        {
-            var source = @"
-class C1
-{
-    public C1() { }
-    public void Dispose() { }
-}
-
-class C2 : C1
-{
-    public new int Dispose { get; } 
-}
-
-class C3
-{
-    static void Main()
-    {
-        using (C2 c = new C2())
-        {
-        }
-    }
-}";
-            CreateCompilation(source).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void UsingPatternHidingInvalidInheritedWithPropertyTest()
-        {
-            var source = @"
-class C1
-{
-    public C1() { }
-    public int Dispose() { return 0; }
-}
-
-class C2 : C1
-{
-    public new int Dispose { get; } 
-}
-
-class C3
-{
-    static void Main()
-    {
-        using (C2 c = new C2())
-        {
-        }
-    }
-}";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (17,16): warning CS0280: 'C2' does not implement the 'disposable' pattern. 'C1.Dispose()' has the wrong signature.
-                //         using (C2 c = new C2())
-                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C2 c = new C2()").WithArguments("C2", "disposable", "C1.Dispose()").WithLocation(17, 16),
-                // (17,16): error CS1674: 'C2': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //         using (C2 c = new C2())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C2 c = new C2()").WithArguments("C2").WithLocation(17, 16)
-                );
-        }
 
         [Fact]
         public void UsingPatternExtensionMethodTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
 }
 
 static class C2 
 {
-    public static void Dispose(this C1 c1) { }
+    public static void Dispose(this S1 c1) { }
 }
 
 class C3
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 s = new S1())
         {
         }
-        C1 c1b = new C1();
-        using (c1b) { }
+        S1 s1b = new S1();
+        using (s1b) { }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
@@ -476,74 +345,36 @@ class C3
         public void UsingPatternExtensionMethodPropertyHidingTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
-
     public int Dispose { get; }
 }
 
 static class C2 
 {
-    public static void Dispose(this C1 c1) { }
+    public static void Dispose(this S1 s1) { }
 }
 
 class C3
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 s = new S1())
         {
         }
-        C1 c1b = new C1();
-        using (c1b) { }
+        S1 s1b = new S1();
+        using (s1b) { }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void UsingPatternExtensionMethodInaccessibleInstanceMethodTest()
-        {
-            var source = @"
-using System;
-class C1
-{
-    public C1() { }
-
-    protected void Dispose() { }
-}
-
-static class C2 
-{
-    public static void Dispose(this C1 c1)
-    {
-        Console.WriteLine(""C2.Dispose(C1)"");
-    }
-}
-
-class C3
-{
-    static void Main()
-    {
-        using (C1 c = new C1())
-        {
-        }
-    }
-}";
-            CreateCompilation(source).VerifyDiagnostics();
-
-            CompileAndVerify(source, expectedOutput: "C2.Dispose(C1)");
         }
 
         [Fact]
         public void UsingPatternStaticMethodTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
-
     public static void Dispose() { }
 }
 
@@ -551,135 +382,56 @@ class C2
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 s = new S1())
         {
         }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (14,16): error CS0176: Member 'C1.Dispose()' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "C1 c = new C1()").WithArguments("C1.Dispose()").WithLocation(13, 16),
-                // (14,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(13, 16)
+                // (11,16): error CS0176: Member 'S1.Dispose()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "S1 s = new S1()").WithArguments("S1.Dispose()").WithLocation(11, 16),
+                // (11,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(11, 16)
                 );
         }
 
-
-        [Fact]
-        public void UsingPatternHidingInvalidInheritedWithPropertyAndValidExtensionMethodTest()
-        {
-            var source = @"
-class C1
-{
-    public C1() { }
-    public int Dispose() { return 0; }
-}
-
-class C2 : C1
-{
-    public new int Dispose { get; } 
-}
-
-static class C3
-{
-    public static void Dispose(this C1 c1){ }
-}
-
-class C4
-{
-    static void Main()
-    {
-        using (C2 c = new C2())
-        {
-        }
-    }
-}";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (22,16): warning CS0280: 'C2' does not implement the 'disposable' pattern. 'C1.Dispose()' has the wrong signature.
-                //         using (C2 c = new C2())
-                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C2 c = new C2()").WithArguments("C2", "disposable", "C1.Dispose()").WithLocation(22, 16),
-                // (22,16): error CS1674: 'C2': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //         using (C2 c = new C2())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C2 c = new C2()").WithArguments("C2").WithLocation(22, 16)
-                );
-        }
-
-        [Fact]
-        public void UsingPatternHidingInvalidInheritedWithPropertyAndInvalidExtensionMethodTest()
-        {
-            var source = @"
-class C1
-{
-    public C1() { }
-    public int Dispose() { return 0; }
-}
-
-class C2 : C1
-{
-    public new int Dispose { get; } 
-}
-
-static class C3
-{
-    public static int Dispose(this C1 c1){ return 0; }
-}
-
-class C4
-{
-    static void Main()
-    {
-        using (C2 c = new C2())
-        {
-        }
-    }
-}";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (22,16): warning CS0280: 'C2' does not implement the 'disposable' pattern. 'C1.Dispose()' has the wrong signature.
-                //         using (C2 c = new C2())
-                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C2 c = new C2()").WithArguments("C2", "disposable", "C1.Dispose()").WithLocation(22, 16),
-                // (22,16): error CS1674: 'C2': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //         using (C2 c = new C2())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C2 c = new C2()").WithArguments("C2").WithLocation(22, 16)
-                );
-        }
 
         [Fact]
         public void UsingPatternAmbiguousExtensionMethodTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
 }
 
 static class C2 
 {
-    public static void Dispose(this C1 c1) { }
+    public static void Dispose(this S1 s1) { }
 }
 
 static class C3 
 {
-    public static void Dispose(this C1 c1) { }
+    public static void Dispose(this S1 s1) { }
 }
 
 class C4
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 s = new S1())
         {
         }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (21,16): error CS0121: The call is ambiguous between the following methods or properties: 'C2.Dispose(C1)' and 'C3.Dispose(C1)'
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_AmbigCall, "C1 c = new C1()").WithArguments("C2.Dispose(C1)", "C3.Dispose(C1)").WithLocation(21, 16),
-                // (21,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(21, 16)
+                // (20,16): error CS0121: The call is ambiguous between the following methods or properties: 'C2.Dispose(S1)' and 'C3.Dispose(S1)'
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_AmbigCall, "S1 s = new S1()").WithArguments("C2.Dispose(S1)", "C3.Dispose(S1)").WithLocation(20, 16),
+                // (20,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(20, 16)
                 );
         }
 
@@ -687,16 +439,15 @@ class C4
         public void UsingPatternScopedExtensionMethodTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
 }
 
 namespace N1
 {
     static class C2 
     {
-        public static void Dispose(this C1 c1) { }
+        public static void Dispose(this S1 s1) { }
     }
 }
 
@@ -704,7 +455,7 @@ namespace N2
 {
     static class C3 
     {
-        public static void Dispose(this C1 c1) { }
+        public static void Dispose(this S1 s1) { }
     }
 }
 
@@ -712,7 +463,7 @@ namespace N3
 {
     static class C4 
     {
-        public static int Dispose(this C1 c1) { return 0; }
+        public static int Dispose(this S1 s1) { return 0; }
     }
 }
 
@@ -723,7 +474,7 @@ namespace N4
     {
         static void M()
         {
-            using (C1 c = new C1()) // error 1: no extension in scope
+            using (S1 s = new S1()) // error 1: no extension in scope
             {
             }
         }
@@ -736,7 +487,7 @@ namespace N4
     {
         static void M2()
         {
-            using (C1 c = new C1()) // success: resolve against C2.Dispose
+            using (S1 s = new S1()) // success: resolve against C2.Dispose
             {
             }
         }
@@ -749,7 +500,7 @@ namespace N4
     {
         static void M3()
         {
-            using (C1 c = new C1()) // error 2: C4.Dispose does not match pattern
+            using (S1 s = new S1()) // error 2: C4.Dispose does not match pattern
             {
             }
         }
@@ -763,7 +514,7 @@ namespace N4
     {
         static void M4()
         {
-            using (C1 c = new C1())  // error 3: C2.Dispose and C4.Dispose are ambiguous
+            using (S1 s = new S1())  // error 3: C2.Dispose and C4.Dispose are ambiguous
             {
             }
         }
@@ -778,7 +529,7 @@ namespace N4
         {
             static void M5()
             {
-                using (C1 c = new C1())  // error 4: C4.Dispose does not match pattern
+                using (S1 s = new S1())  // error 4: C4.Dispose does not match pattern
                 {
                 }
             }
@@ -791,7 +542,7 @@ namespace N4
             {
                 static void M6()
                 {
-                    using (C1 c = new C1())  // success: resolve against C2.Dispose
+                    using (S1 s = new S1())  // success: resolve against C2.Dispose
                     { 
                     }
                 }
@@ -800,27 +551,27 @@ namespace N4
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (38,20): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //             using (C1 c = new C1()) // error 1: no extension in scope
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(38, 20),
-                // (64,20): warning CS0280: 'C1' does not implement the 'disposable' pattern. 'C4.Dispose(C1)' has the wrong signature.
-                //             using (C1 c = new C1()) // error 2: C4.Dispose does not match pattern
-                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C1 c = new C1()").WithArguments("C1", "disposable", "N3.C4.Dispose(C1)").WithLocation(64, 20),
-                // (64,20): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //             using (C1 c = new C1()) // error 2: C4.Dispose does not match pattern
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(64, 20),
-                // (78,20): error CS0121: The call is ambiguous between the following methods or properties: 'N1.C2.Dispose(C1)' and 'N3.C4.Dispose(C1)'
-                //             using (C1 c = new C1())  // error 3: C2.Dispose and C4.Dispose are ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigCall, "C1 c = new C1()").WithArguments("N1.C2.Dispose(C1)", "N3.C4.Dispose(C1)").WithLocation(78, 20),
-                // (78,20): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //             using (C1 c = new C1())  // error 3: C2.Dispose and C4.Dispose are ambiguous
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(78, 20),
-                // (93,24): warning CS0280: 'C1' does not implement the 'disposable' pattern. 'C4.Dispose(C1)' has the wrong signature.
-                //                 using (C1 c = new C1())  // error 4: C4.Dispose does not match pattern
-                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C1 c = new C1()").WithArguments("C1", "disposable", "N3.C4.Dispose(C1)").WithLocation(93, 24),
-                // (93,24): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //                 using (C1 c = new C1())  // error 4: C4.Dispose does not match pattern
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(93, 24)
+                // (37,20): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //             using (S1 s = new S1()) // error 1: no extension in scope
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(37, 20),
+                // (63,20): warning CS0280: 'S1' does not implement the 'disposable' pattern. 'C4.Dispose(S1)' has the wrong signature.
+                //             using (S1 s = new S1()) // error 2: C4.Dispose does not match pattern
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "S1 s = new S1()").WithArguments("S1", "disposable", "N3.C4.Dispose(S1)").WithLocation(63, 20),
+                // (63,20): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //             using (S1 s = new S1()) // error 2: C4.Dispose does not match pattern
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(63, 20),
+                // (77,20): error CS0121: The call is ambiguous between the following methods or properties: 'N1.C2.Dispose(S1)' and 'N3.C4.Dispose(S1)'
+                //             using (S1 s = new S1())  // error 3: C2.Dispose and C4.Dispose are ambiguous
+                Diagnostic(ErrorCode.ERR_AmbigCall, "S1 s = new S1()").WithArguments("N1.C2.Dispose(S1)", "N3.C4.Dispose(S1)").WithLocation(77, 20),
+                // (77,20): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //             using (S1 s = new S1())  // error 3: C2.Dispose and C4.Dispose are ambiguous
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(77, 20),
+                // (92,24): warning CS0280: 'S1' does not implement the 'disposable' pattern. 'C4.Dispose(S1)' has the wrong signature.
+                //                 using (S1 s = new S1())  // error 4: C4.Dispose does not match pattern
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "S1 s = new S1()").WithArguments("S1", "disposable", "N3.C4.Dispose(S1)").WithLocation(92, 24),
+                // (92,24): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //                 using (S1 s = new S1())  // error 4: C4.Dispose does not match pattern
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(92, 24)
                 );
         }
 
@@ -828,19 +579,19 @@ namespace N4
         public void UsingPatternWithMultipleExtensionTargets()
         {
             var source = @"
-class C1
+ref struct S1
 {
 }
 
-class C2
+ref struct S2
 {
 }
 
 static class C3 
 {
-    public static void Dispose(this C1 c1) { }
+    public static void Dispose(this S1 s1) { }
 
-    public static void Dispose(this C2 c2) { }
+    public static void Dispose(this S2 s2) { }
 
 }
 
@@ -848,145 +599,144 @@ class C4
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 s = new S1())
         {
         }
-        C1 c1b = new C1();
-        using (c1b) { }
+        S1 s1b = new S1();
+        using (s1b) { }
 
-        using (C2 c = new C2())
+        using (S2 s = new S2())
         {
         }
-        C2 c2b = new C2();
-        using (c2b) { }
+        S2 s2b = new S2();
+        using (s2b) { }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
-        public void UsingPatternExtensionMethodWithLessDerivedTarget()
+        public void UsingPatternExtensionMethodWithDefaultArgumentsAmbiguous()
         {
             var source = @"
-class C1
+ref struct S1
 {
 }
 
-class C2 : C1
+static class C2 
 {
+    internal static void Dispose(this S1 s1, int a = 1) { }
+
 }
 
-static class C3 
+static class C3
 {
-    public static void Dispose(this C1 c1) { }
-
+    internal static void Dispose(this S1 s1, int b = 2) { }
 }
 
 class C4
 {
     static void Main()
     {
-        using (C2 c = new C2())
-        {
-        }
-        C2 c2b = new C2();
-        using (c2b) { }
-    }
-}";
-            CreateCompilation(source).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void UsingPatternWithValidTargetAndLessDerivedTarget()
-        {
-            var source = @"
-using System;
-class C1
-{
-}
-
-class C2 : C1
-{
-}
-
-static class C3 
-{
-    public static void Dispose(this C1 c1)
-    {
-        Console.WriteLine(""C3.Dispose(C1)"");
-    }
-
-    public static void Dispose(this C2 c2)
-    {
-        Console.WriteLine(""C3.Dispose(C2)"");
-    }
-}
-
-class C4
-{
-    static void Main()
-    {
-       using (C2 c = new C2())
+       using (S1 s = new S1())
        {
        }
     }
 }";
-            // ensure we bind without errors
-            CreateCompilation(source).VerifyDiagnostics();
-
-            // check we're calling the correct extension
-            CompileAndVerify(source, expectedOutput: "C3.Dispose(C2)");
+            CreateCompilation(source).VerifyDiagnostics(
+                // (21,15): error CS0121: The call is ambiguous between the following methods or properties: 'C2.Dispose(S1, int)' and 'C3.Dispose(S1, int)'
+                //        using (S1 s = new S1())
+                Diagnostic(ErrorCode.ERR_AmbigCall, "S1 s = new S1()").WithArguments("C2.Dispose(S1, int)", "C3.Dispose(S1, int)").WithLocation(21, 15),
+                // (21,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //        using (S1 s = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(21, 15)
+                );
         }
 
         [Fact]
         public void UsingPatternExtensionMethodNonPublic()
         {
             var source = @"
-class C1
+ref struct S1
 {
 }
 
 static class C2 
 {
-   internal static void Dispose(this C1 c1) { }
+   internal static void Dispose(this S1 s1) { }
 }
 
 class C3
 {
     static void Main()
     {
-       using (C1 c = new C1())
+       using (S1 s = new S1())
        {
        }
-       C1 c1b = new C1();
-       using (c1b) { }
+       S1 s1b = new S1();
+       using (s1b) { }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
-        public void UsingPatternExtensionMethodGeneric()
+        public void UsingPatternExtensionMethodWithInvalidInstanceMethod()
         {
             var source = @"
-class C1
+ref struct S1
 {
+    public int Dispose() 
+    {
+        return 0;
+    }
 }
 
 static class C2 
 {
-   public static void Dispose<T>(this T c1) where T : C1 { }
+   internal static void Dispose(this S1 s1) { }
 }
 
 class C3
 {
     static void Main()
     {
-       using (C1 c = new C1())
+       using (S1 s = new S1())
        {
        }
-       C1 c1b = new C1();
-       using (c1b) { }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (19,15): warning CS0280: 'S1' does not implement the 'disposable' pattern. 'S1.Dispose()' has the wrong signature.
+                //        using (S1 s = new S1())
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "S1 s = new S1()").WithArguments("S1", "disposable", "S1.Dispose()").WithLocation(19, 15),
+                // (19,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //        using (S1 s = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(19, 15)
+                );
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodWithInvalidInstanceProperty()
+        {
+            var source = @"
+ref struct S1
+{
+    public int Dispose => 0;
+}
+
+static class C2 
+{
+   internal static void Dispose(this S1 s1) { }
+}
+
+class C3
+{
+    static void Main()
+    {
+       using (S1 s = new S1())
+       {
+       }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
@@ -996,146 +746,34 @@ class C3
         public void UsingPatternExtensionMethodWithDefaultArguments()
         {
             var source = @"
-class C1
+ref struct S1
 {
 }
 
 static class C2 
 {
-   internal static void Dispose(this C1 c1, int a = 1) { }
+   internal static void Dispose(this S1 s1, int a = 1) { }
 }
 
 class C3
 {
     static void Main()
     {
-       using (C1 c = new C1())
+       using (S1 s = new S1())
        {
        }
-       C1 c1b = new C1();
-       using (c1b) { }
+       S1 s1b = new S1();
+       using (s1b) { }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void UsingPatternExtensionMethodOnObject()
-        {
-            var source = @"
-class C1
-{
-}
-
-static class C2 
-{
-   internal static void Dispose(this object o) { }
-}
-
-class C3
-{
-    static void Main()
-    {
-        using (C1 c = new C1()) { }
-        using (System.Object o = new System.Object()) { }
-        using (System.Uri uri = new System.Uri(""http://example.com"")) { }
-    }
-}";
-            CreateCompilation(source).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void UsingPatternExtensionMethodMixOfGeneric()
-        {
-            var source = @"
-using System;
-class C1
-{
-}
-
-static class C2 
-{
-   public static void Dispose(this C1 c1)
-    {
-        Console.WriteLine(""C2.Dispose(C1)"");
-    }
-
-   public static void Dispose<T>(this T c1) where T : C1
-    {
-        Console.WriteLine(""C2.Dispose<T>(T)"");
-    }
-
-}
-
-class C3
-{
-    static void Main()
-    {
-       using (C1 c = new C1())
-       {
-       }
-    }
-}";
-            // ensure we bind without errors
-            CreateCompilation(source).VerifyDiagnostics();
-
-            // check we call the correct overload
-            CompileAndVerify(source, expectedOutput: "C2.Dispose(C1)");
-        }
-
-        [Fact]
-        public void UsingPatternExtensionMethodMixOfGenericAndMoreDerived()
-        {
-            var source = @"
-using System;
-class C1
-{
-}
-
-class C2 : C1
-{
-}
-
-class C3 : C1
-{
-}
-
-static class C4
-{
-    public static void Dispose<T>(this T c1) where T : C1
-    {
-        Console.Write(""C4.Dispose<T>(T) "");
-    }
-
-    public static void Dispose(this C3 c3)
-    {
-        Console.Write(""C4.Dispose(C3) "");
-    }
-}
-
-class C5
-{
-    static void Main()
-    {
-        using (C1 c = new C1()) { } // Dispose<T>
-
-        using (C2 c = new C2()) { } // Dispose<T>
-        
-        using (C3 c = new C3()) { } // Dispose(C3)
-    }
-}";
-            // ensure we bind without errors
-            CreateCompilation(source).VerifyDiagnostics();
-
-            // check we call the correct overload
-            CompileAndVerify(source, expectedOutput: $"C4.Dispose<T>(T) C4.Dispose<T>(T) C4.Dispose(C3)");
         }
 
         [Fact]
         public void UsingPatternExtensionMethodOnInStruct()
         {
             var source = @"
-struct S1
+ref struct S1
 {
 }
 
@@ -1160,7 +798,7 @@ class C2
         public void UsingPatternExtensionMethodRefParameterOnStruct()
         {
             var source = @"
-struct S1
+ref struct S1
 {
 }
 
@@ -1190,38 +828,11 @@ class C2
         }
 
         [Fact]
-        public void UsingPatternExtensionMethodInParameterOnStruct()
-        {
-            var source = @"
-struct S1
-{
-}
-
-static class C1 
-{
-   public static void Dispose(in this S1 s1) { }
-}
-
-class C2
-{
-    static void Main()
-    {
-       using (S1 s = new S1())
-       {
-       }
-    }
-}";
-
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
-        }
-
-        [Fact]
         public void UsingPatternWithParamsTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
     public void Dispose(params int[] args){ }
 }
 
@@ -1229,10 +840,10 @@ class C2
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 c = new S1())
         {
         }
-        C1 c1b = new C1();
+        S1 c1b = new S1();
         using (c1b) { }
     }
 }";
@@ -1243,9 +854,8 @@ class C2
         public void UsingPatternWithDefaultParametersTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
     public void Dispose(int a = 4){ }
 }
 
@@ -1253,32 +863,11 @@ class C2
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 c = new S1())
         {
         }
-        C1 c1b = new C1();
+        S1 c1b = new S1();
         using (c1b) { }
-    }
-}";
-            CreateCompilation(source).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void UsingPatternWithRefStructTest()
-        {
-            var source = @"
-public class Program
-{
-    static void Main(string[] args)
-    {
-        using (new S1())
-        {
-        }
-    }
-
-    public ref struct S1 
-    {
-        public void Dispose() { System.Console.WriteLine(""S1.Dispose()""); }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
@@ -1288,9 +877,8 @@ public class Program
         public void UsingPatternWrongReturnTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
     public bool Dispose() { return false; }
 }
 
@@ -1298,26 +886,26 @@ class C2
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 c = new S1())
         {
         }
-        C1 c1b = new C1();
+        S1 c1b = new S1();
         using (c1b) { }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (12,16): warning CS0280: 'C1' does not implement the 'disposable' pattern. 'C1.Dispose()' has the wrong signature.
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C1 c = new C1()").WithArguments("C1", "disposable", "C1.Dispose()").WithLocation(12, 16),
-                // (12,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() instance method.
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(12, 16),
-                // (16,16): warning CS0280: 'C1' does not implement the 'disposable' pattern. 'C1.Dispose()' has the wrong signature.
+                // (11,16): warning CS0280: 'S1' does not implement the 'disposable' pattern. 'S1.Dispose()' has the wrong signature.
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "S1 c = new S1()").WithArguments("S1", "disposable", "S1.Dispose()").WithLocation(11, 16),
+                // (11,16): error CS1674: 'S1': type used in a using statement must have a public void-returning Dispose() instance method.
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 c = new S1()").WithArguments("S1").WithLocation(11, 16),
+                // (15,16): warning CS0280: 'S1' does not implement the 'disposable' pattern. 'S1.Dispose()' has the wrong signature.
                 //         using (c1b) { }
-                Diagnostic(ErrorCode.WRN_PatternBadSignature, "c1b").WithArguments("C1", "disposable", "C1.Dispose()").WithLocation(16, 16),
-                // (16,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() instance method.
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "c1b").WithArguments("S1", "disposable", "S1.Dispose()").WithLocation(15, 16),
+                // (15,16): error CS1674: 'S1': type used in a using statement must have a public void-returning Dispose() instance method.
                 //         using (c1b) { }
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "c1b").WithArguments("C1").WithLocation(16, 16)
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "c1b").WithArguments("S1").WithLocation(15, 16)
                 );
         }
 
@@ -1325,9 +913,8 @@ class C2
         public void UsingPatternWrongAccessibilityTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
     private void Dispose() { }
 }
 
@@ -1335,26 +922,26 @@ class C2
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 c = new S1())
         {
         }
-        C1 c1b = new C1();
+        S1 c1b = new S1();
         using (c1b) { }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (12,16): error CS0122: 'C1.Dispose()' is inaccessible due to its protection level
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_BadAccess, "C1 c = new C1()").WithArguments("C1.Dispose()").WithLocation(12, 16),
-                // (12,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(12, 16),
-                // (16,16): error CS0122: 'C1.Dispose()' is inaccessible due to its protection level
+                // (11,16): error CS0122: 'S1.Dispose()' is inaccessible due to its protection level
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_BadAccess, "S1 c = new S1()").WithArguments("S1.Dispose()").WithLocation(11, 16),
+                // (11,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 c = new S1()").WithArguments("S1").WithLocation(11, 16),
+                // (15,16): error CS0122: 'S1.Dispose()' is inaccessible due to its protection level
                 //         using (c1b) { }
-                Diagnostic(ErrorCode.ERR_BadAccess, "c1b").WithArguments("C1.Dispose()").WithLocation(16, 16),
-                // (16,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                Diagnostic(ErrorCode.ERR_BadAccess, "c1b").WithArguments("S1.Dispose()").WithLocation(15, 16),
+                // (15,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
                 //         using (c1b) { }
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "c1b").WithArguments("C1").WithLocation(16, 16)
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "c1b").WithArguments("S1").WithLocation(15, 16)
                 );
         }
 
@@ -1362,9 +949,8 @@ class C2
         public void UsingPatternNonPublicAccessibilityTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
     internal void Dispose() { }
 }
 
@@ -1372,10 +958,10 @@ class C2
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 c = new S1())
         {
         }
-        C1 c1b = new C1();
+        S1 c1b = new S1();
         using (c1b) { }
     }
 }";
@@ -1386,7 +972,7 @@ class C2
         public void UsingPatternStaticMethod()
         {
             var source = @"
-class C1
+ref struct S1
 {
     public static void Dispose() { }
 }
@@ -1395,19 +981,19 @@ class C2
 {
     static void Main()
     {
-        using (C1 c1 = new C1())
+        using (S1 c1 = new S1())
         {
         }
     }
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (11,16): error CS0176: Member 'C1.Dispose()' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         using (C1 c1 = new C1())
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "C1 c1 = new C1()").WithArguments("C1.Dispose()").WithLocation(11, 16),
-                // (11,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //         using (C1 c1 = new C1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c1 = new C1()").WithArguments("C1").WithLocation(11, 16)
+                // (11,16): error CS0176: Member 'S1.Dispose()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         using (S1 c1 = new S1())
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "S1 c1 = new S1()").WithArguments("S1.Dispose()").WithLocation(11, 16),
+                // (11,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (S1 c1 = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 c1 = new S1()").WithArguments("S1").WithLocation(11, 16)
                 );
         }
 
@@ -1415,9 +1001,8 @@ class C2
         public void UsingPatternGenericMethodTest()
         {
             var source = @"
-class C1
+ref struct S1
 {
-    public C1() { }
     public void Dispose<T>() { }
 }
 
@@ -1425,18 +1010,18 @@ class C2
 {
     static void Main()
     {
-        using (C1 c = new C1())
+        using (S1 c = new S1())
         {
         }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (12,16): error CS0411: The type arguments for method 'C1.Dispose<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "C1 c = new C1()").WithArguments("C1.Dispose<T>()").WithLocation(12, 16),
-                // (12,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(12, 16)
+                // (11,16): error CS0411: The type arguments for method 'S1.Dispose<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "S1 c = new S1()").WithArguments("S1.Dispose<T>()").WithLocation(11, 16),
+                // (11,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 c = new S1()").WithArguments("S1").WithLocation(11, 16)
                 );
         }
 
@@ -1459,7 +1044,11 @@ class C2
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics(
+                // (11,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (C1 c1 = new C1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c1 = new C1()").WithArguments("C1").WithLocation(11, 16)
+                );
         }
 
         [Fact]
@@ -1467,9 +1056,8 @@ class C2
         {
             var source = @"
 using System.Threading.Tasks;
-class C1
+ref struct S1
 {
-    public C1() { }
     public ValueTask DisposeAsync() 
     { 
         System.Console.WriteLine(""Dispose async"");
@@ -1481,505 +1069,17 @@ class C2
 {
     static async Task Main()
     {
-        await using (C1 c = new C1())
+        await using (S1 c = new S1())
         {
         }
     }
 }";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
-
-            CompileAndVerify(compilation, expectedOutput: "Dispose async");
-        }
-
-        [Fact]
-        public void UsingPatternAsyncWithTaskLikeReturnTest()
-        {
-            var source = @"
-using System;
-using System.Runtime.CompilerServices;
-class C1
-{
-    public C1() { }
-    public System.Threading.Tasks.Task DisposeAsync() { return System.Threading.Tasks.Task.CompletedTask; }
-}
-
-class C2
-{
-    public C2() { }
-    public MyTask DisposeAsync() { return new MyTask(); }
-}
-
-[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
-struct MyTask
-{
-    internal Awaiter GetAwaiter() => new Awaiter();
-    internal class Awaiter : INotifyCompletion
-    {
-        public void OnCompleted(Action a) { }
-        internal bool IsCompleted => true;
-        internal void GetResult() { }
-    }
-}
-
-struct MyTaskMethodBuilder
-{
-    private MyTask _task;
-    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder(new MyTask());
-    internal MyTaskMethodBuilder(MyTask task)
-    {
-        _task = task;
-    }
-    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
-    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
-    {
-        stateMachine.MoveNext();
-    }
-    public void SetException(Exception e) { }
-    public void SetResult() { }
-    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public MyTask Task => _task;
-}
-
-
-
-class C3
-{
-    static async System.Threading.Tasks.Task Main()
-    {
-        await using (C1 c = new C1())
-        {
-        }
-
-        await using (C2 c = new C2())
-        {
-        }
-    }
-}";
-            CreateCompilationWithTasksExtensions(source + _asyncDisposable).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void UsingPatternAsyncNoAwaitTest()
-        {
-            var source = @"
-using System.Threading.Tasks;
-class C1
-{
-    public ValueTask DisposeAsync()
-    { 
-        return new ValueTask(Task.CompletedTask); 
-    }
-}
-
-class C2
-{
-    static async Task Main()
-    {
-        using (C1 c = new C1())
-        {
-        }
-    }
-}";
-            CreateCompilationWithTasksExtensions(source + _asyncDisposable).VerifyDiagnostics(
-                // (13,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async System.Threading.Tasks.Task Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(13, 23),
-                // (15,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                //         using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(15, 16)
+            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable).VerifyDiagnostics(
+                // (16,22): error CS4012: Parameters or locals of type 'S1' cannot be declared in async methods or lambda expressions.
+                //         await using (S1 c = new S1())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "S1").WithArguments("S1").WithLocation(16, 22)
                 );
-        }
 
-        [Fact]
-        public void UsingPatternAsyncAndSyncTest()
-        {
-            var source = @"
-using System.Threading.Tasks;
-class C1
-{
-    public ValueTask DisposeAsync()
-    { 
-        System.Console.Write(""Dispose async"");
-        return new ValueTask(Task.CompletedTask); 
-    }
-    public void Dispose()
-    { 
-        System.Console.Write(""Dispose; "");
-    }
-}
-
-class C2
-{
-    static async Task Main()
-    {
-        using (C1 c = new C1())
-        {
-        }
-        await using (C1 c = new C1())
-        {
-        }
-    }
-}";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
-
-            CompileAndVerify(compilation, expectedOutput: "Dispose; Dispose async");
-        }
-
-        [Fact]
-        public void UsingPatternAsyncExtensionMethodTest()
-        {
-            var source = @"
-using System.Threading.Tasks;
-class C1
-{
-}
-
-static class C2 
-{
-    public static ValueTask DisposeAsync(this C1 c1) 
-    { 
-        System.Console.WriteLine(""Dispose async""); 
-        return new ValueTask(Task.CompletedTask);
-    }
-}
-
-class C3
-{
-    static async System.Threading.Tasks.Task Main()
-    {
-        await using (C1 c = new C1())
-        {
-        }
-    }
-}";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
-
-            CompileAndVerify(compilation, expectedOutput: "Dispose async");
-        }
-
-        [Fact]
-        public void UsingPatternAsyncWrongReturnTypeTest()
-        {
-            var source = @"
-class C1
-{
-    public bool DisposeAsync() { return false; }
-}
-
-class C2
-{
-    static async System.Threading.Tasks.Task Main()
-    {
-        await using (C1 c = new C1())
-        {
-        }
-    }
-}";
-            CreateCompilationWithTasksExtensions(source + _asyncDisposable).VerifyDiagnostics(
-                // (11,22): warning CS0280: 'C1' does not implement the 'disposable' pattern. 'C1.DisposeAsync()' has the wrong signature.
-                //         await using (C1 c = new C1())
-                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C1 c = new C1()").WithArguments("C1", "disposable", "C1.DisposeAsync()").WithLocation(11, 22),
-                // (11,22): error CS8410: 'C1': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
-                //         await using (C1 c = new C1())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(11, 22)
-                );
-        }
-
-        [Fact]
-        public void UsingPatternAsyncDefaultParametersTest()
-        {
-            var source = @"
-using System.Threading.Tasks;
-class C1
-{
-    public ValueTask DisposeAsync(int x = 4) 
-    {
-        return new ValueTask(Task.CompletedTask); 
-    }
-}
-
-class C2
-{
-    static async Task Main()
-    {
-        await using (C1 c = new C1())
-        {
-        }
-    }
-}";
-            CreateCompilationWithTasksExtensions(source + _asyncDisposable).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void UsingPatternAsyncInterfaceDisposeTest()
-        {
-            var source = @"
-using System.Threading.Tasks;
-class C1 : System.IDisposable
-{
-    public ValueTask DisposeAsync() 
-    { 
-        System.Console.Write(""Dispose async; "");
-        return new ValueTask(Task.CompletedTask);
-    }
-
-    public void Dispose()
-    {
-        System.Console.Write(""Dispose; "");
-    }
-}
-
-class C2
-{
-    static async Task Main()
-    {
-        await using (C1 c = new C1())
-        {
-        }
-        using (C1 c = new C1())
-        {
-        }
-    }
-}";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
-
-            CompileAndVerify(compilation, expectedOutput: "Dispose async; Dispose; ");
-        }
-
-        [Fact]
-        public void UsingPatternDisposeInterfaceAsyncTest()
-        {
-            var source = @"
-using System.Threading.Tasks;
-class C1 : System.IAsyncDisposable
-{
-    public ValueTask DisposeAsync() 
-    { 
-        System.Console.Write(""Dispose async; "");
-        return new ValueTask(Task.CompletedTask);
-    }
-
-    public void Dispose()
-    {
-        System.Console.Write(""Dispose; "");
-    }
-}
-
-class C2
-{
-    static async Task Main()
-    {
-        await using (C1 c = new C1())
-        {
-        }
-        using (C1 c = new C1())
-        {
-        }
-    }
-}";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
-
-            CompileAndVerify(compilation, expectedOutput: "Dispose async; Dispose; ");
-        }
-
-        [Fact]
-        public void UsingPatternExtensionMethodWithNullableValue()
-        {
-            var source = @"
-static class C1 
-{
-    internal static void Dispose(this int x)
-    {
-        System.Console.Write($""Dispose {x}; "");
-    }
-}
- class C2
-{
-    static void Main()
-    {
-        using (int? i1 = 1)
-        {
-            // Dispose 1
-        }
-        
-        int? i2 = 2;
-        using (i2) 
-        {
-            // Dispose 2
-        }       
-        
-        using (int? i3 = null)
-        {
-            // no dispose, null
-        }
-        
-        int? i4 = null;
-        using (i4) 
-        {
-            // no dispose, null
-        }
-    }
-}";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "Dispose 1; Dispose 2; ");
-        }
-
-        [Fact]
-        public void UsingPatternExtensionMethodWithNullableValueTargetAndValueTarget()
-        {
-            var source = @"
-static class C2 
-{
-    internal static void Dispose(this int? c1)
-    {
-        throw new System.Exception(""Nullable extension should not be called"");
-    }        
-    
-    internal static void Dispose(this int c1)
-    { 
-        System.Console.Write($""Dispose {c1}; "");
-    }
-}
- class C3
-{
-    static void Main()
-    {
-        using (int? i1 = 1)
-        {
-            // Dispose 1
-        }
-        
-        int? i2 = 2;
-        using (i2)
-        {
-            // Dispose 2
-        }
-      
-        using (int i3 = 3)
-        {
-            // Dispose 3
-        }
-        
-        int i4 = 4;
-        using (i4)
-        {
-            // Dipose 4        
-        }
-
-        using (5)
-        {
-            // Dispose 5
-        }
-    }
-}";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "Dispose 1; Dispose 2; Dispose 3; Dispose 4; Dispose 5; ");
-        }
-
-        [Fact]
-        public void UsingPatternExtensionMethodWithOnlyNullableValueTarget()
-        {
-            var source = @"
-static class C2 
-{
-    internal static void Dispose(this int? c1)
-    {
-        System.Console.Write($""Dispose? {c1}; "");
-    }        
-    
-}
- class C3
-{
-    static void Main()
-    {
-        using (int? i1 = 1)
-        {
-            // Dispose 1
-        }
-        
-        int? i2 = 2;
-        using (i2)
-        {
-            // Dispose 2
-        }
-    }
-}";
-            var compilation = CreateCompilation(source).VerifyDiagnostics(
-                 // (14,16): error CS1674: 'int?': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                 //         using (int? i1 = 1)
-                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int? i1 = 1").WithArguments("int?").WithLocation(14, 16),
-                 // (14,21): error CS1929: 'int' does not contain a definition for 'Dispose' and the best extension method overload 'C2.Dispose(int?)' requires a receiver of type 'int?'
-                 //         using (int? i1 = 1)
-                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i1 = 1").WithArguments("int", "Dispose", "C2.Dispose(int?)", "int?").WithLocation(14, 21),
-                 // (20,16): error CS1929: 'int' does not contain a definition for 'Dispose' and the best extension method overload 'C2.Dispose(int?)' requires a receiver of type 'int?'
-                 //         using (i2)
-                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i2").WithArguments("int", "Dispose", "C2.Dispose(int?)", "int?").WithLocation(20, 16),
-                 // (20,16): error CS1674: 'int?': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
-                 //         using (i2)
-                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "i2").WithArguments("int?").WithLocation(20, 16)
-                );
-        }
-
-        [Fact]
-        public void UsingPatternExtensionMethodWithNullReceiver()
-        {
-            var source = @"
-static class C2 
-{
-   internal static void Dispose(this object c1) { System.Console.Write($""Dispose; "");}
-}
-class C3
-{
-    static void Main()
-    {
-        using (object o = null)
-        {
-            // Not called
-        }
-
-        object o2 = null;
-        using (o2) 
-        {
-            // not called
-        }
-
-        using (null)
-        {
-            // not called
-        }
-    }
-}";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "");
-        }
-
-        [Fact]
-        public void UsingPatternWithNullableValueType()
-        {
-            var source = @"
-struct S1
-{
-   internal void Dispose() { System.Console.Write($""Dispose; "");}
-}
- class C3
-{
-    static void Main()
-    {
-        using (S1? s1 = new S1())
-        {
-            // Dispose
-        }
-
-        S1? s2 = new S1();
-        using (s2) 
-        {
-            // Dispose
-        }
-    }
-}";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Dispose; Dispose; ");
         }
 
         [Fact]

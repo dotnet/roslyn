@@ -103,13 +103,6 @@
   <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
 
-  <!--
-  This node is used to represent an expression returning value of a certain type.
-  It is used to perform intermediate binding, and will not survive the local rewriting.
-  -->
-  <Node Name="BoundDisposableValuePlaceholder" Base="BoundValuePlaceholderBase">
-  </Node>
-
   <!-- only used by codegen -->
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->

@@ -369,7 +369,7 @@ class C
         {
             var source = @"
 using System;
-class C2
+class C2 : IDisposable
 {
     public void Dispose()
     {
@@ -396,7 +396,7 @@ class C
         {
             var source = @"
 using System;
-class C2
+class C2 : IDisposable
 {
     public void Dispose()
     {
@@ -408,6 +408,32 @@ class C
     static void Main()
     {
         using C2 x = new C2(), x2 = x;
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "Disposed; Disposed; ");
+        }
+
+        [Fact]
+        public void UsingVariableCanBeInitializedWithExistingRefStructDisposable()
+        {
+            var source = @"
+using System;
+ref struct C2
+{
+    public void Dispose()
+    {
+        Console.Write(""Disposed; ""); 
+    }
+}
+class C
+{
+    static void Main()
+    {
+        var x = new C2();
+        using var x2 = x;
+        using var x3 = x2;
     }
 }
 ";
