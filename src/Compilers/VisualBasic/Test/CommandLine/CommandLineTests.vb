@@ -3097,6 +3097,30 @@ End Class")
                 {"a.vb", "b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
                 parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
 
+            parsedArgs = DefaultParse({"/embed:a.vb,b.vb", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a.vb", "b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:""a,b.vb""", "/debug:portable", "a,b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a,b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:\""a,b.vb\""", "/debug:portable", "a,b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a,b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:\""""a.vb,b.vb""\""", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a.vb", "b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
             parsedArgs = DefaultParse({"/embed:a.txt", "/embed", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertEx.Equal(
@@ -7447,6 +7471,22 @@ C:\*.vb(100) : error BC30451: 'Goo' is not declared. It may be inaccessible due 
             Assert.Equal(Path.Combine(_baseDirectory, "app.manifest"), args.AdditionalFiles(1).Path)
 
             args = DefaultParse({"/additionalfile:web.config,app.manifest", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(2, args.AdditionalFiles.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalFiles(0).Path)
+            Assert.Equal(Path.Combine(_baseDirectory, "app.manifest"), args.AdditionalFiles(1).Path)
+
+            args = DefaultParse({"/additionalfile:""web.config,app.manifest""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(1, args.AdditionalFiles.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, "web.config,app.manifest"), args.AdditionalFiles(0).Path)
+
+            args = DefaultParse({"/additionalfile:\""web.config,app.manifest\""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(1, args.AdditionalFiles.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, "web.config,app.manifest"), args.AdditionalFiles(0).Path)
+
+            args = DefaultParse({"/additionalfile:\""""web.config,app.manifest""\""", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(2, args.AdditionalFiles.Length)
             Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalFiles(0).Path)

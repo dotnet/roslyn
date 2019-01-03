@@ -208,11 +208,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case NullableContextOptions.SafeOnly:
+                case NullableContextOptions.SafeOnlyWarnings:
                     if (isNullableFlowAnalysisNonSafetyWarning)
                     {
                         return ReportDiagnostic.Suppress;
                     }
                     break;
+
+                case NullableContextOptions.Enable:
+                case NullableContextOptions.Warnings:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(nullableOption);
             }
 
             // 4. Global options

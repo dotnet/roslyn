@@ -20,6 +20,8 @@ Microsoft.CodeAnalysis.CSharp.NullableContextOptions
 Microsoft.CodeAnalysis.CSharp.NullableContextOptions.Disable = 0 -> Microsoft.CodeAnalysis.CSharp.NullableContextOptions
 Microsoft.CodeAnalysis.CSharp.NullableContextOptions.Enable = 1 -> Microsoft.CodeAnalysis.CSharp.NullableContextOptions
 Microsoft.CodeAnalysis.CSharp.NullableContextOptions.SafeOnly = 2 -> Microsoft.CodeAnalysis.CSharp.NullableContextOptions
+Microsoft.CodeAnalysis.CSharp.NullableContextOptions.SafeOnlyWarnings = 4 -> Microsoft.CodeAnalysis.CSharp.NullableContextOptions
+Microsoft.CodeAnalysis.CSharp.NullableContextOptions.Warnings = 3 -> Microsoft.CodeAnalysis.CSharp.NullableContextOptions
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.WithAsyncKeyword(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.WithBody(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax.QuestionToken.get -> Microsoft.CodeAnalysis.SyntaxToken
