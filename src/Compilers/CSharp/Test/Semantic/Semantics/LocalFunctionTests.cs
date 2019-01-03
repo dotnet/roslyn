@@ -4650,7 +4650,7 @@ class C
         }
 
         /// <summary>
-        /// nameof(identifier) should bind to shadowing variable.
+        /// nameof(x) should bind to shadowing symbol.
         /// </summary>
         [Fact]
         public void NameOf_ShadowedVariable()
@@ -4678,6 +4678,139 @@ class C
             Assert.Equal("System.Int32 x", symbol.ToTestDisplayString());
         }
 
+        /// <summary>
+        /// nameof(T) should bind to shadowing symbol.
+        /// </summary>
+        [Fact]
+        public void NameOf_ShadowedTypeParameter()
+        {
+            var source =
+@"#pragma warning disable 8321
+class C
+{
+    static void M<T>()
+    {
+        object F1()
+        {
+            int T = 0;
+            return nameof(T);
+        }
+        object F2<T>()
+        {
+            return nameof(T);
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,19): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M<T>()'
+                //         object F2<T>()
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M<T>()").WithLocation(11, 19));
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = GetNameOfExpressions(tree);
+            var symbol = model.GetSymbolInfo(exprs[0]).Symbol;
+            Assert.Equal(SymbolKind.Local, symbol.Kind);
+            Assert.Equal("System.Int32 T", symbol.ToTestDisplayString());
+            symbol = model.GetSymbolInfo(exprs[1]).Symbol;
+            Assert.Equal(SymbolKind.TypeParameter, symbol.Kind);
+            Assert.Equal("System.Object F2<T>()", symbol.ContainingSymbol.ToTestDisplayString());
+        }
+
+        /// <summary>
+        /// typeof(T) should bind to nearest type.
+        /// </summary>
+        [Fact]
+        public void TypeOf_ShadowedTypeParameter()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+class C
+{
+    static void M<T>()
+    {
+        object F1()
+        {
+            int T = 0;
+            return typeof(T);
+        }
+        object F2<T>()
+        {
+            return typeof(T);
+        }
+        object F3<U>()
+        {
+            return typeof(U);
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (12,19): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M<T>()'
+                //         object F2<T>()
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M<T>()").WithLocation(12, 19));
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<TypeOfExpressionSyntax>().Select(n => n.Type).ToImmutableArray();
+            var symbol = model.GetSymbolInfo(exprs[0]).Symbol;
+            Assert.Equal(SymbolKind.TypeParameter, symbol.Kind);
+            Assert.Equal("void C.M<T>()", symbol.ContainingSymbol.ToTestDisplayString());
+            symbol = model.GetSymbolInfo(exprs[1]).Symbol;
+            Assert.Equal(SymbolKind.TypeParameter, symbol.Kind);
+            Assert.Equal("System.Object F2<T>()", symbol.ContainingSymbol.ToTestDisplayString());
+            symbol = model.GetSymbolInfo(exprs[2]).Symbol;
+            Assert.Equal(SymbolKind.TypeParameter, symbol.Kind);
+            Assert.Equal("System.Object F3<U>()", symbol.ContainingSymbol.ToTestDisplayString());
+        }
+
+        /// <summary>
+        /// sizeof(T) should bind to nearest type.
+        /// </summary>
+        [Fact]
+        public void SizeOf_ShadowedTypeParameter()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+unsafe class C
+{
+    static void M<T>() where T : unmanaged
+    {
+        object F1()
+        {
+            int T = 0;
+            return sizeof(T);
+        }
+        object F2<T>() where T : unmanaged
+        {
+            return sizeof(T);
+        }
+        object F3<U>() where U : unmanaged
+        {
+            return sizeof(U);
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (12,19): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M<T>()'
+                //         object F2<T>()
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M<T>()").WithLocation(12, 19));
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<SizeOfExpressionSyntax>().Select(n => n.Type).ToImmutableArray();
+            var symbol = model.GetSymbolInfo(exprs[0]).Symbol;
+            Assert.Equal(SymbolKind.TypeParameter, symbol.Kind);
+            Assert.Equal("void C.M<T>()", symbol.ContainingSymbol.ToTestDisplayString());
+            symbol = model.GetSymbolInfo(exprs[1]).Symbol;
+            Assert.Equal(SymbolKind.TypeParameter, symbol.Kind);
+            Assert.Equal("System.Object F2<T>()", symbol.ContainingSymbol.ToTestDisplayString());
+            symbol = model.GetSymbolInfo(exprs[2]).Symbol;
+            Assert.Equal(SymbolKind.TypeParameter, symbol.Kind);
+            Assert.Equal("System.Object F3<U>()", symbol.ContainingSymbol.ToTestDisplayString());
+        }
+
         private static ImmutableArray<ExpressionSyntax> GetNameOfExpressions(SyntaxTree tree)
         {
             return tree.GetRoot().DescendantNodes().
@@ -4685,6 +4818,30 @@ class C
                 Where(n => n.Expression.ToString() == "nameof").
                 Select(n => n.ArgumentList.Arguments[0].Expression).
                 ToImmutableArray();
+        }
+
+        [Fact]
+        public void ShadowWithSelfReferencingLocal()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        int x = 13;
+        void Local()
+        {
+            int x = (x = 0) + 42;
+            Console.WriteLine(x);
+        }
+        Local();
+        Console.WriteLine(x);
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"42
+13");
         }
     }
 }
