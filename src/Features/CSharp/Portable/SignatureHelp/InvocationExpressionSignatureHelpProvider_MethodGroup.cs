@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         private static ImmutableArray<IMethodSymbol> RemoveUnacceptable(IEnumerable<IMethodSymbol> methodGroup, InvocationExpressionSyntax invocationExpression,
             ISymbol within, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            methodGroup = methodGroup.Where(m => !IsInacceptable(invocationExpression.ArgumentList.Arguments, m)).ToImmutableArray();
+            methodGroup = methodGroup.Where(m => !IsUnacceptable(invocationExpression.ArgumentList.Arguments, m)).ToImmutableArray();
 
             ITypeSymbol throughType = null;
             if (invocationExpression.Expression is MemberAccessExpressionSyntax)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return accessibleMethods;
         }
 
-        private (IList<SignatureHelpItem>, int?) GetMethodGroupItemsAndSelection(
+        private (IList<SignatureHelpItem> items, int? selectedItem) GetMethodGroupItemsAndSelection(
             ImmutableArray<IMethodSymbol> methodGroup,
             ISymbol currentSymbol,
             InvocationExpressionSyntax invocationExpression,

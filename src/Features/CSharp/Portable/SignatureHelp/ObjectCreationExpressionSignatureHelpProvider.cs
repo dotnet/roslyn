@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         private static ImmutableArray<IMethodSymbol> RemoveUnacceptable(IEnumerable<IMethodSymbol> methodGroup, ObjectCreationExpressionSyntax objectCreation,
             ISymbol within, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            return methodGroup.Where(m => !IsInacceptable(objectCreation.ArgumentList.Arguments, m)).ToImmutableArray();
+            return methodGroup.Where(m => !IsUnacceptable(objectCreation.ArgumentList.Arguments, m)).ToImmutableArray();
         }
     }
 }

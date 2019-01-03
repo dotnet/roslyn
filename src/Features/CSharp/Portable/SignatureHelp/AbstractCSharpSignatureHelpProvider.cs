@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         /// If it was bound, we'll find which parameter to highlight.
         /// Either way, we'll eliminate unsuitable candidates (based on argument names used in the invocation).
         /// </summary>
-        protected static (ISymbol, int parameterIndex) GuessCurrentSymbolAndParameter(
+        protected static (ISymbol symbol, int parameterIndex) GuessCurrentSymbolAndParameter(
             SeparatedSyntaxList<ArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodGroup, int position,
             SemanticModel semanticModel, ISemanticFactsService semanticFactsService, CancellationToken cancellationToken)
         {
@@ -106,9 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         /// <summary>
-        /// If an argument name does not correspond to a parameter name, this method is inacceptable. We'll filter it out.
+        /// If an argument name does not correspond to a parameter name, this method is unacceptable. We'll filter it out.
         /// </summary>
-        protected static bool IsInacceptable(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method)
+        protected static bool IsUnacceptable(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method)
         {
             if (arguments.Count == 0)
             {
