@@ -103,6 +103,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     break;
                 }
 
+                // BEGIN WORKAROUND FOR https://github.com/dotnet/roslyn/issues/32121
+                // Filter out items not belonging to a currently-open project
+                if (ErrorHandler.Failed(((IVsErrorItem)item[0]).GetHierarchy(out _)))
+                {
+                    continue;
+                }
+                // END WORKAROUND FOR https://github.com/dotnet/roslyn/issues/32121
+
                 yield return item[0];
             }
         }

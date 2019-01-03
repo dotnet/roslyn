@@ -365,6 +365,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
             CloseSolution();
+            ErrorList_InProc.Create().WaitForNoErrorsInErrorList();
 
             foreach (var directoryToDelete in directoriesToDelete)
             {
