@@ -4418,7 +4418,7 @@ class Program
         }
 
         [Fact]
-        public void ShadowNames_LambdaInsideLocalFunction()
+        public void ShadowNames_LambdaInsideLocalFunction_01()
         {
             var source =
 @"#pragma warning disable 0219
@@ -4455,6 +4455,51 @@ class Program
                     //             Action a2 = () => { int T = 0; };
                     Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(15, 37));
             }
+        }
+
+        [Fact]
+        public void ShadowNames_LambdaInsideLocalFunction_02()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+class Program
+{
+    static void M<T>()
+    {
+        object x = null;
+        void F()
+        {
+            Action<int> a1 = (int x) =>
+            {
+                Action b1 = () => { int T = 0; };
+            };
+            Action a2 = () =>
+            {
+                int x = 0;
+                Action<int> b2 = (int T) => { };
+            };
+        }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (11,35): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             Action<int> a1 = (int x) =>
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 35),
+                // (13,41): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //                 Action b1 = () => { int T = 0; };
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(13, 41),
+                // (17,21): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                 int x = 0;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(17, 21),
+                // (18,39): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //                 Action<int> b2 = (int T) => { };
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(18, 39));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4582,7 +4627,6 @@ class B : A
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "_f").WithLocation(18, 30));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE: Should we report the same errors when "MyDefine" is not set?
             comp.VerifyEmitDiagnostics();
         }
 

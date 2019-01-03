@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private bool ValidateLambdaParameterNameConflictsInScope(Location location, string name, DiagnosticBag diagnostics)
         {
-            return ValidateNameConflictsInScope(null, location, name, outsideContainingSymbol: true, diagnostics);
+            return ValidateNameConflictsInScope(null, location, name, diagnostics);
         }
 
-        internal bool ValidateDeclarationNameConflictsInScope(Symbol symbol, DiagnosticBag diagnostics, bool outsideContainingSymbol = false)
+        internal bool ValidateDeclarationNameConflictsInScope(Symbol symbol, DiagnosticBag diagnostics)
         {
             Location location = GetLocation(symbol);
-            return ValidateNameConflictsInScope(symbol, location, symbol.Name, outsideContainingSymbol, diagnostics);
+            return ValidateNameConflictsInScope(symbol, location, symbol.Name, diagnostics);
         }
 
         private static Location GetLocation(Symbol symbol)
@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void ValidateParameterNameConflicts(
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ParameterSymbol> parameters,
+            bool allowShadowingNames,
             DiagnosticBag diagnostics)
         {
             PooledHashSet<string> tpNames = null;
@@ -46,9 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Type parameter declaration name conflicts are detected elsewhere
                     }
-                    else
+                    else if (!allowShadowingNames)
                     {
-                        ValidateDeclarationNameConflictsInScope(tp, diagnostics, outsideContainingSymbol: true);
+                        ValidateDeclarationNameConflictsInScope(tp, diagnostics);
                     }
                 }
             }
@@ -76,9 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // The parameter name '{0}' is a duplicate
                         diagnostics.Add(ErrorCode.ERR_DuplicateParamName, GetLocation(p), name);
                     }
-                    else
+                    else if (!allowShadowingNames)
                     {
-                        ValidateDeclarationNameConflictsInScope(p, diagnostics, outsideContainingSymbol: true);
+                        ValidateDeclarationNameConflictsInScope(p, diagnostics);
                     }
                 }
             }
@@ -90,20 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Don't call this one directly - call one of the helpers.
         /// </remarks>
-        private bool ValidateNameConflictsInScope(Symbol symbol, Location location, string name, bool outsideContainingSymbol, DiagnosticBag diagnostics)
+        private bool ValidateNameConflictsInScope(Symbol symbol, Location location, string name, DiagnosticBag diagnostics)
         {
             if (string.IsNullOrEmpty(name))
-            {
-                return false;
-            }
-
-            // If the symbol is defined in a local function and shadowing is enabled,
-            // avoid checking for conflicts outside of the local function.
-            var stopAtLocalFunction = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticLocalFunctions) == true ?
-                symbol?.ContainingSymbol as LocalFunctionSymbol :
-                null;
-
-            if ((object)stopAtLocalFunction != null && outsideContainingSymbol)
             {
                 return false;
             }
@@ -122,15 +112,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                if ((object)stopAtLocalFunction != null && getMemberOrLambda(binder) == stopAtLocalFunction)
+                // If shadowing is enabled, avoid checking for conflicts outside of local functions.
+                if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticLocalFunctions))
                 {
-                    return false;
+                    var containingMethod = (binder as InMethodBinder)?.ContainingMemberOrLambda as MethodSymbol;
+                    if (containingMethod?.MethodKind == MethodKind.LocalFunction)
+                    {
+                        return false;
+                    }
                 }
             }
 
             return false;
-
-            Symbol getMemberOrLambda(Binder binder) => (binder as InMethodBinder)?.ContainingMemberOrLambda;
         }
     }
 }
