@@ -2835,9 +2835,6 @@ public class X
                 // (37,52): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //                                          o2 is int x5 && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(37, 52),
-                // (38,42): error CS0165: Use of unassigned local variable 'x5'
-                //                                          x5 > 0;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x5").WithArguments("x5").WithLocation(38, 42),
                 // (51,15): error CS0103: The name 'x7' does not exist in the current context
                 //         Dummy(x7, 1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(51, 15),
@@ -2846,7 +2843,7 @@ public class X
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(55, 15)
                 );
 
-           compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
             compilation.VerifyDiagnostics(
                 // (12,29): error CS0103: The name 'let' does not exist in the current context
                 //         void f(object o) => let x1 = o;
@@ -2881,9 +2878,6 @@ public class X
                 // (37,52): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //                                          o2 is int x5 && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(37, 52),
-                // (38,42): error CS0165: Use of unassigned local variable 'x5'
-                //                                          x5 > 0;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x5").WithArguments("x5").WithLocation(38, 42),
                 // (51,15): error CS0103: The name 'x7' does not exist in the current context
                 //         Dummy(x7, 1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(51, 15),
