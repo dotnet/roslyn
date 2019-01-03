@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public partial class IOperationTests_Patterns : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
@@ -20,16 +20,16 @@ class X
     void M()
     {
         int? x = 12;
-        if (/*<bind>*/x is var y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is var y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is var y')
-  Expression: 
+  Value: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32? y, AcceptsNull: True) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y') (InputType: System.Int32?, DeclaredSymbol: System.Int32? y, MatchesNull: True)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -47,16 +47,16 @@ class X
     void M()
     {
         int? x = 12;
-        if (/*<bind>*/x is int y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is int y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is int y')
-  Expression: 
+  Value: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y') (InputType: System.Int32?, DeclaredSymbol: System.Int32 y, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -73,16 +73,16 @@ class X
 {
     void M(X x)
     {
-        if (/*<bind>*/x is X y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is X y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is X y')
-  Expression: 
+  Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: X) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: X y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'X y') (InputType: X, DeclaredSymbol: X y, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -99,16 +99,16 @@ class X
 {
     void M<T>(T x) where T: class
     {
-        if (/*<bind>*/x is T y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is T y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is T y')
-  Expression: 
+  Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: T y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'T y')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'T y') (InputType: T, DeclaredSymbol: T y, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -125,16 +125,16 @@ class X
 {
     void M(X x)
     {
-        if (/*<bind>*/x is dynamic y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is dynamic y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'x is dynamic y')
-  Expression: 
+  Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: X) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: dynamic y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'dynamic y')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'dynamic y') (InputType: X, DeclaredSymbol: dynamic y, MatchesNull: False)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8208: It is not legal to use the type 'dynamic' in a pattern.
@@ -156,16 +156,16 @@ class X
     void M()
     {
         int? x = 12, y = 12;
-        if (/*<bind>*/x is 12/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is 12/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is 12')
-  Expression: 
+  Value: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '12')
+    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '12') (InputType: System.Int32?)
       Value: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 12) (Syntax: '12')
 ";
@@ -185,16 +185,16 @@ class X
     void M()
     {
         int? x = 12, y = 12;
-        if (/*<bind>*/x is (int)12.0/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is (int)12.0/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is (int)12.0')
-  Expression: 
+  Value: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '(int)12.0')
+    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '(int)12.0') (InputType: System.Int32?)
       Value: 
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 12) (Syntax: '(int)12.0')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -217,16 +217,16 @@ class X
     void M()
     {
         int? x = 12, y = 12;
-        if (/*<bind>*/x is 12.0/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is 12.0/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'x is 12.0')
-  Expression: 
+  Value: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '12.0')
+    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '12.0') (InputType: System.Int32?)
       Value: 
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 12, IsInvalid, IsImplicit) (Syntax: '12.0')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -253,16 +253,16 @@ class X
     void M()
     {
         int x = 12, y = 12;
-        if (/*<bind>*/x is null/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is null/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'x is null')
-  Expression: 
+  Value: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
   Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: 'null')
+    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: 'null') (InputType: System.Int32)
       Value: 
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -289,16 +289,16 @@ class X
     void M()
     {
         int? x = 12;
-        if (/*<bind>*/x is UndefinedType y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is UndefinedType y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'x is UndefinedType y')
-  Expression: 
+  Value: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: UndefinedType y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'UndefinedType y')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'UndefinedType y') (InputType: System.Int32?, DeclaredSymbol: UndefinedType y, MatchesNull: False)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0246: The type or namespace name 'UndefinedType' could not be found (are you missing a using directive or an assembly reference?)
@@ -320,16 +320,16 @@ class X
     void M()
     {
         int? x = 12, y = 12;
-        if (/*<bind>*/x is y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'x is y')
-  Expression: 
+  Value: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'y')
+    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'y') (InputType: System.Int32?)
       Value: 
         ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32?, IsInvalid) (Syntax: 'y')
 ";
@@ -353,16 +353,16 @@ class X
     void M()
     {
         int? x = 12;
-        if (/*<bind>*/x is X y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is X y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'x is X y')
-  Expression: 
+  Value: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: X y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'X y')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'X y') (InputType: System.Int32?, DeclaredSymbol: X y, MatchesNull: False)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'X'.
@@ -384,16 +384,16 @@ class X
     void M()
     {
         int? x = 12, y = 12;
-        if (/*<bind>*/x is int y/*</bind>*/) Console.WriteLine(y);        
+        if (/*<bind>*/x is int y/*</bind>*/) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'x is int y')
-  Expression: 
+  Value: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int y')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int y') (InputType: System.Int32?, DeclaredSymbol: System.Int32 y, MatchesNull: False)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0128: A local variable or function named 'y' is already defined in this scope
@@ -415,16 +415,16 @@ class X
     void M()
     {
         int? x = 12, y = 12;
-        if (/*<bind>*/x is int y2/*</bind>*/, y3) Console.WriteLine(y);        
+        if (/*<bind>*/x is int y2/*</bind>*/, y3) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is int y2')
-  Expression: 
+  Value: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 y2, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y2')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y2') (InputType: System.Int32?, DeclaredSymbol: System.Int32 y2, MatchesNull: False)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1026: ) expected
@@ -464,16 +464,16 @@ class X
     void M()
     {
         int x = 12;
-        if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);        
+        if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
     }
 }
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'x is /*</bind>*/')
-  Expression: 
+  Value: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
   Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '')
+    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '') (InputType: System.Int32)
       Value: 
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
           Children(0)
@@ -523,12 +523,12 @@ class X
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'string.Empty is string y')
-  Expression: 
+  Value: 
     IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
       Instance Receiver: 
         null
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.String y, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'string y')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'string y') (InputType: System.String, DeclaredSymbol: System.String y, MatchesNull: False)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1736: Default parameter value for 'x' must be a compile-time constant
@@ -552,12 +552,12 @@ class C
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is int x')
-  Expression: 
+  Value: 
     IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object) (Syntax: 'o')
       Instance Receiver: 
         null
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 x, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, DeclaredSymbol: System.Int32 x, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -583,10 +583,10 @@ class C
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is int x')
-  Expression: 
+  Value: 
     IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 x, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, DeclaredSymbol: System.Int32 x, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -613,12 +613,12 @@ class C
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is int x')
-  Expression: 
+  Value: 
     IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, Constant: 1, IsInvalid) (Syntax: 'o')
       Instance Receiver: 
         null
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 x, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int x')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int x') (InputType: System.Object, DeclaredSymbol: System.Int32 x, MatchesNull: False)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0134: 'C.o' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
@@ -665,10 +665,10 @@ Block[B0] - Entry
                     IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
                   Right: 
                     IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is var y')
-                      Expression: 
+                      Value: 
                         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
                       Pattern: 
-                        IDeclarationPatternOperation (Declared Symbol: System.Int32? y, AcceptsNull: True) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
+                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y') (InputType: System.Int32?, DeclaredSymbol: System.Int32? y, MatchesNull: True)
 
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b2 = x2 is 1;')
               Expression: 
@@ -677,10 +677,10 @@ Block[B0] - Entry
                     IParameterReferenceOperation: b2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b2')
                   Right: 
                     IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x2 is 1')
-                      Expression: 
+                      Value: 
                         IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x2')
                       Pattern: 
-                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32)
                           Value: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
@@ -706,7 +706,7 @@ class C
 {
     void M((int X, int Y)? x, bool b)
     /*<bind>*/{
-        b = x is (1, 2) { Item1: var z } p;
+        b = x is (1, _) { Item1: var z } p;
     }/*</bind>*/
 }
 ";
@@ -728,21 +728,19 @@ Block[B0] - Entry
                   Left: 
                     IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
                   Right: 
-                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is (1, 2) ... : var z } p')
-                      Expression: 
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is (1, _) ... : var z } p')
+                      Value: 
                         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32 X, System.Int32 Y)?) (Syntax: 'x')
                       Pattern: 
-                        IRecursivePatternOperation (Declared Symbol: (System.Int32 X, System.Int32 Y) p, MatchedType: (System.Int32 X, System.Int32 Y)?, Deconstruct Symbol: null)
-                          Patterns (2):
-                              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
+                        IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '(1, _) { It ... : var z } p') (InputType: (System.Int32 X, System.Int32 Y)?, DeclaredSymbol: (System.Int32 X, System.Int32 Y) p, MatchedType: (System.Int32 X, System.Int32 Y), DeconstructSymbol: null)
+                          DeconstructionSubpatterns (2):
+                              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32)
                                 Value: 
                                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '2')
-                                Value: 
-                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                          Properties (1):
-                            Matched Property: System.Int32 (System.Int32 X, System.Int32 Y).Item1, Pattern: 
-                                IDeclarationPatternOperation (Declared Symbol: System.Int32 z, AcceptsNull: True) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var z')
+                              IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32)
+                          PropertySubpatterns (1):
+                            MatchedSymbol: System.Int32 (System.Int32 X, System.Int32 Y).Item1, Pattern: 
+                                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: True)
 
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -750,7 +748,8 @@ Block[B0] - Entry
 
 Block[B2] - Exit
     Predecessors: [B1]
-    Statements (0)";
+    Statements (0)
+";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
@@ -765,7 +764,7 @@ class C
 {
     void M(int? x1, int x2, bool b)
     /*<bind>*/{
-        b = (x1 ?? x2) is var y;       
+        b = (x1 ?? x2) is var y;
     }/*</bind>*/
 }
 ";
@@ -838,10 +837,10 @@ Block[B0] - Entry
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                   Right: 
                     IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: '(x1 ?? x2) is var y')
-                      Expression: 
+                      Value: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x1 ?? x2')
                       Pattern: 
-                        IDeclarationPatternOperation (Declared Symbol: System.Int32 y, AcceptsNull: True) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
+                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y') (InputType: System.Int32, DeclaredSymbol: System.Int32 y, MatchesNull: True)
 
         Next (Regular) Block[B6]
             Leaving: {R1}
@@ -856,7 +855,7 @@ Block[B6] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact]
         public void IsPattern_RecursivePattern()
         {
@@ -871,20 +870,20 @@ class C
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'tuple is (1 ... : int x } y')
-  Expression: 
+  Value: 
     IParameterReferenceOperation: tuple (OperationKind.ParameterReference, Type: (System.Int32 X, System.Int32 Y)) (Syntax: 'tuple')
   Pattern: 
-    IRecursivePatternOperation (Declared Symbol: (System.Int32 X, System.Int32 Y) y, MatchedType: (System.Int32 X, System.Int32 Y), Deconstruct Symbol: null)
-      Patterns (2):
-          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '(1, 2) { It ... : int x } y') (InputType: (System.Int32 X, System.Int32 Y), DeclaredSymbol: (System.Int32 X, System.Int32 Y) y, MatchedType: (System.Int32 X, System.Int32 Y), DeconstructSymbol: null)
+      DeconstructionSubpatterns (2):
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32)
             Value: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '2')
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '2') (InputType: System.Int32)
             Value: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-      Properties (1):
-        Matched Property: System.Int32 (System.Int32 X, System.Int32 Y).Item1, Pattern: 
-            IDeclarationPatternOperation (Declared Symbol: System.Int32 x, AcceptsNull: False) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+      PropertySubpatterns (1):
+        MatchedSymbol: System.Int32 (System.Int32 X, System.Int32 Y).Item1, Pattern: 
+            IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Int32, DeclaredSymbol: System.Int32 x, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -955,10 +954,10 @@ Block[B0] - Entry
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                   Right: 
                     IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is (true ? 1 : 0)')
-                      Expression: 
+                      Value: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'x')
                       Pattern: 
-                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '(true ? 1 : 0)')
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '(true ? 1 : 0)') (InputType: System.Int32?)
                           Value: 
                             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'true ? 1 : 0')
 
@@ -968,6 +967,119 @@ Block[B0] - Entry
 
 Block[B5] - Exit
     Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_ControlFlowInPattern_02()
+        {
+            string source = @"
+class C
+{
+    void M((int, int) x, bool b)
+    /*<bind>*/
+    {
+        b = x is ((true ? 1 : 2), (false ? 3 : 4));
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    CaptureIds: [0] [1] [2] [3]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+              Value: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'x')
+
+        Jump if False (Regular) to Block[B3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        Next (Regular) Block[B4]
+    Block[B3] - Block [UnReachable]
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '2')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B6]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+        Next (Regular) Block[B5]
+    Block[B5] - Block [UnReachable]
+        Predecessors: [B4]
+        Statements (1)
+            IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '3')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        Next (Regular) Block[B7]
+    Block[B6] - Block
+        Predecessors: [B4]
+        Statements (1)
+            IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '4')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+
+        Next (Regular) Block[B7]
+    Block[B7] - Block
+        Predecessors: [B5] [B6]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = x is (( ...  ? 3 : 4));')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = x is (( ... e ? 3 : 4))')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
+                  Right: 
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is ((true ... e ? 3 : 4))')
+                      Value: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'x')
+                      Pattern: 
+                        IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '((true ? 1  ... e ? 3 : 4))') (InputType: (System.Int32, System.Int32), DeclaredSymbol: null, MatchedType: (System.Int32, System.Int32), DeconstructSymbol: null)
+                          DeconstructionSubpatterns (2):
+                              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '(true ? 1 : 2)') (InputType: System.Int32)
+                                Value: 
+                                  IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'true ? 1 : 2')
+                              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '(false ? 3 : 4)') (InputType: System.Int32)
+                                Value: 
+                                  IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 4, IsImplicit) (Syntax: 'false ? 3 : 4')
+                          PropertySubpatterns (0)
+
+        Next (Regular) Block[B8]
+            Leaving: {R1}
+}
+
+Block[B8] - Exit
+    Predecessors: [B7]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1080,10 +1192,10 @@ Block[B0] - Entry
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                   Right: 
                     IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: '(x1 ?? x2)  ... ue ? 1 : 0)')
-                      Expression: 
+                      Value: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x1 ?? x2')
                       Pattern: 
-                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '(true ? 1 : 0)')
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '(true ? 1 : 0)') (InputType: System.Int32)
                           Value: 
                             IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'true ? 1 : 0')
 

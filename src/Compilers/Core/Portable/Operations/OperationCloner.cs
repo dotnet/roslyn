@@ -47,13 +47,13 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation
         {
             // clone the array
-            return nodes.IsDefault ? default : nodes.SelectAsArray(n => Visit(n));
+            return nodes.SelectAsArray(n => Visit(n));
         }
 
-        private ImmutableArray<(U, T)> VisitArray<U, T>(ImmutableArray<(U, T)> nodes) where T : IOperation
+        private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation
         {
             // clone the array
-            return nodes.IsDefault ? default : nodes.SelectAsArray(n => (n.Item1, Visit(n.Item2)));
+            return nodes.SelectAsArray(n => (n.Item1, Visit(n.Item2)));
         }
 
         public override IOperation VisitBlock(IBlockOperation operation, object argument)
@@ -582,8 +582,22 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, object argument)
         {
             return new DiscardOperation(
-                operation is IPatternOperation pat ? pat.InputType : operation.DiscardSymbol?.Type,
                 operation.DiscardSymbol, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitDiscardPattern(IDiscardPatternOperation operation, object argument)
+        {
+            return new DiscardPatternOperation(operation.InputType, operation.SemanticModel, operation.Syntax, operation.IsImplicit);
+        }
+
+        public override IOperation VisitSwitchExpression(ISwitchExpressionOperation operation, object argument)
+        {
+            return new SwitchExpressionOperation(operation.Type, Visit(operation.Value), VisitArray(operation.Arms), operation.SemanticModel, operation.Syntax, operation.IsImplicit);
+        }
+
+        public override IOperation VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation, object argument)
+        {
+            return new SwitchExpressionArmOperation(operation.Locals, Visit(operation.Pattern), Visit(operation.Guard), Visit(operation.Value), operation.SemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
         public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, object argument)

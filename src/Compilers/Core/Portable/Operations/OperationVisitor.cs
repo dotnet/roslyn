@@ -550,6 +550,21 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
+        public virtual void VisitDiscardPattern(IDiscardPatternOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitSwitchExpression(ISwitchExpressionOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitFlowCapture(IFlowCaptureOperation operation)
         {
             DefaultVisit(operation);
@@ -1144,6 +1159,21 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitDiscardOperation(IDiscardOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDiscardPattern(IDiscardPatternOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitSwitchExpression(ISwitchExpressionOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
