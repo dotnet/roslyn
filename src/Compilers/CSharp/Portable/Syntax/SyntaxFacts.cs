@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsNamedArgumentName(SyntaxNode node)
         {
             // An argument name is an IdentifierName inside a NameColon, inside an Argument, inside an ArgumentList, inside an
-            // Invocation, ObjectCreation, ObjectInitializer, or ElementAccess.
+            // Invocation, ObjectCreation, ObjectInitializer, ElementAccess or Subpattern.
 
             if (!node.IsKind(IdentifierName))
             {
@@ -260,6 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var parent2 = parent1.Parent;
+            if (parent2.IsKind(SyntaxKind.Subpattern))
+            {
+                return true;
+            }
+
             if (parent2 == null || !(parent2.IsKind(Argument) || parent2.IsKind(AttributeArgument)))
             {
                 return false;
@@ -405,14 +410,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LambdaUtilities.IsLambdaBody(node);
         }
 
-        internal static bool IsVar(this Syntax.InternalSyntax.SyntaxToken node)
+        internal static bool IsIdentifierVar(this Syntax.InternalSyntax.SyntaxToken node)
         {
-            return node.Kind == SyntaxKind.IdentifierToken && node.ValueText == "var";
+            return node.ContextualKind == SyntaxKind.VarKeyword;
         }
 
-        internal static bool IsVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
+        internal static bool IsIdentifierVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
         {
-            return node.IsVar() || IsPredefinedType(node.Kind);
+            return node.IsIdentifierVar() || IsPredefinedType(node.Kind);
         }
 
         internal static bool IsDeclarationExpressionType(SyntaxNode node, out DeclarationExpressionSyntax parent)

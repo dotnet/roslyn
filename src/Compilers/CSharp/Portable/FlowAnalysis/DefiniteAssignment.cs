@@ -1119,6 +1119,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.RecursivePattern:
+                    {
+                        var pattern = (BoundRecursivePattern)node;
+                        var symbol = pattern.Variable as LocalSymbol;
+                        if ((object)symbol != null)
+                        {
+                            // we do not track definite assignment for pattern variables when they are
+                            // promoted to fields for top-level code in scripts and interactive
+                            int slot = GetOrCreateSlot(symbol);
+                            SetSlotState(slot, assigned: written || !this.State.Reachable);
+                        }
+
+                        if (written) NoteWrite(pattern.VariableAccess, value, read);
+                        break;
+                    }
+
                 case BoundKind.LocalDeclaration:
                     {
                         var local = (BoundLocalDeclaration)node;
@@ -1392,9 +1408,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Visitors
 
-        public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
+        public override void VisitPattern(BoundPattern pattern)
         {
-            base.VisitPattern(expression, pattern);
+            base.VisitPattern(pattern);
             var whenFail = StateWhenFalse;
             SetState(StateWhenTrue);
             AssignPatternVariables(pattern);
@@ -1411,7 +1427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Assign(pat, value: null, isRef: false, read: false);
                         break;
                     }
-                case BoundKind.WildcardPattern:
+                case BoundKind.DiscardPattern:
                     break;
                 case BoundKind.ConstantPattern:
                     {
@@ -1419,8 +1435,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.VisitRvalue(pat.Value);
                         break;
                     }
+                case BoundKind.RecursivePattern:
+                    {
+                        var pat = (BoundRecursivePattern)pattern;
+                        if (!pat.Deconstruction.IsDefaultOrEmpty)
+                        {
+                            foreach (var subpat in pat.Deconstruction)
+                            {
+                                AssignPatternVariables(subpat.Pattern);
+                            }
+                        }
+                        if (!pat.Properties.IsDefaultOrEmpty)
+                        {
+                            foreach (BoundSubpattern sub in pat.Properties)
+                            {
+                                AssignPatternVariables(sub.Pattern);
+                            }
+                        }
+                        Assign(pat, null, false, false);
+                        break;
+                    }
+                case BoundKind.ITuplePattern:
+                    {
+                        var pat = (BoundITuplePattern)pattern;
+                        foreach (var subpat in pat.Subpatterns)
+                        {
+                            AssignPatternVariables(subpat.Pattern);
+                        }
+                        break;
+                    }
                 default:
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }
         }
 
@@ -1483,19 +1528,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
-        {
-            DeclareVariables(node.InnerLocals);
-            var result = base.VisitPatternSwitchStatement(node);
-            ReportUnusedVariables(node.InnerLocals);
-            ReportUnusedVariables(node.InnerLocalFunctions);
-            return result;
-        }
-
-        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
+        protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
         {
             DeclareVariables(node.Locals);
-            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+            base.VisitSwitchSection(node, isLastSection);
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)

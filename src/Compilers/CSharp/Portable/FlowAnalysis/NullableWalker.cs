@@ -989,6 +989,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _variableTypes[variable] = expressionResultType;
                             TrackNullableStateForAssignment(expression, expressionResultType, GetOrCreateSlot(variable), expressionResultType);
                         }
+
+                        whenFalse = NullableAnnotation.NotNullable; // whenFalse is unreachable
                     }
                     else
                     {
@@ -1008,12 +1010,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 mainSlot = MakeSlot(expression);
             }
 
-            base.VisitPattern(expression, pattern); // note: splits
+            base.VisitPattern(pattern);
             Debug.Assert(IsConditionalState);
 
             // https://github.com/dotnet/roslyn/issues/29873 We should only report such
             // diagnostics for locals that are set or checked explicitly within this method.
-            if (!expressionResultType.IsNull && expressionResultType.ValueCanBeNull() == false && whenTrue == NullableAnnotation.Nullable)
+            if (!expressionResultType.IsPointerType() && !expressionResultType.IsNull && expressionResultType.ValueCanBeNull() == false && whenTrue == NullableAnnotation.Nullable)
             {
                 ReportNonSafetyDiagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, pattern.Syntax);
             }
