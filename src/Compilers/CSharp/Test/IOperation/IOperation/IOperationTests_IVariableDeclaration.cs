@@ -1498,48 +1498,6 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
-        public void UsingDeclaration_OperationKind_None()
-        {
-            //TODO: implement IOperation for using declarations
-            string source = @"
-using System;
-
-class C : IDisposable
-{
-    public void Dispose()
-    {
-    }
-
-    public static void M1()
-    {
-        /*<bind>*/using var c = new C();/*</bind>*/
-    }
-}
-";
-            string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'using var c = new C();')
-  Children(1):
-      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'var c = new C()')
-        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c = new C()')
-          Declarators:
-              IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
-                Initializer: 
-                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                      Arguments(0)
-                      Initializer: 
-                        null
-          Initializer: 
-            null
-";
-
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
         #endregion
 
         #region For Loops
