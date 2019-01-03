@@ -145,10 +145,10 @@ jobs:
       condition: not(succeeded())
 
     - task: PublishBuildArtifacts@1
-      displayName: NuPkg
+      displayName: Publish Artifact Packages
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
-        ArtifactName: 'NuPkg'
+        ArtifactName: 'Packages - PreRelease'
         publishLocation: Container
       condition: succeeded()
 
