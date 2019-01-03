@@ -6,23 +6,6 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class StringExtensions
     {
-        /// <summary>
-        ///  Note: This doesnot handle all cases of plural for example "Men", "Vertices" etc
-        ///  Word ending with 'i' and 'ae' is to avoid irregular plurals 
-        /// </summary>
-        /// <param name="word"></param>
-        /// <returns></returns>
-        public static bool IsPlural(this string word)
-        {
-            if (!word.EndsWith("s", StringComparison.OrdinalIgnoreCase) &&
-                !word.EndsWith("i", StringComparison.OrdinalIgnoreCase) &&
-                !word.EndsWith("ae", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-            return true;
-        }
-
         public static bool HasSuffix(this string str, string suffix)
         {
             if (str == null)
