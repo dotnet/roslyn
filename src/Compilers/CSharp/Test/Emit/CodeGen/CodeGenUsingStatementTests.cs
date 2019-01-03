@@ -1222,7 +1222,7 @@ class C3
         }
 
         [Fact]
-        public void UsingPatternExtensionMethodWithDefaultArgumentsAndWithParams()
+        public void UsingPatternExtensionMethodWithDefaultArguments()
         {
             var source = @"
 ref struct S1
@@ -1244,6 +1244,31 @@ class C3
     }
 }";
             CompileAndVerify(source, expectedOutput: "Dispose default param 1");
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodWithParams()
+        {
+            var source = @"
+ref struct S1
+{
+}
+
+static class C2 
+{
+    internal static void Dispose(this S1 s1, params int[] args) { System.Console.WriteLine($""Dispose params {args.Length}""); }
+}
+
+class C3
+{
+    static void Main()
+    {
+       using (S1 s = new S1())
+       {
+       }
+    }
+}";
+            CompileAndVerify(source, expectedOutput: "Dispose params 0");
         }
 
         // The object could be created outside the "using" statement 

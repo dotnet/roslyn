@@ -423,27 +423,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                BoundExpression receiver = disposedExpression;
-                var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-                var refBuilder = ArrayBuilder<RefKind>.GetInstance();
-                if (methodOpt.IsExtensionMethod)
-                {
-                    receiver = null;
-                    argsBuilder.Add(disposedExpression);
-                    refBuilder.Add(methodOpt.ParameterRefKinds.IsDefaultOrEmpty ? RefKind.None : methodOpt.ParameterRefKinds[0]);
-                }
+                var receiver = methodOpt.IsExtensionMethod
+                               ? null
+                               : disposedExpression;
 
-                disposeCall = MakeCall( syntax: syntax,
-                                        rewrittenReceiver: receiver,
-                                        method: methodOpt,
-                                        rewrittenArguments: argsBuilder.ToImmutableAndFree(),
-                                        argumentRefKindsOpt: refBuilder.ToImmutableAndFree(),
-                                        expanded: false,
-                                        invokedAsExtensionMethod: methodOpt.IsExtensionMethod,
-                                        argsToParamsOpt: default,
-                                        resultKind: LookupResultKind.Viable,
-                                        type: disposedExpression.Type,
-                                        nodeOpt: null);
+                var args = methodOpt.IsExtensionMethod
+                           ? ImmutableArray.Create(disposedExpression)
+                           : ImmutableArray<BoundExpression>.Empty;
+
+                var refs = methodOpt.IsExtensionMethod && !methodOpt.ParameterRefKinds.IsDefault
+                           ? ImmutableArray.Create(methodOpt.ParameterRefKinds[0])
+                           : default;
+
+                disposeCall = MakeCall(syntax: syntax,
+                                       rewrittenReceiver: receiver,
+                                       method: methodOpt,
+                                       rewrittenArguments: args,
+                                       argumentRefKindsOpt: refs,
+                                       expanded: methodOpt.HasParamsParameter(),
+                                       invokedAsExtensionMethod: methodOpt.IsExtensionMethod,
+                                       argsToParamsOpt: default,
+                                       resultKind: LookupResultKind.Viable,
+                                       type: methodOpt.ReturnType.TypeSymbol,
+                                       nodeOpt: null);
 
                 if (!(awaitOpt is null))
                 {
