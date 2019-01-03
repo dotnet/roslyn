@@ -21,15 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundDelegateCreationExpression(node.Syntax, loweredReceiver, methodOpt: null, isExtensionMethod: false, type: node.Type);
             }
 
-            if (node.Argument.Kind == BoundKind.MethodGroup)
+            var argumentWithoutSuppressions = node.Argument.RemoveSuppressions();
+            if (argumentWithoutSuppressions.Kind == BoundKind.MethodGroup)
             {
-                var mg = (BoundMethodGroup)node.Argument;
+                var mg = (BoundMethodGroup)argumentWithoutSuppressions;
                 var method = node.MethodOpt;
                 var oldSyntax = _factory.Syntax;
                 _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
                 var receiver = (method.IsStatic && !node.IsExtensionMethod) ? _factory.Type(method.ContainingType) : VisitExpression(mg.ReceiverOpt);
                 _factory.Syntax = oldSyntax;
-                return node.Update(receiver, method, node.IsExtensionMethod, node.Type);
+                return node.Update(receiver.WrapWithSuppressionsFrom(node.Argument), method, node.IsExtensionMethod, node.Type);
             }
 
             return base.VisitDelegateCreationExpression(node);

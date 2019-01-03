@@ -2815,6 +2815,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadDelegateLeave" xml:space="preserve">
     <value>Control cannot leave the body of an anonymous method or lambda expression</value>
   </data>
+  <data name="ERR_IllegalSuppression" xml:space="preserve">
+    <value>The suppression operator is not allowed in this context</value>
+  </data>
   <data name="WRN_IllegalPragma" xml:space="preserve">
     <value>Unrecognized #pragma directive</value>
   </data>
@@ -5699,6 +5702,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
     <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
+  </data>
+  <data name="ERR_ExpressionTreeCantContainSuppressNullableWarning" xml:space="preserve">
+    <value>Expression tree cannot contain a suppression operator.</value>
   </data>
   <data name="ERR_ElseCannotStartStatement" xml:space="preserve">
     <value>'else' cannot start a statement.</value>

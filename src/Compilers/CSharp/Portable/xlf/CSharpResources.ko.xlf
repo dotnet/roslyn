@@ -107,6 +107,11 @@
         <target state="new">Expression tree cannot contain value of ref struct or restricted type '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeCantContainSuppressNullableWarning">
+        <source>Expression tree cannot contain a suppression operator.</source>
+        <target state="new">Expression tree cannot contain a suppression operator.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
         <source>An expression tree may not contain a switch expression.</source>
         <target state="new">An expression tree may not contain a switch expression.</target>
@@ -145,6 +150,11 @@
       <trans-unit id="ERR_GoToForwardJumpOverUsingVar">
         <source>A goto cannot jump to a location after a using declaration.</source>
         <target state="new">A goto cannot jump to a location after a using declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IllegalSuppression">
+        <source>The suppression operator is not allowed in this context</source>
+        <target state="new">The suppression operator is not allowed in this context</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">

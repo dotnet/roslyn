@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             expectedOperationTree = expectedOperationTree.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
             expectedOperationTree = expectedOperationTree.Replace("\"", "\"\"");
 
-            AssertEx.AreEqual(expectedOperationTree, actual);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedOperationTree, actual);
         }
 
         #region Logging helpers

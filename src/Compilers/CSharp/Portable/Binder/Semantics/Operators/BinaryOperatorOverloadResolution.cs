@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression nonDelegate = leftDelegate ? right : left;
 
             if ((kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual)
-                && nonDelegate.Kind == BoundKind.UnboundLambda)
+                && nonDelegate.KindIgnoringSuppressions() == BoundKind.UnboundLambda)
             {
                 return;
             }

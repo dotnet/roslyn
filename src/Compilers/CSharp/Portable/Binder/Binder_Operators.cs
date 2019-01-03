@@ -24,14 +24,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If either operand is bad, don't try to do binary operator overload resolution; that will just
             // make cascading errors.
 
-            if (left.Kind == BoundKind.EventAccess)
+            if (left.KindIgnoringSuppressions() == BoundKind.EventAccess)
             {
+                if (left.Kind == BoundKind.SuppressNullableWarningExpression)
+                {
+                    Error(diagnostics, ErrorCode.ERR_IllegalSuppression, node);
+                }
+
                 BinaryOperatorKind kindOperator = kind.Operator();
                 switch (kindOperator)
                 {
                     case BinaryOperatorKind.Addition:
                     case BinaryOperatorKind.Subtraction:
-                        return BindEventAssignment(node, (BoundEventAccess)left, right, kindOperator, diagnostics);
+                        return BindEventAssignment(node, (BoundEventAccess)left.RemoveSuppressions(), right, kindOperator, diagnostics).WrapWithSuppressionsFrom(left);
 
                         // fall-through for other operators, if RHS is dynamic we produce dynamic operation, otherwise we'll report an error ...
                 }
@@ -78,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (left.Kind == BoundKind.EventAccess && !CheckEventValueKind((BoundEventAccess)left, BindValueKind.Assignable, diagnostics))
+            if (left.KindIgnoringSuppressions() == BoundKind.EventAccess && !CheckEventValueKind((BoundEventAccess)left.RemoveSuppressions(), BindValueKind.Assignable, diagnostics))
             {
                 // If we're in a place where the event can be assigned, then continue so that we give errors
                 // about the types and operator not lining up.  Otherwise, just report that the event can't
@@ -202,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Any events that weren't handled above (by BindEventAssignment) are bad - we just followed this
             // code path for the diagnostics.  Make sure we don't report success.
-            Debug.Assert(left.Kind != BoundKind.EventAccess || hasError);
+            Debug.Assert(left.KindIgnoringSuppressions() != BoundKind.EventAccess || hasError);
 
             Conversion leftConversion = best.LeftConversion;
             ReportDiagnosticsIfObsolete(diagnostics, leftConversion, node, hasBaseReceiver: false);
@@ -659,9 +664,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportBinaryOperatorError(ExpressionSyntax node, DiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
+            if (left.Kind == BoundKind.SuppressNullableWarningExpression)
+            {
+                Error(diagnostics, ErrorCode.ERR_IllegalSuppression, left.Syntax);
+                return;
+            }
+            if (right.Kind == BoundKind.SuppressNullableWarningExpression)
+            {
+                Error(diagnostics, ErrorCode.ERR_IllegalSuppression, right.Syntax);
+                return;
+            }
+
             bool leftDefault = left.IsLiteralDefault();
             bool rightDefault = right.IsLiteralDefault();
-            if ((operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken))
+            if (operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken)
             {
                 if (leftDefault && rightDefault)
                 {
@@ -1133,6 +1149,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsDefaultLiteralAllowedInBinaryOperator(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
         {
+            if (left.Kind == BoundKind.SuppressNullableWarningExpression || right.Kind == BoundKind.SuppressNullableWarningExpression)
+            {
+                return false;
+            }
+
             bool isEquality = kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual;
             if (isEquality)
             {
@@ -2099,7 +2120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = operand.HasAnyErrors; // This would propagate automatically, but by reading it explicitly we can reduce cascading.
             bool isFixedStatementAddressOfExpression = SyntaxFacts.IsFixedStatementExpression(node);
 
-            switch (operand.Kind)
+            switch (operand.KindIgnoringSuppressions())
             {
                 case BoundKind.MethodGroup:
                 case BoundKind.Lambda:
@@ -2278,7 +2299,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
-            bool isOperandTypeNull = operand.IsLiteralNull() || operand.IsLiteralDefault();
+            var operandWithoutSuppressions = operand.RemoveSuppressions();
+            bool isOperandTypeNull = operandWithoutSuppressions.IsLiteralNull() || operandWithoutSuppressions.IsLiteralDefault();
             if (isOperandTypeNull)
             {
                 // Dev10 does not allow unary prefix operators to be applied to the null literal
@@ -2657,7 +2679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsOperandErrors(CSharpSyntaxNode node, ref BoundExpression operand, DiagnosticBag diagnostics)
         {
-            switch (operand.Kind)
+            switch (operand.KindIgnoringSuppressions())
             {
                 case BoundKind.UnboundLambda:
                 case BoundKind.Lambda:
@@ -2670,21 +2692,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     operand = BadExpression(node, operand).MakeCompilerGenerated();
                     return true;
+            }
 
-                default:
-                    if ((object)operand.Type == null && !operand.IsLiteralNull())
-                    {
-                        if (!operand.HasAnyErrors)
-                        {
-                            // Operator 'is' cannot be applied to operand of type '(int, <null>)'
-                            Error(diagnostics, ErrorCode.ERR_BadUnaryOp, node, SyntaxFacts.GetText(SyntaxKind.IsKeyword), operand.Display);
-                        }
+            if (operand.Type is null && !operand.IsLiteralNull())
+            {
+                if (!operand.HasAnyErrors)
+                {
+                    // Operator 'is' cannot be applied to operand of type '(int, <null>)'
+                    Error(diagnostics, ErrorCode.ERR_BadUnaryOp, node, SyntaxFacts.GetText(SyntaxKind.IsKeyword), operand.Display);
+                }
 
-                        operand = BadExpression(node, operand).MakeCompilerGenerated();
-                        return true;
-                    }
-
-                    break;
+                operand = BadExpression(node, operand).MakeCompilerGenerated();
+                return true;
             }
 
             return operand.HasAnyErrors;
@@ -2779,13 +2798,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             if (operand.ConstantValue == ConstantValue.Null ||
-                operand.Kind == BoundKind.MethodGroup ||
                 operand.Type.SpecialType == SpecialType.System_Void)
             {
                 // warning for cases where the result is always false:
                 // (a) "null is TYPE" OR operand evaluates to null
-                // (b) operand is a MethodGroup
-                // (c) operand is of void type
+                // (b) operand is of void type
 
                 // NOTE:    Dev10 violates the SPEC for case (c) above and generates
                 // NOTE:    an error ERR_NoExplicitBuiltinConv if the target type
@@ -3135,7 +3152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We store the conversion kind from expression's operand type to target type to enable these
             // optimizations during is/as operator rewrite.
 
-            switch (operand.Kind)
+            switch (operand.KindIgnoringSuppressions())
             {
                 case BoundKind.UnboundLambda:
                 case BoundKind.Lambda:
@@ -3149,7 +3166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
 
                 case BoundKind.TupleLiteral:
-                    if ((object)operand.Type == null)
+                    if (operand.Type is null)
                     {
                         Error(diagnostics, ErrorCode.ERR_TypelessTupleInAs, node);
                         return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
@@ -3201,7 +3218,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
             }
 
-            if (operand.IsLiteralNull())
+            BoundExpression operandWithoutSuppressions = operand.RemoveSuppressions();
+            if (operandWithoutSuppressions.IsLiteralNull())
             {
                 // We do not want to warn for the case "null as TYPE" where the null
                 // is a literal, because the user might be saying it to cause overload resolution
@@ -3209,14 +3227,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundAsOperator(node, operand, typeExpression, Conversion.DefaultOrNullLiteral, resultType);
             }
 
-            if (operand.IsLiteralDefault())
+            if (operandWithoutSuppressions.IsLiteralDefault())
             {
-                var defaultLiteral = (BoundDefaultExpression)operand;
+                var defaultLiteral = (BoundDefaultExpression)operand.RemoveSuppressions();
                 Debug.Assert((object)defaultLiteral.Type == null);
                 Debug.Assert((object)defaultLiteral.ConstantValueOpt == null);
 
                 operand = new BoundDefaultExpression(defaultLiteral.Syntax, constantValueOpt: ConstantValue.Null,
-                    type: GetSpecialType(SpecialType.System_Object, diagnostics, node));
+                    type: GetSpecialType(SpecialType.System_Object, diagnostics, node))
+                    .WrapWithSuppressionsFrom(operand);
             }
 
             var operandType = operand.Type;
@@ -3374,7 +3393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The specification does not permit the left hand side to be a default literal
-            if (leftOperand.IsLiteralDefault())
+            if (leftOperand.RemoveSuppressions().IsLiteralDefault())
             {
                 Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, node.OperatorToken.Text, "default");
 
@@ -3396,7 +3415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: The left hand side must be either the null literal or it must have a type. Lambdas and method groups do not have a type,
             // SPEC: so using one is an error.
-            if (leftOperand.Kind == BoundKind.UnboundLambda || leftOperand.Kind == BoundKind.MethodGroup)
+            if (leftOperand.KindIgnoringSuppressions() == BoundKind.UnboundLambda || leftOperand.KindIgnoringSuppressions() == BoundKind.MethodGroup)
             {
                 return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
             }
