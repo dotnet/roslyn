@@ -38,6 +38,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             VisualStudio.SolutionExplorer.CreateSolution(nameof(WorkspacesDesktop));
             var testProj = new ProjectUtils.Project("TestProj");
             VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ClassLibrary, languageName: LanguageNames.VisualBasic);
+            VisualStudio.SolutionExplorer.RestoreNuGetPackages(testProj);
             VisualStudio.Editor.SetText(@"Imports System
 Class Program
     Private e As Exception
@@ -65,6 +66,7 @@ End Class");
             VisualStudio.SolutionExplorer.AddProject(csProj2, projectTemplate: DefaultProjectTemplate, languageName: LanguageName);
             var projectName = new ProjectUtils.ProjectReference(ProjectName);
             VisualStudio.SolutionExplorer.AddProjectReference(fromProjectName: csProj2, toProjectName: projectName);
+            VisualStudio.SolutionExplorer.RestoreNuGetPackages(csProj2);
             VisualStudio.SolutionExplorer.AddFile(project, "Program.cs", open: true, contents: "public class Class1 { }");
             VisualStudio.SolutionExplorer.AddFile(csProj2, "Program.cs", open: true, contents: "public class Class2 { Class1 c; }");
             VisualStudio.SolutionExplorer.OpenFile(csProj2, "Program.cs");
