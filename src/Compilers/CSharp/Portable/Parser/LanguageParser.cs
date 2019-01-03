@@ -5439,14 +5439,26 @@ tryAgain:
             // remaining types & commas
             while (true)
             {
+
                 if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
                 {
                     break;
                 }
-                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
+                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
-                    types.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                    types.Add(this.ParseTypeArgument());
+                    eatCommaAndTypeArgument();
+                }
+                else if (this.IsPossibleType())
+                {
+                    var nextToken = this.PeekToken(1);
+                    if (nextToken.Kind == SyntaxKind.GreaterThanToken || nextToken.Kind == SyntaxKind.CommaToken) // presumably missing a comma
+                    {
+                        eatCommaAndTypeArgument();
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
                 else if (this.SkipBadTypeArgumentListTokens(types, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                 {
@@ -5455,6 +5467,12 @@ tryAgain:
             }
 
             close = this.EatToken(SyntaxKind.GreaterThanToken);
+
+            void eatCommaAndTypeArgument()
+            {
+                types.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                types.Add(this.ParseTypeArgument());
+            }
         }
 
         private PostSkipAction SkipBadTypeArgumentListTokens(SeparatedSyntaxListBuilder<TypeSyntax> list, SyntaxKind expected)
