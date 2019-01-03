@@ -74,7 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             // get the candidate methods
             var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
-            var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
             var methods = ImmutableArray<IMethodSymbol>.Empty;
             if (type.TypeKind == TypeKind.Delegate)
             {
@@ -112,7 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
             else
             {
-                _ = IsAcceptable(arguments, (IMethodSymbol)currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
+                // The compiler told us the correct overload, but we need to find out the parameter to highlight given cursor position
+                _ = FindParameterIndexIfCompatibleMethod(arguments, (IMethodSymbol)currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
             }
 
             // present items and select
@@ -141,16 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 selectedItem = TryGetSelectedIndex(methods, currentSymbol);
             }
 
-            if (currentSymbol is null || parameterIndex < 0)
-            {
-                var argumentIndex = GetArgumentIndex(arguments, position);
-                return new SignatureHelpItems(items, textSpan, argumentIndex < 0 ? 0 : argumentIndex, arguments.Count, argumentName: null, selectedItem);
-            }
-
-            var methodSymbol = (IMethodSymbol)currentSymbol;
-            var parameters = methodSymbol.Parameters;
-            var name = parameters.Length == 0 ? null : parameters[parameterIndex].Name;
-            return new SignatureHelpItems(items, textSpan, parameterIndex, methodSymbol.Parameters.Length, name, selectedItem);
+            var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
+            return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol)currentSymbol, parameterIndex, selectedItem, arguments, position);
         }
 
         private static ImmutableArray<IMethodSymbol> RemoveUnacceptable(IEnumerable<IMethodSymbol> methodGroup, ObjectCreationExpressionSyntax objectCreation,

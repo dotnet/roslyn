@@ -70,6 +70,26 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 parameter.ToMinimalDisplayParts(semanticModel, position));
         }
 
+        /// <summary>
+        /// Return the items to display.
+        /// If we have selectedSymbol and selectedParameterIndex, we will highlight the correct parameter.
+        /// Otherwise, we try to guess which parameter to highlight based on the cursor's position in the arguments.
+        /// </summary>
+        protected static SignatureHelpItems MakeSignatureHelpItems(IList<SignatureHelpItem> items, Text.TextSpan textSpan,
+            IMethodSymbol selectedSymbol, int selectedParameterIndex, int? selectedItem,
+            SeparatedSyntaxList<ArgumentSyntax> arguments, int position)
+        {
+            if (selectedSymbol is null || selectedParameterIndex < 0)
+            {
+                var argumentIndex = GetArgumentIndex(arguments, position);
+                return new SignatureHelpItems(items, textSpan, argumentIndex < 0 ? 0 : argumentIndex, arguments.Count, argumentName: null, selectedItem);
+            }
+
+            var parameters = selectedSymbol.Parameters;
+            var name = parameters.Length == 0 ? null : parameters[selectedParameterIndex].Name;
+            return new SignatureHelpItems(items, textSpan, selectedParameterIndex, parameters.Length, name, selectedItem);
+        }
+
         protected IList<TaggedText> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
         {
             if (method.IsAwaitableNonDynamic(semanticModel, position))
@@ -84,7 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         /// <summary>
         /// If the symbol could not be bound, we could be dealing with a partial invocation, we'll try to find a possible overload.
         /// If it was bound, we'll find which parameter to highlight.
-        /// Either way, we'll eliminate unsuitable candidates (based on argument names used in the invocation).
         /// </summary>
         protected static (ISymbol symbol, int parameterIndex) GuessCurrentSymbolAndParameter(
             SeparatedSyntaxList<ArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodGroup, int position,
@@ -94,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             {
                 foreach (var method in methodGroup)
                 {
-                    if (IsAcceptable(arguments, method, position, semanticModel, semanticFactsService, out var parameterIndex))
+                    if (FindParameterIndexIfCompatibleMethod(arguments, method, position, semanticModel, semanticFactsService, out var parameterIndex))
                     {
                         return (method, parameterIndex);
                     }
@@ -106,7 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         /// <summary>
-        /// If an argument name does not correspond to a parameter name, this method is unacceptable. We'll filter it out.
+        /// If an argument name does not correspond to a parameter name, this method is unacceptable.
+        /// We'll filter it out, so it will not be displayed as a SignatureHelp candidate.
         /// </summary>
         protected static bool IsUnacceptable(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method)
         {
@@ -130,66 +150,79 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return false;
         }
 
-        protected static bool IsAcceptable(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method, int position,
+        /// <summary>
+        /// Simulates overload resolution with the arguments provided so far and determines if you might be calling this overload.
+        /// Returns true if an overload is acceptable. In that case, we output the parameter should be highlighted given the cursor's
+        /// position in the partial invocation.
+        /// </summary>
+        protected static bool FindParameterIndexIfCompatibleMethod(SeparatedSyntaxList<ArgumentSyntax> arguments, IMethodSymbol method, int position,
             SemanticModel semanticModel, ISemanticFactsService semanticFactsService, out int foundParameterIndex)
         {
-            int argumentCount = arguments.Count;
+            var argumentCount = arguments.Count;
             var parameters = method.Parameters;
             var parameterCount = parameters.Length;
+            var argToParamMap = ArrayBuilder<int>.GetInstance(argumentCount, -1);
 
-            // map the arguments to their corresponding parameters
-            var map = ArrayBuilder<int>.GetInstance(argumentCount, -1);
-            if (!PrepareMap())
+            var result = IsCompatibleMethod(out foundParameterIndex);
+            argToParamMap.Free();
+
+            return result;
+
+            bool IsCompatibleMethod(out int found)
             {
-                foundParameterIndex = -1;
-                return false;
-            }
-
-            // verify that the arguments are compatible with their corresponding parameters
-            for (var argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
-            {
-                var parameterIndex = map[argumentIndex];
-                if (parameterIndex < 0)
+                // map the arguments to their corresponding parameters
+                if (!PrepareArgToParamMap())
                 {
-                    continue;
-                }
-
-                var parameter = parameters[parameterIndex];
-                var argument = arguments[argumentIndex];
-
-                if (!IsAcceptableArgument(argument, parameter))
-                {
-                    foundParameterIndex = -1;
+                    found = -1;
                     return false;
                 }
-            }
 
-            // find the parameter at the cursor position
-            var argumentIndexToSave = GetArgumentIndex(arguments, position);
-            if (argumentIndexToSave >= 0)
-            {
-                var found = map[argumentIndexToSave];
-                if (found >= 0)
+                // verify that the arguments are compatible with their corresponding parameters
+                for (var argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
                 {
-                    foundParameterIndex = found;
+                    var parameterIndex = argToParamMap[argumentIndex];
+                    if (parameterIndex < 0)
+                    {
+                        continue;
+                    }
+
+                    var parameter = parameters[parameterIndex];
+                    var argument = arguments[argumentIndex];
+
+                    if (!IsCompatibleArgument(argument, parameter))
+                    {
+                        found = -1;
+                        return false;
+                    }
+                }
+
+                // find the parameter at the cursor position
+                var argumentIndexToSave = GetArgumentIndex(arguments, position);
+                if (argumentIndexToSave >= 0)
+                {
+                    var foundParam = argToParamMap[argumentIndexToSave];
+                    if (foundParam >= 0)
+                    {
+                        found = foundParam;
+                    }
+                    else
+                    {
+                        var firstUnspecified = FirstUnspecifiedParameter();
+                        found = firstUnspecified < 0 ? 0 : firstUnspecified;
+                    }
                 }
                 else
                 {
-                    var firstUnspecified = FirstUnspecifiedParameter();
-                    foundParameterIndex = firstUnspecified < 0 ? 0 : firstUnspecified;
+                    found = argumentIndexToSave >= 0 ? argToParamMap[argumentIndexToSave] : -1;
                 }
+
+                Debug.Assert(found < parameterCount);
+
+                return true;
             }
-            else
-            {
-                foundParameterIndex = argumentIndexToSave >= 0 ? map[argumentIndexToSave] : -1;
-            }
 
-            Debug.Assert(foundParameterIndex < parameterCount);
-            map.Free();
-
-            return true;
-
-            bool PrepareMap()
+            // Find the parameter index corresponding to each argument provided 
+            bool PrepareArgToParamMap()
             {
                 var currentParameterIndex = 0;
                 var seenOutOfPositionArgument = false;
@@ -216,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                             seenOutOfPositionArgument = true;
                         }
 
-                        AddMapping(argumentIndex, namedParameterIndex);
+                        AddArgToParamMapping(argumentIndex, namedParameterIndex);
                         IncrementParameterIndexIfNeeded();
                     }
                     else if (IsEmptyArgument(argument.Expression))
@@ -224,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                         if (!seenOutOfPositionArgument)
                         {
                             // We count the empty argument as a used position
-                            AddMapping(argumentIndex, currentParameterIndex);
+                            AddArgToParamMapping(argumentIndex, currentParameterIndex);
                             IncrementParameterIndexIfNeeded();
                         }
                     }
@@ -235,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     }
                     else
                     {
-                        AddMapping(argumentIndex, currentParameterIndex);
+                        AddArgToParamMapping(argumentIndex, currentParameterIndex);
                         IncrementParameterIndexIfNeeded();
                     }
                 }
@@ -250,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     }
                 }
 
-                void AddMapping(int argumentIndex, int parameterIndex)
+                void AddArgToParamMapping(int argumentIndex, int parameterIndex)
                 {
                     Debug.Assert(parameterIndex >= 0);
                     Debug.Assert(parameterIndex < parameterCount);
@@ -260,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                         inParams = true;
                     }
 
-                    map[argumentIndex] = parameterIndex;
+                    argToParamMap[argumentIndex] = parameterIndex;
                 }
             }
 
@@ -270,12 +303,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     ((IdentifierNameSyntax)expression).Identifier.ValueText.Length == 0;
             }
 
+            // If the cursor is pointing at an argument for which we did not find the corresponding
+            // parameter, we will highlight the first unspecified parameter.
             int FirstUnspecifiedParameter()
             {
                 var specified = ArrayBuilder<bool>.GetInstance(argumentCount, false);
                 for (var i = 0; i < argumentCount; i++)
                 {
-                    var parameterIndex = map[i];
+                    var parameterIndex = argToParamMap[i];
                     if (parameterIndex >= 0)
                     {
                         specified[parameterIndex] = true;
@@ -287,7 +322,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return first;
             }
 
-            bool IsAcceptableArgument(ArgumentSyntax argument, IParameterSymbol parameter)
+            // Determines if the given argument is compatible with the given parameter
+            bool IsCompatibleArgument(ArgumentSyntax argument, IParameterSymbol parameter)
             {
                 var parameterRefKind = parameter.RefKind;
                 if (parameterRefKind == RefKind.None)
@@ -322,6 +358,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
         }
 
+        /// <summary>
+        /// Given the cursor position, find which argument is active.
+        /// This will be useful to later find which parameter should be highlighted.
+        /// </summary>
         protected static int GetArgumentIndex(SeparatedSyntaxList<ArgumentSyntax> arguments, int position)
         {
             if (arguments.Count == 0)

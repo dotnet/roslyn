@@ -326,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function CanConvert(semanticModel As SemanticModel, node As SyntaxNode, type As ITypeSymbol) As Boolean Implements ISemanticFactsService.CanConvert
             Dim conversion = semanticModel.ClassifyConversion(DirectCast(node, ExpressionSyntax), type)
-            Return conversion.Exists
+            Return conversion.Exists AndAlso conversion.IsWidening
         End Function
     End Class
 End Namespace

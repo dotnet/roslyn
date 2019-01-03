@@ -109,7 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
             else
             {
-                _ = IsAcceptable(arguments, (IMethodSymbol)currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
+                // The compiler told us the correct overload, but we need to find out the parameter to highlight given cursor position
+                _ = FindParameterIndexIfCompatibleMethod(arguments, (IMethodSymbol)currentSymbol, position, semanticModel, semanticFactsService, out parameterIndex);
             }
 
             // present items and select
@@ -121,16 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var selectedItem = TryGetSelectedIndex(accessibleConstructors, currentSymbol);
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
-            if (currentSymbol is null || parameterIndex < 0)
-            {
-                var argumentIndex = GetArgumentIndex(arguments, position);
-                return new SignatureHelpItems(items, textSpan, argumentIndex < 0 ? 0 : argumentIndex, arguments.Count, argumentName: null, selectedItem);
-            }
-
-            var methodSymbol = (IMethodSymbol)currentSymbol;
-            var parameters = methodSymbol.Parameters;
-            var name = parameters.Length == 0 ? null : parameters[parameterIndex].Name;
-            return new SignatureHelpItems(items, textSpan, parameterIndex, methodSymbol.Parameters.Length, name, selectedItem);
+            return MakeSignatureHelpItems(items, textSpan, (IMethodSymbol)currentSymbol, parameterIndex, selectedItem, arguments, position);
         }
 
         private static ImmutableArray<IMethodSymbol> RemoveUnacceptable(IEnumerable<IMethodSymbol> methodGroup, ConstructorInitializerSyntax constructorInitializer,
