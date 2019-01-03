@@ -9,6 +9,7 @@ using System.Threading;
 using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
@@ -363,6 +364,30 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     }
                 }
             });
+
+            if (dte.Debugger.CurrentMode != EnvDTE.dbgDebugMode.dbgDesignMode)
+            {
+                dte.Debugger.TerminateAll();
+
+                // This delay was originally added to address test failures in BasicEditAndContinue. When running
+                // multiple tests in sequence, situations were observed where the Edit and Continue state was not reset:
+                //
+                // 1. Test A runs, starts debugging with Edit and Continue
+                // 2. Test A completes, and the debugger is terminated
+                // 3. A new project is created for test B
+                // 4. Test B attempts to set the text for the document created in step (3), but fails
+                //
+                // Step (4) was causing test failures because the project created for test B remained in a read-only
+                // state believing a debugger session was active.
+                //
+                // This delay should be replaced with a proper wait condition once the correct one is determined.
+                var editAndContinueService = GetComponentModelService<IEditAndContinueService>();
+                do
+                {
+                    Thread.Yield();
+                }
+                while (editAndContinueService?.DebuggingSession != null);
+            }
 
             CloseSolution();
             ErrorList_InProc.Create().WaitForNoErrorsInErrorList();
