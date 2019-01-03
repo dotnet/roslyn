@@ -709,15 +709,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void OpenFileWithDesigner(string projectName, string relativeFilePath)
         {
-            var projectItem = GetProjectItem(projectName, relativeFilePath);
-            var window = projectItem.Open(EnvDTE.Constants.vsViewKindDesigner);
-            window.Activate();
-
-            var dte = GetDTE();
-            while (!dte.ActiveWindow.Caption.Contains(projectItem.Name))
+            InvokeOnUIThread(() =>
             {
-                Thread.Yield();
-            }
+                var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+                VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, filePath, VSConstants.LOGVIEWID.Designer_guid, out _, out _, out var windowFrame, out _);
+                ErrorHandler.ThrowOnFailure(windowFrame.Show());
+            });
         }
 
         public void OpenFile(string projectName, string relativeFilePath)
