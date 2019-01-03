@@ -487,19 +487,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Parameter:
                 case SymbolKind.Method:
                 case SymbolKind.TypeParameter:
-                    if (ShouldReportNameConflict(local, newSymbol))
-                    {
-                        // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                        diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
-                    }
+                    // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
                     return true;
 
                 case SymbolKind.RangeVariable:
-                    if (ShouldReportNameConflict(local, newSymbol))
-                    {
-                        // The range variable '{0}' conflicts with a previous declaration of '{0}'
-                        diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
-                    }
+                    // The range variable '{0}' conflicts with a previous declaration of '{0}'
+                    diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
                     return true;
             }
 

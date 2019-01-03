@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -11,13 +10,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private bool ValidateLambdaParameterNameConflictsInScope(Location location, string name, DiagnosticBag diagnostics)
         {
-            return ValidateNameConflictsInScope(null, location, name, diagnostics);
+            return ValidateNameConflictsInScope(null, location, name, outsideContainingSymbol: true, diagnostics);
         }
 
-        internal bool ValidateDeclarationNameConflictsInScope(Symbol symbol, DiagnosticBag diagnostics)
+        internal bool ValidateDeclarationNameConflictsInScope(Symbol symbol, DiagnosticBag diagnostics, bool outsideContainingSymbol = false)
         {
             Location location = GetLocation(symbol);
-            return ValidateNameConflictsInScope(symbol, location, symbol.Name, diagnostics);
+            return ValidateNameConflictsInScope(symbol, location, symbol.Name, outsideContainingSymbol, diagnostics);
         }
 
         private static Location GetLocation(Symbol symbol)
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        ValidateDeclarationNameConflictsInScope(tp, diagnostics);
+                        ValidateDeclarationNameConflictsInScope(tp, diagnostics, outsideContainingSymbol: true);
                     }
                 }
             }
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        ValidateDeclarationNameConflictsInScope(p, diagnostics);
+                        ValidateDeclarationNameConflictsInScope(p, diagnostics, outsideContainingSymbol: true);
                     }
                 }
             }
@@ -91,9 +90,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Don't call this one directly - call one of the helpers.
         /// </remarks>
-        private bool ValidateNameConflictsInScope(Symbol symbol, Location location, string name, DiagnosticBag diagnostics)
+        private bool ValidateNameConflictsInScope(Symbol symbol, Location location, string name, bool outsideContainingSymbol, DiagnosticBag diagnostics)
         {
             if (string.IsNullOrEmpty(name))
+            {
+                return false;
+            }
+
+            // If the symbol is defined in a local function and shadowing is enabled,
+            // avoid checking for conflicts outside of the local function.
+            var stopAtLocalFunction =
+                symbol?.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticLocalFunctions) == true ?
+                symbol.ContainingSymbol as LocalFunctionSymbol :
+                null;
+
+            if ((object)stopAtLocalFunction != null && outsideContainingSymbol)
             {
                 return false;
             }
@@ -111,42 +122,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return true;
                 }
+
+                if ((object)stopAtLocalFunction != null && getMemberOrLambda(binder) == stopAtLocalFunction)
+                {
+                    return false;
+                }
             }
 
             return false;
-        }
 
-        /// <summary>
-        /// Avoid reporting name conflicts for parameters and locals in local functions
-        /// that conflict with a symbol in a containing scope.
-        /// </summary>
-        internal static bool ShouldReportNameConflict(Symbol symbol, Symbol newSymbolOpt)
-        {
-            Debug.Assert((object)symbol != null);
-            if (newSymbolOpt is null)
-            {
-                return true;
-            }
-            switch (newSymbolOpt.Kind)
-            {
-                case SymbolKind.Local:
-                case SymbolKind.Parameter:
-                case SymbolKind.RangeVariable:
-                case SymbolKind.Method:
-                    break;
-                default:
-                    return true;
-            }
-            if (!symbol.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticLocalFunctions))
-            {
-                return true;
-            }
-            var newContainer = newSymbolOpt.ContainingSymbol;
-            if ((newContainer as MethodSymbol)?.MethodKind != MethodKind.LocalFunction)
-            {
-                return true;
-            }
-            return newContainer == symbol.ContainingSymbol;
+            Symbol getMemberOrLambda(Binder binder) => (binder as InMethodBinder)?.ContainingMemberOrLambda;
         }
     }
 }

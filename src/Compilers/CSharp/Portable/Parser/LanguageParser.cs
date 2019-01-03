@@ -8617,6 +8617,7 @@ tryAgain:
         {
             switch (kind)
             {
+                case SyntaxKind.StaticKeyword:
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.UnsafeKeyword:
                 // Not a valid modifier, but we should parse to give a good
@@ -8625,7 +8626,6 @@ tryAgain:
                 case SyntaxKind.InternalKeyword:
                 case SyntaxKind.ProtectedKeyword:
                 case SyntaxKind.PrivateKeyword:
-                case SyntaxKind.StaticKeyword:
                     return true;
 
                 default:

@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
+        private static bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
         {
             var oldLocation = parameter.Locations[0];
             Debug.Assert(oldLocation != newLocation || oldLocation == Location.None || newLocation.SourceTree?.GetRoot().ContainsDiagnostics == true,
@@ -275,11 +275,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Parameter:
                     case SymbolKind.Local:
-                        if (ShouldReportNameConflict(parameter, newSymbol))
-                        {
-                            // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                            diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
-                        }
+                        // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                        diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
                         return true;
 
                     case SymbolKind.Method:
@@ -294,11 +291,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
 
                     case SymbolKind.RangeVariable:
-                        if (ShouldReportNameConflict(parameter, newSymbol))
-                        {
-                            // The range variable '{0}' conflicts with a previous declaration of '{0}'
-                            diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
-                        }
+                        // The range variable '{0}' conflicts with a previous declaration of '{0}'
+                        diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
                         return true;
                 }
             }
