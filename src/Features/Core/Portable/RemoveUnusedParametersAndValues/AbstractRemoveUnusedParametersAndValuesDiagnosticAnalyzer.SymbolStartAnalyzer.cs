@@ -86,11 +86,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             private void OnSymbolEnd(SymbolAnalysisContext context)
             {
-                foreach (var parameterAndUsageKvp in _unusedParameters)
+                foreach (var (parameter, hasReference) in _unusedParameters)
                 {
-                    var parameter = parameterAndUsageKvp.Key;
-                    bool hasReference = parameterAndUsageKvp.Value;
-
                     ReportUnusedParameterDiagnostic(parameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
                 }
             }
