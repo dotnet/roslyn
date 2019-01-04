@@ -37,13 +37,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,
                 INamedTypeSymbol eventArgsTypeOpt,
                 ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
-                Compilation compilation)
+                in SerializationConstructorCheck serializationConstructorCheck)
             {
                 _compilationAnalyzer = compilationAnalyzer;
 
                 _eventArgsTypeOpt = eventArgsTypeOpt;
                 _attributeSetForMethodsToIgnore = attributeSetForMethodsToIgnore;
-                _serializationConstructorCheck = new SerializationConstructorCheck(compilation);
+                _serializationConstructorCheck = serializationConstructorCheck;
                 _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
                 _methodsUsedAsDelegates = new ConcurrentDictionary<IMethodSymbol, bool>();
             }
@@ -54,13 +54,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 var attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(context.Compilation).WhereNotNull());
                 var eventsArgType = context.Compilation.EventArgsType();
+                var serializationConstructorCheck = new SerializationConstructorCheck(context.Compilation);
                 context.RegisterSymbolStartAction(symbolStartContext =>
                 {
                     // Create a new SymbolStartAnalyzer instance for every named type symbol
                     // to ensure there is no shared state (such as identified unused parameters within the type),
                     // as that would lead to duplicate diagnostics being reported from symbol end action callbacks
                     // for unrelated named types.
-                    var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore, context.Compilation);
+                    var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore, serializationConstructorCheck);
                     symbolAnalyzer.OnSymbolStart(symbolStartContext);
                 }, SymbolKind.NamedType);
             }
