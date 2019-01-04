@@ -181,7 +181,7 @@ public class MyList<T>
             var t1 = mylist.TypeParameters[0];
             var add = mylist.GetMembers("Add").Single() as MethodSymbol;
             var element = add.Parameters[0];
-            var t2 = element.Type;
+            var t2 = element.Type.TypeSymbol;
             Assert.Equal(t1, t2);
         }
 
@@ -219,7 +219,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialDefinition());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -247,7 +247,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialDefinition());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -272,7 +272,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialImplementation());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -293,7 +293,7 @@ public partial class A {
             var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol) a.GetMembers("M").Single();
+            var m = (MethodSymbol)a.GetMembers("M").Single();
             Assert.True(m.IsPartialDefinition());
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
@@ -333,8 +333,8 @@ public interface A {
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
             var t = m.TypeParameters[0];
-            Assert.Equal(t, m.Parameters[0].Type);
-            Assert.Equal(t, m.ReturnType);
+            Assert.Equal(t, m.Parameters[0].Type.TypeSymbol);
+            Assert.Equal(t, m.ReturnType.TypeSymbol);
         }
 
         [WorkItem(931142, "DevDiv/Personal")]
@@ -354,7 +354,7 @@ public interface A {
             Assert.Equal(RefKind.Ref, p1.RefKind);
             Assert.Equal(RefKind.Out, p2.RefKind);
 
-            var refP = p1.Type;
+            var refP = p1.Type.TypeSymbol;
             Assert.Equal(TypeKind.Class, refP.TypeKind);
             Assert.True(refP.IsReferenceType);
             Assert.False(refP.IsValueType);
@@ -362,7 +362,7 @@ public interface A {
             Assert.Equal(2, refP.GetMembers().Length); // M + generated constructor.
             Assert.Equal(1, refP.GetMembers("M").Length);
 
-            var outP = p2.Type;
+            var outP = p2.Type.TypeSymbol;
             Assert.Equal(TypeKind.Struct, outP.TypeKind);
             Assert.False(outP.IsReferenceType);
             Assert.True(outP.IsValueType);
@@ -1356,9 +1356,9 @@ public class C : B<int, long>
 
             var classBMethodMParameters = classBMethodM.Parameters;
             Assert.Equal(3, classBMethodMParameters.Length);
-            Assert.Equal(classBTypeArguments[0], classBMethodMParameters[0].Type);
-            Assert.Equal(classBTypeArguments[1], classBMethodMParameters[1].Type);
-            Assert.Equal(classBMethodMTypeParameters[0], classBMethodMParameters[2].Type);
+            Assert.Equal(classBTypeArguments[0], classBMethodMParameters[0].Type.TypeSymbol);
+            Assert.Equal(classBTypeArguments[1], classBMethodMParameters[1].Type.TypeSymbol);
+            Assert.Equal(classBMethodMTypeParameters[0], classBMethodMParameters[2].Type.TypeSymbol);
 
             var classC = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").Single();
 
@@ -1379,9 +1379,9 @@ public class C : B<int, long>
 
             var classCBaseMethodMParameters = classCBaseMethodM.Parameters;
             Assert.Equal(3, classCBaseMethodMParameters.Length);
-            Assert.Equal(classCBaseTypeArguments[0], classCBaseMethodMParameters[0].Type);
-            Assert.Equal(classCBaseTypeArguments[1], classCBaseMethodMParameters[1].Type);
-            Assert.Equal(classCBaseMethodMTypeParameters[0], classCBaseMethodMParameters[2].Type);
+            Assert.Equal(classCBaseTypeArguments[0], classCBaseMethodMParameters[0].Type.TypeSymbol);
+            Assert.Equal(classCBaseTypeArguments[1], classCBaseMethodMParameters[1].Type.TypeSymbol);
+            Assert.Equal(classCBaseMethodMTypeParameters[0], classCBaseMethodMParameters[2].Type.TypeSymbol);
         }
 
         #region Regressions
@@ -1618,7 +1618,7 @@ class C1 : @int, @void
             MethodSymbol mreturn = (MethodSymbol)c1.GetMembers("@void.return").Single();
             Assert.Equal("@void.return", mreturn.Name);
             Assert.Equal("C1.@void.@return(@void)", mreturn.ToString());
-            NamedTypeSymbol rvoid = (NamedTypeSymbol)mreturn.ReturnType;
+            NamedTypeSymbol rvoid = (NamedTypeSymbol)mreturn.ReturnType.TypeSymbol;
             Assert.Equal("void", rvoid.Name);
             Assert.Equal("@void", rvoid.ToString());
             MethodSymbol mvoidreturn = (MethodSymbol)mreturn.ExplicitInterfaceImplementations.Single();

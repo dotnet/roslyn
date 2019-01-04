@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
                     // diagnostic (i.e. if the compiler was reporting a diagnostic on a lambda
                     // itself).  However, once we start walking upwards, we don't want to cross
                     // a lambda.
-                    if (syntaxFacts.IsAnonymousOrLocalFunctionStatement(ancestor) && 
+                    if (syntaxFacts.IsAnonymousOrLocalFunction(ancestor) &&
                         ancestor.SpanStart < token.SpanStart)
                     {
                         break;

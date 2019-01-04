@@ -196,15 +196,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &lt;Multiple Types&gt;.
-        '''</summary>
-        Friend ReadOnly Property Multiple_Types() As String
-            Get
-                Return ResourceManager.GetString("Multiple_Types", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to New.
         '''</summary>
         Friend ReadOnly Property New_() As String

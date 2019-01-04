@@ -2457,7 +2457,8 @@ BC30109: 'Form2' is a class type and cannot be used as an expression.
             compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemRef},
                                                                                  TestOptions.ReleaseDll.WithRootNamespace("WindowsApplication1"))
 
-            compilation = compilation.AddSyntaxTrees(VisualBasicSyntaxTree.ParseText(WindowsFormsMyTemplateSource))
+            ' https://github.com/dotnet/roslyn/issues/29819 remove explicit options when VB 16 is latest
+            compilation = compilation.AddSyntaxTrees(VisualBasicSyntaxTree.ParseText(WindowsFormsMyTemplateSource, options:=TestOptions.Regular))
 
             compilation.MyTemplate = Nothing
 
@@ -3457,7 +3458,7 @@ End Class
             CompileAndVerify(compilation).VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/27979")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/27979")>
         Public Sub Is_IsNot()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -3544,7 +3545,7 @@ True
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/27979")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/27979")>
         Public Sub BackingFieldToHaveEditorBrowsableNeverAttribute()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -3595,7 +3596,7 @@ End Module
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="1 Never").VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/27979")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/27979")>
         Public Sub Using001()
             Dim compilationDef =
 <compilation name="SimpleTest1">

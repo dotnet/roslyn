@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -20,6 +21,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewServices()
         {
-            using (var previewWorkspace = new PreviewWorkspace(MefV1HostServices.Create(EditorServicesUtil.ExportProvider.AsExportProvider())))
+            using (var previewWorkspace = new PreviewWorkspace(VisualStudioMefHostServices.Create(EditorServicesUtil.ExportProvider)))
             {
                 var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
                 Assert.True(service is PreviewSolutionCrawlerRegistrationServiceFactory.Service);
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var taskSource = new TaskCompletionSource<DiagnosticsUpdatedArgs>();
             diagnosticService.DiagnosticsUpdated += (s, a) => taskSource.TrySetResult(a);
 
-            using (var previewWorkspace = new PreviewWorkspace(MefV1HostServices.Create(EditorServicesUtil.ExportProvider.AsExportProvider())))
+            using (var previewWorkspace = new PreviewWorkspace(VisualStudioMefHostServices.Create(EditorServicesUtil.ExportProvider)))
             {
                 var solution = previewWorkspace.CurrentSolution
                                                .AddProject("project", "project.dll", LanguageNames.CSharp)
@@ -224,12 +226,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
                     // set up tagger for both buffers
                     var leftBuffer = diffView.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                    var leftProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listenerProvider);
+                    var leftProvider = new DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), diagnosticService, foregroundService, listenerProvider);
                     var leftTagger = leftProvider.CreateTagger<IErrorTag>(leftBuffer);
                     using (var leftDisposable = leftTagger as IDisposable)
                     {
                         var rightBuffer = diffView.Viewer.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                        var rightProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listenerProvider);
+                        var rightProvider = new DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), diagnosticService, foregroundService, listenerProvider);
                         var rightTagger = rightProvider.CreateTagger<IErrorTag>(rightBuffer);
                         using (var rightDisposable = rightTagger as IDisposable)
                         {
@@ -251,7 +253,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Trait(Traits.Editor, Traits.Editors.Preview)]
+        [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
+        [ConditionalFact(typeof(x86))]
         public void TestPreviewWorkspaceDoesNotLeakSolution()
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.

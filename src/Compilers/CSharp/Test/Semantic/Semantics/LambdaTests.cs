@@ -1533,6 +1533,208 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "y = y").WithLocation(9, 45));
         }
 
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Class1 c) => c.Method2(default(Struct1)));
+    }
+
+    public void Method2(Struct1 s1) { }
+
+    public static void Method<T>(Expression<Action<T>> expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (8,40): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
+                //         Method((Class1 c) => c.Method2(default(Struct1)));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default(Struct1)").WithArguments("Struct1").WithLocation(8, 40));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructDefaultExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Class1 c) => c.Method2(default));
+    }
+
+    public void Method2(Struct1 s1) { }
+
+    public static void Method<T>(Expression<Action<T>> expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (8,40): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
+                //         Method((Class1 c) => c.Method2(default));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("Struct1").WithLocation(8, 40));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructDefaultCastExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Class1 c) => c.Method2((Struct1) default));
+    }
+
+    public void Method2(Struct1 s1) { }
+
+    public static void Method<T>(Expression<Action<T>> expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (8,50): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
+                //         Method((Class1 c) => c.Method2((Struct1) default));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("Struct1").WithLocation(8, 50));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructNewExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Class1 c) => c.Method2(new Struct1()));
+    }
+
+    public void Method2(Struct1 s1) { }
+
+    public static void Method<T>(Expression<Action<T>> expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (8,40): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
+                //         Method((Class1 c) => c.Method2(new Struct1()));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "new Struct1()").WithArguments("Struct1").WithLocation(8, 40));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructParamExpressionTree()
+        {
+            var text = @"
+using System.Linq.Expressions;
+
+public delegate void Delegate1(Struct1 s);
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Struct1 s) => Method2());
+    }
+
+    public void Method2() { }
+
+    public static void Method(Expression<Delegate1> expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (9,25): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
+                //         Method((Struct1 s) => Method2());
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "s").WithArguments("Struct1").WithLocation(9, 25));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructParamLambda()
+        {
+            var text = @"
+public delegate void Delegate1(Struct1 s);
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Struct1 s) => Method2());
+    }
+
+    public void Method2() { }
+
+    public static void Method(Delegate1 expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void TypedReferenceExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public class Class1
+{
+    public void Method1()
+    {
+        Method(() => Method2(default));
+    }
+
+    public void Method2(TypedReference tr) { }
+
+    public static void Method(Expression<Action> expression) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (8,30): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+                //         Method(() => Method2(default));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("TypedReference").WithLocation(8, 30));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void TypedReferenceParamExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public delegate void Delegate1(TypedReference tr);
+public class Class1
+{
+    public void Method1()
+    {
+        Method((TypedReference tr) => Method2());
+    }
+
+    public void Method2() { }
+
+    public static void Method(Expression<Delegate1> expression) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (9,32): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+                //         Method((TypedReference tr) => Method2());
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "tr").WithArguments("TypedReference").WithLocation(9, 32));
+        }
+
         [Fact, WorkItem(5363, "https://github.com/dotnet/roslyn/issues/5363")]
         public void ReturnInferenceCache_Dynamic_vs_Object_01()
         {
@@ -2350,23 +2552,23 @@ class C
             var lambda = lambdas[0];
             var parameters = lambda.ParameterList.Parameters;
             var parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
-            Assert.False(parameter.Type.IsErrorType());
+            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal("System.Int32 t", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[1]);
-            Assert.False(parameter.Type.IsErrorType());
+            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[3]);
-            Assert.Equal(tooMany, parameter.Type.IsErrorType());
+            Assert.Equal(tooMany, parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
 
             // var o = this[(a, b, c) => { }];
             lambda = lambdas[1];
             parameters = lambda.ParameterList.Parameters;
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
-            Assert.False(parameter.Type.IsErrorType());
+            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[2]);
-            Assert.Equal(tooMany, parameter.Type.IsErrorType());
+            Assert.Equal(tooMany, parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
         }
 

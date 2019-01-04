@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             Contract.ThrowIfNull(symbol);
             Contract.ThrowIfNull(within);
-            Contract.Requires(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
 
             failedThroughTypeCheck = false;
             switch (symbol.Kind)
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         // an assembly.
         private static bool IsNamedTypeAccessible(INamedTypeSymbol type, ISymbol within)
         {
-            Contract.Requires(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
             Contract.ThrowIfNull(type);
 
             if (type.IsErrorType())
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Accessibility declaredAccessibility,
             ISymbol within)
         {
-            Contract.Requires(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
             Contract.ThrowIfNull(assembly);
             var withinAssembly = (within as IAssemblySymbol) ?? ((INamedTypeSymbol)within).ContainingAssembly;
 
@@ -232,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ITypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck)
         {
-            Contract.Requires(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
             Contract.ThrowIfNull(containingType);
 
             failedThroughTypeCheck = false;
@@ -357,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var originalThroughTypeOpt = throughTypeOpt == null ? null : throughTypeOpt.OriginalDefinition;
                 while (current != null)
                 {
-                    Contract.Requires(current.IsDefinition);
+                    Debug.Assert(current.IsDefinition);
 
                     if (current.InheritsFromOrEqualsIgnoringConstruction(originalContainingType))
                     {
@@ -391,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ISymbol within,
             INamedTypeSymbol originalContainingType)
         {
-            Contract.Requires(within is INamedTypeSymbol || within is IAssemblySymbol);
+            Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
 
             var withinType = within as INamedTypeSymbol;
             if (withinType == null)
@@ -418,7 +419,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var current = withinType.OriginalDefinition;
             while (current != null)
             {
-                Contract.Requires(current.IsDefinition);
+                Debug.Assert(current.IsDefinition);
                 if (current.Equals(originalContainingType))
                 {
                     return true;

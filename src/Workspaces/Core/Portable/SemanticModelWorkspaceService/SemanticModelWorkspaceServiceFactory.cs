@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                         if (documentId == null)
                         {
                             Debug.Assert(newProject.Solution.Workspace.Kind == WorkspaceKind.Interactive || newProject.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
-                            continue;                                
+                            continue;
                         }
 
                         map = map.SetItem(documentId, newTree);
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 private static void ValidateTreeMap(ImmutableDictionary<DocumentId, SyntaxTree> actual, Project project, Compilation compilation)
                 {
                     var expected = ImmutableDictionary.CreateRange(GetNewTreeMap(project, compilation));
-                    Contract.Requires(actual.SetEquals(expected));
+                    Debug.Assert(actual.SetEquals(expected));
                 }
             }
         }

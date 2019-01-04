@@ -16,30 +16,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxNode _syntax;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private RefKind _refKind;
-        private TypeSymbol _returnType;
+        private TypeSymbolWithAnnotations _returnType;
         private readonly bool _isSynthesized;
         private readonly bool _isAsync;
+
+        /// <summary>
+        /// This symbol is used as the return type of a LambdaSymbol when we are interpreting
+        /// lambda's body in order to infer its return type.
+        /// </summary>
+        internal static readonly TypeSymbol ReturnTypeIsBeingInferred = new UnsupportedMetadataTypeSymbol();
 
         /// <summary>
         /// This symbol is used as the return type of a LambdaSymbol when we failed to infer its return type.
         /// </summary>
         internal static readonly TypeSymbol InferenceFailureReturnType = new UnsupportedMetadataTypeSymbol();
 
+        private static readonly TypeSymbolWithAnnotations UnknownReturnType = TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType);
+
         public LambdaSymbol(
             CSharpCompilation compilation,
             Symbol containingSymbol,
             UnboundLambda unboundLambda,
-            ImmutableArray<TypeSymbol> parameterTypes, 
+            ImmutableArray<TypeSymbolWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind,
-            TypeSymbol returnType,
+            TypeSymbolWithAnnotations returnType,
             DiagnosticBag diagnostics)
         {
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
             _syntax = unboundLambda.Syntax;
             _refKind = refKind;
-            _returnType = returnType;
+            _returnType = returnType.IsNull ? TypeSymbolWithAnnotations.Create(ReturnTypeIsBeingInferred) : returnType;
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
@@ -158,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return (object)this.ReturnType != null && this.ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return !this.ReturnType.IsNull && this.ReturnType.SpecialType == SpecialType.System_Void; }
         }
 
         public override RefKind RefKind
@@ -166,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _refKind; }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get { return _returnType; }
         }
@@ -175,16 +183,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // until after the body is bound, but the symbol is created before the body
         // is bound.  Fill in the return type post hoc in these scenarios; the
         // IDE might inspect the symbol and want to know the return type.
-        internal void SetInferredReturnType(RefKind refKind, TypeSymbol inferredReturnType)
+        internal void SetInferredReturnType(RefKind refKind, TypeSymbolWithAnnotations inferredReturnType)
         {
-            Debug.Assert((object)inferredReturnType != null && (object)_returnType == null);
+            Debug.Assert(!inferredReturnType.IsNull);
+            Debug.Assert((object)_returnType.TypeSymbol == ReturnTypeIsBeingInferred);
             _refKind = refKind;
             _returnType = inferredReturnType;
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -207,9 +211,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
-            get { return ImmutableArray<TypeSymbol>.Empty; }
+            get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -299,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> MakeParameters(
             CSharpCompilation compilation,
             UnboundLambda unboundLambda,
-            ImmutableArray<TypeSymbol> parameterTypes,
+            ImmutableArray<TypeSymbolWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             DiagnosticBag diagnostics)
         {
@@ -318,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                      (owner: this, refKinds: parameterRefKinds));
             }
 
-            var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
+            var builder = ArrayBuilder<ParameterSymbol>.GetInstance(unboundLambda.ParameterCount);
             var hasExplicitlyTypedParameterList = unboundLambda.HasExplicitlyTypedParameterList;
             var numDelegateParameters = parameterTypes.Length;
 
@@ -330,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // can, then we use the lambda types. (Whatever you do, do not use the names 
                 // in the delegate parameters; they are not in scope!)
 
-                TypeSymbol type;
+                TypeSymbolWithAnnotations type;
                 RefKind refKind;
                 if (hasExplicitlyTypedParameterList)
                 {
@@ -344,13 +348,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    type = new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null);
+                    type = TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
                     refKind = RefKind.None;
                 }
-                
+
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
-                var locations = ImmutableArray.Create<Location>(location);
+                var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
                 var parameter = new SourceSimpleParameterSymbol(this, type, p, refKind, name, locations);
 
                 builder.Add(parameter);
@@ -369,8 +373,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)lambda != null
                 && lambda._syntax == _syntax
                 && lambda._refKind == _refKind
-                && lambda.ReturnType == this.ReturnType
-                && System.Linq.ImmutableArrayExtensions.SequenceEqual(lambda.ParameterTypes, this.ParameterTypes)
+                && TypeSymbol.Equals(lambda.ReturnType.TypeSymbol, this.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2)
+                && System.Linq.ImmutableArrayExtensions.SequenceEqual(lambda.ParameterTypes, this.ParameterTypes, (p1, p2) => p1.TypeSymbol.Equals(p2.TypeSymbol))
                 && Equals(lambda.ContainingSymbol, this.ContainingSymbol);
         }
 
@@ -392,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early) => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

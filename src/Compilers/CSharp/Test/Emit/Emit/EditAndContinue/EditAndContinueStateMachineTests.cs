@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class EditAndContinueStateMachineTests : EditAndContinueTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem(1068894, "DevDiv"), WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
         public void AddIteratorMethod()
         {
@@ -810,7 +810,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void UpdateAsync_NoVariables()
         {
             var source0 = @"
@@ -4659,7 +4659,7 @@ class C
     }
 }
 ");
-            
+
             var compilation0 = CreateCompilationWithMscorlib40(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
@@ -4972,7 +4972,7 @@ class C
     }
 }
 ");
-                        
+
             var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 

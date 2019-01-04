@@ -1198,8 +1198,10 @@ class Program
         }
 
         [WorkItem(19172, "https://github.com/dotnet/roslyn/issues/19172")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestPreferNoBlock()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        public async Task TestPreferNoBlock(int preferBraces)
         {
             await TestInRegularAndScript1Async(
 @"
@@ -1223,7 +1225,7 @@ class C
     }
 }",
     parameters: new TestParameters(options:
-        Option(CSharpCodeStyleOptions.PreferBraces, CodeStyleOptions.FalseWithSilentEnforcement)));
+        Option(CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption.Silent))));
         }
 
         [WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]
@@ -1401,6 +1403,35 @@ class C
         array.Where(x => x > 3)
             .OrderBy(x => x)
             .Count();
+    }
+}");
+        }
+
+        [WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSimpleReferenceTypeWithParameterNameSelected1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C(string [|s|])
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
     }
 }");
         }

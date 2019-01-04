@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private static readonly ImmutableDictionary<string, string> s_properties =
             ImmutableDictionary<string, string>.Empty.Add(UseIsNullConstants.Kind, UseIsNullConstants.CastAndEqualityKey);
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                         }
 
                         return true;
-                   }
+                    }
                 }
             }
 

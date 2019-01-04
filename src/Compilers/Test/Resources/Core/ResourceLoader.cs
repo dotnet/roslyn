@@ -22,7 +22,7 @@ namespace TestResources
             return stream;
         }
 
-        private static byte[] GetResourceBlob(string name)
+        public static byte[] GetResourceBlob(string name)
         {
             using (var stream = GetResourceStream(name))
             {
@@ -50,16 +50,21 @@ namespace TestResources
         {
             if (resource == null)
             {
-                using (var stream = GetResourceStream(name))
-                {
-                    using (var streamReader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
-                    {
-                        resource = streamReader.ReadToEnd();
-                    }
-                }
+                resource = GetResource(name);
             }
 
             return resource;
+        }
+
+        public static string GetResource(string name)
+        {
+            using (var stream = GetResourceStream(name))
+            {
+                using (var streamReader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
+                {
+                    return streamReader.ReadToEnd();
+                }
+            }
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel;
 using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -8,6 +10,8 @@ namespace Microsoft.CodeAnalysis.Completion
     /// The set of well known tags used for the <see cref="CompletionItem.Tags"/> property.
     /// These tags influence the presentation of items in the list.
     /// </summary>
+    [Obsolete("Use Microsoft.CodeAnalysis.Tags.WellKnownTags instead.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public static class CompletionTags
     {
         // accessibility

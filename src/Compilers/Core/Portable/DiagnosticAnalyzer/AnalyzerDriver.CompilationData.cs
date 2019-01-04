@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly Dictionary<SyntaxTree, SemanticModel> _semanticModelsMap;
 
             private readonly Dictionary<SyntaxReference, DeclarationAnalysisData> _declarationAnalysisDataMap;
-            
+
             public CompilationData(Compilation comp)
             {
                 _semanticModelsMap = new Dictionary<SyntaxTree, SemanticModel>();

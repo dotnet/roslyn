@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Invocation, ObjectCreation, ObjectInitializer, ElementAccess or Subpattern.
 
             if (!node.IsKind(IdentifierName))
-            { 
+            {
                 return false;
             }
 
@@ -381,6 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ExclusiveOrAssignmentExpression:
                 case LeftShiftAssignmentExpression:
                 case RightShiftAssignmentExpression:
+                case CoalesceAssignmentExpression:
                 case PostIncrementExpression:
                 case PostDecrementExpression:
                 case PreIncrementExpression:

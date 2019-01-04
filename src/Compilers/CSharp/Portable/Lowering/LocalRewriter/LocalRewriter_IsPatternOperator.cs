@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The optimization of sharing pattern-matching temps with user variables can always apply to
                 // an is-pattern expression because there is no when clause that could possibly intervene during
                 // the execution of the pattern-matching automaton and change one of those variables.
-                decisionDag = ShareTempsAndEvaluateInput(loweredInput, decisionDag, expr => _sideEffectBuilder.Add(expr));
+                decisionDag = ShareTempsAndEvaluateInput(loweredInput, decisionDag, expr => _sideEffectBuilder.Add(expr), out _);
                 var node = decisionDag.RootNode;
 
                 // We follow the "good" path in the decision dag. We depend on it being nicely linear in structure.

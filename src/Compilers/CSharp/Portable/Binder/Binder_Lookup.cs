@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeSymbol qualifierOpt,
             string plainName,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Makes a second attempt if the results are not viable, in order to produce more detailed failure information (symbols and diagnostics).
         /// </remarks>
-        private Binder LookupSymbolsWithFallback(LookupResult result, string name, int arity, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null, LookupOptions options = LookupOptions.Default)
+        private Binder LookupSymbolsWithFallback(LookupResult result, string name, int arity, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved = null, LookupOptions options = LookupOptions.Default)
         {
             Debug.Assert(options.AreValid());
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private Binder LookupSymbolsInternal(
-            LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(result.IsClear);
             Debug.Assert(options.AreValid());
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal virtual void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
         }
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeSymbol qualifierOpt,
             string name,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Look for symbols that are members of the specified namespace or type.
         /// </summary>
-        private void LookupMembersWithFallback(LookupResult result, NamespaceOrTypeSymbol nsOrType, string name, int arity, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null, LookupOptions options = LookupOptions.Default)
+        private void LookupMembersWithFallback(LookupResult result, NamespaceOrTypeSymbol nsOrType, string name, int arity, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved = null, LookupOptions options = LookupOptions.Default)
         {
             Debug.Assert(options.AreValid());
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(result.IsMultiViable || result.IsClear || result.Error != null);
         }
 
-        protected void LookupMembersInternal(LookupResult result, NamespaceOrTypeSymbol nsOrType, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        protected void LookupMembersInternal(LookupResult result, NamespaceOrTypeSymbol nsOrType, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(options.AreValid());
 
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Looks up a member of given name and arity in a particular type.
-        protected void LookupMembersInType(LookupResult result, TypeSymbol type, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        protected void LookupMembersInType(LookupResult result, TypeSymbol type, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             switch (type.TypeKind)
             {
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // done in the caller?
         }
 
-        private void LookupMembersInErrorType(LookupResult result, ErrorTypeSymbol errorType, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void LookupMembersInErrorType(LookupResult result, ErrorTypeSymbol errorType, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if (!errorType.CandidateSymbols.IsDefault && errorType.CandidateSymbols.Length == 1)
             {
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///    
         /// Note that indexers are not supported in script but we deal with them here to handle errors.
         /// </remarks>
-        private void LookupMembersInSubmissions(LookupResult result, TypeSymbol submissionClass, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void LookupMembersInSubmissions(LookupResult result, TypeSymbol submissionClass, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             LookupResult submissionSymbols = LookupResult.GetInstance();
             LookupResult nonViable = LookupResult.GetInstance();
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeSymbol qualifierOpt,
             string name,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Does a member lookup in a single type, without considering inheritance.
         protected static void LookupMembersWithoutInheritance(LookupResult result, TypeSymbol type, string name, int arity,
-            LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
+            LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             var members = GetCandidateMembers(type, name, options, originalBinder);
 
@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type,
             string name,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             Binder originalBinder,
             bool diagnose,
@@ -855,28 +855,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return iFaceSpecial == SpecialType.System_Collections_Generic_IEnumerable_T ||
                    iFaceSpecial == SpecialType.System_Collections_Generic_IList_T ||
                    iFaceSpecial == SpecialType.System_Collections_Generic_ICollection_T ||
-                   iFaceOriginal == idictSymbol ||
+                   TypeSymbol.Equals(iFaceOriginal, idictSymbol, TypeCompareKind.ConsiderEverything2) ||
                    iFaceSpecial == SpecialType.System_Collections_Generic_IReadOnlyList_T ||
                    iFaceSpecial == SpecialType.System_Collections_Generic_IReadOnlyCollection_T ||
-                   iFaceOriginal == iroDictSymbol ||
+                   TypeSymbol.Equals(iFaceOriginal, iroDictSymbol, TypeCompareKind.ConsiderEverything2) ||
                    iFaceSpecial == SpecialType.System_Collections_IEnumerable ||
-                   iFaceOriginal == iListSymbol ||
-                   iFaceOriginal == iCollectionSymbol ||
-                   iFaceOriginal == inccSymbol ||
-                   iFaceOriginal == inpcSymbol;
+                   TypeSymbol.Equals(iFaceOriginal, iListSymbol, TypeCompareKind.ConsiderEverything2) ||
+                   TypeSymbol.Equals(iFaceOriginal, iCollectionSymbol, TypeCompareKind.ConsiderEverything2) ||
+                   TypeSymbol.Equals(iFaceOriginal, inccSymbol, TypeCompareKind.ConsiderEverything2) ||
+                   TypeSymbol.Equals(iFaceOriginal, inpcSymbol, TypeCompareKind.ConsiderEverything2);
         }
 
 
         // find the nearest symbol in list to the symbol 'type'.  It may be the same symbol if its the only one.
-        private static Symbol GetNearestOtherSymbol(ConsList<Symbol> list, TypeSymbol type)
+        private static Symbol GetNearestOtherSymbol(ConsList<TypeSymbol> list, TypeSymbol type)
         {
-            Symbol other = type;
+            TypeSymbol other = type;
 
-            for (; list != null && list != ConsList<Symbol>.Empty; list = list.Tail)
+            for (; list != null && list != ConsList<TypeSymbol>.Empty; list = list.Tail)
             {
-                if (list.Head == type.OriginalDefinition)
+                if (TypeSymbol.Equals(list.Head, type.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
                 {
-                    if (other == type && list.Tail != null && list.Tail != ConsList<Symbol>.Empty)
+                    if (TypeSymbol.Equals(other, type, TypeCompareKind.ConsiderEverything2) && list.Tail != null && list.Tail != ConsList<TypeSymbol>.Empty)
                     {
                         other = list.Tail.Head;
                     }
@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Lookup member in interface, and any base interfaces, and System.Object.
-        private void LookupMembersInInterface(LookupResult current, NamedTypeSymbol type, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void LookupMembersInInterface(LookupResult current, NamedTypeSymbol type, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(type.IsInterface);
@@ -956,7 +956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Lookup member in type parameter
-        private void LookupMembersInTypeParameter(LookupResult current, TypeParameterSymbol typeParameter, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void LookupMembersInTypeParameter(LookupResult current, TypeParameterSymbol typeParameter, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)typeParameter != null);
 
@@ -977,10 +977,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsDerivedType(NamedTypeSymbol baseType, NamedTypeSymbol derivedType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(baseType != derivedType);
+            Debug.Assert(!TypeSymbol.Equals(baseType, derivedType, TypeCompareKind.ConsiderEverything2));
             for (NamedTypeSymbol b = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics); (object)b != null; b = b.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
-                if (b == baseType) return true;
+                if (TypeSymbol.Equals(b, baseType, TypeCompareKind.ConsiderEverything2)) return true;
             }
             return baseType.IsInterface && derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics).Contains(baseType);
         }
@@ -1035,7 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     hidingSymbols.Add(sym); // not hidden
-                symIsHidden:;
+symIsHidden:;
                 }
             }
             else
@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Distinguish from <see cref="CanAddLookupSymbolInfo"/>, which performs an analogous task for Add*LookupSymbolsInfo*.
         /// </remarks>
-        internal SingleLookupResult CheckViability(Symbol symbol, int arity, LookupOptions options, TypeSymbol accessThroughType, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
+        internal SingleLookupResult CheckViability(Symbol symbol, int arity, LookupOptions options, TypeSymbol accessThroughType, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             bool inaccessibleViaQualifier;
             DiagnosticInfo diagInfo;
@@ -1153,24 +1153,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         ref useSiteDiagnostics,
                                         basesBeingResolved))
             {
-                 if (!diagnose)
-                 {
-                     diagInfo = null;
-                 }
-                 else if (inaccessibleViaQualifier)
-                 {
-                     diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType);
-                 }
-                 else if (IsBadIvtSpecification())
-                 {
-                     diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), AssemblyIdentity.PublicKeyToString(this.Compilation.Assembly.PublicKey));
-                 }
-                 else
-                 {
-                     diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, ImmutableArray.Create<Symbol>(unwrappedSymbol), additionalLocations: ImmutableArray<Location>.Empty);
-                 }
-                 
-                 return LookupResult.Inaccessible(symbol, diagInfo);
+                if (!diagnose)
+                {
+                    diagInfo = null;
+                }
+                else if (inaccessibleViaQualifier)
+                {
+                    diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType);
+                }
+                else if (IsBadIvtSpecification())
+                {
+                    diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), AssemblyIdentity.PublicKeyToString(this.Compilation.Assembly.PublicKey));
+                }
+                else
+                {
+                    diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, ImmutableArray.Create<Symbol>(unwrappedSymbol), additionalLocations: ImmutableArray<Location>.Empty);
+                }
+
+                return LookupResult.Inaccessible(symbol, diagInfo);
             }
             else if (!InCref && unwrappedSymbol.MustCallMethodsDirectly())
             {
@@ -1211,7 +1211,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     unwrappedSymbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal)
                     && !options.IsAttributeTypeLookup())
                 {
-                    var keys = unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.Compilation.AssemblyName);
+                    var assemblyName = this.Compilation.AssemblyName;
+                    if (assemblyName == null)
+                    {
+                        return false;
+                    }
+                    var keys = unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(assemblyName);
                     if (!keys.Any())
                     {
                         return false;
@@ -1228,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
         }
- 
+
         private CSDiagnosticInfo MakeCallMethodsDirectlyDiagnostic(Symbol symbol)
         {
             Debug.Assert(symbol.MustCallMethodsDirectly());
@@ -1261,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new CSDiagnosticInfo(ErrorCode.ERR_BindToBogusProp1, symbol, method1 ?? method2);
         }
 
-        internal void CheckViability<TSymbol>(LookupResult result, ImmutableArray<TSymbol> symbols, int arity, LookupOptions options, TypeSymbol accessThroughType, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved) where TSymbol : Symbol
+        internal void CheckViability<TSymbol>(LookupResult result, ImmutableArray<TSymbol> symbols, int arity, LookupOptions options, TypeSymbol accessThroughType, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved) where TSymbol : Symbol
         {
             foreach (var symbol in symbols)
             {
@@ -1361,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Check whether "symbol" is accessible from this binder.
         /// Also checks protected access via "accessThroughType".
         /// </summary>
-        internal bool IsAccessible(Symbol symbol, ref HashSet<DiagnosticInfo> useSiteDiagnostics, TypeSymbol accessThroughType = null, ConsList<Symbol> basesBeingResolved = null)
+        internal bool IsAccessible(Symbol symbol, ref HashSet<DiagnosticInfo> useSiteDiagnostics, TypeSymbol accessThroughType = null, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             bool failedThroughTypeCheck;
             return IsAccessible(symbol, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
@@ -1372,7 +1377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Also checks protected access via "accessThroughType", and sets "failedThroughTypeCheck" if fails
         /// the protected access check.
         /// </summary>
-        internal bool IsAccessible(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
+        internal bool IsAccessible(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             if (this.Flags.Includes(BinderFlags.IgnoreAccessibility))
             {
@@ -1384,10 +1389,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <remarks>
-        /// Should only be called by <see cref="IsAccessible(Symbol, TypeSymbol, out bool, ref HashSet{DiagnosticInfo}, ConsList{Symbol})"/>,
+        /// Should only be called by <see cref="IsAccessible(Symbol, TypeSymbol, out bool, ref HashSet{DiagnosticInfo}, ConsList{TypeSymbol})"/>,
         /// which will already have checked for <see cref="BinderFlags.IgnoreAccessibility"/>.
         /// </remarks>
-        internal virtual bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
+        internal virtual bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved)
         {
             // By default, just delegate to containing binder.
             return Next.IsAccessibleHelper(symbol, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
@@ -1423,11 +1428,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case SymbolKind.Field:
-                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound);
+                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound).TypeSymbol;
                     break;
 
                 case SymbolKind.Property:
-                    type = ((PropertySymbol)symbol).Type;
+                    type = ((PropertySymbol)symbol).Type.TypeSymbol;
                     break;
             }
 

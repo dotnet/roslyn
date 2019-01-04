@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override TypeSymbol GetCurrentReturnType(out RefKind refKind)
         {
             refKind = lambdaSymbol.RefKind;
-            return lambdaSymbol.ReturnType;
+            return lambdaSymbol.ReturnType.TypeSymbol;
         }
 
         internal override Symbol ContainingMemberOrLambda
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(result.IsClear);
 

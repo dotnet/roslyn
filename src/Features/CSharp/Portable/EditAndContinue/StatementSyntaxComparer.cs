@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SwitchStatement,
             SwitchSection,
             CasePatternSwitchLabel,            // tied to parent
-            WhenClause,                  
+            WhenClause,
 
             YieldStatement,                    // tied to parent
             GotoStatement,
@@ -710,9 +710,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private static void GetNestedFunctionsParts(
-            SyntaxNode nestedFunction, 
-            out IEnumerable<SyntaxToken> parameters, 
-            out SyntaxToken asyncKeyword, 
+            SyntaxNode nestedFunction,
+            out IEnumerable<SyntaxToken> parameters,
+            out SyntaxToken asyncKeyword,
             out SyntaxNode body,
             out SyntaxTokenList modifiers,
             out TypeSyntax returnType,
@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             double distance = ComputeDistance(leftNode, rightNode);
             double parentDistance;
 
-            if (leftNode.Parent != null && 
+            if (leftNode.Parent != null &&
                 rightNode.Parent != null &&
                 GetLabel(leftNode.Parent) == GetLabel(rightNode.Parent))
             {
@@ -899,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             double statementDistance = ComputeDistance(leftCommonForEach.Statement, rightCommonForEach.Statement);
             double expressionDistance = ComputeDistance(leftCommonForEach.Expression, rightCommonForEach.Expression);
 
-            List<SyntaxToken> leftLocals = null; 
+            List<SyntaxToken> leftLocals = null;
             List<SyntaxToken> rightLocals = null;
             GetLocalNames(leftCommonForEach, ref leftLocals);
             GetLocalNames(rightCommonForEach, ref rightLocals);
@@ -1073,13 +1073,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.TupleExpression:
                     var tupleExpression = (TupleExpressionSyntax)expression;
-                    foreach(var argument in tupleExpression.Arguments)
+                    foreach (var argument in tupleExpression.Arguments)
                     {
                         GetLocalNames(argument.Expression, ref result);
                     }
                     return;
 
-                default: 
+                default:
                     // Do nothing for node that cannot have variable declarations inside.
                     return;
             }
@@ -1095,10 +1095,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     var parenthesizedVariableDesignation = (ParenthesizedVariableDesignationSyntax)designation;
-                    foreach(var variableDesignation in parenthesizedVariableDesignation.Variables)
+                    foreach (var variableDesignation in parenthesizedVariableDesignation.Variables)
                     {
                         GetLocalNames(variableDesignation, ref result);
                     }
+                    return;
+
+                case SyntaxKind.DiscardDesignation:
                     return;
 
                 default: throw ExceptionUtilities.UnexpectedValue(designation.Kind());

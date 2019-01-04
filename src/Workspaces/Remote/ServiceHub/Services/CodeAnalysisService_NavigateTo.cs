@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(
-            ProjectId projectId, string searchPattern, string[] kinds, CancellationToken cancellationToken)
+            ProjectId projectId, DocumentId[] priorityDocumentIds, string searchPattern, string[] kinds, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async token =>
             {
@@ -38,8 +39,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     var solution = await GetSolutionAsync(token).ConfigureAwait(false);
 
                     var project = solution.GetProject(projectId);
+                    var priorityDocuments = priorityDocumentIds.Select(d => solution.GetDocument(d))
+                                                               .ToImmutableArray();
+
                     var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                        project, searchPattern, kinds.ToImmutableHashSet(), token).ConfigureAwait(false);
+                        project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), token).ConfigureAwait(false);
 
                     return Convert(result);
                 }

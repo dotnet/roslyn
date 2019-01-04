@@ -508,9 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override RefKind RefKind => Signature.ReturnParam.RefKind;
 
-        public override TypeSymbol ReturnType => Signature.ReturnParam.Type;
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => Signature.ReturnParam.CustomModifiers;
+        public override TypeSymbolWithAnnotations ReturnType => Signature.ReturnParam.Type;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => Signature.ReturnParam.RefCustomModifiers;
 
@@ -538,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if ((object)_associatedPropertyOrEventOpt == null)
             {
-                Debug.Assert(propertyOrEventSymbol.ContainingType == _containingType);
+                Debug.Assert(TypeSymbol.Equals(propertyOrEventSymbol.ContainingType, _containingType, TypeCompareKind.ConsiderEverything2));
 
                 // No locking required since SetAssociatedProperty/SetAssociatedEvent will only be called
                 // by the thread that created the method symbol (and will be called before the method
@@ -584,14 +582,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableArray<ParameterSymbol> @params;
             bool isBadParameter;
 
+            string key = ExtraAnnotations.MakeMethodKey(this, paramInfo);
+            ImmutableArray<ImmutableArray<byte>> extraMethodAnnotations = ExtraAnnotations.GetExtraAnnotations(key);
+
             if (count > 0)
             {
                 var builder = ImmutableArray.CreateBuilder<ParameterSymbol>(count);
                 for (int i = 0; i < count; i++)
                 {
+                    // zero-th annotation is for the return type
+                    ImmutableArray<byte> extraAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[i + 1];
+
                     builder.Add(PEParameterSymbol.Create(
                         moduleSymbol, this, this.IsMetadataVirtual(), i,
-                        paramInfo[i + 1], isReturn: false, out isBadParameter));
+                        paramInfo[i + 1], extraAnnotations, isReturn: false, out isBadParameter));
 
                     if (isBadParameter)
                     {
@@ -611,9 +615,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             paramInfo[0].Type = returnType;
 
+            ImmutableArray<byte> extraReturnAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[0];
             var returnParam = PEParameterSymbol.Create(
                 moduleSymbol, this, this.IsMetadataVirtual(), 0,
-                paramInfo[0], isReturn: true, out isBadParameter);
+                paramInfo[0], extraReturnAnnotations, isReturn: true, out isBadParameter);
 
             if (makeBad || isBadParameter)
             {
@@ -680,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments => IsGenericMethod ? TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>() : ImmutableArray<TypeSymbol>.Empty;
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments => IsGenericMethod ? GetTypeParametersAsTypeArguments() : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
 
         public override Symbol AssociatedSymbol => _associatedPropertyOrEventOpt;
 
@@ -800,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var parameter = parameters[0];
-            switch(parameter.RefKind)
+            switch (parameter.RefKind)
             {
                 case RefKind.None:
                 case RefKind.Ref:
@@ -911,10 +916,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         case WellKnownMemberNames.ExplicitConversionName:
                             return IsValidUserDefinedOperatorSignature(1) ? MethodKind.Conversion : MethodKind.Ordinary;
 
-                        //case WellKnownMemberNames.ConcatenateOperatorName:
-                        //case WellKnownMemberNames.ExponentOperatorName:
-                        //case WellKnownMemberNames.IntegerDivisionOperatorName:
-                        //case WellKnownMemberNames.LikeOperatorName:
+                            //case WellKnownMemberNames.ConcatenateOperatorName:
+                            //case WellKnownMemberNames.ExponentOperatorName:
+                            //case WellKnownMemberNames.IntegerDivisionOperatorName:
+                            //case WellKnownMemberNames.LikeOperatorName:
                             //// Non-C#-supported overloaded operator
                             //return MethodKind.Ordinary;
                     }

@@ -33,15 +33,22 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             _helpers = helpers;
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.OrderModifiersDiagnosticId);
+        protected abstract ImmutableArray<string> FixableCompilerErrorIds { get; }
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
+            => FixableCompilerErrorIds.Add(IDEDiagnosticIds.OrderModifiersDiagnosticId);
+
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
-            return Task.CompletedTask;
+            var syntaxTree = await context.Document.GetSyntaxTreeAsync(context.CancellationToken).ConfigureAwait(false);
+            var syntaxNode = Location.Create(syntaxTree, context.Span).FindNode(context.CancellationToken);
+
+            if (_syntaxFacts.GetModifiers(syntaxNode) != default)
+            {
+                context.RegisterCodeFix(
+                    new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
+                    context.Diagnostics);
+            }
         }
 
         protected override async Task FixAllAsync(
@@ -83,7 +90,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Order_modifiers, createChangedDocument, FeaturesResources.Order_modifiers)
             {
             }

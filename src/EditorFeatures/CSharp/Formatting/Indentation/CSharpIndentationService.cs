@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -22,7 +23,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 {
     [ExportLanguageService(typeof(ISynchronousIndentationService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpIndentationService : AbstractIndentationService
+    internal partial class CSharpIndentationService : AbstractIndentationService<CompilationUnitSyntax>
     {
         private static readonly IFormattingRule s_instance = new FormattingRule();
 
@@ -37,17 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             return new Indenter(
                 syntaxFacts, syntaxTree, formattingRules,
                 optionSet, lineToBeIndented, cancellationToken);
-        }
-
-        protected override bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
-            IEnumerable<IFormattingRule> formattingRules,
-            SyntaxNode root,
-            TextLine line,
-            OptionSet optionSet,
-            CancellationToken cancellationToken)
-        {
-            return ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                formattingRules, (CompilationUnitSyntax)root, line, optionSet, cancellationToken);
         }
 
         public static bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
@@ -109,8 +99,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
             {
                 // these nodes should be from syntax tree from ITextSnapshot.
-                Contract.Requires(node.SyntaxTree != null);
-                Contract.Requires(node.SyntaxTree.GetText() != null);
+                Debug.Assert(node.SyntaxTree != null);
+                Debug.Assert(node.SyntaxTree.GetText() != null);
 
                 nextOperation.Invoke(list);
 

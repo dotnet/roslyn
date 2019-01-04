@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // For totally broken syntax, parse a type for error recovery purposes
             switch (tk)
             {
+                case SyntaxKind.IdentifierToken when this.CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken:
+                // We permit a type named `_` on the right-hand-side of an is operator, but not inside of a pattern.
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
                 case SyntaxKind.CloseBraceToken:
@@ -58,8 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
             }
 
-            // We permit a type named `_` on the right-hand-side of an is operator, but not inside of a pattern.
-            bool typeCannotBePattern = tk == SyntaxKind.IdentifierToken && this.CurrentToken.Text == "_";
             // If it starts with 'nameof(', skip the 'if' and parse as a constant pattern.
             if (LooksLikeTypeOfPattern(tk))
             {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     TypeSyntax type = this.ParseType(ParseTypeMode.AfterIs);
 
-                    if (!type.IsMissing && !typeCannotBePattern)
+                    if (!type.IsMissing)
                     {
                         PatternSyntax p = ParsePatternContinued(type, false);
                         if (p != null)
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool LooksLikeTypeOfPattern(SyntaxKind tk)
         {
             return SyntaxFacts.IsPredefinedType(tk) ||
-                (tk == SyntaxKind.IdentifierToken &&
+                (tk == SyntaxKind.IdentifierToken && this.CurrentToken.ContextualKind != SyntaxKind.UnderscoreToken &&
                   (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)) ||
                 LooksLikeTupleArrayType();
         }
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         /// <param name="whenIsKeyword">prevents the use of "when" for the identifier</param>
         /// <returns></returns>
-        private CSharpSyntaxNode ParseExpressionOrPattern(bool whenIsKeyword, Precedence precedence)
+        private CSharpSyntaxNode ParseExpressionOrPattern(bool whenIsKeyword, bool forSwitchCase, Precedence precedence)
         {
             // handle common error recovery situations during typing
             var tk = this.CurrentToken.Kind;
@@ -337,14 +337,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return this.ParseIdentifierName(ErrorCode.ERR_MissingPattern);
             }
 
-            if (tk == SyntaxKind.IdentifierToken && this.CurrentToken.Text == "_")
+            if (CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken && !forSwitchCase)
             {
-                // In a pattern, we reserve `_` as a discard. It cannot be used (with that spelling) as the
-                // type of a declaration or recursive pattern, nor as a type in an is-type expression starting
-                // in C# 8. The binder will give a diagnostic if
-                // there is a usable symbol in scope by that name. You can always escape it, using `@_`.
-                // https://github.com/dotnet/roslyn/issues/27750 Should we use the "contextual keyword" infrastructure for this?
-                return _syntaxFactory.DiscardPattern(this.EatToken(SyntaxKind.IdentifierToken));
+                // In a switch case, we parse `_` as an expression.
+                return _syntaxFactory.DiscardPattern(this.EatContextualToken(SyntaxKind.UnderscoreToken));
             }
 
             var resetPoint = this.GetResetPoint();
@@ -414,39 +410,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private PatternSyntax ParsePatternContinued(TypeSyntax type, bool whenIsKeyword)
         {
-            bool parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClauseResult)
-            {
-                propertyPatternClauseResult = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-                {
-                    propertyPatternClauseResult = ParsePropertyPatternClause();
-                    return true;
-                }
-
-                return false;
-            }
-
-            bool parseDesignation(out VariableDesignationSyntax designationResult)
-            {
-                designationResult = null;
-                if (this.IsTrueIdentifier() && (!whenIsKeyword || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
-                {
-                    designationResult = ParseSimpleDesignation();
-                    return true;
-                }
-
-                return false;
-            }
-
-            bool looksLikeCast()
-            {
-                var resetPoint = this.GetResetPoint();
-                bool result = this.ScanCast(forPattern: true);
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-                return result;
-            }
-
             if (type?.Kind == SyntaxKind.IdentifierName)
             {
                 var typeIdentifier = (IdentifierNameSyntax)type;
@@ -456,16 +419,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     // we have a "var" pattern; "var" is not permitted to be a stand-in for a type (or a constant) in a pattern.
                     var varToken = ConvertToKeyword(typeIdentifierToken);
-                    bool wasTupleDesignator = this.CurrentToken.Kind == SyntaxKind.OpenParenToken;
-                    var varDesignation = ParseDesignation();
-                    if (wasTupleDesignator)
-                    {
-                        return _syntaxFactory.VarPattern(varToken, varDesignation);
-                    }
-                    else
-                    {
-                        return _syntaxFactory.DeclarationPattern(_syntaxFactory.IdentifierName(typeIdentifierToken), varDesignation);
-                    }
+                    var varDesignation = ParseDesignation(forPattern: true);
+                    return _syntaxFactory.VarPattern(varToken, varDesignation);
                 }
             }
 
@@ -501,11 +456,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var deconstructionPatternClause = _syntaxFactory.DeconstructionPatternClause(openParenToken, subPatterns, closeParenToken);
                 var result = _syntaxFactory.RecursivePattern(type, deconstructionPatternClause, propertyPatternClause0, designation0);
 
-                // 2017-11-20 LDM decision is to disallow a deconstruction pattern that contains just a
-                // single subpattern but for which the type is omitted.
-                // This keeps the design space open for using parentheses for grouping patterns in the future, e.g. if we introduce `or` and
-                // `and` patterns. We may add other ways to disambiguate later (e.g. a property subpattern or a trailing comma inside the parens).
-                return (type == null && subPatterns.Count == 1) ? this.AddError(result, ErrorCode.ERR_SingleElementPositionalPatternRequiresType) : result;
+                bool singleElementPattern =
+                    type == null &&
+                    subPatterns.Count == 1 &&
+                    propertyPatternClause0 == null &&
+                    designation0 == null &&
+                    subPatterns[0].NameColon == null;
+                // A single-element parenthesized pattern requires some other syntax to disambiguate it from a merely parenthesized pattern,
+                // thus leaving open the possibility that we can use parentheses for grouping patterns in the future, e.g. if we introduce `or` and
+                // `and` patterns.
+                return singleElementPattern ? this.AddError(result, ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation) : result;
             }
 
             if (parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause))
@@ -521,11 +481,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // let the caller fall back to its default (expression or type)
             return null;
+
+            bool parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClauseResult)
+            {
+                propertyPatternClauseResult = null;
+                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+                {
+                    propertyPatternClauseResult = ParsePropertyPatternClause();
+                    return true;
+                }
+
+                return false;
+            }
+
+            bool parseDesignation(out VariableDesignationSyntax designationResult)
+            {
+                designationResult = null;
+                if (this.IsTrueIdentifier() && (!whenIsKeyword || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
+                {
+                    designationResult = ParseSimpleDesignation();
+                    return true;
+                }
+
+                return false;
+            }
+
+            bool looksLikeCast()
+            {
+                var resetPoint = this.GetResetPoint();
+                bool result = this.ScanCast(forPattern: true);
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+                return result;
+            }
         }
 
         private PatternSyntax ParsePattern(Precedence precedence, bool whenIsKeyword = false)
         {
-            var node = ParseExpressionOrPattern(whenIsKeyword: whenIsKeyword, precedence: precedence);
+            var node = ParseExpressionOrPattern(whenIsKeyword: whenIsKeyword, forSwitchCase: false, precedence: precedence);
             switch (node)
             {
                 case PatternSyntax pattern:
@@ -564,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var list = _pool.AllocateSeparated<SubpatternSyntax>();
             try
             {
-                tryAgain:
+tryAgain:
 
                 if (this.IsPossibleSubpatternElement() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {

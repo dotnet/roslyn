@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -35,11 +36,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private ICodeActionEditHandlerService EditHandler => SourceProvider.EditHandler;
 
         internal SuggestedAction(
+            IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
             object provider,
             CodeAction codeAction)
+            : base(threadingContext)
         {
             Contract.ThrowIfNull(provider);
             Contract.ThrowIfNull(codeAction);
@@ -53,17 +56,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         internal virtual CodeActionPriority Priority => CodeAction.Priority;
 
-        protected static int GetTelemetryPrefix(CodeAction codeAction)
-        {
-            // AssemblyQualifiedName will change across version numbers, FullName won't
-            var type = codeAction.GetType();
-            type = type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
-            return type.FullName.GetHashCode();
-        }
-
         public virtual bool TryGetTelemetryId(out Guid telemetryId)
         {
-            telemetryId = new Guid(GetTelemetryPrefix(CodeAction), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            telemetryId = CodeAction.GetType().GetTelemetryId();
             return true;
         }
 

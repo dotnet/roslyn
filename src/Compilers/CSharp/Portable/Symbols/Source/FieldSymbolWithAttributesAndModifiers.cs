@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool IsVolatile
             => (Modifiers & DeclarationModifiers.Volatile) != 0;
 
-        public sealed override bool IsFixed
+        public sealed override bool IsFixedSizeBuffer
             => (Modifiers & DeclarationModifiers.Fixed) != 0;
 
         /// <summary>
@@ -228,6 +228,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+            {
+                // NullableAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
         }
 
         /// <summary>
@@ -362,16 +367,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (this.Type.ContainsDynamic())
+            var type = this.Type;
+
+            if (type.TypeSymbol.ContainsDynamic())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, CustomModifiers.Length));
+                    DeclaringCompilation.SynthesizeDynamicAttribute(type.TypeSymbol, Type.CustomModifiers.Length));
             }
 
-            if (Type.ContainsTupleNames())
+            if (type.TypeSymbol.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
+            }
+
+            if (type.NeedsNullableAttribute())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
         }
     }

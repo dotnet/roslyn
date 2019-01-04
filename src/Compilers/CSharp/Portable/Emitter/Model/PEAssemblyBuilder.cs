@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyNullableAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -90,6 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)_lazyIsByRefLikeAttribute != null)
             {
                 builder.Add(_lazyIsByRefLikeAttribute);
+            }
+
+            if ((object)_lazyNullableAttribute != null)
+            {
+                builder.Add(_lazyNullableAttribute);
             }
 
             return builder.ToImmutableAndFree();
@@ -170,9 +176,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             // _lazyEmbeddedAttribute should have been created before calling this method.
             return new SynthesizedAttributeData(
-                _lazyEmbeddedAttribute.Constructor,
+                _lazyEmbeddedAttribute.Constructors[0],
                 ImmutableArray<TypedConstant>.Empty,
                 ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+        }
+
+        internal override SynthesizedAttributeData SynthesizeNullableAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
+        {
+            if ((object)_lazyNullableAttribute != null)
+            {
+                var constructorIndex = (member == WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags) ? 1 : 0;
+                return new SynthesizedAttributeData(
+                    _lazyNullableAttribute.Constructors[constructorIndex],
+                    arguments,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeNullableAttribute(member, arguments);
         }
 
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
@@ -180,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)_lazyIsReadOnlyAttribute != null)
             {
                 return new SynthesizedAttributeData(
-                    _lazyIsReadOnlyAttribute.Constructor,
+                    _lazyIsReadOnlyAttribute.Constructors[0],
                     ImmutableArray<TypedConstant>.Empty,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
@@ -193,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)_lazyIsUnmanagedAttribute != null)
             {
                 return new SynthesizedAttributeData(
-                    _lazyIsUnmanagedAttribute.Constructor,
+                    _lazyIsUnmanagedAttribute.Constructors[0],
                     ImmutableArray<TypedConstant>.Empty,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
@@ -206,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)_lazyIsByRefLikeAttribute != null)
             {
                 return new SynthesizedAttributeData(
-                    _lazyIsByRefLikeAttribute.Constructor,
+                    _lazyIsByRefLikeAttribute.Constructors[0],
                     ImmutableArray<TypedConstant>.Empty,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
@@ -245,6 +265,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     diagnostics,
                     AttributeDescription.IsUnmanagedAttribute);
             }
+
+            if (this.NeedsGeneratedNullableAttribute)
+            {
+                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyNullableAttribute,
+                    diagnostics,
+                    AttributeDescription.NullableAttribute,
+                    GetNullableAttributeConstructors);
+            }
         }
 
         private void CreateEmbeddedAttributeItselfIfNeeded(DiagnosticBag diagnostics)
@@ -255,7 +286,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 AttributeDescription.CodeAnalysisEmbeddedAttribute);
         }
 
-        private void CreateEmbeddedAttributeIfNeeded(ref SynthesizedEmbeddedAttributeSymbol symbol, DiagnosticBag diagnostics, AttributeDescription description)
+        private void CreateEmbeddedAttributeIfNeeded(
+            ref SynthesizedEmbeddedAttributeSymbol symbol,
+            DiagnosticBag diagnostics,
+            AttributeDescription description,
+            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getConstructors = null)
         {
             if ((object)symbol == null)
             {
@@ -268,8 +303,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
                 }
 
-                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, diagnostics);
+                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, getConstructors, diagnostics);
             }
+        }
+
+        private static ImmutableArray<MethodSymbol> GetNullableAttributeConstructors(
+            CSharpCompilation compilation,
+            NamedTypeSymbol containingType,
+            DiagnosticBag diagnostics)
+        {
+            var byteType = TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte));
+            Binder.ReportUseSiteDiagnostics(byteType.TypeSymbol, diagnostics, Location.None);
+            var byteArray = TypeSymbolWithAnnotations.Create(
+                ArrayTypeSymbol.CreateSZArray(
+                    byteType.TypeSymbol.ContainingAssembly,
+                    byteType));
+            return ImmutableArray.Create<MethodSymbol>(
+                new SynthesizedEmbeddedAttributeConstructorSymbol(
+                    containingType,
+                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, byteType, 0, RefKind.None))),
+                new SynthesizedEmbeddedAttributeConstructorSymbol(
+                    containingType,
+                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, byteArray, 0, RefKind.None))));
         }
     }
 

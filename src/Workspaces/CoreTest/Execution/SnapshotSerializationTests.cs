@@ -442,6 +442,55 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task ShadowCopied_Analyzer_Serailization_Desktop_Test()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            using (var tempRoot = new TempRoot())
+            using (var workspace = new AdhocWorkspace(hostServices))
+            {
+                var reference = CreateShadowCopiedAnalyzerReference(tempRoot);
+
+                var serializer = workspace.Services.GetService<ISerializerService>();
+
+                // make sure this doesn't throw
+                var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+
+                // this will verify serialized analyzer reference return same checksum as the original one
+                var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
+            }
+        }
+
+        [Fact]
+        public void WorkspaceAnalyzer_Serailization_Desktop_Test()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            using (var tempRoot = new TempRoot())
+            using (var workspace = new AdhocWorkspace(hostServices))
+            {
+                var reference = CreateShadowCopiedAnalyzerReference(tempRoot);
+
+                var assetBuilder = new CustomAssetBuilder(workspace);
+                var asset = assetBuilder.Build(reference, CancellationToken.None);
+
+                // verify checksum from custom asset builder uses different checksum than regular one
+                var service = workspace.Services.GetService<IReferenceSerializationService>();
+                var expectedChecksum = Checksum.Create(
+                    WellKnownSynchronizationKind.AnalyzerReference,
+                    service.CreateChecksum(reference, usePathFromAssembly: false, CancellationToken.None));
+                Assert.Equal(expectedChecksum, asset.Checksum);
+
+                // verify usePathFromAssembly return different checksum for same reference
+                var fromFilePath = service.CreateChecksum(reference, usePathFromAssembly: false, CancellationToken.None);
+                var fromAssembly = service.CreateChecksum(reference, usePathFromAssembly: true, CancellationToken.None);
+                Assert.NotEqual(fromFilePath, fromAssembly);
+            }
+        }
+
+        [Fact]
         public async Task SnapshotWithMissingReferencesTest()
         {
             var hostServices = MefHostServices.Create(
@@ -734,6 +783,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     return assetFromStorage;
                 }
             }
+        }
+
+        private static AnalyzerFileReference CreateShadowCopiedAnalyzerReference(TempRoot tempRoot)
+        {
+            // use 2 different files as shadow copied content
+            var original = typeof(AdhocWorkspace).Assembly.Location;
+
+            var shadow = tempRoot.CreateFile("shadow", "dll");
+            shadow.CopyContentFrom(typeof(object).Assembly.Location);
+
+            return new AnalyzerFileReference(original, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(original, shadow.Path)));
         }
 
         private interface INullLanguageService : ILanguageService { }

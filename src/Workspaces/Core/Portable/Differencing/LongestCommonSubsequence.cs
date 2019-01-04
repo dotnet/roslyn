@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             VArray previousV = new VArray(1);
             VArray currentV;
 
-            bool reachedEnd= false;
+            bool reachedEnd = false;
 
             for (int d = 0; d <= oldLength + newLength && !reachedEnd; d++)
             {

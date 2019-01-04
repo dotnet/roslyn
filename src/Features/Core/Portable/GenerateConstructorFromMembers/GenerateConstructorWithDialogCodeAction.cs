@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 var addNullChecks = (addNullChecksOption?.Value).GetValueOrDefault();
                 var state = State.TryGenerate(
-                    _service, _document, _textSpan, _containingType, 
+                    _service, _document, _textSpan, _containingType,
                     result.Members, cancellationToken);
 
                 // There was an existing constructor that matched what the user wants to create.

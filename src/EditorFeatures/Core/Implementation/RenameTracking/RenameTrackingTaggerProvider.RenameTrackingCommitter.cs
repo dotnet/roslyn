@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
                 string displayText)
+                : base(stateMachine.ThreadingContext)
             {
                 _stateMachine = stateMachine;
                 _snapshotSpan = snapshotSpan;
@@ -189,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 var syntaxTreeWithOriginalName = syntaxTree.WithChangedText(newFullText);
                 var documentWithOriginalName = document.WithSyntaxRoot(syntaxTreeWithOriginalName.GetRoot(cancellationToken));
 
-                Contract.Requires(newFullText.ToString() == documentWithOriginalName.GetTextSynchronously(cancellationToken).ToString());
+                Debug.Assert(newFullText.ToString() == documentWithOriginalName.GetTextSynchronously(cancellationToken).ToString());
 #endif
 
                 // Apply the original name to all linked documents to construct a consistent solution

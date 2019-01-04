@@ -596,15 +596,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;Flow-Analysis&apos; is disabled..
-        /// </summary>
-        internal static string FlowAnalysisFeatureDisabled {
-            get {
-                return ResourceManager.GetString("FlowAnalysisFeatureDisabled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to {0}.GetMetadata() must return an instance of {1}..
         /// </summary>
         internal static string GetMetadataMustReturnInstance {
@@ -1082,6 +1073,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The provided operation must not be part of a Control Flow Graph..
+        /// </summary>
+        internal static string OperationMustNotBeControlFlowGraphPart {
+            get {
+                return ResourceManager.GetString("OperationMustNotBeControlFlowGraphPart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Output kind not supported..
         /// </summary>
         internal static string OutputKindNotSupported {
@@ -1384,6 +1384,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Struct1 {
             get {
                 return ResourceManager.GetString("Struct1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; contains a null descriptor in its &apos;SupportedDiagnostics&apos;..
+        /// </summary>
+        internal static string SupportedDiagnosticsHasNullDescriptor {
+            get {
+                return ResourceManager.GetString("SupportedDiagnosticsHasNullDescriptor", resourceCulture);
             }
         }
         

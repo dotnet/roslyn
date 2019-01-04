@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// exactly once, otherwise it may be skipped.)
         /// </summary>
         private readonly GenerateMethodBody _generateMethodBody;
-        private TypeSymbol _lazyReturnType;
+        private TypeSymbolWithAnnotations _lazyReturnType;
         private ResultProperties _lazyResultProperties;
 
         // NOTE: This is only used for asserts, so it could be conditional on DEBUG.
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             GenerateMethodBody generateMethodBody)
         {
             Debug.Assert(sourceMethod.IsDefinition);
-            Debug.Assert(sourceMethod.ContainingSymbol == container.SubstitutedSourceType.OriginalDefinition);
+            Debug.Assert(TypeSymbol.Equals((TypeSymbol)sourceMethod.ContainingSymbol, container.SubstitutedSourceType.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
             Debug.Assert(sourceLocals.All(l => l.ContainingSymbol == sourceMethod));
 
             _container = container;
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (substitutedSourceHasThisParameter)
             {
                 _thisParameter = MakeParameterSymbol(0, GeneratedNames.ThisProxyFieldName(), substitutedSourceThisParameter);
-                Debug.Assert(_thisParameter.Type == this.SubstitutedSourceMethod.ContainingType);
+                Debug.Assert(TypeSymbol.Equals(_thisParameter.Type.TypeSymbol, this.SubstitutedSourceMethod.ContainingType, TypeCompareKind.ConsiderEverything2));
                 parameterBuilder.Add(_thisParameter);
             }
 
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private ParameterSymbol MakeParameterSymbol(int ordinal, string name, ParameterSymbol sourceParameter)
         {
-            return SynthesizedParameterSymbol.Create(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.CustomModifiers, sourceParameter.RefCustomModifiers);
+            return SynthesizedParameterSymbol.Create(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.RefCustomModifiers);
         }
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
@@ -285,11 +285,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
-                if (_lazyReturnType == null)
+                if ((object)_lazyReturnType == null)
                 {
                     throw new InvalidOperationException();
                 }
@@ -297,9 +297,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
-            get { return _typeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }
+            get { return GetTypeParametersAsTypeArguments(); }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -315,11 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
             get { return ImmutableArray<MethodSymbol>.Empty; }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -426,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var body = _generateMethodBody(this, diagnostics, out declaredLocalsArray, out _lazyResultProperties);
             var compilation = compilationState.Compilation;
 
-            _lazyReturnType = CalculateReturnType(compilation, body);
+            _lazyReturnType = TypeSymbolWithAnnotations.Create(CalculateReturnType(compilation, body));
 
             // Can't do this until the return type has been computed.
             TypeParameterChecker.Check(this, _allTypeParameters);

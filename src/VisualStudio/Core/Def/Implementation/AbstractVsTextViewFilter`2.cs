@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text;
@@ -39,7 +40,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             try
             {
-                return GetDataTipTextImpl(pSpan, out pbstrText);
+                if (pSpan == null || pSpan.Length != 1)
+                {
+                    pbstrText = null;
+                    return VSConstants.E_INVALIDARG;
+                }
+
+                var debugInfo = LanguageService.LanguageDebugInfo;
+                if (debugInfo == null)
+                {
+                    pbstrText = null;
+                    return VSConstants.E_FAIL;
+                }
+
+                return GetDataTipTextImpl(pSpan, debugInfo, out pbstrText);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
             {
@@ -47,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        protected virtual int GetDataTipTextImpl(TextSpan[] pSpan, out string pbstrText)
+        protected virtual int GetDataTipTextImpl(TextSpan[] pSpan, AbstractLanguageService<TPackage, TLanguageService>.VsLanguageDebugInfo debugInfo, out string pbstrText)
         {
             var subjectBuffer = WpfTextView.GetBufferContainingCaret();
             if (subjectBuffer == null)
@@ -56,28 +70,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return VSConstants.E_FAIL;
             }
 
-            return GetDataTipTextImpl(subjectBuffer, pSpan, out pbstrText);
+            return GetDataTipTextImpl(subjectBuffer, pSpan, debugInfo, out pbstrText);
         }
- 
-        protected int GetDataTipTextImpl(ITextBuffer subjectBuffer, TextSpan[] pSpan, out string pbstrText)
+
+        protected int GetDataTipTextImpl(ITextBuffer subjectBuffer, TextSpan[] pSpan, AbstractLanguageService<TPackage, TLanguageService>.VsLanguageDebugInfo debugInfo, out string pbstrText)
         {
             pbstrText = null;
 
-            var debugInfo = LanguageService.LanguageDebugInfo;
-            if (debugInfo != null)
+            var vsBuffer = EditorAdaptersFactory.GetBufferAdapter(subjectBuffer);
+
+            // TODO: broken in REPL
+            if (vsBuffer == null)
             {
-                var vsBuffer = EditorAdaptersFactory.GetBufferAdapter(subjectBuffer);
-
-                // TODO: broken in REPL
-                if (vsBuffer == null)
-                {
-                    return VSConstants.E_FAIL;
-                }
-
-                return debugInfo.GetDataTipText(vsBuffer, pSpan, pbstrText);
+                return VSConstants.E_FAIL;
             }
 
-            return VSConstants.E_FAIL;
+            return debugInfo.GetDataTipText(vsBuffer, pSpan, out pbstrText);
         }
 
         int IVsTextViewFilter.GetPairExtents(int iLine, int iIndex, TextSpan[] pSpan)
@@ -133,10 +141,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             foreach (var documentId in vsWorkspace.GetRelatedDocumentIds(container))
             {
-                var hostProject = vsWorkspace.GetHostProject(documentId.ProjectId) as AbstractProject;
-                if (hostProject?.EditAndContinueImplOpt != null)
+                var project = VsENCRebuildableProjectImpl.TryGetRebuildableProject(documentId.ProjectId);
+
+                if (project != null)
                 {
-                    if (hostProject.EditAndContinueImplOpt.OnEdit(documentId))
+                    if (project.OnEdit(documentId))
                     {
                         break;
                     }

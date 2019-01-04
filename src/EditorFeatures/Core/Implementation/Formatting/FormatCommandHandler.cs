@@ -72,8 +72,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         private void ApplyChanges(Document document, IList<TextChange> changes, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
-            AssertIsForeground();
-
             if (selectionOpt.HasValue)
             {
                 var ruleFactory = document.Project.Solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();

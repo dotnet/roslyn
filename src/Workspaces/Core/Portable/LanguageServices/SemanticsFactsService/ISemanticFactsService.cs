@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 
@@ -50,7 +49,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsGlobalStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsLabelContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsAttributeNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
-        bool IsNameOfContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
         bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken);
 
@@ -101,10 +99,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
 
+        IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken);
+
         ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken);
 
         SyntaxToken GenerateUniqueName(
-            SemanticModel semanticModel, SyntaxNode location, 
+            SemanticModel semanticModel, SyntaxNode location,
             SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
 
         SyntaxToken GenerateUniqueName(
@@ -114,5 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken GenerateUniqueLocalName(
             SemanticModel semanticModel, SyntaxNode location,
             SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
+
+        bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
     }
 }

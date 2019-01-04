@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 }
             }
 
-            public void CompletionItemsDoNotExist( params string[] unexpectedItems)
+            public void CompletionItemsDoNotExist(params string[] unexpectedItems)
             {
                 var completionItems = _textViewWindow.GetCompletionItems();
                 foreach (var unexpectedItem in unexpectedItems)

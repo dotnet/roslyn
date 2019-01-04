@@ -71,7 +71,20 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var symbolMap = GetSymbolMap(model);
 
                 // gather initial local or parameter variable info
-                var variableInfoMap = GenerateVariableInfoMap(model, dataFlowAnalysisData, symbolMap);
+                GenerateVariableInfoMap(
+                    bestEffort: false, model, dataFlowAnalysisData, symbolMap,
+                    out var variableInfoMap, out var failedVariables);
+                if (failedVariables.Count > 0)
+                {
+                    // If we weren't able to figure something out, go back and regenerate the map
+                    // this time in 'best effort' mode.  We'll give the user a message saying there
+                    // was a problem, but we allow them to proceed so they're not unnecessarily
+                    // blocked just because we didn't understand something.
+                    GenerateVariableInfoMap(
+                        bestEffort: true, model, dataFlowAnalysisData, symbolMap,
+                        out variableInfoMap, out var unused);
+                    Contract.ThrowIfFalse(unused.Count == 0);
+                }
 
                 // check whether instance member is used inside of the selection
                 var instanceMemberIsUsed = IsInstanceMemberUsedInSelectedCode(dataFlowAnalysisData);
@@ -100,13 +113,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var typeParametersInDeclaration = GetMethodTypeParametersInDeclaration(returnType, sortedMap);
 
                 // check various error cases
-                var operationStatus = GetOperationStatus(model, symbolMap, parameters, unsafeAddressTakenUsed, returnTypeHasAnonymousType);
+                var operationStatus = GetOperationStatus(
+                    model, symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnTypeHasAnonymousType);
 
                 return new AnalyzerResult(
-                        newDocument,
-                        typeParametersInDeclaration, typeParametersInConstraintList,
-                        parameters, variableToUseAsReturnValue, returnType, awaitTaskReturn,
-                        instanceMemberIsUsed, endOfSelectionReachable, operationStatus);
+                    newDocument,
+                    typeParametersInDeclaration, typeParametersInConstraintList,
+                    parameters, variableToUseAsReturnValue, returnType, awaitTaskReturn,
+                    instanceMemberIsUsed, endOfSelectionReachable, operationStatus);
             }
 
             private Tuple<ITypeSymbol, bool, bool> AdjustReturnType(SemanticModel model, ITypeSymbol returnType)
@@ -236,7 +250,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             private OperationStatus GetOperationStatus(
-                SemanticModel model, Dictionary<ISymbol, List<SyntaxToken>> symbolMap, IList<VariableInfo> parameters,
+                SemanticModel model, Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
+                IList<VariableInfo> parameters, IList<ISymbol> failedVariables,
                 bool unsafeAddressTakenUsed, bool returnTypeHasAnonymousType)
             {
                 var readonlyFieldStatus = CheckReadOnlyFields(model, symbolMap);
@@ -247,15 +262,30 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     namesWithAnonymousTypes = namesWithAnonymousTypes.Concat("return type");
                 }
 
-                var anonymousTypeStatus = namesWithAnonymousTypes.Any() ?
-                    new OperationStatus(OperationStatusFlag.BestEffort, string.Format(FeaturesResources.Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket, string.Join(", ", namesWithAnonymousTypes))) :
-                    OperationStatus.Succeeded;
+                var anonymousTypeStatus = !namesWithAnonymousTypes.Any()
+                    ? OperationStatus.Succeeded
+                    : new OperationStatus(OperationStatusFlag.BestEffort,
+                        string.Format(
+                            FeaturesResources.Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket,
+                            string.Join(", ", namesWithAnonymousTypes)));
 
-                var unsafeAddressStatus = unsafeAddressTakenUsed ? OperationStatus.UnsafeAddressTaken : OperationStatus.Succeeded;
+                var unsafeAddressStatus = unsafeAddressTakenUsed
+                    ? OperationStatus.UnsafeAddressTaken
+                    : OperationStatus.Succeeded;
 
-                var asyncRefOutParameterStatue = CheckAsyncMethodRefOutParameters(parameters);
+                var asyncRefOutParameterStatus = CheckAsyncMethodRefOutParameters(parameters);
 
-                return readonlyFieldStatus.With(anonymousTypeStatus).With(unsafeAddressStatus).With(asyncRefOutParameterStatue);
+                var variableMapStatus = failedVariables.Count == 0
+                    ? OperationStatus.Succeeded
+                    : new OperationStatus(OperationStatusFlag.BestEffort,
+                        string.Format(
+                            FeaturesResources.Failed_to_analyze_data_flow_for_0,
+                            string.Join(", ", failedVariables.Select(v => v.Name))));
+
+                return readonlyFieldStatus.With(anonymousTypeStatus)
+                                          .With(unsafeAddressStatus)
+                                          .With(asyncRefOutParameterStatus)
+                                          .With(variableMapStatus);
             }
 
             private OperationStatus CheckAsyncMethodRefOutParameters(IList<VariableInfo> parameters)
@@ -344,13 +374,22 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return list;
             }
 
-            private IDictionary<ISymbol, VariableInfo> GenerateVariableInfoMap(
-                SemanticModel model, DataFlowAnalysis dataFlowAnalysisData, Dictionary<ISymbol, List<SyntaxToken>> symbolMap)
+            /// <param name="bestEffort">When false, variables whose data flow is not understood
+            /// will be returned in <paramref name="failedVariables"/>. When true, we assume any
+            /// variable we don't understand has <see cref="VariableStyle.None"/></param>
+            private void GenerateVariableInfoMap(
+                bool bestEffort,
+                SemanticModel model,
+                DataFlowAnalysis dataFlowAnalysisData,
+                Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
+                out IDictionary<ISymbol, VariableInfo> variableInfoMap,
+                out List<ISymbol> failedVariables)
             {
                 Contract.ThrowIfNull(model);
                 Contract.ThrowIfNull(dataFlowAnalysisData);
 
-                var variableInfoMap = new Dictionary<ISymbol, VariableInfo>();
+                variableInfoMap = new Dictionary<ISymbol, VariableInfo>();
+                failedVariables = new List<ISymbol>();
 
                 // create map of each data
                 var capturedMap = new HashSet<ISymbol>(dataFlowAnalysisData.Captured);
@@ -421,14 +460,19 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    var variableStyle = GetVariableStyle(symbolMap, symbol, model, type,
-                        captured, dataFlowIn, dataFlowOut, alwaysAssigned, variableDeclared,
-                        readInside, writtenInside, readOutside, writtenOutside, unsafeAddressTaken);
+                    if (!TryGetVariableStyle(
+                            bestEffort, symbolMap, symbol, model, type,
+                            captured, dataFlowIn, dataFlowOut, alwaysAssigned, variableDeclared,
+                            readInside, writtenInside, readOutside, writtenOutside, unsafeAddressTaken,
+                            out var variableStyle))
+                    {
+                        Contract.ThrowIfTrue(bestEffort, "Should never fail if bestEffort is true");
+                        failedVariables.Add(symbol);
+                        continue;
+                    }
 
                     AddVariableToMap(variableInfoMap, symbol, CreateFromSymbol(model.Compilation, symbol, type, variableStyle, variableDeclared));
                 }
-
-                return variableInfoMap;
             }
 
             private void AddVariableToMap(IDictionary<ISymbol, VariableInfo> variableInfoMap, ISymbol localOrParameter, VariableInfo variableInfo)
@@ -436,7 +480,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 variableInfoMap.Add(localOrParameter, variableInfo);
             }
 
-            private VariableStyle GetVariableStyle(
+            private bool TryGetVariableStyle(
+                bool bestEffort,
                 Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
                 ISymbol symbol,
                 SemanticModel model,
@@ -450,43 +495,53 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 bool writtenInside,
                 bool readOutside,
                 bool writtenOutside,
-                bool unsafeAddressTaken)
+                bool unsafeAddressTaken,
+                out VariableStyle variableStyle)
             {
                 Contract.ThrowIfNull(model);
                 Contract.ThrowIfNull(type);
 
-                var style = ExtractMethodMatrix.GetVariableStyle(captured, dataFlowIn, dataFlowOut, alwaysAssigned, variableDeclared,
-                                                                 readInside, writtenInside, readOutside, writtenOutside, unsafeAddressTaken);
+                if (!ExtractMethodMatrix.TryGetVariableStyle(
+                        bestEffort, captured, dataFlowIn, dataFlowOut, alwaysAssigned, variableDeclared,
+                        readInside, writtenInside, readOutside, writtenOutside, unsafeAddressTaken,
+                        out variableStyle))
+                {
+                    Contract.ThrowIfTrue(bestEffort, "Should never fail if bestEffort is true");
+                    return false;
+                }
 
                 if (SelectionContainsOnlyIdentifierWithSameType(type))
                 {
-                    return style;
+                    return true;
                 }
 
                 if (UserDefinedValueType(model.Compilation, type) && !this.SelectionResult.DontPutOutOrRefOnStruct)
                 {
-                    return AlwaysReturn(style);
+                    variableStyle = AlwaysReturn(variableStyle);
+                    return true;
                 }
 
                 // for captured variable, never try to move the decl into extracted method
-                if (captured && (style == VariableStyle.MoveIn))
+                if (captured && variableStyle == VariableStyle.MoveIn)
                 {
-                    return VariableStyle.Out;
+                    variableStyle = VariableStyle.Out;
+                    return true;
                 }
 
                 // check special value type cases
                 if (type.IsValueType && !IsWrittenInsideForFrameworkValueType(symbolMap, model, symbol, writtenInside))
                 {
-                    return style;
+                    return true;
                 }
 
                 // don't blindly always return. make sure there is a write inside of the selection
                 if (this.SelectionResult.AllowMovingDeclaration || !writtenInside)
                 {
-                    return style;
+                    return true;
                 }
 
-                return AlwaysReturn(style);
+                variableStyle = AlwaysReturn(variableStyle);
+                return true;
             }
 
             private bool IsWrittenInsideForFrameworkValueType(

@@ -7352,7 +7352,7 @@ class Program
   IL_002b:  ret
 }");
 
-            comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes);
+            comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes);
 
             comp.VerifyIL("Program.Main", @"
 {

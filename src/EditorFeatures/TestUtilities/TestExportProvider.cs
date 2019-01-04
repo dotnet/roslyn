@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -92,7 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.Execution.SerializerServiceFactory),
                 typeof(CodeAnalysis.Shared.TestHooks.AsynchronousOperationListenerProvider),
                 typeof(PrimaryWorkspace),
-                typeof(TestExportProvider)
+                typeof(TestExportProvider),
+                typeof(ThreadingContext),
             };
 
             return ServiceTestExportProvider.GetLanguageNeutralTypes()

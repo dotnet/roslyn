@@ -215,6 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new TypeofBinder(expression, binder);
             }
 
+            binder = new WithNullableContextBinder(SyntaxTree, position, binder);
+
             return new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
         }
 
@@ -279,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (binder.Flags.Includes(BinderFlags.CrefParameterOrReturnType))
             {
                 var unusedDiagnostics = DiagnosticBag.GetInstance();
-                crefSymbols = ImmutableArray.Create<Symbol>(binder.BindType(expression, unusedDiagnostics));
+                crefSymbols = ImmutableArray.Create<Symbol>(binder.BindType(expression, unusedDiagnostics).TypeSymbol);
                 unusedDiagnostics.Free();
                 return null;
             }
@@ -400,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
             AliasSymbol aliasOpt; // not needed.
-            NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt);
+            NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).TypeSymbol;
             var boundNode = new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).BindAttribute(attribute, attributeType, diagnostics);
             diagnostics.Free();
 
@@ -485,6 +487,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets the semantic information associated with a select or group clause.
         /// </summary>
         public abstract SymbolInfo GetSymbolInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Gets the SymbolInfo for the Deconstruct method used for a deconstruction pattern clause, if any.
+        /// </summary>
+        public SymbolInfo GetSymbolInfo(DeconstructionPatternClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(node);
+            return this.GetSymbolInfoWorker(node, SymbolInfoOptions.DefaultOptions, cancellationToken);
+        }
 
         /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
@@ -1751,14 +1762,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode boundNodeForSyntacticParent,
             Binder binderOpt)
         {
-            if (lowestBoundNode is BoundSubpattern subpattern)
-            {
-                return GetSymbolInfoForSubpattern(subpattern);
-            }
+            BoundExpression boundExpr;
 
-            if (!(lowestBoundNode is BoundExpression boundExpr))
+            switch (highestBoundNode)
             {
-                return SymbolInfo.None;
+                case BoundRecursivePattern pat:
+                    return GetSymbolInfoForDeconstruction(pat);
+            }
+            switch (lowestBoundNode)
+            {
+                case BoundSubpattern subpattern:
+                    return GetSymbolInfoForSubpattern(subpattern);
+                case BoundExpression boundExpr2:
+                    boundExpr = boundExpr2;
+                    break;
+                default:
+                    return SymbolInfo.None;
             }
 
             // TODO: Should parenthesized expression really not have symbols? At least for C#, I'm not sure that
@@ -1853,6 +1872,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SymbolInfo(subpattern.Symbol, CandidateReason.None);
         }
 
+        private SymbolInfo GetSymbolInfoForDeconstruction(BoundRecursivePattern pat)
+        {
+            return new SymbolInfo(pat.DeconstructMethod, CandidateReason.None);
+        }
+
         private static void AddUnwrappingErrorTypes(ArrayBuilder<Symbol> builder, Symbol s)
         {
             var originalErrorSymbol = s.OriginalDefinition as ErrorTypeSymbol;
@@ -1924,7 +1948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // from the local at this point.
                                 if (type is ExtendedErrorTypeSymbol extended && extended.VariableUsedBeforeDeclaration)
                                 {
-                                    type = ((BoundLocal)boundExpr).LocalSymbol.Type;
+                                    type = ((BoundLocal)boundExpr).LocalSymbol.Type.TypeSymbol;
                                 }
                                 break;
                             }
@@ -2475,7 +2499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
             AliasSymbol aliasOpt;
-            var attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt);
+            var attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).TypeSymbol;
             diagnostics.Free();
             speculativeModel = AttributeSemanticModel.CreateSpeculative((SyntaxTreeSemanticModel)this, attribute, attributeType, aliasOpt, binder, position);
             return true;
@@ -3023,7 +3047,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Get the symbols and possible method or property group associated with a bound node, as
         // they should be exposed through GetSemanticInfo.
         // NB: It is not safe to pass a null binderOpt during speculative binding.
-        private ImmutableArray<Symbol> GetSemanticSymbols(BoundExpression boundNode,
+        private ImmutableArray<Symbol> GetSemanticSymbols(
+            BoundExpression boundNode,
             BoundNode boundNodeForSyntacticParent,
             Binder binderOpt,
             SymbolInfoOptions options,
@@ -3214,13 +3239,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.AwaitExpression:
                     var await = (BoundAwaitExpression)boundNode;
-                    isDynamic = await.IsDynamic;
+                    isDynamic = await.AwaitableInfo.IsDynamic;
                     // TODO:
                     goto default;
 
                 case BoundKind.ConditionalOperator:
-                    Debug.Assert((object)boundNode.ExpressionSymbol == null);
                     var conditional = (BoundConditionalOperator)boundNode;
+                    Debug.Assert(conditional.ExpressionSymbol is null);
                     isDynamic = conditional.IsDynamic;
                     goto default;
 
@@ -3271,22 +3296,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.DynamicInvocation:
-                    Debug.Assert((object)boundNode.ExpressionSymbol == null);
                     var dynamicInvocation = (BoundDynamicInvocation)boundNode;
+                    Debug.Assert(dynamicInvocation.ExpressionSymbol is null);
                     symbols = memberGroup = dynamicInvocation.ApplicableMethods.Cast<MethodSymbol, Symbol>();
                     isDynamic = true;
                     break;
 
                 case BoundKind.DynamicCollectionElementInitializer:
-                    Debug.Assert((object)boundNode.ExpressionSymbol == null);
                     var collectionInit = (BoundDynamicCollectionElementInitializer)boundNode;
+                    Debug.Assert(collectionInit.ExpressionSymbol is null);
                     symbols = memberGroup = collectionInit.ApplicableMethods.Cast<MethodSymbol, Symbol>();
                     isDynamic = true;
                     break;
 
                 case BoundKind.DynamicIndexerAccess:
-                    Debug.Assert((object)boundNode.ExpressionSymbol == null);
                     var dynamicIndexer = (BoundDynamicIndexerAccess)boundNode;
+                    Debug.Assert(dynamicIndexer.ExpressionSymbol is null);
                     symbols = memberGroup = dynamicIndexer.ApplicableIndexers.Cast<PropertySymbol, Symbol>();
                     isDynamic = true;
                     break;
@@ -3331,10 +3356,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.FromEndIndexExpression:
+                    {
+                        var fromEndIndexExpression = (BoundFromEndIndexExpression)boundNode;
+                        if ((object)fromEndIndexExpression.MethodOpt != null)
+                        {
+                            symbols = ImmutableArray.Create<Symbol>(fromEndIndexExpression.MethodOpt);
+                        }
+                        break;
+                    }
+
+                case BoundKind.RangeExpression:
+                    {
+                        var rangeExpression = (BoundRangeExpression)boundNode;
+                        if ((object)rangeExpression.MethodOpt != null)
+                        {
+                            symbols = ImmutableArray.Create<Symbol>(rangeExpression.MethodOpt);
+                        }
+                        break;
+                    }
+
                 default:
                     {
-                        var symbol = boundNode.ExpressionSymbol;
-                        if ((object)symbol != null)
+                        if (boundNode.ExpressionSymbol is Symbol symbol)
                         {
                             symbols = ImmutableArray.Create(symbol);
                             resultKind = boundNode.ResultKind;
@@ -3586,12 +3630,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         // In cases where we are binding C in "[C(...)]", the bound nodes return the symbol for the type. However, we've
         // decided that we want this case to return the constructor of the type instead. This affects attributes. 
         // This method checks for this situation and adjusts the syntax and method or property group.
-        private void AdjustSymbolsForObjectCreation(BoundExpression boundNode,
-                                                    BoundNode boundNodeForSyntacticParent,
-                                                    Binder binderOpt,
-                                                    ref LookupResultKind resultKind,
-                                                    ref ImmutableArray<Symbol> symbols,
-                                                    ref ImmutableArray<Symbol> memberGroup)
+        private void AdjustSymbolsForObjectCreation(
+            BoundExpression boundNode,
+            BoundNode boundNodeForSyntacticParent,
+            Binder binderOpt,
+            ref LookupResultKind resultKind,
+            ref ImmutableArray<Symbol> symbols,
+            ref ImmutableArray<Symbol> memberGroup)
         {
             NamedTypeSymbol typeSymbol = null;
             MethodSymbol constructor = null;
@@ -3611,7 +3656,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (unwrappedSymbols.Length == 1 && unwrappedSymbols[0].Kind == SymbolKind.NamedType)
                         {
-                            Debug.Assert(resultKind != LookupResultKind.Viable || unwrappedSymbols[0] == boundAttribute.Type.GetNonErrorGuess());
+                            Debug.Assert(resultKind != LookupResultKind.Viable ||
+                                TypeSymbol.Equals((TypeSymbol)unwrappedSymbols[0], boundAttribute.Type.GetNonErrorGuess(), TypeCompareKind.ConsiderEverything2));
 
                             typeSymbol = (NamedTypeSymbol)unwrappedSymbols[0];
                             constructor = boundAttribute.Constructor;
@@ -4276,7 +4322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MethodSymbol> methods,
             ArrayBuilder<MethodSymbol> filteredMethods,
             MethodSymbol method,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             TypeSymbol receiverType)
         {
             MethodSymbol constructedMethod;
@@ -4314,7 +4360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MethodSymbol> methods,
             ArrayBuilder<MethodSymbol> filteredMethods,
             SingleLookupResult singleResult,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             TypeSymbol receiverType,
             ref LookupResultKind resultKind)
         {
@@ -4378,7 +4424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var filteredMethodBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
             foreach (var method in FilterOverriddenOrHiddenMethods(methods))
             {
-                AddReducedAndFilteredMethodGroupSymbol(methodBuilder, filteredMethodBuilder, method, default(ImmutableArray<TypeSymbol>), extensionThisType);
+                AddReducedAndFilteredMethodGroupSymbol(methodBuilder, filteredMethodBuilder, method, default(ImmutableArray<TypeSymbolWithAnnotations>), extensionThisType);
             }
             methodBuilder.Free();
             return filteredMethodBuilder.ToImmutableAndFree();
@@ -4575,6 +4621,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetSymbolInfo(selectOrGroupClause, cancellationToken);
                 case OrderingSyntax orderingSyntax:
                     return this.GetSymbolInfo(orderingSyntax, cancellationToken);
+                case DeconstructionPatternClauseSyntax dpcSyntax:
+                    return this.GetSymbolInfo(dpcSyntax, cancellationToken);
             }
 
             return SymbolInfo.None;

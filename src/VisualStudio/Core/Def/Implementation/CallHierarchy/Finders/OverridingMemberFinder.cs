@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 
         public override string SearchCategory => CallHierarchyPredefinedSearchCategoryNames.Overrides;
 
-        protected override Task<IEnumerable<SymbolCallerInfo>> GetCallers(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        protected override Task<IEnumerable<SymbolCallerInfo>> GetCallersAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                 var bestLocation = sourceLocations.FirstOrDefault(d => documents == null || documents.Contains(d));
                 if (bestLocation != null)
                 {
-                    var item = await Provider.CreateItem(@override, bestLocation.Project, SpecializedCollections.EmptyEnumerable<Location>(), cancellationToken).ConfigureAwait(false);
+                    var item = await Provider.CreateItemAsync(@override, bestLocation.Project, SpecializedCollections.EmptyEnumerable<Location>(), cancellationToken).ConfigureAwait(false);
                     callback.AddResult(item);
                     cancellationToken.ThrowIfCancellationRequested();
                 }

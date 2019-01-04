@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var title = fixAllContext.CodeActionEquivalenceKey;
                 if (fixAllContext.Document != null)
                 {
-                    var documentsAndDiagnosticsToFixMap = 
+                    var documentsAndDiagnosticsToFixMap =
                         await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
 
-                    return !isGlobalSuppression 
+                    return !isGlobalSuppression
                         ? await batchFixer.GetFixAsync(
                             documentsAndDiagnosticsToFixMap, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false)
                         : GlobalSuppressMessageFixAllCodeAction.Create(title, suppressionFixer, fixAllContext.Document, documentsAndDiagnosticsToFixMap);

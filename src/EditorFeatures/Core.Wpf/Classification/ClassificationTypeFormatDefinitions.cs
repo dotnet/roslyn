@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#define dark_theme
+
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Media;
@@ -45,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
         #region String - Verbatim
+
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.VerbatimStringLiteral)]
         [Name(ClassificationTypeNames.VerbatimStringLiteral)]
@@ -59,14 +62,111 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundColor = Colors.Maroon;
             }
         }
+
+        // When https://github.com/dotnet/roslyn/issues/29173 is addressed, this section
+        // can be removed.  Right now it serves as an easy way to recompile while flipping
+        // between different themes.
+#if dark_theme
+        private static readonly Color s_stringEscapeColor = Color.FromRgb(0xff, 0xd6, 0x8f);
+#else
+        private static readonly Color s_stringEscapeColor = Color.FromRgb(0x9e, 0x5b, 0x71);
+#endif
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StringEscapeCharacter)]
+        [Name(ClassificationTypeNames.StringEscapeCharacter)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class StringEscapeCharacterFormatDefinition : ClassificationFormatDefinition
+        {
+            private StringEscapeCharacterFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.String_Escape_Character;
+                this.ForegroundColor = s_stringEscapeColor;
+            }
+        }
+
+        #endregion
+        #region Keyword - Control
+        // Keyword - Control is ordered after Keyword to ensure this more specific 
+        // classification will take precedence.
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ControlKeyword)]
+        [Name(ClassificationTypeNames.ControlKeyword)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class ControlKeywordFormatDefinition : ClassificationFormatDefinition
+        {
+            private ControlKeywordFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.Keyword_Control;
+            }
+        }
+        #endregion
+        #region Operator - Overloaded
+        // Operator - Overloaded is ordered after Operator to ensure this more specific 
+        // classification will take precedence.
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.OperatorOverloaded)]
+        [Name(ClassificationTypeNames.OperatorOverloaded)]
+        [Order(After = PredefinedClassificationTypeNames.Operator)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class OperatorOverloadedFormatDefinition : ClassificationFormatDefinition
+        {
+            private OperatorOverloadedFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.Operator_Overloaded;
+            }
+        }
         #endregion
 
+        #region Symbol - Static
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticSymbol)]
+        [Name(ClassificationTypeNames.StaticSymbol)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class SymbolStaticFormatDefinition : ClassificationFormatDefinition
+        {
+            private SymbolStaticFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.Symbol_Static;
+                // The static classification is intended to be an additive classification
+                // that simply changes the font's styling (bold or not). Allowing 
+                // customization of the foreground color would cause issues with 
+                // TaggedText as it is currently implemented, since any particular
+                // span can only be tagged with a single TextTag. 
+
+                // By restricting to only font style, the QuickInfo and FAR render with the
+                // colors the user would expect. The missing font style is not an problem
+                // for these experiences because the QuickInfo already renders the static 
+                // modifier as part of its text and the FAR window already applies its
+                // own bolding to the rendered output.
+                this.BackgroundCustomizable = false;
+                this.ForegroundCustomizable = false;
+            }
+        }
+        #endregion
+
+        // User Types - * and User Members - * are ordered after Keyword
+        // so that, in the case both classifications are applied to the same
+        // span, the styling for the identifier type would be choosen.
+
+        // User Types - * and User Members - * are ordered before Symbol - Static 
+        // so that the font styling choosen for static symbols would override the
+        // styling choosen for specific identifier types.
         #region User Types - Classes
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ClassName)]
         [Name(ClassificationTypeNames.ClassName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserTypeClassesFormatDefinition : ClassificationFormatDefinition
@@ -84,6 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.DelegateName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserTypeDelegatesFormatDefinition : ClassificationFormatDefinition
@@ -101,6 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.EnumName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserTypeEnumsFormatDefinition : ClassificationFormatDefinition
@@ -118,6 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.InterfaceName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserTypeInterfacesFormatDefinition : ClassificationFormatDefinition
@@ -135,6 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.ModuleName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         private class UserTypeModulesFormatDefinition : ClassificationFormatDefinition
         {
@@ -151,6 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.StructName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserTypeStructuresFormatDefinition : ClassificationFormatDefinition
@@ -168,6 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.TypeParameterName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserTypeTypeParametersFormatDefinition : ClassificationFormatDefinition
@@ -176,6 +282,192 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Type_Parameters;
                 this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
+            }
+        }
+        #endregion
+
+        #region User Members - Fields 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.FieldName)]
+        [Name(ClassificationTypeNames.FieldName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserMembersFieldNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserMembersFieldNameFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Members_Fields;
+            }
+        }
+        #endregion
+        #region User Members - Enum Members 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.EnumMemberName)]
+        [Name(ClassificationTypeNames.EnumMemberName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserMembersEnumMemberNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserMembersEnumMemberNameFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Members_Enum_Members;
+            }
+        }
+        #endregion
+        #region User Members - Constants 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ConstantName)]
+        [Name(ClassificationTypeNames.ConstantName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserMembersConstantNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserMembersConstantNameFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Members_Constants;
+            }
+        }
+        #endregion
+        #region User Members - Locals 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.LocalName)]
+        [Name(ClassificationTypeNames.LocalName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserMembersLocalNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserMembersLocalNameFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Members_Locals;
+            }
+        }
+        #endregion
+        #region User Members - Parameters 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ParameterName)]
+        [Name(ClassificationTypeNames.ParameterName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserMembersParameterNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserMembersParameterNameFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Members_Parameters;
+            }
+        }
+        #endregion
+        #region User Members - Methods 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.MethodName)]
+        [Name(ClassificationTypeNames.MethodName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserMembersMethodNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserMembersMethodNameFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Members_Methods;
+            }
+        }
+        #endregion
+        #region User Members - Extension Methods
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ExtensionMethodName)]
+        [Name(ClassificationTypeNames.ExtensionMethodName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserMembersExtensionMethodNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserMembersExtensionMethodNameFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Members_Extension_Methods;
+            }
+        }
+        #endregion
+        #region User Members - Properties 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.PropertyName)]
+        [Name(ClassificationTypeNames.PropertyName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserMembersPropertyNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserMembersPropertyNameFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Members_Properties;
+            }
+        }
+        #endregion
+        #region User Members - Events 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.EventName)]
+        [Name(ClassificationTypeNames.EventName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserMembersEventNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserMembersEventNameFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Members_Events;
+            }
+        }
+        #endregion
+        #region User Members - Namespaces 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.NamespaceName)]
+        [Name(ClassificationTypeNames.NamespaceName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserMembersNamespaceNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserMembersNamespaceNameFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Members_Namespaces;
+            }
+        }
+        #endregion
+        #region User Members - Labels 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.LabelName)]
+        [Name(ClassificationTypeNames.LabelName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserMembersLabelNameFormatDefinition : ClassificationFormatDefinition
+        {
+            private UserMembersLabelNameFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Members_Labels;
             }
         }
         #endregion
@@ -339,6 +631,176 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Text;
                 this.ForegroundColor = Colors.Green;
+            }
+        }
+        #endregion
+
+        #region Regex
+
+        // When https://github.com/dotnet/roslyn/issues/29173 is addressed, this section
+        // can be removed.  Right now it serves as an easy way to recompile while flipping
+        // between different themes.
+#if dark_theme
+        private static readonly Color s_regexTextColor = Color.FromRgb(0xd6, 0x9d, 0x85);
+        private static readonly Color s_regexOtherEscapeColor = Color.FromRgb(0xff, 0xd6, 0x8f);
+        private static readonly Color s_regexGroupingAndAlternationColor = Color.FromRgb(0x05, 0xc3, 0xba);
+        private static readonly Color s_characterClassColor = Color.FromRgb(0x00, 0x8a, 0xff);
+        private static readonly Color s_regexAnchorAndQuantifierColor = Color.FromRgb(0xd7, 0x45, 0x8c);
+        private static readonly Color s_regexCommentColor = Color.FromRgb(87, 166, 74);
+#else
+        private static readonly Color s_regexTextColor = Color.FromRgb(0x80, 0x00, 0x00);
+        private static readonly Color s_regexOtherEscapeColor = Color.FromRgb(0x9e, 0x5b, 0x71);
+        private static readonly Color s_regexGroupingAndAlternationColor = Color.FromRgb(0x05, 0xc3, 0xba);
+        private static readonly Color s_characterClassColor = Color.FromRgb(0x00, 0x73, 0xff);
+        private static readonly Color s_regexAnchorAndQuantifierColor = Color.FromRgb(0xff, 0x00, 0xc1);
+        private static readonly Color s_regexCommentColor = Color.FromRgb(0, 128, 0);
+#endif
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexComment)]
+        [Name(ClassificationTypeNames.RegexComment)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexCommentFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexCommentFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Comment;
+                this.ForegroundColor = s_regexCommentColor;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexCharacterClass)]
+        [Name(ClassificationTypeNames.RegexCharacterClass)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexCharacterClassFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexCharacterClassFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Character_Class;
+                this.ForegroundColor = s_characterClassColor;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexAnchor)]
+        [Name(ClassificationTypeNames.RegexAnchor)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexAnchorFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexAnchorFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Anchor;
+                this.ForegroundColor = s_regexAnchorAndQuantifierColor;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexQuantifier)]
+        [Name(ClassificationTypeNames.RegexQuantifier)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexQuantifierFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexQuantifierFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Quantifier;
+                this.ForegroundColor = s_regexAnchorAndQuantifierColor;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexGrouping)]
+        [Name(ClassificationTypeNames.RegexGrouping)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexGroupingFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexGroupingFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Grouping;
+                this.ForegroundColor = s_regexGroupingAndAlternationColor;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexAlternation)]
+        [Name(ClassificationTypeNames.RegexAlternation)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexAlternationFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexAlternationFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
+                this.ForegroundColor = s_regexGroupingAndAlternationColor;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexText)]
+        [Name(ClassificationTypeNames.RegexText)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexTextFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexTextFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Text;
+                this.ForegroundColor = s_regexTextColor;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexSelfEscapedCharacter)]
+        [Name(ClassificationTypeNames.RegexSelfEscapedCharacter)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexSelfEscapedCharacterFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexSelfEscapedCharacterFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_SelfEscapedCharacter;
+
+                // by default, we make a self-escaped character just the bolded form of the normal
+                // text color.
+                this.ForegroundColor = s_regexTextColor;
+                this.IsBold = true;
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RegexOtherEscape)]
+        [Name(ClassificationTypeNames.RegexOtherEscape)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class RegexOtherEscapeFormatDefinition : ClassificationFormatDefinition
+        {
+            private RegexOtherEscapeFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesWpfResources.Regex_OtherEscape;
+                this.ForegroundColor = s_regexOtherEscapeColor;
             }
         }
         #endregion

@@ -1182,7 +1182,7 @@ new C()
             Assert.NotNull(result);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void ReferenceDirective_RelativeToBaseParent()
         {
             var file = Temp.CreateFile();
@@ -1589,7 +1589,7 @@ new List<ArgumentException>()
             Assert.Equal(1, r1.Result);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference1()
         {
             var scriptCompilation = CSharpScript.Create(
@@ -1599,7 +1599,8 @@ new List<ArgumentException>()
 
             scriptCompilation.VerifyDiagnostics(
                 // (1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Microsoft.CodeAnalysis").WithArguments("CodeAnalysis", "Microsoft"));
+                // nameof(Microsoft.CodeAnalysis.Scripting)
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Microsoft.CodeAnalysis").WithArguments("CodeAnalysis", "Microsoft").WithLocation(1, 8));
 
             string corAssemblyName = typeof(object).GetTypeInfo().Assembly.GetName().Name;
             string hostObjectAssemblyName = scriptCompilation.ScriptCompilationInfo.GlobalsType.GetTypeInfo().Assembly.GetName().Name;
@@ -1645,7 +1646,7 @@ new List<ArgumentException>()
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference2()
         {
             var scriptCompilation = CSharpScript.Create(
@@ -1689,7 +1690,7 @@ new List<ArgumentException>()
                         // The script doesn't reference the assemblies explicitly.
                         AssertEx.SetEqual(new[] { "<implicit>", "<host>", "global" }, aliases);
                         break;
-                   
+
                     default:
                         if (name == corAssemblyName)
                         {
@@ -1703,13 +1704,13 @@ new List<ArgumentException>()
                             // available to the script (global alias).
                             AssertEx.SetEqual(new[] { "<host>", "global" }, aliases);
                         }
-                        
+
                         break;
                 }
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference3()
         {
             string source = $@"
@@ -1717,7 +1718,7 @@ new List<ArgumentException>()
 typeof(Microsoft.CodeAnalysis.Scripting.Script)
 ";
             var scriptCompilation = CSharpScript.Create(
-                source, 
+                source,
                 ScriptOptions.Default.WithMetadataResolver(TestRuntimeMetadataReferenceResolver.Instance),
                 globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
 
@@ -1897,7 +1898,7 @@ i + j + k + l
 
             var globals = new StrongBox<CancellationTokenSource>();
             globals.Value = cancellationSource;
-            
+
             var s0 = CSharpScript.Create(@"
 int i = 1000;
 ", globalsType: globals.GetType());
@@ -1983,7 +1984,7 @@ int l = 4;
 int F() => i + j + k + l;
 ");
 
-            await Assert.ThrowsAsync<OperationCanceledException>(() => 
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
                 s3.RunAsync(globals, catchException: e => !(e is OperationCanceledException), cancellationToken: cancellationSource.Token));
         }
 

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 if (generator.SupportsPatterns(tree.Options))
                 {
                     // return obj is T t && this.Equals(t);
-                    var localName = ICodeDefinitionFactoryExtensions.GetLocalName(containingType);
+                    var localName = containingType.GetLocalName();
 
                     expressions.Add(
                         generator.IsPatternExpression(objName,

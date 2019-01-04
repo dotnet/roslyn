@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     foreach (var location in locations)
                     {
-                        Contract.Requires(location.IsInSource);
+                        Debug.Assert(location.IsInSource);
 
                         var document = solution.GetDocument(location.SourceTree, projectId);
                         if (document == null || thisDocument == document)
@@ -290,7 +291,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         // this is only one that removes data from the queue. so, it should always succeed
                         var result = map.Remove(first.Key);
-                        Contract.Requires(result);
+                        Debug.Assert(result);
 
                         return first.Value;
                     }

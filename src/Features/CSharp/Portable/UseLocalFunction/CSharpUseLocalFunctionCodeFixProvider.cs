@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var nodesFromDiagnostics = new List<(
                 LocalDeclarationStatementSyntax declaration,
                 AnonymousFunctionExpressionSyntax function,
-                List<InvocationExpressionSyntax> invocations)>(diagnostics.Length);
+                List<ExpressionSyntax> references)>(diagnostics.Length);
 
             var nodesToTrack = new HashSet<SyntaxNode>();
 
@@ -58,18 +58,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 var localDeclaration = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
                 var anonymousFunction = (AnonymousFunctionExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
 
-                var invocations = new List<InvocationExpressionSyntax>(diagnostic.AdditionalLocations.Count - 2);
+                var references = new List<ExpressionSyntax>(diagnostic.AdditionalLocations.Count - 2);
 
                 for (var i = 2; i < diagnostic.AdditionalLocations.Count; i++)
                 {
-                    invocations.Add((InvocationExpressionSyntax)diagnostic.AdditionalLocations[i].FindNode(getInnermostNodeForTie: true, cancellationToken));
+                    references.Add((ExpressionSyntax)diagnostic.AdditionalLocations[i].FindNode(getInnermostNodeForTie: true, cancellationToken));
                 }
 
-                nodesFromDiagnostics.Add((localDeclaration, anonymousFunction, invocations));
+                nodesFromDiagnostics.Add((localDeclaration, anonymousFunction, references));
 
                 nodesToTrack.Add(localDeclaration);
                 nodesToTrack.Add(anonymousFunction);
-                nodesToTrack.AddRange(invocations);
+                nodesToTrack.AddRange(references);
             }
 
             var root = editor.OriginalRoot;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             // Process declarations in reverse order so that we see the effects of nested
             // declarations befor processing the outer decls.
-            foreach (var (localDeclaration, anonymousFunction, invocations) in nodesFromDiagnostics.OrderByDescending(nodes => nodes.function.SpanStart))
+            foreach (var (localDeclaration, anonymousFunction, references) in nodesFromDiagnostics.OrderByDescending(nodes => nodes.function.SpanStart))
             {
                 var delegateType = (INamedTypeSymbol)semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType;
                 var parameterList = GenerateParameterList(anonymousFunction, delegateType.DelegateInvokeMethod);
@@ -91,10 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     delegateType.DelegateInvokeMethod, parameterList);
 
                 // these invocations might actually be inside the local function! so we have to do this separately
-                currentRoot = ReplaceInvocations(
-                    document.Project.Solution.Workspace, currentRoot,
-                    delegateType.DelegateInvokeMethod, parameterList,
-                    invocations.Select(node => currentRoot.GetCurrentNode(node)).ToImmutableArray());
+                currentRoot = ReplaceReferences(
+                    document, currentRoot,
+                    delegateType, parameterList,
+                    references.Select(node => currentRoot.GetCurrentNode(node)).ToImmutableArray());
             }
 
             editor.ReplaceNode(root, currentRoot);
@@ -123,18 +123,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             return editor.GetChangedRoot();
         }
 
-        private static SyntaxNode ReplaceInvocations(
-            Workspace workspace, SyntaxNode currentRoot,
-            IMethodSymbol delegateMethod, ParameterListSyntax parameterList,
-            ImmutableArray<InvocationExpressionSyntax> invocations)
+        private static SyntaxNode ReplaceReferences(
+            Document document, SyntaxNode currentRoot,
+            INamedTypeSymbol delegateType, ParameterListSyntax parameterList,
+            ImmutableArray<ExpressionSyntax> references)
         {
-            return currentRoot.ReplaceNodes(invocations, (_ /* nested invocations! */, invocation) =>
+            return currentRoot.ReplaceNodes(references, (_ /* nested invocations! */, reference) =>
             {
-                var directInvocation = invocation.Expression is MemberAccessExpressionSyntax memberAccessExpression // it's a .Invoke call
-                    ? invocation.WithExpression(memberAccessExpression.Expression).WithTriviaFrom(invocation) // remove it
-                    : invocation;
+                if (reference is InvocationExpressionSyntax invocation)
+                {
+                    var directInvocation = invocation.Expression is MemberAccessExpressionSyntax memberAccess // it's a .Invoke call
+                        ? invocation.WithExpression(memberAccess.Expression).WithTriviaFrom(invocation) // remove it
+                        : invocation;
 
-                return WithNewParameterNames(directInvocation, delegateMethod, parameterList);
+                    return WithNewParameterNames(directInvocation, delegateType.DelegateInvokeMethod, parameterList);
+                }
+
+                // It's not an invocation. Wrap the identifier in a cast (which will be remove by the simplifier if unnecessary)
+                // to ensure we preserve semantics in cases like overload resolution or generic type inference.
+                return SyntaxGenerator.GetGenerator(document).CastExpression(delegateType, reference);
             });
         }
 
@@ -149,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 : default;
 
             var returnType = delegateMethod.GenerateReturnTypeSyntax();
-            
+
             var identifier = localDeclaration.Declaration.Variables[0].Identifier;
             var typeParameterList = default(TypeParameterListSyntax);
 
@@ -253,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Use_local_function, createChangedDocument, FeaturesResources.Use_local_function)
             {
             }

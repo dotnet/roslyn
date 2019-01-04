@@ -85,8 +85,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #endif
 
         protected AbstractAsynchronousTaggerProvider(
+            IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
+            : base(threadingContext)
         {
             _asyncListener = asyncListener;
             _notificationService = notificationService;
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
-            return new Tagger(_asyncListener, _notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
+            return new Tagger(ThreadingContext, _asyncListener, _notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
         }
 
         private TagSource GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
@@ -213,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
                 ProduceTagsSynchronously(
-                    context, spanToTag, 
+                    context, spanToTag,
                     GetCaretPosition(context.CaretPosition, spanToTag.SnapshotSpan));
             }
         }

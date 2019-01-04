@@ -82,14 +82,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Optimization: if the nullable expression always has a value, we'll replace that value
                     // with a temp saving that value
-                    BoundExpression savedValue = EvaluateSideEffectingArgumentToTemp(value, initEffects, ref temps);
+                    BoundExpression savedValue = EvaluateSideEffectingArgumentToTemp(value, initEffects, temps);
                     var objectCreation = (BoundObjectCreationExpression)loweredExpr;
                     return objectCreation.UpdateArgumentsAndInitializer(ImmutableArray.Create(savedValue), objectCreation.ArgumentRefKindsOpt, objectCreation.InitializerExpressionOpt);
                 }
             }
 
             // Note: lowered nullable expressions that never have a value also don't have side-effects
-            return EvaluateSideEffectingArgumentToTemp(loweredExpr, initEffects, ref temps);
+            return EvaluateSideEffectingArgumentToTemp(loweredExpr, initEffects, temps);
         }
 
         private BoundExpression RewriteTupleOperator(TupleBinaryOperatorInfo @operator,
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? right
                 : MakeConversionNode(right.Syntax, right, single.RightConversion, single.RightConvertedTypeOpt, @checked: false);
 
-            BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, convertedLeft, convertedRight, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt);
+            BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, convertedLeft, convertedRight, single.MethodSymbolOpt?.ReturnType.TypeSymbol ?? boolType, single.MethodSymbolOpt);
             UnaryOperatorSignature boolOperator = single.BoolOperator;
             Conversion boolConversion = single.ConversionForBool;
 
