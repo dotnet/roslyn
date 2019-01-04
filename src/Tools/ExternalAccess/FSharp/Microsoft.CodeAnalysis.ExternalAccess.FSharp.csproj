@@ -18,6 +18,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <!--
       ⚠ ONLY F# ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
@@ -27,6 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
   </ItemGroup>
 
   <ItemGroup>

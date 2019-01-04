@@ -142,7 +142,6 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bPkgDefProjectOutputGroup%3bContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\FSharp\Microsoft.VisualStudio.LanguageServices.FSharp.csproj" />
     <ProjectReference Include="..\VisualBasic\Impl\Microsoft.VisualStudio.LanguageServices.VisualBasic.vbproj">
       <Name>BasicVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bPkgDefProjectOutputGroup%3bContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
