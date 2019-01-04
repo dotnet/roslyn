@@ -31,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         /// </summary>
         public bool IsMakeAbstractCheckable { get => _isMakeAbstractCheckable; set => SetProperty(ref _isMakeAbstractCheckable, value, nameof(IsMakeAbstractCheckable)); }
 
+
         /// <summary>
         /// Indicates whether this member checkable.
         /// </summary>

@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         /// </summary>
         public readonly bool ChangeDestinationTypeToAbstract;
 
+
         /// <summary>
         /// Indicate whether it would cause error if we directly pull Member into destination.
         /// </summary>

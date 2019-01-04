@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Xunit;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;

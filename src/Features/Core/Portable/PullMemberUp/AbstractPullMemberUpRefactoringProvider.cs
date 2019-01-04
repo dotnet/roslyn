@@ -55,11 +55,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
 
-            if (selectedMember is IMethodSymbol methodSymbol && !methodSymbol.IsOrdinaryMethod())
-            {
-                return;
-            }
-
             if (!IsSelectionValid(context.Span, selectedMemberNode))
             {
                 return;
