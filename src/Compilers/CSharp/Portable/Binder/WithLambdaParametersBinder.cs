@@ -117,8 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            Debug.Assert(oldLocation == Location.None, "same nonempty location refers to different symbols?");
-
             // Quirk of the way we represent lambda parameters.                
             SymbolKind newSymbolKind = (object)newSymbol == null ? SymbolKind.Parameter : newSymbol.Kind;
 
