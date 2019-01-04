@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     value = Enum.ToObject(optionKey.Option.Type, value);
                 }
             }
-            else if (typeof(ICodeStyleOption).IsAssignableFrom (optionKey.Option.Type))
+            else if (typeof(ICodeStyleOption).IsAssignableFrom(optionKey.Option.Type))
             {
                 return DeserializeCodeStyleOption(ref value, optionKey.Option.Type);
             }

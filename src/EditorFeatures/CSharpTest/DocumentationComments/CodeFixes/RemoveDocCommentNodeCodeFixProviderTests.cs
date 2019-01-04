@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         public async Task RemovesDuplicateParamTag()
         {
-            var initial = 
+            var initial =
 @"class Program
 {
     /// <summary>

@@ -617,6 +617,13 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                     Generator.SwitchSection(Generator.IdentifierName("y"),
                         new[] { Generator.ExitSwitchStatement() })),
                 "switch (x)\r\n{\r\n    case y:\r\n        break;\r\n}");
+
+            VerifySyntax<SwitchStatementSyntax>(
+                Generator.SwitchStatement(Generator.TupleExpression(new[] { Generator.IdentifierName("x1"), Generator.IdentifierName("x2") }),
+                    Generator.SwitchSection(Generator.IdentifierName("y"),
+                        new[] { Generator.IdentifierName("z") })),
+                "switch (x1, x2)\r\n{\r\n    case y:\r\n        z;\r\n}");
+
         }
 
         [Fact]
@@ -3297,7 +3304,7 @@ public void M()
         [WorkItem(293, "https://github.com/dotnet/roslyn/issues/293")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task IntroduceBaseList()
+        public void IntroduceBaseList()
         {
             var text = @"
 public class C
@@ -3315,7 +3322,7 @@ public class C : IDisposable
             var newDecl = Generator.AddInterfaceType(decl, Generator.IdentifierName("IDisposable"));
             var newRoot = root.ReplaceNode(decl, newDecl);
 
-            var elasticOnlyFormatted = (await Formatter.FormatAsync(newRoot, SyntaxAnnotation.ElasticAnnotation, _ws)).ToFullString();
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _ws).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
         }
 

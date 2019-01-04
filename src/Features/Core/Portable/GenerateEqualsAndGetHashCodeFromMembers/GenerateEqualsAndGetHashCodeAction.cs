@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
     {
         private partial class GenerateEqualsAndGetHashCodeAction : CodeAction
         {
+            // https://docs.microsoft.com/dotnet/standard/design-guidelines/naming-parameters#naming-operator-overload-parameters
+            //  DO use left and right for binary operator overload parameter names if there is no meaning to the parameters.
+            private const string LeftName = "left";
+            private const string RightName = "right";
+
             private readonly bool _generateEquals;
             private readonly bool _generateGetHashCode;
             private readonly bool _implementIEquatable;
@@ -138,32 +143,28 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
                 var generator = _document.GetLanguageService<SyntaxGenerator>();
 
-                var localName = _containingType.GetLocalName();
-                var left = localName + "1";
-                var right = localName + "2";
-
                 var parameters = ImmutableArray.Create(
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType, left),
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType, right));
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType, LeftName),
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType, RightName));
 
-                members.Add(CreateEqualityOperator(compilation, generator, left, right, parameters));
-                members.Add(CreateInequalityOperator(compilation, generator, left, right, parameters));
+                members.Add(CreateEqualityOperator(compilation, generator, parameters));
+                members.Add(CreateInequalityOperator(compilation, generator, parameters));
             }
 
-            private IMethodSymbol CreateEqualityOperator(Compilation compilation, SyntaxGenerator generator, string left, string right, ImmutableArray<IParameterSymbol> parameters)
+            private IMethodSymbol CreateEqualityOperator(Compilation compilation, SyntaxGenerator generator, ImmutableArray<IParameterSymbol> parameters)
             {
                 var expression = _containingType.IsValueType
                     ? generator.InvocationExpression(
                         generator.MemberAccessExpression(
-                            generator.IdentifierName(left),
+                            generator.IdentifierName(LeftName),
                             generator.IdentifierName(EqualsName)),
-                        generator.IdentifierName(right))
+                        generator.IdentifierName(RightName))
                     : generator.InvocationExpression(
                         generator.MemberAccessExpression(
                             generator.GetDefaultEqualityComparer(compilation, _containingType),
                             generator.IdentifierName(EqualsName)),
-                        generator.IdentifierName(left),
-                        generator.IdentifierName(right));
+                        generator.IdentifierName(LeftName),
+                        generator.IdentifierName(RightName));
 
                 return CodeGenerationSymbolFactory.CreateOperatorSymbol(
                     default,
@@ -175,12 +176,12 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     ImmutableArray.Create(generator.ReturnStatement(expression)));
             }
 
-            private IMethodSymbol CreateInequalityOperator(Compilation compilation, SyntaxGenerator generator, string left, string right, ImmutableArray<IParameterSymbol> parameters)
+            private IMethodSymbol CreateInequalityOperator(Compilation compilation, SyntaxGenerator generator, ImmutableArray<IParameterSymbol> parameters)
             {
                 var expression = generator.LogicalNotExpression(
                     generator.ValueEqualsExpression(
-                        generator.IdentifierName(left),
-                        generator.IdentifierName(right)));
+                        generator.IdentifierName(LeftName),
+                        generator.IdentifierName(RightName)));
 
                 return CodeGenerationSymbolFactory.CreateOperatorSymbol(
                     default,

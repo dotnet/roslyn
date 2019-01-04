@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
 namespace [||]{declaredNamespace}
 {{    
@@ -46,7 +46,7 @@ namespace [||]{declaredNamespace}
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
 namespace [||]{declaredNamespace}
 {{    
@@ -70,7 +70,7 @@ namespace [||]{declaredNamespace}
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -101,7 +101,7 @@ namespace [||]{declaredNamespace}
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -153,7 +153,7 @@ namespace [||]{declaredNamespace}
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -229,7 +229,7 @@ namespace Foo
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -292,7 +292,7 @@ End Class";
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -350,7 +350,7 @@ namespace A.B.C
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -408,7 +408,7 @@ namespace A.B.C
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -479,7 +479,7 @@ namespace Foo
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -534,7 +534,7 @@ namespace Foo
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -605,7 +605,7 @@ namespace NS1
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -678,7 +678,7 @@ namespace Foo
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
 using System;
 
@@ -719,7 +719,7 @@ class Class1
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -769,7 +769,7 @@ class Class2 : Class1
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -835,7 +835,7 @@ class Class2
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -886,7 +886,7 @@ namespace Foo
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -943,7 +943,7 @@ namespace Foo
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -999,7 +999,7 @@ class Class1
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -1066,7 +1066,7 @@ namespace NS1
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -1133,7 +1133,7 @@ namespace Foo
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
 using System;
 
@@ -1164,7 +1164,7 @@ namespace A.B.C
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
 delegate void [||]D1;
 
@@ -1212,7 +1212,7 @@ class Class2 : Class1
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 class [||]Class1 
 {{ 
@@ -1276,7 +1276,7 @@ namespace Foo
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 interface [||]Interface1 
 {{
@@ -1324,7 +1324,7 @@ namespace Foo
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 class [||]Class1 
 {{ 
@@ -1374,7 +1374,7 @@ namespace A
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 class [||]Class1
 {{
@@ -1444,7 +1444,7 @@ namespace NS1
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 class [||]Class1 
 {{ 
@@ -1516,7 +1516,7 @@ namespace Foo
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -1562,7 +1562,7 @@ End Class";
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -1602,7 +1602,7 @@ End Class";
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 public class [||]Class1
 {{ 
@@ -1643,7 +1643,7 @@ End Class";
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 /// &lt;summary&gt;
 /// See &lt;see cref=""Class1""/&gt;
@@ -1700,7 +1700,7 @@ namespace Foo
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -1741,7 +1741,7 @@ End Class";
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
 namespace [||]{declaredNamespace}
 {{
@@ -1791,7 +1791,7 @@ End Namespace";
             var code =
 $@"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
         <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}"">
 namespace [||]{declaredNamespace}
 {{

@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static IEnumerable<object[]> PdbFormats => 
+        public static IEnumerable<object[]> PdbFormats =>
             new List<object[]>(ExternalPdbFormats)
             {
                 new object[] { DebugInformationFormat.Embedded }

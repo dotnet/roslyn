@@ -2416,7 +2416,7 @@ public static class Program
             CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
             CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
-        
+
         private const string ExtraRefReadOnlyIL = @"
 .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute extends [mscorlib]System.Attribute
 {

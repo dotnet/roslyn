@@ -35,7 +35,7 @@ class C
             var tree1 = Parse(source1, "f:/build/goo.cs");
             var tree2 = Parse(source2, "f:/build/nocode.cs");
             var c = CreateCompilation(new[] { tree1, tree2 }, options: TestOptions.DebugDll);
-            var embeddedTexts = new[] 
+            var embeddedTexts = new[]
             {
                 EmbeddedText.FromSource(tree1.FilePath, tree1.GetText()),
                 EmbeddedText.FromSource(tree2.FilePath, tree2.GetText())

@@ -1650,14 +1650,14 @@ class C
 
         [WorkItem(11642, "https://github.com/dotnet/roslyn/issues/11642")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatArbitraryNodeParenthesizedLambdaExpression()
+        public void FormatArbitraryNodeParenthesizedLambdaExpression()
         {
             // code equivalent to an expression synthesized like so:
             // ParenthesizedExpression(ParenthesizedLambdaExpression(ParameterList(), Block()))
             var code = @"(()=>{})";
             var node = SyntaxFactory.ParseExpression(code);
             var expected = @"(() => { })";
-            await AssertFormatOnArbitraryNodeAsync(node, expected);
+            AssertFormatOnArbitraryNode(node, expected);
         }
 
         [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
@@ -1941,6 +1941,33 @@ class C
 }";
 
             AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31907, "https://github.com/dotnet/roslyn/issues/31907")]
+        public async Task NullableReferenceTypes()
+        {
+            var code = @"[|
+class MyClass
+{
+    void MyMethod()
+    {
+        var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt !: method).ReturnType;
+    }
+}
+|]";
+            var expected = @"
+class MyClass
+{
+    void MyMethod()
+    {
+        var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt! : method).ReturnType;
+    }
+}
+";
+
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
         }
 
         private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)

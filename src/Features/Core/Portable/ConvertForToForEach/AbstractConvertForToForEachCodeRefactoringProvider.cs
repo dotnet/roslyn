@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
         }
 
         private bool TryGetIterationElementType(
-            INamedTypeSymbol containingType, ITypeSymbol collectionType, 
+            INamedTypeSymbol containingType, ITypeSymbol collectionType,
             INamedTypeSymbol ienumerableType, INamedTypeSymbol ienumeratorType,
             out ITypeSymbol iterationType)
         {
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
         }
 
         private bool TryGetIterationElementTypeFromGetEnumerator(
-            INamedTypeSymbol containingType, IMethodSymbol getEnumeratorMethod, 
+            INamedTypeSymbol containingType, IMethodSymbol getEnumeratorMethod,
             INamedTypeSymbol ienumeratorType, out ITypeSymbol iterationType)
         {
             var getEnumeratorReturnType = getEnumeratorMethod.ReturnType;
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument, title)
             {
             }

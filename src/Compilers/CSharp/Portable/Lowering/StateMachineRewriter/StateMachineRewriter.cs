@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected FieldSymbol stateField;
         protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies;
         protected int nextFreeHoistedLocalSlot;
-        protected IReadOnlySet<Symbol> hoistedVariables;
+        protected IOrderedReadOnlySet<Symbol> hoistedVariables;
         protected Dictionary<Symbol, CapturedSymbolReplacement> initialParameters;
         protected FieldSymbol initialThreadIdField;
 
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(body != null);
             Debug.Assert(method != null);
-            Debug.Assert(stateMachineType != null);
+            Debug.Assert((object)stateMachineType != null);
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
 
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.diagnostics = diagnostics;
 
             this.F = new SyntheticBoundNodeFactory(method, body.Syntax, compilationState, diagnostics);
-            Debug.Assert(F.CurrentType == method.ContainingType);
+            Debug.Assert(TypeSymbol.Equals(F.CurrentType, method.ContainingType, TypeCompareKind.ConsiderEverything2));
             Debug.Assert(F.Syntax == body.Syntax);
         }
 
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (local.RefKind != RefKind.None)
                     {
                         // we'll create proxies for these variables later:
-                        Debug.Assert(synthesizedKind == SynthesizedLocalKind.AwaitSpill);
+                        Debug.Assert(synthesizedKind == SynthesizedLocalKind.Spill);
                         continue;
                     }
 
@@ -250,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var synthesizedKind = local.SynthesizedKind;
             var optimizationLevel = F.Compilation.Options.OptimizationLevel;
 
-            // do not preallocate proxiy fields for user defined locals in release
+            // do not preallocate proxy fields for user defined locals in release
             // otherwise we will be allocating fields for all locals even when fields can be reused
             // see https://github.com/dotnet/roslyn/issues/15290
             if (optimizationLevel == OptimizationLevel.Release && synthesizedKind == SynthesizedLocalKind.UserDefined)

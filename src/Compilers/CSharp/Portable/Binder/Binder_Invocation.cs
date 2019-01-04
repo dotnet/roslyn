@@ -242,7 +242,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (boundExpression.Kind == BoundKind.MethodGroup)
             {
-                result = BindMethodGroupInvocation(node, expression, methodName, (BoundMethodGroup)boundExpression, analyzedArguments, diagnostics, queryClause, allowUnexpandedForm: allowUnexpandedForm);
+                result = BindMethodGroupInvocation(
+                    node, expression, methodName, (BoundMethodGroup)boundExpression, analyzedArguments,
+                    diagnostics, queryClause, allowUnexpandedForm: allowUnexpandedForm, anyApplicableCandidates: out _);
             }
             else if ((object)(delegateType = GetDelegateType(boundExpression)) != null)
             {
@@ -347,11 +349,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundDynamicInvocation(
                 node,
-                expression,
-                argArray,
                 arguments.GetNames(),
                 refKindsArray,
                 applicableMethods,
+                expression,
+                argArray,
                 type: Compilation.DynamicType,
                 hasErrors: hasErrors);
         }
@@ -555,7 +557,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             DiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause,
-            bool allowUnexpandedForm = true)
+            bool allowUnexpandedForm,
+            out bool anyApplicableCandidates)
         {
             BoundExpression result;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -563,6 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodGroup, expression, methodName, analyzedArguments, isMethodGroupConversion: false,
                 useSiteDiagnostics: ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             diagnostics.Add(expression, useSiteDiagnostics);
+            anyApplicableCandidates = resolution.ResultKind == LookupResultKind.Viable && resolution.OverloadResolutionResult.HasAnyApplicableMember;
 
             if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
 
@@ -657,8 +661,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
                             // that are not performed at compile-time.
                             // Only if the set of final applicable candidates is empty we know for sure the call will fail at runtime.
-                            var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult, 
-                                                                                                methodGroup.ReceiverOpt, 
+                            var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult,
+                                                                                                methodGroup.ReceiverOpt,
                                                                                                 methodGroup.TypeArgumentsOpt,
                                                                                                 diagnostics);
                             if (finalApplicableCandidates.Length > 0)
@@ -790,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private ImmutableArray<TMethodOrPropertySymbol> GetCandidatesPassingFinalValidation<TMethodOrPropertySymbol>(
-            SyntaxNode syntax, 
+            SyntaxNode syntax,
             OverloadResolutionResult<TMethodOrPropertySymbol> overloadResolutionResult,
             BoundExpression receiverOpt,
             ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt,
@@ -868,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // error CS0029: Cannot implicitly convert type 'A' to 'B'
 
                             // Case 1: receiver is a restricted type, and method called is defined on a parent type
-                            if (call.ReceiverOpt.Type.IsRestrictedType() && call.Method.ContainingType != call.ReceiverOpt.Type)
+                            if (call.ReceiverOpt.Type.IsRestrictedType() && !TypeSymbol.Equals(call.Method.ContainingType, call.ReceiverOpt.Type, TypeCompareKind.ConsiderEverything2))
                             {
                                 SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, call.ReceiverOpt.Type, call.Method.ContainingType);
                                 Error(diagnostics, ErrorCode.ERR_NoImplicitConv, call.ReceiverOpt.Syntax, distinguisher.First, distinguisher.Second);
@@ -1105,13 +1109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics);
             }
 
-            if ((object)delegateTypeOpt != null)
-            {
-                return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: true,
-                            expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
-                            argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
-            }
-            else
+            bool isDelegateCall = (object)delegateTypeOpt != null;
+            if (!isDelegateCall)
             {
                 if ((object)receiver != null && receiver.Kind == BoundKind.BaseReference && method.IsAbstract)
                 {
@@ -1127,11 +1126,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                              receiver,
                                              diagnostics);
                 }
-
-                return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: false,
-                            expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
-                            argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
             }
+
+            return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
+                        expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
+                        argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
         }
 
         private bool IsBindingModuleLevelAttribute()
@@ -1497,7 +1496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     type = returnType;
                 }
-                else if (type != returnType)
+                else if (!TypeSymbol.Equals(type, returnType, TypeCompareKind.ConsiderEverything2))
                 {
                     return null;
                 }

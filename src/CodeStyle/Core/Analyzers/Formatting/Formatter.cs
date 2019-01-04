@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
         {
             var formattingResult = GetFormattingResult(node, syntaxFormattingService, spans, options, rules, cancellationToken);
-            return formattingResult == null 
+            return formattingResult == null
                 ? SpecializedCollections.EmptyList<TextChange>()
                 : formattingResult.GetTextChanges(cancellationToken);
         }

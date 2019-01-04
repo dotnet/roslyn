@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -30,39 +31,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
-        public VisualStudioProject CreateAndAddToWorkspace(string projectUniqueName, string language)
+        public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language)
         {
-            return CreateAndAddToWorkspace(projectUniqueName, language, new VisualStudioProjectCreationInfo());
+            return CreateAndAddToWorkspace(projectSystemName, language, new VisualStudioProjectCreationInfo());
         }
 
-        public VisualStudioProject CreateAndAddToWorkspace(string projectUniqueName, string language, VisualStudioProjectCreationInfo creationInfo)
+        public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo)
         {
             // HACK: Fetch this service to ensure it's still created on the UI thread; once this is moved off we'll need to fix up it's constructor to be free-threaded.
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
-            var id = ProjectId.CreateNewId(projectUniqueName);
+            var id = ProjectId.CreateNewId(projectSystemName);
             var directoryNameOpt = creationInfo.FilePath != null ? Path.GetDirectoryName(creationInfo.FilePath) : null;
-            var project = new VisualStudioProject(_visualStudioWorkspaceImpl, _dynamicFileInfoProviders, _hostDiagnosticUpdateSource, id, projectUniqueName, language, directoryNameOpt);
+
+            // We will use the project system name as the default display name of the project
+            var project = new VisualStudioProject(_visualStudioWorkspaceImpl, _dynamicFileInfoProviders, _hostDiagnosticUpdateSource, id, displayName: projectSystemName, language, directoryNameOpt);
 
             var versionStamp = creationInfo.FilePath != null ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
                                                              : VersionStamp.Create();
 
-            var assemblyName = creationInfo.AssemblyName ?? projectUniqueName;
+            var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
 
-            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectUniqueName);
+            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 
             _visualStudioWorkspaceImpl.ApplyChangeToWorkspace(w =>
             {
                 var projectInfo = ProjectInfo.Create(
                         id,
                         versionStamp,
-                        name: projectUniqueName,
+                        name: projectSystemName,
                         assemblyName: assemblyName,
                         language: language,
                         filePath: creationInfo.FilePath,
                         compilationOptions: creationInfo.CompilationOptions,
-                        parseOptions: creationInfo.ParseOptions)
-                        .WithDefaultNamespace(creationInfo.DefaultNamespace);
+                        parseOptions: creationInfo.ParseOptions);
 
                 // HACK: update this since we're still on the UI thread. Note we can only update this if we don't have projects -- the workspace
                 // only lets us really do this with OnSolutionAdded for now.
@@ -84,6 +86,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             VersionStamp.Create(),
                             solutionPathToSetWithOnSolutionAdded,
                             projects: new[] { projectInfo }));
+
+                    // set working folder for the persistent service
+                    var persistenceService = w.Services.GetRequiredService<IPersistentStorageLocationService>() as VisualStudioPersistentStorageLocationService;
+                    persistenceService?.UpdateForVisualStudioWorkspace(w);
                 }
                 else
                 {

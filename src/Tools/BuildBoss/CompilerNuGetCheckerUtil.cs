@@ -29,13 +29,15 @@ namespace BuildBoss
         internal static StringComparer PathComparer { get; } = StringComparer.OrdinalIgnoreCase;
         internal static StringComparison PathComparison { get; } = StringComparison.OrdinalIgnoreCase;
 
-        internal string ConfigDirectory { get; }
+        internal string ArtifactsDirectory { get; }
+        internal string Configuration { get; }
         internal string RepositoryDirectory { get; }
 
-        internal PackageContentsChecker(string repositoryDirectory, string configDirectory)
+        internal PackageContentsChecker(string repositoryDirectory, string artifactsDirectory, string configuration)
         {
             RepositoryDirectory = repositoryDirectory;
-            ConfigDirectory = configDirectory;
+            ArtifactsDirectory = artifactsDirectory;
+            Configuration = configuration;
         }
 
         public bool Check(TextWriter textWriter)
@@ -48,7 +50,7 @@ namespace BuildBoss
             }
             catch (Exception ex)
             {
-                textWriter.WriteLine($"Error verifying NuPkg files: {ex.Message}");
+                textWriter.WriteLine($"Error verifying: {ex.Message}");
                 return false;
             }
         }
@@ -60,11 +62,12 @@ namespace BuildBoss
         {
             var (allGood, dllRelativeNames) = GetDllRelativeNames(
                 textWriter,
-                @"Exes\Csc\net472",
-                @"Exes\Vbc\net472",
-                @"Exes\Csi\net472",
-                @"Exes\VBCSCompiler\net472",
-                @"Dlls\Microsoft.Build.Tasks.CodeAnalysis\net472");
+                $@"csc\{Configuration}\net472",
+                $@"vbc\{Configuration}\net472",
+                $@"csi\{Configuration}\net472",
+                $@"VBCSCompiler\{Configuration}\net472",
+                $@"Microsoft.Build.Tasks.CodeAnalysis\{Configuration}\net472");
+
             if (!allGood)
             {
                 return false;
@@ -83,15 +86,20 @@ namespace BuildBoss
 
             allGood &= VerifyNuPackage(
                         textWriter,
-                        FindNuGetPackage(@"NuGet\PreRelease", "Microsoft.Net.Compilers"),
+                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers"),
                         @"tools",
                         dllRelativeNames);
 
             allGood &= VerifyNuPackage(
                         textWriter,
-                        FindNuGetPackage(@"DevDivPackages\Roslyn", "VS.Tools.Roslyn"),
+                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.Tools.Roslyn"),
                         string.Empty,
                         dllRelativeNames);
+
+            allGood &= VerifyVsix(
+                        textWriter,
+                        FindVsix("Roslyn.Compilers.Extension"),
+                        dllRelativeNames.Concat(new[] { "Roslyn.Compilers.Extension.dll" }));
             return allGood;
         }
 
@@ -102,9 +110,9 @@ namespace BuildBoss
         {
             var (allGood, dllRelativeNames) = GetDllRelativeNames(
                 textWriter,
-                @"Exes\Csc\netcoreapp2.1\publish",
-                @"Exes\Vbc\netcoreapp2.1\publish",
-                @"Exes\VBCSCompiler\netcoreapp2.1\publish");
+                $@"csc\{Configuration}\netcoreapp2.1\publish",
+                $@"vbc\{Configuration}\netcoreapp2.1\publish",
+                $@"VBCSCompiler\{Configuration}\netcoreapp2.1\publish");
             if (!allGood)
             {
                 return false;
@@ -119,7 +127,7 @@ namespace BuildBoss
 
             return VerifyNuPackage(
                         textWriter,
-                        FindNuGetPackage(@"NuGet\PreRelease", "Microsoft.NETCore.Compilers"),
+                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.NETCore.Compilers"),
                         @"tools\bincore",
                         dllRelativeNames);
         }
@@ -198,7 +206,7 @@ namespace BuildBoss
             {
                 foreach (var directory in directoryPaths)
                 {
-                    recordDependencies(md5, Path.Combine(ConfigDirectory, directory));
+                    recordDependencies(md5, Path.Combine(ArtifactsDirectory, "bin", directory));
                 }
             }
 
@@ -228,9 +236,20 @@ namespace BuildBoss
         }
 
         private static bool VerifyNuPackage(
-            TextWriter textWriter, 
-            string nupkgFilePath, 
-            string folderRelativePath, 
+            TextWriter textWriter,
+            string nupkgFilePath,
+            string folderRelativePath,
+            IEnumerable<string> dllFileNames) => VerifyCore(textWriter, nupkgFilePath, folderRelativePath, dllFileNames);
+
+        private static bool VerifyVsix(
+            TextWriter textWriter,
+            string vsixFilePath,
+            IEnumerable<string> dllFileNames) => VerifyCore(textWriter, vsixFilePath, folderRelativePath: "", dllFileNames);
+
+        private static bool VerifyCore(
+            TextWriter textWriter,
+            string packageFilePath,
+            string folderRelativePath,
             IEnumerable<string> dllFileNames)
         {
             Debug.Assert(string.IsNullOrEmpty(folderRelativePath) || folderRelativePath[0] != '\\');
@@ -239,7 +258,7 @@ namespace BuildBoss
             // are in any child folder
             IEnumerable<string> getPartsInFolder()
             {
-                using (var package = Package.Open(nupkgFilePath, FileMode.Open, FileAccess.Read))
+                using (var package = Package.Open(packageFilePath, FileMode.Open, FileAccess.Read))
                 {
                     foreach (var part in package.GetParts())
                     {
@@ -272,9 +291,9 @@ namespace BuildBoss
                     elementSelector: _ => false,
                     comparer: PathComparer);
             var allGood = true;
-            var nupkgFileName = Path.GetFileName(nupkgFilePath);
+            var packageFileName = Path.GetFileName(packageFilePath);
 
-            textWriter.WriteLine($"Verifying NuPkg {nupkgFileName}");
+            textWriter.WriteLine($"Verifying {packageFileName}");
             foreach (var relativeName in getPartsInFolder())
             {
                 var name = Path.GetFileName(relativeName);
@@ -308,15 +327,16 @@ namespace BuildBoss
 
         private string FindNuGetPackage(string directory, string partialName)
         {
-            var file = Directory
-                .EnumerateFiles(Path.Combine(ConfigDirectory, directory), partialName + "*.nupkg")
-                .SingleOrDefault();
-            if (file == null)
-            {
-                throw new Exception($"Unable to find NuPgk {partialName} in {directory}");
-            }
+            var file = Directory.EnumerateFiles(directory, partialName + "*.nupkg").SingleOrDefault();
+            return file ?? throw new Exception($"Unable to find '{partialName}*.nupkg' in '{directory}'");
+        }
 
-            return file;
+        private string FindVsix(string fileName)
+        {
+            fileName = fileName + ".vsix";
+            var directory = Path.Combine(ArtifactsDirectory, "VSSetup", Configuration);
+            var file = Directory.EnumerateFiles(directory, fileName).SingleOrDefault();
+            return file ?? throw new Exception($"Unable to find '{fileName}' in '{directory}'");
         }
     }
 }

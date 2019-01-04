@@ -86,7 +86,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            var warningLevel = effectiveSeverity.ToDiagnosticSeverity() ?? descriptor.DefaultSeverity;
             return Diagnostic.Create(
                 descriptor.Id,
                 descriptor.Category,

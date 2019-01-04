@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Storage
             {
                 _storage = storage;
             }
-            
+
             public static IPersistentStorage AddReferenceCountToAndCreateWrapper(ReferenceCountedDisposable<IPersistentStorage> storage)
             {
                 return new PersistentStorageReferenceCountedDisposableWrapper(storage.TryAddReference());

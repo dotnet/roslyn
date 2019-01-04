@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.ChecksumAlgorithm = "";
             Assert.Equal("/optionstrict:custom /out:test.exe /checksumalgorithm: test.vb", vbc.GenerateResponseFileContents());
         }
-        
+
         [Fact]
         public void InstrumentTestNamesFlag()
         {
@@ -292,6 +292,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.DebugType = "full";
             vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems();
             Assert.Equal(@"/optionstrict:custom /debug:full /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("a;b.vb");
+            vbc.DebugType = "full";
+            vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems("a;b.vb");
+            Assert.Equal(@"/optionstrict:custom /debug:full /out:""a;b.exe"" /embed:""a;b.vb"" ""a;b.vb""", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("a, b.vb");
+            vbc.DebugType = "full";
+            vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems("a, b.vb");
+            Assert.Equal(@"/optionstrict:custom /debug:full /out:""a, b.exe"" /embed:""a, b.vb"" ""a, b.vb""", vbc.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -349,7 +361,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.SharedCompilationId = "testPipeName";
             Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
         }
-      
+
         [Fact]
         [WorkItem(21371, "https://github.com/dotnet/roslyn/issues/21371")]
         public void GenerateDocumentationFalse()

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         internal abstract bool IsAcceptedVolatileModifierType(ModuleSymbol moduleSymbol, TypeSymbol type);
         internal abstract bool IsAcceptedInAttributeModifierType(TypeSymbol type);
         internal abstract bool IsAcceptedUnmanagedTypeModifierType(TypeSymbol type);
-        
+
         internal abstract Cci.PrimitiveTypeCode GetPrimitiveTypeCode(ModuleSymbol moduleSymbol, TypeSymbol type);
     }
 }

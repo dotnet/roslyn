@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// if this is effectively any identifier in the language, regardless of whether the language
         /// is treating it as a keyword or not.
         /// </summary>
-        bool IsReservedKeyword(SyntaxToken token); 
+        bool IsReservedKeyword(SyntaxToken token);
 
         /// <summary>
         /// Returns <see langword="true"/> if this a 'contextual' keyword for the language.  A
@@ -380,6 +380,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
 
+        bool IsNameOfSubpattern(SyntaxNode node);
+        bool IsPropertyPatternClause(SyntaxNode node);
+
         ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan);
         bool IsOnTypeHeader(SyntaxNode root, int position);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
@@ -389,7 +392,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // updates root will be returned.  The context node in that new tree will also
         // be returned.
         void AddFirstMissingCloseBrace(
-            SyntaxNode root, SyntaxNode contextNode, 
+            SyntaxNode root, SyntaxNode contextNode,
             out SyntaxNode newRoot, out SyntaxNode newContextNode);
 
         SyntaxNode GetNextExecutableStatement(SyntaxNode statement);

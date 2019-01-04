@@ -146,10 +146,10 @@ namespace Microsoft.Cci
             }
         }
 
-        private static LocalVariableHandle NextHandle(LocalVariableHandle handle) => 
+        private static LocalVariableHandle NextHandle(LocalVariableHandle handle) =>
             MetadataTokens.LocalVariableHandle(MetadataTokens.GetRowNumber(handle) + 1);
 
-        private static LocalConstantHandle NextHandle(LocalConstantHandle handle) => 
+        private static LocalConstantHandle NextHandle(LocalConstantHandle handle) =>
             MetadataTokens.LocalConstantHandle(MetadataTokens.GetRowNumber(handle) + 1);
 
         private BlobHandle SerializeLocalConstantSignature(ILocalDefinition localConstant)

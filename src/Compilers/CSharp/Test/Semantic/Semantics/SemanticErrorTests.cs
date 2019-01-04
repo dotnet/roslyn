@@ -15530,7 +15530,7 @@ unsafe class Test
 }
 ";
 
-            var c = CompileAndVerify(text, expectedOutput: "7788", verify: Verification.Fails, options:TestOptions.UnsafeReleaseExe);
+            var c = CompileAndVerify(text, expectedOutput: "7788", verify: Verification.Fails, options: TestOptions.UnsafeReleaseExe);
 
             c.VerifyIL("Test.example1()", @"
 {
@@ -20179,8 +20179,11 @@ class Test
    }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.WRN_GotoCaseShouldConvert, Line = 13, Column = 13, IsWarning = true } });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (13,13): warning CS0469: The 'goto case' value is not implicitly convertible to type 'char'
+                //             goto case 127;   // CS0469
+                Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 127;").WithArguments("char").WithLocation(13, 13)
+                );
         }
 
         [Fact, WorkItem(663, "https://github.com/dotnet/roslyn/issues/663")]
@@ -23990,6 +23993,28 @@ class B : System.Attribute {
                 // (2,2): error CS8355: Cannot use attribute constructor 'A.A(in int)' because it is has 'in' parameters.
                 // [A(1)]
                 Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2)
+                );
+        }
+
+        [Fact]
+        public void ERR_ExpressionTreeContainsSwitchExpression()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+
+public class C
+{
+    public int Test()
+    {
+        Expression<Func<int, int>> e = a => a switch { 0 => 1, _ => 2 }; // CS8411
+        return 1;
+    }
+}";
+            CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                // (9,45): error CS8411: An expression tree may not contain a switch expression.
+                //         Expression<Func<int, int>> e = a => a switch { 0 => 1, _ => 2 }; // CS8411
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, "a switch { 0 => 1, _ => 2 }").WithLocation(9, 45)
                 );
         }
     }
