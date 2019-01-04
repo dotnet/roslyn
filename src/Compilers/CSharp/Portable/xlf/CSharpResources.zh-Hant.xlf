@@ -252,11 +252,6 @@
         <target state="new">A static local function cannot contain a reference to '{0}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_StaticLocalFunctionModifier">
-        <source>To use the 'static' modifier for local functions, please use language version {0} or greater.</source>
-        <target state="new">To use the 'static' modifier for local functions, please use language version {0} or greater.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern has already been handled by a previous arm of the switch expression.</source>
         <target state="new">The pattern has already been handled by a previous arm of the switch expression.</target>

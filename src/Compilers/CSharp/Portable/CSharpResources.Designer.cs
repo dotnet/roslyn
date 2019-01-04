@@ -9565,15 +9565,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to To use the &apos;static&apos; modifier for local functions, please use language version {0} or greater..
-        /// </summary>
-        internal static string ERR_StaticLocalFunctionModifier {
-            get {
-                return ResourceManager.GetString("ERR_StaticLocalFunctionModifier", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Static field or property &apos;{0}&apos; cannot be assigned in an object initializer.
         /// </summary>
         internal static string ERR_StaticMemberInObjectInitializer {

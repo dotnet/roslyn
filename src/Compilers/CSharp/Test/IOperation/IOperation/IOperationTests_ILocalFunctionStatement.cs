@@ -629,7 +629,7 @@ ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 y)) (OperationK
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (14,20): error CS8423: A static local function cannot contain a reference to 'x'.
+                // (14,20): error CS8421: A static local function cannot contain a reference to 'x'.
                 //             return x;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(14, 20));
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -2022,7 +2022,7 @@ Block[B2] - Exit
     Statements (0)";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (10,52): error CS8423: A static local function cannot contain a reference to 'x'.
+                // (10,52): error CS8421: A static local function cannot contain a reference to 'x'.
                 //         static object Local(string y, object z) => x ?? y ?? z;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(10, 52));
             var expectedDiagnostics = DiagnosticDescription.None;

@@ -2488,9 +2488,9 @@ class Program
                 // (6,9): error CS0106: The modifier 'const' is not valid for this item
                 //         const void LocalConst()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(6, 9),
-                // (9,9): error CS8421: To use the 'static' modifier for local functions, please use language version 8.0 or greater.
+                // (9,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static void LocalStatic()
-                Diagnostic(ErrorCode.ERR_StaticLocalFunctionModifier, "static").WithArguments("8.0").WithLocation(9, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(9, 9),
                 // (12,9): error CS0106: The modifier 'readonly' is not valid for this item
                 //         readonly void LocalReadonly()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(12, 9),
@@ -4558,13 +4558,13 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,31): error CS8423: A static local function cannot contain a reference to 'x'.
+                // (7,31): error CS8421: A static local function cannot contain a reference to 'x'.
                 //         static object F1() => x;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(7, 31),
-                // (8,31): error CS8423: A static local function cannot contain a reference to 'y'.
+                // (8,31): error CS8421: A static local function cannot contain a reference to 'y'.
                 //         static object F2() => y;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "y").WithArguments("y").WithLocation(8, 31),
-                // (11,28): error CS8423: A static local function cannot contain a reference to 'x'.
+                // (11,28): error CS8421: A static local function cannot contain a reference to 'x'.
                 //             object G3() => x;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(11, 28));
         }
@@ -4588,10 +4588,10 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (10,35): error CS8423: A static local function cannot contain a reference to 'x'.
+                // (10,35): error CS8421: A static local function cannot contain a reference to 'x'.
                 //             static object G2() => x ?? y;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(10, 35),
-                // (10,40): error CS8423: A static local function cannot contain a reference to 'y'.
+                // (10,40): error CS8421: A static local function cannot contain a reference to 'y'.
                 //             static object G2() => x ?? y;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "y").WithArguments("y").WithLocation(10, 40));
         }
@@ -4620,7 +4620,7 @@ class B : A
         static void F3() { F(_f); }
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8.WithPreprocessorSymbols("MyDefine"));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithPreprocessorSymbols("MyDefine"));
             comp.VerifyEmitDiagnostics(
                 // (16,30): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
                 //         static void F1() { F(this); }
@@ -4632,7 +4632,7 @@ class B : A
                 //         static void F3() { F(_f); }
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "_f").WithLocation(18, 30));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular);
             comp.VerifyEmitDiagnostics();
         }
 

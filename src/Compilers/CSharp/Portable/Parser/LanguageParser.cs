@@ -8692,11 +8692,11 @@ tryAgain:
                     case SyntaxKind.VolatileKeyword:
                         continue; // already reported earlier, no need to report again
                     case SyntaxKind.StaticKeyword:
-                        if (IsFeatureEnabled(MessageID.IDS_FeatureStaticLocalFunctions))
+                        modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureStaticLocalFunctions);
+                        if ((object)modifier == modifiers[i])
                         {
                             continue;
                         }
-                        modifier = this.AddError(modifier, ErrorCode.ERR_StaticLocalFunctionModifier, new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureStaticLocalFunctions.RequiredVersion()));
                         break;
                     default:
                         modifier = this.AddError(modifier, ErrorCode.ERR_BadMemberFlag, modifier.Text);
