@@ -5536,7 +5536,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.</source>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
         <target state="needs-review-translation">'“{0}”: using 语句中使用的类型必须可隐式转换为“System.IDisposable”</target>
         <note />
       </trans-unit>

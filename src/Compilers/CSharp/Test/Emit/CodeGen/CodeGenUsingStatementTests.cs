@@ -1426,10 +1426,10 @@ class Gen<T> where T : new()
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (13,16): error CS1674: 'T': type used in a using statement must have a public void-returning Dispose() instance method.
+                // (13,16): error CS1674: 'T': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (val)
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "val").WithArguments("T"),
-                // (24,16): error CS1674: 'T': type used in a using statement must have a public void-returning Dispose() instance method.
+                // (24,16): error CS1674: 'T': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (T disp = new T()) // Invalid
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "T disp = new T()").WithArguments("T"));
         }
@@ -1484,7 +1484,7 @@ class Program
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (res) // Invalid
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass").WithLocation(7, 16)
                 );
@@ -1511,7 +1511,7 @@ class Program
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (res) // Invalid
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass").WithLocation(7, 16)
                 );
@@ -2730,13 +2730,13 @@ class Program
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,16): error CS1674: 'lambda expression': type used in a using statement must have a public void-returning Dispose() instance method.
+                // (6,16): error CS1674: 'lambda expression': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (x => x)     // err
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "x => x").WithArguments("lambda expression"),
-                // (9,16): error CS1674: 'lambda expression': type used in a using statement must have a public void-returning Dispose() instance method.
+                // (9,16): error CS1674: 'lambda expression': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (() => { })     // err
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "() => { }").WithArguments("lambda expression"),
-                // (12,16): error CS1674: 'lambda expression': type used in a using statement must have a public void-returning Dispose() instance method.
+                // (12,16): error CS1674: 'lambda expression': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using ((int @int) => { return @int; })     // err
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "(int @int) => { return @int; }").WithArguments("lambda expression"));
         }
@@ -2770,19 +2770,19 @@ class Program
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-    // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must have a public void-returning Dispose() instance method.
+    // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
     //         using (var a = new { })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var a = new { }").WithArguments("<empty anonymous type>"),
-    // (9,16): error CS1674: '<anonymous type: int p1>': type used in a using statement must have a public void-returning Dispose() instance method.
+    // (9,16): error CS1674: '<anonymous type: int p1>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
     //         using (var b = new { p1 = 10 })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var b = new { p1 = 10 }").WithArguments("<anonymous type: int p1>"),
-    // (12,16): error CS1674: '<anonymous type: double p1, char p2>': type used in a using statement must have a public void-returning Dispose() instance method.
+    // (12,16): error CS1674: '<anonymous type: double p1, char p2>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
     //         using (var c = new { p1 = 10.0, p2 = 'a' })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var c = new { p1 = 10.0, p2 = 'a' }").WithArguments("<anonymous type: double p1, char p2>"),
-    // (15,16): error CS1674: '<empty anonymous type>': type used in a using statement must have a public void-returning Dispose() instance method.
+    // (15,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
     //         using (new { })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new { }").WithArguments("<empty anonymous type>"),
-    // (19,16): error CS1674: '<anonymous type: string f1, char f2>': type used in a using statement must have a public void-returning Dispose() instance method.
+    // (19,16): error CS1674: '<anonymous type: string f1, char f2>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
     //         using (new { f1 = "12345", f2 = 'S' })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, @"new { f1 = ""12345"", f2 = 'S' }").WithArguments("<anonymous type: string f1, char f2>")
     );
