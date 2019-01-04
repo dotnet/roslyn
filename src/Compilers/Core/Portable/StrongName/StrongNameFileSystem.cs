@@ -14,13 +14,11 @@ namespace Microsoft.CodeAnalysis
     internal class StrongNameFileSystem
     {
         internal readonly static StrongNameFileSystem Instance = new StrongNameFileSystem();
-        internal readonly Func<string> _getTempPath;
+        internal readonly string _tempPath;
 
         internal StrongNameFileSystem(string tempPath = null)
         {
-            _getTempPath = tempPath == null
-                ? (Func<string>)Path.GetTempPath
-                : () => tempPath;
+            _tempPath = tempPath;
         }
 
         internal virtual FileStream CreateFileStream(string filePath, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
@@ -40,6 +38,6 @@ namespace Microsoft.CodeAnalysis
             return File.Exists(fullPath);
         }
 
-        internal virtual string GetTempPath() => _getTempPath();
+        internal virtual string GetTempPath() => _tempPath ?? Path.GetTempPath();
     }
 }
