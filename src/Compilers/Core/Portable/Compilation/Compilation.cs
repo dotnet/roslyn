@@ -2739,8 +2739,8 @@ namespace Microsoft.CodeAnalysis
             finally
             {
                 nativePdbWriter?.Dispose();
-                emitPeStream?.Dispose();
-                emitMetadataStream?.Dispose();
+                emitPeStream?.Close();
+                emitMetadataStream?.Close();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();
             }

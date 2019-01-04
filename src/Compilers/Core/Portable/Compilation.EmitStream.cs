@@ -72,14 +72,33 @@ namespace Microsoft.CodeAnalysis
                 return () => CreateStream(diagnostics);
             }
 
-            internal void Dispose()
+            internal void Close()
             {
-                _tempInfo?.tempStream.Dispose();
-                _tempInfo = null;
-
                 // The _stream value is deliberately excluded from being disposed here. That value is not 
                 // owned by this type.
                 _stream = null;
+
+                if (_tempInfo.HasValue)
+                {
+                    var (tempStream, tempFilePath) = _tempInfo.GetValueOrDefault();
+                    _tempInfo = null;
+
+                    try
+                    {
+                        tempStream.Dispose();
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            File.Delete(tempFilePath);
+                        }
+                        catch
+                        {
+                            // Not much to do if we can't delete from the temp directory
+                        }
+                    }
+                }
             }
 
             /// <summary>
@@ -139,53 +158,44 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(_stream != null);
                 Debug.Assert(_emitStreamSignKind != EmitStreamSignKind.SignedWithFile || _tempInfo.HasValue);
 
-                if (_tempInfo.HasValue)
+                try
                 {
-                    Debug.Assert(_emitStreamSignKind == EmitStreamSignKind.SignedWithFile);
-                    var (tempStream, tempFilePath) = _tempInfo.GetValueOrDefault();
+                    if (_tempInfo.HasValue)
+                    {
+                        Debug.Assert(_emitStreamSignKind == EmitStreamSignKind.SignedWithFile);
+                        var (tempStream, tempFilePath) = _tempInfo.GetValueOrDefault();
 
-                    try
-                    {
-                        // Dispose the temp stream to ensure all of the contents are written to 
-                        // disk.
-                        tempStream.Dispose();
-
-                        _strongNameProvider.SignFile(strongNameKeys, tempFilePath);
-
-                        using (var tempFileStream = new FileStream(tempFilePath, FileMode.Open))
-                        {
-                            tempFileStream.CopyTo(_stream);
-                        }
-                    }
-                    catch (DesktopStrongNameProvider.ClrStrongNameMissingException)
-                    {
-                        diagnostics.Add(StrongNameKeys.GetError(strongNameKeys.KeyFilePath, strongNameKeys.KeyContainer,
-                            new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported)), messageProvider));
-                        return false;
-                    }
-                    catch (IOException ex)
-                    {
-                        diagnostics.Add(StrongNameKeys.GetError(strongNameKeys.KeyFilePath, strongNameKeys.KeyContainer, ex.Message, messageProvider));
-                        return false;
-                    }
-                    finally
-                    {
                         try
                         {
-                            File.Delete(tempFilePath);
-                        }
-                        catch
-                        {
-                            // Not much to do if we can't delete from the temp directory
-                        }
+                            // Dispose the temp stream to ensure all of the contents are written to 
+                            // disk.
+                            tempStream.Dispose();
 
-                        tempStream.Dispose();
-                        _tempInfo = null;
-                        _stream = null;
+                            _strongNameProvider.SignFile(strongNameKeys, tempFilePath);
+
+                            using (var tempFileStream = new FileStream(tempFilePath, FileMode.Open))
+                            {
+                                tempFileStream.CopyTo(_stream);
+                            }
+                        }
+                        catch (DesktopStrongNameProvider.ClrStrongNameMissingException)
+                        {
+                            diagnostics.Add(StrongNameKeys.GetError(strongNameKeys.KeyFilePath, strongNameKeys.KeyContainer,
+                                new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported)), messageProvider));
+                            return false;
+                        }
+                        catch (IOException ex)
+                        {
+                            diagnostics.Add(StrongNameKeys.GetError(strongNameKeys.KeyFilePath, strongNameKeys.KeyContainer, ex.Message, messageProvider));
+                            return false;
+                        }
                     }
                 }
+                finally
+                {
+                    Close();
+                }
 
-                _stream = null;
                 return true;
             }
         }

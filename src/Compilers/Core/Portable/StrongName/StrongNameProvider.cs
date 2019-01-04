@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         internal abstract void SignFile(StrongNameKeys keys, string filePath);
 
         /// <summary>
-        /// Signs the contents of <paramref name="peBuilder"/> using <paramref name="privateKey"/>.
+        /// Signs the contents of <paramref name="peBlob"/> using <paramref name="peBuilder"/> and <paramref name="privateKey"/>.
         /// </summary>
         internal abstract void SignBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey);
 

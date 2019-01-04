@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new StrongNameKeys(keyPair, publicKey, null, container, keyFilePath, hasCounterSignature);
+            return new StrongNameKeys(keyPair, publicKey, privateKey: null, container, keyFilePath, hasCounterSignature);
         }
 
         /// <summary>
@@ -159,13 +159,15 @@ namespace Microsoft.CodeAnalysis
 
         internal override void SignFile(StrongNameKeys keys, string filePath)
         {
-            if (keys.KeyContainer != null)
+            Debug.Assert(string.IsNullOrEmpty(keys.KeyFilePath) != string.IsNullOrEmpty(keys.KeyContainer));
+
+            if (!string.IsNullOrEmpty(keys.KeyFilePath))
             {
-                Sign(filePath, keys.KeyContainer);
+                Sign(filePath, keys.KeyPair);
             }
             else
             {
-                Sign(filePath, keys.KeyPair);
+                Sign(filePath, keys.KeyContainer);
             }
         }
 
