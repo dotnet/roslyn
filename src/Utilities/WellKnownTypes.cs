@@ -141,6 +141,9 @@ namespace Analyzer.Utilities
         public const string SystemWebUIWebControlsTable = "System.Web.UI.WebControls.Table";
         public const string SystemWebHttpResponse = "System.Web.HttpResponse";
         public const string SystemWebHttpResponseBase = "System.Web.HttpResponseBase";
+        public const string SystemIODirectory = "System.IO.Directory";
+        public const string SystemIOFile = "System.IO.File";
+        public const string SystemIOFileInfo = "System.IO.FileInfo";
 
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {

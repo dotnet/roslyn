@@ -8,5 +8,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         Dll,
         InformationDisclosure,
         XSS,
+        FilePathInjection,
     }
 }
