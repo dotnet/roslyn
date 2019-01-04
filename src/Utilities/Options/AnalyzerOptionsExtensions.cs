@@ -21,9 +21,9 @@ namespace Analyzer.Utilities
             DiagnosticDescriptor rule,
             SymbolVisibilityGroup defaultValue,
             CancellationToken cancellationToken)
-            => options.GetEnumOptionValue("api_surface", rule, defaultValue, cancellationToken);
+            => options.GetEnumOptionValue(EditorConfigOptionNames.ApiSurface, rule, defaultValue, cancellationToken);
 
-        private static TEnum GetEnumOptionValue<TEnum>(
+        public static TEnum GetEnumOptionValue<TEnum>(
             this AnalyzerOptions options,
             string optionName,
             DiagnosticDescriptor rule,
@@ -33,6 +33,17 @@ namespace Analyzer.Utilities
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
             return analyzerConfigOptions.GetEnumOptionValue(optionName, rule, defaultValue);
+        }
+
+        public static bool GetBoolOptionValue(
+            this AnalyzerOptions options,
+            string optionName,
+            DiagnosticDescriptor rule,
+            bool defaultValue,
+            CancellationToken cancellationToken)
+        {
+            var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
+            return analyzerConfigOptions.GetOptionValue(optionName, rule, bool.TryParse, defaultValue);
         }
 
         private static CategorizedAnalyzerConfigOptions GetOrComputeCategorizedAnalyzerConfigOptions(

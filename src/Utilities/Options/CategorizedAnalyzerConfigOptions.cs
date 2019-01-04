@@ -140,7 +140,9 @@ namespace Analyzer.Utilities
                 => Enum.TryParse(value, ignoreCase: true, result: out result);
         }
 
-        public int GetIntegralOptionValue(string optionName, DiagnosticDescriptor rule, int defaultValue)
+        public delegate bool TryParseValue<T>(string value, out T parsedValue);
+
+        public T GetOptionValue<T>(string optionName, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue)
         {
             if (TryGetSpecificOptionValue(rule.Id, out var optionValue) ||
                 TryGetSpecificOptionValue(rule.Category, out optionValue) ||
@@ -152,23 +154,23 @@ namespace Analyzer.Utilities
             return defaultValue;
 
             // Local functions.
-            bool TryGetSpecificOptionValue(string specificOptionKey, out int specificOptionValue)
+            bool TryGetSpecificOptionValue(string specificOptionKey, out T specificOptionValue)
             {
                 if (SpecificOptions.TryGetValue(specificOptionKey, out var specificRuleOptions) &&
                     specificRuleOptions.TryGetValue(optionName, out var valueString))
                 {
-                    return int.TryParse(valueString, out specificOptionValue);
+                    return tryParseValue(valueString, out specificOptionValue);
                 }
 
                 specificOptionValue = defaultValue;
                 return false;
             }
 
-            bool TryGetGeneralOptionValue(out int generalOptionValue)
+            bool TryGetGeneralOptionValue(out T generalOptionValue)
             {
                 if (GeneralOptions.TryGetValue(optionName, out var valueString))
                 {
-                    return int.TryParse(valueString, out generalOptionValue);
+                    return tryParseValue(valueString, out generalOptionValue);
                 }
 
                 generalOptionValue = defaultValue;

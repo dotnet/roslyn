@@ -525,6 +525,9 @@ namespace Test.Utilities
                             .Select(x => KeyValuePair.Create(x.Id, ReportDiagnostic.Default))
                             .ToImmutableDictionaryOrEmpty()));
         }
+
+        protected static FileAndSource GetEditorConfigAdditionalFile(string source)
+            => new FileAndSource() { Source = source, FilePath = ".editorconfig" };
     }
 
     // Justification for suppression: We are not going to compare FileAndSource objects for equality.
