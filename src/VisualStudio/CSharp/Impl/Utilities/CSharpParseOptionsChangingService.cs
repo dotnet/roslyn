@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
             var newCSharpOptions = (CSharpParseOptions)newOptions;
 
             // Currently, only changes to the LanguageVersion of parse options are supported.
-            return oldCSharpOptions.WithLanguageVersion(newCSharpOptions.LanguageVersion) == newOptions;
+            return oldCSharpOptions.WithLanguageVersion(newCSharpOptions.SpecifiedLanguageVersion) == newOptions;
         }
 
         public void Apply(ParseOptions options, ProjectPropertyStorage storage)
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
             var csharpOptions = (CSharpParseOptions)options;
 
             storage.SetProperty("LangVersion", nameof(CSharpProjectConfigurationProperties3.LanguageVersion),
-                LanguageVersionFacts.ToDisplayString(csharpOptions.LanguageVersion));
+                LanguageVersionFacts.ToDisplayString(csharpOptions.SpecifiedLanguageVersion));
         }
     }
 }
