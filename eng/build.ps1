@@ -32,6 +32,7 @@ param (
 
     # Options
     [switch]$bootstrap,
+    [string]$bootstrapConfiguration = "Release",
     [switch][Alias('bl')]$binaryLog,
     [switch]$ci,
     [switch]$official,
@@ -40,6 +41,7 @@ param (
     [switch]$deployExtensions,
     [switch]$prepareMachine,
     [switch]$useGlobalNuGetCache = $true,
+    [switch]$warnAsError = $false,
 
     # Test actions
     [switch]$test32,
@@ -83,11 +85,13 @@ function Print-Usage() {
     Write-Host "  -ci                       Set when running on CI server"
     Write-Host "  -official                 Set when building an official build"
     Write-Host "  -bootstrap                Build using a bootstrap compilers"
+    Write-Host "  -bootstrapConfiguration   Build configuration for bootstrap compiler: 'Debug' or 'Release'"
     Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
     Write-Host "  -procdump                 Monitor test runs with procdump"
     Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
     Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
     Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
+    Write-Host "  -warnAsError              Treat all warnings as errors"
     Write-Host ""
     Write-Host "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -151,7 +155,14 @@ function BuildSolution() {
     $toolsetBuildProj = InitializeToolset
     $quietRestore = !$ci
     $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" }
+    
+    # Do not set the property to true explicitly, since that would override value projects might set.
+    $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
 
+    # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
+    # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
+    # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
+    # Warnings reported from other msbuild tasks are not treated as errors for now.
     MSBuild $toolsetBuildProj `
         $bl `
         /p:Configuration=$configuration `
@@ -165,13 +176,14 @@ function BuildSolution() {
         /p:Sign=$sign `
         /p:Publish=$publish `
         /p:ContinuousIntegrationBuild=$ci `
-        /p:DeployExtension=$deployExtensions `
         /p:OfficialBuildId=$officialBuildId `
         /p:UseRoslynAnalyzers=$enableAnalyzers `
         /p:BootstrapBuildPath=$bootstrapDir `
         /p:QuietRestore=$quietRestore `
         /p:QuietRestoreBinaryLog=$binaryLog `
         /p:TestTargetFrameworks=$testTargetFrameworks `
+        /p:TreatWarningsAsErrors=true `
+        $suppressExtensionDeployment `
         @properties
 }
 
@@ -204,6 +216,12 @@ function TestUsingOptimizedRunner() {
 
     if ($testVsi) {
         Deploy-VsixViaTool
+
+        if ($ci) {
+            # Minimize all windows to avoid interference during integration test runs
+            $shell = New-Object -ComObject "Shell.Application"
+            $shell.MinimizeAll()
+        }
     }
 
     if ($testIOperation) {

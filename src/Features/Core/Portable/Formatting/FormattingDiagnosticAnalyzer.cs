@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxAnalysis;
+            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         public override bool OpenFileOnly(Workspace workspace)
             => false;

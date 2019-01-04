@@ -1943,6 +1943,33 @@ class C
             AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
         }
 
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31907, "https://github.com/dotnet/roslyn/issues/31907")]
+        public async Task NullableReferenceTypes()
+        {
+            var code = @"[|
+class MyClass
+{
+    void MyMethod()
+    {
+        var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt !: method).ReturnType;
+    }
+}
+|]";
+            var expected = @"
+class MyClass
+{
+    void MyMethod()
+    {
+        var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt! : method).ReturnType;
+    }
+}
+";
+
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
+        }
+
         private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code))

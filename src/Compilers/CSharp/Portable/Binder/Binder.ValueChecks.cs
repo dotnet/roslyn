@@ -669,9 +669,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         fieldIsStatic == containing.IsStatic &&
                         (fieldIsStatic || fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference) &&
                         (Compilation.FeatureStrictEnabled
-                            ? fieldSymbol.ContainingType == containing.ContainingType
+                            ? TypeSymbol.Equals(fieldSymbol.ContainingType, containing.ContainingType, TypeCompareKind.ConsiderEverything2)
                             // We duplicate a bug in the native compiler for compatibility in non-strict mode
-                            : fieldSymbol.ContainingType.OriginalDefinition == containing.ContainingType.OriginalDefinition))
+                            : TypeSymbol.Equals(fieldSymbol.ContainingType.OriginalDefinition, containing.ContainingType.OriginalDefinition, TypeCompareKind.ConsiderEverything2)))
                     {
                         if (containing.Kind == SymbolKind.Method)
                         {
@@ -1397,7 +1397,7 @@ moreArguments:
 
         /// <summary>
         /// Gets "effective" ref kind of an argument. 
-        /// If the ref kind is 'in', marks that that correwsponding parameter was matched with a value
+        /// If the ref kind is 'in', marks that that corresponding parameter was matched with a value
         /// We need that to detect when there were optional 'in' parameters for which values were not supplied.
         /// 
         /// NOTE: Generally we know if a formal argument is passed as ref/out/in by looking at the call site. 
@@ -3108,7 +3108,7 @@ moreArguments:
             }
 
             // while readonly fields have home it is not valid to refer to it when not constructing.
-            if (field.ContainingType != method.ContainingType)
+            if (!TypeSymbol.Equals(field.ContainingType, method.ContainingType, TypeCompareKind.ConsiderEverything2))
             {
                 return false;
             }

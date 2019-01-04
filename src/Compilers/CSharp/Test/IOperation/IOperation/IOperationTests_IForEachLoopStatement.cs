@@ -1439,10 +1439,10 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
   Locals: Local_1: System.Int32 x
   LoopControlVariable: 
     IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is int x')
-      Expression: 
+      Value: 
         IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
       Pattern: 
-        IDeclarationPatternOperation (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, DeclaredSymbol: System.Int32 x, MatchesNull: False)
   Collection: 
     ILocalReferenceOperation: arr (OperationKind.LocalReference, Type: System.Int32[]) (Syntax: 'arr')
   Body: 
@@ -3870,7 +3870,7 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'pets')
               Value: 
-                IInvocationOperation (virtual System.Collections.Generic.IAsyncEnumerator<System.String> System.Collections.Generic.IAsyncEnumerable<System.String>.GetAsyncEnumerator()) (OperationKind.Invocation, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
+                IInvocationOperation (virtual System.Collections.Generic.IAsyncEnumerator<System.String> System.Collections.Generic.IAsyncEnumerable<System.String>.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])) (OperationKind.Invocation, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
                   Instance Receiver: 
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IAsyncEnumerable<System.String>, IsImplicit) (Syntax: 'pets')
                       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

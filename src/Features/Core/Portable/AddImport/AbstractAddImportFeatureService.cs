@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             var awaitExpression = FirstAwaitExpressionAncestor(syntaxFactsService, node);
 
-            var innerExpression = syntaxFactsService.GetExpressionOfAwaitExpression(node);
+            var innerExpression = syntaxFactsService.GetExpressionOfAwaitExpression(awaitExpression);
 
             return semanticModel.GetTypeInfo(innerExpression).Type;
         }

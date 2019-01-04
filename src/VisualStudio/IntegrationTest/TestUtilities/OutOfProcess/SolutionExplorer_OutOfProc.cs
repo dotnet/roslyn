@@ -43,10 +43,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.OpenSolution(path, saveExistingSolutionIfExists);
 
         public void AddProject(ProjectUtils.Project projectName, string projectTemplate, string languageName)
-            => _inProc.AddProject(projectName.Name, projectTemplate, languageName);
+        {
+            _inProc.AddProject(projectName.Name, projectTemplate, languageName);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
         
         public void AddCustomProject(ProjectUtils.Project projectName, string projectFileExtension, string projectFileContent)
-            => _inProc.AddCustomProject(projectName.Name, projectFileExtension, projectFileContent);
+        {
+            _inProc.AddCustomProject(projectName.Name, projectFileExtension, projectFileContent);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
 
         public void AddProjectReference(ProjectUtils.Project fromProjectName, ProjectUtils.ProjectReference toProjectName)
         {
@@ -130,8 +136,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ReloadProject(ProjectUtils.Project project)
             => _inProc.ReloadProject(project.RelativePath);
 
-        public void RestoreNuGetPackages()
-            => _inProc.RestoreNuGetPackages();
+        public void RestoreNuGetPackages(ProjectUtils.Project project)
+            => _inProc.RestoreNuGetPackages(project.Name);
 
         public void SaveAll()
             => _inProc.SaveAll();

@@ -241,6 +241,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             scope.Dispose();
         }
 
+        public void ReorderSourceFiles(IEnumerable<string> filePaths)
+        {
+            _visualStudioProject.ReorderSourceFiles(filePaths.ToImmutableArrayOrEmpty());
+        }
+
         internal VisualStudioProject GetProject_TestOnly()
         {
             return _visualStudioProject;

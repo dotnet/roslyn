@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider;
 
 namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 {
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
         public static readonly string EquivalenceKey = FeaturesResources.Make_method_synchronous;
 
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
-        protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, ITypeSymbol taskType, ITypeSymbol taskOfTType);
+        protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -89,11 +90,10 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             Document document, IMethodSymbol methodSymbolOpt, SyntaxNode node, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var taskType = compilation.TaskType();
-            var taskOfTType = compilation.TaskOfTType();
+            var knownTypes = new KnownTypes(compilation);
 
             var annotation = new SyntaxAnnotation();
-            var newNode = RemoveAsyncTokenAndFixReturnType(methodSymbolOpt, node, taskType, taskOfTType)
+            var newNode = RemoveAsyncTokenAndFixReturnType(methodSymbolOpt, node, knownTypes)
                 .WithAdditionalAnnotations(Formatter.Annotation, annotation);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

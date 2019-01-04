@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxTrivia EndOfLine(string text)
             => SyntaxFactory.EndOfLine(text);
 
+        internal override SyntaxTrivia Whitespace(string text)
+            => SyntaxFactory.Whitespace(text);
+
         internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list)
             => SyntaxFactory.SeparatedList<TElement>(list);
 
@@ -932,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                return ((AttributeListSyntax)node).WithTarget(null);
+                return (AttributeListSyntax)node;
             }
         }
 
@@ -2574,14 +2577,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override IReadOnlyList<SyntaxNode> GetParameters(SyntaxNode declaration)
         {
             var list = GetParameterList(declaration);
-            if (list != null)
-            {
-                return list.Parameters;
-            }
-            else
-            {
-                return SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
-            }
+            return list != null
+                ? list.Parameters
+                : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
         }
 
         public override SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
@@ -2657,6 +2655,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return SyntaxFactory.Token(token.Kind()).WithTriviaFrom(rewrittenToken);
             }
         }
+
+        internal override SyntaxNode GetParameterListNode(SyntaxNode declaration)
+            => GetParameterList(declaration);
 
         internal static BaseParameterListSyntax GetParameterList(SyntaxNode declaration)
         {
@@ -4137,9 +4138,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode SwitchStatement(SyntaxNode expression, IEnumerable<SyntaxNode> caseClauses)
         {
-            return SyntaxFactory.SwitchStatement(
-                (ExpressionSyntax)expression,
-                caseClauses.Cast<SwitchSectionSyntax>().ToSyntaxList());
+            if (expression is TupleExpressionSyntax)
+            {
+                return SyntaxFactory.SwitchStatement(
+                    (ExpressionSyntax)expression,
+                    caseClauses.Cast<SwitchSectionSyntax>().ToSyntaxList());
+            }
+            else
+            {
+                return SyntaxFactory.SwitchStatement(
+                    SyntaxFactory.Token(SyntaxKind.SwitchKeyword),
+                    SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+                    (ExpressionSyntax)expression,
+                    SyntaxFactory.Token(SyntaxKind.CloseParenToken),
+                    SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
+                    caseClauses.Cast<SwitchSectionSyntax>().ToSyntaxList(),
+                    SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            }
         }
 
         public override SyntaxNode SwitchSection(IEnumerable<SyntaxNode> expressions, IEnumerable<SyntaxNode> statements)
@@ -4239,6 +4254,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AsArgument)));
+
+        #endregion
+
+        #region Patterns
+
+        internal override bool SupportsPatterns(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
+
+        internal override SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern)
+            => SyntaxFactory.IsPatternExpression((ExpressionSyntax)expression, (PatternSyntax)pattern);
+
+        internal override SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name)
+            => SyntaxFactory.DeclarationPattern(
+                type.GenerateTypeSyntax(),
+                SyntaxFactory.SingleVariableDesignation(name.ToIdentifierToken()));
 
         #endregion
     }

@@ -3842,7 +3842,7 @@ select t";
         }
 
         [Fact]
-        public void NullCoalesingAssigmentExpression()
+        public void NullCoalescingAssignmentExpression()
         {
             UsingExpression("a ??= b");
             N(SyntaxKind.CoalesceAssignmentExpression);
@@ -3861,7 +3861,7 @@ select t";
         }
 
         [Fact]
-        public void NullCoalesingAssigmentExpressionParenthesized()
+        public void NullCoalescingAssignmentExpressionParenthesized()
         {
             UsingExpression("(a) ??= b");
             N(SyntaxKind.CoalesceAssignmentExpression);
@@ -3885,7 +3885,7 @@ select t";
         }
 
         [Fact]
-        public void NullCoalesingAssigmentExpressionInvocation()
+        public void NullCoalescingAssignmentExpressionInvocation()
         {
             UsingExpression("M(a) ??= b");
             N(SyntaxKind.CoalesceAssignmentExpression);
@@ -3919,7 +3919,7 @@ select t";
         }
 
         [Fact]
-        public void NullCoalesingAssigmentExpressionAndCoalescingOperator()
+        public void NullCoalescingAssignmentExpressionAndCoalescingOperator()
         {
             UsingExpression("a ?? b ??= c");
             N(SyntaxKind.CoalesceAssignmentExpression);

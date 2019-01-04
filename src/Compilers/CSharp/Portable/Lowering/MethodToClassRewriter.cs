@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var newType = VisitType(local.Type.TypeSymbol);
-            if (newType == local.Type.TypeSymbol)
+            if (TypeSymbol.Equals(newType, local.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 newLocal = local;
             }
@@ -149,15 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var newValue = (BoundExpression)this.Visit(node.Value);
             var newType = this.VisitType(node.Type);
             return node.Update(newLocals, newSideEffects, newValue, newType);
-        }
-
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
-            var newInnerLocals = RewriteLocals(node.InnerLocals);
-            BoundExpression boundExpression = (BoundExpression)this.Visit(node.Expression);
-            ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-            return node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, newInnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality);
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)
@@ -457,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
             var rewritten = (BoundObjectCreationExpression)base.VisitObjectCreationExpression(node);
-            if (rewritten.Type != node.Type && (object)node.Constructor != null)
+            if (!TypeSymbol.Equals(rewritten.Type, node.Type, TypeCompareKind.ConsiderEverything2) && (object)node.Constructor != null)
             {
                 MethodSymbol ctor = VisitMethodSymbol(node.Constructor);
                 rewritten = rewritten.Update(

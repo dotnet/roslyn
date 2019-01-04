@@ -3,6 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
@@ -884,6 +885,20 @@ aeu";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(30783, "https://github.com/dotnet/roslyn/issues/30783")]
+        public async Task PP_PragmaWarningDisableAllWithComment()
+        {
+            var code = @"#pragma warning disable //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("pragma"),
+                PPKeyword("warning"),
+                PPKeyword("disable"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaWarningRestoreOne()
         {
             var code = @"#pragma warning restore 100";
@@ -907,6 +922,20 @@ aeu";
                 PPKeyword("warning"),
                 PPKeyword("restore"),
                 Number("100"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(30783, "https://github.com/dotnet/roslyn/issues/30783")]
+        public async Task PP_PragmaWarningRestoreAllWithComment()
+        {
+            var code = @"#pragma warning restore //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("pragma"),
+                PPKeyword("warning"),
+                PPKeyword("restore"),
                 Comment("//Goo"));
         }
 
@@ -988,8 +1017,8 @@ aeu";
         {
             await TestInMethodAsync(
                 code: @"switch (1) { case int _: }",
-                expected: Classifications(Keyword("switch"), Punctuation.OpenParen, Number("1"), Punctuation.CloseParen,
-                    Punctuation.OpenCurly, Keyword("case"), Keyword("int"), Keyword("_"), Punctuation.Colon, Punctuation.CloseCurly));
+                expected: Classifications(ControlKeyword("switch"), Punctuation.OpenParen, Number("1"), Punctuation.CloseParen,
+                    Punctuation.OpenCurly, ControlKeyword("case"), Keyword("int"), Keyword("_"), Punctuation.Colon, Punctuation.CloseCurly));
         }
 
         [Fact]
@@ -997,7 +1026,7 @@ aeu";
         {
             await TestInMethodAsync(
                 code: @"var (x, _) = (1, 2);",
-                expected: Classifications(Identifier("var"), Punctuation.OpenParen, Identifier("x"), Punctuation.Comma,
+                expected: Classifications(Identifier("var"), Punctuation.OpenParen, Local("x"), Punctuation.Comma,
                     Keyword("_"), Punctuation.CloseParen, Operators.Equals, Punctuation.OpenParen, Number("1"),
                     Punctuation.Comma, Number("2"), Punctuation.CloseParen, Punctuation.Semicolon));
         }

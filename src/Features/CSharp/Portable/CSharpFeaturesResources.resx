@@ -536,6 +536,9 @@
   <data name="Allow_unsafe_code_in_this_project" xml:space="preserve">
     <value>Allow unsafe code in this project</value>
   </data>
+  <data name="Add_Obsolete" xml:space="preserve">
+    <value>Add [Obsolete]</value>
+  </data>
   <data name="Convert_to_method" xml:space="preserve">
     <value>Convert to method</value>
   </data>
