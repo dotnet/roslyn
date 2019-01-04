@@ -94,6 +94,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     userSetting = textView.Options.GlobalOptions.GetOptionValue<int>(useAsyncCompletionOptionName);
                 }
 
+                // The meaning of the UseAsyncCompletion option definition's values:
+                // -1 - user disabled async completion
+                //  0 - no changes from the user; check the experimentation service for whether to use async completion
+                //  1 - user enabled async completion
                 if (userSetting == 1)
                 {
                     _newCompletionAPIEnabled = true;
