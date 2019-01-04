@@ -116,10 +116,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
             ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
 
-            // Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/627280
-            var solution = GetGlobalService<SVsSolution, IVsSolution>();
-            ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
-
             _solution = (Solution2)dte.Solution;
             _fileName = Path.Combine(solutionPath, solutionFileName);
         }

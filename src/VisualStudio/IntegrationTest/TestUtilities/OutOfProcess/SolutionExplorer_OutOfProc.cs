@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _inProc.AddProject(projectName.Name, projectTemplate, languageName);
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
-        
+
         public void AddCustomProject(ProjectUtils.Project projectName, string projectFileExtension, string projectFileContent)
         {
             _inProc.AddCustomProject(projectName.Name, projectFileExtension, projectFileContent);
