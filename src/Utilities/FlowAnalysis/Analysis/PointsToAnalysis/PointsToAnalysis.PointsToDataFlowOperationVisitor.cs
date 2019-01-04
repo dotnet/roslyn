@@ -133,7 +133,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             private static void SetAbstractValueCore(PointsToAnalysisData pointsToAnalysisData, AnalysisEntity analysisEntity, PointsToAbstractValue value)
                 => pointsToAnalysisData.SetAbstractValue(analysisEntity, value);
 
-            private void ResetAbstractValue(AnalysisEntity analysisEntity, PointsToAnalysisData pointsToAnalysisData)
+            protected override void ResetAbstractValue(AnalysisEntity analysisEntity)
+            {
+                if (analysisEntity.IsLValueFlowCaptureEntity)
+                {
+                    // Flow captures can never be re-assigned.
+                    return;
+                }
+
+                SetAbstractValue(analysisEntity, PointsToAbstractValue.Unknown);
+            }
+
+            private static void ResetAbstractValueIfTracked(AnalysisEntity analysisEntity, PointsToAnalysisData pointsToAnalysisData)
             {
                 if (pointsToAnalysisData.TryGetValue(analysisEntity, out var currentValue))
                 {
@@ -422,7 +433,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             protected override PointsToAnalysisData MergeAnalysisData(PointsToAnalysisData value1, PointsToAnalysisData value2)
                 => _pointsToAnalysisDomain.Merge(value1, value2);
             protected override PointsToAnalysisData MergeAnalysisDataForBackEdge(PointsToAnalysisData value1, PointsToAnalysisData value2)
-                => _pointsToAnalysisDomain.MergeAnalysisDataForBackEdge(value1, value2, GetChildAnalysisEntities, ResetAbstractValue);
+                => _pointsToAnalysisDomain.MergeAnalysisDataForBackEdge(value1, value2, GetChildAnalysisEntities, ResetAbstractValueIfTracked);
             protected override PointsToAnalysisData GetClonedAnalysisData(PointsToAnalysisData analysisData)
                 => (PointsToAnalysisData)analysisData.Clone();
             public override PointsToAnalysisData GetEmptyAnalysisData()
@@ -813,6 +824,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
 
                 return value;
+            }
+
+            public override PointsToAbstractValue ComputeValueForCompoundAssignment(ICompoundAssignmentOperation operation, PointsToAbstractValue targetValue, PointsToAbstractValue assignedValue, ITypeSymbol targetType, ITypeSymbol assignedValueType)
+            {
+                if (targetValue.Kind == PointsToAbstractValueKind.KnownLValueCaptures)
+                {
+                    // Flow captures can never be re-assigned, so reuse the target value.
+                    return targetValue;
+                }
+
+                return base.ComputeValueForCompoundAssignment(operation, targetValue, assignedValue, targetType, assignedValueType);
             }
 
             #endregion

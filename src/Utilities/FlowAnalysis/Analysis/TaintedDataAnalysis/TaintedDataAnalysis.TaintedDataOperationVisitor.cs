@@ -111,6 +111,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             private static void SetAbstractValueCore(TaintedDataAnalysisData taintedAnalysisData, AnalysisEntity analysisEntity, TaintedDataAbstractValue value)
                 => taintedAnalysisData.SetAbstractValue(analysisEntity, value);
 
+            protected override void ResetAbstractValue(AnalysisEntity analysisEntity)
+            {
+                this.SetAbstractValue(analysisEntity, ValueDomain.UnknownOrMayBeValue);
+            }
+
             protected override void StopTrackingEntity(AnalysisEntity analysisEntity)
             {
                 this.CurrentAnalysisData.RemoveEntries(analysisEntity);
