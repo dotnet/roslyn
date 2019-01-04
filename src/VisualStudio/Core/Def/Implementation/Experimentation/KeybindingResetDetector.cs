@@ -157,10 +157,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             // make sure all state machine change work is serialized so that cancellation
             // doesn't mess the state up.   
-            _lastTask = _lastTask.ContinueWith(_ =>
+            _lastTask = _lastTask.SafeContinueWithFromAsync(_ =>
             {
-                UpdateStateMachineWorkerAsync(cancellationToken).ConfigureAwait(false);
-            }, cancellationToken, TaskContinuationOptions.LazyCancellation, TaskScheduler.Default);
+                return UpdateStateMachineWorkerAsync(cancellationToken);
+            }, cancellationToken, TaskScheduler.Default);
         }
 
         private async Task UpdateStateMachineWorkerAsync(CancellationToken cancellationToken)
