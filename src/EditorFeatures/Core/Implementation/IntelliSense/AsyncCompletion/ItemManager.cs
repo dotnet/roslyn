@@ -329,8 +329,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return new FilteredCompletionModel(
                 highlightedList, index, filters,
                 hardSelect ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected,
-                centerSelection: true, 
-                uniqueItem: matchCount == 1 ? bestFilterResult.Value.VSCompletionItem : default);
+                centerSelection: true,
+                uniqueItem: matchCount == 1 ? bestFilterResult.GetValueOrDefault().VSCompletionItem : default);
         }
 
         private FilteredCompletionModel HandleAllItemsFilteredOut(
