@@ -3311,10 +3311,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
     {
+      var awaitKeyword = this.VisitToken(node.AwaitKeyword);
+      var usingKeyword = this.VisitToken(node.UsingKeyword);
       var modifiers = this.VisitList(node.Modifiers);
       var declaration = (VariableDeclarationSyntax)this.Visit(node.Declaration);
       var semicolonToken = this.VisitToken(node.SemicolonToken);
-      return node.Update(modifiers, declaration, semicolonToken);
+      return node.Update(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
     }
 
     public override SyntaxNode VisitVariableDeclaration(VariableDeclarationSyntax node)
@@ -7152,8 +7154,24 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new LocalDeclarationStatementSyntax instance.</summary>
-    public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+    public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
+      switch (awaitKeyword.Kind())
+      {
+        case SyntaxKind.AwaitKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(awaitKeyword));
+      }
+      switch (usingKeyword.Kind())
+      {
+        case SyntaxKind.UsingKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(usingKeyword));
+      }
       if (declaration == null)
         throw new ArgumentNullException(nameof(declaration));
       switch (semicolonToken.Kind())
@@ -7163,20 +7181,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException(nameof(semicolonToken));
       }
-      return (LocalDeclarationStatementSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.LocalDeclarationStatement(modifiers.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), declaration == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node).CreateRed();
+      return (LocalDeclarationStatementSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.LocalDeclarationStatement((Syntax.InternalSyntax.SyntaxToken)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)usingKeyword.Node, modifiers.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), declaration == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node).CreateRed();
     }
 
 
     /// <summary>Creates a new LocalDeclarationStatementSyntax instance.</summary>
     public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration)
     {
-      return SyntaxFactory.LocalDeclarationStatement(modifiers, declaration, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+      return SyntaxFactory.LocalDeclarationStatement(default(SyntaxToken), default(SyntaxToken), modifiers, declaration, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 
     /// <summary>Creates a new LocalDeclarationStatementSyntax instance.</summary>
     public static LocalDeclarationStatementSyntax LocalDeclarationStatement(VariableDeclarationSyntax declaration)
     {
-      return SyntaxFactory.LocalDeclarationStatement(default(SyntaxTokenList), declaration, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+      return SyntaxFactory.LocalDeclarationStatement(default(SyntaxToken), default(SyntaxToken), default(SyntaxTokenList), declaration, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 
     /// <summary>Creates a new VariableDeclarationSyntax instance.</summary>

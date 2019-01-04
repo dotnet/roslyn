@@ -1669,7 +1669,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInInterfaceImplementedByBase = 8644,
         WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList = 8645,
         ERR_DuplicateExplicitImpl = 8646,
-
+        ERR_UsingVarInSwitchCase = 8647,
+        ERR_GoToForwardJumpOverUsingVar = 8648,
+        ERR_GoToBackwardJumpOverUsingVar = 8649,
         #endregion diagnostics introduced for C# 8.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
