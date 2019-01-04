@@ -4,12 +4,11 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.FSharp.Classification
+namespace Microsoft.CodeAnalysis.ExternalAccess.Classification
 {
     [ExportLanguageService(typeof(IClassificationService), LanguageNames.FSharp), Shared]
     internal class FSharpClassificationService : IClassificationService

@@ -448,27 +448,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 switch (args.Kind)
                 {
                     case WorkspaceChangeKind.ProjectChanged:
-                    {
-                        var documentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-                        if (documentId == null || documentId.ProjectId != args.ProjectId)
                         {
+                            var documentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
+                            if (documentId == null || documentId.ProjectId != args.ProjectId)
+                            {
+                                break;
+                            }
+
+                            var oldProject = args.OldSolution.GetProject(args.ProjectId);
+                            var newProject = args.NewSolution.GetProject(args.ProjectId);
+
+                            // make sure in case of parse config change, we re-colorize whole document. not just edited section.
+                            var configChanged = !object.Equals(oldProject.ParseOptions, newProject.ParseOptions);
+                            EnqueueParseSnapshotTask(newProject.GetDocument(documentId));
                             break;
                         }
 
-                        var oldProject = args.OldSolution.GetProject(args.ProjectId);
-                        var newProject = args.NewSolution.GetProject(args.ProjectId);
-
-                        // make sure in case of parse config change, we re-colorize whole document. not just edited section.
-                        var configChanged = !object.Equals(oldProject.ParseOptions, newProject.ParseOptions);
-                        EnqueueParseSnapshotTask(newProject.GetDocument(documentId));
-                        break;
-                    }
-
                     case WorkspaceChangeKind.DocumentChanged:
-                    {
-                        ParseIfThisDocument(args.NewSolution, args.DocumentId);
-                        break;
-                    }
+                        {
+                            ParseIfThisDocument(args.NewSolution, args.DocumentId);
+                            break;
+                        }
                 }
 
                 // put a request to update last parsed document.

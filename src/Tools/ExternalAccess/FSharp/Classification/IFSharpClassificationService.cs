@@ -3,11 +3,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.FSharp.Classification
+namespace Microsoft.CodeAnalysis.ExternalAccess.Classification
 {
     internal interface IFSharpClassificationService
     {

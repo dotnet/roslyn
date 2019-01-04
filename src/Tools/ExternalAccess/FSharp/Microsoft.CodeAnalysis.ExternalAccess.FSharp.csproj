@@ -16,11 +16,6 @@
       https://github.com/Microsoft/visualfsharp
     </PackageDescription>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-  </ItemGroup>
   
   <ItemGroup>
     <!--
