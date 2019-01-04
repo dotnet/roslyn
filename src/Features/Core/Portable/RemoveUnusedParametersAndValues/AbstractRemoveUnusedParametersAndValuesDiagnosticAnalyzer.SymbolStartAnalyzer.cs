@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,
                 INamedTypeSymbol eventArgsTypeOpt,
                 ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
-                in DeserializationConstructorCheck deserializationConstructorCheck)
+                DeserializationConstructorCheck deserializationConstructorCheck)
             {
                 _compilationAnalyzer = compilationAnalyzer;
 
