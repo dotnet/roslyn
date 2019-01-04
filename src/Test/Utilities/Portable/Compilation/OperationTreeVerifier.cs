@@ -1773,7 +1773,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogNewLine();
 
             VisitArray(operation.DeconstructionSubpatterns, $"{nameof(operation.DeconstructionSubpatterns)} ", true, true);
-            VisitArrayCommon(operation.PropertySubpatterns, $"{nameof(operation.PropertySubpatterns)} ", true, true, subpat => {
+            VisitArrayCommon(operation.PropertySubpatterns, $"{nameof(operation.PropertySubpatterns)} ", true, true, subpat =>
+            {
                 LogSymbol(subpat.Item1, "MatchedSymbol");
                 Visit(subpat.Item2, ", Pattern");
             });
