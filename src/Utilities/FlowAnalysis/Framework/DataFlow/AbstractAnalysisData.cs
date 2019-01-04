@@ -13,13 +13,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             IsDisposed = true;
         }
 
-#pragma warning disable CA1063 // Implement IDisposable Correctly - We want to ensure that we cleanup managed resources even when object was not explicitly disposed.
-        ~AbstractAnalysisData()
-#pragma warning restore CA1063 // Implement IDisposable Correctly
-        {
-            Dispose(true);  // We want to explicitly cleanup managed resources, so pass 'true'
-        }
-
         public void Dispose()
         {
             Dispose(true);
