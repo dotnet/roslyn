@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             LocalDeclarationStatementSyntax syntax = (LocalDeclarationStatementSyntax)usingDeclarations.Syntax;
             BoundBlock body = new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements);
-            
-            //PROTOTYPE: need to handle await using when boundMultipleLocalDeclarations supports it
+
             var usingStatement = MakeDeclarationUsingStatement(syntax,
                                                                body,
                                                                ImmutableArray<LocalSymbol>.Empty,

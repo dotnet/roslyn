@@ -3166,7 +3166,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal PatternLookupResult PerformPatternMethodLookup(BoundExpression receiver, string methodName,
                                                                 SyntaxNode syntaxNode, DiagnosticBag diagnostics, out MethodSymbol result)
         {
-            // PROTOTYPE: try and resolve the method using binding 
             var bindingDiagnostics = DiagnosticBag.GetInstance();
 
             try

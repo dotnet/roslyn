@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tryStatementSyntax.IsKind(SyntaxKind.UsingStatement) ||
                 tryStatementSyntax.IsKind(SyntaxKind.ForEachStatement) ||
                 tryStatementSyntax.IsKind(SyntaxKind.ForEachVariableStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement));   //PROTOTYPE: Test this with Edit-and-Continue
+                tryStatementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement)); 
 
             BoundStatement finalizedRegion;
             BoundBlock rewrittenFinally;
