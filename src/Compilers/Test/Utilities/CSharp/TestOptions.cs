@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // binder, so that we may eliminate the old one in the future.
         public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV7SwitchBinder", "true" } });
 
+        public static readonly CSharpParseOptions RegularWithoutRecursivePatterns = Regular7_3;
+        public static readonly CSharpParseOptions RegularWithRecursivePatterns = Regular8;
+
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release);
 

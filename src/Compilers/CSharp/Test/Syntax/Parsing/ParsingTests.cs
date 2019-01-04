@@ -57,7 +57,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
         {
-            UsingNode(text, SyntaxFactory.ParseStatement(text), expectedErrors);
+            UsingStatement(text, options: null, expectedErrors);
+        }
+
+        internal void UsingStatement(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
+        {
+            var node = SyntaxFactory.ParseStatement(text, options: options);
+            // we validate the text roundtrips
+            Assert.Equal(text, node.ToFullString());
+            var actualErrors = node.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+            UsingNode(node);
         }
 
         internal void UsingDeclaration(string text, params DiagnosticDescription[] expectedErrors)

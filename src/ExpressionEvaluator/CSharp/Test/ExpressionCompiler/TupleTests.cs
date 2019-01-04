@@ -353,7 +353,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void DeclareLocal()
         {
             var source =
@@ -418,8 +418,8 @@ class C
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(13589, "https://github.com/dotnet/roslyn/issues/13589")]
-        [Fact]
         public void Alias()
         {
             var source =
@@ -483,8 +483,8 @@ class C
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(13803, "https://github.com/dotnet/roslyn/issues/13803")]
-        [Fact]
         public void AliasElement_NoNames()
         {
             var source =
