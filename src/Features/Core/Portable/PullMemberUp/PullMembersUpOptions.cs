@@ -6,9 +6,10 @@ using System.Linq;
 namespace Microsoft.CodeAnalysis.PullMemberUp
 {
     /// <summary>
-    /// This is struct contains all the operations needs to be done on members and destination to complete the pull up operation.
+    /// This class contains all the operations needs to be done on members and destination to complete the pull up operation.
+    /// If user clicked the cancel button, it will be null.
     /// </summary>
-    internal readonly struct PullMembersUpAnalysisResult
+    internal class PullMembersUpOptions
     {
         /// <summary>
         /// Destination of where members should be pulled up to.
@@ -24,15 +25,15 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         /// <summary>
         /// Indicate whether it would cause error if we directly pull all members in MemberAnalysisResults up to destination.
         /// </summary>
-        public readonly bool PullUpOperationCausesError;
+        public readonly bool PullUpOperationNeedsToDoExtraChanges;
 
-        internal PullMembersUpAnalysisResult(
+        public PullMembersUpOptions(
             INamedTypeSymbol destination,
             ImmutableArray<MemberAnalysisResult> memberAnalysisResults)
         {
             Destination = destination;
             MemberAnalysisResults = memberAnalysisResults;
-            PullUpOperationCausesError = MemberAnalysisResults.Any(result => result.PullMemberUpCausesError);
+            PullUpOperationNeedsToDoExtraChanges = MemberAnalysisResults.Any(result => result.PullMemberUpNeedsToDoExtraChanges);
         }
     }
 }
