@@ -1884,6 +1884,9 @@ public class C : I, J
 }
 ");
             compilation.VerifyDiagnostics(
+                // (13,14): error CS8646: 'I.this[int]' is explicitly implemented more than once.
+                // public class C : I, J
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C").WithArguments("I.this[int]").WithLocation(13, 14),
                 // (16,19): error CS0111: Type 'C' already defines a member called 'this' with the same parameter types
                 //     int AliasForI.this[int x] { get { return 0; } set { } } //CS0111
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C"));
@@ -16166,8 +16169,8 @@ class A : C {
             var errorFieldType = (ErrorTypeSymbol)fieldType;
             Assert.Equal(CandidateReason.Ambiguous, errorFieldType.CandidateReason);
             Assert.Equal(2, errorFieldType.CandidateSymbols.Length);
-            Assert.True((classBinN1 == errorFieldType.CandidateSymbols[0] && classBinN2 == errorFieldType.CandidateSymbols[1]) ||
-                        (classBinN2 == errorFieldType.CandidateSymbols[0] && classBinN1 == errorFieldType.CandidateSymbols[1]),
+            Assert.True((TypeSymbol.Equals(classBinN1, (TypeSymbol)errorFieldType.CandidateSymbols[0], TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(classBinN2, (TypeSymbol)errorFieldType.CandidateSymbols[1], TypeCompareKind.ConsiderEverything2)) ||
+                        (TypeSymbol.Equals(classBinN2, (TypeSymbol)errorFieldType.CandidateSymbols[0], TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(classBinN1, (TypeSymbol)errorFieldType.CandidateSymbols[1], TypeCompareKind.ConsiderEverything2)),
                         "CandidateSymbols must by N1.B and N2.B in some order");
         }
 

@@ -2095,7 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (instanceMap.TryGetValue(tOriginal, out oldInstance))
             {
                 // short circuit when we find a cycle, but only return true when the cycle contains the top struct
-                return (oldInstance != t) && ReferenceEquals(tOriginal, top);
+                return (!TypeSymbol.Equals(oldInstance, t, TypeCompareKind.ConsiderEverything2)) && ReferenceEquals(tOriginal, top);
             }
             else
             {

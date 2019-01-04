@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         // virtual for testing
         protected virtual string[] GetLogicalDrives()
-            => IOUtilities.PerformIO(CorLightup.Desktop.GetLogicalDrives, Array.Empty<string>());
+            => IOUtilities.PerformIO(Directory.GetLogicalDrives, Array.Empty<string>());
 
         // virtual for testing
         protected virtual bool DirectoryExists(string fullPath)

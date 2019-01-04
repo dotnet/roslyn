@@ -51,9 +51,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\OrderPreservingMultiDictionary.cs">
       <Link>Utilities\CompilerUtilities\OrderPreservingMultiDictionary.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\CorLightup.cs">
-      <Link>InternalUtilities\CorLightup.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\AnalyzerAssemblyLoader.cs</Link>
     </Compile>

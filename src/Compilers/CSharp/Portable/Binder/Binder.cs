@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual Imports GetImports(ConsList<Symbol> basesBeingResolved)
+        internal virtual Imports GetImports(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _next.GetImports(basesBeingResolved);
         }
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             if (this.Flags.Includes(BinderFlags.IgnoreAccessibility))
             {

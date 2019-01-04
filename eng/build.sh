@@ -214,6 +214,12 @@ function BuildSolution {
     enable_analyzers=false
   fi
 
+  # NuGet often exceeds the limit of open files on Mac and Linux
+  # https://github.com/NuGet/Home/issues/2163
+  if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
+    ulimit -n 6500
+  fi
+
   local quiet_restore=""
   if [[ "$ci" != true ]]; then
     quiet_restore=true
@@ -261,8 +267,6 @@ function BuildSolution {
 }
 
 InitializeDotNetCli $restore
-
-export PATH="$DOTNET_INSTALL_DIR:$PATH"
 
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then

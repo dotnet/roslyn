@@ -386,7 +386,7 @@ namespace N1 {
                 SymbolDisplayPartKind.TypeParameterName, //TSource
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.ExtensionMethodName, //M
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.TypeParameterName, //TSource
                 SymbolDisplayPartKind.Punctuation,
@@ -572,7 +572,7 @@ namespace N1 {
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName, //C1
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.ExtensionMethodName, //M
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.TypeParameterName, //TSource
                 SymbolDisplayPartKind.Punctuation,
@@ -628,7 +628,7 @@ namespace N1 {
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName, //C1
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.ExtensionMethodName, //M
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.TypeParameterName, //TSource
                 SymbolDisplayPartKind.Punctuation,
@@ -3376,7 +3376,7 @@ struct S
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation, //.
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Punctuation); //)
 
             TestSymbolDescription(text, findSymbol2,
@@ -3417,7 +3417,7 @@ struct S
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Punctuation); //)
         }
 
@@ -3488,7 +3488,7 @@ struct S
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation, //.
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Punctuation); //)
 
             TestSymbolDescription(text, findSymbol2,
@@ -3508,13 +3508,13 @@ struct S
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation, //.
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation, //|
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation, //.
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Punctuation); //)
 
             TestSymbolDescription(text, findSymbol3,
@@ -3534,7 +3534,7 @@ struct S
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Punctuation);
         }
 
@@ -3598,7 +3598,7 @@ struct S
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation, //.
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Punctuation, //,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
@@ -3609,13 +3609,13 @@ struct S
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation, //.
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation, //|
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation, //.
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Punctuation, //,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
@@ -3626,7 +3626,7 @@ struct S
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation, //.
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Punctuation, //,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
@@ -3677,7 +3677,7 @@ struct S
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.ConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
@@ -3721,13 +3721,13 @@ class C {
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.ConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.FieldName);
+                SymbolDisplayPartKind.EnumMemberName);
         }
 
         [Fact]
@@ -3768,13 +3768,13 @@ class C {
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.ConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.FieldName);
+                SymbolDisplayPartKind.EnumMemberName);
         }
 
         [Fact]
@@ -3804,7 +3804,7 @@ class C {
                 "E.B = 1",
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
@@ -3839,25 +3839,25 @@ enum E { A = 1, B = 2, C = 4, D = A | B | C }";
                 "E.D = E.A | E.B | E.C",
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.FieldName);
+                SymbolDisplayPartKind.EnumMemberName);
         }
 
         [Fact]
@@ -3887,7 +3887,7 @@ enum E { A = 1, B = 2, C = 4, D = A | B | C }";
                 "E.D = 7",
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
@@ -6559,7 +6559,7 @@ enum E : long
                 "E.A = 0",
                 SymbolDisplayPartKind.EnumName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.EnumMemberName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,

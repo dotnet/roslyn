@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     F.Goto(breakLabel));
 
                 body = F.Block(
-                    F.Switch(state, sections),
+                    F.Switch(state, sections.ToImmutableArray()),
                     F.Label(breakLabel));
             }
 
@@ -357,6 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     (BoundBlock)Visit(node.TryBlock),
                                     VisitList(node.CatchBlocks),
                                     (BoundBlock)Visit(node.FinallyBlockOpt),
+                                    node.FinallyLabelOpt,
                                     node.PreferFaultHandler);
 
                 _tryNestingLevel--;

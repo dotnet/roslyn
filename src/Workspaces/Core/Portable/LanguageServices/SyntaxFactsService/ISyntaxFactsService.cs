@@ -380,6 +380,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
 
+        bool IsNameOfSubpattern(SyntaxNode node);
+        bool IsPropertyPatternClause(SyntaxNode node);
+
         ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan);
         bool IsOnTypeHeader(SyntaxNode root, int position);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);

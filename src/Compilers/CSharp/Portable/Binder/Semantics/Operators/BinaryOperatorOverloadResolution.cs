@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // which we duplicate by hardcoding Priority values among the operators. When present on both
                         // methods being compared during overload resolution, Priority values are used to decide between
                         // two candidates (instead of the usual language-specified rules).
-                        bool isExactSubtraction = right.Type?.StrippedType() == underlying;
+                        bool isExactSubtraction = TypeSymbol.Equals(right.Type?.StrippedType(), underlying, TypeCompareKind.ConsiderEverything2);
                         operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumSubtraction, enumType, enumType, underlying)
                         { Priority = 2 });
                         operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumAndUnderlyingSubtraction, enumType, underlying, enumType)
@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.NotEqual:
                     // Spec violation: can't lift unless the types match.
                     // The spec doesn't require this, but dev11 does and it reduces ambiguity in some cases.
-                    if (left != right) return LiftingResult.NotLifted;
+                    if (!TypeSymbol.Equals(left, right, TypeCompareKind.ConsiderEverything2)) return LiftingResult.NotLifted;
                     goto case BinaryOperatorKind.GreaterThan;
                 case BinaryOperatorKind.GreaterThan:
                 case BinaryOperatorKind.GreaterThanOrEqual:

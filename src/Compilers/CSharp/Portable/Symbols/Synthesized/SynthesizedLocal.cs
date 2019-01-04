@@ -172,10 +172,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<Diagnostic>.Empty;
         }
 
-        private new string GetDebuggerDisplay()
+#if DEBUG
+        private static int _nextSequence = 0;
+        // Produce a token that helps distinguish one variable from another when debugging
+        private int _sequence = System.Threading.Interlocked.Increment(ref _nextSequence);
+
+        internal string DumperString()
         {
             var builder = new StringBuilder();
-            builder.Append((_kind == SynthesizedLocalKind.UserDefined) ? "<temp>" : _kind.ToString());
+            builder.Append(_type.ToDisplayString(SymbolDisplayFormat.TestFormat));
+            builder.Append(' ');
+            builder.Append(_kind.ToString());
+            builder.Append('.');
+            builder.Append(_sequence);
+            return builder.ToString();
+        }
+#endif
+
+        override internal string GetDebuggerDisplay()
+        {
+            var builder = new StringBuilder();
+            builder.Append('<');
+            builder.Append(_kind.ToString());
+            builder.Append('>');
+#if DEBUG
+            builder.Append('.');
+            builder.Append(_sequence);
+#endif
             builder.Append(' ');
             builder.Append(_type.ToDisplayString(SymbolDisplayFormat.TestFormat));
 

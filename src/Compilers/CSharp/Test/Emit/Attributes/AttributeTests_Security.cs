@@ -1214,7 +1214,7 @@ namespace N
 }
 ";
             var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.UnsafeReleaseDll);
-            CompileAndVerify(compilation, verify: Verification.Passes,symbolValidator: module =>
+            CompileAndVerify(compilation, verify: Verification.Passes, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
                 {

@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if ((object)_associatedPropertyOrEventOpt == null)
             {
-                Debug.Assert(propertyOrEventSymbol.ContainingType == _containingType);
+                Debug.Assert(TypeSymbol.Equals(propertyOrEventSymbol.ContainingType, _containingType, TypeCompareKind.ConsiderEverything2));
 
                 // No locking required since SetAssociatedProperty/SetAssociatedEvent will only be called
                 // by the thread that created the method symbol (and will be called before the method

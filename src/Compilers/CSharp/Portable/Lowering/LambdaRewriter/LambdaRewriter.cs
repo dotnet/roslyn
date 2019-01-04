@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(slotAllocatorOpt, compilationState, diagnostics)
         {
             Debug.Assert(analysis != null);
-            Debug.Assert(thisType != null);
+            Debug.Assert((object)thisType != null);
             Debug.Assert(method != null);
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<LocalSymbol> assignLocals)
         {
             Debug.Assert((object)thisType != null);
-            Debug.Assert(((object)thisParameter == null) || (thisParameter.Type.TypeSymbol == thisType));
+            Debug.Assert(((object)thisParameter == null) || (TypeSymbol.Equals(thisParameter.Type.TypeSymbol, thisType, TypeCompareKind.ConsiderEverything2)));
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
 
             var analysis = Analysis.Analyze(
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </param>
         private SynthesizedClosureEnvironment GetStaticFrame(DiagnosticBag diagnostics, SyntaxNode syntax)
         {
-            if (_lazyStaticLambdaFrame == null)
+            if ((object)_lazyStaticLambdaFrame == null)
             {
                 var isNonGeneric = !_topLevelMethod.IsGenericMethod;
                 if (isNonGeneric)
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _lazyStaticLambdaFrame = CompilationState.StaticLambdaFrame;
                 }
 
-                if (_lazyStaticLambdaFrame == null)
+                if ((object)_lazyStaticLambdaFrame == null)
                 {
                     DebugId methodId;
                     if (isNonGeneric)
@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression FrameOfType(SyntaxNode syntax, NamedTypeSymbol frameType)
         {
             BoundExpression result = FramePointer(syntax, frameType.OriginalDefinition);
-            Debug.Assert(result.Type == frameType);
+            Debug.Assert(TypeSymbol.Equals(result.Type, frameType, TypeCompareKind.ConsiderEverything2));
             return result;
         }
 
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(frameClass.IsDefinition);
 
             // If in an instance method of the right type, we can just return the "this" pointer.
-            if ((object)_currentFrameThis != null && _currentFrameThis.Type.TypeSymbol == frameClass)
+            if ((object)_currentFrameThis != null && TypeSymbol.Equals(_currentFrameThis.Type.TypeSymbol, frameClass, TypeCompareKind.ConsiderEverything2))
             {
                 return new BoundThisReference(syntax, frameClass);
             }
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (var i = start; i < lambda.ParameterCount; i++)
                 {
                     var potentialParameter = lambda.Parameters[i];
-                    if (potentialParameter.Type.TypeSymbol.OriginalDefinition == frameClass)
+                    if (TypeSymbol.Equals(potentialParameter.Type.TypeSymbol.OriginalDefinition, frameClass, TypeCompareKind.ConsiderEverything2))
                     {
                         return new BoundParameter(syntax, potentialParameter);
                     }
@@ -606,11 +606,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLocal(syntax, localFrame, null, localFrame.Type.TypeSymbol);
         }
 
-        private static void InsertAndFreePrologue(ArrayBuilder<BoundStatement> result, ArrayBuilder<BoundExpression> prologue)
+        private static void InsertAndFreePrologue<T>(ArrayBuilder<BoundStatement> result, ArrayBuilder<T> prologue) where T: BoundNode
         {
-            foreach (var expr in prologue)
+            foreach (var node in prologue)
             {
-                result.Add(new BoundExpressionStatement(expr.Syntax, expr));
+                if (node is BoundStatement stmt)
+                {
+                    result.Add(stmt);
+                }
+                else
+                {
+                    result.Add(new BoundExpressionStatement(node.Syntax, (BoundExpression)(BoundNode)node));
+                }
             }
 
             prologue.Free();
@@ -641,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)frame.Constructor != null)
             {
                 MethodSymbol constructor = frame.Constructor.AsMember(frameType);
-                Debug.Assert(frameType == constructor.ContainingType);
+                Debug.Assert(TypeSymbol.Equals(frameType, constructor.ContainingType, TypeCompareKind.ConsiderEverything2));
 
                 prologue.Add(new BoundAssignmentOperator(syntax,
                     new BoundLocal(syntax, framePointer, null, frameType),
@@ -798,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
-            return (!_currentMethod.IsStatic && _currentMethod.ContainingType == _topLevelMethod.ContainingType)
+            return (!_currentMethod.IsStatic && TypeSymbol.Equals(_currentMethod.ContainingType, _topLevelMethod.ContainingType, TypeCompareKind.ConsiderEverything2))
                 ? node
                 : FramePointer(node.Syntax, _topLevelMethod.ContainingType); // technically, not the correct static type
         }
@@ -933,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     oldTypeArg = newTypeArg;
                     newTypeArg = this.TypeMap.SubstituteType(typeArg);
                 }
-                while (oldTypeArg.TypeSymbol != newTypeArg.TypeSymbol);
+                while (!TypeSymbol.Equals(oldTypeArg.TypeSymbol, newTypeArg.TypeSymbol, TypeCompareKind.ConsiderEverything2));
 
                 // https://github.com/dotnet/roslyn/issues/30069 Is this weaker assert sufficient?
                 //Debug.Assert((object)oldTypeArg == newTypeArg);
@@ -966,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 realTypeArguments = realTypeArguments.Concat(typeArgumentsOpt);
             }
 
-            if (containerAsFrame != null && containerAsFrame.Arity != 0)
+            if ((object)containerAsFrame != null && containerAsFrame.Arity != 0)
             {
                 var containerTypeArguments = ImmutableArray.Create(realTypeArguments, 0, containerAsFrame.Arity);
                 realTypeArguments = ImmutableArray.Create(realTypeArguments, containerAsFrame.Arity, realTypeArguments.Length - containerAsFrame.Arity);
@@ -1072,9 +1079,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             RewriteLocals(node.Locals, newLocals);
 
-            foreach (var expr in node.SideEffects)
+            foreach (var effect in node.SideEffects)
             {
-                var replacement = (BoundExpression)this.Visit(expr);
+                var replacement = (BoundExpression)this.Visit(effect);
                 if (replacement != null) prologue.Add(replacement);
             }
 
@@ -1245,26 +1252,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return base.VisitStatementList(node);
-            }
-        }
-
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            // Test if this frame has captured variables and requires the introduction of a closure class.
-            if (_frames.TryGetValue(node, out var frame))
-            {
-                return IntroduceFrame(node, frame, (ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals) =>
-                {
-                    var newStatements = ArrayBuilder<BoundStatement>.GetInstance();
-                    InsertAndFreePrologue(newStatements, prologue);
-                    newStatements.Add((BoundStatement)base.VisitSwitchStatement(node));
-
-                    return new BoundBlock(node.Syntax, newLocals.ToImmutableAndFree(), newStatements.ToImmutableAndFree(), node.HasErrors);
-                });
-            }
-            else
-            {
-                return base.VisitSwitchStatement(node);
             }
         }
 

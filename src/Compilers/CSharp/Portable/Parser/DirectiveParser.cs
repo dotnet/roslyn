@@ -431,9 +431,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private DirectiveTriviaSyntax ParseNullableDirective(SyntaxToken hash, SyntaxToken token, bool isActive)
         {
             token = CheckFeatureAvailability(token, MessageID.IDS_FeatureNullableReferenceTypes);
-            var setting = (this.CurrentToken.Kind == SyntaxKind.EnableKeyword || this.CurrentToken.Kind == SyntaxKind.DisableKeyword) ?
-                EatToken() :
-                EatToken(SyntaxKind.DisableKeyword, ErrorCode.ERR_NullableDirectiveQualifierExpected, reportError: isActive);
+
+            SyntaxToken setting;
+
+            switch (this.CurrentToken.Kind)
+            {
+                case SyntaxKind.EnableKeyword:
+                case SyntaxKind.DisableKeyword:
+                case SyntaxKind.SafeOnlyKeyword:
+                case SyntaxKind.RestoreKeyword:
+                    setting = EatToken();
+                    break;
+
+                default:
+                    setting = EatToken(SyntaxKind.DisableKeyword, ErrorCode.ERR_NullableDirectiveQualifierExpected, reportError: isActive);
+                    break;
+            }
+
             var end = this.ParseEndOfDirective(ignoreErrors: setting.IsMissing || !isActive);
             return SyntaxFactory.NullableDirectiveTrivia(hash, token, setting, end, isActive);
         }
