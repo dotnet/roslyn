@@ -8251,6 +8251,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pattern-matching is not permitted for pointer types..
+        /// </summary>
+        internal static string ERR_PointerTypeInPatternMatching {
+            get {
+                return ResourceManager.GetString("ERR_PointerTypeInPatternMatching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The body of an async-iterator method must contain a &apos;yield&apos; statement..
         /// </summary>
         internal static string ERR_PossibleAsyncIteratorWithoutYield {
@@ -8265,15 +8274,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_PossibleAsyncIteratorWithoutYieldOrAwait {
             get {
                 return ResourceManager.GetString("ERR_PossibleAsyncIteratorWithoutYieldOrAwait", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pattern-matching is not permitted for pointer types..
-        /// </summary>
-        internal static string ERR_PointerTypeInPatternMatching {
-            get {
-                return ResourceManager.GetString("ERR_PointerTypeInPatternMatching", resourceCulture);
             }
         }
         
@@ -15618,24 +15618,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_SequentialOnPartialClass_Title {
             get {
                 return ResourceManager.GetString("WRN_SequentialOnPartialClass_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types and nullable value types..
-        /// </summary>
-        internal static string WRN_SuppressionOperatorNotReferenceType {
-            get {
-                return ResourceManager.GetString("WRN_SuppressionOperatorNotReferenceType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types and nullable value types..
-        /// </summary>
-        internal static string WRN_SuppressionOperatorNotReferenceType_Title {
-            get {
-                return ResourceManager.GetString("WRN_SuppressionOperatorNotReferenceType_Title", resourceCulture);
             }
         }
         

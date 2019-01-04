@@ -1761,9 +1761,6 @@ class C
 ";
             var c = CreateCompilation(source);
             c.VerifyEmitDiagnostics(
-                // (2,22): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                // [System.Obsolete("", true!)] // 1, 2
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "true!").WithLocation(2, 22),
                 // (8,16): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         string y = null!; // 6, 7
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(8, 16),
@@ -12669,7 +12666,7 @@ public class List<T> { }
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
         public void NestedNullabilityMismatchIgnoresSuppression()
         {
             var obliviousComp = CreateCompilation(@"
@@ -12691,7 +12688,7 @@ public class C
             var listNS = List.Create(ns);
             listS /*T:List<string!>!*/ .ToString();
             listNS /*T:List<string?>!*/ .ToString();
-            listS = listNS!; // warn 1
+            listS = listNS!; // 1
         }
 
         {
@@ -12704,7 +12701,7 @@ public class C
         {
             var listNS = List.Create(ns);
             var listS = List.Create(s);
-            listNS = listS!; // warn 2
+            listNS = listS!; // 2
         }
 
         {
@@ -12731,14 +12728,7 @@ public class List<T> { }
 " }, options: WithNonNullTypesTrue(), references: new[] { obliviousComp.EmitToImageReference() });
 
             comp.VerifyTypes();
-            comp.VerifyDiagnostics(
-                // (13,21): warning CS8619: Nullability of reference types in value of type 'List<string?>' doesn't match target type 'List<string>'.
-                //             listS = listNS!; // warn 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "listNS!").WithArguments("List<string?>", "List<string>").WithLocation(13, 21),
-                // (26,22): warning CS8619: Nullability of reference types in value of type 'List<string>' doesn't match target type 'List<string?>'.
-                //             listNS = listS!; // warn 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "listS!").WithArguments("List<string>", "List<string?>").WithLocation(26, 22)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -27542,7 +27532,7 @@ class CL0<T>
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
         public void ImplicitConversions_01()
         {
             var source =
@@ -27577,18 +27567,12 @@ class C
                 // (8,14): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'A<object?>'.
                 //         y1 = x1;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("B<object>", "A<object?>").WithLocation(8, 14),
-                // (9,14): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'A<object?>'.
-                //         y1 = x1!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1!").WithArguments("B<object>", "A<object?>").WithLocation(9, 14),
                 // (13,24): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'A<object>'.
                 //         A<object> y2 = x2;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("B<object?>", "A<object>").WithLocation(13, 24),
                 // (14,14): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'A<object>'.
                 //         y2 = x2;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("B<object?>", "A<object>").WithLocation(14, 14),
-                // (15,14): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'A<object>'.
-                //         y2 = x2!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2!").WithArguments("B<object?>", "A<object>").WithLocation(15, 14),
                 // (19,25): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         A<object?> y3 = x3;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(19, 25),
@@ -27600,14 +27584,11 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(20, 14),
                 // (20,14): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'A<object?>'.
                 //         y3 = x3;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x3").WithArguments("B<object>", "A<object?>").WithLocation(20, 14),
-                // (21,14): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'A<object?>'.
-                //         y3 = x3!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x3!").WithArguments("B<object>", "A<object?>").WithLocation(21, 14)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x3").WithArguments("B<object>", "A<object?>").WithLocation(20, 14)
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
         public void ImplicitConversions_02()
         {
             var source =
@@ -27642,18 +27623,12 @@ class C
                 // (8,14): warning CS8619: Nullability of reference types in value of type 'IB<object>' doesn't match target type 'IA<object?>'.
                 //         y1 = x1;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("IB<object>", "IA<object?>").WithLocation(8, 14),
-                // (9,14): warning CS8619: Nullability of reference types in value of type 'IB<object>' doesn't match target type 'IA<object?>'.
-                //         y1 = x1!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1!").WithArguments("IB<object>", "IA<object?>").WithLocation(9, 14),
                 // (13,25): warning CS8619: Nullability of reference types in value of type 'IB<object?>' doesn't match target type 'IA<object>'.
                 //         IA<object> y2 = x2;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("IB<object?>", "IA<object>").WithLocation(13, 25),
                 // (14,14): warning CS8619: Nullability of reference types in value of type 'IB<object?>' doesn't match target type 'IA<object>'.
                 //         y2 = x2;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("IB<object?>", "IA<object>").WithLocation(14, 14),
-                // (15,14): warning CS8619: Nullability of reference types in value of type 'IB<object?>' doesn't match target type 'IA<object>'.
-                //         y2 = x2!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2!").WithArguments("IB<object?>", "IA<object>").WithLocation(15, 14),
                 // (19,26): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         IA<object?> y3 = x3;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(19, 26),
@@ -27665,10 +27640,7 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(20, 14),
                 // (20,14): warning CS8619: Nullability of reference types in value of type 'IB<object>' doesn't match target type 'IA<object?>'.
                 //         y3 = x3;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x3").WithArguments("IB<object>", "IA<object?>").WithLocation(20, 14),
-                // (21,14): warning CS8619: Nullability of reference types in value of type 'IB<object>' doesn't match target type 'IA<object?>'.
-                //         y3 = x3!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x3!").WithArguments("IB<object>", "IA<object?>").WithLocation(21, 14));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x3").WithArguments("IB<object>", "IA<object?>").WithLocation(20, 14));
         }
 
         [Fact]
@@ -29220,19 +29192,18 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/29900: Report WRN_NullabilityMismatchInAssignment for compound assignment.
-                //// (12,9): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
-                ////         y += c;
-                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(12, 9),
+                // (12,9): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                //         y += c;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(12, 9),
                 // (12,9): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
                 //         y += c;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y += c").WithArguments("I<object>", "I<object?>").WithLocation(12, 9),
                 // (17,9): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
                 //         y += c;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y += c").WithArguments("IIn<object>", "IIn<object?>").WithLocation(17, 9)
-                //// (22,9): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
-                ////         y += c;
-                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("IOut<object?>", "IOut<object>").WithLocation(22, 9)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y += c").WithArguments("IIn<object>", "IIn<object?>").WithLocation(17, 9),
+                // (22,9): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
+                //         y += c;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("IOut<object?>", "IOut<object>").WithLocation(22, 9)
                 );
         }
 
@@ -33998,7 +33969,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
         public void SuppressNullableWarning_Array()
         {
             var source =
@@ -34022,23 +33993,10 @@ static class E
             var comp = CreateCompilationWithMscorlib45(
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (6,17): warning CS8619: Nullability of reference types in value of type 'object?[]' doesn't match target type 'object[]'.
-                //         other = o!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "o!").WithArguments("object?[]", "object[]").WithLocation(6, 17),
-                // (8,9): warning CS8620: Nullability of reference types in argument of type 'object?[]' doesn't match target type 'object[]' for parameter 'o' in 'void E.F(object[] o)'.
-                //         o!.F();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "o!").WithArguments("object?[]", "object[]", "o", "void E.F(object[] o)").WithLocation(8, 9),
-                // (9,11): warning CS8620: Nullability of reference types in argument of type 'object?[]' doesn't match target type 'object[]' for parameter 'o' in 'void C.G(object[] o)'.
-                //         G(o!);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "o!").WithArguments("object?[]", "object[]", "o", "void C.G(object[] o)").WithLocation(9, 11),
-                // (10,16): warning CS8619: Nullability of reference types in value of type 'object?[]' doesn't match target type 'object[]'.
-                //         return o!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "o!").WithArguments("object?[]", "object[]").WithLocation(10, 16)
-                );
+            comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
         public void SuppressNullableWarning_ConstructedType()
         {
             var source =
@@ -34062,20 +34020,7 @@ class C<T>
             var comp = CreateCompilation(
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (6,17): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
-                //         other = o!; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "o!").WithArguments("C<object?>", "C<object>").WithLocation(6, 17),
-                // (7,13): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
-                //         o = other!; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "other!").WithArguments("C<object>", "C<object?>").WithLocation(7, 13),
-                // (9,11): warning CS8620: Nullability of reference types in argument of type 'C<object?>' doesn't match target type 'C<object>' for parameter 'o' in 'void C.G(C<object> o)'.
-                //         G(o!); // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "o!").WithArguments("C<object?>", "C<object>", "o", "void C.G(C<object> o)").WithLocation(9, 11),
-                // (10,16): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
-                //         return o!; // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "o!").WithArguments("C<object?>", "C<object>").WithLocation(10, 16)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -34128,7 +34073,7 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t").WithArguments("t", "T? C<T>.G(T t)").WithLocation(8, 13));
         }
 
-        [Fact]
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
         public void SuppressNullableWarning_Conditional()
         {
             var source =
@@ -34178,9 +34123,6 @@ class C
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         a = c ? x : y!; // 5 and 6
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c ? x : y!").WithLocation(9, 13),
-                // (9,21): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
-                //         a = c ? x : y!; // 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object?>", "C<object>").WithLocation(9, 21),
                 // (10,13): warning CS8626: No best nullability for operands of conditional expression 'C<object>' and 'C<object?>'.
                 //         a = c ? x! : y; // 7
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "c ? x! : y").WithArguments("C<object>", "C<object?>").WithLocation(10, 13),
@@ -34190,9 +34132,6 @@ class C
                 // (11,13): warning CS8626: No best nullability for operands of conditional expression 'C<object>' and 'C<object?>'.
                 //         a = c ? x! : y!; // 8
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "c ? x! : y!").WithArguments("C<object>", "C<object?>").WithLocation(11, 13),
-                // (11,22): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
-                //         a = c ? x! : y!; // 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object?>", "C<object>").WithLocation(11, 22),
                 // (13,13): warning CS8626: No best nullability for operands of conditional expression 'C<object>' and 'C<object?>'.
                 //         b = c ? x : y; // 9 and 10
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "c ? x : y").WithArguments("C<object>", "C<object?>").WithLocation(13, 13),
@@ -34214,9 +34153,6 @@ class C
                 // (14,13): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
                 //         b = c ? x : y!; // 11 and 12
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c ? x : y!").WithArguments("C<object>", "C<object?>").WithLocation(14, 13),
-                // (14,21): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
-                //         b = c ? x : y!; // 11 and 12
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object?>", "C<object>").WithLocation(14, 21),
                 // (15,13): warning CS8626: No best nullability for operands of conditional expression 'C<object>' and 'C<object?>'.
                 //         b = c ? x! : y; // 13
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "c ? x! : y").WithArguments("C<object>", "C<object?>").WithLocation(15, 13),
@@ -34231,10 +34167,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "c ? x! : y!").WithArguments("C<object>", "C<object?>").WithLocation(16, 13),
                 // (16,13): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
                 //         b = c ? x! : y!; // 14
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c ? x! : y!").WithArguments("C<object>", "C<object?>").WithLocation(16, 13),
-                // (16,22): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
-                //         b = c ? x! : y!; // 14
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object?>", "C<object>").WithLocation(16, 22)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c ? x! : y!").WithArguments("C<object>", "C<object?>").WithLocation(16, 13)
                 );
         }
 
@@ -34339,7 +34272,7 @@ class C<T>
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
         public void SuppressNullableWarning_LocalDeclaration()
         {
             var source =
@@ -34364,17 +34297,11 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(7, 25),
                 // (7,25): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
                 //         C<object?> c2 = x; // 2 and 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object>", "C<object?>").WithLocation(7, 25),
-                // (8,25): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
-                //         C<object>? c3 = y!; // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object?>", "C<object>").WithLocation(8, 25),
-                // (9,25): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
-                //         C<object?> c4 = x!; // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x!").WithArguments("C<object>", "C<object?>").WithLocation(9, 25)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object>", "C<object?>").WithLocation(7, 25)
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
         public void SuppressNullableWarning_Cast()
         {
             var source =
@@ -34399,13 +34326,7 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C<object?>)x").WithLocation(7, 18),
                 // (7,18): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
                 //         var c2 = (C<object?>)x; // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(C<object?>)x").WithArguments("C<object>", "C<object?>").WithLocation(7, 18),
-                // (8,18): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
-                //         var c3 = (C<object>?)y!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(C<object>?)y!").WithArguments("C<object?>", "C<object>").WithLocation(8, 18),
-                // (9,18): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
-                //         var c4 = (C<object?>)x!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(C<object?>)x!").WithArguments("C<object>", "C<object?>").WithLocation(9, 18)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(C<object?>)x").WithArguments("C<object>", "C<object?>").WithLocation(7, 18)
                 );
         }
 
@@ -34444,7 +34365,7 @@ class C<T>
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
         public void SuppressNullableWarning_CollectionInitializer()
         {
             var source =
@@ -34478,12 +34399,6 @@ class D<T> : IEnumerable
                 // (19,32): warning CS8620: Nullability of reference types in argument of type 'D<object?>' doesn't match target type 'D<object>' for parameter 'key' in 'void D<int>.Add(D<object>? key, params D<object>?[] value)'.
                 //         _ = new D<int>() { y,  y }; // warn 5 and 6 
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("D<object?>", "D<object>", "key", "void D<int>.Add(D<object>? key, params D<object>?[] value)").WithLocation(19, 32),
-                // (20,28): warning CS8620: Nullability of reference types in argument of type 'D<object?>' doesn't match target type 'D<object>' for parameter 'key' in 'void D<int>.Add(D<object>? key, params D<object>?[] value)'.
-                //         _ = new D<int>() { y!,  y! }; // warn 7 and 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y!").WithArguments("D<object?>", "D<object>", "key", "void D<int>.Add(D<object>? key, params D<object>?[] value)").WithLocation(20, 28),
-                // (20,33): warning CS8620: Nullability of reference types in argument of type 'D<object?>' doesn't match target type 'D<object>' for parameter 'key' in 'void D<int>.Add(D<object>? key, params D<object>?[] value)'.
-                //         _ = new D<int>() { y!,  y! }; // warn 7 and 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y!").WithArguments("D<object?>", "D<object>", "key", "void D<int>.Add(D<object>? key, params D<object>?[] value)").WithLocation(20, 33),
                 // (9,28): warning CS8604: Possible null reference argument for parameter 'key' in 'void C<int>.Add(C<object?> key, params C<object?>[] value)'.
                 //         _ = new C<int>() { x, x }; // warn 1 and 2
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("key", "void C<int>.Add(C<object?> key, params C<object?>[] value)").WithLocation(9, 28),
@@ -34495,17 +34410,11 @@ class D<T> : IEnumerable
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("key", "void C<int>.Add(C<object?> key, params C<object?>[] value)").WithLocation(9, 31),
                 // (9,31): warning CS8620: Nullability of reference types in argument of type 'C<object>' doesn't match target type 'C<object?>' for parameter 'key' in 'void C<int>.Add(C<object?> key, params C<object?>[] value)'.
                 //         _ = new C<int>() { x, x }; // warn 1 and 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("C<object>", "C<object?>", "key", "void C<int>.Add(C<object?> key, params C<object?>[] value)").WithLocation(9, 31),
-                // (10,28): warning CS8620: Nullability of reference types in argument of type 'C<object>' doesn't match target type 'C<object?>' for parameter 'key' in 'void C<int>.Add(C<object?> key, params C<object?>[] value)'.
-                //         _ = new C<int>() { x!, x! }; // warn 3 and 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x!").WithArguments("C<object>", "C<object?>", "key", "void C<int>.Add(C<object?> key, params C<object?>[] value)").WithLocation(10, 28),
-                // (10,32): warning CS8620: Nullability of reference types in argument of type 'C<object>' doesn't match target type 'C<object?>' for parameter 'key' in 'void C<int>.Add(C<object?> key, params C<object?>[] value)'.
-                //         _ = new C<int>() { x!, x! }; // warn 3 and 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x!").WithArguments("C<object>", "C<object?>", "key", "void C<int>.Add(C<object?> key, params C<object?>[] value)").WithLocation(10, 32)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("C<object>", "C<object?>", "key", "void C<int>.Add(C<object?> key, params C<object?>[] value)").WithLocation(9, 31)
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
         public void SuppressNullableWarning_IdentityConversion()
         {
             var source =
@@ -34526,23 +34435,16 @@ class C
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-
                 // (7,13): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         a = x; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object?>", "C<object>").WithLocation(7, 13),
-                // (8,13): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
-                //         a = x!; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x!").WithArguments("C<object?>", "C<object>").WithLocation(8, 13),
                 // (10,13): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
                 //         b = y; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object>", "C<object?>").WithLocation(10, 13),
-                // (11,13): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
-                //         b = y!; // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object>", "C<object?>").WithLocation(11, 13)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object>", "C<object?>").WithLocation(10, 13)
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
         public void SuppressNullableWarning_ImplicitConversion()
         {
             var source =
@@ -34567,19 +34469,13 @@ class C
                 // (8,13): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'I<object>'.
                 //         a = x;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object?>", "I<object>").WithLocation(8, 13),
-                // (9,13): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'I<object>'.
-                //         a = x!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x!").WithArguments("C<object?>", "I<object>").WithLocation(9, 13),
                 // (11,13): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'I<object?>'.
                 //         b = y;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object>", "I<object?>").WithLocation(11, 13),
-                // (12,13): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'I<object?>'.
-                //         b = y!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object>", "I<object?>").WithLocation(12, 13)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object>", "I<object?>").WithLocation(11, 13)
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
         public void SuppressNullableWarning_ImplicitExtensionMethodThisConversion()
         {
             var source =
@@ -34607,15 +34503,9 @@ static class E
                 // (7,9): warning CS8620: Nullability of reference types in argument of type 'C<object?>' doesn't match target type 'I<object>' for parameter 'o' in 'void E.F1(I<object> o)'.
                 //         x.F1();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("C<object?>", "I<object>", "o", "void E.F1(I<object> o)").WithLocation(7, 9),
-                // (8,9): warning CS8620: Nullability of reference types in argument of type 'C<object?>' doesn't match target type 'I<object>' for parameter 'o' in 'void E.F1(I<object> o)'.
-                //         x!.F1();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x!").WithArguments("C<object?>", "I<object>", "o", "void E.F1(I<object> o)").WithLocation(8, 9),
                 // (9,9): warning CS8620: Nullability of reference types in argument of type 'C<object>' doesn't match target type 'I<object?>' for parameter 'o' in 'void E.F2(I<object?> o)'.
                 //         y.F2();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("C<object>", "I<object?>", "o", "void E.F2(I<object?> o)").WithLocation(9, 9),
-                // (10,9): warning CS8620: Nullability of reference types in argument of type 'C<object>' doesn't match target type 'I<object?>' for parameter 'o' in 'void E.F2(I<object?> o)'.
-                //         y!.F2();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y!").WithArguments("C<object>", "I<object?>", "o", "void E.F2(I<object?> o)").WithLocation(10, 9)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("C<object>", "I<object?>", "o", "void E.F2(I<object?> o)").WithLocation(9, 9)
                 );
         }
 
@@ -34647,19 +34537,13 @@ class C
                 // (11,14): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'A<object>'.
                 //         a1 = b1; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b1").WithArguments("A<object?>", "A<object>").WithLocation(11, 14),
-                // (12,14): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'A<object>'.
-                //         a1 = b1!; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b1!").WithArguments("A<object?>", "A<object>").WithLocation(12, 14),
                 // (14,14): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'A<object?>'.
                 //         a2 = b2; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("A<object>", "A<object?>").WithLocation(14, 14),
-                // (15,14): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'A<object?>'.
-                //         a2 = b2!; // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2!").WithArguments("A<object>", "A<object?>").WithLocation(15, 14)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("A<object>", "A<object?>").WithLocation(14, 14)
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
         public void SuppressNullableWarning_ExplicitConversion()
         {
             var source =
@@ -34684,15 +34568,9 @@ class C
                 // (8,13): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
                 //         a = (I<object?>)x; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(I<object?>)x").WithArguments("I<object?>", "I<object>").WithLocation(8, 13),
-                // (9,13): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
-                //         a = ((I<object?>)x)!; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((I<object?>)x)!").WithArguments("I<object?>", "I<object>").WithLocation(9, 13),
                 // (11,13): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
                 //         b = (I<object>)y; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(I<object>)y").WithArguments("I<object>", "I<object?>").WithLocation(11, 13),
-                // (12,13): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
-                //         b = ((I<object>)y)!; // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((I<object>)y)!").WithArguments("I<object>", "I<object?>").WithLocation(12, 13)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(I<object>)y").WithArguments("I<object>", "I<object?>").WithLocation(11, 13)
                 );
         }
 
@@ -35012,9 +34890,6 @@ class C
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,16): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         return (b && G(out var o))!? o : null;
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "(b && G(out var o))!").WithLocation(5, 16),
                 // (5,38): error CS0165: Use of unassigned local variable 'o'
                 //         return (b && G(out var o))!? o : null;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(5, 38)
@@ -35049,31 +34924,13 @@ struct S2<T>
             var comp = CreateCompilation(
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (5,11): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         G(1!);
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "1!").WithLocation(5, 11),
-                // (7,11): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         G(default(S)!);
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(S)!").WithLocation(7, 11),
-                // (8,13): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         _ = new S2<object>()!;
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "new S2<object>()!").WithLocation(8, 13));
+            comp.VerifyDiagnostics();
 
             // Feature disabled.
             comp = CreateCompilation(
                 new[] { source },
                 parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (5,11): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         G(1!);
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "1!").WithLocation(5, 11),
-                // (7,11): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         G(default(S)!);
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(S)!").WithLocation(7, 11),
-                // (8,13): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         _ = new S2<object>()!;
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "new S2<object>()!").WithLocation(8, 13));
+            comp.VerifyDiagnostics();
 
             // Feature disabled (C# 7).
             comp = CreateCompilation(
@@ -35091,19 +34948,10 @@ struct S2<T>
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default(S)!").WithArguments("nullable reference types", "8.0").WithLocation(7, 11),
                 // (8,13): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         _ = new S2<object>()!;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "new S2<object>()!").WithArguments("nullable reference types", "8.0").WithLocation(8, 13),
-                // (5,11): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         G(1!);
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "1!").WithLocation(5, 11),
-                // (7,11): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         G(default(S)!);
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(S)!").WithLocation(7, 11),
-                // (8,13): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         _ = new S2<object>()!;
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "new S2<object>()!").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "new S2<object>()!").WithArguments("nullable reference types", "8.0").WithLocation(8, 13));
         }
 
-        [Fact]
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
         public void SuppressNullableWarning_ValueType_02()
         {
             var source =
@@ -35114,14 +34962,46 @@ struct S2<T>
             var comp = CreateCompilation(
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (3,41): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //     static S<object> F(S<object?> s) => s!/*T:S<object?>*/;
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "s!").WithLocation(3, 41),
-                // (3,41): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
-                //     static S<object> F(S<object?> s) => s!/*T:S<object?>*/;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "s!").WithArguments("S<object?>", "S<object>").WithLocation(3, 41));
+            comp.VerifyDiagnostics();
             comp.VerifyTypes();
+        }
+
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
+        public void SuppressNullableWarning_UserDefinedConversion()
+        {
+            var source = @"
+struct S
+{
+    public static implicit operator C?(S s) => new C();
+}
+class C
+{
+    void M()
+    {
+        C c = new S()!;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
+        public void SuppressNullableWarning_UserDefinedConversion_InArrayInitializer()
+        {
+            var source = @"
+struct S
+{
+    public static implicit operator C?(S s) => new C();
+}
+class C
+{
+    void M(C c)
+    {
+        var a = new[] { c, new S()! };
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -35141,18 +35021,11 @@ struct S2<T>
 
             // Feature enabled.
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (6,13): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         _ = tStruct!;
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "tStruct!").WithLocation(6, 13));
+            comp.VerifyDiagnostics();
 
             // Feature disabled.
             comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (6,13): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         _ = tStruct!;
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "tStruct!").WithLocation(6, 13)
-                );
+            comp.VerifyDiagnostics();
 
             // Feature disabled (C# 7).
             comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7);
@@ -35165,10 +35038,7 @@ struct S2<T>
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "tRef!").WithArguments("nullable reference types", "8.0").WithLocation(7, 13),
                 // (8,13): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         _ = tUnconstrained!;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "tUnconstrained!").WithArguments("nullable reference types", "8.0").WithLocation(8, 13),
-                // (6,13): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         _ = tStruct!;
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "tStruct!").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "tUnconstrained!").WithArguments("nullable reference types", "8.0").WithLocation(8, 13)
                 );
         }
 
@@ -35215,13 +35085,7 @@ struct S2<T>
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T2).ToString").WithArguments("T2").WithLocation(12, 9),
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         default(T2).ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(12, 9),
-                // (20,9): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         default(T3)!.ToString(); // 4
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(T3)!").WithLocation(20, 9),
-                // (22,9): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         t3!.ToString(); // 5
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "t3!").WithLocation(22, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(12, 9));
         }
 
         [Fact]
@@ -35286,19 +35150,7 @@ class B5 : A<int>
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             // https://github.com/dotnet/roslyn/issues/29907: Report error for `default!`.
-            comp.VerifyDiagnostics(
-                // (19,14): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         t2 = default(T)!; // 1
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(T)!").WithLocation(19, 14),
-                // (21,14): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         u2 = default(U)!; // 3
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(U)!").WithLocation(21, 14),
-                // (49,14): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         t5 = default(int)!; // 5
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(int)!").WithLocation(49, 14),
-                // (51,14): error CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         u5 = default(U)!; // 7
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "default(U)!").WithLocation(51, 14));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -40858,11 +40710,10 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29971: Location of WRN_NullabilityMismatchInAssignment should be `y` rather than `B`.
-            //                                                Reword WRN_NullabilityMismatchInAssignment since there is not an explicit assignment.
             comp.VerifyDiagnostics(
-                // (15,18): warning CS8601: Possible null reference assignment.
+                // (15,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         foreach (B y in e)
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "B").WithLocation(15, 18),
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "B").WithLocation(15, 18),
                 // (16,13): warning CS8602: Possible dereference of a null reference.
                 //             y.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(16, 13),
@@ -70466,9 +70317,6 @@ class B2 : A<int?>
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (11,13): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         _ = ((T)z)!; // 1
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "((T)z)!").WithLocation(11, 13),
                 // (11,14): warning CS8629: Nullable value type may be null.
                 //         _ = ((T)z)!; // 1
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(T)z").WithLocation(11, 14));
@@ -70494,9 +70342,6 @@ class B2 : A<int?>
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (11,13): warning CS8624: The suppression operator (!) can only be applied to reference types and nullable value types.
-                //         _ = z.Value!; // 1
-                Diagnostic(ErrorCode.WRN_SuppressionOperatorNotReferenceType, "z.Value!").WithLocation(11, 13),
                 // (11,13): warning CS8629: Nullable value type may be null.
                 //         _ = z.Value!; // 1
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "z.Value").WithLocation(11, 13));

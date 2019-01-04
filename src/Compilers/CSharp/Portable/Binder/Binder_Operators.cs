@@ -2041,12 +2041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var expr = BindExpression(node.Operand, diagnostics);
-            var type = expr.Type;
-            if (type?.IsValueType == true && !type.IsNullableType())
-            {
-                Error(diagnostics, ErrorCode.WRN_SuppressionOperatorNotReferenceType, node);
-            }
-            return new BoundSuppressNullableWarningExpression(node, expr, type);
+            return new BoundSuppressNullableWarningExpression(node, expr, expr.Type);
         }
 
         // Based on ExpressionBinder::bindPtrIndirection.

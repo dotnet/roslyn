@@ -1177,16 +1177,6 @@
         <target state="new">Nullable value type may be null.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_SuppressionOperatorNotReferenceType">
-        <source>The suppression operator (!) can only be applied to reference types and nullable value types.</source>
-        <target state="new">The suppression operator (!) can only be applied to reference types and nullable value types.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_SuppressionOperatorNotReferenceType_Title">
-        <source>The suppression operator (!) can only be applied to reference types and nullable value types.</source>
-        <target state="new">The suppression operator (!) can only be applied to reference types and nullable value types.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
         <target state="new">The switch expression does not handle all possible inputs (it is not exhaustive).</target>
