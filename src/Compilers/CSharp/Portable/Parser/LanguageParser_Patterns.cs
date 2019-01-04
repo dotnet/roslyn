@@ -625,7 +625,7 @@ tryAgain:
             bool isExpression = this.IsPossibleExpression() &&
                     // IsPossibleExpression returns true when the next token is a binary operator.
                     // That is useful for error recovery elsewhere, but not here.
-                    !(SyntaxFacts.IsBinaryExpression(tk) || SyntaxFacts.IsAssignmentExpressionOperatorToken(tk));
+                    !(SyntaxFacts.IsBinaryExpression(tk) && !SyntaxFacts.IsPrefixUnaryExpression(tk) || SyntaxFacts.IsAssignmentExpressionOperatorToken(tk));
             return isExpression || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
 
