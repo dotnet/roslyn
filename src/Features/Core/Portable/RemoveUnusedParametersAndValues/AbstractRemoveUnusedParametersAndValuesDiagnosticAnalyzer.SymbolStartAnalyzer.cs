@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             private readonly INamedTypeSymbol _eventArgsTypeOpt;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
-            private readonly SerializationConstructorCheck _serializationConstructorCheck;
+            private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates;
 
             /// <summary>
@@ -37,13 +37,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,
                 INamedTypeSymbol eventArgsTypeOpt,
                 ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
-                in SerializationConstructorCheck serializationConstructorCheck)
+                in DeserializationConstructorCheck deserializationConstructorCheck)
             {
                 _compilationAnalyzer = compilationAnalyzer;
 
                 _eventArgsTypeOpt = eventArgsTypeOpt;
                 _attributeSetForMethodsToIgnore = attributeSetForMethodsToIgnore;
-                _serializationConstructorCheck = serializationConstructorCheck;
+                _deserializationConstructorCheck = deserializationConstructorCheck;
                 _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
                 _methodsUsedAsDelegates = new ConcurrentDictionary<IMethodSymbol, bool>();
             }
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 var attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(context.Compilation).WhereNotNull());
                 var eventsArgType = context.Compilation.EventArgsType();
-                var serializationConstructorCheck = new SerializationConstructorCheck(context.Compilation);
+                var serializationConstructorCheck = new DeserializationConstructorCheck(context.Compilation);
                 context.RegisterSymbolStartAction(symbolStartContext =>
                 {
                     // Create a new SymbolStartAnalyzer instance for every named type symbol
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     method.IsAccessor() ||
                     method.IsAnonymousFunction() ||
                     _compilationAnalyzer.MethodHasHandlesClause(method) ||
-                    _serializationConstructorCheck.IsISerializableConstructor(method))
+                    _deserializationConstructorCheck.IsDeserializationConstructor(method))
                 {
                     return false;
                 }

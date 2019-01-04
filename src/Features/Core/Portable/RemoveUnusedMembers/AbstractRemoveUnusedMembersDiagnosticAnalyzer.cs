@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
             private readonly INamedTypeSymbol _eventArgsType;
-            private readonly SerializationConstructorCheck _serializationConstructorCheck;
+            private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
             private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> _analyzer;
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _debuggerDisplayAttributeType = compilation.DebuggerDisplayAttributeType();
                 _structLayoutAttributeType = compilation.StructLayoutAttributeType();
                 _eventArgsType = compilation.EventArgsType();
-                _serializationConstructorCheck = new SerializationConstructorCheck(compilation);
+                _deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
                 _attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(compilation));
             }
 
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                     // ISerializable constructor is invoked by the runtime for deserialization
                                     // and it is a common pattern to have a private serialization constructor
                                     // that is not explicitly referenced in code.
-                                    if (_serializationConstructorCheck.IsISerializableConstructor(methodSymbol))
+                                    if (_deserializationConstructorCheck.IsDeserializationConstructor(methodSymbol))
                                     {
                                         return false;
                                     }
