@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         }
 
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpPullMemberUpCodeRefactoringProvider() : base(null)
         {
         }
