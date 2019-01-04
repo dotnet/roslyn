@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' Ref synthesized variables have proxies that are allocated in VisitAssignmentOperator.
                     If local.IsByRef Then
-                        Debug.Assert(local.SynthesizedKind = SynthesizedLocalKind.AwaitSpill)
+                        Debug.Assert(local.SynthesizedKind = SynthesizedLocalKind.Spill)
                         Continue For
                     End If
 

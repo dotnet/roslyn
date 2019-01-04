@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="tempPath">Path to use for any temporary file generation.</param>
         /// <param name="keyFileSearchPaths">An ordered set of fully qualified paths which are searched when locating a cryptographic key file.</param>
-        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths = default(ImmutableArray<string>), string tempPath = null): this(keyFileSearchPaths, tempPath, null)
+        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths = default(ImmutableArray<string>), string tempPath = null) : this(keyFileSearchPaths, tempPath, null)
         {
         }
 

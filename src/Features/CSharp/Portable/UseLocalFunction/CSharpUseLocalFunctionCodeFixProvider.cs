@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 : default;
 
             var returnType = delegateMethod.GenerateReturnTypeSyntax();
-            
+
             var identifier = localDeclaration.Declaration.Variables[0].Identifier;
             var typeParameterList = default(TypeParameterListSyntax);
 
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Use_local_function, createChangedDocument, FeaturesResources.Use_local_function)
             {
             }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Emit;
 
@@ -32,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // to help ensure compatibility of the semantics of the new switch binder with the old switch
         // binder, so that we may eliminate the old one in the future.
         public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV7SwitchBinder", "true" } });
+
+        public static readonly CSharpParseOptions RegularWithoutRecursivePatterns = Regular7_3;
+        public static readonly CSharpParseOptions RegularWithRecursivePatterns = Regular8;
 
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release);
@@ -108,6 +112,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
 
             return options.WithFeatures(options.Features.Concat(list));
+        }
+
+        public static CSharpCompilationOptions WithSpecificDiagnosticOptions(this CSharpCompilationOptions options, string key, ReportDiagnostic value)
+        {
+            return options.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(key, value));
+        }
+
+        public static CSharpCompilationOptions WithSpecificDiagnosticOptions(this CSharpCompilationOptions options, string key1, string key2, ReportDiagnostic value)
+        {
+            return options.WithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(key1, value).Add(key2, value));
         }
     }
 }

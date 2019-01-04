@@ -954,14 +954,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree);
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                return (AssociatedSymbol ?? ContainingSymbol)?.NonNullTypes;
-            }
-        }
-
         #region IMethodSymbol Members
 
         MethodKind IMethodSymbol.MethodKind
@@ -1174,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
-            if (type.ContainsNullableReferenceTypes())
+            if (type.NeedsNullableAttribute())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }

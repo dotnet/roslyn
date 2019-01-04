@@ -106,11 +106,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 
         private void CheckTree(SyntaxTree tree)
         {
-            Assert.Throws<InvalidCastException>(() => { var _ = (CSharpSyntaxTree) (Object) tree.GetCompilationUnitRoot(); });
-            Assert.Throws<ArgumentNullException>(() => { tree.GetDiagnostics((CSharpSyntaxNode) null); });
-            Assert.Throws<InvalidOperationException>(() => { tree.GetDiagnostics(default(SyntaxToken) ); });
-            Assert.Throws<ArgumentNullException>(() => { tree.GetDiagnostics((SyntaxNode) null); });
-            Assert.Throws<InvalidOperationException>(() => { tree.GetDiagnostics(default(SyntaxTrivia) ); });
+            Assert.Throws<InvalidCastException>(() => { var _ = (CSharpSyntaxTree)(Object)tree.GetCompilationUnitRoot(); });
+            Assert.Throws<ArgumentNullException>(() => { tree.GetDiagnostics((CSharpSyntaxNode)null); });
+            Assert.Throws<InvalidOperationException>(() => { tree.GetDiagnostics(default(SyntaxToken)); });
+            Assert.Throws<ArgumentNullException>(() => { tree.GetDiagnostics((SyntaxNode)null); });
+            Assert.Throws<InvalidOperationException>(() => { tree.GetDiagnostics(default(SyntaxTrivia)); });
         }
     }
 }

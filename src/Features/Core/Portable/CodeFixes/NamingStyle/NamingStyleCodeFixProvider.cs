@@ -98,11 +98,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             private readonly string _equivalenceKey;
 
             public FixNameCodeAction(
-                Solution startingSolution, 
-                ISymbol symbol, 
-                string newName, 
-                string title, 
-                Func<CancellationToken, Task<Solution>> createChangedSolutionAsync, 
+                Solution startingSolution,
+                ISymbol symbol,
+                string newName,
+                string title,
+                Func<CancellationToken, Task<Solution>> createChangedSolutionAsync,
                 string equivalenceKey)
             {
                 _startingSolution = startingSolution;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
-                var factory =_startingSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
+                var factory = _startingSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
                 var newSolution = await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
                 return new CodeActionOperation[]
                 {

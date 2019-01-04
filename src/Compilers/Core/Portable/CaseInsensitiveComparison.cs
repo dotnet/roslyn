@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                for(int i = 0; i < possibleStart.Length; i++)
+                for (int i = 0; i < possibleStart.Length; i++)
                 {
                     if (!AreEqualLowerUnicode(value[i], possibleStart[i]))
                     {

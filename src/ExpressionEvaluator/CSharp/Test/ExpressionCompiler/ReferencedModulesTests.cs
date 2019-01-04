@@ -1151,7 +1151,7 @@ IL_0005:  ret
         /// Intrinsic methods assembly should not be dropped.
         /// </summary>
         [WorkItem(4140, "https://github.com/dotnet/roslyn/issues/4140")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void IntrinsicMethods()
         {
             var sourceA =
@@ -1554,17 +1554,10 @@ namespace System
             {
             }
 
-            protected override void EnsureNonNullTypesAttributeExists()
-                => throw ExceptionUtilities.Unreachable;
-
-            protected override void EnsureEmbeddedAttributeExists()
-                => throw ExceptionUtilities.Unreachable;
-
-            protected override bool InjectedSymbolsAreFrozen
-                => true;
-
-            protected override ImmutableArray<NamedTypeSymbol> GetInjectedTypes(DiagnosticBag diagnostics)
-                => ImmutableArray<NamedTypeSymbol>.Empty;
+            internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
+            {
+                throw new NotImplementedException();
+            }
 
             AssemblyIdentity IAssemblyReference.Identity => ((IAssemblyReference)_builder).Identity;
 

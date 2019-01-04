@@ -53,7 +53,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null) (Syntax: 'public void ... row null; }')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... row null; }')
   BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ throw null; }')
       IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null;')
@@ -99,7 +99,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null) (Syntax: 'public void ... throw null;')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public void ... throw null;')
   BlockBody: 
     null
   ExpressionBody: 
@@ -154,7 +154,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) (Syntax: 'public void ... throw null;')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'public void ... throw null;')
   BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ throw null; }')
       IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null;')
@@ -550,7 +550,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null) (Syntax: 'public stat ... row null; }')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public stat ... row null; }')
   BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ throw null; }')
       IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null;')
@@ -579,7 +579,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null) (Syntax: 'public stat ... throw null;')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public stat ... throw null;')
   BlockBody: 
     null
   ExpressionBody: 
@@ -620,7 +620,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) (Syntax: 'public stat ... throw null;')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'public stat ... throw null;')
   BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ throw null; }')
       IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null;')
@@ -680,7 +680,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null) (Syntax: 'public stat ... row null; }')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public stat ... row null; }')
   BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ throw null; }')
       IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null;')
@@ -709,7 +709,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null) (Syntax: 'public stat ... throw null;')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'public stat ... throw null;')
   BlockBody: 
     null
   ExpressionBody: 
@@ -750,7 +750,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) (Syntax: 'public stat ... throw null;')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'public stat ... throw null;')
   BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ throw null; }')
       IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null;')
@@ -810,7 +810,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null) (Syntax: '~C() ... row null; }')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: '~C() ... row null; }')
   BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ throw null; }')
       IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null;')
@@ -839,7 +839,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null) (Syntax: '~C() ... throw null;')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: '~C() ... throw null;')
   BlockBody: 
     null
   ExpressionBody: 
@@ -877,7 +877,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) (Syntax: '~C() ... throw null;')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: '~C() ... throw null;')
   BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ throw null; }')
       IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null;')
@@ -933,7 +933,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null) (Syntax: 'set ... row null; }')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'set ... row null; }')
   BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ throw null; }')
       IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw null;')
@@ -965,7 +965,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null) (Syntax: 'add => throw null;')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'add => throw null;')
   BlockBody: 
     null
   ExpressionBody: 
@@ -1007,7 +1007,7 @@ class C
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) (Syntax: 'remove ... throw null;')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'remove ... throw null;')
   BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ throw null; }')
       IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null;')

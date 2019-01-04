@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
                         fixAllContext,
                         fixAllContext.ProgressTracker,
-                        (document, cancellationToken) => document.IsGeneratedCode(cancellationToken));
+                        (document, cancellationToken) => document.IsGeneratedCode(cancellationToken)).ConfigureAwait(false);
                 }
             }
 

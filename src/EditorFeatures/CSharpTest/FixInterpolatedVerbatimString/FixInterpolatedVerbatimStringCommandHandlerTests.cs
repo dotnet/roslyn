@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 
                 Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.GetText());
                 Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);
- 
+
                 var history = workspace.GetService<ITextUndoHistoryRegistry>().GetHistory(view.TextBuffer);
                 history.Undo(count: 1);
 

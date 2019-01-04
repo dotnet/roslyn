@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         }
 
         protected abstract TStatementSyntax GetNewStatement(
-            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, 
+            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<TExpressionStatementSyntax> matches);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

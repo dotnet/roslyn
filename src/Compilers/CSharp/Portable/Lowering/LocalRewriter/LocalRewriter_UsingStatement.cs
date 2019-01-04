@@ -451,9 +451,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // await local.DisposeAsync()
                     _sawAwaitInExceptionHandler = true;
+
                     TypeSymbol awaitExpressionType = awaitOpt.GetResult?.ReturnType.TypeSymbol ?? _compilation.DynamicType;
-                    BoundAwaitExpression awaitExpr = new BoundAwaitExpression(syntax, disposeCall, awaitOpt, awaitExpressionType) { WasCompilerGenerated = true };
-                    disposeCall = (BoundExpression)VisitAwaitExpression(awaitExpr);
+                    disposeCall = RewriteAwaitExpression(syntax, disposeCall, awaitOpt, awaitExpressionType, false);
                 }
             }
 

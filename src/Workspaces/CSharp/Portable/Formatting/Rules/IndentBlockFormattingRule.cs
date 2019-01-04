@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -12,8 +11,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = StructuredTriviaFormattingRule.Name)]
     internal class IndentBlockFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp IndentBlock Formatting Rule";
@@ -178,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // for lambda, set alignment around braces so that users can put brace wherever they want
-            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock())
+            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock() || node.IsKind(SyntaxKindEx.PropertyPatternClause) || node.IsKind(SyntaxKindEx.SwitchExpression))
             {
                 AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracePair);
             }

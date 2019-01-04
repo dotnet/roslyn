@@ -28,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 itemid As UInteger,
                 languageService As VisualBasicLanguageService,
                 sourceCodeKind As SourceCodeKind)
-            MyBase.New(bufferCoordinator, componentModel, project, hierarchy, itemid, languageService, VisualBasicHelperFormattingRule.Instance)
+            MyBase.New(bufferCoordinator, componentModel, project, hierarchy, itemid, projectTrackerOpt:=Nothing, project.Id, languageService, VisualBasicHelperFormattingRule.Instance)
         End Sub
 
         Public Function AddStaticEventBinding(pszClassName As String,

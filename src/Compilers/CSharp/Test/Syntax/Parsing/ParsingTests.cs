@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         protected virtual CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options) =>
             ParseTree(text, options).GetCompilationUnitRoot();
 
+        internal void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            UsingStatement(text, options: null, expectedErrors);
+        }
+
         internal void UsingStatement(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
         {
             var node = SyntaxFactory.ParseStatement(text, options: options);
@@ -63,11 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualErrors = node.GetDiagnostics();
             actualErrors.Verify(expectedErrors);
             UsingNode(node);
-        }
-
-        internal void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
-        {
-            UsingStatement(text, options: null, expectedErrors);
         }
 
         internal void UsingDeclaration(string text, params DiagnosticDescription[] expectedErrors)

@@ -1253,6 +1253,7 @@ class C
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
           <slot kind=""30"" offset=""86"" />
+          <slot kind=""35"" offset=""86"" />
           <slot kind=""1"" offset=""86"" />
         </encLocalSlotMap>
         <encLambdaMap>
@@ -1269,26 +1270,26 @@ class C
         <entry offset=""0x6"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
         <entry offset=""0x7"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""20"" document=""1"" />
         <entry offset=""0xe"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x21"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x21"" hidden=""true"" document=""1"" />
         <entry offset=""0x2e"" hidden=""true"" document=""1"" />
-        <entry offset=""0x3a"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""28"" document=""1"" />
-        <entry offset=""0x41"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""29"" document=""1"" />
-        <entry offset=""0x54"" startLine=""20"" startColumn=""17"" endLine=""20"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x56"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""28"" document=""1"" />
-        <entry offset=""0x5d"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""29"" document=""1"" />
-        <entry offset=""0x70"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x72"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x30"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x43"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x56"" startLine=""20"" startColumn=""17"" endLine=""20"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x58"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x5f"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x72"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x74"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x73"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x73"" attributes=""0"" />
-        <scope startOffset=""0x21"" endOffset=""0x72"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x21"" il_end=""0x72"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x75"">
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x75"" attributes=""0"" />
+        <scope startOffset=""0x21"" endOffset=""0x74"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x21"" il_end=""0x74"" attributes=""0"" />
         </scope>
       </scope>
     </method>
   </methods>
-</symbols>
-");
+</symbols>");
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]

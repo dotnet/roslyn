@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 for (int j = 0; j < n; j++)
                 {
                     builder.AppendLine($"    public string M{j}()");
-                    builder.AppendLine( "    {");
+                    builder.AppendLine("    {");
 
                     for (int k = 0; k < n; k++)
                     {

@@ -1361,9 +1361,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics for pattern-matching introduced in C# 7
         ERR_ThrowMisplaced = 8115,
         ERR_PatternNullableType = 8116,
-        ERR_BadIsPatternExpression = 8117,
+        ERR_BadPatternExpression = 8117,
         ERR_SwitchExpressionValueExpected = 8119,
-        ERR_PatternIsSubsumed = 8120,
+        ERR_SwitchCaseSubsumed = 8120,
         ERR_PatternWrongType = 8121,
         ERR_ExpressionTreeContainsIsMatch = 8122,
         #endregion diagnostics for pattern-matching introduced in C# 7
@@ -1551,7 +1551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_ConditionalInInterpolation = 8361,
         ERR_CantUseVoidInArglist = 8362,
-        ERR_DefaultInPattern = 8363,
         ERR_InDynamicMethodArg = 8364,
 
         #region diagnostics introduced for C# 7.3
@@ -1592,6 +1591,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ForEachMissingMemberWrongAsync = 8414,
         ERR_AwaitForEachMissingMemberWrongAsync = 8415,
         ERR_BadDynamicAwaitForEach = 8416,
+        ERR_NoConvToIAsyncDispWrongAsync = 8417,
+        ERR_NoConvToIDispWrongAsync = 8418,
+        ERR_PossibleAsyncIteratorWithoutYield = 8419,
+        ERR_PossibleAsyncIteratorWithoutYieldOrAwait = 8420,
+
+        #region diagnostics introduced for recursive patterns
+        // 8501, // available
+        ERR_WrongNumberOfSubpatterns = 8502,
+        ERR_PropertyPatternNameMissing = 8503,
+        ERR_MissingPattern = 8504,
+        ERR_DefaultPattern = 8505,
+        ERR_SwitchExpressionNoBestType = 8506,
+        ERR_SingleElementPositionalPatternRequiresDisambiguation = 8507,
+        ERR_VarMayNotBindToType = 8508,
+        WRN_SwitchExpressionNotExhaustive = 8509,
+        ERR_SwitchArmSubsumed = 8510,
+        // 8511, // available
+        WRN_CaseConstantNamedUnderscore = 8512,
+        WRN_IsTypeNamedUnderscore = 8513,
+        ERR_ExpressionTreeContainsSwitchExpression = 8514,
+        ERR_SwitchGoverningExpressionRequiresParens = 8515,
+        ERR_TupleElementNameMismatch = 8516,
+        ERR_DeconstructParameterNameMismatch = 8517,
+        ERR_IsPatternImpossible = 8518,
+        WRN_GivenExpressionNeverMatchesPattern = 8519,
+        WRN_GivenExpressionAlwaysMatchesConstant = 8520,
+        ERR_PointerTypeInPatternMatching = 8521,
+        ERR_ArgumentNameInITuplePattern = 8522,
+        ERR_DiscardPatternInSwitchStatement = 8523,
+        #endregion diagnostics introduced for recursive patterns
 
         WRN_ConvertingNullableToNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,
@@ -1622,20 +1651,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NoBestNullabilityConditionalExpression = 8626,
         ERR_NullableUnconstrainedTypeParameter = 8627,
         ERR_AnnotationDisallowedInObjectCreation = 8628,
-        WRN_MissingNonNullTypesContext = 8629,
+        WRN_NullableValueTypeMayBeNull = 8629,
         ERR_NullableOptionNotAvailable = 8630,
         WRN_NullabilityMismatchInTypeParameterConstraint = 8631,
         WRN_MissingNonNullTypesContextForAnnotation = 8632,
         WRN_NullabilityMismatchInConstraintsOnImplicitImplementation = 8633,
         WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint = 8634,
         ERR_TripleDotNotAllowed = 8635,
-        ERR_ExplicitNonNullTypesAttribute = 8636,
+        ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
         WRN_CantInferNullabilityOfMethodTypeArgs = 8638,
         WRN_NoBestNullabilityArrayElements = 8639,
-        ERR_UsingVarInSwitchCase = 8640,
-        ERR_GoToForwardJumpOverUsingVar = 8641,
-        ERR_GoToBackwardJumpOverUsingVar = 8642,
+        ERR_ExpressionTreeCantContainRefStruct = 8640,
+        ERR_ElseCannotStartStatement = 8641,
+        ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,
+        ERR_UsingVarInSwitchCase = 8643,
+        ERR_GoToForwardJumpOverUsingVar = 8644,
+        ERR_GoToBackwardJumpOverUsingVar = 8645,
         #endregion diagnostics introduced for C# 8.0
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)

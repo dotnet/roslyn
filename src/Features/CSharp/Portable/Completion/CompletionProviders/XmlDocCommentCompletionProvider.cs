@@ -352,9 +352,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static CompletionItemRules s_defaultRules = 
+        private static CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
-                filterCharacterRules: FilterRules, 
+                filterCharacterRules: FilterRules,
                 commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '>', '\t')),
                 enterKeyRule: EnterKeyRule.Never);
     }

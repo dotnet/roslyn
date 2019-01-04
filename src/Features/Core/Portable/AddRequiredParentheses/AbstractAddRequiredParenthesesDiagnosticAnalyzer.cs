@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 
 namespace Microsoft.CodeAnalysis.AddRequiredParentheses
@@ -18,6 +19,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
     {
         private static Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>> s_cachedProperties =
             new Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>>();
+
+        private readonly IPrecedenceService _precedenceService;
 
         static AbstractAddRequiredParenthesesDiagnosticAnalyzer()
         {
@@ -53,16 +56,16 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             => s_cachedProperties[(includeInFixAll, equivalenceKey)];
 
         protected abstract int GetPrecedence(TBinaryLikeExpressionSyntax binaryLike);
-        protected abstract PrecedenceKind GetPrecedenceKind(TBinaryLikeExpressionSyntax binaryLike);
         protected abstract TExpressionSyntax TryGetParentExpression(TBinaryLikeExpressionSyntax binaryLike);
         protected abstract bool IsBinaryLike(TExpressionSyntax node);
         protected abstract (TExpressionSyntax, SyntaxToken, TExpressionSyntax) GetPartsOfBinaryLike(TBinaryLikeExpressionSyntax binaryLike);
 
-        protected AbstractAddRequiredParenthesesDiagnosticAnalyzer()
+        protected AbstractAddRequiredParenthesesDiagnosticAnalyzer(IPrecedenceService precedenceService)
             : base(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId,
            new LocalizableResourceString(nameof(FeaturesResources.Add_parentheses_for_clarity), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
            new LocalizableResourceString(nameof(FeaturesResources.Parentheses_should_be_added_for_clarity), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
+            _precedenceService = precedenceService;
         }
 
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -99,8 +102,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 return;
             }
 
-            var childPrecedence = GetLanguageOption(GetPrecedenceKind(binaryLike));
-            var parentPrecedence = GetLanguageOption(GetPrecedenceKind(parentBinaryLike));
+            var childPrecedence = GetLanguageOption(_precedenceService.GetPrecedenceKind(binaryLike));
+            var parentPrecedence = GetLanguageOption(_precedenceService.GetPrecedenceKind(parentBinaryLike));
 
             // only add parentheses within the same precedence band.
             if (parentPrecedence != childPrecedence)
@@ -127,7 +130,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         }
         private void AddDiagnostics(
             SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax binaryLikeOpt, int precedence,
-            ReportDiagnostic severity, ImmutableArray<Location> additionalLocations, 
+            ReportDiagnostic severity, ImmutableArray<Location> additionalLocations,
             string equivalenceKey, bool includeInFixAll)
         {
             if (binaryLikeOpt != null &&

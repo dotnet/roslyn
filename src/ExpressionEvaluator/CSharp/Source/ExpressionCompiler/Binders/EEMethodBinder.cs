@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly ImmutableArray<ParameterSymbol> _targetParameters;
         private readonly Binder _sourceBinder;
 
-        internal EEMethodBinder(EEMethodSymbol method, MethodSymbol containingMethod, Binder next) : base(next)
+        internal EEMethodBinder(EEMethodSymbol method, MethodSymbol containingMethod, Binder next) : base(next, next.Flags | BinderFlags.InEEMethodBinder)
         {
             // There are a lot of method symbols floating around and we're doing some subtle things with them.
             //   1) method is the EEMethodSymbol that we're going to synthesize and hand to the debugger to evaluate.
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _sourceBinder = new InMethodBinder(substitutedSourceMethod, new BuckStopsHereBinder(next.Compilation));
         }
 
-        internal override void LookupSymbolsInSingleBinder(LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal override void LookupSymbolsInSingleBinder(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             _sourceBinder.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, this, diagnose, ref useSiteDiagnostics);
 

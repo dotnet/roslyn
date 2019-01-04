@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         public Task<CommentSelectionInfo> GetInfoAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
             => Task.FromResult(new CommentSelectionInfo(
-                    true, _commentUncommentService.SupportsBlockComment, _commentUncommentService.SingleLineCommentString, 
+                    true, _commentUncommentService.SupportsBlockComment, _commentUncommentService.SingleLineCommentString,
                     _commentUncommentService.BlockCommentStartString, _commentUncommentService.BlockCommentEndString));
 
         public Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, CancellationToken cancellationToken)
