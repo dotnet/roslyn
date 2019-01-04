@@ -34,6 +34,24 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 return base.Visit(node);
             }
 
+            public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+            {
+                // Ignore name node in member access expression, since we can't replace it with the new variable.
+                // For example:
+                //
+                //  class C
+                //  {
+                //      C c;
+                //      void Test()
+                //      {
+                //          var x = [|c|].c.c;
+                //      }
+                //  }
+
+                var expression = (ExpressionSyntax)Visit(node.Expression);
+                return node.Update(expression, node.OperatorToken, node.Name);
+            }
+
             public override SyntaxNode VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
             {
                 var newNode = base.VisitParenthesizedExpression(node);

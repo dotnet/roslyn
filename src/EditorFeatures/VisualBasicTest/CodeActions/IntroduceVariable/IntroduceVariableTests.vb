@@ -3143,5 +3143,28 @@ Class C
 End Class
 ")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(30207, "https://github.com/dotnet/roslyn/issues/30207")>
+        Public Async Function TestRecursiveMemberAccess_ForAllOccurrences() As Task
+            Dim source = "
+Class C
+    Dim c As C
+    Sub Foo()
+        Dim y = [|c|].c.c
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Dim c As C
+    Sub Foo()
+        Dim {|Rename:c1|} As C = c
+        Dim y = c1.c.c
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+        End Function
     End Class
 End Namespace

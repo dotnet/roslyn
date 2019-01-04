@@ -5902,5 +5902,33 @@ class Program
 
             await TestInRegularAndScriptAsync(code, expected);
         }
+
+        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestRecursiveMemberAccess_ForAllOccurrences()
+        {
+            var code =
+@"class C
+{
+    C c;
+    void Test()
+    {
+        var x = [|c|].c.c;
+    }
+}";
+
+            var expected =
+@"class C
+{
+    C c;
+    void Test()
+    {
+        C {|Rename:c1|} = c;
+        var x = c1.c.c;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
     }
 }
