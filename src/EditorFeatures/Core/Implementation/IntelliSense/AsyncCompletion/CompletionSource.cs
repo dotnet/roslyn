@@ -109,19 +109,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return true;
             }
 
+            //The user may be trying to invoke snippets through question-tab.
+            // We may provide a completion after that.
+            // Otherwise, tab should not be a completion trigger.
+            if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion && trigger.Character == '\t')
+            {
+                return TryInvokeSnippetCompletion(completionService, document, sourceText, triggerLocation.Position);
+            }
+
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
 
             // The completion service decides that user may want a completion.
             if (completionService.ShouldTriggerCompletion(sourceText, triggerLocation.Position, roslynTrigger))
-            {
-                return true;
-            }
-
-            // The user may be trying to invoke snippets through question-tab.
-            // We may provide a completion after that.
-            if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion &&
-                trigger.Character == '\t' &&
-                TryInvokeSnippetCompletion(completionService, document, sourceText, triggerLocation.Position))
             {
                 return true;
             }

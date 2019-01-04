@@ -97,7 +97,7 @@ class C
 
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestMultipleTabsDoNotTriggerCompletion(completionImplementation As CompletionImplementation) As Task
+        Public Async Function TestTabsDoNotTriggerCompletion(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
                                   using System;
@@ -107,17 +107,15 @@ class C
     void M()
     {
         var replyUri = new Uri("");
-        $$
+        replyUri$$
     }
 }
 
                               </Document>)
 
-                state.SendTypeChars("repl")
                 state.SendTab()
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
-                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("        replyUri" & vbTab & vbTab, state.GetLineTextFromCaretPosition())
             End Using
         End Function
