@@ -245,11 +245,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-        internal sealed override bool IsManagedType
+        internal sealed override ManagedKind ManagedKind
         {
             get
             {
-                return true;
+                return ManagedKind.Managed;
             }
         }
 
