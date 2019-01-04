@@ -629,6 +629,9 @@ class c
             UsingDeclaration(text, options: TestOptions.Regular8);
             checkNodes();
 
+            UsingDeclaration(text);
+            checkNodes();
+
             void checkNodes()
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -878,6 +881,50 @@ class c
                 }
                 EOF();
             }
+        }
+
+        [Fact]
+        public void ReturnTypeBeforeStatic()
+        {
+            const string text =
+@"class Program
+{
+    void M()
+    {
+        void static F() { }
+    }
+}";
+
+            UsingDeclaration(text, options: TestOptions.Regular7_3,
+                // (5,9): error CS1547: Keyword 'void' cannot be used in this context
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
+                // (5,14): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "static").WithLocation(5, 14),
+                // (5,14): error CS1002: ; expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
+                // (5,14): error CS8421: To use the 'static' modifier for local functions, please use language version 8.0 or greater.
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionModifier, "static").WithArguments("8.0").WithLocation(5, 14),
+                // (5,22): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22));
+
+            UsingDeclaration(text, options: TestOptions.Regular8,
+                // (5,9): error CS1547: Keyword 'void' cannot be used in this context
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
+                // (5,14): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "static").WithLocation(5, 14),
+                // (5,14): error CS1002: ; expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
+                // (5,22): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22));
         }
     }
 }
