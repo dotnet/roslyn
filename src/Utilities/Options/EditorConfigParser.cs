@@ -50,16 +50,7 @@ namespace Analyzer.Utilities
         private static readonly ImmutableHashSet<string> s_reservedValues
             = ImmutableHashSet.CreateRange(s_keyComparer, new[] { "unset" });
 
-        private static readonly ConditionalWeakTable<SourceText, CategorizedAnalyzerConfigOptions> s_cachedOptions
-            = new ConditionalWeakTable<SourceText, CategorizedAnalyzerConfigOptions>();
-
-        private static readonly ConditionalWeakTable<SourceText, CategorizedAnalyzerConfigOptions>.CreateValueCallback s_cachedOptionsCreateValueCallback
-            = new ConditionalWeakTable<SourceText, CategorizedAnalyzerConfigOptions>.CreateValueCallback(ParseCore);
-
         public static CategorizedAnalyzerConfigOptions Parse(SourceText text)
-            => s_cachedOptions.GetValue(text, s_cachedOptionsCreateValueCallback);
-
-        private static CategorizedAnalyzerConfigOptions ParseCore(SourceText text)
         {
             var parsedOptions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
