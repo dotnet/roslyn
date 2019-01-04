@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Text;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -41,6 +42,12 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return str.Substring(0, str.Length - suffix.Length);
+        }
+
+        public static bool IsASCII(this string value)
+        {
+            // ASCII encoding replaces non-ascii with question marks, so we use UTF8 to see if multi-byte sequences are there
+            return Encoding.UTF8.GetByteCount(value) == value.Length;
         }
     }
 }
