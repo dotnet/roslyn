@@ -41,7 +41,7 @@ param (
     [switch]$deployExtensions,
     [switch]$prepareMachine,
     [switch]$useGlobalNuGetCache = $true,
-    [switch]$warnAsError = $true,
+    [switch]$warnAsError = $false,
 
     # Test actions
     [switch]$test32,
@@ -91,6 +91,7 @@ function Print-Usage() {
     Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
     Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
     Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
+    Write-Host "  -warnAsError              Treat all warnings as errors"
     Write-Host ""
     Write-Host "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -158,6 +159,10 @@ function BuildSolution() {
     # Do not set the property to true explicitly, since that would override value projects might set.
     $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
 
+    # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
+    # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
+    # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
+    # Warnings reported from other msbuild tasks are not treated as errors for now.
     MSBuild $toolsetBuildProj `
         $bl `
         /p:Configuration=$configuration `
@@ -177,6 +182,7 @@ function BuildSolution() {
         /p:QuietRestore=$quietRestore `
         /p:QuietRestoreBinaryLog=$binaryLog `
         /p:TestTargetFrameworks=$testTargetFrameworks `
+        /p:TreatWarningsAsErrors=true `
         $suppressExtensionDeployment `
         @properties
 }
