@@ -77,6 +77,11 @@
         <target state="new">The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateExplicitImpl">
+        <source>'{0}' is explicitly implemented more than once.</source>
+        <target state="new">'{0}' is explicitly implemented more than once.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="new">'else' cannot start a statement.</target>
@@ -852,6 +857,16 @@
         <target state="new">'default' is converted to 'null'</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
+        <source>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</source>
+        <target state="new">'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title">
+        <source>Interface is already listed in the interface list with different nullability of reference types.</source>
+        <target state="new">Interface is already listed in the interface list with different nullability of reference types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
         <source>The given expression always matches the provided constant.</source>
         <target state="new">The given expression always matches the provided constant.</target>
@@ -990,6 +1005,26 @@
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title">
         <source>Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.</source>
         <target state="new">Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
+        <source>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</source>
+        <target state="new">Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface_Title">
+        <source>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</source>
+        <target state="new">Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInInterfaceImplementedByBase">
+        <source>'{0}' does not implement interface member '{1}'. Nullability of reference types in interface implemented by the base type doesn't match.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. Nullability of reference types in interface implemented by the base type doesn't match.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInInterfaceImplementedByBase_Title">
+        <source>Type does not implement interface member. Nullability of reference types in interface implemented by the base type doesn't match.</source>
+        <target state="new">Type does not implement interface member. Nullability of reference types in interface implemented by the base type doesn't match.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate">
@@ -1140,16 +1175,6 @@
       <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
         <source>Nullable value type may be null.</source>
         <target state="new">Nullable value type may be null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_SuppressionOperatorNotReferenceType">
-        <source>The suppression operator (!) can only be applied to reference types and nullable value types.</source>
-        <target state="new">The suppression operator (!) can only be applied to reference types and nullable value types.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_SuppressionOperatorNotReferenceType_Title">
-        <source>The suppression operator (!) can only be applied to reference types and nullable value types.</source>
-        <target state="new">The suppression operator (!) can only be applied to reference types and nullable value types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
