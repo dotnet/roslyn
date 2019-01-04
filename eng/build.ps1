@@ -264,7 +264,12 @@ function TestUsingOptimizedRunner() {
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
     if ($ci) {
-        $args += " -xml -timeout:65"
+        $args += " -xml"
+        if ($testVsi) {
+            $args += " -timeout:120"
+        } else {
+            $args += " -timeout:65"
+        }
     }
 
     $procdumpPath = Ensure-ProcDump
