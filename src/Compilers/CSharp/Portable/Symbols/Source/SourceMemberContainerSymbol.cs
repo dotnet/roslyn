@@ -2917,7 +2917,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 members.Add(property.GetMethod);
                 members.Add(property);
             }
-            members.Add(new SynthesizedRecordEqualsSymbol(this, paramList.GetReference(), ctor.Properties));
+            var syntaxRef = paramList.GetReference();
+            var equals = new SynthesizedRecordEqualsSymbol(this, syntaxRef, ctor.Properties);
+            members.Add(equals);
+            members.Add(new SynthesizedRecordObjEqualsSymbol(this, syntaxRef, equals));
         }
 
         private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers, DiagnosticBag diagnostics)

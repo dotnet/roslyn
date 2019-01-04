@@ -74,10 +74,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation("class C(int x, int y);");
             var c = comp.GlobalNamespace.GetTypeMember("C");
 
-            var eqs = c.GetMethod("Equals");
-            var param = Assert.Single(eqs.Parameters);
+            var equals = (MethodSymbol)Assert.Single(
+                c.GetMembers("Equals"),
+                s => ((MethodSymbol)s).Parameters[0].Type.SpecialType != SpecialType.System_Object);
+            var param = Assert.Single(equals.Parameters);
             Assert.False(param.Type.IsNull);
             Assert.Equal(c, param.Type.TypeSymbol);
+        }
+
+        [Fact]
+        public void GeneratedObjEqualsClass()
+        {
+            var comp = CreateCompilation("class C(int x, int y);");
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+
+            var equals = (MethodSymbol)Assert.Single(
+                c.GetMembers("Equals"),
+                s => ((MethodSymbol)s).Parameters[0].Type.SpecialType == SpecialType.System_Object);
+            var param = Assert.Single(equals.Parameters);
+            Assert.False(param.Type.IsNull);
         }
     }
 }

@@ -67,5 +67,28 @@ False
 True
 False");
         }
+
+        [Fact]
+        public void RecordObjEquality()
+        {
+            CompileAndVerify(@"
+using System;
+class Point(int x, int y);
+class C
+{
+    public static void Main()
+    {
+        var p1 = new Point(1, 3);
+        object p2 = new Point(1, 3);
+        object p3 = new Point(1, 5);
+        Console.WriteLine(object.ReferenceEquals(p1, p2));
+        Console.WriteLine(p1.Equals(p2));
+        Console.WriteLine(p1.Equals(p3));
+    }
+}", expectedOutput: @"
+False
+True
+False");
+        }
     }
 }
