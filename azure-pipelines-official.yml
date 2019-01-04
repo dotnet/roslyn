@@ -16,6 +16,8 @@ jobs:
     BuildPlatform: 'Any CPU'
     InsertTargetBranchFullName: 'lab/d16.0stg'
     InsertTargetBranchShortName: 'd16.0stg'
+    VisualStudioDropName: Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)
+
   steps:
   - task: NuGetCommand@2
     inputs:
@@ -32,10 +34,6 @@ jobs:
       skipRunOptimize: true
     displayName: 'Install OptProf Plugin'
 
-  - task: ms-vseng.MicroBuildTasks.32f78468-e895-4f47-962c-58a699361df8.MicroBuildSwixPlugin@1
-    inputs:
-      feedSource: 'https://devdiv-test.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json'
-
   - task: NuGetRestore@1
     inputs:
       solution: 'eng\internal\Toolset.csproj'
@@ -43,6 +41,7 @@ jobs:
 
   - script: eng\cibuild.cmd
               -configuration $(BuildConfiguration) -official -testDesktop -procdump
+              /p:VisualStudioDropName=$(VisualStudioDropName)
               /p:DotNetSignType=$(PB_SignType)
               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
               /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
@@ -133,11 +132,12 @@ jobs:
       testRunTitle: 'Unit Tests'
     condition: succeededOrFailed()
 
-  # Publishes setup VSIXes to a drop with id defined by MicroBuildSwixPlugin.
+  # Publishes setup VSIXes to a drop.
   # Note: The insertion tool looks for the display name of this task in the logs.
   - task: ms-vseng.MicroBuildTasks.4305a8de-ba66-4d8b-b2d1-0dc4ecbbf5e8.MicroBuildUploadVstsDropFolder@1
     displayName: Upload VSTS Drop
     inputs:
+      DropName: $(VisualStudioDropName)
       DropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
     condition: succeeded()
 
