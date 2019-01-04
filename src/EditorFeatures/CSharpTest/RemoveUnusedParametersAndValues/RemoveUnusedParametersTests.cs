@@ -65,10 +65,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         [InlineData("public", "public")]
         [InlineData("public", "protected")]
-        public async Task Parameter_Unused_NonPrivate_NotApplicable(string typeAccesibility, string methodAccessibility)
+        public async Task Parameter_Unused_NonPrivate_NotApplicable(string typeAccessibility, string methodAccessibility)
         {
             await TestDiagnosticMissingAsync(
-$@"{typeAccesibility} class C
+$@"{typeAccessibility} class C
 {{
     {methodAccessibility} void M(int [|p|])
     {{
@@ -83,10 +83,10 @@ $@"{typeAccesibility} class C
         [InlineData("internal", "public")]
         [InlineData("internal", "internal")]
         [InlineData("internal", "protected")]
-        public async Task Parameter_Unused_NonPublicMethod(string typeAccesibility, string methodAccessibility)
+        public async Task Parameter_Unused_NonPublicMethod(string typeAccessibility, string methodAccessibility)
         {
             await TestDiagnosticsAsync(
-$@"{typeAccesibility} class C
+$@"{typeAccessibility} class C
 {{
     {methodAccessibility} void M(int [|p|])
     {{
