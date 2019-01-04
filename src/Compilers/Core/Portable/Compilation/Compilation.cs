@@ -913,6 +913,15 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType);
 
+        // PERF: ETW Traces show that analyzers may use this method frequently, often requesting
+        // the same symbol over and over again. XUnit analyzers, in particular, were consuming almost
+        // 1% of CPU time when building Roslyn itself. This is an extremely simple cache that evicts on
+        // hash code conflicts, but seems to do the trick. The size is mostly arbitrary. My guess
+        // is that there are maybe a couple dozen analyzers in the solution and each one has
+        // ~0-2 unique well-known types, and the chance of hash collision is very low.
+        private ConcurrentCache<string, INamedTypeSymbol> _getTypeCache =
+            new ConcurrentCache<string, INamedTypeSymbol>(50, ReferenceEqualityComparer.Instance);
+
         /// <summary>
         /// Gets the type within the compilation's assembly and all referenced assemblies (other than
         /// those that can only be referenced via an extern alias) using its canonical CLR metadata name.
@@ -923,7 +932,13 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public INamedTypeSymbol GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            return CommonGetTypeByMetadataName(fullyQualifiedMetadataName);
+            if (!_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var val))
+            {
+                val = CommonGetTypeByMetadataName(fullyQualifiedMetadataName);
+                // Ignore if someone added the same value before us
+                _ = _getTypeCache.TryAdd(fullyQualifiedMetadataName, val);
+            }
+            return val;
         }
 
         protected abstract INamedTypeSymbol CommonGetTypeByMetadataName(string metadataName);
@@ -1721,7 +1736,7 @@ namespace Microsoft.CodeAnalysis
             switch (platform)
             {
                 case Platform.Arm64:
-                    machine = (Machine)0xAA64; //Machine.Arm64; https://github.com/dotnet/roslyn/issues/25185 
+                    machine = Machine.Arm64;
                     break;
 
                 case Platform.Arm:
@@ -2399,7 +2414,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             ReportUnusedImports(null, diagnostics, cancellationToken);
                         }
-                   }
+                    }
                 }
                 finally
                 {
@@ -2641,15 +2656,15 @@ namespace Microsoft.CodeAnalysis
                     return ret;
                 };
 
-                Func<Stream> getRefPeStream = 
+                Func<Stream> getRefPeStream =
                     metadataPEStreamProvider == null
                     ? null
-                    : (Func<Stream>) (() => ConditionalGetOrCreateStream(metadataPEStreamProvider, metadataDiagnostics));
+                    : (Func<Stream>)(() => ConditionalGetOrCreateStream(metadataPEStreamProvider, metadataDiagnostics));
 
                 Func<Stream> getPortablePdbStream =
                     moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.PortablePdb || pdbStreamProvider == null
                     ? null
-                    : (Func<Stream>) (() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
+                    : (Func<Stream>)(() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
 
                 try
                 {
@@ -3139,7 +3154,17 @@ namespace Microsoft.CodeAnalysis
             return _lazyMakeMemberMissingMap != null && _lazyMakeMemberMissingMap.ContainsKey(member);
         }
 
+        internal void MakeTypeMissing(SpecialType type)
+        {
+            MakeTypeMissing((int)type);
+        }
+
         internal void MakeTypeMissing(WellKnownType type)
+        {
+            MakeTypeMissing((int)type);
+        }
+
+        private void MakeTypeMissing(int type)
         {
             if (_lazyMakeWellKnownTypeMissingMap == null)
             {
@@ -3149,7 +3174,17 @@ namespace Microsoft.CodeAnalysis
             _lazyMakeWellKnownTypeMissingMap[(int)type] = true;
         }
 
+        internal bool IsTypeMissing(SpecialType type)
+        {
+            return IsTypeMissing((int)type);
+        }
+
         internal bool IsTypeMissing(WellKnownType type)
+        {
+            return IsTypeMissing((int)type);
+        }
+
+        private bool IsTypeMissing(int type)
         {
             return _lazyMakeWellKnownTypeMissingMap != null && _lazyMakeWellKnownTypeMissingMap.ContainsKey((int)type);
         }

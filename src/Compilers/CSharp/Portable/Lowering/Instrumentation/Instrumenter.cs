@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.DoStatement);
-            return ifConditionGotoStart; 
+            return ifConditionGotoStart;
         }
 
         public virtual BoundStatement InstrumentWhileStatementConditionalGotoStartOrBreak(BoundWhileStatement original, BoundStatement ifConditionGotoStart)
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewritten;
         }
 
-        public virtual BoundStatement InstrumentPatternSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
+        public virtual BoundStatement InstrumentSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
         {
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.SwitchStatement);
             return InstrumentStatement(original, rewritten);
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="original">the bound expression of the when clause</param>
         /// <param name="ifConditionGotoBody">the lowered conditional branch into the case block</param>
-        public virtual BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
+        public virtual BoundStatement InstrumentSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>() != null);
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenExpression;
         }
 
-        public virtual BoundStatement InstrumentPatternSwitchBindCasePatternVariables(BoundStatement bindings)
+        public virtual BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)
         {
             return bindings;
         }

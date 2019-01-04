@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -223,7 +224,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
             }
         }
 
-        private static StringTable GetStringTable(Project project) 
+        private static StringTable GetStringTable(Project project)
             => s_projectStringTable.GetValue(project, _ => StringTable.GetInstance());
 
         private static void GetIdentifierSet(bool ignoreCase, out HashSet<string> identifiers, out HashSet<string> escapedIdentifiers)
@@ -233,32 +234,32 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 identifiers = SharedPools.StringIgnoreCaseHashSet.AllocateAndClear();
                 escapedIdentifiers = SharedPools.StringIgnoreCaseHashSet.AllocateAndClear();
 
-                Contract.Requires(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
-                Contract.Requires(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
                 return;
             }
 
             identifiers = SharedPools.StringHashSet.AllocateAndClear();
             escapedIdentifiers = SharedPools.StringHashSet.AllocateAndClear();
 
-            Contract.Requires(identifiers.Comparer == StringComparer.Ordinal);
-            Contract.Requires(escapedIdentifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(identifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(escapedIdentifiers.Comparer == StringComparer.Ordinal);
         }
 
         private static void Free(bool ignoreCase, HashSet<string> identifiers, HashSet<string> escapedIdentifiers)
         {
             if (ignoreCase)
             {
-                Contract.Requires(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
-                Contract.Requires(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
 
                 SharedPools.StringIgnoreCaseHashSet.ClearAndFree(identifiers);
                 SharedPools.StringIgnoreCaseHashSet.ClearAndFree(escapedIdentifiers);
                 return;
             }
 
-            Contract.Requires(identifiers.Comparer == StringComparer.Ordinal);
-            Contract.Requires(escapedIdentifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(identifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(escapedIdentifiers.Comparer == StringComparer.Ordinal);
 
             SharedPools.StringHashSet.ClearAndFree(identifiers);
             SharedPools.StringHashSet.ClearAndFree(escapedIdentifiers);

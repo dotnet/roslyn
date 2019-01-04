@@ -252,8 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    TypeSymbol convertsFrom = op.ParameterTypes[0];
-                    TypeSymbol convertsTo = op.ReturnType;
+                    TypeSymbol convertsFrom = op.ParameterTypes[0].TypeSymbol;
+                    TypeSymbol convertsTo = op.ReturnType.TypeSymbol;
                     Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref useSiteDiagnostics);
                     Conversion toConversion = allowAnyTarget ? Conversion.Identity :
                         EncompassingImplicitConversion(null, convertsTo, target, ref useSiteDiagnostics);
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: If any of the operators in U convert from S then SX is S.
             if ((object)source != null)
             {
-                if (u.Any(conv => conv.FromType == source))
+                if (u.Any(conv => TypeSymbol.Equals(conv.FromType, source, TypeCompareKind.ConsiderEverything2)))
                 {
                     return source;
                 }
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have previously written the appropriate "ToType" into the conversion analysis
             // to perpetuate this fiction.
 
-            if (u.Any(conv => conv.ToType == target))
+            if (u.Any(conv => TypeSymbol.Equals(conv.ToType, target, TypeCompareKind.ConsiderEverything2)))
             {
                 return target;
             }
@@ -362,12 +362,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static int LiftingCount(UserDefinedConversionAnalysis conv)
         {
             int count = 0;
-            if (conv.FromType != conv.Operator.ParameterTypes[0])
+            if (!TypeSymbol.Equals(conv.FromType, conv.Operator.ParameterTypes[0].TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 count += 1;
             }
 
-            if (conv.ToType != conv.Operator.ReturnType)
+            if (!TypeSymbol.Equals(conv.ToType, conv.Operator.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 count += 1;
             }
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static int? MostSpecificConversionOperator(TypeSymbol sx, TypeSymbol tx, ImmutableArray<UserDefinedConversionAnalysis> u)
         {
-            return MostSpecificConversionOperator(conv => conv.FromType == sx && conv.ToType == tx, u);
+            return MostSpecificConversionOperator(conv => TypeSymbol.Equals(conv.FromType, sx, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(conv.ToType, tx, TypeCompareKind.ConsiderEverything2), u);
         }
 
         /// <summary>
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     TypeSymbol leftType = extract(left);
                     TypeSymbol rightType = extract(right);
-                    if (leftType == rightType)
+                    if (TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                     {
                         return BetterResult.Equal;
                     }
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     TypeSymbol leftType = extract(left);
                     TypeSymbol rightType = extract(right);
-                    if (leftType == rightType)
+                    if (TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                     {
                         return BetterResult.Equal;
                     }

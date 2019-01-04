@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var initialContextFinder = new InitialContextFinder(_tokenStream, formattingRules, rootNode, endToken);
+            var initialContextFinder = new InitialContextFinder(_tokenStream, formattingRules, rootNode);
             var results = initialContextFinder.Do(startToken, endToken);
 
             if (results.indentOperations != null)
@@ -105,8 +105,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                                                 formattingRules,
                                                 this.OptionSet.GetOption(FormattingOptions.TabSize, _language),
                                                 this.OptionSet.GetOption(FormattingOptions.IndentationSize, _language),
-                                                _tokenStream,
-                                                endToken);
+                                                _tokenStream);
                 var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
                     rootNode,
                     initialOperation,
@@ -269,8 +268,10 @@ namespace Microsoft.CodeAnalysis.Formatting
             var valuePairs = new (SuppressOperation operation, bool shouldSuppress, bool onSameLine)[operations.Count];
 
             // TODO: think about a way to figure out whether it is already suppressed and skip the expensive check below.
-            _engine.TaskExecutor.For(0, operations.Count, i =>
+            for (var i = 0; i < operations.Count; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var operation = operations[i];
 
                 // if an operation contains elastic trivia itself and the operation is not marked to ignore the elastic trivia
@@ -279,12 +280,12 @@ namespace Microsoft.CodeAnalysis.Formatting
                 {
                     // don't bother to calculate line alignment between tokens
                     valuePairs[i] = (operation, shouldSuppress: false, onSameLine: false);
-                    return;
+                    continue;
                 }
 
                 var onSameLine = _tokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
                 valuePairs[i] = (operation, shouldSuppress: true, onSameLine: onSameLine);
-            }, cancellationToken);
+            }
 
             valuePairs.Do(v =>
             {

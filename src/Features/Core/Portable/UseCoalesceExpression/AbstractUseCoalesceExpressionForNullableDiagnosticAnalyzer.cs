@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         TConditionalExpressionSyntax,
         TBinaryExpressionSyntax,
         TMemberAccessExpression,
-        TPrefixUnaryExpressionSyntax> : AbstractCodeStyleDiagnosticAnalyzer
+        TPrefixUnaryExpressionSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         }
 
         public override bool OpenFileOnly(Workspace workspace) => false;
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract TSyntaxKind GetSyntaxKindToAnalyze();

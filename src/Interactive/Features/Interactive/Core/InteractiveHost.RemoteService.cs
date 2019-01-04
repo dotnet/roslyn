@@ -62,7 +62,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private async void ProcessExitedHandler(object _, EventArgs __)
+            private void ProcessExitedHandler(object sender, EventArgs e)
+            {
+                _ = ProcessExitedHandlerAsync();
+            }
+
+            private async Task ProcessExitedHandlerAsync()
             {
                 try
                 {
@@ -128,8 +133,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     if (_processExitHandlerStatus == ProcessExitHandlerStatus.Hooked)
                     {
-                       Process.Exited -= ProcessExitedHandler;
-                       _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
+                        Process.Exited -= ProcessExitedHandler;
+                        _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
                     }
                 }
 

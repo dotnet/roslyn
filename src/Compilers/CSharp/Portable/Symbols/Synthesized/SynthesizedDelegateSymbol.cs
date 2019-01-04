@@ -77,9 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-        {
-            get { return ContainingAssembly.GetSpecialType(SpecialType.System_MulticastDelegate); }
-        }
+            => ContainingAssembly.GetSpecialType(SpecialType.System_MulticastDelegate);
 
         private sealed class DelegateConstructor : SynthesizedInstanceConstructor
         {
@@ -89,8 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : base(containingType)
             {
                 _parameters = ImmutableArray.Create<ParameterSymbol>(
-                   SynthesizedParameterSymbol.Create(this, objectType, 0, RefKind.None, "object"),
-                   SynthesizedParameterSymbol.Create(this, intPtrType, 1, RefKind.None, "method"));
+                   SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(objectType), 0, RefKind.None, "object"),
+                   SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(intPtrType), 1, RefKind.None, "method"));
             }
 
             public override ImmutableArray<ParameterSymbol> Parameters
@@ -120,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // we don't need to distinguish between out and ref since this is an internal synthesized symbol:
                     var refKind = !byRefParameters.IsNull && byRefParameters[i] ? RefKind.Ref : RefKind.None;
 
-                    parameters[i] = SynthesizedParameterSymbol.Create(this, typeParams[i], i, refKind);
+                    parameters[i] = SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(typeParams[i]), i, refKind);
                 }
 
                 _parameters = parameters.AsImmutableOrNull();
@@ -224,14 +222,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return RefKind.None; }
             }
 
-            public override TypeSymbol ReturnType
+            public override TypeSymbolWithAnnotations ReturnType
             {
-                get { return _returnType; }
+                get { return TypeSymbolWithAnnotations.Create(_returnType); }
             }
 
-            public override ImmutableArray<TypeSymbol> TypeArguments
+            public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
             {
-                get { return ImmutableArray<TypeSymbol>.Empty; }
+                get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
             }
 
             public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -247,11 +245,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
             {
                 get { return ImmutableArray<MethodSymbol>.Empty; }
-            }
-
-            public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-            {
-                get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers

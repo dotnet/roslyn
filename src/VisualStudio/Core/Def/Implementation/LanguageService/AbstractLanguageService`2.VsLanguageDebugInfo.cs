@@ -373,7 +373,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return VSConstants.E_NOTIMPL;
             }
 
-            public int GetDataTipText(IVsTextBuffer pBuffer, VsTextSpan[] pSpan, string pbstrText)
+            public int GetDataTipText(IVsTextBuffer pBuffer, VsTextSpan[] pSpan, out string pbstrText)
             {
                 using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetDataTipText, CancellationToken.None))
                 {
@@ -384,6 +384,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     }
 
                     int result = VSConstants.E_FAIL;
+                    string pbstrTextInternal = null;
 
                     _waitIndicator.Wait(
                         title: ServicesVSResources.Debugger,
@@ -417,13 +418,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                         string textOpt = dataTipInfo.Text;
 
                                         pSpan[0] = resultSpan.ToVsTextSpan();
-                                        result = debugger.GetDataTipValue((IVsTextLines)pBuffer, pSpan, textOpt, out pbstrText);
+                                        result = debugger.GetDataTipValue((IVsTextLines)pBuffer, pSpan, textOpt, out pbstrTextInternal);
                                     }
                                 }
                             }
                         }
                     });
 
+                    pbstrText = pbstrTextInternal;
                     return result;
                 }
             }

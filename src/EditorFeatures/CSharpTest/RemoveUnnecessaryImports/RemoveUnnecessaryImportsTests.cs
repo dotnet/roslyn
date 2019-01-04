@@ -41,6 +41,99 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        public async Task TestNoReferencesWithCopyright()
+        {
+            await TestInRegularAndScriptAsync(
+@"[|// Copyright (c) Somebody.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}|]",
+@"// Copyright (c) Somebody.
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}");
+        }
+
+        [WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        public async Task TestReferencesWithCopyrightAndPreservableTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+@"[|// Copyright (c) Somebody.
+
+using System;
+
+using System.Collections.Generic;
+// This is important
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Action a;
+    }
+}|]",
+@"// Copyright (c) Somebody.
+
+using System;
+// This is important
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Action a;
+    }
+}");
+        }
+
+        [WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        public async Task TestReferencesWithCopyrightAndGroupings()
+        {
+            await TestInRegularAndScriptAsync(
+@"[|// Copyright (c) Somebody.
+
+using System;
+
+using System.Collections.Generic;
+
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Action a;
+    }
+}|]",
+@"// Copyright (c) Somebody.
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Action a;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestIdentifierReferenceInTypeContext()
         {
             await TestInRegularAndScriptAsync(

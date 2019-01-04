@@ -49,14 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             NoteDeclaredPatternVariables(pattern);
         }
 
-        protected override void VisitPatternSwitchSection(BoundSwitchSection node, bool isLastSection)
+        protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
         {
             foreach (var label in node.SwitchLabels)
             {
                 NoteDeclaredPatternVariables(label.Pattern);
             }
 
-            base.VisitPatternSwitchSection(node, isLastSection);
+            base.VisitSwitchSection(node, isLastSection);
         }
 
         /// <summary>
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocal(BoundLocal node)
         {
-            if (IsInside && node.IsDeclaration)
+            if (IsInside && node.DeclarationKind != BoundLocalDeclarationKind.None)
             {
                 _variablesDeclared.Add(node.LocalSymbol);
             }

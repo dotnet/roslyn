@@ -2308,7 +2308,7 @@ No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
                     {
                         text = SymbolDisplay.FormatLiteral(text, quote: false);
 
-                        if (_binder.ExpressionRequiresFixing(expr, out Symbol accessedLocalOrParameterOpt))
+                        if (_binder.IsMoveableVariable(expr, out Symbol accessedLocalOrParameterOpt))
                         {
                             _builder.Add($"Yes, {expr.Kind} '{text}' requires fixing.");
                         }
@@ -3892,7 +3892,7 @@ unsafe class C
             Assert.NotNull(declaredSymbol);
             Assert.Equal(SymbolKind.Local, declaredSymbol.Kind);
             Assert.Equal("p", declaredSymbol.Name);
-            Assert.Equal(type, ((LocalSymbol)declaredSymbol).Type);
+            Assert.Equal(type, ((LocalSymbol)declaredSymbol).Type.TypeSymbol);
         }
 
         [Fact]
@@ -4467,14 +4467,14 @@ struct S
             var callSyntax = syntax.Parent;
 
             var structType = compilation.GlobalNamespace.GetMember<TypeSymbol>("S");
-            var structPointerType = new PointerTypeSymbol(structType);
+            var structPointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(structType));
             var structMethod1 = structType.GetMembers("M").OfType<MethodSymbol>().Single(m => m.ParameterCount == 0);
             var structMethod2 = structType.GetMembers("M").OfType<MethodSymbol>().Single(m => m.ParameterCount == 1);
 
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Local, receiverSymbol.Kind);
-            Assert.Equal(structPointerType, ((LocalSymbol)receiverSymbol).Type);
+            Assert.Equal(structPointerType, ((LocalSymbol)receiverSymbol).Type.TypeSymbol);
             Assert.Equal("p", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -4541,7 +4541,7 @@ struct S
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Local, receiverSymbol.Kind);
-            Assert.Equal(structType, ((LocalSymbol)receiverSymbol).Type);
+            Assert.Equal(structType, ((LocalSymbol)receiverSymbol).Type.TypeSymbol);
             Assert.Equal("s", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -4682,6 +4682,69 @@ unsafe struct S
                 Diagnostic(ErrorCode.ERR_VoidError, "p"));
         }
 
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Static()
+        {
+            CreateCompilation(@"
+unsafe class C
+{
+    static int* x;
+
+    static void Main()
+    {
+        fixed (int* y = new int[1])
+        {
+            x = y;
+        }
+
+        int* element = &x[0];
+        *element = 5;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Instance()
+        {
+            CreateCompilation(@"
+unsafe class C
+{
+    int* x;
+
+    void Calculate()
+    {
+        fixed (int* y = new int[1])
+        {
+            x = y;
+        }
+
+        int* element = &x[0];
+        *element = 5;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Local()
+        {
+            CreateCompilation(@"
+unsafe class C
+{
+    static void Main()
+    {
+        int* x;
+
+        fixed (int* y = new int[1])
+        {
+            x = y;
+        }
+
+        int* element = &x[0];
+        *element = 5;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
         #endregion PointerElementAccess diagnostics
 
         #region PointerElementAccess SemanticModel tests
@@ -4717,12 +4780,12 @@ unsafe class C
             var accessSyntax = syntax;
 
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            var intPointerType = new PointerTypeSymbol(intType);
+            var intPointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(intType));
 
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Local, receiverSymbol.Kind);
-            Assert.Equal(intPointerType, ((LocalSymbol)receiverSymbol).Type);
+            Assert.Equal(intPointerType, ((LocalSymbol)receiverSymbol).Type.TypeSymbol);
             Assert.Equal("p", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -4734,7 +4797,7 @@ unsafe class C
             var indexSummary = model.GetSemanticInfoSummary(indexSyntax);
             var indexSymbol = indexSummary.Symbol;
             Assert.Equal(SymbolKind.Local, indexSymbol.Kind);
-            Assert.Equal(intType, ((LocalSymbol)indexSymbol).Type);
+            Assert.Equal(intType, ((LocalSymbol)indexSymbol).Type.TypeSymbol);
             Assert.Equal("i", indexSymbol.Name);
             Assert.Equal(CandidateReason.None, indexSummary.CandidateReason);
             Assert.Equal(0, indexSummary.CandidateSymbols.Length);
@@ -4784,12 +4847,12 @@ unsafe class C
             var accessSyntax = syntax;
 
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            var intPointerType = new PointerTypeSymbol(intType);
+            var intPointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(intType));
 
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Field, receiverSymbol.Kind);
-            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type);
+            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type.TypeSymbol);
             Assert.Equal("f", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -4842,12 +4905,12 @@ unsafe class C
             var accessSyntax = syntax;
 
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            var intPointerType = new PointerTypeSymbol(intType);
+            var intPointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(intType));
 
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Field, receiverSymbol.Kind);
-            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type);
+            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type.TypeSymbol);
             Assert.Equal("f", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -5409,7 +5472,7 @@ unsafe class C
             compilation.VerifyDiagnostics();
 
             var methodSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
-            var pointerType = methodSymbol.Parameters[0].Type;
+            var pointerType = methodSymbol.Parameters[0].Type.TypeSymbol;
             Assert.Equal(TypeKind.Pointer, pointerType.TypeKind);
 
             foreach (var binOpSyntax in tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>())
@@ -6664,7 +6727,7 @@ unsafe class C
                 Assert.NotNull(symbol);
                 Assert.Equal(LocalDeclarationKind.FixedVariable, symbol.DeclarationKind);
                 Assert.True(((ILocalSymbol)symbol).IsFixed);
-                TypeSymbol type = symbol.Type;
+                TypeSymbol type = symbol.Type.TypeSymbol;
                 Assert.Equal(TypeKind.Pointer, type.TypeKind);
                 Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)type).PointedAtType.SpecialType);
             }
@@ -6699,7 +6762,7 @@ unsafe class C
 
             var stringSymbol = compilation.GetSpecialType(SpecialType.System_String);
             var charSymbol = compilation.GetSpecialType(SpecialType.System_Char);
-            var charPointerSymbol = new PointerTypeSymbol(charSymbol);
+            var charPointerSymbol = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(charSymbol));
 
             const int numSymbols = 3;
             var declarators = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Reverse().Take(numSymbols).Reverse().ToArray();
@@ -6728,7 +6791,7 @@ unsafe class C
             var summary1 = initializerSummaries[1];
             var arraySymbol = compilation.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<FieldSymbol>("a");
             Assert.Equal(arraySymbol, summary1.Symbol);
-            Assert.Equal(arraySymbol.Type, summary1.Type);
+            Assert.Equal(arraySymbol.Type.TypeSymbol, summary1.Type);
 
             var summary2 = initializerSummaries[2];
             Assert.Null(summary2.Symbol);
@@ -6771,9 +6834,9 @@ unsafe class C
 
             var stringSymbol = compilation.GetSpecialType(SpecialType.System_String);
             var charSymbol = compilation.GetSpecialType(SpecialType.System_Char);
-            var charPointerSymbol = new PointerTypeSymbol(charSymbol);
+            var charPointerSymbol = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(charSymbol));
             var voidSymbol = compilation.GetSpecialType(SpecialType.System_Void);
-            var voidPointerSymbol = new PointerTypeSymbol(voidSymbol);
+            var voidPointerSymbol = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(voidSymbol));
 
             const int numSymbols = 3;
             var declarators = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Reverse().Take(numSymbols).Reverse().ToArray();
@@ -6797,7 +6860,7 @@ unsafe class C
             var summary1 = initializerSummaries[1];
             var arraySymbol = compilation.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<FieldSymbol>("a");
             Assert.Equal(arraySymbol, summary1.Symbol);
-            Assert.Equal(arraySymbol.Type, summary1.Type);
+            Assert.Equal(arraySymbol.Type.TypeSymbol, summary1.Type);
             Assert.Equal(voidPointerSymbol, summary1.ConvertedType);
             Assert.Equal(Conversion.PointerToVoid, summary1.ImplicitConversion);
 
@@ -7807,7 +7870,7 @@ class C
             Assert.Equal(SpecialType.System_Int32, countSummary.ConvertedType.SpecialType);
             Assert.Equal(Conversion.ImplicitNumeric, countSummary.ImplicitConversion);
             var countSymbol = (LocalSymbol)countSummary.Symbol;
-            Assert.Equal(countSummary.Type, countSymbol.Type);
+            Assert.Equal(countSummary.Type, countSymbol.Type.TypeSymbol);
             Assert.Equal("count", countSymbol.Name);
             Assert.Equal(0, countSummary.CandidateSymbols.Length);
             Assert.Equal(CandidateReason.None, countSummary.CandidateReason);
@@ -8576,7 +8639,7 @@ namespace ConsoleApplication30
             var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
 
             var comp2 = CompileAndVerify(s2,
-                options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, 
+                options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails,
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
                 expectedOutput: "TrueFalse").Compilation;
 
@@ -8738,5 +8801,123 @@ public class Test
         }
 
         #endregion
+
+        [Fact]
+        public void AddressOfFixedSizeBuffer()
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe class C
+{
+    static S s_f;
+    void M(S s)
+    {
+        fixed (int* a = &s.Buf) {}
+        fixed (int* b = &s_f.Buf) {}
+        int* c = &s.Buf;
+        int* d = &s_f.Buf;
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (12,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* a = &s.Buf) {}
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&s.Buf").WithLocation(12, 25),
+                // (13,26): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         fixed (int* b = &s_f.Buf) {}
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(13, 26),
+                // (14,18): error CS0266: Cannot implicitly convert type 'int**' to 'int*'. An explicit conversion exists (are you missing a cast?)
+                //         int* c = &s.Buf;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "&s.Buf").WithArguments("int**", "int*").WithLocation(14, 18),
+                // (15,19): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int* d = &s_f.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(15, 19));
+        }
+
+        [Fact]
+        public void FixedFixedSizeBuffer()
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe class C
+{
+    static S s_f;
+    void M(S s)
+    {
+        fixed (int* a = s.Buf) {}
+        fixed (int* b = s_f.Buf) {}
+        int* c = s.Buf;
+        int* d = s_f.Buf;
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (12,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* a = s.Buf) {}
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "s.Buf").WithLocation(12, 25),
+                // (15,18): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int* d = s_f.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(15, 18));
+        }
+
+        [Fact]
+        public void NoPointerDerefMoveableFixedSizeBuffer()
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe class C
+{
+    static S s_f;
+    void M(S s)
+    {
+        int x = *s.Buf;
+        int y = *s_f.Buf;
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (13,18): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int y = *s_f.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(13, 18));
+        }
+
+        [Fact]
+        public void AddressOfElementAccessFixedSizeBuffer()
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe class C
+{
+    static S s_f;
+    void M(S s)
+    {
+        fixed (int* a = &s.Buf[0]) { }
+        fixed (int* b = &s_f.Buf[0]) { }
+        int* c = &s.Buf[0];
+        int* d = &s_f.Buf[0];
+        int* e = &(s.Buf[0]);
+        int* f = &(s_f.Buf[0]);
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (12,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* a = &s.Buf[0]) { }
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&s.Buf[0]").WithLocation(12, 25),
+                // (15,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* d = &s_f.Buf[0];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s_f.Buf[0]").WithLocation(15, 18),
+                // (17,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* f = &(s_f.Buf[0]);
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&(s_f.Buf[0])").WithLocation(17, 18));
+        }
     }
 }

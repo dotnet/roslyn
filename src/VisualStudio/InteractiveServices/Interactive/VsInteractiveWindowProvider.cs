@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         public void Create(int instanceId)
         {
             var evaluator = CreateInteractiveEvaluator(_vsServiceProvider, _classifierAggregator, _contentTypeRegistry, _vsWorkspace);
-            
+
             Debug.Assert(_vsInteractiveWindow == null);
 
             // ForceCreate means that the window should be created if the persisted layout indicates that it is visible.

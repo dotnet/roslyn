@@ -38,6 +38,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
         protected abstract ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; }
         protected abstract ImmutableArray<string> CannotConvertDiagnosticIds { get; }
 
+        protected virtual RegisterFixData<TArgumentSyntax> TryGetLanguageSpecificFixInfo(
+            SemanticModel semanticModel,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
+            => null;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -47,19 +53,33 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var initialNode = root.FindNode(diagnostic.Location.SourceSpan);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             for (var node = initialNode; node != null; node = node.Parent)
             {
-                if (node is TObjectCreationExpressionSyntax objectCreation)
+                var fixData =
+                    TryGetInvocationExpressionFixInfo(semanticModel, syntaxFacts, node, cancellationToken) ??
+                    TryGetObjectCreationFixInfo(semanticModel, syntaxFacts, node, cancellationToken) ??
+                    TryGetLanguageSpecificFixInfo(semanticModel, node, cancellationToken);
+
+                if (fixData != null)
                 {
+                    var candidates = fixData.MethodCandidates;
+                    if (fixData.IsConstructorInitializer)
+                    {
+                        // The invocation is a :this() or :base() call. In  the 'this' case we need to exclude the 
+                        // method with the diagnostic because otherwise we might introduce a call to itself (which is forbidden).
+                        if (semanticModel.GetEnclosingSymbol(node.SpanStart, cancellationToken) is IMethodSymbol methodWithDiagnostic)
+                        {
+                            candidates = candidates.Remove(methodWithDiagnostic);
+                        }
+                    }
+
                     var argumentOpt = TryGetRelevantArgument(initialNode, node, diagnostic);
-                    await HandleObjectCreationExpressionAsync(context, objectCreation, argumentOpt).ConfigureAwait(false);
-                    return;
-                }
-                else if (node is TInvocationExpressionSyntax invocationExpression)
-                {
-                    var argumentOpt = TryGetRelevantArgument(initialNode, node, diagnostic);
-                    await HandleInvocationExpressionAsync(context, invocationExpression, argumentOpt).ConfigureAwait(false);
+                    var argumentInsertPositionInMethodCandidates = GetArgumentInsertPositionForMethodCandidates(
+                        argumentOpt, semanticModel, syntaxFacts, fixData.Arguments, candidates);
+                    RegisterFixForMethodOverloads(context, fixData.Arguments, argumentInsertPositionInMethodCandidates);
                     return;
                 }
             }
@@ -87,63 +107,65 @@ namespace Microsoft.CodeAnalysis.AddParameter
                               .LastOrDefault(a => a.AncestorsAndSelf().Contains(node));
         }
 
-        private async Task HandleInvocationExpressionAsync(
-            CodeFixContext context, TInvocationExpressionSyntax invocationExpression, TArgumentSyntax argumentOpt)
+        private static RegisterFixData<TArgumentSyntax> TryGetInvocationExpressionFixInfo(
+            SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFacts,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            if (node is TInvocationExpressionSyntax invocationExpression)
+            {
+                var expression = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
+                var candidates = semanticModel.GetMemberGroup(expression, cancellationToken).OfType<IMethodSymbol>().ToImmutableArray();
+                var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
 
-            var expression = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
-            var candidates = semanticModel.GetMemberGroup(expression, cancellationToken).OfType<IMethodSymbol>().ToImmutableArray();
+                // In VB a constructor calls other constructor overloads via a Me.New(..) invocation.
+                // If the candidates are MethodKind.Constructor than these are the equivalent the a C# ConstructorInitializer.
+                var isConstructorInitializer = candidates.All(m => m.MethodKind == MethodKind.Constructor);
+                return new RegisterFixData<TArgumentSyntax>(arguments, candidates, isConstructorInitializer);
+            }
 
-            var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
-            var argumentInsertPositionInMethodCandidates = GetArgumentInsertPositionForMethodCandidates(
-                argumentOpt, semanticModel, syntaxFacts, arguments, candidates);
-            RegisterFixForMethodOverloads(context, arguments, argumentInsertPositionInMethodCandidates);
+            return null;
         }
 
-        private async Task HandleObjectCreationExpressionAsync(
-            CodeFixContext context,
-            TObjectCreationExpressionSyntax objectCreation,
-            TArgumentSyntax argumentOpt)
+        private static RegisterFixData<TArgumentSyntax> TryGetObjectCreationFixInfo(
+            SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFacts,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            // Not supported if this is "new { ... }" (as there are no parameters at all.
-            var typeNode = syntaxFacts.GetObjectCreationType(objectCreation);
-            if (typeNode == null)
+            if (node is TObjectCreationExpressionSyntax objectCreation)
             {
-                return;
+
+                // Not supported if this is "new { ... }" (as there are no parameters at all.
+                var typeNode = syntaxFacts.GetObjectCreationType(objectCreation);
+                if (typeNode == null)
+                {
+                    return new RegisterFixData<TArgumentSyntax>();
+                }
+
+                // If we can't figure out the type being created, or the type isn't in source,
+                // then there's nothing we can do.
+                if (!(semanticModel.GetSymbolInfo(typeNode, cancellationToken).GetAnySymbol() is INamedTypeSymbol type))
+                {
+                    return new RegisterFixData<TArgumentSyntax>();
+                }
+
+                if (!type.IsNonImplicitAndFromSource())
+                {
+                    return new RegisterFixData<TArgumentSyntax>();
+                }
+
+                var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreation);
+                var methodCandidates = type.InstanceConstructors;
+
+                return new RegisterFixData<TArgumentSyntax>(arguments, methodCandidates, isConstructorInitializer: false);
             }
 
-            // If we can't figure out the type being created, or the type isn't in source,
-            // then there's nothing we can do.
-            var type = semanticModel.GetSymbolInfo(typeNode, cancellationToken).GetAnySymbol() as INamedTypeSymbol;
-            if (type == null)
-            {
-                return;
-            }
-
-            if (!type.IsNonImplicitAndFromSource())
-            {
-                return;
-            }
-
-            var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreation);
-            var methodCandidates = type.InstanceConstructors;
-
-            var insertionData = GetArgumentInsertPositionForMethodCandidates(
-                argumentOpt, semanticModel, syntaxFacts, arguments, methodCandidates);
-
-            RegisterFixForMethodOverloads(context, arguments, insertionData);
+            return null;
         }
 
-        private ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> GetArgumentInsertPositionForMethodCandidates(
+        private static ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> GetArgumentInsertPositionForMethodCandidates(
             TArgumentSyntax argumentOpt,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
@@ -186,7 +208,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return methodsAndArgumentToAdd.ToImmutableAndFree();
         }
 
-        private int NonParamsParameterCount(IMethodSymbol method)
+        private static int NonParamsParameterCount(IMethodSymbol method)
             => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
         private void RegisterFixForMethodOverloads(
@@ -468,6 +490,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 solution: invocationDocument.Project.Solution,
                 documents: null,
                 progress: progress,
+                options: FindReferencesSearchOptions.Default,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             var referencedSymbols = progress.GetReferencedSymbols();
             return referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition)
@@ -676,7 +699,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                         parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
                         miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private TArgumentSyntax DetermineFirstArgumentToAdd(
+        private static TArgumentSyntax DetermineFirstArgumentToAdd(
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             StringComparer comparer,
@@ -758,7 +781,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return null;
         }
 
-        private bool TypeInfoMatchesWithParamsExpansion(
+        private static bool TypeInfoMatchesWithParamsExpansion(
             TypeInfo argumentTypeInfo, IParameterSymbol parameter,
             bool isNullLiteral, bool isDefaultLiteral)
         {
@@ -773,7 +796,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return false;
         }
 
-        private bool TypeInfoMatchesType(
+        private static bool TypeInfoMatchesType(
             TypeInfo argumentTypeInfo, ITypeSymbol type,
             bool isNullLiteral, bool isDefaultLiteral)
         {

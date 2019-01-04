@@ -3254,7 +3254,7 @@ End Module</file>
         End Sub
 
         <Fact()>
-        public Sub TestNullCoalesce_NullableWithDefault_Optimization()
+        Public Sub TestNullCoalesce_NullableWithDefault_Optimization()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3368,7 +3368,7 @@ End Module</file>
         End Sub
 
         <Fact()>
-        public Sub TestNullCoalesce_NullableWithConvertedDefault_Optimization()
+        Public Sub TestNullCoalesce_NullableWithConvertedDefault_Optimization()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3633,7 +3633,7 @@ Module M1
 End Module
     </file>
 </compilation>,
-            expectedOutput:="ThenPart" & vbCrLf & "After" & vbCrLf).
+            expectedOutput:="ThenPart" & Environment.NewLine & "After" & Environment.NewLine).
             VerifyIL("M1.Main",
             <![CDATA[
 {
@@ -4814,7 +4814,7 @@ hi
 ]]>)
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28046")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub ParameterByRefVal()
             CompileAndVerify(
            <compilation>
@@ -11119,7 +11119,7 @@ True
         End Sub
 
         <WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestMSVBTypeNameAPI()
             Dim vbCompilation = CreateVisualBasicCompilation("TestMSVBTypeNameAPI",
             <![CDATA[Public Module Program
@@ -11597,7 +11597,7 @@ End Class
             CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator, verify:=Verification.Passes)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub ComImportMethods()
             Dim sourceValidator As Action(Of ModuleSymbol) = Sub([module])
                                                                  Dim expectedMethodImplAttributes As System.Reflection.MethodImplAttributes = MethodImplAttributes.Managed Or
@@ -12464,7 +12464,7 @@ End Module
         End Sub
 
         <WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Skip:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug529162()
             Dim source =
 <compilation>
@@ -13495,7 +13495,7 @@ End Module
 }]]>)
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_01()
             Dim source =
@@ -13547,7 +13547,7 @@ End Class
             Return builder.ToString()
         End Function
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_02()
             Dim source =
@@ -13572,7 +13572,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="11461640193")
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_03()
@@ -13629,15 +13629,16 @@ End Class
             Return builder.ToString()
         End Function
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_04()
+            Dim size = 8192
             Dim source =
 $"
 Class Test
     Shared Sub Main()
-        Dim f = new Single?(4096-1) {{}}
-        for i As Integer = 0 To 4095
+        Dim f = new Single?({size}-1) {{}}
+        for i As Integer = 0 To ({size} - 1)
             f(i) = 4096 - i
         Next
 
@@ -13645,7 +13646,7 @@ Class Test
     End Sub
 
     Shared Function Calculate(f As Single?()) As Double?
-        Return {BuildSequenceOfBinaryExpressions_01()}
+        Return {BuildSequenceOfBinaryExpressions_01(size)}
     End Function
 End Class
 "
@@ -13656,7 +13657,7 @@ End Class
                 )
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_05()
             Dim count As Integer = 50
@@ -13702,7 +13703,7 @@ End Class
 5180801")
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
             Dim source =
@@ -14753,6 +14754,36 @@ End Module
   IL_0014:  call       "Function String.Concat(String, String) As String"
   IL_0019:  ret
 }
+]]>)
+        End Sub
+
+        Public Sub NormalizedNaN()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class Program
+    Shared Sub Main()
+        CheckNaN(Double.NaN)
+        CheckNaN(Single.NaN)
+        CheckNaN(0.0 / 0.0)
+        CheckNaN(0.0 / -0.0)
+        Dim inf As Double = 1.0 / 0.0
+        CheckNaN(inf + Double.NaN)
+        CheckNaN(inf - Double.NaN)
+        CheckNaN(-Double.NaN)
+    End Sub
+
+    Shared Sub CheckNaN(nan As Double)
+        Dim expected As Long = &amp;HFFF8000000000000
+        Dim actual As Long = System.BitConverter.DoubleToInt64Bits(nan)
+        If expected &lt;> actual Then
+            Throw New System.Exception($"expected=0X{expected: X} actual=0X{actual:X}")
+        End If
+    End Sub
+End Class
+    </file>
+</compilation>,
+expectedOutput:=<![CDATA[
 ]]>)
         End Sub
 

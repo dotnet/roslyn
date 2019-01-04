@@ -332,9 +332,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (version)
             {
                 case LanguageVersion.Latest:
-                    return LanguageVersion.CSharp8;
+                    return LanguageVersion.CSharp7_3;
                 case LanguageVersion.Default:
-                    return LanguageVersion.CSharp8;
+                    return LanguageVersion.CSharp7;
                 default:
                     return version;
             }

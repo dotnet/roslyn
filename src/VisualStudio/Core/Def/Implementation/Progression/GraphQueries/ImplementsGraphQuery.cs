@@ -28,19 +28,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 {
                     var implementedSymbols = namedType.AllInterfaces;
 
-                    await AddImplementedSymbols(graphBuilder, node, implementedSymbols).ConfigureAwait(false);
+                    await AddImplementedSymbolsAsync(graphBuilder, node, implementedSymbols).ConfigureAwait(false);
                 }
                 else if (symbol is IMethodSymbol || symbol is IPropertySymbol || symbol is IEventSymbol)
                 {
                     var implements = await SymbolFinder.FindImplementedInterfaceMembersAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    await AddImplementedSymbols(graphBuilder, node, implements).ConfigureAwait(false);
+                    await AddImplementedSymbolsAsync(graphBuilder, node, implements).ConfigureAwait(false);
                 }
             }
 
             return graphBuilder;
         }
 
-        private static async Task AddImplementedSymbols(GraphBuilder graphBuilder, GraphNode node, IEnumerable<ISymbol> implementedSymbols)
+        private static async Task AddImplementedSymbolsAsync(GraphBuilder graphBuilder, GraphNode node, IEnumerable<ISymbol> implementedSymbols)
         {
             foreach (var interfaceType in implementedSymbols)
             {

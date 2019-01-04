@@ -16,15 +16,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
-            return PatternSwitchLocalRewriter.Rewrite(this, node);
+            return SwitchLocalRewriter.Rewrite(this, node);
         }
 
-        private class PatternSwitchLocalRewriter : BasePatternSwitchLocalRewriter
+        private class SwitchLocalRewriter : BaseSwitchLocalRewriter
         {
             public static BoundStatement Rewrite(LocalRewriter localRewriter, BoundSwitchStatement node)
             {
-                var rewriter = new PatternSwitchLocalRewriter(node, localRewriter);
-                BoundStatement result = rewriter.LowerPatternSwitchStatement(node);
+                var rewriter = new SwitchLocalRewriter(node, localRewriter);
+                BoundStatement result = rewriter.LowerSwitchStatement(node);
                 rewriter.Free();
                 return result;
             }
@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private PatternSwitchLocalRewriter(BoundSwitchStatement node, LocalRewriter localRewriter)
+            private SwitchLocalRewriter(BoundSwitchStatement node, LocalRewriter localRewriter)
                 : base(node.Syntax, localRewriter, node.SwitchSections.SelectAsArray(section => section.Syntax), isSwitchStatement: true)
             {
             }
 
-            private BoundStatement LowerPatternSwitchStatement(BoundSwitchStatement node)
+            private BoundStatement LowerSwitchStatement(BoundSwitchStatement node)
             {
                 _factory.Syntax = node.Syntax;
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerVariables.AddRange(node.InnerLocals);
 
                 // Evaluate the input and set up sharing for dag temps with user variables
-                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(node.DecisionDag, loweredSwitchGoverningExpression, result);
+                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(node.DecisionDag, loweredSwitchGoverningExpression, result, out _);
 
                 // lower the decision dag.
                 (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _factory.Syntax = section.Syntax;
                     var sectionBuilder = ArrayBuilder<BoundStatement>.GetInstance();
                     sectionBuilder.AddRange(switchSections[section.Syntax]);
-                    foreach (BoundPatternSwitchLabel switchLabel in section.SwitchLabels)
+                    foreach (BoundSwitchLabel switchLabel in section.SwitchLabels)
                     {
                         sectionBuilder.Add(_factory.Label(switchLabel.Label));
                     }
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
                 if (!node.WasCompilerGenerated && _localRewriter.Instrument)
                 {
-                    translatedSwitch = _localRewriter._instrumenter.InstrumentPatternSwitchStatement(node, translatedSwitch);
+                    translatedSwitch = _localRewriter._instrumenter.InstrumentSwitchStatement(node, translatedSwitch);
                 }
 
                 return translatedSwitch;

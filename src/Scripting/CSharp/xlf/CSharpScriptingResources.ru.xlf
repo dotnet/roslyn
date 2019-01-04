@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="LogoLine1">
         <source>Microsoft (R) Visual C# Interactive Compiler version {0}</source>
-        <target state="translated">Интерактивный компилятор Microsoft (R) Visual C# версии {0}</target>
+        <target state="translated">Компилятор Microsoft (R) Visual C# Interactive версии {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="LogoLine2">

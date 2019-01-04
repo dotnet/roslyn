@@ -464,8 +464,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics: context.Diagnostics,
                     fromImplements: true);
 
-                yield return @interface.GetTypeRefWithAttributes(this.DeclaringCompilation,
-                                                                 typeRef);
+                var type = TypeSymbolWithAnnotations.Create(@interface);
+                yield return type.GetTypeRefWithAttributes(
+                    moduleBeingBuilt,
+                    declaringSymbol: this,
+                    typeRef);
             }
         }
 
@@ -501,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (seen == null)
                 {
                     // Don't allocate until we see at least one interface.
-                    seen = new HashSet<NamedTypeSymbol>();
+                    seen = new HashSet<NamedTypeSymbol>(TypeSymbol.EqualsCLRSignatureComparer);
                 }
                 if (seen.Add(@interface))
                 {
@@ -865,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(((Cci.ITypeReference)this).AsNamespaceTypeReference != null);
 
                 return this.ContainingNamespace.QualifiedName;
-           }
+            }
         }
 
         bool Cci.INamespaceTypeDefinition.IsPublic
@@ -886,14 +889,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(this.IsDefinitionOrDistinct());
 
-            if (!this.IsDefinition)
-            {
-                return moduleBeingBuilt.Translate(this.ContainingType,
-                                                  syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                  diagnostics: context.Diagnostics);
-            }
-
-            return this.ContainingType;
+            return moduleBeingBuilt.Translate(this.ContainingType,
+                                              syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                              diagnostics: context.Diagnostics,
+                                              needDeclaration: this.IsDefinition);
         }
 
         Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition
@@ -924,21 +923,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<Microsoft.Cci.ITypeReference>.GetInstance();
             Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
 
-            bool hasModifiers = this.HasTypeArgumentsCustomModifiers;
             var arguments = this.TypeArgumentsNoUseSiteDiagnostics;
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                var arg = moduleBeingBuilt.Translate(arguments[i], syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
-
-                if (hasModifiers)
+                var arg = moduleBeingBuilt.Translate(arguments[i].TypeSymbol, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+                var modifiers = arguments[i].CustomModifiers;
+                if (!modifiers.IsDefaultOrEmpty)
                 {
-                    var modifiers = this.GetTypeArgumentCustomModifiers(i);
-
-                    if (!modifiers.IsDefaultOrEmpty)
-                    {
-                        arg = new Cci.ModifiedTypeReference(arg, modifiers.As<Cci.ICustomModifier>());
-                    }
+                    arg = new Cci.ModifiedTypeReference(arg, modifiers.As<Cci.ICustomModifier>());
                 }
 
                 builder.Add(arg);
@@ -956,8 +949,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Cci.INamedTypeReference GenericTypeImpl(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.Translate(this.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, 
-                                              diagnostics: context.Diagnostics, needDeclaration:true); 
+            return moduleBeingBuilt.Translate(this.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                              diagnostics: context.Diagnostics, needDeclaration: true);
         }
 
         Cci.INestedTypeReference Cci.ISpecializedNestedTypeReference.GetUnspecializedVersion(EmitContext context)

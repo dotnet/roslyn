@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // type isn't available.
         }
 
-        public override ImmutableArray<CustomModifier> CustomModifiers
+        protected ImmutableArray<CustomModifier> RequiredCustomModifiers
         {
             get
             {
@@ -122,6 +122,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 base.DecodeWellKnownAttribute(ref arguments);
+            }
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            var location = ErrorLocation;
+            if (this.Type.NeedsNullableAttribute())
+            {
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
         }
 
@@ -281,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (value != null) &&
                 !value.IsBad &&
                 (value != Microsoft.CodeAnalysis.ConstantValue.Unset) &&
-                diagnostics.IsEmptyWithoutResolution)
+                !diagnostics.HasAnyResolvedErrors())
             {
                 this.SetLazyConstantValue(
                     value,

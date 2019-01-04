@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.RefStruct,
                 RudeEditKind.ReadOnlyStruct,
                 RudeEditKind.ReadOnlyReferences,
+                RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
             };
 
             var arg2 = new HashSet<RudeEditKind>()
@@ -61,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.ChangingCapturedVariableType,
                 RudeEditKind.AccessingCapturedVariableInLambda,
                 RudeEditKind.NotAccessingCapturedVariableInLambda,
-                RudeEditKind.RenamingCapturedVariable
+                RudeEditKind.RenamingCapturedVariable,
+                RudeEditKind.InternalError,
             };
 
             var arg3 = new HashSet<RudeEditKind>()

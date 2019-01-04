@@ -381,18 +381,49 @@ class Program
             {
                 case var y2: break;
             }
+            var z = x switch { var y3 => 1 };
         }
     }
 }";
             var compilation = CreatePatternCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
-                // (7,22): error CS8421: Pattern-matching is not permitted for pointer types.
-                //             if (x is var y1) { }
-                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var").WithLocation(7, 22),
-                // (10,22): error CS8421: Pattern-matching is not permitted for pointer types.
-                //                 case var y2: break;
-                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var").WithLocation(10, 22)
                 );
+        }
+
+        [Fact]
+        public void PropertyPatternVsAnonymousType()
+        {
+            var source = @"
+using System;
+public class C
+{
+    public static void Main()
+    {
+        var arr = new[] {
+            new { B = true,  V = 1 },
+            new { B = false, V = 2 },
+            new { B = true,  V = 4 },
+            new { B = false, V = 8 },
+            new { B = true,  V = 16 },
+        };
+        int sum = 0;
+        foreach (var anon in arr)
+        {
+            switch (anon)
+            {
+                case { B: true, V: var val }:
+                    sum += val;
+                    break;
+            }
+        }
+        Console.WriteLine(sum);
+    }
+}";
+            var expectedOutput = "21";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }

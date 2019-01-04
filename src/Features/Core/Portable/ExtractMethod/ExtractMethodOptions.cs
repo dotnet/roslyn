@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 {
     internal static class ExtractMethodOptions
     {
-        public static readonly PerLanguageOption<bool> AllowBestEffort = new PerLanguageOption<bool>(nameof(ExtractMethodOptions), nameof(AllowBestEffort), defaultValue: false,
+        public static readonly PerLanguageOption<bool> AllowBestEffort = new PerLanguageOption<bool>(nameof(ExtractMethodOptions), nameof(AllowBestEffort), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Allow Best Effort"));
 
         public static readonly PerLanguageOption<bool> DontPutOutOrRefOnStruct = new PerLanguageOption<bool>(nameof(ExtractMethodOptions), nameof(DontPutOutOrRefOnStruct), defaultValue: true,

@@ -145,14 +145,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return RefKind.None; }
         }
 
-        public sealed override TypeSymbol ReturnType
+        public sealed override TypeSymbolWithAnnotations ReturnType
         {
-            get { return ContainingAssembly.GetSpecialType(SpecialType.System_Void); }
-        }
-
-        public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
+            get { return TypeSymbolWithAnnotations.Create(ContainingAssembly.GetSpecialType(SpecialType.System_Void)); }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -160,9 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        public sealed override ImmutableArray<TypeSymbol> TypeArguments
+        public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
-            get { return ImmutableArray<TypeSymbol>.Empty; }
+            get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
         }
 
         public sealed override Symbol AssociatedSymbol
@@ -268,8 +263,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            return ReturnType.GetUseSiteDiagnostic();
+            return ReturnType.TypeSymbol.GetUseSiteDiagnostic();
         }
         #endregion
+
+        protected void GenerateMethodBodyCore(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        {
+            var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+            factory.CurrentFunction = this;
+            if (ContainingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol)
+            {
+                // System_Attribute was not found or was inaccessible
+                factory.CloseMethod(factory.Block());
+                return;
+            }
+
+            var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
+            if (baseConstructorCall == null)
+            {
+                // Attribute..ctor was not found or was inaccessible
+                factory.CloseMethod(factory.Block());
+                return;
+            }
+
+            var block = factory.Block(
+                factory.ExpressionStatement(baseConstructorCall),
+                factory.Return());
+
+            factory.CloseMethod(block);
+        }
     }
 }

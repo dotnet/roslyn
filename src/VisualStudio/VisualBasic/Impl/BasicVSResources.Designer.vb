@@ -335,6 +335,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Never.
+        '''</summary>
+        Friend Shared ReadOnly Property Never() As String
+            Get
+                Return ResourceManager.GetString("Never", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to _Never add new line on enter.
         '''</summary>
         Friend Shared ReadOnly Property Never_add_new_line_on_enter() As String
@@ -574,6 +583,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Suggest_imports_for_types_in_reference_assemblies() As String
             Get
                 Return ResourceManager.GetString("Suggest_imports_for_types_in_reference_assemblies", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Unused local.
+        '''</summary>
+        Friend Shared ReadOnly Property Unused_local() As String
+            Get
+                Return ResourceManager.GetString("Unused_local", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to VB Coding Conventions.
+        '''</summary>
+        Friend Shared ReadOnly Property VB_Coding_Conventions() As String
+            Get
+                Return ResourceManager.GetString("VB_Coding_Conventions", resourceCulture)
             End Get
         End Property
     End Class

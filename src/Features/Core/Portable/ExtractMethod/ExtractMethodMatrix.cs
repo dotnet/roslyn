@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -16,7 +18,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             BuildMatrix();
         }
 
-        public static VariableStyle GetVariableStyle(
+        public static bool TryGetVariableStyle(
+            bool bestEffort,
             bool captured,
             bool dataFlowIn,
             bool dataFlowOut,
@@ -26,21 +29,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             bool writtenInside,
             bool readOutside,
             bool writtenOutside,
-            bool unsafeAddressTaken)
+            bool unsafeAddressTaken,
+            out VariableStyle variableStyle)
         {
-#if false
-            // decide not to treat capture variable special
-            if (captured)
-            {
-                // if a variable is captured, it can only be passed as ref parameter.
-                return VariableStyle.OnlyAsRefParam;
-            }
-#endif
             // bug # 12258, 12114
             // use "out" if "&" is taken for the variable
             if (unsafeAddressTaken)
             {
-                return VariableStyle.Out;
+                variableStyle = VariableStyle.Out;
+                return true;
             }
 
             var key = new Key(
@@ -82,9 +79,24 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            Contract.ThrowIfFalse(s_matrix.ContainsKey(key), $"Matrix does not contain Key '{key}'.");
+            if (s_matrix.TryGetValue(key, out variableStyle))
+            {
+                return true;
+            }
 
-            return s_matrix[key];
+            if (bestEffort)
+            {
+                // In best effort mode, even though we didn't know precisely what to do, we still
+                // allow the user to keep going, assuming that this variable is a very basic one.
+                variableStyle = VariableStyle.InputOnly;
+                return true;
+            }
+
+            // Some combination we didn't anticipate.  Can't do anything here.  Log the issue
+            // and bail out.
+            FatalError.ReportWithoutCrash(new Exception($"extract method encountered unknown states: {key.ToString()}"));
+
+            return false;
         }
 
         private static void BuildMatrix()
@@ -158,6 +170,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: false, writtenOutside: true), VariableStyle.InputOnly);
             s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.InputOnly);
             s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.InputOnly);
+            s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: false, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Ref);
             s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithErrorInput);
             s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: false, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Ref);
             s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: false), VariableStyle.OutWithErrorInput);

@@ -1,8 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.IntroduceVariable
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.IntroduceVariable
     Public Class IntroduceVariableTests
@@ -10,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New IntroduceVariableCodeRefactoringProvider()
+        End Function
+
+        Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
+            Return GetNestedActions(actions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -3043,6 +3048,100 @@ Class C
 End Class
 "
             Await TestInRegularAndScriptAsync(code, expected)
+        End Function
+
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestCaretAtEndOfExpression1() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub Goo()
+        Bar(1[||], 2)
+    end sub
+end class",
+"class C
+    Private Const {|Rename:V|} As Integer = 1
+
+    sub Goo()
+        Bar(V, 2)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestCaretAtEndOfExpression2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub Goo()
+        Bar(1, 2[||])
+    end sub
+end class",
+"class C
+    Private Const {|Rename:V|} As Integer = 2
+
+    sub Goo()
+        Bar(1, V)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestCaretAtEndOfExpression3() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub Goo()
+        Bar(1, (2[||]))
+    end sub
+end class",
+"class C
+    Private Const {|Rename:V|} As Integer = 2
+
+    sub Goo()
+        Bar(1, V)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestCaretAtEndOfExpression4() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub Goo()
+        Bar(1, Bar(2[||]))
+    end sub
+end class",
+"class C
+    Private Const {|Rename:V|} As Integer = 2
+
+    sub Goo()
+        Bar(1, Bar(V))
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(27949, "https://github.com/dotnet/roslyn/issues/27949")>
+        Public Async Function TestWhitespaceSpanInAssignment() As Task
+            Await TestMissingAsync("
+Class C
+    Dim x As Integer = [| |] 0
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(28665, "https://github.com/dotnet/roslyn/issues/28665")>
+        Public Async Function TestWhitespaceSpanInAttribute() As Task
+            Await TestMissingAsync("
+Class C
+    <Example( [| |] )>
+    Public Function Foo()
+    End Function
+End Class
+")
         End Function
     End Class
 End Namespace

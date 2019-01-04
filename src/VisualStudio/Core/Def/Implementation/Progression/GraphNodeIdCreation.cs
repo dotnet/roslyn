@@ -400,17 +400,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             Project foundProject = solution.GetProject(containingAssembly, cancellationToken);
             if (foundProject != null)
             {
-                if (solution.Workspace is VisualStudioWorkspaceImpl workspace)
+                if (solution.Workspace is VisualStudioWorkspace workspace)
                 {
-                    // We have found a project in the solution, so clearly the deferred state has been loaded
-                    var vsProject = workspace.DeferredState.ProjectTracker.GetProject(foundProject.Id);
-                    if (vsProject != null)
+                    // TODO: audit the OutputFilePath and whether this is bin or obj
+                    if (!string.IsNullOrWhiteSpace(foundProject.OutputFilePath))
                     {
-                        var output = vsProject.BinOutputPath;
-                        if (!string.IsNullOrWhiteSpace(output))
-                        {
-                            return new Uri(output, UriKind.RelativeOrAbsolute);
-                        }
+                        return new Uri(foundProject.OutputFilePath, UriKind.RelativeOrAbsolute);
                     }
 
                     return null;
@@ -520,7 +515,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var reference in symbol.ContainingSymbol.DeclaringSyntaxReferences)
             {
-                var currentNode = reference.GetSyntax(cancellationToken);
+                var currentNode = await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
 
                 // For VB, we have to ask its parent to get local variables within this method body
                 // since DeclaringSyntaxReferences return statement rather than enclosing block.

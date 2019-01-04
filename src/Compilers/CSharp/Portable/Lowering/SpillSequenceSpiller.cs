@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SpillSequenceSpiller(MethodSymbol method, SyntaxNode syntaxNode, TypeCompilationState compilationState, PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution, DiagnosticBag diagnostics)
         {
             _F = new SyntheticBoundNodeFactory(method, syntaxNode, compilationState, diagnostics);
+            _F.CurrentFunction = method;
             _tempSubstitution = tempSubstitution;
         }
 
@@ -512,6 +513,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UpdateStatement(builder, node.Update(node.RefKind, expression));
         }
 
+        public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            var expression = VisitExpression(ref builder, node.Expression);
+            return UpdateStatement(builder, node.Update(expression));
+        }
+
 #if DEBUG
         public override BoundNode DefaultVisit(BoundNode node)
         {
@@ -530,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the spilling will occur in the enclosing node.
             BoundSpillSequenceBuilder builder = null;
             var expr = VisitExpression(ref builder, node.Expression);
-            return UpdateExpression(builder, node.Update(expr, node.GetAwaiter, node.IsCompleted, node.GetResult, node.Type));
+            return UpdateExpression(builder, node.Update(expr, node.AwaitableInfo, node.Type));
         }
 
         public override BoundNode VisitSpillSequence(BoundSpillSequence node)
@@ -740,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return UpdateExpression(builder, node.Update(node.OperatorKind, left, right, node.ConstantValue, node.MethodOpt, node.ResultKind, node.Type));
+            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValue, node.MethodOpt, node.ResultKind, left, right, node.Type));
         }
 
         public override BoundNode VisitCall(BoundCall node)
@@ -835,6 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isBaseConversion: node.IsBaseConversion,
                     @checked: node.Checked,
                     explicitCastInCode: node.ExplicitCastInCode,
+                    conversionGroupOpt: node.ConversionGroupOpt,
                     constantValueOpt: node.ConstantValueOpt,
                     type: node.Type));
         }
@@ -906,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return UpdateExpression(leftBuilder, _F.Local(tmp));
             }
 
-            return UpdateExpression(builder, node.Update(left, right, node.LeftConversion, node.Type));
+            return UpdateExpression(builder, node.Update(left, right, node.LeftConversion, node.OperatorResultKind, node.Type));
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)

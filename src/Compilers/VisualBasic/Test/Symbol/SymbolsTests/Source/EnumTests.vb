@@ -569,7 +569,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(text, expectedOutput:="0" & vbCr & vbLf & "0" & vbCr & vbLf & "0" & vbCr & vbLf)
+            CompileAndVerify(text, expectedOutput:="0" & Environment.NewLine & "0" & Environment.NewLine & "0" & Environment.NewLine)
         End Sub
 
         ' Derived.
@@ -795,7 +795,7 @@ Class c1
     </file>
 </compilation>
 
-            CompileAndVerify(text, expectedOutput:="True" & vbCr & vbLf & "False" & vbCr & vbLf & "False" & vbCr & vbLf & "True" & vbCr & vbLf & "False" & vbCr & vbLf & "True" & vbCr & vbLf & "False" & vbCr & vbLf & "True" & vbCr & vbLf)
+            CompileAndVerify(text, expectedOutput:="True" & Environment.NewLine & "False" & Environment.NewLine & "False" & Environment.NewLine & "True" & Environment.NewLine & "False" & Environment.NewLine & "True" & Environment.NewLine & "False" & Environment.NewLine & "True" & Environment.NewLine)
         End Sub
 
         ' CLS-Compliant

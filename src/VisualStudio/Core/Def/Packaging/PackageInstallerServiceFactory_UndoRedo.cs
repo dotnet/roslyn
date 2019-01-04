@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 // if the install succeeded, then add an uninstall item to the undo manager.
                 undoManager?.Add(new InstallPackageUndoUnit(
-                    this, source, packageName, 
+                    this, source, packageName,
                     versionOpt, includePrerelease,
                     dte, dteProject, undoManager));
             }
@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 bool includePrerelease,
                 EnvDTE.DTE dte,
                 EnvDTE.Project dteProject,
-                IOleUndoManager undoManager) 
+                IOleUndoManager undoManager)
                 : base(packageInstallerService, source, packageName,
                        versionOpt, includePrerelease,
                        dte, dteProject, undoManager)
@@ -128,8 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 bool includePrerelease,
                 EnvDTE.DTE dte,
                 EnvDTE.Project dteProject,
-                IOleUndoManager undoManager) 
-                : base(packageInstallerService, source, packageName, 
+                IOleUndoManager undoManager)
+                : base(packageInstallerService, source, packageName,
                        versionOpt, includePrerelease,
                        dte, dteProject, undoManager)
             {

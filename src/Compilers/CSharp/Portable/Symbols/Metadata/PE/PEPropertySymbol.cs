@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly PropertyDefinitionHandle _handle;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly RefKind _refKind;
-        private readonly TypeSymbol _propertyType;
+        private readonly TypeSymbolWithAnnotations _propertyType;
         private readonly PEMethodSymbol _getMethod;
         private readonly PEMethodSymbol _setMethod;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
@@ -140,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var returnInfo = propertyParams[0];
+            var typeCustomModifiers = CSharpCustomModifier.Convert(returnInfo.CustomModifiers);
 
             if (returnInfo.IsByRef)
             {
@@ -159,12 +161,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // CONSIDER: Can we make parameter type computation lazy?
             TypeSymbol originalPropertyType = returnInfo.Type;
-            _propertyType = DynamicTypeDecoder.TransformType(originalPropertyType, countOfCustomModifiers, handle, moduleSymbol, _refKind);
+
+            originalPropertyType = DynamicTypeDecoder.TransformType(originalPropertyType, typeCustomModifiers.Length, handle, moduleSymbol, _refKind);
 
             // Dynamify object type if necessary
-            _propertyType = _propertyType.AsDynamicIfNoPia(_containingType);
+            originalPropertyType = originalPropertyType.AsDynamicIfNoPia(_containingType);
 
-            _propertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(_propertyType, handle, moduleSymbol);
+            // We start without annotation (they will be decoded below)
+            var propertyType = TypeSymbolWithAnnotations.Create(originalPropertyType, customModifiers: typeCustomModifiers);
+
+            // Decode nullable before tuple types to avoid converting between
+            // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
+            propertyType = NullableTypeDecoder.TransformType(propertyType, handle, moduleSymbol);
+            propertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(propertyType, handle, moduleSymbol);
+
+            _propertyType = propertyType;
 
             // A property is bogus and must be accessed by calling its accessors directly if the
             // accessor signatures do not agree, both with each other and with the property,
@@ -476,14 +487,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return _refKind; }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { return _propertyType; }
-        }
-
-        public override ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -677,8 +683,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var paramHandle = i < numAccessorParams ? accessorParams[i].Handle : propertyParam.Handle;
                 var ordinal = i - 1;
                 bool isBad;
-                
-                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, out isBad);
+
+                // https://github.com/dotnet/roslyn/issues/29821: handle extra annotations
+                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, extraAnnotations: default, out isBad);
 
                 if (isBad)
                 {
@@ -730,7 +737,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private sealed class PEPropertySymbolWithCustomModifiers : PEPropertySymbol
         {
-            private readonly ImmutableArray<CustomModifier> _typeCustomModifiers;
             private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
             public PEPropertySymbolWithCustomModifiers(
@@ -746,13 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         propertyParams, metadataDecoder)
             {
                 var returnInfo = propertyParams[0];
-                _typeCustomModifiers = CSharpCustomModifier.Convert(returnInfo.CustomModifiers);
                 _refCustomModifiers = CSharpCustomModifier.Convert(returnInfo.RefCustomModifiers);
-            }
-
-            public override ImmutableArray<CustomModifier> TypeCustomModifiers
-            {
-                get { return _typeCustomModifiers; }
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers

@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.UseAutoProperty;
 namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpUseAutoPropertyCodeFixProvider)), Shared]
-    internal class CSharpUseAutoPropertyCodeFixProvider 
+    internal class CSharpUseAutoPropertyCodeFixProvider
         : AbstractUseAutoPropertyCodeFixProvider<TypeDeclarationSyntax, PropertyDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
     {
         protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         {
             var project = propertyDocument.Project;
             var sourceText = await propertyDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var trailingTrivia = propertyDeclaration.GetTrailingTrivia();
 
             var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList))
                                                      .WithExpressionBody(null)
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
             }
 
-            return updatedProperty.WithAdditionalAnnotations(SpecializedFormattingAnnotation);
+            return updatedProperty.WithTrailingTrivia(trailingTrivia).WithAdditionalAnnotations(SpecializedFormattingAnnotation);
         }
 
         protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)
