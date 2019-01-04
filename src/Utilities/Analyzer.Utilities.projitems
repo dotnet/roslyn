@@ -43,6 +43,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolVisibility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\UriExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolVisibilityGroup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerOptionsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\CategorizedAnalyzerConfigOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SolutionChangeAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayFormats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxGeneratorExtensions.cs" />
