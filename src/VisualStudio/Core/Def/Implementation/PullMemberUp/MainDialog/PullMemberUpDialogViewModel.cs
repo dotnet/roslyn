@@ -143,6 +143,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         private ImmutableHashSet<ISymbol> FindDependentsRecursively(ISymbol member)
         {
             var queue = new Queue<ISymbol>();
+            // Under situation like two methods call each other, this hashset is used to 
+            // prevent the infinity loop.
             var visited = new HashSet<ISymbol>();
             var result = new HashSet<ISymbol>();
             queue.Enqueue(member);
