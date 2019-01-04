@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
@@ -64,7 +65,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private readonly object _gate;
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
-            private readonly INamedTypeSymbol _eventArgsType, _iSerializableType, _serializationInfoType, _streamingContextType;
+            private readonly INamedTypeSymbol _eventArgsType;
+            private readonly SerializationConstructorCheck _serializationConstructorCheck;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
             private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> _analyzer;
 
@@ -83,9 +85,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _debuggerDisplayAttributeType = compilation.DebuggerDisplayAttributeType();
                 _structLayoutAttributeType = compilation.StructLayoutAttributeType();
                 _eventArgsType = compilation.EventArgsType();
-                _iSerializableType = compilation.ISerializableType();
-                _serializationInfoType = compilation.SerializationInfoType();
-                _streamingContextType = compilation.StreamingContextType();
+                _serializationConstructorCheck = new SerializationConstructorCheck(compilation);
                 _attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(compilation));
             }
 
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                     // ISerializable constructor is invoked by the runtime for deserialization
                                     // and it is a common pattern to have a private serialization constructor
                                     // that is not explicitly referenced in code.
-                                    if (IsISerializableConstructor(methodSymbol))
+                                    if (_serializationConstructorCheck.IsISerializableConstructor(methodSymbol))
                                     {
                                         return false;
                                     }
@@ -680,13 +680,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     return false;
                 }
             }
-
-            private bool IsISerializableConstructor(IMethodSymbol methodSymbol)
-                => _iSerializableType != null &&
-                   methodSymbol.Parameters.Length == 2 &&
-                   methodSymbol.Parameters[0].Type.Equals(_serializationInfoType) &&
-                   methodSymbol.Parameters[1].Type.Equals(_streamingContextType) &&
-                   methodSymbol.ContainingType.AllInterfaces.Contains(_iSerializableType);
         }
     }
 }

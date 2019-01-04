@@ -979,6 +979,39 @@ class C
 }}");
         }
 
+        [WorkItem(32133, "https://github.com/dotnet/roslyn/issues/32133")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Parameter_SerializationConstructor()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+using System;
+using System.Runtime.Serialization;
+
+internal sealed class NonSerializable
+{
+    public NonSerializable(string value) => Value = value;
+
+    public string Value { get; set; }
+}
+
+[Serializable]
+internal sealed class CustomSerializingType : ISerializable
+{
+    private readonly NonSerializable _nonSerializable;
+
+    public CustomSerializingType(SerializationInfo info, StreamingContext [|context|])
+    {
+        _nonSerializable = new NonSerializable(info.GetString(""KEY""));
+    }
+
+    public void GetObjectData(SerializationInfo info, StreamingContext context)
+    {
+        info.AddValue(""KEY"", _nonSerializable.Value);
+    }
+}");
+        }
+
         [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task Parameter_DiagnosticMessages()
         {
