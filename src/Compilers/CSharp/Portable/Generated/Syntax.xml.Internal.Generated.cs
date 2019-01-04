@@ -42460,7 +42460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("awaitKeyword");
+          throw new ArgumentException(nameof(awaitKeyword));
       }
       }
       if (usingKeyword != null)
@@ -42471,7 +42471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("usingKeyword");
+          throw new ArgumentException(nameof(usingKeyword));
       }
       }
       if (declaration == null)
@@ -49778,7 +49778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("awaitKeyword");
+          throw new ArgumentException(nameof(awaitKeyword));
       }
       }
       if (usingKeyword != null)
@@ -49789,7 +49789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("usingKeyword");
+          throw new ArgumentException(nameof(usingKeyword));
       }
       }
       if (declaration == null)

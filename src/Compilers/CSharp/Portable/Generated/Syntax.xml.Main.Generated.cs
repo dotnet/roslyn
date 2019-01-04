@@ -7162,7 +7162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("awaitKeyword");
+          throw new ArgumentException(nameof(awaitKeyword));
       }
       switch (usingKeyword.Kind())
       {
@@ -7170,7 +7170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.None:
           break;
         default:
-          throw new ArgumentException("usingKeyword");
+          throw new ArgumentException(nameof(usingKeyword));
       }
       if (declaration == null)
         throw new ArgumentNullException(nameof(declaration));
