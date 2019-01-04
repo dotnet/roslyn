@@ -40,17 +40,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompleteStatementCommandHandler(ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService)
+        public CompleteStatementCommandHandler()
         {
-            _undoHistoryRegistry = undoHistoryRegistry;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
         public string DisplayName => CSharpEditorResources.Complete_statement_on_semicolon;
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
+            // Determine where semicolon should be placed and move caret to location
             BeforeExecuteCommand(args, executionContext);
+
+            // Insert the semicolon using next command handler
             nextCommandHandler();
         }
 
@@ -97,9 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return;
             }
 
-            var isCaretAtEndOfLine = ((SnapshotPoint)caret).Position == ((SnapshotPoint)caret).GetContainingLine().End;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!LooksLikeNodeInArgumentList(currentNode, caret, isCaretAtEndOfLine, syntaxFacts))
+            if (!LooksLikeNodeInArgumentList(currentNode, caret, syntaxFacts))
             {
                 return;
             }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// <see langword="true"/> if the node matches a recognizable pattern of this form.</para>
         /// </remarks>
         private static bool LooksLikeNodeInArgumentList(SyntaxNode currentNode,
-            int caret, bool isCaretAtEndOfLine, ISyntaxFactsService syntaxFacts)
+            SnapshotPoint caret, ISyntaxFactsService syntaxFacts)
         {
             // work our way up the tree, looking for a node of interest within the current statement
             bool nodeFound = false;
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
                 // No special action is performed at this time if `;` is typed inside a string, including
                 // interpolated strings.  
-                if (IsInAString(currentNode, isCaretAtEndOfLine))
+                if (IsInAString(currentNode, caret))
                 {
                     return false;
                 }
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             // if we never found a statement, or a node of interest, or the statement kind is not a candidate for completion, return
-            if (currentNode == null || !nodeFound || !StatementIsACandidate(currentNode, caret))
+            if (currentNode == null || !nodeFound || !StatementIsACandidate(currentNode, caret.Position))
             {
                 return false;
             }
@@ -230,10 +230,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private static bool IsStatementOrFieldDeclaration(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts)
             => syntaxFacts.IsStatement(currentNode) || currentNode.IsKind(SyntaxKind.FieldDeclaration);
 
-        private static bool IsInAString(SyntaxNode currentNode, bool isCaretAtEndOfLine)
+        private static bool IsInAString(SyntaxNode currentNode, SnapshotPoint caret)
             // If caret is at the end of the line, it is outside the string	
             => (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
-                && !isCaretAtEndOfLine);
+                && caret.Position != caret.GetContainingLine().End);
 
         private static bool StatementIsACandidate(SyntaxNode currentNode, int caretPosition)
         {

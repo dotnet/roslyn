@@ -2685,7 +2685,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_InterpolatedString()
         {
-            var code = CreateTestWithMethodCall(@"var s=$""obj.ToString($$)""");
+            var code = CreateTestWithMethodCall(@"var s=$""{obj.ToString($$)}""");
 
             VerifyNoSpecialSemicolonHandling(code);
         }
