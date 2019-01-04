@@ -3161,15 +3161,14 @@ class Derived2 : Base, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-
-                //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-            });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.Method2(int)'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.Method2(int)").WithLocation(8, 14),
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.Method1()'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.Method1()").WithLocation(8, 14)
+                );
         }
 
         [Fact]
@@ -3217,15 +3216,17 @@ class Derived2 : Base, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 14 },
-
-                //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 24 },
-            });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,14): error CS0738: 'Base' does not implement interface member 'Interface.Property2'. 'Base.Property2' cannot implement 'Interface.Property2' because it does not have the matching return type of 'object'.
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Base", "Interface.Property2", "Base.Property2", "object").WithLocation(8, 14),
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.Property1'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.Property1").WithLocation(8, 14),
+                // (18,24): error CS0738: 'Derived2' does not implement interface member 'Interface.Property2'. 'Base.Property2' cannot implement 'Interface.Property2' because it does not have the matching return type of 'object'.
+                // class Derived2 : Base, Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Derived2", "Interface.Property2", "Base.Property2", "object").WithLocation(18, 24)
+                );
         }
 
         [Fact]
@@ -3252,15 +3253,17 @@ class Derived2 : Base, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 14 },
-
-                //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 24 },
-            });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,14): error CS0738: 'Base' does not implement interface member 'Interface.this[string]'. 'Base.this[string]' cannot implement 'Interface.this[string]' because it does not have the matching return type of 'object'.
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Base", "Interface.this[string]", "Base.this[string]", "object").WithLocation(8, 14),
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.this[int]'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.this[int]").WithLocation(8, 14),
+                // (18,24): error CS0738: 'Derived2' does not implement interface member 'Interface.this[string]'. 'Base.this[string]' cannot implement 'Interface.this[string]' because it does not have the matching return type of 'object'.
+                // class Derived2 : Base, Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Derived2", "Interface.this[string]", "Base.this[string]", "object").WithLocation(18, 24)
+                );
         }
 
         [Fact]
@@ -3287,15 +3290,17 @@ class Derived2 : Base, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 14 },
-
-                //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 24 },
-            });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,14): error CS0738: 'Base' does not implement interface member 'Interface.Event2'. 'Base.Event2' cannot implement 'Interface.Event2' because it does not have the matching return type of 'Action'.
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Base", "Interface.Event2", "Base.Event2", "System.Action").WithLocation(8, 14),
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.Event1'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.Event1").WithLocation(8, 14),
+                // (18,24): error CS0738: 'Derived2' does not implement interface member 'Interface.Event2'. 'Base.Event2' cannot implement 'Interface.Event2' because it does not have the matching return type of 'Action'.
+                // class Derived2 : Base, Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Derived2", "Interface.Event2", "Base.Event2", "System.Action").WithLocation(18, 24)
+                );
         }
 
         [Fact]
@@ -3564,16 +3569,10 @@ public class C : I<object>
     void I<dynamic>.F() { } // Dev10 Error: we don't implement I<dynamic>
 }
 ";
-            // We're diverging from Dev10 a little.  Dev10 reports that we didn't declare I<dynamic>, but it accepts
-            // I<dynamic>.F as a match for I<object>.F (because of signature matching rules for dynamic and object).
-            // We don't consider the methods a match because we don't want to return it from 
-            // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
-            // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,10): error CS0540: 'C.I<dynamic>.F()': containing type does not implement interface 'I<dynamic>'
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.F()", "I<dynamic>"),
-                 // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.F()'
-                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.F()"));
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.F()", "I<dynamic>")
+                );
         }
 
         [Fact]
@@ -3590,16 +3589,10 @@ public class C : I<object>
     int I<dynamic>.P { set { } } // Dev10 Error: we don't implement I<dynamic>
 }
 ";
-            // We're diverging from Dev10 a little.  Dev10 reports that we didn't declare I<dynamic>, but it accepts
-            // I<dynamic>.F as a match for I<object>.F (because of signature matching rules for dynamic and object).
-            // We don't consider the methods a match because we don't want to return it from 
-            // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
-            // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,9): error CS0540: 'C.I<dynamic>.P': containing type does not implement interface 'I<dynamic>'
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.P", "I<dynamic>"),
-               // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.P'
-               Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.P"));
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.P", "I<dynamic>")
+                );
         }
 
         [Fact]
@@ -3616,16 +3609,9 @@ public class C : I<object>
     int I<dynamic>.this[int x] { set { } } // Dev10 Error: we don't implement I<dynamic>
 }
 ";
-            // We're diverging from Dev10 a little.  Dev10 reports that we didn't declare I<dynamic>, but it accepts
-            // I<dynamic>.F as a match for I<object>.F (because of signature matching rules for dynamic and object).
-            // We don't consider the methods a match because we don't want to return it from 
-            // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
-            // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,9): error CS0540: 'C.I<dynamic>.this[int]': containing type does not implement interface 'I<dynamic>'
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.this[int]", "I<dynamic>"),
-                // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.this[int]'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.this[int]"));
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.this[int]", "I<dynamic>"));
         }
 
         [Fact]
@@ -3642,16 +3628,10 @@ public class C : I<object>
     event System.Action I<dynamic>.E { add { } remove { } } // Dev10 Error: we don't implement I<dynamic>
 }
 ";
-            // We're diverging from Dev10 a little.  Dev10 reports that we didn't declare I<dynamic>, but it accepts
-            // I<dynamic>.F as a match for I<object>.F (because of signature matching rules for dynamic and object).
-            // We don't consider the methods a match because we don't want to return it from 
-            // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
-            // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,25): error CS0540: 'C.I<dynamic>.E': containing type does not implement interface 'I<dynamic>'
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.E", "I<dynamic>"),
-                // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.E'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.E"));
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.E", "I<dynamic>")
+                );
         }
 
         [Fact]
@@ -7005,6 +6985,12 @@ abstract partial class Class : I3
 }";
 
             CreateCompilation(text).VerifyDiagnostics(
+                // (8,24): error CS8646: 'I2.Method<T>(int, ref T[], out List<T>)' is explicitly implemented more than once.
+                // abstract partial class Class : I2, I1
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "Class").WithArguments("I2.Method<T>(int, ref T[], out System.Collections.Generic.List<T>)").WithLocation(8, 24),
+                // (8,24): error CS8646: 'I1.Property' is explicitly implemented more than once.
+                // abstract partial class Class : I2, I1
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "Class").WithArguments("I1.Property").WithLocation(8, 24),
                 // (25,24): warning CS1066: The default value specified for parameter 'a' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //     void I3.Method(int a = 3, params System.Exception[] b) { }
                 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "a").WithArguments("a"),
@@ -8132,6 +8118,150 @@ public class A
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(31974, "https://github.com/dotnet/roslyn/issues/31974")]
+        public void Issue31974()
+        {
+            const string source = @"
+namespace Ns1
+{
+    public interface I1<I1T1>
+    {
+        void M();
+        int P {get; set;}
+        event System.Action E;
+    }
+
+    public class C0<ST1, ST2>
+    { }
+
+    public interface I2<I2T1, I2T2> : I1<C0<I2T1, I2T2>>
+    {
+    }
+
+    class C1<C1T1, C1T2> : I2<C1T1, C1T2>
+    {
+        void I1<C0<C1T1, C1T2>>.M()
+        {
+        }
+
+        void global::Ns1.I1<C0<C1T1, C1T2>>.M()
+        {
+        }
+
+        int I1<C0<C1T1, C1T2>>.P
+        {
+            get => throw null;
+            set => throw null;
+        }
+
+        int global::Ns1.I1<C0<C1T1, C1T2>>.P
+        {
+            get => throw null;
+            set => throw null;
+        }
+
+        event System.Action I1<C0<C1T1, C1T2>>.E
+        {
+            add => throw null;
+            remove => throw null;
+        }
+
+        event System.Action global::Ns1.I1<C0<C1T1, C1T2>>.E
+        {
+            add => throw null;
+            remove => throw null;
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (18,11): error CS8646: 'I1<C0<C1T1, C1T2>>.P' is explicitly implemented more than once.
+                //     class C1<C1T1, C1T2> : I2<C1T1, C1T2>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("Ns1.I1<Ns1.C0<C1T1, C1T2>>.P").WithLocation(18, 11),
+                // (18,11): error CS8646: 'I1<C0<C1T1, C1T2>>.E' is explicitly implemented more than once.
+                //     class C1<C1T1, C1T2> : I2<C1T1, C1T2>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("Ns1.I1<Ns1.C0<C1T1, C1T2>>.E").WithLocation(18, 11),
+                // (18,11): error CS8646: 'I1<C0<C1T1, C1T2>>.M()' is explicitly implemented more than once.
+                //     class C1<C1T1, C1T2> : I2<C1T1, C1T2>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("Ns1.I1<Ns1.C0<C1T1, C1T2>>.M()").WithLocation(18, 11)
+                );
+        }
+
+        [Fact]
+        public void DynamicMismatch_01()
+        {
+            var source = @"
+public interface I0<T> { }
+public interface I1 : I0<object> { }
+public interface I2 : I0<dynamic> { }
+public interface I3 : I0<object> { }
+
+public class C : I1, I2 { }
+public class D : I1, I3 { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,23): error CS1966: 'I2': cannot implement a dynamic interface 'I0<dynamic>'
+                // public interface I2 : I0<dynamic> { }
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I0<dynamic>").WithArguments("I2", "I0<dynamic>").WithLocation(4, 23)
+                );
+        }
+
+        [Fact]
+        public void DynamicMismatch_02()
+        {
+            var source = @"
+public interface I0<T> 
+{
+    void M();
+}
+
+public class C : I0<object>
+{
+    void I0<object>.M(){}
+}
+public class D : C, I0<dynamic>
+{ }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,21): error CS1966: 'D': cannot implement a dynamic interface 'I0<dynamic>'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I0<dynamic>").WithArguments("D", "I0<dynamic>").WithLocation(11, 21),
+                // (11,21): error CS0535: 'D' does not implement interface member 'I0<dynamic>.M()'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0<dynamic>").WithArguments("D", "I0<dynamic>.M()").WithLocation(11, 21)
+                );
+        }
+
+        [Fact]
+        public void DynamicMismatch_03()
+        {
+            var source = @"
+public interface I0<T> 
+{
+    void M();
+}
+
+public class C : I0<object>
+{
+    void I0<object>.M(){}
+    public void M(){}
+}
+public class D : C, I0<dynamic>
+{ }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,21): error CS1966: 'D': cannot implement a dynamic interface 'I0<dynamic>'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I0<dynamic>").WithArguments("D", "I0<dynamic>").WithLocation(12, 21),
+                // (12,21): error CS0535: 'D' does not implement interface member 'I0<dynamic>.M()'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0<dynamic>").WithArguments("D", "I0<dynamic>.M()").WithLocation(12, 21)
+                );
         }
     }
 }

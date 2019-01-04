@@ -5433,12 +5433,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NullableUnconstrainedTypeParameter" xml:space="preserve">
     <value>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</value>
   </data>
-  <data name="WRN_SuppressionOperatorNotReferenceType" xml:space="preserve">
-    <value>The suppression operator (!) can only be applied to reference types and nullable value types.</value>
-  </data>
-  <data name="WRN_SuppressionOperatorNotReferenceType_Title" xml:space="preserve">
-    <value>The suppression operator (!) can only be applied to reference types and nullable value types.</value>
-  </data>
   <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</value>
   </data>
@@ -5729,5 +5723,26 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DiscardPatternInSwitchStatement" xml:space="preserve">
     <value>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInExplicitlyImplementedInterface" xml:space="preserve">
+    <value>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInExplicitlyImplementedInterface_Title" xml:space="preserve">
+    <value>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInInterfaceImplementedByBase" xml:space="preserve">
+    <value>'{0}' does not implement interface member '{1}'. Nullability of reference types in interface implemented by the base type doesn't match.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInInterfaceImplementedByBase_Title" xml:space="preserve">
+    <value>Type does not implement interface member. Nullability of reference types in interface implemented by the base type doesn't match.</value>
+  </data>
+  <data name="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</value>
+  </data>
+  <data name="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title" xml:space="preserve">
+    <value>Interface is already listed in the interface list with different nullability of reference types.</value>
+  </data>
+  <data name="ERR_DuplicateExplicitImpl" xml:space="preserve">
+    <value>'{0}' is explicitly implemented more than once.</value>
   </data>
 </root>
