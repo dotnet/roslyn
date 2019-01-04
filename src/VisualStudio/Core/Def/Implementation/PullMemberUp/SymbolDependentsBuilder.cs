@@ -13,45 +13,48 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
     internal static class SymbolDependentsBuilder
     {
         public static ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> FindMemberToDependentsMap(
-            Document document,
             ImmutableArray<ISymbol> membersInType,
+            Project project,
             CancellationToken cancellationToken)
         {
             return membersInType.ToImmutableDictionary(
                 member => member,
                 member => Task.Run(() =>
                 {
-                    var builder = new SymbolWalker(document, membersInType, member);
-                    return builder.FindMemberDependentsAsync(cancellationToken);
+                    var builder = new SymbolWalker(membersInType, project, member, cancellationToken);
+                    return builder.FindMemberDependentsAsync();
                 }, cancellationToken));
         }
 
         private class SymbolWalker : OperationWalker
         {
             private readonly ImmutableHashSet<ISymbol> _membersInType;
-            private readonly Document _document;
+            private readonly Project _project;
             private readonly HashSet<ISymbol> _dependents;
             private readonly ISymbol _member;
+            private readonly CancellationToken _cancellationToken;
 
             public SymbolWalker(
-                Document document,
                 ImmutableArray<ISymbol> membersInType,
-                ISymbol member)
+                Project project,
+                ISymbol member,
+                CancellationToken cancellationToken)
             {
-                _document = document;
+                _project = project;
                 _membersInType = membersInType.ToImmutableHashSet();
                 _dependents = new HashSet<ISymbol>();
                 _member = member;
+                _cancellationToken = cancellationToken;
             }
 
-            public async Task<ImmutableArray<ISymbol>> FindMemberDependentsAsync(CancellationToken cancellationToken)
+            public async Task<ImmutableArray<ISymbol>> FindMemberDependentsAsync()
             {
-                var tasks = _member.DeclaringSyntaxReferences.Select(@ref => @ref.GetSyntaxAsync(cancellationToken));
+                var tasks = _member.DeclaringSyntaxReferences.Select(@ref => @ref.GetSyntaxAsync(_cancellationToken));
                 var syntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
-                var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
                 foreach (var syntax in syntaxes)
                 {
-                    Visit(compilation.GetSemanticModel(syntax.SyntaxTree).GetOperation(syntax, cancellationToken));
+                    Visit(compilation.GetSemanticModel(syntax.SyntaxTree).GetOperation(syntax, _cancellationToken));
                 }
 
                 return _dependents.ToImmutableArray();
@@ -59,6 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
             public override void Visit(IOperation operation)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 if (operation is IMemberReferenceOperation memberReferenceOp &&
                     _membersInType.Contains(memberReferenceOp.Member))
                 {

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         /// <summary>
         /// Indicate whether this member's declaration in destination needs to be made to abstract. It is only used by the dialog UI.
         /// If this property is true, then pull a member up to a class will only generate a abstract declaration in the destination.
-        /// It will always be false if the refactoring is trigger from Quick Action.
+        /// It will always be false if the refactoring is triggered from Quick Action.
         /// </summary>
         public readonly bool MakeMemberDeclarationAbstract;
 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         /// <summary>
         /// Indicate whether it would cause error if we directly pull Member into destination.
         /// </summary>
-        public bool PullMemberUpCausesError => ChangeOriginalToPublic || ChangeOriginalToNonStatic || ChangeDestinationTypeToAbstract;
+        public bool PullMemberUpNeedsToDoExtraChanges => ChangeOriginalToPublic || ChangeOriginalToNonStatic || ChangeDestinationTypeToAbstract;
 
         public MemberAnalysisResult(
             ISymbol member,

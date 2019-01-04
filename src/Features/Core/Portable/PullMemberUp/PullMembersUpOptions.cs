@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
 {
     /// <summary>
     /// This class contains all the operations needs to be done on members and destination to complete the pull up operation.
-    /// If user click cancel button, it will be null.
+    /// If user clicked the cancel button, it will be null.
     /// </summary>
     internal class PullMembersUpOptions
     {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         /// <summary>
         /// Indicate whether it would cause error if we directly pull all members in MemberAnalysisResults up to destination.
         /// </summary>
-        public readonly bool PullUpOperationCausesError;
+        public readonly bool PullUpOperationNeedsToDoExtraChanges;
 
         public PullMembersUpOptions(
             INamedTypeSymbol destination,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         {
             Destination = destination;
             MemberAnalysisResults = memberAnalysisResults;
-            PullUpOperationCausesError = MemberAnalysisResults.Any(result => result.PullMemberUpCausesError);
+            PullUpOperationNeedsToDoExtraChanges = MemberAnalysisResults.Any(result => result.PullMemberUpNeedsToDoExtraChanges);
         }
     }
 }

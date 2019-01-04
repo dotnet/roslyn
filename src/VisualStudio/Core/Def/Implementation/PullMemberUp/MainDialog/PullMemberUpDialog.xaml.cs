@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         private void OKButton_Click(object sender, RoutedEventArgs e)
         {
             var options = ViewModel.CreatePullMemberUpOptions();
-            if (options.PullUpOperationCausesError)
+            if (options.PullUpOperationNeedsToDoExtraChanges)
             {
                 if (ShowWarningDialog(options))
                 {
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
         private void CancelButton_Click(object sender, RoutedEventArgs e) => DialogResult = false;
 
-        private void SelecDependentsButton_Click(object sender, RoutedEventArgs e)
+        private void SelectDependentsButton_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.SelectDependents();
         }
@@ -83,14 +83,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
         private void MemberSelectionCheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            ViewModel.EnableOrDisableOkButton();
-            ViewModel.CheckAndSetStateOfSelectAllCheckBox();
+            ViewModel.SetStatesOfOkButtonAndSelectAllCheckBox();
         }
 
         private void MemberSelectionCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
-            ViewModel.EnableOrDisableOkButton();
-            ViewModel.CheckAndSetStateOfSelectAllCheckBox();
+            ViewModel.SetStatesOfOkButtonAndSelectAllCheckBox();
         }
 
         private void Destination_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)

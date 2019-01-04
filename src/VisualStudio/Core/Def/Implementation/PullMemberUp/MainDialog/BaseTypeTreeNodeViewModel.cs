@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         /// </summary>
         public string Namespace => string.Format(ServicesVSResources.Namespace_0, Symbol.ContainingNamespace?.ToDisplayString() ?? "global");
 
-        private BaseTypeTreeNodeViewModel(IGlyphService glyphService, INamedTypeSymbol node) : base(node, glyphService)
+        private BaseTypeTreeNodeViewModel(INamedTypeSymbol node, IGlyphService glyphService) : base(node, glyphService)
         {
         }
 
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             INamedTypeSymbol root,
             CancellationToken cancellationToken)
         {
-            var rootTreeNode = new BaseTypeTreeNodeViewModel(glyphService, root) { IsChecked = false, IsExpanded = true };
+            var rootTreeNode = new BaseTypeTreeNodeViewModel(root, glyphService) { IsChecked = false, IsExpanded = true };
             var queue = new Queue<BaseTypeTreeNodeViewModel>();
             queue.Enqueue(rootTreeNode);
             while (queue.Any())
@@ -53,7 +53,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                 currentTreeNode.BaseTypeNodes = currentTypeSymbol.Interfaces
                     .Concat(currentTypeSymbol.BaseType)
                     .Where(baseType => baseType != null && MemberAndDestinationValidator.IsDestinationValid(solution, baseType, cancellationToken))
-                    .Select(baseType => new BaseTypeTreeNodeViewModel(glyphService, baseType) { IsChecked = false, IsExpanded = true })
+                    .OrderBy(baseType => baseType.ToDisplayString())
+                    .Select(baseType => new BaseTypeTreeNodeViewModel(baseType, glyphService) { IsChecked = false, IsExpanded = true })
                     .ToImmutableArray();
 
                 foreach (var node in currentTreeNode.BaseTypeNodes)

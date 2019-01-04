@@ -32,6 +32,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         private readonly ImmutableDictionary<ISymbol, PullMemberUpSymbolViewModel> _symbolToMemberViewMap;
         private bool _okButtonEnabled;
 
+        public PullMemberUpDialogViewModel(
+            IWaitIndicator waitIndicator,
+            ImmutableArray<PullMemberUpSymbolViewModel> members,
+            ImmutableArray<BaseTypeTreeNodeViewModel> destinations,
+            ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap)
+        {
+            _waitIndicator = waitIndicator;
+            Members = members;
+            Destinations = destinations;
+            _symbolToDependentsMap = dependentsMap;
+            _symbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
+        }
+
         public BaseTypeTreeNodeViewModel SelectedDestination
         {
             get => _selectedDestination;
@@ -40,52 +53,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                 if (SetProperty(ref _selectedDestination, value, nameof(SelectedDestination)))
                 {
                     var fields = Members.WhereAsArray(memberViewModel => memberViewModel.Symbol.IsKind(SymbolKind.Field));
-                    var makeAbstractEnabledCheckboxs = Members.
+                    var makeAbstractEnabledCheckboxes = Members.
                         WhereAsArray(memberViewModel => !memberViewModel.Symbol.IsKind(SymbolKind.Field) && !memberViewModel.Symbol.IsAbstract);
-                    if (_selectedDestination.Symbol is INamedTypeSymbol interfaceSymbol &&
-                        interfaceSymbol.TypeKind == TypeKind.Interface)
+                    var isInterface = _selectedDestination.Symbol.TypeKind == TypeKind.Interface;
+                    // Disable field check box and make abstract if destination is interface
+                    foreach (var member in fields)
                     {
-                        // Disable field check box and make abstract if destination is interface
-                        foreach (var member in fields)
-                        {
-                            member.IsCheckable = false;
-                        }
-
-                        foreach (var member in makeAbstractEnabledCheckboxs)
-                        {
-                            member.IsMakeAbstractCheckable = false;
-                        }
+                        member.IsCheckable = !isInterface;
                     }
-                    else
+
+                    foreach (var member in makeAbstractEnabledCheckboxes)
                     {
-                        // Resume back
-                        foreach (var member in fields)
-                        {
-                            member.IsCheckable = true;
-                        }
-
-                        foreach (var member in makeAbstractEnabledCheckboxs)
-                        {
-                            member.IsMakeAbstractCheckable = true;
-                        }
+                        member.IsMakeAbstractCheckable = !isInterface;
                     }
-                    EnableOrDisableOkButton();
-                    CheckAndSetStateOfSelectAllCheckBox();
+
+                    SetStatesOfOkButtonAndSelectAllCheckBox();
                 }
             }
-        }
-
-        public PullMemberUpDialogViewModel(
-            IWaitIndicator waitIndicator,
-            ImmutableArray<PullMemberUpSymbolViewModel> members,
-            ImmutableArray<BaseTypeTreeNodeViewModel> destinations,
-            ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap)
-        {
-            Destinations = destinations;
-            _symbolToDependentsMap = dependentsMap;
-            Members = members;
-            _symbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
-            _waitIndicator = waitIndicator;
         }
 
         public PullMembersUpOptions CreatePullMemberUpOptions()
@@ -112,31 +96,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             SelectMembers(Members.WhereAsArray(memberViewModel => memberViewModel.Symbol.DeclaredAccessibility == Accessibility.Public));
         }
 
-        public void EnableOrDisableOkButton()
+        public void SetStatesOfOkButtonAndSelectAllCheckBox()
         {
-            var selectedMembers = Members
-                .WhereAsArray(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable);
-            OkButtonEnabled = SelectedDestination != null && selectedMembers.Count() != 0;
-        }
-
-        public void CheckAndSetStateOfSelectAllCheckBox()
-        {
-            var checkableMembers = Members.WhereAsArray(member => member.IsCheckable);
-            if (checkableMembers.All(member => member.IsChecked))
-            {
-                SelectAllCheckBoxState = true;
-                SelectAllCheckBoxThreeStateEnable = false;
-            }
-            else if (checkableMembers.Any(member => member.IsChecked))
-            {
-                SelectAllCheckBoxThreeStateEnable = true;
-                SelectAllCheckBoxState = null;
-            }
-            else
-            {
-                SelectAllCheckBoxState = false;
-                SelectAllCheckBoxThreeStateEnable = false;
-            }
+            EnableOrDisableOkButton();
+            CheckAndSetStateOfSelectAllCheckBox();
         }
 
         public void SelectDependents()
@@ -169,13 +132,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
 
         public void DeSelectAllMembers()
         {
-            foreach (var member in Members.WhereAsArray(viewModel => viewModel.IsCheckable))
+            foreach (var member in Members.Where(viewModel => viewModel.IsCheckable))
             {
                 member.IsChecked = false;
             }
 
-            CheckAndSetStateOfSelectAllCheckBox();
-            EnableOrDisableOkButton();
+            SetStatesOfOkButtonAndSelectAllCheckBox();
         }
 
         private ImmutableHashSet<ISymbol> FindDependentsRecursively(ISymbol member)
@@ -209,8 +171,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                 member.IsChecked = true;
             }
 
-            CheckAndSetStateOfSelectAllCheckBox();
-            EnableOrDisableOkButton();
+            SetStatesOfOkButtonAndSelectAllCheckBox();
+        }
+
+        private void EnableOrDisableOkButton()
+        {
+            var selectedMembers = Members
+                .Where(memberSymbolView => memberSymbolView.IsChecked && memberSymbolView.IsCheckable);
+            OkButtonEnabled = SelectedDestination != null && selectedMembers.Count() != 0;
+        }
+
+        private void CheckAndSetStateOfSelectAllCheckBox()
+        {
+            var checkableMembers = Members.Where(member => member.IsCheckable);
+            if (checkableMembers.All(member => member.IsChecked))
+            {
+                SelectAllCheckBoxState = true;
+                SelectAllCheckBoxThreeStateEnable = false;
+            }
+            else if (checkableMembers.Any(member => member.IsChecked))
+            {
+                SelectAllCheckBoxThreeStateEnable = true;
+                SelectAllCheckBoxState = null;
+            }
+            else
+            {
+                SelectAllCheckBoxState = false;
+                SelectAllCheckBoxThreeStateEnable = false;
+            }
         }
     }
 }

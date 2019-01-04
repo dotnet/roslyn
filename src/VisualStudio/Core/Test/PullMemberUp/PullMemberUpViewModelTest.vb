@@ -38,8 +38,8 @@ class MyClass : Level1BaseClass, Level1Interface
 }"]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
             Dim baseTypeTree = viewModel.Destinations()
-            Assert.Equal("Level1Interface", baseTypeTree(0).SymbolName)
-            Assert.Equal("Level1BaseClass", baseTypeTree(1).SymbolName)
+            Assert.Equal("Level1BaseClass", baseTypeTree(0).SymbolName)
+            Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
             Assert.Equal("Level2Interface", baseTypeTree(0).BaseTypeNodes(0).SymbolName)
             Assert.Equal("Level2Interface", baseTypeTree(1).BaseTypeNodes(0).SymbolName)
             Assert.Empty(baseTypeTree(0).BaseTypeNodes(0).BaseTypeNodes)
@@ -182,8 +182,8 @@ class MyClass : Level1BaseClass, Level1Interface
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
             Dim baseTypeTree = viewModel.Destinations()
 
-            Assert.Equal("Level1Interface", baseTypeTree(0).SymbolName)
-            viewModel.SelectedDestination = baseTypeTree(0)
+            Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
+            viewModel.SelectedDestination = baseTypeTree(1)
 
             For Each member In viewModel.Members.WhereAsArray(
                 Function(memberViewModel)
@@ -227,8 +227,8 @@ class MyClass : Level1BaseClass, Level1Interface
             Dim viewModel = Await GetViewModelAsync(markUp, LanguageNames.CSharp)
             Dim baseTypeTree = viewModel.Destinations()
 
-            Assert.Equal("Level1Interface", baseTypeTree(0).SymbolName)
-            viewModel.SelectedDestination = baseTypeTree(0)
+            Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
+            viewModel.SelectedDestination = baseTypeTree(1)
 
             For Each member In viewModel.Members.Where(Function(memberViewModel) memberViewModel.Symbol.IsKind(SymbolKind.Field))
                 Assert.False(member.IsCheckable)
@@ -270,12 +270,12 @@ class MyClass : Level1BaseClass, Level1Interface
             Dim baseTypeTree = viewModel.Destinations()
 
             ' First select an interface, all checkbox will be disable as the previous test.
-            Assert.Equal("Level1Interface", baseTypeTree(0).SymbolName)
-            viewModel.SelectedDestination = baseTypeTree(0)
+            Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
+            viewModel.SelectedDestination = baseTypeTree(1)
 
             ' Second select a class, check all checkboxs will be resumed.
-            Assert.Equal("Level1BaseClass", baseTypeTree(1).SymbolName)
-            viewModel.SelectedDestination = baseTypeTree(1)
+            Assert.Equal("Level1BaseClass", baseTypeTree(0).SymbolName)
+            viewModel.SelectedDestination = baseTypeTree(0)
             For Each member In viewModel.Members.Where(Function(memberViewModel) memberViewModel.Symbol.IsKind(SymbolKind.Field))
                 Assert.True(member.IsCheckable)
             Next
@@ -356,8 +356,8 @@ class MyClass : Level1BaseClass, Level1Interface
             Dim baseTypeTree = viewModel.Destinations()
             viewModel.SelectAllMembers()
             ' select an interface, all checkbox of field will be disable
-            Assert.Equal("Level1Interface", baseTypeTree(0).SymbolName)
-            viewModel.SelectedDestination = baseTypeTree(0)
+            Assert.Equal("Level1Interface", baseTypeTree(1).SymbolName)
+            viewModel.SelectedDestination = baseTypeTree(1)
 
             Dim options = viewModel.CreatePullMemberUpOptions()
             ' Make sure fields are pulled to interface
@@ -446,8 +446,8 @@ class MyClass : Level1BaseClass
                 Dim baseTypeTree = BaseTypeTreeNodeViewModel.CreateBaseTypeTree(glyphService:=Nothing, workspaceDoc.Project.Solution, memberSymbol.ContainingType, CancellationToken.None)
                 Dim membersInType = memberSymbol.ContainingType.GetMembers().WhereAsArray(Function(member) MemberAndDestinationValidator.IsMemberValid(member))
                 Dim membersViewModel = membersInType.SelectAsArray(
-                    Function(member) New PullMemberUpSymbolViewModel(glyphService:=Nothing, member) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
-                Dim memberToDependents = SymbolDependentsBuilder.FindMemberToDependentsMap(workspaceDoc, membersInType, CancellationToken.None)
+                    Function(member) New PullMemberUpSymbolViewModel(member, glyphService:=Nothing) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
+                Dim memberToDependents = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, workspaceDoc.Project, CancellationToken.None)
                 Return New PullMemberUpDialogViewModel(
                     workspace.GetService(Of IWaitIndicator),
                     membersViewModel,

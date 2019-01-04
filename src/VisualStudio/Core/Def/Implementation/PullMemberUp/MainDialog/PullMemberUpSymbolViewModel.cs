@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         /// </summary>
         public string Accessibility => Symbol.DeclaredAccessibility.ToString();
 
-        public PullMemberUpSymbolViewModel(IGlyphService glyphService, ISymbol symbol) : base(symbol, glyphService)
+        public PullMemberUpSymbolViewModel(ISymbol symbol, IGlyphService glyphService) : base(symbol, glyphService)
         {
         }
     }

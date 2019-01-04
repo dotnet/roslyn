@@ -232,7 +232,7 @@
                         x:Uid="SelecDependentsButton"
                         Padding="{StaticResource ResourceKey=SelectDependantsAndSelectPublicButtonPadding}"
                         Content="{Binding ElementName=dialog, Path=SelectDependents}"
-                        Click="SelecDependentsButton_Click"
+                        Click="SelectDependentsButton_Click"
                         Margin="2, 2, 2, 7"
                         Width="Auto"
                         Height="Auto"/>

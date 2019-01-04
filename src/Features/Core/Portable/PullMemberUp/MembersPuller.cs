@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             INamedTypeSymbol destination)
         {
             var result = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination, ImmutableArray.Create((member: selectedMember, makeAbstract: false)));
-            if (result.PullUpOperationCausesError ||
+            if (result.PullUpOperationNeedsToDoExtraChanges ||
                 IsSelectedMemberDeclarationAlreadyInDestination(selectedMember, destination))
             {
                 return null;

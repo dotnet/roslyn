@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 WhereAsArray(member => MemberAndDestinationValidator.IsMemberValid(member));
             var memberViewModels = membersInType
                 .SelectAsArray(member =>
-                    new PullMemberUpSymbolViewModel(_glyphService, member)
+                    new PullMemberUpSymbolViewModel(member, _glyphService)
                     {
                         // The member user selected will be checked at the begining.
                         IsChecked = SymbolEquivalenceComparer.Instance.Equals(selectedMember, member),
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                     document.Project.Solution,
                     selectedMember.ContainingType,
                     cancellationTokenSource.Token).BaseTypeNodes;
-                var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(document, membersInType, cancellationTokenSource.Token);
+                var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
                 var viewModel = new PullMemberUpDialogViewModel(_waitIndicator, memberViewModels, baseTypeRootViewModel, memberToDependentsMap);
                 var dialog = new PullMemberUpDialog(viewModel);
                 var result = dialog.ShowModal();
