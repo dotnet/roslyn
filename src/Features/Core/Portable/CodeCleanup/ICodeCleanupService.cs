@@ -3,7 +3,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup
@@ -12,6 +11,5 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
     {
         Task<Document> CleanupAsync(Document document, EnabledDiagnosticOptions enabledDiagnostics, IProgressTracker progressTracker, CancellationToken cancellationToken);
         EnabledDiagnosticOptions GetAllDiagnostics();
-        EnabledDiagnosticOptions GetEnabledDiagnostics(OptionSet optionSet);
     }
 }
