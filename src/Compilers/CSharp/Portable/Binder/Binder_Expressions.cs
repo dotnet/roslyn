@@ -1142,12 +1142,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
         private static bool CheckManagedAddr(TypeSymbol type, SyntaxNode node, DiagnosticBag diagnostics)
         {
-            if (type.IsManagedType)
+            var managedKind = type.ManagedKind;
+            if (managedKind == ManagedKind.Managed)
             {
                 diagnostics.Add(ErrorCode.ERR_ManagedAddr, node.Location, type);
                 return true;
             }
-            else if (type.GetArity() != 0)
+            else if (managedKind == ManagedKind.UnmanagedWithGenerics)
             {
                 var supported = CheckFeatureAvailability(node, MessageID.IDS_FeatureUnmanagedGenericStructs, diagnostics);
                 return !supported;

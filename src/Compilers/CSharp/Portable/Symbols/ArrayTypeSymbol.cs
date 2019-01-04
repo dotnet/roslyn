@@ -220,11 +220,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsManagedType
+        internal sealed override ManagedKind ManagedKind
         {
             get
             {
-                return true;
+                return ManagedKind.Managed;
             }
         }
 

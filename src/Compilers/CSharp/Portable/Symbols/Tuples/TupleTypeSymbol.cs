@@ -686,11 +686,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
         }
 
-        internal sealed override bool IsManagedType
+        internal sealed override ManagedKind ManagedKind
         {
             get
             {
-                return _underlyingType.IsManagedType;
+                return _underlyingType.ManagedKind;
             }
         }
 

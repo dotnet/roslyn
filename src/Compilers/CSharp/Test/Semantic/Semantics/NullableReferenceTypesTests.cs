@@ -1327,7 +1327,7 @@ interface I { }
             Assert.False(type.IsGenericType);
             Assert.True(type.IsImplicitlyDeclared);
             Assert.False(type.IsInterface);
-            Assert.False(type.IsManagedType);
+            Assert.Equal(ManagedKind.Managed, type.ManagedKind);
             Assert.False(type.IsNamespace);
             Assert.True(type.IsReferenceType);
             Assert.True(type.IsSealed);
@@ -1404,7 +1404,7 @@ interface I { }
             Assert.False(type.IsGenericType);
             Assert.True(type.IsImplicitlyDeclared);
             Assert.False(type.IsInterface);
-            Assert.False(type.IsManagedType);
+            Assert.Equal(ManagedKind.Managed, type.ManagedKind);
             Assert.False(type.IsNamespace);
             Assert.True(type.IsReferenceType);
             Assert.True(type.IsSealed);

@@ -3862,18 +3862,23 @@ public struct MyStruct
 
 public class C
 {
-    public unsafe void M<T>() where T : unmanaged { var t = default(T); var ptr = &t; }
+    public unsafe void M<T>() where T : unmanaged { }
 
     public void M2()
     {
         M<MyStruct>();
+        M<(int, int)>();
     }
 }
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                    // PROTOTYPE: placeholder while we figure out how to get the compiler to produce the error in this context
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct")
+                    // (13,9): error CS8370: Feature 'unmanaged generic structs' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         M<MyStruct>();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<MyStruct>").WithArguments("unmanaged generic structs", "8.0").WithLocation(13, 9),
+                    // (14,9): error CS8370: Feature 'unmanaged generic structs' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         M<(int, int)>();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<(int, int)>").WithArguments("unmanaged generic structs", "8.0").WithLocation(14, 9)
                 );
         }
 
