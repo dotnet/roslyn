@@ -56368,7 +56368,7 @@ I1<C1<CT1, CT2>>
                 // (7,10): warning CS8643: Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.
                 //     void I1<C1<CT1, CT2>>.M()
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, "I1<C1<CT1, CT2>>").WithLocation(7, 10)
-            }; 
+            };
 
             var comp2 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
             comp2.VerifyDiagnostics(expected);

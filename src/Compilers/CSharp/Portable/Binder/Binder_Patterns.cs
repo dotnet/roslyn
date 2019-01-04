@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 convertedExpression = new BoundConversion(
                     convertedExpression.Syntax, convertedExpression, Conversion.NoConversion, isBaseConversion: false, @checked: false,
                     explicitCastInCode: false, constantValueOpt: constantValueOpt, conversionGroupOpt: default, type: CreateErrorType(), hasErrors: true)
-                    { WasCompilerGenerated = true };
+                { WasCompilerGenerated = true };
             }
 
             return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (foundElement is null || foundElement.TupleElementIndex != tupleIndex)
             {
-                diagnostics.Add(ErrorCode.ERR_TupleElementNameMismatch, node.Location, name, $"Item{tupleIndex+1}");
+                diagnostics.Add(ErrorCode.ERR_TupleElementNameMismatch, node.Location, name, $"Item{tupleIndex + 1}");
             }
 
             return foundElement;
