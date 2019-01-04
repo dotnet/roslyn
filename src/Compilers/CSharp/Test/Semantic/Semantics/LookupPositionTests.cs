@@ -51,6 +51,7 @@ class C(int x, int y);";
                 Add( // Members
                     "System.Int32 C<T>.x { get; }",
                     "T C<T>.t { get; }",
+                    "System.Boolean C<T>.Equals(C<T> value)",
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
                     "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
