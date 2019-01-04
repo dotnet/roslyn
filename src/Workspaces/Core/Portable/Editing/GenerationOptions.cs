@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Editing
 {
     internal class GenerationOptions
     {
-        public static readonly PerLanguageOption<bool> PlaceSystemNamespaceFirst = new PerLanguageOption<bool>(nameof(GenerationOptions), 
+        public static readonly PerLanguageOption<bool> PlaceSystemNamespaceFirst = new PerLanguageOption<bool>(nameof(GenerationOptions),
             nameof(PlaceSystemNamespaceFirst), defaultValue: true,
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolOption("dotnet_sort_system_directives_first"),

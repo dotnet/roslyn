@@ -258,8 +258,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         else
                         {
                             Assert.Equal(exp.Text, setting.ValueText);
-                            Assert.True(setting.Kind() == SyntaxKind.EnableKeyword || setting.Kind() == SyntaxKind.DisableKeyword);
+                            Assert.True(setting.Kind() == SyntaxKind.EnableKeyword || setting.Kind() == SyntaxKind.DisableKeyword ||
+                                        setting.Kind() == SyntaxKind.RestoreKeyword || setting.Kind() == SyntaxKind.SafeOnlyKeyword);
                         }
+                        Assert.Equal(SyntaxKind.NullableKeyword, nn.DirectiveNameToken.Kind());
+                        Assert.True(SyntaxFacts.IsPreprocessorDirective(SyntaxKind.NullableDirectiveTrivia));
+                        Assert.True(SyntaxFacts.IsPreprocessorKeyword(SyntaxKind.NullableKeyword));
                         break;
                     default:
                         if (null != exp.Text)
@@ -276,7 +280,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var directives = node.GetDirectives();
             Assert.Equal(1, directives.Count);
             var dt = directives[0];
-            Assert.Equal(expected.PragmaKind, directives[0].Kind());
+            VerifyDirectivePragma(dt, expected);
+        }
+
+        private void VerifyDirectivePragma(DirectiveTriviaSyntax dt, PragmaInfo expected)
+        {
+            Assert.Equal(expected.PragmaKind, dt.Kind());
 
             if (dt is PragmaWarningDirectiveTriviaSyntax)
             {
@@ -3444,8 +3453,8 @@ class A
 {
     static void Main(int i)
     {
-#pragma warning disable 1522
-        switch (i) { }
+#pragma warning disable 1633
+#pragma something // warning CS1633: Unrecognized #pragma directive
     }
 }
 ";
@@ -3453,16 +3462,16 @@ class A
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var diagnostic = tree.GetDiagnostics().Single();
             Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
-            Assert.Equal(1522, diagnostic.Code);
+            Assert.Equal(1633, diagnostic.Code);
 
             // verify pragma information
             var node = tree.GetCompilationUnitRoot();
-            VerifyDirectivePragma(node, new PragmaInfo
+            VerifyDirectivePragma(node.GetDirectives().First(), new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new[] { "1522" }
+                WarningList = new[] { "1633" }
             });
 
             // verify that GetParseDiagnostics filters disabled warning
@@ -4007,9 +4016,9 @@ class A
         {
             var text = @"#nullable restore";
             var node = Parse(text, options: TestOptions.Regular8);
-            TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveQualifierExpected, Status = NodeStatus.IsError });
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "restore" });
         }
 
         [Fact]
@@ -4021,6 +4030,17 @@ class A
             TestRoundTripping(node, text);
             VerifyErrorCode(node); // no errors
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableSafeOnly()
+        {
+            var text = @"#nullable safeonly";
+            var node = Parse(text, options: TestOptions.Regular8);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "safeonly" });
         }
 
         [Fact]
@@ -4054,6 +4074,31 @@ class enable
             var nodes = root.DescendantNodes(descendIntoTrivia: true);
             SyntaxToken token = nodes.OfType<NullableDirectiveTriviaSyntax>().Single().SettingToken;
             Assert.Equal(SyntaxKind.EnableKeyword, token.Kind());
+            token = nodes.OfType<ClassDeclarationSyntax>().Single().Identifier;
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.ContextualKind());
+        }
+
+        /// <summary>
+        /// "safeonly" should be a keyword within the directive only.
+        /// </summary>
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableSafeOnlyKeyword()
+        {
+            var text =
+@"#nullable safeonly
+class safeonly
+{
+}";
+            var tree = ParseTree(text);
+            var root = tree.GetCompilationUnitRoot();
+            TestRoundTripping(root, text, false);
+            VerifyErrorCode(root); // no errors
+            VerifyDirectivesSpecial(root, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "safeonly" });
+            var nodes = root.DescendantNodes(descendIntoTrivia: true);
+            SyntaxToken token = nodes.OfType<NullableDirectiveTriviaSyntax>().Single().SettingToken;
+            Assert.Equal(SyntaxKind.SafeOnlyKeyword, token.Kind());
             token = nodes.OfType<ClassDeclarationSyntax>().Single().Identifier;
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, token.ContextualKind());

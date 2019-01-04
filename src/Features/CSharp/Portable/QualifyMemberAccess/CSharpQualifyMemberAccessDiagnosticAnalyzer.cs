@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer 
+    internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer
         : AbstractQualifyMemberAccessDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, SimpleNameSyntax>
     {
         protected override string GetLanguageName()

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _F = factory;
             _F.CurrentFunction = containingMethod;
-            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
+            Debug.Assert(TypeSymbol.Equals(factory.CurrentType, (containingType ?? containingMethod.ContainingType), TypeCompareKind.ConsiderEverything2));
             _diagnostics = diagnostics;
             _analysis = analysis;
         }
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             Debug.Assert(containingSymbol != null);
-            Debug.Assert(containingType != null);
+            Debug.Assert((object)containingType != null);
             Debug.Assert(statement != null);
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // since finalized region is a try we can just attach finally to it
                     Debug.Assert(asTry.FinallyBlockOpt == null);
-                    return asTry.Update(asTry.TryBlock, asTry.CatchBlocks, rewrittenFinally, asTry.PreferFaultHandler);
+                    return asTry.Update(asTry.TryBlock, asTry.CatchBlocks, rewrittenFinally, asTry.FinallyLabelOpt, asTry.PreferFaultHandler);
                 }
                 else
                 {
@@ -188,9 +188,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _F.HiddenSequencePoint(),
                     _F.Goto(finallyLabel),
                     PendBranches(frame, pendingBranchVar, finallyLabel)),
-                ImmutableArray.Create(catchAll));
+                ImmutableArray.Create(catchAll),
+                finallyLabel: finallyLabel);
 
-            var syntheticFinally = _F.Block(
+            BoundBlock syntheticFinallyBlock = _F.Block(
                 _F.HiddenSequencePoint(),
                 _F.Label(finallyLabel),
                 rewrittenFinally,
@@ -201,6 +202,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     pendingBranchVar,
                     pendingExceptionLocal));
 
+            BoundStatement syntheticFinally = syntheticFinallyBlock;
+            if (_F.CurrentFunction.IsAsync && _F.CurrentFunction.IsIterator)
+            {
+                // We wrap this block so that it can be processed as a finally block by async-iterator rewriting
+                syntheticFinally = _F.ExtractedFinallyBlock(syntheticFinallyBlock);
+            }
 
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             var statements = ArrayBuilder<BoundStatement>.GetInstance();
@@ -290,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // skip 0 - it means we took no explicit branches
             int i = 1;
-            var cases = ArrayBuilder<BoundSwitchSection>.GetInstance();
+            var cases = ArrayBuilder<SyntheticBoundNodeFactory.SyntheticSwitchSection>.GetInstance();
 
             if (proxiedLabels != null)
             {
@@ -465,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var handledLabel = _F.GenerateLabel("handled");
                 var handlersList = currentAwaitCatchFrame.handlers;
-                var handlers = ArrayBuilder<BoundSwitchSection>.GetInstance(handlersList.Count);
+                var handlers = ArrayBuilder<SyntheticBoundNodeFactory.SyntheticSwitchSection>.GetInstance(handlersList.Count);
                 for (int i = 0, l = handlersList.Count; i < l; i++)
                 {
                     handlers.Add(_F.SwitchSection(
@@ -1008,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public void HoistLocal(LocalSymbol local, SyntheticBoundNodeFactory F)
             {
-                if (!_hoistedLocals.Keys.Any(l => l.Name == local.Name && l.Type.TypeSymbol == local.Type.TypeSymbol))
+                if (!_hoistedLocals.Keys.Any(l => l.Name == local.Name && TypeSymbol.Equals(l.Type.TypeSymbol, local.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2)))
                 {
                     _hoistedLocals.Add(local, local);
                     _orderedHoistedLocals.Add(local);

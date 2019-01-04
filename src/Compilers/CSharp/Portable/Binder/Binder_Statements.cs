@@ -360,30 +360,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var boundExpr = BindValue(exprSyntax, diagnostics, BindValueKind.RValue);
 
-                // SPEC VIOLATION: The spec requires the thrown exception to have a type, and that the type
-                // be System.Exception or derived from System.Exception. (Or, if a type parameter, to have
-                // an effective base class that meets that criterion.) However, we allow the literal null 
-                // to be thrown, even though it does not meet that criterion and will at runtime always
-                // produce a null reference exception.
+            // SPEC VIOLATION: The spec requires the thrown exception to have a type, and that the type
+            // be System.Exception or derived from System.Exception. (Or, if a type parameter, to have
+            // an effective base class that meets that criterion.) However, we allow the literal null 
+            // to be thrown, even though it does not meet that criterion and will at runtime always
+            // produce a null reference exception.
 
-                if (!boundExpr.IsLiteralNull())
+            if (!boundExpr.IsLiteralNull())
+            {
+                var type = boundExpr.Type;
+
+                // If the expression is a lambda, anonymous method, or method group then it will
+                // have no compile-time type; give the same error as if the type was wrong.
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+                if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveType(ref useSiteDiagnostics), ref useSiteDiagnostics))
                 {
-                    var type = boundExpr.Type;
-
-                    // If the expression is a lambda, anonymous method, or method group then it will
-                    // have no compile-time type; give the same error as if the type was wrong.
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-
-                    if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveType(ref useSiteDiagnostics), ref useSiteDiagnostics))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadExceptionType, exprSyntax.Location);
-                        hasErrors = true;
-                        diagnostics.Add(exprSyntax, useSiteDiagnostics);
-                    }
+                    diagnostics.Add(ErrorCode.ERR_BadExceptionType, exprSyntax.Location);
+                    hasErrors = true;
+                    diagnostics.Add(exprSyntax, useSiteDiagnostics);
                 }
+            }
 
             return boundExpr;
-            }
+        }
 
         private BoundStatement BindThrow(ThrowStatementSyntax node, DiagnosticBag diagnostics)
         {
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var dummyDiagnostics = DiagnosticBag.GetInstance();
                             childNodes = ImmutableArray.Create<BoundNode>(BindValue(node.Expression, dummyDiagnostics, BindValueKind.RValue));
                             dummyDiagnostics.Free();
-                         }
+                        }
                         else
                         {
                             childNodes = ImmutableArray<BoundNode>.Empty;
@@ -633,27 +633,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindUsingDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
-            Conversion iDisposableConversion;
-            MethodSymbol disposeMethod;
-            bool hasAwait = node.AwaitKeyword != default;
-            var declarations = BindUsingVariableDeclaration(
-                                                this,
-                                                diagnostics,
-                                                diagnostics.HasAnyErrors(),
-                                                node,
-                                                node.Declaration,
-                                                hasAwait,
-                                                out iDisposableConversion,
-                                                out disposeMethod);
-
-            AwaitableInfo awaitOpt = null;
-            bool hasErrors = false;
-            if (hasAwait)
-            {
-                awaitOpt = BindAsyncDisposeAwaiter(node, node.AwaitKeyword, disposeMethod, diagnostics, ref hasErrors);
-            }
-
-            return new BoundUsingLocalDeclarations(node, disposeMethod, iDisposableConversion, awaitOpt, declarations, hasErrors);
+            var usingDeclaration = UsingStatementBinder.BindUsingStatementOrDeclarationFromParts(node, node.UsingKeyword, node.AwaitKeyword, originalBinder: this, usingBinderOpt: null, diagnostics);
+            Debug.Assert(usingDeclaration is BoundUsingLocalDeclarations);
+            return usingDeclaration;
         }
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
@@ -684,60 +666,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal ImmutableArray<BoundLocalDeclaration> BindUsingVariableDeclaration(Binder originalBinder,
-                                                                             DiagnosticBag diagnostics,
-                                                                             bool hasErrors,
-                                                                             SyntaxNode node,
-                                                                             VariableDeclarationSyntax declarationSyntax,
-                                                                             bool hasAwait,
-                                                                             out Conversion iDisposableConversion,
-                                                                             out MethodSymbol disposeMethod)
-        {
-            iDisposableConversion = Conversion.NoConversion;
-            disposeMethod = null;
-            ImmutableArray<BoundLocalDeclaration> declarations;
-
-            originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
-            Debug.Assert(!declarations.IsEmpty);
-
-            BoundLocalDeclaration declaration = declarations[0];
-            TypeSymbol declType = declaration.DeclaredType.Type;
-
-            if (declType.IsDynamic())
-            {
-                iDisposableConversion = Conversion.ImplicitDynamic;
-            }
-            else
-            {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                TypeSymbol iDisposable = hasAwait
-                    ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
-                    : this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
-
-                iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
-                diagnostics.Add(declarationSyntax, useSiteDiagnostics);
-
-                if (!iDisposableConversion.IsImplicit)
-                {
-                    // only search pattern dispose for ref structs
-                    if (declType.IsValueType && declType.IsByRefLikeType)
-                    {
-                        var declarationLocal = new BoundLocal(declaration.Syntax, declaration.LocalSymbol, null, declType) { WasCompilerGenerated = true };
-                        disposeMethod = TryFindDisposePatternMethod(declarationLocal, declarationSyntax, hasAwait, diagnostics);
-                    }
-                    if (disposeMethod is null)
-                    {
-                        if (!declType.IsErrorType())
-                        {
-                            Error(diagnostics, hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
-                        }
-                        hasErrors = true;
-                    }
-                }
-            }
-            return declarations;
-        }
-
         /// <summary>
         /// Checks for a Dispose method on <paramref name="expr"/> and returns its <see cref="MethodSymbol"/> if found.
         /// </summary>
@@ -751,45 +679,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!(expr.Type is null));
             Debug.Assert(expr.Type.IsValueType && expr.Type.IsByRefLikeType); // pattern dispose lookup is only valid on ref structs
 
-            var result = FindPatternMethodRelaxed(expr,
-                                                  hasAwait ? WellKnownMemberNames.DisposeAsyncMethodName : WellKnownMemberNames.DisposeMethodName,
-                                                  syntaxNode,
-                                                  diagnostics,
-                                                  out var disposeMethod);
+            // Don't try and lookup if we're not enabled
+            if (MessageID.IDS_FeatureUsingDeclarations.RequiredVersion() > Compilation.LanguageVersion)
+            {
+                return null;
+            }
+
+            var result = PerformPatternMethodLookup(expr,
+                                                    hasAwait ? WellKnownMemberNames.DisposeAsyncMethodName : WellKnownMemberNames.DisposeMethodName,
+                                                    syntaxNode,
+                                                    diagnostics,
+                                                    out var disposeMethod);
 
             if ((!hasAwait && disposeMethod?.ReturnsVoid == false) 
                 || (hasAwait && disposeMethod?.ReturnType.TypeSymbol.IsNonGenericTaskType(Compilation) == false) 
                 || result == PatternLookupResult.NotAMethod)
             {
-                ReportPatternWarning(diagnostics, expr.Type, disposeMethod, syntaxNode, MessageID.IDS_Disposable);
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                if (this.IsAccessible(disposeMethod, ref useSiteDiagnostics))
+                {
+                    diagnostics.Add(ErrorCode.WRN_PatternBadSignature, syntaxNode.Location, expr.Type, MessageID.IDS_Disposable.Localize(), disposeMethod);
+                }
+
+                diagnostics.Add(syntaxNode, useSiteDiagnostics);
                 disposeMethod = null;
             }
 
             return disposeMethod;
         }
-
-        /// <summary>
-        /// Binds an awaiter for asynchronous dispose
-        /// </summary>
-        /// <param name="node">The syntax node to bind for</param>
-        /// <param name="awaitKeyword">The await keyword of the syntax</param>
-        /// <param name="disposeMethodOpt">The dispose method to call, or null to use IAsyncDisposable.DisposeAsync</param>
-        /// <param name="diagnostics">Populated with any errors</param>
-        /// <param name="hasErrors">True if errors occurred during binding</param>
-        /// <returns>An <see cref="AwaitableInfo"/> with the bound information</returns>
-        protected AwaitableInfo BindAsyncDisposeAwaiter(SyntaxNode node, SyntaxToken awaitKeyword, MethodSymbol disposeMethodOpt, DiagnosticBag diagnostics, ref bool hasErrors)
-        {
-            TypeSymbol taskType = disposeMethodOpt is null
-                                    ? this.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask)
-                                    : disposeMethodOpt.ReturnType.TypeSymbol;
-
-            hasErrors |= ReportUseSiteDiagnostics(taskType, diagnostics, awaitKeyword);
-
-            BoundExpression placeholder = new BoundAwaitableValuePlaceholder(node, taskType).MakeCompilerGenerated();
-            AwaitableInfo awaitOpt = BindAwaitInfo(placeholder, node, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
-            return awaitOpt;
-        }
-
 
         private TypeSymbolWithAnnotations BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
         {
@@ -1076,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!declTypeOpt.IsNull);
-            
+
             if (kind == LocalDeclarationKind.FixedVariable)
             {
                 // NOTE: this is an error, but it won't prevent further binding.
@@ -1259,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     fixedPatternMethod = GetFixedPatternMethodOpt(initializerOpt, additionalDiagnostics);
 
                     // check for String
-                    // NOTE: We will allow the pattern method to take precendence, but only if it is an instance member of System.String
+                    // NOTE: We will allow the pattern method to take precedence, but only if it is an instance member of System.String
                     if (initializerType.SpecialType == SpecialType.System_String &&
                         ((object)fixedPatternMethod == null || fixedPatternMethod.ContainingType.SpecialType != SpecialType.System_String))
                     {
@@ -1311,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             const string methodName = "GetPinnableReference";
 
-            var result = FindPatternMethodRelaxed(initializer, methodName, initializer.Syntax, additionalDiagnostics, out var patternMethodSymbol);
+            var result = PerformPatternMethodLookup(initializer, methodName, initializer.Syntax, additionalDiagnostics, out var patternMethodSymbol);
 
             if (patternMethodSymbol is null)
             {
@@ -1336,11 +1253,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// information it needs (e.g. conversions, helper methods).
         /// </summary>
         private BoundExpression GetFixedLocalCollectionInitializer(
-            BoundExpression initializer, 
-            TypeSymbol elementType, 
-            TypeSymbol declType, 
+            BoundExpression initializer,
+            TypeSymbol elementType,
+            TypeSymbol declType,
             MethodSymbol patternMethodOpt,
-            bool hasErrors, 
+            bool hasErrors,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(initializer != null);
@@ -1428,7 +1345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression InferTypeForDiscardAssignment(BoundDiscardExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
         {
             var inferredType = op2.Type;
-            if (inferredType == null)
+            if ((object)inferredType == null)
             {
                 return op1.FailInference(this, diagnostics);
             }
@@ -1447,7 +1364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression op2,
             bool isRef,
             DiagnosticBag diagnostics)
-        {                      
+        {
             Debug.Assert(op1 != null);
             Debug.Assert(op2 != null);
 
@@ -1493,7 +1410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Event assignment is a call to void WindowsRuntimeMarshal.AddEventHandler<T>().
                 type = this.GetSpecialType(SpecialType.System_Void, diagnostics, node);
-            } 
+            }
             else
             {
                 type = op1.Type;
@@ -1600,7 +1517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (object)sourceProperty != null &&
                     sourceProperty.IsAutoProperty &&
-                    sourceProperty.ContainingType == fromMember.ContainingType &&
+                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
                     IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
                     (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
         }
@@ -2040,7 +1957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_NoImplicitConv, syntax, distinguisher.First, distinguisher.Second);
                     }
                 }
-                else if (sourceType == targetType)
+                else if (TypeSymbol.Equals(sourceType, targetType, TypeCompareKind.ConsiderEverything2))
                 {
                     // This occurs for `void`, which cannot even convert to itself. Since SymbolDistinguisher
                     // requires two distinct types, we preempt its use here. The diagnostic is strange, but correct.
@@ -2354,12 +2271,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
             Binder switchBinder = this.GetBinder(node);
-            return switchBinder.BindSwitchExpressionAndSections(node, switchBinder, diagnostics);
+            return switchBinder.BindSwitchStatementCore(node, switchBinder, diagnostics);
         }
 
-        internal virtual BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        internal virtual BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
-            return this.Next.BindSwitchExpressionAndSections(node, originalBinder, diagnostics);
+            return this.Next.BindSwitchStatementCore(node, originalBinder, diagnostics);
         }
 
         internal virtual void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, DiagnosticBag diagnostics)
@@ -2555,10 +2472,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsGenericTaskReturningAsync(this.Compilation);
         }
 
-        protected bool IsIAsyncEnumerableReturningAsyncMethod()
+        protected bool IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod()
         {
             var symbol = this.ContainingMemberOrLambda;
-            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsIAsyncEnumerableReturningAsync(this.Compilation);
+            if (symbol?.Kind == SymbolKind.Method)
+            {
+                var method = (MethodSymbol)symbol;
+                return method.IsIAsyncEnumerableReturningAsync(this.Compilation) ||
+                    method.IsIAsyncEnumeratorReturningAsync(this.Compilation);
+            }
+            return false;
         }
 
         protected virtual TypeSymbol GetCurrentReturnType(out RefKind refKind)
@@ -2620,7 +2543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_MustNotHaveRefReturn, syntax.ReturnKeyword.GetLocation());
                     hasErrors = true;
                 }
-                else if (IsIAsyncEnumerableReturningAsyncMethod())
+                else if (IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod())
                 {
                     diagnostics.Add(ErrorCode.ERR_ReturnInIterator, syntax.ReturnKeyword.GetLocation());
                     hasErrors = true;
@@ -2768,7 +2691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!badAsyncReturnAlreadyReported)
                     {
                         RefKind unusedRefKind;
-                        if (IsGenericTaskReturningAsyncMethod() && argument.Type == this.GetCurrentReturnType(out unusedRefKind))
+                        if (IsGenericTaskReturningAsyncMethod() && TypeSymbol.Equals(argument.Type, this.GetCurrentReturnType(out unusedRefKind), TypeCompareKind.ConsiderEverything2))
                         {
                             // Since this is an async method, the return expression must be of type '{0}' rather than 'Task<{0}>'
                             Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType);
@@ -2897,7 +2820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             diagnostics.Add(declaration.Type, useSiteDiagnostics);
                         }
-                        else if (previousType == Compilation.GetWellKnownType(WellKnownType.System_Exception) &&
+                        else if (TypeSymbol.Equals(previousType, Compilation.GetWellKnownType(WellKnownType.System_Exception), TypeCompareKind.ConsiderEverything2) &&
                                  Compilation.SourceAssembly.RuntimeCompatibilityWrapNonExceptionThrows)
                         {
                             // If the RuntimeCompatibility(WrapNonExceptionThrows = false) is applied on the source assembly or any referenced netmodule.
@@ -2920,7 +2843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (local?.DeclarationKind == LocalDeclarationKind.CatchVariable)
             {
-                Debug.Assert(local.Type.IsErrorType() || (local.Type.TypeSymbol == type));
+                Debug.Assert(local.Type.IsErrorType() || (TypeSymbol.Equals(local.Type.TypeSymbol, type, TypeCompareKind.ConsiderEverything2)));
 
                 // Check for local variable conflicts in the *enclosing* binder, not the *current* binder;
                 // obviously we will find a local of the given name in the current binder.
@@ -2947,7 +2870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : ErrorCode.WRN_FilterIsConstantFalse;
 
                 // Since the expression is a constant, the name can be retrieved from the first token
-                Error(diagnostics, errorCode, filter.FilterExpression);                
+                Error(diagnostics, errorCode, filter.FilterExpression);
             }
 
             return boundFilter;
@@ -3175,8 +3098,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
                                                   constructor.Initializer == null ? null : bodyBinder.BindConstructorInitializer(constructor.Initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
-                                                  constructor.ExpressionBody == null ? 
-                                                      null : 
+                                                  constructor.ExpressionBody == null ?
+                                                      null :
                                                       bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
                                                                                            constructor.Body == null ? diagnostics : new DiagnosticBag()));
         }
@@ -3201,9 +3124,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundNonConstructorMethodBody(declaration,
                                                      blockBody == null ? null : (BoundBlock)BindStatement(blockBody, diagnostics),
-                                                     expressionBody == null ? 
-                                                         null : 
-                                                         BindExpressionBodyAsBlock(expressionBody, 
+                                                     expressionBody == null ?
+                                                         null :
+                                                         BindExpressionBodyAsBlock(expressionBody,
                                                                                    blockBody == null ? diagnostics : new DiagnosticBag()));
         }
 
@@ -3232,82 +3155,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Perform a lookup for the specified method on the specified type, stopping at the first resolved symbol.
-        /// Perform overload resolution on the lookup results.
-        /// </summary>
-        /// <param name="patternType">Type to search.</param>
-        /// <param name="methodName">Method to search for.</param>
-        /// <param name="syntaxExpr">The expression for which lookup is being performed</param>
-        /// <param name="lookupResult">Passed in for reusability.</param>
-        /// <param name="warningsOnly">True if failures should result in warnings; false if they should result in errors.</param>
-        /// <param name="diagnostics">Populated with binding diagnostics.</param>
-        /// <param name="syntaxTree">The tree this lookup is being performed on.</param>
-        /// <param name="messageID">The ID of the message to use when reporting diagnostics</param>
-        /// <returns>The desired method or null.</returns>
-        /// <remarks>This is the pre C# 8.0 resolution behavior, originally implemented for GetEnumerator/MoveNext</remarks>
-        internal MethodSymbol FindPatternMethodStrict(TypeSymbol patternType, string methodName, LookupResult lookupResult,
-                                                      SyntaxNode syntaxExpr, bool warningsOnly, DiagnosticBag diagnostics,
-                                                      SyntaxTree syntaxTree, MessageID messageID)
-        {
-            Debug.Assert(lookupResult.IsClear);
-
-            // Not using LookupOptions.MustBeInvocableMember because we don't want the corresponding lookup error.
-            // We filter out non-methods below.
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupMembersInType(
-                lookupResult,
-                patternType,
-                methodName,
-                arity: 0,
-                basesBeingResolved: null,
-                options: LookupOptions.Default,
-                originalBinder: this,
-                diagnose: false,
-                useSiteDiagnostics: ref useSiteDiagnostics);
-
-            diagnostics.Add(syntaxExpr, useSiteDiagnostics);
-
-            if (!lookupResult.IsMultiViable)
-            {
-                ReportPatternMemberLookupDiagnostics(lookupResult, patternType, methodName, syntaxExpr, warningsOnly, diagnostics, messageID);
-                return null;
-            }
-
-            ArrayBuilder<MethodSymbol> candidateMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-
-            foreach (Symbol member in lookupResult.Symbols)
-            {
-                if (member.Kind != SymbolKind.Method)
-                {
-                    candidateMethods.Free();
-
-                    if (warningsOnly)
-                    {
-                        ReportPatternWarning(diagnostics, patternType, member, syntaxExpr, messageID);
-                    }
-
-                    return null;
-                }
-
-                MethodSymbol method = (MethodSymbol)member;
-
-                // SPEC VIOLATION: The spec says we should apply overload resolution, but Dev10 uses
-                // some custom logic in ExpressionBinder.BindGrpToParams.  The biggest difference
-                // we've found (so far) is that it only considers methods with zero parameters
-                // (i.e. doesn't work with "params" or optional parameters).
-                if (!method.Parameters.Any())
-                {
-                    candidateMethods.Add(method);
-                }
-            }
-
-            MethodSymbol patternMethod = PerformPatternOverloadResolution(patternType, candidateMethods, syntaxExpr, warningsOnly, diagnostics, syntaxTree, messageID);
-            candidateMethods.Free();
-
-            return patternMethod;
-        }
-
-        /// <summary>
         /// Perform a lookup for the specified method on the specified expression by attempting to invoke it 
         /// </summary>
         /// <param name="receiver">The expression to perform pattern lookup on</param>
@@ -3316,9 +3163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="diagnostics">Populated with binding diagnostics.</param>
         /// <param name="result">The method symbol that was looked up, or null</param>
         /// <returns>A <see cref="PatternLookupResult"/> value with the outcome of the lookup</returns>
-        internal PatternLookupResult FindPatternMethodRelaxed(BoundExpression receiver, string methodName,
-                                                              SyntaxNode syntaxNode, DiagnosticBag diagnostics, out MethodSymbol result)
-                                                       
+        internal PatternLookupResult PerformPatternMethodLookup(BoundExpression receiver, string methodName,
+                                                                SyntaxNode syntaxNode, DiagnosticBag diagnostics, out MethodSymbol result)
         {
             // PROTOTYPE: try and resolve the method using binding 
             var bindingDiagnostics = DiagnosticBag.GetInstance();
@@ -3354,7 +3200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     analyzedArguments,
                     bindingDiagnostics,
                     queryClause: null,
-                    allowUnexpandedForm: false);
+                    allowUnexpandedForm: false,
+                    anyApplicableCandidates: out _);
 
                 analyzedArguments.Free();
 
@@ -3387,129 +3234,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 bindingDiagnostics.Free();
-            }
-        }
-
-        /// <summary>
-        /// The overload resolution portion of FindPatternMethod.
-        /// </summary>
-        private MethodSymbol PerformPatternOverloadResolution(
-            TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods,
-            SyntaxNode syntaxExpression, bool warningsOnly, DiagnosticBag diagnostics,
-            SyntaxTree syntaxTree, MessageID messageID)
-        {
-            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
-            AnalyzedArguments arguments = AnalyzedArguments.GetInstance();
-            OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            // We create a dummy receiver of the invocation so MethodInvocationOverloadResolution knows it was invoked from an instance, not a type
-            var dummyReceiver = new BoundImplicitReceiver(syntaxExpression, patternType);
-            this.OverloadResolution.MethodInvocationOverloadResolution(
-                methods: candidateMethods,
-                typeArguments: typeArguments,
-                receiver: dummyReceiver,
-                arguments: arguments,
-                result: overloadResolutionResult,
-                useSiteDiagnostics: ref useSiteDiagnostics);
-            diagnostics.Add(syntaxExpression, useSiteDiagnostics);
-
-            MethodSymbol result = null;
-
-            if (overloadResolutionResult.Succeeded)
-            {
-                result = overloadResolutionResult.ValidResult.Member;
-
-                if (result.IsStatic || result.DeclaredAccessibility != Accessibility.Public)
-                {
-                    if (warningsOnly)
-                    {
-                        diagnostics.Add(ErrorCode.WRN_PatternStaticOrInaccessible, syntaxExpression.Location, patternType, messageID.Localize(), result);
-                    }
-
-                    result = null;
-                }
-                else if (result.CallsAreOmitted(syntaxTree))
-                {
-                    // Calls to this method are omitted in the current syntax tree, i.e it is either a partial method with no implementation part OR a conditional method whose condition is not true in this source file.
-                    // We don't want to allow this case, see StatementBinder::bindPatternToMethod.
-                    result = null;
-                }
-            }
-            else if (overloadResolutionResult.Results.Length > 1)
-            {
-                if (warningsOnly)
-                {
-                    diagnostics.Add(ErrorCode.WRN_PatternIsAmbiguous, syntaxExpression.Location, patternType, messageID.Localize(),
-                        overloadResolutionResult.Results[0].Member, overloadResolutionResult.Results[1].Member);
-                }
-            }
-
-            overloadResolutionResult.Free();
-            arguments.Free();
-            typeArguments.Free();
-
-            return result;
-        }
-
-        private void ReportPatternWarning(DiagnosticBag diagnostics, TypeSymbol patternType, Symbol patternMemberCandidate, SyntaxNode expression, MessageID messageID)
-        {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (this.IsAccessible(patternMemberCandidate, ref useSiteDiagnostics))
-            {
-                diagnostics.Add(ErrorCode.WRN_PatternBadSignature, expression.Location, patternType, messageID.Localize(), patternMemberCandidate);
-            }
-
-            diagnostics.Add(expression, useSiteDiagnostics);
-        }
-
-        /// <summary>
-        /// Report appropriate diagnostics when lookup of a pattern member (i.e. GetEnumerator, Current, or MoveNext) fails.
-        /// </summary>
-        /// <param name="lookupResult">Failed lookup result.</param>
-        /// <param name="patternType">Type in which member was looked up.</param>
-        /// <param name="memberName">Name of looked up member.</param>
-        /// <param name="warningsOnly">True if failures should result in warnings; false if they should result in errors.</param>
-        /// <param name="diagnostics">Populated appropriately.</param>
-        internal void ReportPatternMemberLookupDiagnostics(
-            LookupResult lookupResult, TypeSymbol patternType,
-            string memberName, SyntaxNode expression,
-            bool warningsOnly, DiagnosticBag diagnostics,
-            MessageID messageID)
-        { 
-            if (lookupResult.Symbols.Any())
-            {
-                if (warningsOnly)
-                {
-                    ReportPatternWarning(diagnostics, patternType, lookupResult.Symbols.First(), expression, messageID);
-                }
-                else
-                {
-                    lookupResult.Clear();
-
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    this.LookupMembersInType(
-                        lookupResult,
-                        patternType,
-                        memberName,
-                        arity: 0,
-                        basesBeingResolved: null,
-                        options: LookupOptions.Default,
-                        originalBinder: this,
-                        diagnose: true,
-                        useSiteDiagnostics: ref useSiteDiagnostics);
-
-                    diagnostics.Add(expression, useSiteDiagnostics);
-
-                    if (lookupResult.Error != null)
-                    {
-                        diagnostics.Add(lookupResult.Error, expression.Location);
-                    }
-                }
-            }
-            else if (!warningsOnly)
-            {
-                diagnostics.Add(ErrorCode.ERR_NoSuchMember, expression.Location, patternType, memberName);
             }
         }
     }

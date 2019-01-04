@@ -10,36 +10,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class BestTypeInferrer
     {
-        public static bool? GetIsNullable(ArrayBuilder<TypeSymbolWithAnnotations> types)
+        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeSymbolWithAnnotations> types)
         {
-            bool? isNullable = false;
+            NullableAnnotation result = NullableAnnotation.NotAnnotated;
             foreach (var type in types)
             {
-                if (type.IsNull)
-                {
-                    // https://github.com/dotnet/roslyn/issues/27961 Should ignore untyped
-                    // expressions such as unbound lambdas and typeless tuples.
-                    isNullable = true;
-                    continue;
-                }
-                if (!type.IsReferenceType)
-                {
-                    return null;
-                }
-                switch (type.IsNullable)
-                {
-                    case null:
-                        if (isNullable == false)
-                        {
-                            isNullable = null;
-                        }
-                        break;
-                    case true:
-                        isNullable = true;
-                        break;
-                }
+                Debug.Assert(!type.IsNull);
+                Debug.Assert(type.Equals(types[0], TypeCompareKind.AllIgnoreOptions));
+                // This uses the covariant merging rules.
+                result = result.JoinForFixingLowerBounds(type.AsSpeakable().NullableAnnotation);
             }
-            return isNullable;
+
+            return result;
         }
 
         /// <remarks>
@@ -77,6 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return type;
                     }
 
+                    if (conversions.IncludeNullability)
+                    {
+                        type = type.SetSpeakableNullabilityForReferenceTypes();
+                    }
                     candidateTypes.Add(type);
                 }
             }
@@ -182,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol best = null;
             int bestIndex = -1;
-            for(int i = 0; i < types.Count; i++)
+            for (int i = 0; i < types.Count; i++)
             {
                 TypeSymbol type = types[i];
                 if ((object)best == null)

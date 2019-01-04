@@ -2055,6 +2055,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestIfElseIf()
+        {
+            var text = "if (a) { } else if (b) { }";
+            var statement = this.ParseStatement(text);
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.IfStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var ss = (IfStatementSyntax)statement;
+            Assert.NotNull(ss.IfKeyword);
+            Assert.Equal(SyntaxKind.IfKeyword, ss.IfKeyword.Kind());
+            Assert.NotNull(ss.OpenParenToken);
+            Assert.NotNull(ss.Condition);
+            Assert.Equal("a", ss.Condition.ToString());
+            Assert.NotNull(ss.CloseParenToken);
+            Assert.NotNull(ss.Statement);
+
+            Assert.NotNull(ss.Else);
+            Assert.NotNull(ss.Else.ElseKeyword);
+            Assert.Equal(SyntaxKind.ElseKeyword, ss.Else.ElseKeyword.Kind());
+            Assert.NotNull(ss.Else.Statement);
+
+            var subIf = (IfStatementSyntax)ss.Else.Statement;
+            Assert.NotNull(subIf.IfKeyword);
+            Assert.Equal(SyntaxKind.IfKeyword, subIf.IfKeyword.Kind());
+            Assert.NotNull(subIf.Condition);
+            Assert.Equal("b", subIf.Condition.ToString());
+            Assert.NotNull(subIf.CloseParenToken);
+            Assert.NotNull(subIf.Statement);
+        }
+
+        [Fact]
         public void TestLock()
         {
             var text = "lock (a) { }";
@@ -2086,8 +2120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
             var diags = statement.ErrorsAndWarnings();
-            Assert.Equal(1, diags.Length);
-            Assert.Equal((int)ErrorCode.WRN_EmptySwitch, diags[0].Code);
+            Assert.Equal(0, diags.Length);
 
             var ss = (SwitchStatementSyntax)statement;
             Assert.NotNull(ss.SwitchKeyword);
@@ -3488,6 +3521,477 @@ System.Console.WriteLine(true)";
                 // { label: public
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 10)
                 );
+        }
+
+        [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [Fact]
+        public void ParseElseWithoutPrecedingIfStatement()
+        {
+            UsingStatement("else {}",
+                // (1,1): error CS8641: 'else' cannot start a statement.
+                // else {}
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 1),
+                // (1,1): error CS1003: Syntax error, '(' expected
+                // else {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 1),
+                // (1,1): error CS1525: Invalid expression term 'else'
+                // else {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 1),
+                // (1,1): error CS1026: ) expected
+                // else {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "else").WithLocation(1, 1),
+                // (1,1): error CS1525: Invalid expression term 'else'
+                // else {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 1),
+                // (1,1): error CS1002: ; expected
+                // else {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "else").WithLocation(1, 1)
+                );
+            N(SyntaxKind.IfStatement);
+            {
+                M(SyntaxKind.IfKeyword);
+                M(SyntaxKind.OpenParenToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.CloseParenToken);
+                M(SyntaxKind.ExpressionStatement);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ElseClause);
+                {
+                    N(SyntaxKind.ElseKeyword);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [Fact]
+        public void ParseElseAndElseWithoutPrecedingIfStatement()
+        {
+            UsingStatement("{ else {} else {} }",
+                // (1,3): error CS8641: 'else' cannot start a statement.
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 3),
+                // (1,3): error CS1003: Syntax error, '(' expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 3),
+                // (1,3): error CS1525: Invalid expression term 'else'
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 3),
+                // (1,3): error CS1026: ) expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "else").WithLocation(1, 3),
+                // (1,3): error CS1525: Invalid expression term 'else'
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 3),
+                // (1,3): error CS1002: ; expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "else").WithLocation(1, 3),
+                // (1,11): error CS8641: 'else' cannot start a statement.
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 11),
+                // (1,11): error CS1003: Syntax error, '(' expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 11),
+                // (1,11): error CS1525: Invalid expression term 'else'
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 11),
+                // (1,11): error CS1026: ) expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "else").WithLocation(1, 11),
+                // (1,11): error CS1525: Invalid expression term 'else'
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 11),
+                // (1,11): error CS1002: ; expected
+                // { else {} else {} }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "else").WithLocation(1, 11)
+                );
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.IfStatement);
+                {
+                    M(SyntaxKind.IfKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                    M(SyntaxKind.ExpressionStatement);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ElseClause);
+                    {
+                        N(SyntaxKind.ElseKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.IfStatement);
+                {
+                    M(SyntaxKind.IfKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                    M(SyntaxKind.ExpressionStatement);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ElseClause);
+                    {
+                        N(SyntaxKind.ElseKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [Fact]
+        public void ParseSubsequentElseWithoutPrecedingIfStatement()
+        {
+            UsingStatement("{ if (a) { } else { } else { } }",
+                // (1,23): error CS8641: 'else' cannot start a statement.
+                // { if (a) { } else { } else { } }
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 23),
+                // (1,23): error CS1003: Syntax error, '(' expected
+                // { if (a) { } else { } else { } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 23),
+                // (1,23): error CS1525: Invalid expression term 'else'
+                // { if (a) { } else { } else { } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 23),
+                // (1,23): error CS1026: ) expected
+                // { if (a) { } else { } else { } }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "else").WithLocation(1, 23),
+                // (1,23): error CS1525: Invalid expression term 'else'
+                // { if (a) { } else { } else { } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 23),
+                // (1,23): error CS1002: ; expected
+                // { if (a) { } else { } else { } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "else").WithLocation(1, 23)
+                );
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.IfStatement);
+                {
+                    N(SyntaxKind.IfKeyword);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ElseClause);
+                    {
+                        N(SyntaxKind.ElseKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.IfStatement);
+                {
+                    M(SyntaxKind.IfKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                    M(SyntaxKind.ExpressionStatement);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ElseClause);
+                    {
+                        N(SyntaxKind.ElseKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        [Fact]
+        public void ParseElseKeywordPlacedAsIfEmbeddedStatement()
+        {
+            UsingStatement("if (a) else {}",
+                // (1,8): error CS8641: 'else' cannot start a statement.
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "else").WithLocation(1, 8),
+                // (1,8): error CS1003: Syntax error, '(' expected
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 8),
+                // (1,8): error CS1525: Invalid expression term 'else'
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 8),
+                // (1,8): error CS1026: ) expected
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "else").WithLocation(1, 8),
+                // (1,8): error CS1525: Invalid expression term 'else'
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 8),
+                // (1,8): error CS1002: ; expected
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "else").WithLocation(1, 8)
+                );
+            N(SyntaxKind.IfStatement);
+            {
+                N(SyntaxKind.IfKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.IfStatement);
+                {
+                    M(SyntaxKind.IfKeyword);
+                    M(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                    M(SyntaxKind.ExpressionStatement);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ElseClause);
+                    {
+                        N(SyntaxKind.ElseKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseSwitch01()
+        {
+            UsingStatement("switch 1+2 {}",
+                // (1,8): error CS8415: Parentheses are required around the switch governing expression.
+                // switch 1+2 {}
+                Diagnostic(ErrorCode.ERR_SwitchGoverningExpressionRequiresParens, "1+2").WithLocation(1, 8)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                M(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseSwitch02()
+        {
+            UsingStatement("switch (a: 0) {}",
+                // (1,13): error CS8124: Tuple must contain at least two elements.
+                // switch (a: 0) {}
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 13)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.TupleExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NameColon);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    M(SyntaxKind.CommaToken);
+                    M(SyntaxKind.Argument);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseSwitch03()
+        {
+            UsingStatement("switch (a: 0, b: 4) {}");
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.TupleExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NameColon);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NameColon);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "4");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseSwitch04()
+        {
+            UsingStatement("switch (1) + (2) {}",
+                // (1,8): error CS8415: Parentheses are required around the switch governing expression.
+                // switch (1) + (2) {}
+                Diagnostic(ErrorCode.ERR_SwitchGoverningExpressionRequiresParens, "(1) + (2)").WithLocation(1, 8)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                M(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
         }
 
         private sealed class TokenAndTriviaWalker : CSharpSyntaxWalker

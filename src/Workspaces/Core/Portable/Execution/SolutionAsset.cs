@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal abstract class SolutionAsset : RemotableData
     {
-        protected SolutionAsset(Checksum checksum, WellKnownSynchronizationKind kind) 
+        protected SolutionAsset(Checksum checksum, WellKnownSynchronizationKind kind)
             : base(checksum, kind)
         {
         }

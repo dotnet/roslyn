@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var generator = document.GetLanguageService<SyntaxGenerator>();
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             }
         }
 
-        protected override bool IncludeDiagnosticDuringFixAll(FixAllState state, Diagnostic diagnostic)
+        protected override bool IncludeDiagnosticDuringFixAll(FixAllState state, Diagnostic diagnostic, CancellationToken cancellationToken)
             => diagnostic.Properties.ContainsKey(PreferFrameworkTypeConstants.PreferFrameworkType);
 
         private class PreferFrameworkTypeCodeAction : CodeAction.DocumentChangeAction

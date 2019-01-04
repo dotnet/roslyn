@@ -907,7 +907,7 @@ internal class Example
 }";
 
             await VerifyNoItemsExistAsync(markup);
-		}
+        }
 
         [WorkItem(26560, "https://github.com/dotnet/roslyn/issues/26560")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

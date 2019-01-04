@@ -816,14 +816,14 @@ class C2
        }
     }
 }";
-                      
+
             var compilation = CreateCompilation(source).VerifyDiagnostics(
                 // (15,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
                 //        using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15),
                 // (15,18): error CS1657: Cannot use 's' as a ref or out value because it is a 'using variable'
                 //        using (S1 s = new S1())
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s = new S1()").WithArguments("s", "using variable").WithLocation(15, 18)
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "S1 s = new S1()").WithArguments("s", "using variable").WithLocation(15, 15)
                 );
         }
 

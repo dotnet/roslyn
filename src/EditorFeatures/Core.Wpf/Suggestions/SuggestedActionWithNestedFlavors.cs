@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace, ITextBuffer subjectBuffer,
-            object provider, CodeAction codeAction, 
-            SuggestedActionSet additionalFlavors = null) 
-            : base(threadingContext, sourceProvider, workspace, subjectBuffer, 
+            object provider, CodeAction codeAction,
+            SuggestedActionSet additionalFlavors = null)
+            : base(threadingContext, sourceProvider, workspace, subjectBuffer,
                    provider, codeAction)
         {
             _additionalFlavors = additionalFlavors;

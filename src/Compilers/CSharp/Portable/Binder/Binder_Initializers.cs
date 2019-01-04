@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         Binder parentBinder = binderFactory.GetBinder(initializerNode);
-                        Debug.Assert(parentBinder.ContainingMemberOrLambda == fieldSymbol.ContainingType || //should be the binder for the type
+                        Debug.Assert((parentBinder.ContainingMemberOrLambda is TypeSymbol containing && TypeSymbol.Equals(containing, fieldSymbol.ContainingType, TypeCompareKind.ConsiderEverything2)) || //should be the binder for the type
                                 fieldSymbol.ContainingType.IsImplicitClass); //however, we also allow fields in namespaces to help support script scenarios
 
                         if (firstDebugImports == null)

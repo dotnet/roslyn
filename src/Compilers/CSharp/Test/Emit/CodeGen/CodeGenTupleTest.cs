@@ -3123,7 +3123,7 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void HugeTupleCreationParses()
         {
             StringBuilder b = new StringBuilder();
@@ -3146,7 +3146,7 @@ class C
             CreateCompilation(source);
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void HugeTupleDeclarationParses()
         {
             StringBuilder b = new StringBuilder();
@@ -3886,7 +3886,7 @@ class C
 
             var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 targetFramework: TargetFramework.Mscorlib46Extended,
-                expectedOutput:"1");
+                expectedOutput: "1");
             verifier.VerifyDiagnostics();
         }
 
@@ -11410,7 +11410,7 @@ class C
                 );
         }
 
-       [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_08()
         {
             var source = @"
@@ -14877,21 +14877,15 @@ class C
                 // (6,24): error CS1525: Invalid expression term 'int'
                 //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 24),
-                // (6,29): error CS1026: ) expected
+                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "t").WithLocation(6, 29),
-                // (6,30): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(6, 18),
+                // (6,19): error CS0150: A constant value is expected
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 30),
-                // (6,30): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 19),
+                // (6,24): error CS0150: A constant value is expected
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 30),
-                // (6,18): error CS0150: A constant value is expected
-                //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(6, 18),
-                // (6,29): error CS0103: The name 't' does not exist in the current context
-                //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 24)
                 );
         }
 
@@ -14932,21 +14926,12 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,19): error CS8185: A declaration is not allowed in this context.
+                // (6,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(6, 19),
-                // (6,26): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int a, int b)").WithArguments("object", "Deconstruct").WithLocation(6, 18),
+                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int b").WithLocation(6, 26),
-                // (6,18): error CS0150: A constant value is expected
-                //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int a, int b)").WithLocation(6, 18),
-                // (6,19): error CS0165: Use of unassigned local variable 'a'
-                //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int a").WithArguments("a").WithLocation(6, 19),
-                // (6,26): error CS0165: Use of unassigned local variable 'b'
-                //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int b").WithArguments("b").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int a, int b)").WithArguments("object", "2").WithLocation(6, 18)
                 );
         }
 
@@ -14965,9 +14950,12 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,18): error CS0150: A constant value is expected
-                //         if (o is (1, 2))
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 2)").WithLocation(6, 18)
+                // (6,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         if (o is (1, 2)) { }
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("object", "Deconstruct").WithLocation(6, 18),
+                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //         if (o is (1, 2)) { }
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 2)").WithArguments("object", "2").WithLocation(6, 18)
                 );
         }
 
@@ -14994,18 +14982,15 @@ class C
                 // (7,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 24),
-                // (7,29): error CS1003: Syntax error, ':' expected
+                // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "tuple").WithArguments(":", "").WithLocation(7, 29),
-                // (7,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(7, 18),
+                // (7,19): error CS0150: A constant value is expected
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(7, 18),
-                // (7,29): warning CS0162: Unreachable code detected
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(7, 19),
+                // (7,24): error CS0150: A constant value is expected
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "tuple").WithLocation(7, 29),
-                // (7,29): warning CS0164: This label has not been referenced
-                //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "tuple").WithLocation(7, 29)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(7, 24)
                );
         }
 
@@ -15026,12 +15011,12 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,18): error CS0150: A constant value is expected
+                // (7,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (1, 1): return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18),
-                // (7,26): warning CS0162: Unreachable code detected
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 1)").WithArguments("object", "Deconstruct").WithLocation(7, 18),
+                // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (1, 1): return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 26)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 1)").WithArguments("object", "2").WithLocation(7, 18)
                );
         }
 
@@ -15052,18 +15037,12 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,25): error CS1003: Syntax error, ':' expected
+                // (7,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(":", "").WithLocation(7, 25),
-                // (7,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 1)").WithArguments("object", "Deconstruct").WithLocation(7, 18),
+                // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18),
-                // (7,25): warning CS0162: Unreachable code detected
-                //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "t").WithLocation(7, 25),
-                // (7,25): warning CS0164: This label has not been referenced
-                //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "t").WithLocation(7, 25)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 1)").WithArguments("object", "2").WithLocation(7, 18)
                );
         }
 
@@ -17882,7 +17861,7 @@ public class C
 
         [Fact]
         [WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")]
-        public void NullCoalesingOperatorWithTupleNames()
+        public void NullCoalescingOperatorWithTupleNames()
         {
             // See section 7.13 of the spec, regarding the null-coalescing operator
             var source = @"
@@ -18087,9 +18066,12 @@ public class C
             Assert.Equal("(System.Int32 a, System.Int32) x1", x1.ToTestDisplayString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/32006")]
         public void LambdaTypeInferenceWithDynamic()
         {
+            // See https://github.com/dotnet/roslyn/issues/32006
+            // need to relax assertion in GetImplicitTupleLiteralConversion
+
             var source = @"
 public class C
 {
@@ -23439,7 +23421,7 @@ class P
         var x1 = (1, 1) is (int, int a)?;
     }
 }";
-            var comp = CreateCompilationWithMscorlib40( source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,29): error CS1525: Invalid expression term 'int'
                 //         var x1 = (1, 1) is (int, int a)?;
@@ -23453,15 +23435,9 @@ class P
                 // (6,41): error CS1525: Invalid expression term ';'
                 //         var x1 = (1, 1) is (int, int a)?;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
-                // (6,34): error CS8185: A declaration is not allowed in this context.
+                // (6,29): error CS0150: A constant value is expected
                 //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(6, 34),
-                // (6,28): error CS0150: A constant value is expected
-                //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int a)").WithLocation(6, 28),
-                // (6,34): error CS0165: Use of unassigned local variable 'a'
-                //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int a").WithArguments("a").WithLocation(6, 34)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 29)
                 );
         }
 

@@ -102,7 +102,7 @@ End Module");
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, "BeforeRename.cs", open: true);
-            
+
             // Verify we are connected to the project before...
             Assert.Contains(ProjectName, VisualStudio.Editor.GetProjectNavBarItems());
 

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (existing[i].Kind == BoundKind.TypeExpression && added[i].Kind == BoundKind.TypeOrValueExpression)
                                 {
                                     Debug.Assert(
-                                        ((BoundTypeExpression)existing[i]).Type == ((BoundTypeOrValueExpression)added[i]).Type,
+                                        TypeSymbol.Equals(((BoundTypeExpression)existing[i]).Type, ((BoundTypeOrValueExpression)added[i]).Type, TypeCompareKind.ConsiderEverything2),
                                         string.Format(
                                             System.Globalization.CultureInfo.InvariantCulture,
                                             "((BoundTypeExpression)existing[{0}]).Type == ((BoundTypeOrValueExpression)added[{0}]).Type", i));
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 else if (existing[i].Kind == BoundKind.TypeOrValueExpression && added[i].Kind == BoundKind.TypeExpression)
                                 {
                                     Debug.Assert(
-                                        ((BoundTypeOrValueExpression)existing[i]).Type == ((BoundTypeExpression)added[i]).Type,
+                                        TypeSymbol.Equals(((BoundTypeOrValueExpression)existing[i]).Type, ((BoundTypeExpression)added[i]).Type, TypeCompareKind.ConsiderEverything2),
                                         string.Format(
                                             System.Globalization.CultureInfo.InvariantCulture,
                                             "((BoundTypeOrValueExpression)existing[{0}]).Type == ((BoundTypeExpression)added[{0}]).Type", i));

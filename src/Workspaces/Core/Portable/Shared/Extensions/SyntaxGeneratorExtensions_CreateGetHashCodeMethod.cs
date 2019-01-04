@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<SyntaxNode>.GetInstance();
-            
+
             if (GetBaseGetHashCodeMethod(containingType, cancellationToken) != null)
             {
                 result.Add(factory.InvocationExpression(
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // is here and directly inject the result value, producing:
                 //
                 //      return someHash + this.S1.GetHashCode();    // or
-                 
+
                 var multiplyResult = initHash * hashFactor;
                 return ImmutableArray.Create(factory.ReturnStatement(
                     factory.AddExpression(

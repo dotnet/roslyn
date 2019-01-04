@@ -101,8 +101,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return token.IsContextualKeyword()
         End Function
 
-        Public Function IsKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsKeyword
-            Return token.IsKeyword()
+        Public Function IsReservedKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsReservedKeyword
+            Return token.IsReservedKeyword()
         End Function
 
         Public Function IsPreprocessorKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsPreprocessorKeyword
@@ -748,6 +748,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
+            Return False
+        End Function
+
+        Public Function IsNameOfSubpattern(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNameOfSubpattern
+            Return False
+        End Function
+
+        Public Function IsPropertyPatternClause(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsPropertyPatternClause
             Return False
         End Function
 

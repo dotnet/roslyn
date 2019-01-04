@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ServicesVSResources {
@@ -162,6 +162,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add to _current file.
+        /// </summary>
+        internal static string Add_to_current_file {
+            get {
+                return ResourceManager.GetString("Add_to_current_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add to _existing file.
         /// </summary>
         internal static string Add_to_existing_file {
@@ -189,11 +198,29 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All methods.
+        /// </summary>
+        internal static string All_methods {
+            get {
+                return ResourceManager.GetString("All_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ALL UPPER.
         /// </summary>
         internal static string ALL_UPPER {
             get {
                 return ResourceManager.GetString("ALL_UPPER", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Allow:.
+        /// </summary>
+        internal static string Allow_colon {
+            get {
+                return ResourceManager.GetString("Allow_colon", resourceCulture);
             }
         }
         
@@ -322,6 +349,33 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string at_the_end {
             get {
                 return ResourceManager.GetString("at_the_end", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avoid expression statements that implicitly ignore value.
+        /// </summary>
+        internal static string Avoid_expression_statements_that_implicitly_ignore_value {
+            get {
+                return ResourceManager.GetString("Avoid_expression_statements_that_implicitly_ignore_value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avoid unused parameters.
+        /// </summary>
+        internal static string Avoid_unused_parameters {
+            get {
+                return ResourceManager.GetString("Avoid_unused_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avoid unused value assignments.
+        /// </summary>
+        internal static string Avoid_unused_value_assignments {
+            get {
+                return ResourceManager.GetString("Avoid_unused_value_assignments", resourceCulture);
             }
         }
         
@@ -1588,6 +1642,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Non-public methods.
+        /// </summary>
+        internal static string Non_public_methods {
+            get {
+                return ResourceManager.GetString("Non_public_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not a valid value.
         /// </summary>
         internal static string Not_a_valid_value {
@@ -1692,6 +1755,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Parameter {
             get {
                 return ResourceManager.GetString("Parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter preferences:.
+        /// </summary>
+        internal static string Parameter_preferences_colon {
+            get {
+                return ResourceManager.GetString("Parameter_preferences_colon", resourceCulture);
             }
         }
         
@@ -2314,6 +2386,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select destination.
+        /// </summary>
+        internal static string Select_destination {
+            get {
+                return ResourceManager.GetString("Select_destination", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select public _members to form interface.
         /// </summary>
         internal static string Select_public_members_to_form_interface {
@@ -2734,6 +2815,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unused value is explicitly assigned to an unused local.
+        /// </summary>
+        internal static string Unused_value_is_explicitly_assigned_to_an_unused_local {
+            get {
+                return ResourceManager.GetString("Unused_value_is_explicitly_assigned_to_an_unused_local", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unused value is explicitly assigned to discard.
+        /// </summary>
+        internal static string Unused_value_is_explicitly_assigned_to_discard {
+            get {
+                return ResourceManager.GetString("Unused_value_is_explicitly_assigned_to_discard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use expression body for accessors.
         /// </summary>
         internal static string Use_expression_body_for_accessors {
@@ -2770,6 +2869,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use expression body for local functions.
+        /// </summary>
+        internal static string Use_expression_body_for_local_functions {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_local_functions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use expression body for methods.
         /// </summary>
         internal static string Use_expression_body_for_methods {
@@ -2802,6 +2910,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Validating_breakpoint_location {
             get {
                 return ResourceManager.GetString("Validating_breakpoint_location", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value assigned here is never used.
+        /// </summary>
+        internal static string Value_assigned_here_is_never_used {
+            get {
+                return ResourceManager.GetString("Value_assigned_here_is_never_used", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value returned by invocation is implicitly ignored.
+        /// </summary>
+        internal static string Value_returned_by_invocation_is_implicitly_ignored {
+            get {
+                return ResourceManager.GetString("Value_returned_by_invocation_is_implicitly_ignored", resourceCulture);
             }
         }
         

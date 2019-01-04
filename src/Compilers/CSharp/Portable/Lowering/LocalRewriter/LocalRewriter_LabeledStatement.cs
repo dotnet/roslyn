@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var labeledSyntax = node.Syntax as LabeledStatementSyntax;
                 if (labeledSyntax != null)
                 {
-                    labelStatement = _instrumenter.InstrumentLabelStatement(node, labelStatement); 
+                    labelStatement = _instrumenter.InstrumentLabelStatement(node, labelStatement);
                 }
             }
 

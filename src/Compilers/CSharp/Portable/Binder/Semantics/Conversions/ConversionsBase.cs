@@ -1378,6 +1378,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type1 != null);
             Debug.Assert((object)type2 != null);
 
+            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch. 
+            // See TypeCompareKind.UnknownNullableModifierMatchesAny and TypeCompareKind.IgnoreInsignificantNullableModifiersDifference
             var compareKind = includeNullability ?
                 TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes :
                 TypeCompareKind.AllIgnoreOptions;
@@ -1389,22 +1391,63 @@ namespace Microsoft.CodeAnalysis.CSharp
             return HasIdentityConversionInternal(type1, type2, IncludeNullability);
         }
 
+        /// <summary>
+        /// Returns true if:
+        /// - Either type has no nullability information (oblivious).
+        /// - Both types cannot have different nullability at the same time,
+        ///   including the case of type parameters that by themselves can represent nullable and not nullable reference types.
+        /// </summary>
         internal bool HasTopLevelNullabilityIdentityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
         {
             if (!IncludeNullability)
             {
                 return true;
             }
-            return source.IsNullable == destination.IsNullable;
+
+            if (source.NullableAnnotation == NullableAnnotation.Unknown ||
+                destination.NullableAnnotation == NullableAnnotation.Unknown)
+            {
+                return true;
+            }
+
+            if (source.IsPossiblyNullableReferenceTypeTypeParameter() && !destination.IsPossiblyNullableReferenceTypeTypeParameter())
+            {
+                return destination.NullableAnnotation.IsAnyNullable();
+            }
+
+            if (destination.IsPossiblyNullableReferenceTypeTypeParameter() && !source.IsPossiblyNullableReferenceTypeTypeParameter())
+            {
+                return source.NullableAnnotation.IsAnyNullable();
+            }
+
+            return source.NullableAnnotation.IsAnyNullable() == destination.NullableAnnotation.IsAnyNullable();
         }
 
+        /// <summary>
+        /// Returns false if source type can be nullable at the same time when destination type can be not nullable, 
+        /// including the case of type parameters that by themselves can represent nullable and not nullable reference types.
+        /// When either type has no nullability information (oblivious), this method returns true.
+        /// </summary>
         internal bool HasTopLevelNullabilityImplicitConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
         {
             if (!IncludeNullability)
             {
                 return true;
             }
-            return source.IsNullable != true || destination.IsNullable != false;
+
+            if (source.NullableAnnotation == NullableAnnotation.Unknown ||
+                destination.NullableAnnotation == NullableAnnotation.Unknown ||
+                destination.NullableAnnotation.IsAnyNullable())
+            {
+                return true;
+            }
+
+            if (source.IsPossiblyNullableReferenceTypeTypeParameter() && !destination.IsPossiblyNullableReferenceTypeTypeParameter())
+            {
+                return false;
+            }
+
+            return !source.NullableAnnotation.IsAnyNullable();
         }
 
         public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
@@ -1872,7 +1915,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteDiagnostics,
                 ConversionKind.ImplicitTupleLiteral,
-                (ConversionsBase conversions, BoundExpression s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyImplicitConversionFromExpression(s, d.TypeSymbol, ref u),
+                (ConversionsBase conversions, BoundExpression s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a)
+                    => conversions.ClassifyImplicitConversionFromExpression(s, d.TypeSymbol, ref u),
                 arg: false);
         }
 
@@ -2171,7 +2215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 // Check for identity conversion of underlying types if the top-level nullability is distinct.
                 // (An identity conversion where nullability matches is not considered an implicit reference conversion.)
-                if (source.IsNullable != destination.IsNullable &&
+                if (source.NullableAnnotation != destination.NullableAnnotation &&
                     HasIdentityConversionInternal(source.TypeSymbol, destination.TypeSymbol, includeNullability: true))
                 {
                     return true;
@@ -2576,7 +2620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             NamedTypeSymbol typeSymbol = source.OriginalDefinition;
-            if (typeSymbol != destination.OriginalDefinition)
+            if (!TypeSymbol.Equals(typeSymbol, destination.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 return ThreeState.False;
             }
@@ -2936,7 +2980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (var type = t.EffectiveBaseClass(ref useSiteDiagnostics); (object)type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
                 {
-                    if (type == source)
+                    if (TypeSymbol.Equals(type, source, TypeCompareKind.ConsiderEverything2))
                     {
                         return true;
                     }
@@ -2995,7 +3039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (source.OriginalDefinition != destination.OriginalDefinition)
+            if (!TypeSymbol.Equals(source.OriginalDefinition, destination.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 return false;
             }

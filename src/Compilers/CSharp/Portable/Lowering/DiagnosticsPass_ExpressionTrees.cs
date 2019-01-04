@@ -96,6 +96,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitBaseReference(node);
         }
 
+        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, node);
+            }
+
+            return base.VisitSwitchExpression(node);
+        }
+
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
             if (!node.HasAnyErrors)
@@ -209,6 +219,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(ErrorCode.ERR_RefReturningCallInExpressionTree, node);
                 }
             }
+        }
+
+        public override BoundNode Visit(BoundNode node)
+        {
+            if (_inExpressionLambda &&
+                // Ignoring BoundConversion nodes prevents redundant diagnostics
+                !(node is BoundConversion) &&
+                node is BoundExpression expr &&
+                expr.Type is TypeSymbol type &&
+                type.IsRestrictedType())
+            {
+                Error(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, node, type.Name);
+            }
+            return base.Visit(node);
         }
 
         public override BoundNode VisitRefTypeOperator(BoundRefTypeOperator node)
@@ -342,6 +366,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_inExpressionLambda)
             {
+                var lambda = node.Symbol;
+                foreach (var p in lambda.Parameters)
+                {
+                    if (p.RefKind != RefKind.None && p.Locations.Length != 0)
+                    {
+                        _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
+                    }
+                    if (p.Type.IsRestrictedType())
+                    {
+                        _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.Type.Name);
+                    }
+                }
+
                 switch (node.Syntax.Kind())
                 {
                     case SyntaxKind.ParenthesizedLambdaExpression:
@@ -358,18 +395,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (lambdaSyntax.Body.Kind() == SyntaxKind.RefExpression)
                             {
                                 Error(ErrorCode.ERR_BadRefReturnExpressionTree, node);
-                            }
-
-                            var lambda = node.ExpressionSymbol as MethodSymbol;
-                            if ((object)lambda != null)
-                            {
-                                foreach (var p in lambda.Parameters)
-                                {
-                                    if (p.RefKind != RefKind.None && p.Locations.Length != 0)
-                                    {
-                                        _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
-                                    }
-                                }
                             }
                         }
                         break;
@@ -597,6 +622,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitNullCoalescingOperator(node);
+        }
+
+        public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeCantContainNullCoalescingAssignment, node);
+            }
+
+            return base.VisitNullCoalescingAssignmentOperator(node);
         }
 
         public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)

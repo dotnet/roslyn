@@ -756,7 +756,7 @@ class C4
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C1").WithArguments("C1").WithLocation(34, 27),
                 // (40,15): warning CS0612: 'S3.Dispose()' is obsolete
                 //         using S3 S3 = new S3();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "S3 S3 = new S3()").WithArguments("S3.Dispose()").WithLocation(40, 15)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "using S3 S3 = new S3();").WithArguments("S3.Dispose()").WithLocation(40, 9)
                 );
         }
     }

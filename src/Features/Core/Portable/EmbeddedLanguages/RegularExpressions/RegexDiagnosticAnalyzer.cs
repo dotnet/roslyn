@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         }
 
         private void AnalyzeToken(
-            SemanticModelAnalysisContext context, RegexPatternDetector detector, 
+            SemanticModelAnalysisContext context, RegexPatternDetector detector,
             SyntaxToken token, CancellationToken cancellationToken)
         {
             if (token.RawKind == _info.StringLiteralTokenKind)

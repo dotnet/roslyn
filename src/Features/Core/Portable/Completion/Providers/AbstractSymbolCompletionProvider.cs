@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 foreach (var symbol in linkedContextSymbolList.symbols.GroupBy(s => new { s.Name, s.Kind }).Select(g => g.First()))
                 {
                     if (!result.ContainsKey(symbol))
-                    { 
+                    {
                         result.Add(symbol, linkedContextSymbolList.syntaxContext);
                     }
                 }
