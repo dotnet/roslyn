@@ -87,10 +87,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             if (!_newCompletionAPIEnabled.HasValue)
             {
-                if (Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
+                int userSetting = 0;
+                const string useAsyncCompletionOptionName = "UseAsyncCompletion";
+                if (textView.Options.GlobalOptions.IsOptionDefined(useAsyncCompletionOptionName, localScopeOnly: false))
                 {
-                    var experimentationService = workspace.Services.GetService<IExperimentationService>();
-                    _newCompletionAPIEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.CompletionAPI);
+                    userSetting = textView.Options.GlobalOptions.GetOptionValue<int>(useAsyncCompletionOptionName);
+                }
+
+                // The meaning of the UseAsyncCompletion option definition's values:
+                // -1 - user disabled async completion
+                //  0 - no changes from the user; check the experimentation service for whether to use async completion
+                //  1 - user enabled async completion
+                if (userSetting == 1)
+                {
+                    _newCompletionAPIEnabled = true;
+                }
+                else if (userSetting == -1)
+                {
+                    _newCompletionAPIEnabled = false;
+                }
+                else
+                {
+                    if (Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
+                    {
+                        var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                        _newCompletionAPIEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.CompletionAPI);
+                    }
                 }
             }
 
