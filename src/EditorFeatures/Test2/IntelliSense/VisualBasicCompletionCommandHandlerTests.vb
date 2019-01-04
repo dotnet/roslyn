@@ -1081,7 +1081,7 @@ End Class
                               </Document>
                           </Project>
                       </Workspace>)
-
+                      
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
                 Assert.Equal(1, state.GetCompletionItems().Count)
@@ -1370,7 +1370,7 @@ End Class
                 Await state.AssertCompletionSession()
                 state.SendTypeChars("!")
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem("!--")
+                                             Await state.AssertSelectedCompletionItem("!--")
             End Using
         End Function
 

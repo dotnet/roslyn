@@ -989,6 +989,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _variableTypes[variable] = expressionResultType;
                             TrackNullableStateForAssignment(expression, expressionResultType, GetOrCreateSlot(variable), expressionResultType);
                         }
+
+                        whenFalse = NullableAnnotation.NotNullable; // whenFalse is unreachable
                     }
                     else
                     {
@@ -1008,12 +1010,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 mainSlot = MakeSlot(expression);
             }
 
-            base.VisitPattern(expression, pattern); // note: splits
+            base.VisitPattern(pattern);
             Debug.Assert(IsConditionalState);
 
             // https://github.com/dotnet/roslyn/issues/29873 We should only report such
             // diagnostics for locals that are set or checked explicitly within this method.
-            if (!expressionResultType.IsNull && expressionResultType.ValueCanBeNull() == false && whenTrue == NullableAnnotation.Nullable)
+            if (!expressionResultType.IsPointerType() && !expressionResultType.IsNull && expressionResultType.ValueCanBeNull() == false && whenTrue == NullableAnnotation.Nullable)
             {
                 ReportNonSafetyDiagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, pattern.Syntax);
             }
@@ -1435,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var placeholder = placeholders[i];
                     resultTypes[i] = ApplyConversion(placeholder, placeholder, conversions[i], inferredType, resultTypes[i], checkConversion: true,
-                        fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportNestedWarnings: !hadNestedNullabilityMismatch, reportTopLevelWarnings: false);
+                        fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: !hadNestedNullabilityMismatch, reportTopLevelWarnings: false);
                 }
 
                 // Set top-level nullability on inferred element type
@@ -1446,7 +1448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var nodeForSyntax = expressions[i];
                     // Report top-level warnings
                     _ = ApplyConversion(nodeForSyntax, operandOpt: null, Conversion.Identity, targetTypeWithNullability: inferredType, operandType: resultTypes[i],
-                        checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportNestedWarnings: false);
+                        checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false);
                 }
             }
 
@@ -1500,7 +1502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion conversion = conversionsWithoutNullability.ClassifyConversionFromExpression(placeholder, bestType, ref useSiteDiagnostics);
                     resultTypes[i] = walker.ApplyConversion(placeholder, placeholder, conversion, bestTypeWithObliviousAnnotation, resultTypes[i],
                         checkConversion: false, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Return,
-                        reportNestedWarnings: false, reportTopLevelWarnings: false);
+                        reportRemainingWarnings: false, reportTopLevelWarnings: false);
                 }
 
                 // Set top-level nullability on inferred type
@@ -3290,7 +3292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: fromExplicitCast,
                 AssignmentKind.Assignment,
                 reportTopLevelWarnings: fromExplicitCast,
-                reportNestedWarnings: true);
+                reportRemainingWarnings: true);
             return null;
         }
 
@@ -3325,7 +3327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: useLegacyWarnings,
                 assignmentKind,
                 reportTopLevelWarnings: true,
-                reportNestedWarnings: reportNestedWarnings);
+                reportRemainingWarnings: reportNestedWarnings);
         }
 
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
@@ -3467,7 +3469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssignmentKind assignmentKind,
             ParameterSymbol target = null,
             bool reportTopLevelWarnings = true,
-            bool reportNestedWarnings = true,
+            bool reportRemainingWarnings = true,
             bool extensionMethodThisArgument = false)
         {
             Debug.Assert(node != null);
@@ -3478,6 +3480,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableAnnotation resultAnnotation = NullableAnnotation.Unknown;
             bool forceOperandAnnotationForResult = false;
             bool canConvertNestedNullability = true;
+
+            if (operandOpt?.Kind == BoundKind.SuppressNullableWarningExpression)
+            {
+                reportTopLevelWarnings = false;
+                reportRemainingWarnings = false;
+            }
 
             TypeSymbol targetType = targetTypeWithNullability.TypeSymbol;
             switch (conversion.Kind)
@@ -3550,7 +3558,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // conversion "from" type -> method parameter type
                         NullableAnnotation operandAnnotation = operandType.NullableAnnotation;
-                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, parameterType, isLiftedConversion ? underlyingOperandType : operandType, useLegacyWarnings, AssignmentKind.Argument, target: parameter);
+                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, parameterType, isLiftedConversion ? underlyingOperandType : operandType,
+                            useLegacyWarnings, AssignmentKind.Argument, target: parameter, reportWarnings: reportRemainingWarnings);
 
                         // method parameter type -> method return type
                         var methodReturnType = methodOpt.ReturnType;
@@ -3571,13 +3580,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // method return type -> conversion "to" type
                         // May be distinct from method return type for Nullable<T>.
-                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType, useLegacyWarnings, assignmentKind, target);
+                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType,
+                            useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings);
 
                         // conversion "to" type -> final type
                         // https://github.com/dotnet/roslyn/issues/29959 If the original conversion was
                         // explicit, this conversion should not report nested nullability mismatches.
                         // (see NullableReferenceTypesTests.ExplicitCast_UserDefined_02).
-                        operandType = ClassifyAndApplyConversion(node, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target);
+                        operandType = ClassifyAndApplyConversion(node, targetTypeWithNullability, operandType,
+                            useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings);
                         return operandType;
                     }
 
@@ -3787,7 +3798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, resultType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target);
                 }
-                if (reportNestedWarnings && !canConvertNestedNullability)
+                if (reportRemainingWarnings && !canConvertNestedNullability)
                 {
                     if (assignmentKind == AssignmentKind.Argument)
                     {
@@ -3809,12 +3820,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundExpression node, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations operandType,
-            bool useLegacyWarnings, AssignmentKind assignmentKind, ParameterSymbol target)
+            bool useLegacyWarnings, AssignmentKind assignmentKind, ParameterSymbol target, bool reportWarnings)
         {
             Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var conversion = _conversions.ClassifyStandardConversion(null, operandType.TypeSymbol, targetType.TypeSymbol, ref useSiteDiagnostics);
-            if (!conversion.Exists)
+            if (reportWarnings && !conversion.Exists)
             {
                 if (assignmentKind == AssignmentKind.Argument)
                 {
@@ -3825,6 +3836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, operandType.TypeSymbol, targetType.TypeSymbol);
                 }
             }
+
             return ApplyConversion(
                 node,
                 operandOpt: null,
@@ -3835,7 +3847,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fromExplicitCast: false,
                 useLegacyWarnings: useLegacyWarnings,
                 assignmentKind,
-                target);
+                target,
+                reportTopLevelWarnings: reportWarnings,
+                reportRemainingWarnings: reportWarnings);
         }
 
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
@@ -4034,7 +4048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         assignmentKind,
                         target,
                         reportTopLevelWarnings: true,
-                        reportNestedWarnings: true);
+                        reportRemainingWarnings: true);
                 }
                 else
                 {
@@ -4108,7 +4122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         useLegacyWarnings: false,
                         AssignmentKind.Assignment,
                         reportTopLevelWarnings: false,
-                        reportNestedWarnings: false);
+                        reportRemainingWarnings: true);
                 }
                 else
                 {
@@ -4378,8 +4392,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         useLegacyWarnings: false,
                         AssignmentKind.Assignment,
                         reportTopLevelWarnings: false,
-                        reportNestedWarnings: false);
-                    if (destinationType.IsReferenceType && destinationType.NullableAnnotation.IsAnyNotNullable() && sourceType.NullableAnnotation.IsAnyNullable())
+                        reportRemainingWarnings: false);
+                    if (destinationType.IsReferenceType && destinationType.NullableAnnotation.IsAnyNotNullable() && result.NullableAnnotation.IsAnyNullable())
                     {
                         ReportNonSafetyDiagnostic(node.IterationVariableType.Syntax);
                     }

@@ -606,11 +606,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLocal(syntax, localFrame, null, localFrame.Type.TypeSymbol);
         }
 
-        private static void InsertAndFreePrologue(ArrayBuilder<BoundStatement> result, ArrayBuilder<BoundExpression> prologue)
+        private static void InsertAndFreePrologue<T>(ArrayBuilder<BoundStatement> result, ArrayBuilder<T> prologue) where T: BoundNode
         {
-            foreach (var expr in prologue)
+            foreach (var node in prologue)
             {
-                result.Add(new BoundExpressionStatement(expr.Syntax, expr));
+                if (node is BoundStatement stmt)
+                {
+                    result.Add(stmt);
+                }
+                else
+                {
+                    result.Add(new BoundExpressionStatement(node.Syntax, (BoundExpression)(BoundNode)node));
+                }
             }
 
             prologue.Free();
@@ -1072,9 +1079,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             RewriteLocals(node.Locals, newLocals);
 
-            foreach (var expr in node.SideEffects)
+            foreach (var effect in node.SideEffects)
             {
-                var replacement = (BoundExpression)this.Visit(expr);
+                var replacement = (BoundExpression)this.Visit(effect);
                 if (replacement != null) prologue.Add(replacement);
             }
 
@@ -1245,26 +1252,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return base.VisitStatementList(node);
-            }
-        }
-
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            // Test if this frame has captured variables and requires the introduction of a closure class.
-            if (_frames.TryGetValue(node, out var frame))
-            {
-                return IntroduceFrame(node, frame, (ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals) =>
-                {
-                    var newStatements = ArrayBuilder<BoundStatement>.GetInstance();
-                    InsertAndFreePrologue(newStatements, prologue);
-                    newStatements.Add((BoundStatement)base.VisitSwitchStatement(node));
-
-                    return new BoundBlock(node.Syntax, newLocals.ToImmutableAndFree(), newStatements.ToImmutableAndFree(), node.HasErrors);
-                });
-            }
-            else
-            {
-                return base.VisitSwitchStatement(node);
             }
         }
 

@@ -15,7 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal class GlobalExpressionVariable : SourceMemberFieldSymbol
     {
         private TypeSymbolWithAnnotations.Builder _lazyType;
-        private SyntaxReference _typeSyntax;
+
+        /// <summary>
+        /// The type syntax, if any, from source. Optional for patterns that can omit an explicit type.
+        /// </summary>
+        private SyntaxReference _typeSyntaxOpt;
 
         internal GlobalExpressionVariable(
             SourceMemberContainerTypeSymbol containingType,
@@ -27,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, modifiers, name, syntax, location)
         {
             Debug.Assert(DeclaredAccessibility == Accessibility.Private);
-            _typeSyntax = typeSyntax.GetReference();
+            _typeSyntaxOpt = typeSyntax?.GetReference();
         }
 
         internal static GlobalExpressionVariable Create(
@@ -43,14 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
 
             var syntaxReference = syntax.GetReference();
-            return typeSyntax.IsVar
+            return (typeSyntax == null || typeSyntax.IsVar)
                 ? new InferrableGlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location, containingFieldOpt, nodeToBind)
                 : new GlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location);
         }
 
 
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList => default(SyntaxList<AttributeListSyntax>);
-        protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntax.GetSyntax();
+        protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntaxOpt?.GetSyntax();
         protected override SyntaxTokenList ModifiersTokenList => default(SyntaxTokenList);
         public override bool HasInitializer => false;
         protected override ConstantValue MakeConstantValue(
@@ -72,12 +76,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
 
             var diagnostics = DiagnosticBag.GetInstance();
+            TypeSymbolWithAnnotations type;
+            bool isVar;
 
             var binderFactory = compilation.GetBinderFactory(SyntaxTree);
-            var binder = binderFactory.GetBinder(typeSyntax);
+            var binder = binderFactory.GetBinder(typeSyntax ?? SyntaxNode);
 
-            bool isVar;
-            TypeSymbolWithAnnotations type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
+            if (typeSyntax != null)
+            {
+                type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
+            }
+            else
+            {
+                // Recursive patterns may omit the type syntax
+                isVar = true;
+                type = default;
+            }
 
             Debug.Assert(!type.IsNull || isVar);
 

@@ -2234,5 +2234,13 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments);
 
         #endregion
+
+        #region Patterns
+
+        internal abstract bool SupportsPatterns(ParseOptions options);
+        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern);
+        internal abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
+
+        #endregion
     }
 }

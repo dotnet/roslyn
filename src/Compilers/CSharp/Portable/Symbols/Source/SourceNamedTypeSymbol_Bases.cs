@@ -133,24 +133,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var conversions = new TypeConversions(corLibrary);
                 var location = singleDeclaration.NameLocation;
 
-                foreach (var @interface in interfaces)
+                foreach (var pair in interfaces)
                 {
-                    @interface.CheckAllConstraints(conversions, location, diagnostics);
-                }
+                    MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>.ValueSet set = pair.Value;
 
-                if (interfaces.Count > 1)
-                {
-                    var seenInterfaces = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(EqualsIgnoringTupleNames);
-                    foreach (var @interface in interfaces)
+                    foreach (var @interface in set)
                     {
-                        NamedTypeSymbol other;
-                        if (seenInterfaces.TryGetValue(@interface, out other))
+                        @interface.CheckAllConstraints(conversions, location, diagnostics);
+                    }
+
+                    if (set.Count > 1)
+                    {
+                        NamedTypeSymbol other = null;
+                        foreach (var @interface in set)
                         {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
-                        }
-                        else
-                        {
-                            seenInterfaces.Add(@interface, @interface);
+                            if (other is null)
+                            {
+                                other = @interface;
+                                continue;
+                            }
+
+                            if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                            {
+                                diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, @interface, this);
+                            }
+                            else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames))
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
+                            }
                         }
                     }
                 }
@@ -446,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Interface:
                         foreach (var t in localInterfaces)
                         {
-                            if (TypeSymbol.Equals(t, baseType, TypeCompareKind.ConsiderEverything2))
+                            if (TypeSymbol.Equals(t, baseType, TypeCompareKind.ConsiderEverything))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceInBaseList, location, baseType);
                                 continue;

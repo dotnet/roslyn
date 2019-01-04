@@ -492,7 +492,7 @@ public class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29297")]
         public void TestClone()
         {
             var sourceCode = TestResource.AllInOneCSharpCode;
@@ -526,7 +526,7 @@ System.Console.WriteLine();
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29297")]
         public void TestParentOperations()
         {
             var sourceCode = TestResource.AllInOneCSharpCode;

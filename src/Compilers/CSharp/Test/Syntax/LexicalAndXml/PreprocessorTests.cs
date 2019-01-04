@@ -280,7 +280,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var directives = node.GetDirectives();
             Assert.Equal(1, directives.Count);
             var dt = directives[0];
-            Assert.Equal(expected.PragmaKind, directives[0].Kind());
+            VerifyDirectivePragma(dt, expected);
+        }
+
+        private void VerifyDirectivePragma(DirectiveTriviaSyntax dt, PragmaInfo expected)
+        {
+            Assert.Equal(expected.PragmaKind, dt.Kind());
 
             if (dt is PragmaWarningDirectiveTriviaSyntax)
             {
@@ -3448,8 +3453,8 @@ class A
 {
     static void Main(int i)
     {
-#pragma warning disable 1522
-        switch (i) { }
+#pragma warning disable 1633
+#pragma something // warning CS1633: Unrecognized #pragma directive
     }
 }
 ";
@@ -3457,16 +3462,16 @@ class A
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var diagnostic = tree.GetDiagnostics().Single();
             Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
-            Assert.Equal(1522, diagnostic.Code);
+            Assert.Equal(1633, diagnostic.Code);
 
             // verify pragma information
             var node = tree.GetCompilationUnitRoot();
-            VerifyDirectivePragma(node, new PragmaInfo
+            VerifyDirectivePragma(node.GetDirectives().First(), new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new[] { "1522" }
+                WarningList = new[] { "1633" }
             });
 
             // verify that GetParseDiagnostics filters disabled warning

@@ -1129,10 +1129,7 @@ class Convertible
             CreateCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0150: A constant value is expected
                 //             case default(Convertible): return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "default(Convertible)").WithLocation(8, 18),
-                // (8,40): warning CS0162: Unreachable code detected
-                //             case default(Convertible): return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(8, 40)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "default(Convertible)").WithLocation(8, 18)
                 );
         }
 
@@ -1162,10 +1159,7 @@ class Convertible
             CreateCompilation(source).VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case c: return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "c").WithLocation(9, 18),
-                // (9,21): warning CS0162: Unreachable code detected
-                //             case c: return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(9, 21)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "c").WithLocation(9, 18)
                 );
         }
 

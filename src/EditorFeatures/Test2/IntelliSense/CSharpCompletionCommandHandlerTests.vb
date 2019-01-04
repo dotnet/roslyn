@@ -1033,6 +1033,74 @@ class Class
 
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestPropertyInPropertySubpattern(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class Class
+{
+    int Prop { get; set; }
+    int OtherProp { get; set; }
+    public void M()
+    {
+        _ = this is $$
+    }
+}]]></Document>)
+
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("C")
+                Await state.AssertSelectedCompletionItem(displayText:="Class", isHardSelected:=True)
+                state.SendTypeChars(" { P")
+                Await state.AssertSelectedCompletionItem(displayText:="Prop", displayTextSuffix:=":", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("{ Prop:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(" 0, ")
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", displayTextSuffix:=":", isSoftSelected:=True)
+                state.SendTypeChars("O")
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", displayTextSuffix:=":", isHardSelected:=True)
+                state.SendTypeChars(": 1 }")
+                Assert.Contains("is Class { Prop: 0, OtherProp: 1 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestPropertyInPropertySubpattern_TriggerWithSpace(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class Class
+{
+    int Prop { get; set; }
+    int OtherProp { get; set; }
+    public void M()
+    {
+        _ = this is $$
+    }
+}]]></Document>)
+
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("C")
+                Await state.AssertSelectedCompletionItem(displayText:="Class", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Assert.Contains("is Class", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars("{ P")
+                Await state.AssertSelectedCompletionItem(displayText:="Prop", displayTextSuffix:=":", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Assert.Contains("is Class { Prop ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(":")
+                Assert.Contains("is Class { Prop :", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(" 0, ")
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", displayTextSuffix:=":", isSoftSelected:=True)
+                state.SendTypeChars("O")
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", displayTextSuffix:=":", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Assert.Contains("is Class { Prop : 0, OtherProp", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(": 1 }")
+                Assert.Contains("is Class { Prop : 0, OtherProp : 1 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestSymbolInTupleLiteral(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,

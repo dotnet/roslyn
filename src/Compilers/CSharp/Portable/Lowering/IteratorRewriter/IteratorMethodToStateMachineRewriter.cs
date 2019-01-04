@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     F.Goto(breakLabel));
 
                 body = F.Block(
-                    F.Switch(state, sections),
+                    F.Switch(state, sections.ToImmutableArray()),
                     F.Label(breakLabel));
             }
 
