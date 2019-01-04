@@ -7765,7 +7765,10 @@ public class Test
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/preferreduilang:en", "/warn:3", "/warnaserror", source.ToString() }).Run(outWriter);
             Assert.Equal(1, exitCode);
-            Assert.Equal(fileName + "(12,20): error CS1522: Empty switch block", outWriter.ToString().Trim());
+            Assert.Equal(
+$@"{fileName}(12,20): error CS1522: Empty switch block
+{fileName}(15,9): error CS0162: Unreachable code detected
+{fileName}(5,17): error CS0169: The field 'Test.x' is never used", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(source);
         }

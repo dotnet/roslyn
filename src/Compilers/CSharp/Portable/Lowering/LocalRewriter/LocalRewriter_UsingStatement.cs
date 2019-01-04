@@ -320,8 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var callExpr = BoundCall.Synthesized(syntax, disposedExpression, disposeAsyncMethodSymbol);
 
                 TypeSymbol awaitExpressionType = awaitOpt.GetResult?.ReturnType.TypeSymbol ?? _compilation.DynamicType;
-                BoundAwaitExpression awaitExpr = new BoundAwaitExpression(syntax, callExpr, awaitOpt, awaitExpressionType) { WasCompilerGenerated = true };
-                disposeCall = (BoundExpression)VisitAwaitExpression(awaitExpr);
+                disposeCall = RewriteAwaitExpression(syntax, callExpr, awaitOpt, awaitExpressionType, false);
             }
             else
             {

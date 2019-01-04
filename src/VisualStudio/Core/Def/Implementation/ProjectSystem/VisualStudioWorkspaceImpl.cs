@@ -1355,7 +1355,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             _projectSystemNameToProjectsMap.Remove(projectName);
                         }
 
-                        return;
+                        break;
                     }
                 }
 

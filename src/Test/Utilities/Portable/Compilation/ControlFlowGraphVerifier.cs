@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 longLivedIds.Contains(id) ||
                                 isCSharpEmptyObjectInitializerCapture(region, block, id) ||
                                 isWithStatementTargetCapture(region, block, id) ||
-                                isSwitchStatementTargetCapture(region, block, id) ||
+                                isSwitchTargetCapture(region, block, id) ||
                                 isForEachEnumeratorCapture(region, block, id) ||
                                 isConditionalXMLAccessReceiverCapture(region, block, id) ||
                                 isConditionalAccessCaptureUsedAfterNullCheck(lastOperation, region, block, id) ||
@@ -616,7 +616,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return false;
             }
 
-            bool isSwitchStatementTargetCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)
+            bool isEmptySwitchExpressionResult(IFlowCaptureReferenceOperation reference)
+            {
+                return reference.Syntax is CSharp.Syntax.SwitchExpressionSyntax switchExpr && switchExpr.Arms.Count == 0;
+            }
+
+            bool isSwitchTargetCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)
             {
                 foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, block.Ordinal))
                 {
@@ -628,6 +633,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 {
                                     CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)candidate.Syntax);
                                     if (syntax.Parent is CSharp.Syntax.SwitchStatementSyntax switchStmt && switchStmt.Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+
+                                    if (syntax.Parent is CSharp.Syntax.SwitchExpressionSyntax switchExpr && switchExpr.GoverningExpression == syntax)
                                     {
                                         return true;
                                     }
@@ -794,7 +804,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         longLivedIds.Add(id);
                     }
 
-                    Assert.True(state.Contains(id) || isCaptureFromEnclosingGraph(id),
+                    Assert.True(state.Contains(id) || isCaptureFromEnclosingGraph(id) || isEmptySwitchExpressionResult(reference),
                         $"Operation [{operationIndex}] in [{getBlockId(block)}] uses not initialized capture [{id.Value}].");
 
                     // Except for a few specific scenarios, any references to captures should either be long-lived capture references,
@@ -1070,6 +1080,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                                 case CSharp.SyntaxKind.SwitchStatement:
                                     if (((CSharp.Syntax.SwitchStatementSyntax)syntax.Parent).Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case CSharp.SyntaxKind.SwitchExpression:
+                                    if (((CSharp.Syntax.SwitchExpressionSyntax)syntax.Parent).GoverningExpression == syntax)
                                     {
                                         return true;
                                     }
@@ -1696,6 +1713,8 @@ endRegion:
                 case OperationKind.ObjectOrCollectionInitializer:
                 case OperationKind.LocalFunction:
                 case OperationKind.CoalesceAssignment:
+                case OperationKind.SwitchExpression:
+                case OperationKind.SwitchExpressionArm:
                     return false;
 
                 case OperationKind.Binary:
@@ -1784,6 +1803,8 @@ endRegion:
                 case OperationKind.FromEndIndex:
                 case OperationKind.Range:
                 case OperationKind.SuppressNullableWarning:
+                case OperationKind.RecursivePattern:
+                case OperationKind.DiscardPattern:
                     return true;
             }
 

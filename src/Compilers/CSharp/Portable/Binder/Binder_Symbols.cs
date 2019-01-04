@@ -146,8 +146,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private NamespaceOrTypeOrAliasSymbolWithAnnotations BindTypeOrAliasOrKeyword(IdentifierNameSyntax syntax, DiagnosticBag diagnostics, out bool isKeyword)
         {
+            return BindTypeOrAliasOrKeyword(((IdentifierNameSyntax)syntax).Identifier, syntax, diagnostics, out isKeyword);
+        }
+
+        private NamespaceOrTypeOrAliasSymbolWithAnnotations BindTypeOrAliasOrKeyword(SyntaxToken identifier, SyntaxNode syntax, DiagnosticBag diagnostics, out bool isKeyword)
+        {
             // Keywords can only be IdentifierNameSyntax
-            var identifierValueText = syntax.Identifier.ValueText;
+            var identifierValueText = identifier.ValueText;
             Symbol symbol = null;
 
             // Perform name lookup without generating diagnostics as it could possibly be a keyword in the current context.
@@ -241,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             lookupResult.Free();
 
-            return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(IsNullableEnabled(syntax.Identifier), symbol);
+            return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(IsNullableEnabled(identifier), symbol);
         }
 
         // Binds the given expression syntax as Type.
