@@ -1,28 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Text;
 
 namespace Analyzer.Utilities.Extensions
 {
     internal static class StringExtensions
     {
-        /// <summary>
-        ///  Note: This doesnot handle all cases of plural for example "Men", "Vertices" etc
-        ///  Word ending with 'i' and 'ae' is to avoid irregular plurals 
-        /// </summary>
-        /// <param name="word"></param>
-        /// <returns></returns>
-        public static bool IsPlural(this string word)
-        {
-            if (!word.EndsWith("s", StringComparison.OrdinalIgnoreCase) &&
-                !word.EndsWith("i", StringComparison.OrdinalIgnoreCase) &&
-                !word.EndsWith("ae", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-            return true;
-        }
-
         public static bool HasSuffix(this string str, string suffix)
         {
             if (str == null)
@@ -58,6 +42,12 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return str.Substring(0, str.Length - suffix.Length);
+        }
+
+        public static bool IsASCII(this string value)
+        {
+            // ASCII encoding replaces non-ascii with question marks, so we use UTF8 to see if multi-byte sequences are there
+            return Encoding.UTF8.GetByteCount(value) == value.Length;
         }
     }
 }
