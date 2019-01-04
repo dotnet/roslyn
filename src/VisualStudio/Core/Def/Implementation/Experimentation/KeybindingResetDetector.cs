@@ -281,7 +281,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             cmds_resume[0].cmdID = ResumeId;
             cmds_resume[0].cmdf = 0;
 
-            // poll until either suspend or resume botton is available, or until operation is canceled
+            // poll until either suspend or resume button is available, or until operation is canceled
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
