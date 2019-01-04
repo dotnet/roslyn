@@ -1074,7 +1074,7 @@ class C
                     "System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>",
                     "System.Threading.Tasks.Sources.IValueTaskSource",
                     "System.Collections.Generic.IAsyncEnumerator<System.Int32>" },
-                    type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Select(m => m.ToTestDisplayString()));
+                    type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys.Select(m => m.ToTestDisplayString()));
             }
         }
 
@@ -1514,7 +1514,7 @@ class C
                     "System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>",
                     "System.Collections.Generic.IAsyncEnumerable<System.Int32>",
                     "System.Collections.Generic.IAsyncEnumerator<System.Int32>" },
-                    type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Select(m => m.ToTestDisplayString()));
+                    type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys.Select(m => m.ToTestDisplayString()));
             }
         }
 

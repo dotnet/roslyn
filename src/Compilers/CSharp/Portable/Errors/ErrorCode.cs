@@ -1646,7 +1646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInReturnTypeOfTargetDelegate = 8621,
         WRN_NullabilityMismatchInParameterTypeOfTargetDelegate = 8622,
         ERR_ExplicitNullableAttribute = 8623,
-        WRN_SuppressionOperatorNotReferenceType = 8624,
+        // Available = 8624,
         WRN_NullAsNonNullable = 8625,
         WRN_NoBestNullabilityConditionalExpression = 8626,
         ERR_NullableUnconstrainedTypeParameter = 8627,
@@ -1665,11 +1665,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
         ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,
-        ERR_UsingVarInSwitchCase = 8643,
-        ERR_GoToForwardJumpOverUsingVar = 8644,
-        ERR_GoToBackwardJumpOverUsingVar = 8645,
+        WRN_NullabilityMismatchInExplicitlyImplementedInterface = 8643,
+        WRN_NullabilityMismatchInInterfaceImplementedByBase = 8644,
+        WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList = 8645,
+        ERR_DuplicateExplicitImpl = 8646,
+        ERR_UsingVarInSwitchCase = 8647,
+        ERR_GoToForwardJumpOverUsingVar = 8648,
+        ERR_GoToBackwardJumpOverUsingVar = 8649,
         #endregion diagnostics introduced for C# 8.0
 
-        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
+        // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

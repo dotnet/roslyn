@@ -1592,10 +1592,19 @@ This version used in: {2}</value>
   <data name="Remove_unused_parameter_0_its_initial_value_is_never_used" xml:space="preserve">
     <value>Remove unused parameter '{0}', its initial value is never used</value>
   </data>
+  <data name="Pull_0_up" xml:space="preserve">
+    <value>Pull '{0}' up</value>
+  </data>
+  <data name="Pull_members_up_to_base_type" xml:space="preserve">
+    <value>Pull members up to base type...</value>
+  </data>
   <data name="Use_block_body_for_local_functions" xml:space="preserve">
     <value>Use block body for local functions</value>
   </data>
   <data name="Use_expression_body_for_local_functions" xml:space="preserve">
     <value>Use expression body for local functions</value>
+  </data>
+  <data name="Pull_0_up_to_1" xml:space="preserve">
+    <value>Pull '{0}' up to '{1}'</value>
   </data>
 </root>

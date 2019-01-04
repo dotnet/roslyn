@@ -815,6 +815,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return node
                     End If
 
+                    If TypeOf node Is MethodBaseSyntax AndAlso Not TypeOf node.Parent Is MethodBlockBaseSyntax Then
+                        Return node
+                    End If
+
                     If TypeOf node Is PropertyStatementSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
                         Return node
                     End If

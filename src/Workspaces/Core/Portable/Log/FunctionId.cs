@@ -248,6 +248,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         TemporaryStorageServiceFactory_ReadStream,
         TemporaryStorageServiceFactory_WriteStream,
 
+        PullMembersUpWarning_ChangeTargetToAbstract,
+        PullMembersUpWarning_ChangeOriginToPublic,
+        PullMembersUpWarning_ChangeOriginToNonStatic,
+        PullMembersUpWarning_UserProceedToFinish,
+        PullMembersUpWarning_UserGoBack,
+
         // currently no-one uses these
         SmartTags_RefreshSession,
         SmartTags_SmartTagInitializeFixes,
