@@ -138,7 +138,14 @@ namespace Microsoft.CodeAnalysis.Completion
             string filterText)
         {
             var helper = CompletionHelper.GetHelper(document);
+            return FilterItems(helper, items, filterText);
+        }
 
+        internal static ImmutableArray<CompletionItem> FilterItems(
+            CompletionHelper completionHelper,
+            ImmutableArray<CompletionItem> items,
+            string filterText)
+        {
             var bestItems = ArrayBuilder<CompletionItem>.GetInstance();
             foreach (var item in items)
             {
@@ -149,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
                 else
                 {
-                    var comparison = helper.CompareItems(item, bestItems.First(), filterText, CultureInfo.CurrentCulture);
+                    var comparison = completionHelper.CompareItems(item, bestItems.First(), filterText, CultureInfo.CurrentCulture);
                     if (comparison < 0)
                     {
                         // This item is strictly better than the best items we've found so far.
