@@ -97,6 +97,33 @@ class C
 
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMultipleTabsDoNotTriggerCompletion(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+                                  using System;
+
+class C
+{
+    void M()
+    {
+        var replyUri = new Uri("");
+        $$
+    }
+}
+
+                              </Document>)
+
+                state.SendTypeChars("repl")
+                state.SendTab()
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                state.SendTab()
+                Assert.Equal("        replyUri" & vbTab & vbTab, state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotAtStartOfExistingWord(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>$$using</Document>)

@@ -57,6 +57,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // We would like to be sure that nobody changes buffers at the same time.
             AssertIsForeground();
 
+            if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion && trigger.Character == '\t')
+            {
+                return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
+            }
+
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
@@ -81,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
-            return ShouldTriggerCompletion(trigger, triggerLocation, sourceText, document, service) 
+            return ShouldTriggerCompletion(trigger, triggerLocation, sourceText, document, service)
                 ? new AsyncCompletionData.CompletionStartData(
                     participation: AsyncCompletionData.CompletionParticipation.ProvidesItems,
                     applicableToSpan: new SnapshotSpan(
