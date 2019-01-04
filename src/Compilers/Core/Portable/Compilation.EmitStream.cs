@@ -3,6 +3,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -16,7 +18,20 @@ namespace Microsoft.CodeAnalysis
         internal enum EmitStreamSignKind
         {
             None,
+
+            /// <summary>
+            /// This form of signing occurs in memory using the <see cref="PEBuilder"/> APIs. This is the default 
+            /// form of signing and will be used when a strong name key is provided in a file on disk.
+            /// </summary>
             SignedWithBulider,
+
+            /// <summary>
+            /// This form of signing occurs using the <see cref="IClrStrongName"/> COM APIs. This form of signing
+            /// requires the unsigned PE to be written to disk before it can be signed (typically by writing it
+            /// out to the %TEMP% folder). This signing is used when the key in a key container, the signing 
+            /// requires a counter signature or customers opted in via the UseLegacyStrongNameProvider feature 
+            /// flag.
+            /// </summary>
             SignedWithFile,
         }
 
@@ -34,7 +49,7 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>
             /// The <see cref="Stream"/> that is being emitted into. This value should _never_ be 
-            /// Dispose. It is either returned from the <see cref="EmitStreamProvider"/> instance in
+            /// disposed. It is either returned from the <see cref="EmitStreamProvider"/> instance in
             /// which case it is owned by that. Or it is just an alias for the value that is stored 
             /// in <see cref="_tempInfo"/> in which case it will be disposed from there.
             /// </summary>
@@ -83,7 +98,6 @@ namespace Microsoft.CodeAnalysis
                 _stream = _emitStreamProvider.GetOrCreateStream(diagnostics);
                 if (_stream == null)
                 {
-                    Debug.Assert(diagnostics.HasAnyErrors());
                     return null;
                 }
 
@@ -95,22 +109,24 @@ namespace Microsoft.CodeAnalysis
                 {
                     Debug.Assert(_strongNameProvider != null);
 
+                    Stream tempStream;
+                    string tempFilePath;
                     try
                     {
                         var fileSystem = _strongNameProvider.FileSystem;
                         Func<string, Stream> streamConstructor = path => fileSystem.CreateFileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
 
                         var tempDir = fileSystem.GetTempPath();
-                        var tempFilePath = Path.Combine(tempDir, Guid.NewGuid().ToString("N"));
-                        var tempStream = FileUtilities.CreateFileStreamChecked(streamConstructor, tempFilePath);
-
-                        _tempInfo = (tempStream, tempFilePath);
-                        return tempStream;
+                        tempFilePath = Path.Combine(tempDir, Guid.NewGuid().ToString("N"));
+                        tempStream = FileUtilities.CreateFileStreamChecked(streamConstructor, tempFilePath);
                     }
                     catch (IOException e)
                     {
                         throw new Cci.PeWritingException(e);
                     }
+
+                    _tempInfo = (tempStream, tempFilePath);
+                    return tempStream;
                 }
                 else
                 {
@@ -121,11 +137,12 @@ namespace Microsoft.CodeAnalysis
             internal bool Complete(StrongNameKeys strongNameKeys, CommonMessageProvider messageProvider, DiagnosticBag diagnostics)
             {
                 Debug.Assert(_stream != null);
+                Debug.Assert(_emitStreamSignKind != EmitStreamSignKind.SignedWithFile || _tempInfo.HasValue);
 
                 if (_tempInfo.HasValue)
                 {
                     Debug.Assert(_emitStreamSignKind == EmitStreamSignKind.SignedWithFile);
-                    var (tempStream, tempFilePath) = _tempInfo.Value;
+                    var (tempStream, tempFilePath) = _tempInfo.GetValueOrDefault();
 
                     try
                     {

@@ -1658,7 +1658,7 @@ namespace Microsoft.CodeAnalysis
         ///   2. Write the unsigned PE to disk and use CLR COM APIs to sign.
         /// The preferred method is #1 as it's more efficient and more resilient (no reliance on %TEMP%). But 
         /// we must continue to support #2 as it's the only way to do the following:
-        ///   - Access private keys stored in a key 
+        ///   - Access private keys stored in a key container
         ///   - Do proper counter signature verification for AssemblySignatureKey attributes
         /// </summary>
         internal bool SignUsingBuilder =>
@@ -2732,11 +2732,9 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                if (!emitPeStream.Complete(StrongNameKeys, MessageProvider, diagnostics) ||
-                    emitMetadataStream?.Complete(StrongNameKeys, MessageProvider, diagnostics) == false)
-                {
-                    return false;
-                }
+                return
+                    emitPeStream.Complete(StrongNameKeys, MessageProvider, diagnostics) &&
+                    (emitMetadataStream?.Complete(StrongNameKeys, MessageProvider, diagnostics) ?? true);
             }
             finally
             {
@@ -2746,8 +2744,6 @@ namespace Microsoft.CodeAnalysis
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();
             }
-
-            return true;
         }
 
         private static Stream ConditionalGetOrCreateStream(EmitStreamProvider metadataPEStreamProvider, DiagnosticBag metadataDiagnostics)

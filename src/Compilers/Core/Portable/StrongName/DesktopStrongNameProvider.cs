@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis
         // so there's no chance of an API consumer seeing it.
         internal sealed class ClrStrongNameMissingException : Exception
         {
-
         }
 
         private readonly ImmutableArray<string> _keyFileSearchPaths;
@@ -37,7 +36,6 @@ namespace Microsoft.CodeAnalysis
 
         public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths) : this(keyFileSearchPaths, StrongNameFileSystem.Instance)
         {
-
         }
 
         /// <summary>
