@@ -2650,6 +2650,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_PossibleAsyncIteratorWithoutYieldOrAwait" xml:space="preserve">
     <value>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</value>
   </data>
+  <data name="ERR_StaticLocalFunctionCannotCaptureVariable" xml:space="preserve">
+    <value>A static local function cannot contain a reference to '{0}'.</value>
+  </data>
+  <data name="ERR_StaticLocalFunctionCannotCaptureThis" xml:space="preserve">
+    <value>A static local function cannot contain a reference to 'this' or 'base'.</value>
+  </data>
   <data name="WRN_BadXMLRefParamType" xml:space="preserve">
     <value>Invalid type for parameter {0} in XML comment cref attribute: '{1}'</value>
   </data>
@@ -5669,6 +5675,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureRangeOperator" xml:space="preserve">
     <value>range operator</value>
+  </data>
+  <data name="IDS_FeatureStaticLocalFunctions" xml:space="preserve">
+    <value>static local functions</value>
   </data>
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>

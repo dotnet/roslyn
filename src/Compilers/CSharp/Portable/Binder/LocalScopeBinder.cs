@@ -481,24 +481,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (newSymbolKind == SymbolKind.Local || newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Method || newSymbolKind == SymbolKind.TypeParameter)
+            switch (newSymbolKind)
             {
-                // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
-                return true;
-            }
+                case SymbolKind.Local:
+                case SymbolKind.Parameter:
+                case SymbolKind.Method:
+                case SymbolKind.TypeParameter:
+                    // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
+                    return true;
 
-            if (newSymbolKind == SymbolKind.RangeVariable)
-            {
-                // The range variable '{0}' conflicts with a previous declaration of '{0}'
-                diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
-                return true;
+                case SymbolKind.RangeVariable:
+                    // The range variable '{0}' conflicts with a previous declaration of '{0}'
+                    diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
+                    return true;
             }
 
             Debug.Assert(false, "what else can be declared inside a local scope?");
             return false;
         }
-
 
         internal virtual bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
         {

@@ -252,6 +252,16 @@
         <target state="new">A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
+        <source>A static local function cannot contain a reference to 'this' or 'base'.</source>
+        <target state="new">A static local function cannot contain a reference to 'this' or 'base'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticLocalFunctionCannotCaptureVariable">
+        <source>A static local function cannot contain a reference to '{0}'.</source>
+        <target state="new">A static local function cannot contain a reference to '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern has already been handled by a previous arm of the switch expression.</source>
         <target state="new">The pattern has already been handled by a previous arm of the switch expression.</target>
@@ -440,6 +450,11 @@
       <trans-unit id="IDS_FeatureStackAllocInitializer">
         <source>stackalloc initializer</source>
         <target state="new">stackalloc initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStaticLocalFunctions">
+        <source>static local functions</source>
+        <target state="new">static local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">

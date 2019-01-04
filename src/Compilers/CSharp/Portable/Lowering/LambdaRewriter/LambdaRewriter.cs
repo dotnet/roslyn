@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (closure.ContainingEnvironmentOpt != null)
                 {
-                    containerAsFrame = closure.ContainingEnvironmentOpt?.SynthesizedEnvironment;
+                    containerAsFrame = closure.ContainingEnvironmentOpt.SynthesizedEnvironment;
 
                     closureKind = ClosureKind.General;
                     translatedLambdaContainer = containerAsFrame;

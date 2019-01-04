@@ -1595,6 +1595,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoConvToIDispWrongAsync = 8418,
         ERR_PossibleAsyncIteratorWithoutYield = 8419,
         ERR_PossibleAsyncIteratorWithoutYieldOrAwait = 8420,
+        ERR_StaticLocalFunctionCannotCaptureVariable = 8421,
+        ERR_StaticLocalFunctionCannotCaptureThis = 8422,
 
         #region diagnostics introduced for recursive patterns
         // 8501, // available

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -9547,6 +9547,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A static local function cannot contain a reference to &apos;this&apos; or &apos;base&apos;..
+        /// </summary>
+        internal static string ERR_StaticLocalFunctionCannotCaptureThis {
+            get {
+                return ResourceManager.GetString("ERR_StaticLocalFunctionCannotCaptureThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A static local function cannot contain a reference to &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_StaticLocalFunctionCannotCaptureVariable {
+            get {
+                return ResourceManager.GetString("ERR_StaticLocalFunctionCannotCaptureVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Static field or property &apos;{0}&apos; cannot be assigned in an object initializer.
         /// </summary>
         internal static string ERR_StaticMemberInObjectInitializer {
@@ -11506,6 +11524,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureStaticClasses {
             get {
                 return ResourceManager.GetString("IDS_FeatureStaticClasses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to static local functions.
+        /// </summary>
+        internal static string IDS_FeatureStaticLocalFunctions {
+            get {
+                return ResourceManager.GetString("IDS_FeatureStaticLocalFunctions", resourceCulture);
             }
         }
         
