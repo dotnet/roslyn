@@ -4388,7 +4388,7 @@ class Program
         }
 
         [Fact]
-        public void ShadowNames_LocalFunctionInsideLambda()
+        public void ShadowNames_LocalFunctionInsideLambda_01()
         {
             var source =
 @"#pragma warning disable 0219
@@ -4418,6 +4418,64 @@ class Program
                 // (16,21): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             void F2<T>() { }
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(16, 21));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowNames_LocalFunctionInsideLambda_02()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+class Program
+{
+    static void M()
+    {
+        Action<int> a1 = x =>
+        {
+            void F1(object x) { }
+        };
+        Action<int> a2 = (int T) =>
+        {
+            void F2<T>() { }
+        };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            // The conflict between the type parameter in F2<T>() and the parameter
+            // in a2 is not reported, for backwards compatibility.
+            comp.VerifyDiagnostics(
+                // (10,28): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             void F1(object x) { }
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 28));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowNames_LocalFunctionInsideLambda_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M()
+    {
+        Action<int> a = x =>
+        {
+            void x() { }
+            x();
+        };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            // The conflict between the local function and the parameter is not reported,
+            // for backwards compatibility.
+            comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
@@ -4570,7 +4628,7 @@ class C
         }
 
         [Fact]
-        public void StaticWithLocalFunctionVariableReference()
+        public void StaticWithLocalFunctionVariableReference_01()
         {
             var source =
 @"#pragma warning disable 8321
@@ -4594,6 +4652,28 @@ class C
                 // (10,40): error CS8421: A static local function cannot contain a reference to 'y'.
                 //             static object G2() => x ?? y;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "y").WithArguments("y").WithLocation(10, 40));
+        }
+
+        [Fact]
+        public void StaticWithLocalFunctionVariableReference_02()
+        {
+            var source =
+@"#pragma warning disable 8321
+class C
+{
+    static void M(int x)
+    {
+        static void F1(int y)
+        {
+            int F2() => x + y;
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,25): error CS8421: A static local function cannot contain a reference to 'x'.
+                //             int F2() => x + y;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(8, 25));
         }
 
         [Fact]

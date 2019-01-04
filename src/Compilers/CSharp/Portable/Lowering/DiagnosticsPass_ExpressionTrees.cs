@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsContainedIn(Symbol container, Symbol symbol)
+        private static bool IsContainedIn(LocalFunctionSymbol container, Symbol symbol)
         {
             Debug.Assert((object)container != null);
             Debug.Assert(container != symbol);

@@ -131,6 +131,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
                     return true;
 
+                case SymbolKind.Method:
+                    // Local function declaration name conflicts are not reported, for backwards compatibility.
+                    return false;
+
+                case SymbolKind.TypeParameter:
+                    // Type parameter declaration name conflicts are not reported, for backwards compatibility.
+                    return false;
+
                 case SymbolKind.RangeVariable:
                     // The range variable '{0}' conflicts with a previous declaration of '{0}'
                     diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
