@@ -103,6 +103,6 @@ folder InstallDir:\Common7\Tools\vsdevcmd\ext
       <SwrFile Include="$(_SwrFilePath)"/>
     </ItemGroup>
   </Target>
-  
+
   <Import Project="..\..\..\NuGet\Microsoft.Net.Compilers\CompilerArtifacts.targets"/>
 </Project>
