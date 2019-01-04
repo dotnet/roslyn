@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageReference Include="xunit.assert" Version="$(XunitVersion)" />
+    <PackageReference Include="Humanizer.Core" Version="$(HumanizerVersion)"/>
   </ItemGroup>
   <Import Project="..\Utilities\Analyzer.Utilities.projitems" Label="Shared" />
 </Project>
