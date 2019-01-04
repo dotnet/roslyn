@@ -190,10 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return true;
 
                             case ThreeState.False:
-                                if (fieldNamedType.GetArity() > 0)
-                                {
-                                    hasGenerics = true;
-                                }
                                 continue;
 
                             case ThreeState.Unknown:
