@@ -3852,7 +3852,7 @@ public unsafe struct OtherStruct
         }
 
         [Fact]
-        public void StructContainingTuple_Pointer_RequiresCSharp8()
+        public void StructContainingTuple_Unmanaged_RequiresCSharp8()
         {
             var code = @"
 public struct MyStruct
@@ -3880,6 +3880,8 @@ public class C
                     //         M<(int, int)>();
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<(int, int)>").WithArguments("unmanaged generic structs", "8.0").WithLocation(14, 9)
                 );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
