@@ -216,6 +216,9 @@
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                 case ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs:
                 case ErrorCode.WRN_NoBestNullabilityArrayElements:
+                case ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface:
+                case ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase:
+                case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
                     return true;
                 default:
                     return false;

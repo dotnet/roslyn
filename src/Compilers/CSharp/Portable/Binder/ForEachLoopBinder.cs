@@ -1280,11 +1280,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (IsIEnumerableT(@interface.OriginalDefinition, isAsync))
                 {
-                    if ((object)result == null)
+                    if ((object)result == null ||
+                        TypeSymbol.Equals(@interface, result, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                     {
                         result = @interface;
                     }
-                    else if (!TypeSymbol.Equals(@interface, result, TypeCompareKind.ConsiderEverything2))
+                    else
                     {
                         foundMultiple = true;
                         return;

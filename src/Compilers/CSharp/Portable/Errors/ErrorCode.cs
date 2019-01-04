@@ -1664,10 +1664,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NoBestNullabilityArrayElements = 8639,
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
-        ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642
+        ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,
+        WRN_NullabilityMismatchInExplicitlyImplementedInterface = 8643,
+        WRN_NullabilityMismatchInInterfaceImplementedByBase = 8644,
+        WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList = 8645,
+        ERR_DuplicateExplicitImpl = 8646,
 
         #endregion diagnostics introduced for C# 8.0
 
-        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
+        // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

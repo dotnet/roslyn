@@ -7819,6 +7819,884 @@ class B3 : IA3
         }
 
         [Fact]
+        public void Implementing_11()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M();
+}
+
+public class A {}
+public interface I2 : I1<A?> { }
+public interface I3 : I1<A> { }
+
+public class C1 : I2, I1<A> 
+{ 
+    void I1<A?>.M(){}
+    void I1<A>.M(){}
+}
+
+public class C2 : I1<A>, I2 
+{ 
+    void I1<A?>.M(){}
+    void I1<A>.M(){}
+}
+
+public class C3 : I1<A>, I1<A?>
+{
+    void I1<A?>.M(){}
+    void I1<A>.M(){}
+}
+
+public class C4 : I2, I3
+{
+    void I1<A?>.M(){}
+    void I1<A>.M(){}
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,14): warning CS8645: 'I1<A>' is already listed in the interface list on type 'C1' with different nullability of reference types.
+                // public class C1 : I2, I1<A> 
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C1").WithArguments("I1<A>", "C1").WithLocation(11, 14),
+                // (11,14): error CS8646: 'I1<A?>.M()' is explicitly implemented more than once.
+                // public class C1 : I2, I1<A> 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("I1<A?>.M()").WithLocation(11, 14),
+                // (11,14): error CS8646: 'I1<A>.M()' is explicitly implemented more than once.
+                // public class C1 : I2, I1<A> 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("I1<A>.M()").WithLocation(11, 14),
+                // (17,14): warning CS8645: 'I1<A?>' is already listed in the interface list on type 'C2' with different nullability of reference types.
+                // public class C2 : I1<A>, I2 
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C2").WithArguments("I1<A?>", "C2").WithLocation(17, 14),
+                // (17,14): error CS8646: 'I1<A>.M()' is explicitly implemented more than once.
+                // public class C2 : I1<A>, I2 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I1<A>.M()").WithLocation(17, 14),
+                // (17,14): error CS8646: 'I1<A?>.M()' is explicitly implemented more than once.
+                // public class C2 : I1<A>, I2 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I1<A?>.M()").WithLocation(17, 14),
+                // (23,14): warning CS8645: 'I1<A?>' is already listed in the interface list on type 'C3' with different nullability of reference types.
+                // public class C3 : I1<A>, I1<A?>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C3").WithArguments("I1<A?>", "C3").WithLocation(23, 14),
+                // (23,14): error CS8646: 'I1<A>.M()' is explicitly implemented more than once.
+                // public class C3 : I1<A>, I1<A?>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C3").WithArguments("I1<A>.M()").WithLocation(23, 14),
+                // (23,14): error CS8646: 'I1<A?>.M()' is explicitly implemented more than once.
+                // public class C3 : I1<A>, I1<A?>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C3").WithArguments("I1<A?>.M()").WithLocation(23, 14),
+                // (29,14): warning CS8645: 'I1<A>' is already listed in the interface list on type 'C4' with different nullability of reference types.
+                // public class C4 : I2, I3
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C4").WithArguments("I1<A>", "C4").WithLocation(29, 14),
+                // (29,14): error CS8646: 'I1<A?>.M()' is explicitly implemented more than once.
+                // public class C4 : I2, I3
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C4").WithArguments("I1<A?>.M()").WithLocation(29, 14),
+                // (29,14): error CS8646: 'I1<A>.M()' is explicitly implemented more than once.
+                // public class C4 : I2, I3
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C4").WithArguments("I1<A>.M()").WithLocation(29, 14)
+                );
+
+            var c1 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C1");
+            var c1Interfaces = c1.Interfaces;
+            var c1AllInterfaces = c1.AllInterfaces;
+            Assert.Equal(2, c1Interfaces.Length);
+            Assert.Equal(3, c1AllInterfaces.Length);
+            Assert.Equal("I2", c1Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<A!>", c1Interfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I2", c1AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<A?>", c1AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<A!>", c1AllInterfaces[2].ToTestDisplayString(includeNonNullable: true));
+            assertExplicitInterfaceImplementations(c1);
+
+            var c2 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C2");
+            var c2Interfaces = c2.Interfaces;
+            var c2AllInterfaces = c2.AllInterfaces;
+            Assert.Equal(2, c2Interfaces.Length);
+            Assert.Equal(3, c2AllInterfaces.Length);
+            Assert.Equal("I1<A!>", c2Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I2", c2Interfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<A!>", c2AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I2", c2AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<A?>", c2AllInterfaces[2].ToTestDisplayString(includeNonNullable: true));
+            assertExplicitInterfaceImplementations(c2);
+
+            var c3 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C3");
+            var c3Interfaces = c3.Interfaces;
+            var c3AllInterfaces = c3.AllInterfaces;
+            Assert.Equal(2, c3Interfaces.Length);
+            Assert.Equal(2, c3AllInterfaces.Length);
+            Assert.Equal("I1<A!>", c3Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<A?>", c3Interfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<A!>", c3AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<A?>", c3AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+            assertExplicitInterfaceImplementations(c3);
+
+            var c4 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C4");
+            var c4Interfaces = c4.Interfaces;
+            var c4AllInterfaces = c4.AllInterfaces;
+            Assert.Equal(2, c4Interfaces.Length);
+            Assert.Equal(4, c4AllInterfaces.Length);
+            Assert.Equal("I2", c4Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I3", c4Interfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I2", c4AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<A?>", c4AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I3", c4AllInterfaces[2].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<A!>", c4AllInterfaces[3].ToTestDisplayString(includeNonNullable: true));
+            assertExplicitInterfaceImplementations(c4);
+
+            void assertExplicitInterfaceImplementations(INamedTypeSymbol c)
+            {
+                var members = c.GetMembers("I1<A>.M");
+                Assert.Equal(2, members.Length);
+                var cMabImplementations = ((IMethodSymbol)members[0]).ExplicitInterfaceImplementations;
+                Assert.Equal(1, cMabImplementations.Length);
+                Assert.Equal("void I1<A?>.M()", cMabImplementations[0].ToTestDisplayString(includeNonNullable: true));
+                var cMcdImplementations = ((IMethodSymbol)members[1]).ExplicitInterfaceImplementations;
+                Assert.Equal(1, cMcdImplementations.Length);
+                Assert.Equal("void I1<A!>.M()", cMcdImplementations[0].ToTestDisplayString(includeNonNullable: true));
+            }
+        }
+
+        [Fact]
+        public void Implementing_12()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M1();
+    void M2();
+}
+
+public class A {}
+
+public class C1 : I1<A?> 
+{ 
+    public void M1() => System.Console.WriteLine(""C1.M1"");
+    void I1<A?>.M2() => System.Console.WriteLine(""C1.M2"");
+}
+
+public class C2 : C1, I1<A> 
+{ 
+    new public void M1() => System.Console.WriteLine(""C2.M1""); 
+    void I1<A>.M2() => System.Console.WriteLine(""C2.M2"");
+
+    static void Main()
+    {
+        var x = (C1)new C2();
+        var y = (I1<A?>)x;
+        y.M1();
+        y.M2();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics();
+
+            Action<ModuleSymbol> validate = (m) =>
+            {
+                bool isMetadata = m is PEModuleSymbol;
+
+                var c1 = (INamedTypeSymbol)m.GlobalNamespace.GetTypeMember("C1");
+                var c1Interfaces = c1.Interfaces;
+                var c1AllInterfaces = c1.AllInterfaces;
+                Assert.Equal(1, c1Interfaces.Length);
+                Assert.Equal(1, c1AllInterfaces.Length);
+                Assert.Equal("I1<A?>", c1Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("I1<A?>", c1AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+
+                var c2 = (INamedTypeSymbol)m.GlobalNamespace.GetTypeMember("C2");
+                var c2Interfaces = c2.Interfaces;
+                var c2AllInterfaces = c2.AllInterfaces;
+                Assert.Equal(1, c2Interfaces.Length);
+                Assert.Equal(2, c2AllInterfaces.Length);
+                Assert.Equal("I1<A!>", c2Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("I1<A?>", c2AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("I1<A!>", c2AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+
+                Assert.Equal("void C2.M1()", c2.FindImplementationForInterfaceMember(((TypeSymbol)c2Interfaces[0]).GetMember("M1")).ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("void C2.M1()",
+                             c2.FindImplementationForInterfaceMember(((TypeSymbol)c1Interfaces[0]).GetMember("M1")).ToTestDisplayString(includeNonNullable: true));
+
+                var m2 = (IMethodSymbol)((TypeSymbol)c2).GetMember("I1<A>.M2");
+                var m2Implementations = m2.ExplicitInterfaceImplementations;
+                Assert.Equal(1, m2Implementations.Length);
+                Assert.Equal(isMetadata ?
+                                 "void I1<A>.M2()" :
+                                 "void I1<A!>.M2()",
+                             m2Implementations[0].ToTestDisplayString(includeNonNullable: true));
+
+                Assert.Same(m2,
+                            c2.FindImplementationForInterfaceMember(((TypeSymbol)c2Interfaces[0]).GetMember("M2")));
+                Assert.Same(m2,
+                            c2.FindImplementationForInterfaceMember(((TypeSymbol)c1Interfaces[0]).GetMember("M2")));
+            };
+
+            CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput:
+@"C2.M1
+C2.M2
+");
+        }
+
+        [Fact]
+        public void Implementing_13()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M1();
+    void M2();
+}
+
+public class A {}
+
+public class C1 : I1<A?> 
+{ 
+    public void M1() => System.Console.WriteLine(""C1.M1"");
+    void I1<A?>.M2() => System.Console.WriteLine(""C1.M2"");
+    public virtual void M2() {}
+}
+
+public class C2 : C1, I1<A> 
+{ 
+    static void Main()
+    {
+        var x = (C1)new C2();
+        var y = (I1<A>)x;
+        y.M1();
+        y.M2();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics(
+                // (17,23): warning CS8644: 'C2' does not implement interface member 'I1<A>.M2()'. Nullability of reference types in interface implemented by the base type doesn't match.
+                // public class C2 : C1, I1<A> 
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I1<A>").WithArguments("C2", "I1<A>.M2()").WithLocation(17, 23)
+                );
+
+            Action<ModuleSymbol> validate = (m) =>
+            {
+                bool isMetadata = m is PEModuleSymbol;
+
+                var c1 = (INamedTypeSymbol)m.GlobalNamespace.GetTypeMember("C1");
+                var c1Interfaces = c1.Interfaces;
+                var c1AllInterfaces = c1.AllInterfaces;
+                Assert.Equal(1, c1Interfaces.Length);
+                Assert.Equal(1, c1AllInterfaces.Length);
+                Assert.Equal("I1<A?>", c1Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("I1<A?>", c1AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+
+                var c2 = (INamedTypeSymbol)m.GlobalNamespace.GetTypeMember("C2");
+                var c2Interfaces = c2.Interfaces;
+                var c2AllInterfaces = c2.AllInterfaces;
+                Assert.Equal(1, c2Interfaces.Length);
+                Assert.Equal(2, c2AllInterfaces.Length);
+                Assert.Equal("I1<A!>", c2Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("I1<A?>", c2AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("I1<A!>", c2AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+
+                Assert.Equal("void C1.M1()", c2.FindImplementationForInterfaceMember(((TypeSymbol)c2Interfaces[0]).GetMember("M1")).ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("void C1.M1()",
+                             c2.FindImplementationForInterfaceMember(((TypeSymbol)c1Interfaces[0]).GetMember("M1")).ToTestDisplayString(includeNonNullable: true));
+
+                var m2 = (IMethodSymbol)((TypeSymbol)c1).GetMember("I1<A>.M2");
+                var m2Implementations = m2.ExplicitInterfaceImplementations;
+                Assert.Equal(1, m2Implementations.Length);
+                Assert.Equal(isMetadata ?
+                                 "void I1<A>.M2()" :
+                                 "void I1<A?>.M2()",
+                             m2Implementations[0].ToTestDisplayString(includeNonNullable: true));
+
+                Assert.Same(m2,
+                            c2.FindImplementationForInterfaceMember(((TypeSymbol)c2Interfaces[0]).GetMember("M2")));
+                Assert.Same(m2,
+                            c2.FindImplementationForInterfaceMember(((TypeSymbol)c1Interfaces[0]).GetMember("M2")));
+            };
+
+            CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput:
+@"C1.M1
+C1.M2
+");
+        }
+
+        [Fact]
+        public void Implementing_14()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M1();
+}
+
+public class A {}
+
+public class C1 : I1<A?> 
+{ 
+}
+
+public class C2 : C1, I1<A> 
+{ 
+}
+
+public class C3 : C1, I1<A?> 
+{ 
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,19): error CS0535: 'C1' does not implement interface member 'I1<A?>.M1()'
+                // public class C1 : I1<A?> 
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<A?>").WithArguments("C1", "I1<A?>.M1()").WithLocation(9, 19),
+                // (13,23): warning CS8644: 'C2' does not implement interface member 'I1<A>.M1()'. Nullability of reference types in interface implemented by the base type doesn't match.
+                // public class C2 : C1, I1<A> 
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I1<A>").WithArguments("C2", "I1<A>.M1()").WithLocation(13, 23)
+                );
+        }
+
+        [Fact]
+        public void Implementing_15()
+        {
+            var source1 = @"
+public interface I1<T> 
+{
+    void M1();
+}
+
+public class A {}
+
+public class C1 : I1<A?> 
+{ 
+}
+";
+            var comp1 = CreateCompilation(source1, options: WithNonNullTypesTrue());
+            comp1.VerifyDiagnostics(
+                // (9,19): error CS0535: 'C1' does not implement interface member 'I1<A?>.M1()'
+                // public class C1 : I1<A?> 
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<A?>").WithArguments("C1", "I1<A?>.M1()").WithLocation(9, 19)
+                );
+
+            var source2 = @"
+public class C2 : C1, I1<A> 
+{ 
+}
+
+public class C3 : C1, I1<A?> 
+{ 
+}
+";
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() }, options: WithNonNullTypesTrue());
+            comp2.VerifyDiagnostics(
+                // (2,23): warning CS8644: 'C2' does not implement interface member 'I1<A>.M1()'. Nullability of reference types in interface implemented by the base type doesn't match.
+                // public class C2 : C1, I1<A> 
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I1<A>").WithArguments("C2", "I1<A>.M1()").WithLocation(2, 23)
+                );
+        }
+
+        [Fact]
+        public void Implementing_16()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M();
+}
+
+public interface I2<I2T> : I1<I2T?> where I2T : class { }
+public interface I3<I3T> : I1<I3T> where I3T : class { }
+
+public class C1<T> : I2<T>, I1<T> where T : class 
+{ 
+    void I1<T?>.M(){}
+    void I1<T>.M(){}
+}
+
+public class C2<T> : I1<T>, I2<T> where T : class  
+{ 
+    void I1<T?>.M(){}
+    void I1<T>.M(){}
+}
+
+public class C3<T> : I1<T>, I1<T?> where T : class 
+{
+    void I1<T?>.M(){}
+    void I1<T>.M(){}
+}
+
+public class C4<T> : I2<T>, I3<T> where T : class 
+{
+    void I1<T?>.M(){}
+    void I1<T>.M(){}
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,14): warning CS8645: 'I1<T>' is already listed in the interface list on type 'C1<T>' with different nullability of reference types.
+                // public class C1<T> : I2<T>, I1<T> where T : class 
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C1").WithArguments("I1<T>", "C1<T>").WithLocation(10, 14),
+                // (10,14): error CS8646: 'I1<T?>.M()' is explicitly implemented more than once.
+                // public class C1<T> : I2<T>, I1<T> where T : class 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("I1<T?>.M()").WithLocation(10, 14),
+                // (10,14): error CS8646: 'I1<T>.M()' is explicitly implemented more than once.
+                // public class C1<T> : I2<T>, I1<T> where T : class 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("I1<T>.M()").WithLocation(10, 14),
+                // (16,14): warning CS8645: 'I1<T?>' is already listed in the interface list on type 'C2<T>' with different nullability of reference types.
+                // public class C2<T> : I1<T>, I2<T> where T : class  
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C2").WithArguments("I1<T?>", "C2<T>").WithLocation(16, 14),
+                // (16,14): error CS8646: 'I1<T>.M()' is explicitly implemented more than once.
+                // public class C2<T> : I1<T>, I2<T> where T : class  
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I1<T>.M()").WithLocation(16, 14),
+                // (16,14): error CS8646: 'I1<T?>.M()' is explicitly implemented more than once.
+                // public class C2<T> : I1<T>, I2<T> where T : class  
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I1<T?>.M()").WithLocation(16, 14),
+                // (22,14): warning CS8645: 'I1<T?>' is already listed in the interface list on type 'C3<T>' with different nullability of reference types.
+                // public class C3<T> : I1<T>, I1<T?> where T : class 
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C3").WithArguments("I1<T?>", "C3<T>").WithLocation(22, 14),
+                // (22,14): error CS8646: 'I1<T>.M()' is explicitly implemented more than once.
+                // public class C3<T> : I1<T>, I1<T?> where T : class 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C3").WithArguments("I1<T>.M()").WithLocation(22, 14),
+                // (22,14): error CS8646: 'I1<T?>.M()' is explicitly implemented more than once.
+                // public class C3<T> : I1<T>, I1<T?> where T : class 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C3").WithArguments("I1<T?>.M()").WithLocation(22, 14),
+                // (28,14): warning CS8645: 'I1<T>' is already listed in the interface list on type 'C4<T>' with different nullability of reference types.
+                // public class C4<T> : I2<T>, I3<T> where T : class 
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C4").WithArguments("I1<T>", "C4<T>").WithLocation(28, 14),
+                // (28,14): error CS8646: 'I1<T?>.M()' is explicitly implemented more than once.
+                // public class C4<T> : I2<T>, I3<T> where T : class 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C4").WithArguments("I1<T?>.M()").WithLocation(28, 14),
+                // (28,14): error CS8646: 'I1<T>.M()' is explicitly implemented more than once.
+                // public class C4<T> : I2<T>, I3<T> where T : class 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C4").WithArguments("I1<T>.M()").WithLocation(28, 14)
+                );
+
+            var c1 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C1`1");
+            var c1Interfaces = c1.Interfaces;
+            var c1AllInterfaces = c1.AllInterfaces;
+            Assert.Equal(2, c1Interfaces.Length);
+            Assert.Equal(3, c1AllInterfaces.Length);
+            Assert.Equal("I2<T!>", c1Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<T!>", c1Interfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I2<T!>", c1AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<T?>", c1AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<T!>", c1AllInterfaces[2].ToTestDisplayString(includeNonNullable: true));
+            assertExplicitInterfaceImplementations(c1);
+
+            var c2 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C2`1");
+            var c2Interfaces = c2.Interfaces;
+            var c2AllInterfaces = c2.AllInterfaces;
+            Assert.Equal(2, c2Interfaces.Length);
+            Assert.Equal(3, c2AllInterfaces.Length);
+            Assert.Equal("I1<T!>", c2Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I2<T!>", c2Interfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<T!>", c2AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I2<T!>", c2AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<T?>", c2AllInterfaces[2].ToTestDisplayString(includeNonNullable: true));
+            assertExplicitInterfaceImplementations(c2);
+
+            var c3 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C3`1");
+            var c3Interfaces = c3.Interfaces;
+            var c3AllInterfaces = c3.AllInterfaces;
+            Assert.Equal(2, c3Interfaces.Length);
+            Assert.Equal(2, c3AllInterfaces.Length);
+            Assert.Equal("I1<T!>", c3Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<T?>", c3Interfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<T!>", c3AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<T?>", c3AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+            assertExplicitInterfaceImplementations(c3);
+
+            var c4 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C4`1");
+            var c4Interfaces = c4.Interfaces;
+            var c4AllInterfaces = c4.AllInterfaces;
+            Assert.Equal(2, c4Interfaces.Length);
+            Assert.Equal(4, c4AllInterfaces.Length);
+            Assert.Equal("I2<T!>", c4Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I3<T!>", c4Interfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I2<T!>", c4AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<T?>", c4AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I3<T!>", c4AllInterfaces[2].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<T!>", c4AllInterfaces[3].ToTestDisplayString(includeNonNullable: true));
+            assertExplicitInterfaceImplementations(c4);
+
+            void assertExplicitInterfaceImplementations(INamedTypeSymbol c)
+            {
+                var members = c.GetMembers("I1<T>.M");
+                Assert.Equal(2, members.Length);
+                var cMabImplementations = ((IMethodSymbol)members[0]).ExplicitInterfaceImplementations;
+                Assert.Equal(1, cMabImplementations.Length);
+                Assert.Equal("void I1<T?>.M()", cMabImplementations[0].ToTestDisplayString(includeNonNullable: true));
+                var cMcdImplementations = ((IMethodSymbol)members[1]).ExplicitInterfaceImplementations;
+                Assert.Equal(1, cMcdImplementations.Length);
+                Assert.Equal("void I1<T!>.M()", cMcdImplementations[0].ToTestDisplayString(includeNonNullable: true));
+            }
+        }
+
+        [Fact]
+        public void Implementing_17()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M();
+}
+
+public class C3<T, U> : I1<T>, I1<U?> where T : class where U : class 
+{
+    void I1<U?>.M(){}
+    void I1<T>.M(){}
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,14): error CS0695: 'C3<T, U>' cannot implement both 'I1<T>' and 'I1<U?>' because they may unify for some type parameter substitutions
+                // public class C3<T, U> : I1<T>, I1<U?> where T : class where U : class 
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T, U>", "I1<T>", "I1<U?>").WithLocation(7, 14)
+                );
+
+            var c3 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C3`2");
+            var c3Interfaces = c3.Interfaces;
+            var c3AllInterfaces = c3.AllInterfaces;
+            Assert.Equal(2, c3Interfaces.Length);
+            Assert.Equal(2, c3AllInterfaces.Length);
+            Assert.Equal("I1<T!>", c3Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<U?>", c3Interfaces[1].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<T!>", c3AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("I1<U?>", c3AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+            assertExplicitInterfaceImplementations(c3);
+
+            void assertExplicitInterfaceImplementations(INamedTypeSymbol c)
+            {
+                var cMabImplementations = ((IMethodSymbol)((TypeSymbol)c).GetMember("I1<T>.M")).ExplicitInterfaceImplementations;
+                Assert.Equal(1, cMabImplementations.Length);
+                Assert.Equal("void I1<T!>.M()", cMabImplementations[0].ToTestDisplayString(includeNonNullable: true));
+                var cMcdImplementations = ((IMethodSymbol)((TypeSymbol)c).GetMember("I1<U>.M")).ExplicitInterfaceImplementations;
+                Assert.Equal(1, cMcdImplementations.Length);
+                Assert.Equal("void I1<U?>.M()", cMcdImplementations[0].ToTestDisplayString(includeNonNullable: true));
+            }
+        }
+
+        [Fact]
+        public void Implementing_18()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M();
+}
+
+public class A {}
+
+public class C3 : I1<A>
+{
+    void I1<A?>.M() 
+    {
+        System.Console.WriteLine(""C3.M"");
+    }
+    
+    static void Main()
+    {
+        var x = new C3();
+        ((I1<A>)x).M();
+        ((I1<A?>)x).M();
+    }
+}
+
+public class C4 : I1<A?>
+{
+    void I1<A?>.M(){}
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics(
+                // (11,10): warning CS8643: Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.
+                //     void I1<A?>.M()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, "I1<A?>").WithLocation(11, 10)
+                );
+
+            Action<ModuleSymbol> validate = (ModuleSymbol m) =>
+            {
+                bool isMetadata = m is PEModuleSymbol;
+
+                var c3 = (INamedTypeSymbol)m.GlobalNamespace.GetTypeMember("C3");
+                var c3Interfaces = c3.Interfaces;
+                var c3AllInterfaces = c3.AllInterfaces;
+                Assert.Equal(1, c3Interfaces.Length);
+                Assert.Equal(1, c3AllInterfaces.Length);
+                Assert.Equal("I1<A!>", c3Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("I1<A!>", c3AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+
+                var method = (IMethodSymbol)((TypeSymbol)c3).GetMember("I1<A>.M");
+                Assert.Equal("I1<A>.M", method.Name);
+
+                var mImplementations = method.ExplicitInterfaceImplementations;
+                Assert.Equal(1, mImplementations.Length);
+                Assert.Equal(isMetadata ?
+                                 "void I1<A>.M()" :
+                                 "void I1<A?>.M()",
+                             mImplementations[0].ToTestDisplayString(includeNonNullable: true));
+
+                Assert.Same(method,
+                            c3.FindImplementationForInterfaceMember(((TypeSymbol)c3Interfaces[0]).GetMember("M")));
+
+                Assert.Same(method,
+                            c3.FindImplementationForInterfaceMember(mImplementations[0]));
+
+                Assert.Same(method,
+                            c3.FindImplementationForInterfaceMember(m.GlobalNamespace.GetTypeMember("C4").InterfacesNoUseSiteDiagnostics()[0].GetMember("M")));
+            };
+
+            CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput:
+@"C3.M
+C3.M");
+        }
+
+        [Fact]
+        public void Implementing_19()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M();
+}
+
+public class A {}
+
+public class C3 : I1<A>, I1<A?>
+{
+    void I1<A?>.M() 
+    {
+        System.Console.WriteLine(""C3.M"");
+    }
+    
+    static void Main()
+    {
+        var x = new C3();
+        ((I1<A>)x).M();
+        ((I1<A?>)x).M();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics(
+                // (9,14): warning CS8645: 'I1<A?>' is already listed in the interface list on type 'C3' with different nullability of reference types.
+                // public class C3 : I1<A>, I1<A?>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C3").WithArguments("I1<A?>", "C3").WithLocation(9, 14)
+                );
+
+            Action<ModuleSymbol> validate = (ModuleSymbol m) =>
+            {
+                bool isMetadata = m is PEModuleSymbol;
+
+                var c3 = (INamedTypeSymbol)m.GlobalNamespace.GetTypeMember("C3");
+                var c3Interfaces = c3.Interfaces;
+                var c3AllInterfaces = c3.AllInterfaces;
+
+                if (isMetadata)
+                {
+                    Assert.Equal(1, c3Interfaces.Length);
+                    Assert.Equal(1, c3AllInterfaces.Length);
+                    Assert.Equal("I1<A!>", c3Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I1<A!>", c3AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+                }
+                else
+                {
+                    Assert.Equal(2, c3Interfaces.Length);
+                    Assert.Equal(2, c3AllInterfaces.Length);
+                    Assert.Equal("I1<A!>", c3Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I1<A?>", c3Interfaces[1].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I1<A!>", c3AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I1<A?>", c3AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+                }
+
+                var method = (IMethodSymbol)((TypeSymbol)c3).GetMember("I1<A>.M");
+                Assert.Equal("I1<A>.M", method.Name);
+
+                var mImplementations = method.ExplicitInterfaceImplementations;
+                Assert.Equal(1, mImplementations.Length);
+                Assert.Equal(isMetadata ?
+                                 "void I1<A>.M()" :
+                                 "void I1<A?>.M()",
+                             mImplementations[0].ToTestDisplayString(includeNonNullable: true));
+
+                Assert.Same(method,
+                            c3.FindImplementationForInterfaceMember(((TypeSymbol)c3Interfaces[0]).GetMember("M")));
+
+                Assert.Same(method,
+                            c3.FindImplementationForInterfaceMember(mImplementations[0]));
+            };
+
+            CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput:
+@"C3.M
+C3.M");
+        }
+
+        [Fact]
+        public void Implementing_20()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M();
+}
+
+public class A {}
+
+public interface I2 : I1<A?>
+{}
+
+public class C3 : I2, I1<A>
+{
+    void I1<A?>.M() 
+    {
+        System.Console.WriteLine(""C3.M"");
+    }
+    
+    static void Main()
+    {
+        var x = new C3();
+        ((I1<A>)x).M();
+        ((I1<A?>)x).M();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics(
+                // (12,14): warning CS8645: 'I1<A>' is already listed in the interface list on type 'C3' with different nullability of reference types.
+                // public class C3 : I2, I1<A>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C3").WithArguments("I1<A>", "C3").WithLocation(12, 14)
+                );
+
+            Action<ModuleSymbol> validate = (ModuleSymbol m) =>
+            {
+                bool isMetadata = m is PEModuleSymbol;
+
+                var c3 = (INamedTypeSymbol)m.GlobalNamespace.GetTypeMember("C3");
+                var c3Interfaces = c3.Interfaces;
+                var c3AllInterfaces = c3.AllInterfaces;
+
+                if (isMetadata)
+                {
+                    Assert.Equal(2, c3Interfaces.Length);
+                    Assert.Equal(2, c3AllInterfaces.Length);
+                    Assert.Equal("I2", c3Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I1<A?>", c3Interfaces[1].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I2", c3AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I1<A?>", c3AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+                }
+                else
+                {
+                    Assert.Equal(2, c3Interfaces.Length);
+                    Assert.Equal(3, c3AllInterfaces.Length);
+                    Assert.Equal("I2", c3Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I1<A!>", c3Interfaces[1].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I2", c3AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I1<A?>", c3AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I1<A!>", c3AllInterfaces[2].ToTestDisplayString(includeNonNullable: true));
+                }
+
+                var method = (IMethodSymbol)((TypeSymbol)c3).GetMember("I1<A>.M");
+                Assert.Equal("I1<A>.M", method.Name);
+
+                var mImplementations = method.ExplicitInterfaceImplementations;
+                Assert.Equal(1, mImplementations.Length);
+                Assert.Equal(isMetadata ?
+                                 "void I1<A>.M()" :
+                                 "void I1<A?>.M()",
+                             mImplementations[0].ToTestDisplayString(includeNonNullable: true));
+
+                Assert.Same(method,
+                            c3.FindImplementationForInterfaceMember(((TypeSymbol)c3Interfaces[1]).GetMember("M")));
+
+                Assert.Same(method,
+                            c3.FindImplementationForInterfaceMember(mImplementations[0]));
+            };
+
+            CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput:
+@"C3.M
+C3.M");
+        }
+
+        [Fact]
+        public void Implementing_21()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M();
+}
+
+public class A {}
+
+public partial class C3 : I1<A>
+{
+    void I1<A?>.M() 
+    {
+        System.Console.WriteLine(""C3.M"");
+    }
+    
+    static void Main()
+    {
+        var x = new C3();
+        ((I1<A>)x).M();
+        ((I1<A?>)x).M();
+    }
+}
+
+public partial class C3 : I1<A?> {}
+
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics(
+                // (9,22): warning CS8645: 'I1<A?>' is already listed in the interface list on type 'C3' with different nullability of reference types.
+                // public partial class C3 : I1<A>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C3").WithArguments("I1<A?>", "C3").WithLocation(9, 22)
+                );
+
+            Action<ModuleSymbol> validate = (ModuleSymbol m) =>
+            {
+                bool isMetadata = m is PEModuleSymbol;
+
+                var c3 = (INamedTypeSymbol)m.GlobalNamespace.GetTypeMember("C3");
+                var c3Interfaces = c3.Interfaces;
+                var c3AllInterfaces = c3.AllInterfaces;
+
+                if (isMetadata)
+                {
+                    Assert.Equal(1, c3Interfaces.Length);
+                    Assert.Equal(1, c3AllInterfaces.Length);
+                    Assert.Equal("I1<A!>", c3Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I1<A!>", c3AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+                }
+                else
+                {
+                    Assert.Equal(2, c3Interfaces.Length);
+                    Assert.Equal(2, c3AllInterfaces.Length);
+                    Assert.Equal("I1<A!>", c3Interfaces[0].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I1<A?>", c3Interfaces[1].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I1<A!>", c3AllInterfaces[0].ToTestDisplayString(includeNonNullable: true));
+                    Assert.Equal("I1<A?>", c3AllInterfaces[1].ToTestDisplayString(includeNonNullable: true));
+                }
+
+                var method = (IMethodSymbol)((TypeSymbol)c3).GetMember("I1<A>.M");
+                Assert.Equal("I1<A>.M", method.Name);
+
+                var mImplementations = method.ExplicitInterfaceImplementations;
+                Assert.Equal(1, mImplementations.Length);
+                Assert.Equal(isMetadata ?
+                                 "void I1<A>.M()" :
+                                 "void I1<A?>.M()",
+                             mImplementations[0].ToTestDisplayString(includeNonNullable: true));
+
+                Assert.Same(method,
+                            c3.FindImplementationForInterfaceMember(((TypeSymbol)c3Interfaces[0]).GetMember("M")));
+
+                Assert.Same(method,
+                            c3.FindImplementationForInterfaceMember(mImplementations[0]));
+            };
+
+            CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput:
+@"C3.M
+C3.M");
+        }
+
+        [Fact]
         public void PartialMethods_01()
         {
             var source = @"
@@ -55215,8 +56093,7 @@ class Outer<T>
 }
 ";
 
-            // https://github.com/dotnet/roslyn/issues/30677 - The following errors are unexpected:
-            // (24,39): error CS0535: 'Outer<T>.Inner<U>.Derived4.Derived6' does not implement interface member 'Outer<T>.Inner<U>.Interface<U, T>.Method<Z>(T, U[], List<U>, Dictionary<T, Z>)'
+            // https://github.com/dotnet/roslyn/issues/30677, https://github.com/dotnet/roslyn/issues/30673 - The following errors are unexpected:
             // (20,22): error CS0540: 'Outer<T>.Inner<U>.Derived4.Derived5.Method<K>(T, U[], List<U>, Dictionary<K, T>)': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<U, T>'
             // (30,22): error CS0540: 'Outer<T>.Inner<U>.Derived4.Derived6.Outer<T>.Inner<U>.Interface<U, T>.Method<K>(T, U[], List<U>, Dictionary<T, K>)': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<U, T>'
             CreateCompilation(text, options: WithNonNullTypesTrue()).VerifyDiagnostics(
@@ -55229,9 +56106,6 @@ class Outer<T>
                 // (20,47): error CS0539: 'Outer<T>.Inner<U>.Derived4.Derived5.Method<K>(T, U[], List<U>, Dictionary<K, T>)' in explicit interface declaration is not a member of interface
                 //                 void Inner<U>.Interface<U, T>.Method<K>(T a, U[] b, List<U> c, Dictionary<K, T> D)
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Outer<T>.Inner<U>.Derived4.Derived5.Method<K>(T, U[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<K, T>)").WithLocation(20, 47),
-                // (24,39): error CS0535: 'Outer<T>.Inner<U>.Derived4.Derived6' does not implement interface member 'Outer<T>.Inner<U>.Interface<U, T>.Method<Z>(T, U[], List<U>, Dictionary<T, Z>)'
-                //             internal class Derived6 : Outer<T>.Inner<U>.Interface<U, T>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<T>.Inner<U>.Interface<U, T>").WithArguments("Outer<T>.Inner<U>.Derived4.Derived6", "Outer<T>.Inner<U>.Interface<U, T>.Method<Z>(T, U[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<T, Z>)").WithLocation(24, 39),
                 // (30,22): error CS0540: 'Outer<T>.Inner<U>.Derived4.Derived6.Outer<T>.Inner<U>.Interface<U, T>.Method<K>(T, U[], List<U>, Dictionary<T, K>)': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<U, T>'
                 //                 void Inner<U>.Interface<U, T>.Method<K>(T a, U[] b, List<U> c, Dictionary<T, K> D)
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<U>.Interface<U, T>").WithArguments("Outer<T>.Inner<U>.Derived4.Derived6.Outer<T>.Inner<U>.Interface<U, T>.Method<K>(T, U[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<T, K>)", "Outer<T>.Inner<U>.Interface<U, T>").WithLocation(30, 22)
@@ -55267,15 +56141,437 @@ class Outer<T>
 }
 ";
 
-            // https://github.com/dotnet/roslyn/issues/30677 - Expect no errors
+            // https://github.com/dotnet/roslyn/issues/30677, https://github.com/dotnet/roslyn/issues/30673 - Expect no errors
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (12,35): error CS0535: 'Outer<T>.Inner<U>.Derived3' does not implement interface member 'Outer<T>.Inner<U>.Interface<long, string>.Method<Z>(T, U[], List<long>, Dictionary<string, Z>)'
-                //         internal class Derived3 : Interface<long, string>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface<long, string>").WithArguments("Outer<T>.Inner<U>.Derived3", "Outer<T>.Inner<U>.Interface<long, string>.Method<Z>(T, U[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<string, Z>)").WithLocation(12, 35),
                 // (18,18): error CS0540: 'Outer<T>.Inner<U>.Derived3.Outer<T>.Inner<U>.Interface<long, string>.Method<K>(T, U[], List<long>, Dictionary<string, K>)': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<long, string>'
                 //             void Inner<U>.Interface<long, string>.Method<K>(T a, U[] B, List<long> C, Dictionary<string, K> d)
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<U>.Interface<long, string>").WithArguments("Outer<T>.Inner<U>.Derived3.Outer<T>.Inner<U>.Interface<long, string>.Method<K>(T, U[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<string, K>)", "Outer<T>.Inner<U>.Interface<long, string>").WithLocation(18, 18)
                 );
+        }
+
+        [Fact]
+        [WorkItem(30677, "https://github.com/dotnet/roslyn/issues/30677")]
+        [WorkItem(31858, "https://github.com/dotnet/roslyn/issues/31858")]
+        public void ExplictInterfaceImplementation_01()
+        {
+            var source1 = @"
+public interface I1<I1T1, I1T2>
+{
+    void M();
+}
+
+public interface I2<I2T1, I2T2> : I1<I2T1, I2T2>
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: WithNonNullTypesFalse());
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+class C<CT1, CT2> : I2<CT1, CT2>
+{
+    void I1<CT1, CT2>.M()
+    {
+    }
+}";
+
+            var comp2 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
+            comp2.VerifyDiagnostics();
+
+            var comp3 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.ToMetadataReference() });
+            comp3.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(30677, "https://github.com/dotnet/roslyn/issues/30677")]
+        [WorkItem(31858, "https://github.com/dotnet/roslyn/issues/31858")]
+        public void ExplictInterfaceImplementation_02()
+        {
+            var source1 = @"
+public interface I1<I1T1>
+{
+    void M();
+}
+
+public struct S<ST1, ST2>
+{ }
+
+public interface I2<I2T1, I2T2> : I1<S<I2T1, I2T2>>
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: WithNonNullTypesFalse());
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+class C<CT1, CT2> : I2<CT1, CT2>
+{
+    void I1<S<CT1, CT2>>.M()
+    {
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
+            comp2.VerifyDiagnostics();
+
+            var comp3 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.ToMetadataReference() });
+            comp3.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(30677, "https://github.com/dotnet/roslyn/issues/30677")]
+        [WorkItem(31858, "https://github.com/dotnet/roslyn/issues/31858")]
+        public void ExplictInterfaceImplementation_03()
+        {
+            var source1 = @"
+public interface I1<I1T1>
+{
+    void M();
+}
+
+public class C1<ST1, ST2>
+{ }
+
+public interface I2<I2T1, I2T2> : I1<C1<I2T1, I2T2>>
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: WithNonNullTypesFalse());
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+class C<CT1, CT2> : I2<CT1, CT2>
+{
+    void I1<C1<CT1, CT2>>.M()
+    {
+    }
+}
+";
+            var expected = new DiagnosticDescription[] {
+                // (4,10): warning CS8643: Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.
+                //     void I1<C1<CT1, CT2>>.M()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, "I1<C1<CT1, CT2>>").WithLocation(4, 10)
+            };
+
+            var comp2 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
+            comp2.VerifyDiagnostics(expected);
+
+            var comp3 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.ToMetadataReference() });
+            comp3.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        [WorkItem(30677, "https://github.com/dotnet/roslyn/issues/30677")]
+        [WorkItem(31858, "https://github.com/dotnet/roslyn/issues/31858")]
+        public void ExplictInterfaceImplementation_04()
+        {
+            var source1 = @"
+public interface I1<I1T1>
+{
+    void M();
+}
+
+public class C1<ST1, ST2>
+{ }
+
+public interface I2<I2T1, I2T2> : I1<C1<I2T1, I2T2>>
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: WithNonNullTypesFalse());
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+class C<CT1, CT2> : I2<CT1, CT2>, I1<C1<CT1, CT2>>
+{
+    void I1<C1<CT1, CT2>>.M()
+    {
+    }
+}
+";
+            var expected = new DiagnosticDescription[] {
+                // (2,7): warning CS8645: 'I1<C1<CT1, CT2>>' is already listed in the interface list on type 'C<CT1, CT2>' with different nullability of reference types.
+                // class C<CT1, CT2> : I2<CT1, CT2>, I1<C1<CT1, CT2>>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C").WithArguments("I1<C1<CT1, CT2>>", "C<CT1, CT2>").WithLocation(2, 7)
+            };
+
+            var comp2 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
+            comp2.VerifyDiagnostics(expected);
+
+            var comp3 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.ToMetadataReference() });
+            comp3.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        [WorkItem(30677, "https://github.com/dotnet/roslyn/issues/30677")]
+        [WorkItem(31858, "https://github.com/dotnet/roslyn/issues/31858")]
+        public void ExplictInterfaceImplementation_05()
+        {
+            var source1 = @"
+public interface I1<I1T1>
+{
+    void M();
+}
+
+public struct S<ST1, ST2>
+{ }
+
+public interface I2<I2T1, I2T2> : I1<S<I2T1, I2T2>>
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: WithNonNullTypesFalse());
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+class C<CT1, CT2> : I2<CT1, CT2>
+{
+    void I1<S<CT1, CT2
+#nullable disable
+>
+#nullable enable
+>.M()
+    {
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
+            comp2.VerifyDiagnostics();
+
+            var comp3 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.ToMetadataReference() });
+            comp3.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(30677, "https://github.com/dotnet/roslyn/issues/30677")]
+        [WorkItem(31858, "https://github.com/dotnet/roslyn/issues/31858")]
+        public void ExplictInterfaceImplementation_06()
+        {
+            var source1 = @"
+public interface I1<I1T1>
+{
+    void M();
+}
+
+public class C1<ST1, ST2>
+{ }
+
+public interface I2<I2T1, I2T2> : I1<C1<I2T1, I2T2>>
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: WithNonNullTypesFalse());
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+class C<CT1, CT2> : I2<CT1, CT2>
+{
+    void I1<C1<CT1, CT2
+#nullable disable
+>
+#nullable enable
+>.M()
+    {
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
+            comp2.VerifyDiagnostics();
+
+            var comp3 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.ToMetadataReference() });
+            comp3.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(30677, "https://github.com/dotnet/roslyn/issues/30677")]
+        [WorkItem(31858, "https://github.com/dotnet/roslyn/issues/31858")]
+        public void ExplictInterfaceImplementation_07()
+        {
+            var source1 = @"
+public interface I1<I1T1>
+{
+    void M();
+}
+
+public interface I2<I2T1, I2T2> : I1<(I2T1, I2T2)>
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: WithNonNullTypesFalse());
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+class C<CT1, CT2> : I2<CT1, CT2>
+{
+    void I1<(CT1 a, CT2 b)>.M()
+    {
+    }
+}
+";
+
+            var expected = new DiagnosticDescription[] {
+                // (4,10): error CS0540: 'C<CT1, CT2>.I1<(CT1 a, CT2 b)>.M()': containing type does not implement interface 'I1<(CT1 a, CT2 b)>'
+                //     void I1<(CT1 a, CT2 b)>.M()
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1<(CT1 a, CT2 b)>").WithArguments("C<CT1, CT2>.I1<(CT1 a, CT2 b)>.M()", "I1<(CT1 a, CT2 b)>").WithLocation(4, 10)
+            };
+
+            var comp2 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
+            comp2.VerifyDiagnostics(expected);
+
+            var comp3 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.ToMetadataReference() });
+            comp3.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        [WorkItem(30677, "https://github.com/dotnet/roslyn/issues/30677")]
+        [WorkItem(31858, "https://github.com/dotnet/roslyn/issues/31858")]
+        public void ExplictInterfaceImplementation_08()
+        {
+            var source1 = @"
+public interface I1<I1T1>
+{
+    void M();
+}
+
+public interface I2<I2T1, I2T2> : I1<(I2T1, I2T2)>
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: WithNonNullTypesFalse());
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+class C<CT1, CT2> : I2<CT1, CT2>, I1<(CT1 a, CT2 b)>
+{
+    void I1<(CT1 c, CT2 d)>.M()
+    {
+    }
+}
+";
+
+            var expected = new DiagnosticDescription[] {
+                // (2,7): error CS8140: 'I1<(CT1 a, CT2 b)>' is already listed in the interface list on type 'C<CT1, CT2>' with different tuple element names, as 'I1<(CT1, CT2)>'.
+                // class C<CT1, CT2> : I2<CT1, CT2>, I1<(CT1 a, CT2 b)>
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C").WithArguments("I1<(CT1 a, CT2 b)>", "I1<(CT1, CT2)>", "C<CT1, CT2>").WithLocation(2, 7),
+                // (4,10): error CS0540: 'C<CT1, CT2>.I1<(CT1 c, CT2 d)>.M()': containing type does not implement interface 'I1<(CT1 c, CT2 d)>'
+                //     void I1<(CT1 c, CT2 d)>.M()
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1<(CT1 c, CT2 d)>").WithArguments("C<CT1, CT2>.I1<(CT1 c, CT2 d)>.M()", "I1<(CT1 c, CT2 d)>").WithLocation(4, 10)
+            };
+
+            var comp2 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
+            comp2.VerifyDiagnostics(expected);
+
+            var comp3 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.ToMetadataReference() });
+            comp3.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        [WorkItem(30677, "https://github.com/dotnet/roslyn/issues/30677")]
+        [WorkItem(31858, "https://github.com/dotnet/roslyn/issues/31858")]
+        public void ExplictInterfaceImplementation_09()
+        {
+            var source1 = @"
+public interface I1<I1T1>
+{
+    void M();
+}
+
+public class C1<ST1, ST2>
+{ }
+
+public interface I2<I2T1, I2T2> : I1<C1<I2T1, I2T2>>
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: WithNonNullTypesFalse());
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+class C<CT1, CT2> : I2<CT1, CT2>, 
+#nullable disable
+I1<C1<CT1, CT2>>
+#nullable enable
+{
+    void I1<C1<CT1, CT2>>.M()
+    {
+    }
+}
+";
+
+            var expected = new DiagnosticDescription[] {
+                // (2,7): warning CS8645: 'I1<C1<CT1, CT2>>' is already listed in the interface list on type 'C<CT1, CT2>' with different nullability of reference types.
+                // class C<CT1, CT2> : I2<CT1, CT2>, 
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C").WithArguments("I1<C1<CT1, CT2>>", "C<CT1, CT2>").WithLocation(2, 7),
+                // (7,10): warning CS8643: Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.
+                //     void I1<C1<CT1, CT2>>.M()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, "I1<C1<CT1, CT2>>").WithLocation(7, 10)
+            }; 
+
+            var comp2 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
+            comp2.VerifyDiagnostics(expected);
+
+            var comp3 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.ToMetadataReference() });
+            comp3.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        [WorkItem(30677, "https://github.com/dotnet/roslyn/issues/30677")]
+        [WorkItem(31858, "https://github.com/dotnet/roslyn/issues/31858")]
+        public void ExplictInterfaceImplementation_10()
+        {
+            var source1 = @"
+public interface I1<I1T1>
+{
+    void M();
+}
+
+public class C1<ST1, ST2>
+{ }
+
+public interface I2<I2T1, I2T2> : I1<C1<I2T1, I2T2>>
+{
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: WithNonNullTypesFalse());
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+class C<CT1, CT2> : I2<CT1, CT2>, 
+I1<C1<CT1, CT2
+#nullable disable
+              >
+#nullable enable
+               >
+{
+    void I1<C1<CT1, CT2>>.M()
+    {
+    }
+}
+";
+            var expected = new DiagnosticDescription[] {
+                // (9,10): warning CS8643: Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.
+                //     void I1<C1<CT1, CT2>>.M()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, "I1<C1<CT1, CT2>>").WithLocation(9, 10)
+            };
+
+            var comp2 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
+            comp2.VerifyDiagnostics(expected);
+
+            var comp3 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { comp1.ToMetadataReference() });
+            comp3.VerifyDiagnostics(expected);
         }
 
         [Fact]
