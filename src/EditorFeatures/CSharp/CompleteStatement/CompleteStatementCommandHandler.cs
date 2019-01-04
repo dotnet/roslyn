@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
@@ -70,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             var document = caret.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
-
             {
                 return;
             }
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             // verify all delimeters exist until you reach statement syntax that requires a semicolon
             while (!IsStatementOrFieldDeclaration(currentNode, syntaxFacts))
             {
-                if (!ClosingDelimiterExistsIfNeeded(currentNode))
+                if (RequiredDelimiterIsMissing(currentNode))
                 {
                     // A required delimiter is missing; do not treat semicolon as statement completion
                     return;
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 {
                     // Should not be reachable because we returned earlier for this case
                     end = 0;
-                    Debug.Fail("Complete statement not supported on For statement iterator");
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
             else
@@ -231,9 +231,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             => syntaxFacts.IsStatement(currentNode) || currentNode.IsKind(SyntaxKind.FieldDeclaration);
 
         private static bool IsInAString(SyntaxNode currentNode, bool isCaretAtEndOfLine)
-                     // If caret is at the end of the line, it is outside the string	
-                     => (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
-                         && !isCaretAtEndOfLine);
+            // If caret is at the end of the line, it is outside the string	
+            => (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
+                && !isCaretAtEndOfLine);
 
         private static bool StatementIsACandidate(SyntaxNode currentNode, int caretPosition)
         {
@@ -250,15 +250,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     return true;
                 case SyntaxKind.ForStatement:
                     var forStatementSyntax = (ForStatementSyntax)currentNode;
-                    if (CaretIsInForStatementCondition(caretPosition, forStatementSyntax) ||
-                        CaretIsInForStatementDeclaration(caretPosition,forStatementSyntax))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return (CaretIsInForStatementCondition(caretPosition, forStatementSyntax) ||
+                        CaretIsInForStatementDeclaration(caretPosition, forStatementSyntax));
                 default:
                     return false;
             }
@@ -393,33 +386,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// <item><description>otherwise, <see langword="false"/>.</description></item>
         /// </list>
         /// </returns>
-        private static bool ClosingDelimiterExistsIfNeeded(SyntaxNode currentNode)
+        private static bool RequiredDelimiterIsMissing(SyntaxNode currentNode)
         {
             switch (currentNode.Kind())
             {
                 case SyntaxKind.ArgumentList:
                     var argumentList = (ArgumentListSyntax)currentNode;
-                    return !argumentList.CloseParenToken.IsMissing;
+                    return argumentList.CloseParenToken.IsMissing;
 
                 case SyntaxKind.ParenthesizedExpression:
                     var parenthesizedExpression = (ParenthesizedExpressionSyntax)currentNode;
-                    return !parenthesizedExpression.CloseParenToken.IsMissing;
+                    return parenthesizedExpression.CloseParenToken.IsMissing;
 
                 case SyntaxKind.BracketedArgumentList:
                     var bracketedArgumentList = (BracketedArgumentListSyntax)currentNode;
-                    return !bracketedArgumentList.CloseBracketToken.IsMissing;
+                    return bracketedArgumentList.CloseBracketToken.IsMissing;
 
                 case SyntaxKind.ObjectInitializerExpression:
                     var initializerExpressionSyntax = (InitializerExpressionSyntax)currentNode;
-                    return !initializerExpressionSyntax.CloseBraceToken.IsMissing;
+                    return initializerExpressionSyntax.CloseBraceToken.IsMissing;
 
                 case SyntaxKind.ArrayRankSpecifier:
                     var arrayRankSpecifierSyntax = (ArrayRankSpecifierSyntax)currentNode;
-                    return !arrayRankSpecifierSyntax.CloseBracketToken.IsMissing;
+                    return arrayRankSpecifierSyntax.CloseBracketToken.IsMissing;
 
                 default:
                     // Type of node does not require a closing delimiter
-                    return true;
+                    return false;
             }
         }
     }
