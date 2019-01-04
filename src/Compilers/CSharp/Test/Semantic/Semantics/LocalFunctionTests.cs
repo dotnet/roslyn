@@ -4526,7 +4526,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (6,31): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
                 //         static object F1() => this.GetHashCode();
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(6, 31),
@@ -4557,7 +4557,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (7,31): error CS8421: A static local function cannot contain a reference to 'x'.
                 //         static object F1() => x;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(7, 31),
@@ -4587,7 +4587,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (10,35): error CS8421: A static local function cannot contain a reference to 'x'.
                 //             static object G2() => x ?? y;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(10, 35),
@@ -4621,19 +4621,24 @@ class B : A
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithPreprocessorSymbols("MyDefine"));
-            comp.VerifyEmitDiagnostics(
-                // (16,30): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
-                //         static void F1() { F(this); }
-                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(16, 30),
-                // (17,30): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
-                //         static void F2() { F(base._f); }
-                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "base").WithLocation(17, 30),
-                // (18,30): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
-                //         static void F3() { F(_f); }
-                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "_f").WithLocation(18, 30));
+            verifyDiagnostics();
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular);
-            comp.VerifyEmitDiagnostics();
+            verifyDiagnostics();
+
+            void verifyDiagnostics()
+            {
+                comp.VerifyDiagnostics(
+                    // (16,30): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                    //         static void F1() { F(this); }
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(16, 30),
+                    // (17,30): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                    //         static void F2() { F(base._f); }
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "base").WithLocation(17, 30),
+                    // (18,30): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                    //         static void F3() { F(_f); }
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "_f").WithLocation(18, 30));
+            }
         }
 
         [Fact]
@@ -4651,7 +4656,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4670,7 +4675,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var expr = GetNameOfExpressions(tree)[1];
@@ -4691,7 +4696,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var expr = GetNameOfExpressions(tree)[0];
@@ -4719,7 +4724,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var expr = GetNameOfExpressions(tree)[0];
@@ -4752,7 +4757,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (11,19): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M<T>()'
                 //         object F2<T>()
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M<T>()").WithLocation(11, 19));
@@ -4796,7 +4801,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (12,19): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M<T>()'
                 //         object F2<T>()
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M<T>()").WithLocation(12, 19));
@@ -4843,7 +4848,7 @@ unsafe class C
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (12,19): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M<T>()'
                 //         object F2<T>()
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "C.M<T>()").WithLocation(12, 19));
