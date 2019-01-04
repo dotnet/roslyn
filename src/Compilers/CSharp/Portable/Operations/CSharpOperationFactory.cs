@@ -370,6 +370,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         return ImmutableArray.Create(CreateVariableDeclaratorInternal((BoundLocalDeclaration)declaration, (declarationSyntax as VariableDeclarationSyntax)?.Variables[0] ?? declarationSyntax));
                     }
                 case BoundKind.MultipleLocalDeclarations:
+                case BoundKind.UsingLocalDeclarations:
                     {
                         var multipleDeclaration = (BoundMultipleLocalDeclarations)declaration;
                         var builder = ArrayBuilder<IVariableDeclaratorOperation>.GetInstance(multipleDeclaration.LocalDeclarations.Length);
