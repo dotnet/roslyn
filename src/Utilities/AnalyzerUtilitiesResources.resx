@@ -117,42 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CategoryDesign" xml:space="preserve">
-    <value>Design</value>
-  </data>
-  <data name="CategoryGlobalization" xml:space="preserve">
-    <value>Globalization</value>
-  </data>
-  <data name="CategoryInteroperability" xml:space="preserve">
-    <value>Interoperability</value>
-  </data>
-  <data name="CategoryLibrary" xml:space="preserve">
-    <value>Library</value>
-  </data>
-  <data name="CategoryNaming" xml:space="preserve">
-    <value>Naming</value>
-  </data>
-  <data name="CategoryPerformance" xml:space="preserve">
-    <value>Performance</value>
-  </data>
-  <data name="CategoryReliability" xml:space="preserve">
-    <value>Reliability</value>
-  </data>
-  <data name="CategoryUsage" xml:space="preserve">
-    <value>Usage</value>
-  </data>
-  <data name="CategoryMobility" xml:space="preserve">
-    <value>Mobility</value>
-  </data>
-  <data name="CategorySecurity" xml:space="preserve">
-    <value>Security</value>
-  </data>
-  <data name="CategoryDocumentation" xml:space="preserve">
-    <value>Documentation</value>
-  </data>
-  <data name="CategoryMaintainability" xml:space="preserve">
-    <value>Maintainability</value>
-  </data>
   <data name="VersionCheckDescription" xml:space="preserve">
     <value>Analyzers in this package are preview version and are tied to a specific API version of Microsoft.CodeAnalysis. You have a mismatch between the analyzer and Microsoft.CodeAnalysis version and should switch your analyzer NuGet package/VSIX to a matching version of the Microsoft.CodeAnalysis.</value>
   </data>

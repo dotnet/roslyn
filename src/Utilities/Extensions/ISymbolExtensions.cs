@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -127,6 +128,24 @@ namespace Analyzer.Utilities.Extensions
                 (IMethodSymbol m) => m.Parameters,
                 (IPropertySymbol p) => p.Parameters,
                 _ => ImmutableArray.Create<IParameterSymbol>());
+        }
+
+        /// <summary>
+        /// Returns true if the given symbol has required visibility based on options:
+        ///   1. If user has explicitly configured candidate <see cref="SymbolVisibilityGroup"/> in editor config options and
+        ///      given symbol's visibility is one of the candidate visibilites.
+        ///   2. Otherwise, if user has not configured visibility, and given symbol's visibility
+        ///      matches the given default symbol visibility.
+        /// </summary>
+        public static bool MatchesConfiguredVisibility(
+            this ISymbol symbol,
+            AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            CancellationToken cancellationToken,
+            SymbolVisibilityGroup defaultRequiredVisibility = SymbolVisibilityGroup.Public)
+        {
+            var allowedVisibilities = options.GetSymbolVisibilityGroupOption(rule, defaultRequiredVisibility, cancellationToken);
+            return allowedVisibilities.Contains(symbol.GetResultantVisibility());
         }
 
         /// <summary>
