@@ -5551,7 +5551,7 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.</source>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
         <target state="needs-review-translation">'{0}' : le type utilisé dans une instruction using doit être implicitement convertible en 'System.IDisposable'</target>
         <note />
       </trans-unit>
