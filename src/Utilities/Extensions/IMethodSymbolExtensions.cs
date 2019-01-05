@@ -382,5 +382,16 @@ namespace Analyzer.Utilities.Extensions
 
             throw new ArgumentException("Invalid paramater", nameof(parameterSymbol));
         }
+
+        /// <summary>
+        /// Returns true for void returning methods with two parameters, where
+        /// the first parameter is of <see cref="object"/> type and the second
+        /// parameter inherits from or equals <see cref="EventArgs"/> type.
+        /// </summary>
+        public static bool HasEventHandlerSignature(this IMethodSymbol method, INamedTypeSymbol eventArgsType)
+            => eventArgsType != null &&
+               method.Parameters.Length == 2 &&
+               method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+               method.Parameters[1].Type.DerivesFrom(eventArgsType, baseTypesOnly: true);
     }
 }
