@@ -13,7 +13,7 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// Option to configure analyzed API surface.
-        /// Allowed option values: One or more fields of flags enum <see cref="SymbolVisibilityGroup"/> as a comma separated list..
+        /// Allowed option values: One or more fields of flags enum <see cref="SymbolVisibilityGroup"/> as a comma separated list.
         /// </summary>
         public const string ApiSurface = "api_surface";
 
@@ -21,5 +21,11 @@ namespace Analyzer.Utilities
         /// Boolean option to skip analysis of async void methods.
         /// </summary>
         public const string SkipAsyncVoidMethods = "skip_async_void_methods";
+
+        /// <summary>
+        /// Option to configure analyzed output kinds, i.e. <see cref="Microsoft.CodeAnalysis.CompilationOptions.OutputKind"/> of the compilation.
+        /// Allowed option values: One or more fields of <see cref="Microsoft.CodeAnalysis.CompilationOptions.OutputKind"/> as a comma separated list.
+        /// </summary>
+        public const string OutputKind = "output_kind";
     }
 }

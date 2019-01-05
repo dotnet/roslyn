@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -35,12 +36,15 @@ namespace Analyzer.Utilities
             ImmutableDictionary<string, string>.Empty,
             ImmutableDictionary<string, ImmutableDictionary<string, string>>.Empty);
 
+        private readonly ConcurrentDictionary<string, object> _computedOptionValuesMap;
+
         private CategorizedAnalyzerConfigOptions(
             ImmutableDictionary<string, string> generalOptions,
             ImmutableDictionary<string, ImmutableDictionary<string, string>> specificOptions)
         {
             GeneralOptions = generalOptions;
             SpecificOptions = specificOptions;
+            _computedOptionValuesMap = new ConcurrentDictionary<string, object>();
         }
 
         public ImmutableDictionary<string, string> GeneralOptions { get; }
@@ -100,49 +104,19 @@ namespace Analyzer.Utilities
             return new CategorizedAnalyzerConfigOptions(generalOptions, specificOptions);
         }
 
-        public TEnum GetEnumOptionValue<TEnum>(string optionName, DiagnosticDescriptor rule, TEnum defaultValue)
-            where TEnum : struct
-        {
-            if (TryGetSpecificOptionValue(rule.Id, out var optionValue) ||
-                TryGetSpecificOptionValue(rule.Category, out optionValue) ||
-                TryGetGeneralOptionValue(out optionValue))
-            {
-                return optionValue;
-            }
-
-            return defaultValue;
-
-            // Local functions.
-            bool TryGetSpecificOptionValue(string specificOptionKey, out TEnum specificOptionValue)
-            {
-                if (SpecificOptions.TryGetValue(specificOptionKey, out var specificRuleOptions) &&
-                    specificRuleOptions.TryGetValue(optionName, out var valueString))
-                {
-                    return TryParse(valueString, out specificOptionValue);
-                }
-
-                specificOptionValue = defaultValue;
-                return false;
-            }
-
-            bool TryGetGeneralOptionValue(out TEnum generalOptionValue)
-            {
-                if (GeneralOptions.TryGetValue(optionName, out var valueString))
-                {
-                    return TryParse(valueString, out generalOptionValue);
-                }
-
-                generalOptionValue = defaultValue;
-                return false;
-            }
-
-            bool TryParse(string value, out TEnum result)
-                => Enum.TryParse(value, ignoreCase: true, result: out result);
-        }
-
         public delegate bool TryParseValue<T>(string value, out T parsedValue);
 
         public T GetOptionValue<T>(string optionName, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue)
+        {
+            if (ReferenceEquals(this, Empty))
+            {
+                return defaultValue;
+            }
+
+            return (T)_computedOptionValuesMap.GetOrAdd(optionName, _ => ComputeOptionValue(optionName, rule, tryParseValue, defaultValue));
+        }
+
+        private T ComputeOptionValue<T>(string optionName, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue)
         {
             if (TryGetSpecificOptionValue(rule.Id, out var optionValue) ||
                 TryGetSpecificOptionValue(rule.Category, out optionValue) ||
