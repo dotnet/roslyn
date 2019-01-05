@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             // Then we produce a set of edges that is consistent with that possible topological sort
             int[][] successors = new int[numberOfNodes][];
-            for (int i = numberOfNodes-1; i >= 0; i--)
+            for (int i = numberOfNodes - 1; i >= 0; i--)
             {
                 successors[possibleSort[i]] = randomSubset((int)Math.Sqrt(i), i);
             }

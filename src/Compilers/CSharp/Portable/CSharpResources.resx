@@ -198,6 +198,9 @@
   <data name="IDS_Collection" xml:space="preserve">
     <value>collection</value>
   </data>
+  <data name="IDS_Disposable" xml:space="preserve">
+    <value>disposable</value>
+  </data>
   <data name="IDS_FeaturePropertyAccessorMods" xml:space="preserve">
     <value>access modifiers on properties</value>
   </data>
@@ -2647,6 +2650,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_PossibleAsyncIteratorWithoutYieldOrAwait" xml:space="preserve">
     <value>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</value>
   </data>
+  <data name="ERR_StaticLocalFunctionCannotCaptureVariable" xml:space="preserve">
+    <value>A static local function cannot contain a reference to '{0}'.</value>
+  </data>
+  <data name="ERR_StaticLocalFunctionCannotCaptureThis" xml:space="preserve">
+    <value>A static local function cannot contain a reference to 'this' or 'base'.</value>
+  </data>
   <data name="WRN_BadXMLRefParamType" xml:space="preserve">
     <value>Invalid type for parameter {0} in XML comment cref attribute: '{1}'</value>
   </data>
@@ -2963,7 +2972,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</value>
   </data>
   <data name="ERR_NoConvToIDisp" xml:space="preserve">
-    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'</value>
+    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</value>
   </data>
   <data name="ERR_NoConvToIDispWrongAsync" xml:space="preserve">
     <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</value>
@@ -5667,6 +5676,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRangeOperator" xml:space="preserve">
     <value>range operator</value>
   </data>
+  <data name="IDS_FeatureStaticLocalFunctions" xml:space="preserve">
+    <value>static local functions</value>
+  </data>
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
@@ -5741,5 +5753,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DuplicateExplicitImpl" xml:space="preserve">
     <value>'{0}' is explicitly implemented more than once.</value>
+  </data>
+  <data name="ERR_UsingVarInSwitchCase" xml:space="preserve">
+    <value>A using variable cannot be used directly within a switch section (consider using braces). </value>
+  </data>
+  <data name="ERR_GoToForwardJumpOverUsingVar" xml:space="preserve">
+    <value>A goto cannot jump to a location after a using declaration.</value>
+  </data>
+  <data name="ERR_GoToBackwardJumpOverUsingVar" xml:space="preserve">
+    <value>A goto cannot jump to a location before a using declaration within the same block.</value>
+  </data>
+  <data name="IDS_FeatureUsingDeclarations" xml:space="preserve">
+    <value>using declarations</value>
   </data>
 </root>

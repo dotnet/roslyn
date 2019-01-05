@@ -8352,14 +8352,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
+    public SyntaxToken AwaitKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).awaitKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.Position, 0);
+
+            return default(SyntaxToken);
+        }
+    }
+
+    public SyntaxToken UsingKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).usingKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.GetChildPosition(1), this.GetChildIndex(1));
+
+            return default(SyntaxToken);
+        }
+    }
+
     /// <summary>Gets the modifier list.</summary>
     public SyntaxTokenList Modifiers 
     {
         get
         {
-            var slot = this.Green.GetSlot(0);
+            var slot = this.Green.GetSlot(2);
             if (slot != null)
-                return new SyntaxTokenList(this, slot, this.Position, 0);
+                return new SyntaxTokenList(this, slot, this.GetChildPosition(2), this.GetChildIndex(2));
 
             return default(SyntaxTokenList);
         }
@@ -8369,20 +8393,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.declaration, 1);
+            return this.GetRed(ref this.declaration, 3);
         }
     }
 
     public SyntaxToken SemicolonToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.declaration, 1);
+            case 3: return this.GetRed(ref this.declaration, 3);
             default: return null;
         }
     }
@@ -8390,7 +8414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.declaration;
+            case 3: return this.declaration;
             default: return null;
         }
     }
@@ -8405,11 +8429,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitLocalDeclarationStatement(this);
     }
 
-    public LocalDeclarationStatementSyntax Update(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+    public LocalDeclarationStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
-        if (modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
+        if (awaitKeyword != this.AwaitKeyword || usingKeyword != this.UsingKeyword || modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.LocalDeclarationStatement(modifiers, declaration, semicolonToken);
+            var newNode = SyntaxFactory.LocalDeclarationStatement(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -8419,19 +8443,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
+    public LocalDeclarationStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
+    {
+        return this.Update(awaitKeyword, this.UsingKeyword, this.Modifiers, this.Declaration, this.SemicolonToken);
+    }
+
+    public LocalDeclarationStatementSyntax WithUsingKeyword(SyntaxToken usingKeyword)
+    {
+        return this.Update(this.AwaitKeyword, usingKeyword, this.Modifiers, this.Declaration, this.SemicolonToken);
+    }
+
     public LocalDeclarationStatementSyntax WithModifiers(SyntaxTokenList modifiers)
     {
-        return this.Update(modifiers, this.Declaration, this.SemicolonToken);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, modifiers, this.Declaration, this.SemicolonToken);
     }
 
     public LocalDeclarationStatementSyntax WithDeclaration(VariableDeclarationSyntax declaration)
     {
-        return this.Update(this.Modifiers, declaration, this.SemicolonToken);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, this.Modifiers, declaration, this.SemicolonToken);
     }
 
     public LocalDeclarationStatementSyntax WithSemicolonToken(SyntaxToken semicolonToken)
     {
-        return this.Update(this.Modifiers, this.Declaration, semicolonToken);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, this.Modifiers, this.Declaration, semicolonToken);
     }
 
     public LocalDeclarationStatementSyntax AddModifiers(params SyntaxToken[] items)
