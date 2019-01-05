@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             private const uint DarkThemeLocalBlue = 0x00FEDC9Cu;
             private const uint DarkThemeMethodYellow = 0x00AADCDCu;
             private const uint DarkThemeControlKeywordPurple = 0x00DFA0D8u;
-            private const uint DarkThemeStructMint = 0x008CC77Eu;
+            private const uint DarkThemeStructMint = 0x0091C686u;
 
             private const uint LightThemePlainText = 0x00000000u;
             private const uint LightThemeIdentifier = LightThemePlainText;
