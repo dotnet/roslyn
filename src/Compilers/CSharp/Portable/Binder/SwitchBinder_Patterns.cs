@@ -198,11 +198,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundStatementsBuilder = ArrayBuilder<BoundStatement>.GetInstance(node.Statements.Count);
             foreach (StatementSyntax statement in node.Statements)
             {
-                boundStatementsBuilder.Add(sectionBinder.BindStatement(statement, diagnostics));
+                var boundStatement = sectionBinder.BindStatement(statement, diagnostics);
+                if (ContainsUsingVariable(boundStatement))
+                {
+                    diagnostics.Add(ErrorCode.ERR_UsingVarInSwitchCase, statement.Location);
+                }
+                boundStatementsBuilder.Add(boundStatement);
             }
 
             return new BoundSwitchSection(node, sectionBinder.GetDeclaredLocalsForScope(node), boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
         }
+
+        internal static bool ContainsUsingVariable(BoundStatement boundStatement)
+        {
+            if (boundStatement is BoundLocalDeclaration boundLocal)
+            {
+                return boundLocal.LocalSymbol.IsUsing;
+            }
+            else if (boundStatement is BoundMultipleLocalDeclarations boundMultiple && !boundMultiple.LocalDeclarations.IsDefaultOrEmpty)
+            {
+                return boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing;
+            }
+            return false;
+        }
+
 
         private BoundSwitchLabel BindSwitchSectionLabel(
             Binder sectionBinder,
