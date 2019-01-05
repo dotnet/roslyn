@@ -89,7 +89,7 @@ End Class]]></document>
             End Using
         End Function
 
-        Private Function CreateVisualBasicSnippetExpansionNoteTestState(completionImplementation As CompletionImplementation, xElement As XElement, ParamArray snippetShortcuts As String()) As ITestState
+        Private Function CreateVisualBasicSnippetExpansionNoteTestState(completionImplementation As CompletionImplementation, xElement As XElement, ParamArray snippetShortcuts As String()) As TestStateBase
             Dim state = TestStateFactory.CreateVisualBasicTestState(
                 completionImplementation,
                 xElement,
