@@ -316,7 +316,7 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol KeyNotFoundException(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.KeyNotFoundException");
+            return compilation.GetTypeByMetadataName(typeof(System.Collections.Generic.KeyNotFoundException).FullName);
         }
 
         public static INamedTypeSymbol GenericIEqualityComparer(Compilation compilation)
