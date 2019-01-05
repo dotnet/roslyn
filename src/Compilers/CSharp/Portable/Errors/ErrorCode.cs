@@ -1595,6 +1595,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoConvToIDispWrongAsync = 8418,
         ERR_PossibleAsyncIteratorWithoutYield = 8419,
         ERR_PossibleAsyncIteratorWithoutYieldOrAwait = 8420,
+        ERR_StaticLocalFunctionCannotCaptureVariable = 8421,
+        ERR_StaticLocalFunctionCannotCaptureThis = 8422,
 
         #region diagnostics introduced for recursive patterns
         // 8501, // available
@@ -1669,6 +1671,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInInterfaceImplementedByBase = 8644,
         WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList = 8645,
         ERR_DuplicateExplicitImpl = 8646,
+        ERR_UsingVarInSwitchCase = 8647,
+        ERR_GoToForwardJumpOverUsingVar = 8648,
+        ERR_GoToBackwardJumpOverUsingVar = 8649,
 
         ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 

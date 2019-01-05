@@ -182,7 +182,7 @@ class C : System.IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         System.Console.Write(""DisposeAsync1 "");
-        await Task.Delay(10);
+        await Task.Yield();
         System.Console.Write(""DisposeAsync2 "");
     }
 }
@@ -267,7 +267,7 @@ class C : System.IAsyncDisposable
     [System.Obsolete]
     public async System.Threading.Tasks.ValueTask DisposeAsync()
     {
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
     }
 }
 ";
@@ -323,7 +323,7 @@ class C : System.IAsyncDisposable
     public async System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write($""dispose_start "");
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         System.Console.Write($""dispose_end "");
     }
 }
@@ -438,7 +438,7 @@ class C : System.IAsyncDisposable
     public async System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write($""dispose_start "");
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         System.Console.Write($""dispose_end "");
     }
 }
@@ -475,7 +475,7 @@ class C : System.IAsyncDisposable
         bool b = true;
         if (b) throw new System.Exception(""message"");
         System.Console.Write(""SKIPPED"");
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
     }
 }
 ";
@@ -499,7 +499,7 @@ class C
         finally
         {
             System.Console.Write(""before "");
-            await Task.Delay(10);
+            await Task.Yield();
             System.Console.Write(""after"");
         }
         return 1;
@@ -1480,7 +1480,7 @@ class S : System.IAsyncDisposable
     public async System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write($""dispose{_i}_start "");
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         System.Console.Write($""dispose{_i}_end "");
     }
 }

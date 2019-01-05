@@ -170,6 +170,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRangeOperator = MessageBase + 12750,
         IDS_FeatureAsyncStreams = MessageBase + 12751,
         IDS_FeatureRecursivePatterns = MessageBase + 12752,
+        IDS_Disposable = MessageBase + 12753,
+        IDS_FeatureUsingDeclarations = MessageBase + 12754,
+        IDS_FeatureStaticLocalFunctions = MessageBase + 12755,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -246,6 +249,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRangeOperator: // semantic check
                 case MessageID.IDS_FeatureAsyncStreams:
                 case MessageID.IDS_FeatureRecursivePatterns:
+                case MessageID.IDS_FeatureUsingDeclarations:
+                case MessageID.IDS_FeatureStaticLocalFunctions:
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.
