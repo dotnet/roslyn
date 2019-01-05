@@ -5556,7 +5556,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.</source>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
         <target state="needs-review-translation">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' への変換が可能でなければなりません。</target>
         <note />
       </trans-unit>

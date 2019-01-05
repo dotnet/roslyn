@@ -1317,7 +1317,7 @@ public class ClassA
     }
 }";
             var data = Compile(source, 1,
-                // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must have a public void-returning Dispose() instance method.
+                // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var v1 =    new { }   )
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 =    new { }").WithArguments("<empty anonymous type>")
             );
@@ -1354,7 +1354,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
   Initializer: 
     null";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1674: '<empty anonymous type>': type used in a using statement must have a public void-returning Dispose() instance method.
+                // CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (/*<bind>*/var v1 = new { }/*</bind>*/)
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 = new { }").WithArguments("<empty anonymous type>").WithLocation(6, 26)
             };
