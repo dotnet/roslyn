@@ -75,7 +75,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         /// </summary>
         private bool _resharperExtensionInstalledAndEnabled = false;
         private bool _infoBarOpen = false;
-        private bool _isFirstRun = true;
 
         /// <summary>
         /// Chain all update tasks so that task runs serially
@@ -152,7 +151,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             // cancel previous state machine update request
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource = new CancellationTokenSource();
-
             var cancellationToken = _cancellationTokenSource.Token;
 
             // make sure all state machine change work is serialized so that cancellation
@@ -179,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 return;
             }
 
-            if (!_isFirstRun && currentStatus == lastStatus)
+            if (currentStatus == lastStatus)
             {
                 return;
             }
@@ -194,11 +192,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     {
                         // N->E or S->E. If ReSharper was just installed and is enabled, reset NeedsReset.
                         options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
-                    }
-                    else if (currentStatus == ReSharperStatus.Suspended && _isFirstRun)
-                    {
-                        // S->VS closed and restarted. If ReSharper was suspended and the user closed and reopened VS, we want to reset the gold bar.
-                        options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, true);
                     }
 
                     // Else is N->N, N->S, S->N, S->S. N->S can occur if the user suspends ReSharper, then disables
@@ -222,8 +215,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             {
                 ShowGoldBar();
             }
-
-            _isFirstRun = false;
         }
 
         private void ShowGoldBar()
