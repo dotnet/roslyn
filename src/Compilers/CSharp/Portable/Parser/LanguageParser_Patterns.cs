@@ -621,12 +621,8 @@ tryAgain:
         /// </summary>
         private bool IsPossibleSubpatternElement()
         {
-            var tk = this.CurrentToken.Kind;
-            bool isExpression = this.IsPossibleExpression() &&
-                    // IsPossibleExpression returns true when the next token is a binary operator.
-                    // That is useful for error recovery elsewhere, but not here.
-                    !(SyntaxFacts.IsBinaryExpression(tk) || SyntaxFacts.IsAssignmentExpressionOperatorToken(tk));
-            return isExpression || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
+            return this.IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false) ||
+                this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
 
         private PostSkipAction SkipBadPatternListTokens(
