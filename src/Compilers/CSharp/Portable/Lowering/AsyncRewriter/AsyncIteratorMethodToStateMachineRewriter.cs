@@ -11,8 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// Produces a MoveNext() method for an async-iterator method.
-    /// Compared to an async method, this handles rewriting `yield return` and
+    /// Compared to an async method, this handles rewriting `yield return` (with states decreasing from -3) and
     /// `yield break`, and adds special handling for `try` to allow disposal.
+    /// `await` is handled like in async methods (with states 0 and up).
     /// </summary>
     internal sealed class AsyncIteratorMethodToStateMachineRewriter : AsyncMethodToStateMachineRewriter
     {
@@ -26,10 +27,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private LabelSymbol _enclosingFinallyOrExitLabel;
 
         /// <summary>
-        /// We use _exprReturnLabel for normal end of method (ie. no more values).
+        /// We use _exprReturnLabel for normal end of method (ie. no more values) and `yield break;`.
         /// We use _exprReturnLabelTrue for `yield return;`.
         /// </summary>
         private readonly LabelSymbol _exprReturnLabelTrue;
+
+        /// <summary>
+        /// States for `yield return` are decreasing from -3.
+        /// </summary>
+        private int _nextYieldReturnState = StateMachineStates.InitialAsyncIteratorStateMachine;  // -3
 
         internal AsyncIteratorMethodToStateMachineRewriter(MethodSymbol method,
             int methodOrdinal,
@@ -114,14 +120,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateJumpToCurrentFinallyOrExit());
         }
 
+        protected override BoundBinaryOperator ShouldEnterFinallyBlock()
+        {
+            // We should skip the finally block when:
+            // - the state is 0 or greater (we're suspending on an `await`)
+            // - the state is -3, -4 or lower (we're suspending on a `yield return`)
+            // We don't care about state = -2 (method already completed)
+
+            // So we only want to enter the finally when the state is -1
+            return F.IntEqual(F.Local(cachedState), F.Literal(StateMachineStates.NotStartedStateMachine));
+        }
+
         #region Visitors
 
+        /// <summary>
+        /// Lower the body, adding an entry state (-3) at the start,
+        /// so that we can differentiate a async-iterator that was never moved forward with MoveNextAsync()
+        /// from one that is running (-1).
+        /// Then we can guard against some bad usages of DisposeAsync.
+        /// </summary>
         protected override BoundStatement VisitBody(BoundStatement body)
         {
+            // Produce:
+            //  initialStateResumeLabel:
+            //  if (disposeMode) goto _exprReturnLabel;
+            //  this.state = cachedState = -1;
+            //  ... rewritten body
+
+            var initialState = _nextYieldReturnState--;
+            Debug.Assert(initialState == -3);
+            AddState(initialState, out GeneratedLabelSymbol resumeLabel);
+
+            var rewrittenBody = (BoundStatement)Visit(body);
+
             return F.Block(
-                // disposeMode = false;
-                SetDisposeMode(false),
-                (BoundStatement)Visit(body));
+                F.Label(resumeLabel), // initialStateResumeLabel:
+                GenerateJumpToCurrentFinallyOrExit(), // if (disposeMode) goto _exprReturnLabel;
+                GenerateSetBothStates(StateMachineStates.NotStartedStateMachine), // this.state = cachedState = -1;
+                rewrittenBody);
         }
 
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
@@ -138,7 +174,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  _promiseOfValueOrEnd.SetResult(true);
             //  return;
 
-            AddState(out int stateNumber, out GeneratedLabelSymbol resumeLabel);
+            var stateNumber = _nextYieldReturnState--;
+            AddState(stateNumber, out GeneratedLabelSymbol resumeLabel);
 
             var rewrittenExpression = (BoundExpression)Visit(node.Expression);
             var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance();
@@ -200,8 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// to restore execution from a given state, without executing other code to get there).
         ///
         /// From there, we don't want normal code flow:
-        /// - from `yield return`, we'll jump to the relevant `finally` (or method exit)
-        /// - after finishing a `finally`, we'll jump to the next relevant `finally` (or method exit)
+        /// - from `yield return`, we'll jump to the enclosing `finally` (or method exit)
+        /// - after finishing a `finally`, we'll jump to the next enclosing `finally` (or method exit)
         ///
         /// Some `finally` clauses may have already been rewritten and extracted to a plain block (<see cref="AsyncExceptionHandlerRewriter"/>).
         /// In those cases, we saved the finally-entry label in <see cref="BoundTryStatement.FinallyLabelOpt"/>.
