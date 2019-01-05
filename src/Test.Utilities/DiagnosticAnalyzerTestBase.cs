@@ -250,8 +250,13 @@ namespace Test.Utilities
 
         protected void VerifyCSharp(string source, FileAndSource additionalText, params DiagnosticResult[] expected)
         {
+            VerifyCSharp(source, additionalText, compilationOptions: null, parseOptions: null, expected: expected);
+        }
+
+        protected void VerifyCSharp(string source, FileAndSource additionalText, CompilationOptions compilationOptions, ParseOptions parseOptions, params DiagnosticResult[] expected)
+        {
             var additionalFiles = GetAdditionalTextFiles(additionalText.FilePath, additionalText.Source);
-            Verify(source, LanguageNames.CSharp, GetBasicDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, parseOptions: null, expected: expected);
+            Verify(source, LanguageNames.CSharp, GetBasicDiagnosticAnalyzer(), additionalFiles, compilationOptions, parseOptions, expected);
         }
 
         protected void VerifyBasic(string source, params DiagnosticResult[] expected)
@@ -301,8 +306,13 @@ namespace Test.Utilities
 
         protected void VerifyBasic(string source, FileAndSource additionalText, params DiagnosticResult[] expected)
         {
+            VerifyBasic(source, additionalText, compilationOptions: null, parseOptions: null, expected: expected);
+        }
+
+        protected void VerifyBasic(string source, FileAndSource additionalText, CompilationOptions compilationOptions, ParseOptions parseOptions, params DiagnosticResult[] expected)
+        {
             var additionalFiles = GetAdditionalTextFiles(additionalText.FilePath, additionalText.Source);
-            Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, parseOptions: null, expected: expected);
+            Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), additionalFiles, compilationOptions, parseOptions, expected);
         }
 
         protected void Verify(string source, string language, DiagnosticAnalyzer analyzer, IEnumerable<TestAdditionalDocument> additionalFiles, CompilationOptions compilationOptions, ParseOptions parseOptions, params DiagnosticResult[] expected)
@@ -525,6 +535,9 @@ namespace Test.Utilities
                             .Select(x => KeyValuePair.Create(x.Id, ReportDiagnostic.Default))
                             .ToImmutableDictionaryOrEmpty()));
         }
+
+        protected static FileAndSource GetEditorConfigAdditionalFile(string source)
+            => new FileAndSource() { Source = source, FilePath = ".editorconfig" };
     }
 
     // Justification for suppression: We are not going to compare FileAndSource objects for equality.
