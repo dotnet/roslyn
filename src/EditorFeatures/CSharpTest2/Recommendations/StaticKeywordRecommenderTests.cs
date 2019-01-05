@@ -48,9 +48,10 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        [WorkItem(32174, "https://github.com/dotnet/roslyn/issues/32174")]
+        public async Task TestInEmptyStatement()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
         }
 
@@ -278,7 +279,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotBetweenUsings()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"using Goo;
 $$
 using Bar;"));
@@ -342,6 +343,29 @@ using Bar;"));
 @"class C {
     void M() {
         using $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(32174, "https://github.com/dotnet/roslyn/issues/32174")]
+        public async Task TestLocalFunction()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@" $$ void local() { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInCase()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+switch (i)
+{
+    case 0:
+        $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFor()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(@" for (int i = 0; i < 0; $$) "));
         }
     }
 }
