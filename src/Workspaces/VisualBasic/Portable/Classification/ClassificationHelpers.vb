@@ -1,28 +1,21 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
-Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
-    <ExportLanguageService(GetType(IClassificationHelpersService), LanguageNames.VisualBasic), [Shared]>
-    Friend NotInheritable Class ClassificationHelpers
-        Implements IClassificationHelpersService
-
-        Public Shared ReadOnly Property Instance As New ClassificationHelpers
-
+    Friend Module ClassificationHelpers
         ''' <summary>
         ''' Return the classification type associated with this token.
         ''' </summary>
         ''' <param name="token">The token to be classified.</param>
         ''' <returns>The classification type for the token</returns>
         ''' <remarks></remarks>
-        Public Function GetClassification(token As SyntaxToken) As String Implements IClassificationHelpersService.GetClassification
+        Public Function GetClassification(token As SyntaxToken) As String
             If IsControlKeyword(token) Then
                 Return ClassificationTypeNames.ControlKeyword
             ElseIf SyntaxFacts.IsKeywordKind(token.Kind) Then
@@ -59,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End If
         End Function
 
-        Private Shared Function IsControlKeyword(token As SyntaxToken) As Boolean
+        Private Function IsControlKeyword(token As SyntaxToken) As Boolean
             If token.Parent Is Nothing Then
                 Return False
             End If
@@ -82,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         ''' <summary>
         ''' Determine if the kind represents a control keyword
         ''' </summary>
-        Private Shared Function IsControlKeywordKind(kind As SyntaxKind) As Boolean
+        Private Function IsControlKeywordKind(kind As SyntaxKind) As Boolean
             Select Case kind
                 Case _
                 SyntaxKind.CaseKeyword,
@@ -122,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         ''' <summary>
         ''' Determine if the kind represents a control statement
         ''' </summary>
-        Private Shared Function IsControlStatementKind(kind As SyntaxKind) As Boolean
+        Private Function IsControlStatementKind(kind As SyntaxKind) As Boolean
             Select Case kind
                 Case _
                 SyntaxKind.CallStatement,
@@ -173,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Select
         End Function
 
-        Private Shared Function ClassifyPunctuation(token As SyntaxToken) As String
+        Private Function ClassifyPunctuation(token As SyntaxToken) As String
             If AllOperators.Contains(token.Kind) Then
                 ' special cases...
                 Select Case token.Kind
@@ -189,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End If
         End Function
 
-        Private Shared Function ClassifyIdentifierSyntax(identifier As SyntaxToken) As String
+        Private Function ClassifyIdentifierSyntax(identifier As SyntaxToken) As String
             'Note: parent might be Nothing, if we are classifying raw tokens.
             Dim parent = identifier.Parent
 
@@ -230,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Return ClassificationTypeNames.Identifier
         End Function
 
-        Private Shared Function IsNamespaceName(identifierSyntax As IdentifierNameSyntax) As Boolean
+        Private Function IsNamespaceName(identifierSyntax As IdentifierNameSyntax) As Boolean
             Dim parent = identifierSyntax.Parent
 
             While TypeOf parent Is QualifiedNameSyntax
@@ -240,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Return TypeOf parent Is NamespaceStatementSyntax
         End Function
 
-        Public Shared Function IsStaticallyDeclared(identifier As SyntaxToken) As Boolean
+        Public Function IsStaticallyDeclared(identifier As SyntaxToken) As Boolean
             'Note: parent might be Nothing, if we are classifying raw tokens.
             Dim parent = identifier.Parent
 
@@ -265,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Return parent.GetModifiers().Any(SyntaxKind.SharedKeyword)
         End Function
 
-        Private Shared Function IsStringToken(token As SyntaxToken) As Boolean
+        Private Function IsStringToken(token As SyntaxToken) As Boolean
             If token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken, SyntaxKind.InterpolatedStringTextToken) Then
                 Return True
             End If
@@ -274,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                    token.Parent.IsKind(SyntaxKind.InterpolatedStringExpression)
         End Function
 
-        Private Shared Function TryClassifyModifiedIdentifer(node As SyntaxNode, identifier As SyntaxToken, ByRef classification As String) As Boolean
+        Private Function TryClassifyModifiedIdentifer(node As SyntaxNode, identifier As SyntaxToken, ByRef classification As String) As Boolean
             classification = Nothing
 
             If TypeOf node IsNot ModifiedIdentifierSyntax OrElse DirectCast(node, ModifiedIdentifierSyntax).Identifier <> identifier Then
@@ -305,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Return False
         End Function
 
-        Private Shared Function ClassifyTypeDeclarationIdentifier(identifier As SyntaxToken) As String
+        Private Function ClassifyTypeDeclarationIdentifier(identifier As SyntaxToken) As String
             Select Case identifier.Parent.Kind
                 Case SyntaxKind.ClassStatement
                     Return ClassificationTypeNames.ClassName
@@ -320,15 +313,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Select
         End Function
 
-        Friend Shared Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Friend Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
             Dim text2 = text.ToString(textSpan)
             Dim tokens = SyntaxFactory.ParseTokens(text2, initialTokenPosition:=textSpan.Start)
             Worker.CollectClassifiedSpans(tokens, textSpan, result, cancellationToken)
         End Sub
 
-        Friend Shared Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan
+        Friend Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan
             ' TODO: Do we need to do the same work here that we do in C#?
             Return classifiedSpan
         End Function
-    End Class
+    End Module
 End Namespace

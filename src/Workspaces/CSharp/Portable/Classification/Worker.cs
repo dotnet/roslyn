@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             var span = token.Span;
             if (ShouldAddSpan(span))
             {
-                var type = ClassificationHelpers.Instance.GetClassification(token);
+                var type = ClassificationHelpers.GetClassification(token);
 
                 if (type != null)
                 {

@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         Friend Sub ClassifyToken(token As SyntaxToken, Optional type As String = Nothing)
             Dim span = token.Span
             If span.Length <> 0 AndAlso _textSpan.OverlapsWith(span) Then
-                type = If(type, ClassificationHelpers.Instance.GetClassification(token))
+                type = If(type, ClassificationHelpers.GetClassification(token))
 
                 If type IsNot Nothing Then
                     AddClassification(token.Span, type)

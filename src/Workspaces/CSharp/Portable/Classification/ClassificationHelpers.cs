@@ -1,21 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
-    [ExportLanguageService(typeof(IClassificationHelpersService), LanguageNames.CSharp), Shared]
-    internal sealed class ClassificationHelpers : IClassificationHelpersService
+    internal static class ClassificationHelpers
     {
-        public static readonly ClassificationHelpers Instance = new ClassificationHelpers();
-
         private const string FromKeyword = "from";
         private const string ValueKeyword = "value";
         private const string VarKeyword = "var";
@@ -28,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         /// </summary>
         /// <param name="token">The token.</param>
         /// <returns>The correct syntactic classification for the token.</returns>
-        public string GetClassification(SyntaxToken token)
+        public static string GetClassification(SyntaxToken token)
         {
             if (IsControlKeyword(token))
             {
