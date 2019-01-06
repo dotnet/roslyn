@@ -216,7 +216,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Are we in a context where un-annotated types should be interpreted as non-null?
         /// </summary>
-        internal Symbol NonNullTypesContext => ContainingMember().OriginalDefinition;
+        internal bool IsNullableEnabled(SyntaxTree syntaxTree, int position)
+        {
+            bool? fromTree = ((CSharpSyntaxTree)syntaxTree).GetNullableDirectiveState(position);
+
+            if (fromTree != null)
+            {
+                return fromTree.GetValueOrDefault();
+            }
+
+            return IsNullableGloballyEnabled();
+        }
+
+        internal bool IsNullableEnabled(SyntaxToken token)
+        {
+            return IsNullableEnabled(token.SyntaxTree, token.SpanStart);
+        }
+
+        internal virtual bool IsNullableGloballyEnabled()
+        {
+            return Next.IsNullableGloballyEnabled();
+        }
 
         /// <summary>
         /// Is the contained code within a member method body?
@@ -324,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual Imports GetImports(ConsList<Symbol> basesBeingResolved)
+        internal virtual Imports GetImports(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _next.GetImports(basesBeingResolved);
         }
@@ -626,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             if (this.Flags.Includes(BinderFlags.IgnoreAccessibility))
             {
@@ -687,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundBlock(statement.Syntax, locals, ImmutableArray.Create(statement))
-                { WasCompilerGenerated = true };
+            { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -717,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (Binder scope = this; scope != null; scope = scope.Next)
                 {
-                    var(description, snippet, locals) = Print(scope);
+                    var (description, snippet, locals) = Print(scope);
                     var sub = new List<TreeDumperNode>();
                     if (!locals.IsEmpty())
                     {

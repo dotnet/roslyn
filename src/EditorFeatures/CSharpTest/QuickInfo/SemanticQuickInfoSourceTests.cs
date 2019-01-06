@@ -6276,5 +6276,22 @@ class X
 }",
                 Documentation("Summary for event Goo"));
         }
+
+        [WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task BuiltInOperatorWithUserDefinedEquivalent()
+        {
+            await TestAsync(
+@"
+class X
+{
+    void N(string a, string b)
+    {
+        var v = a $$== b;
+    }
+}",
+                MainDescription("bool string.operator ==(string a, string b)"),
+                SymbolGlyph(Glyph.Operator));
+        }
     }
 }

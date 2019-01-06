@@ -2939,6 +2939,30 @@ End Class")
                 {"a.vb", "b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
                 parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
 
+            parsedArgs = DefaultParse({"/embed:a.vb,b.vb", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a.vb", "b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:""a,b.vb""", "/debug:portable", "a,b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a,b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:\""a,b.vb\""", "/debug:portable", "a,b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a,b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
+            parsedArgs = DefaultParse({"/embed:\""""a.vb,b.vb""\""", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            AssertEx.Equal(
+                {"a.vb", "b.vb"}.Select(Function(f) Path.Combine(_baseDirectory, f)),
+                parsedArgs.EmbeddedFiles.Select(Function(f) f.Path))
+
             parsedArgs = DefaultParse({"/embed:a.txt", "/embed", "/debug:portable", "a.vb", "b.vb", "c.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertEx.Equal(
@@ -3192,6 +3216,68 @@ print Goodbye, World"
         Public Sub NothingBaseDirectoryNotAddedToKeyFileSearchPaths()
             Dim args As VisualBasicCommandLineArguments = VisualBasicCommandLineParser.Default.Parse(New String() {}, Nothing, RuntimeEnvironment.GetRuntimeDirectory())
             AssertEx.Equal(ImmutableArray.Create(Of String)(), args.KeyFileSearchPaths)
+        End Sub
+
+        <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
+        Public Sub SdkPathArg()
+            Dim parentDir = Temp.CreateDirectory()
+
+            Dim sdkDir = parentDir.CreateDirectory("sdk")
+            Dim sdkPath = sdkDir.Path
+
+            Dim parser = VisualBasicCommandLineParser.Default.Parse({$"-sdkPath:{sdkPath}"}, parentDir.Path, Nothing)
+            AssertEx.Equal(ImmutableArray.Create(sdkPath), parser.ReferencePaths)
+        End Sub
+
+        <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
+        Public Sub SdkPathNoArg()
+            Dim parentDir = Temp.CreateDirectory()
+            Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", "-sdkPath", $"-out:{parentDir.Path}"}, parentDir.Path, Nothing)
+            parser.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired, arguments:={"sdkpath", ":<path>"}).WithLocation(1, 1),
+                Diagnostic(ERRID.WRN_CannotFindStandardLibrary1).WithArguments("System.dll").WithLocation(1, 1),
+                Diagnostic(ERRID.ERR_LibNotFound).WithArguments("Microsoft.VisualBasic.dll").WithLocation(1, 1))
+        End Sub
+
+        <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
+        Public Sub SdkPathFollowedByNoSdkPath()
+            Dim parentDir = Temp.CreateDirectory()
+            Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", $"-out:{parentDir.Path}", "-sdkPath:path/to/sdk", "/noSdkPath"}, parentDir.Path, Nothing)
+            AssertEx.Equal(ImmutableArray(Of String).Empty, parser.ReferencePaths)
+        End Sub
+
+        <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
+        Public Sub NoSdkPathFollowedBySdkPath()
+            Dim parentDir = Temp.CreateDirectory()
+            Dim sdkDir = parentDir.CreateDirectory("sdk")
+            Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", $"-out:{parentDir.Path}", "/noSdkPath", $"-sdkPath:{sdkDir.Path}"}, parentDir.Path, Nothing)
+            AssertEx.Equal(ImmutableArray.Create(sdkDir.Path), parser.ReferencePaths)
+        End Sub
+
+        <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
+        Public Sub NoSdkPathReferenceSystemDll()
+            Dim source = "
+Module M
+End Module
+"
+            Dim dir = Temp.CreateDirectory()
+
+            Dim file = dir.CreateFile("a.vb")
+            file.WriteAllText(source)
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/preferreduilang:en", "/nosdkpath", "/t:library", "a.vb"})
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Dim output = outWriter.ToString().Trim()
+            Assert.Equal(1, exitCode)
+            Assert.Contains("vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'", output)
+
+            CleanupAllGeneratedFiles(file.Path)
         End Sub
 
         <CompilerTrait(CompilerFeature.Determinism)>
@@ -7227,6 +7313,22 @@ C:\*.vb(100) : error BC30451: 'Goo' is not declared. It may be inaccessible due 
             Assert.Equal(Path.Combine(_baseDirectory, "app.manifest"), args.AdditionalFiles(1).Path)
 
             args = DefaultParse({"/additionalfile:web.config,app.manifest", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(2, args.AdditionalFiles.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalFiles(0).Path)
+            Assert.Equal(Path.Combine(_baseDirectory, "app.manifest"), args.AdditionalFiles(1).Path)
+
+            args = DefaultParse({"/additionalfile:""web.config,app.manifest""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(1, args.AdditionalFiles.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, "web.config,app.manifest"), args.AdditionalFiles(0).Path)
+
+            args = DefaultParse({"/additionalfile:\""web.config,app.manifest\""", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.Equal(1, args.AdditionalFiles.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, "web.config,app.manifest"), args.AdditionalFiles(0).Path)
+
+            args = DefaultParse({"/additionalfile:\""""web.config,app.manifest""\""", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(2, args.AdditionalFiles.Length)
             Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalFiles(0).Path)

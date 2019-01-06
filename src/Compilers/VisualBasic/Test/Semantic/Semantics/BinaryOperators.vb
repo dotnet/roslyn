@@ -850,9 +850,9 @@ Expected: 0.
 
             compilation.VerifyOperationTree(node.Declarators.Last.Initializer.Value, expectedOperationTree:=
             <![CDATA[
-IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"Expected:  ...  line & "."')
+IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary, Type: System.String) (Syntax: '"Expected:  ...  line & "."')
   Left: 
-    IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"Expected: " & line')
+    IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary, Type: System.String) (Syntax: '"Expected: " & line')
       Left: 
         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Expected: ") (Syntax: '"Expected: "')
       Right: 
@@ -868,7 +868,7 @@ IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.Binary
 ]]>.Value)
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         Public Sub IntrinsicSymbols()
             Dim operators() As BinaryOperatorKind =
             {

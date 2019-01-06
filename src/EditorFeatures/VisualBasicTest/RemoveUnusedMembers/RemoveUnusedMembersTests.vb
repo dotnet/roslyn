@@ -649,6 +649,29 @@ End Class", parameters:=Nothing,
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")>
+        Public Async Function MethodInNameOf() As Task
+            Await TestDiagnosticsAsync(
+"Class C
+    Private Sub [|M|]()
+    End Sub
+    Private _goo2 As String = NameOf(M)
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")>
+        Public Async Function PropertyInNameOf() As Task
+            Await TestDiagnosticsAsync(
+"Class C
+    Private ReadOnly Property [|P|] As Integer
+    Private _goo2 As String = NameOf(P)
+End Class", parameters:=Nothing,
+    Diagnostic("IDE0052"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldInDocComment() As Task
             Await TestDiagnosticsAsync(
 "
@@ -928,6 +951,71 @@ End Class")
     End Sub
     Public Sub M2(x As System.Action)
     End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(30895, "https://github.com/dotnet/roslyn/issues/30895")>
+        Public Async Function MethodWithHandlesClause() As Task
+            Await TestDiagnosticMissingAsync(
+"Public Interface I
+    Event M()
+End Interface
+
+Public Class C
+    Private WithEvents _field1 As I
+
+    Private Sub [|M|]() Handles _field1.M
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(30895, "https://github.com/dotnet/roslyn/issues/30895")>
+        Public Async Function FieldReferencedInHandlesClause() As Task
+            Await TestDiagnosticMissingAsync(
+"Public Interface I
+    Event M()
+End Interface
+
+Public Class C
+    Private WithEvents [|_field1|] As I
+
+    Private Sub M() Handles _field1.M
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(30895, "https://github.com/dotnet/roslyn/issues/30895")>
+        Public Async Function FieldReferencedInHandlesClause_02() As Task
+            Await TestDiagnosticMissingAsync(
+"Public Interface I
+    Event M()
+End Interface
+
+Public Class C
+    Private WithEvents _field1 As I
+    Private WithEvents [|_field2|] As I
+
+    Private Sub M() Handles _field1.M, _field2.M
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <WorkItem(30895, "https://github.com/dotnet/roslyn/issues/30895")>
+        Public Async Function EventReferencedInHandlesClause() As Task
+            Await TestDiagnosticMissingAsync(
+"Public Class B
+    Private Event [|M|]()
+
+    Public Class C
+        Private WithEvents _field1 As B
+
+        Private Sub M() Handles _field1.M
+        End Sub
+    End Class
 End Class")
         End Function
 
@@ -1449,6 +1537,30 @@ End Class
 End Module",
 "Module C
 End Module")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function RedimStatement_NoPreserve() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Public Class C
+    Private [|intArray|](10, 10, 10) As Integer
+
+    Public Sub M()
+        ReDim intArray(10, 10, 20)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        Public Async Function RedimStatement_Preserve() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Public Class C
+    Private [|intArray|](10, 10, 10) As Integer
+
+    Public Sub M()
+        ReDim Preserve intArray(10, 10, 20)
+    End Sub
+End Class")
         End Function
     End Class
 End Namespace

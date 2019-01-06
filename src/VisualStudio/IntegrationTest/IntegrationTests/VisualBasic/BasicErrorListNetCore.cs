@@ -7,6 +7,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
+    [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicErrorListNetCore : BasicErrorListCommon
     {
         public BasicErrorListNetCore(VisualStudioInstanceFactory instanceFactory)
@@ -14,16 +15,16 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WorkItem(1825 , "https://github.com/dotnet/roslyn-project-system/issues/1825")]
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorList()
         {
             base.ErrorList();
         }
 
-        [WorkItem(1825 , "https://github.com/dotnet/roslyn-project-system/issues/1825")]
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorsDuringMethodBodyEditing()
         {

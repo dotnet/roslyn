@@ -15,9 +15,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
     internal static class IVsEditorAdaptersFactoryServiceExtensions
     {
         public static IOleUndoManager TryGetUndoManager(
-            this IVsEditorAdaptersFactoryService editorAdaptersFactoryService, 
+            this IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             Microsoft.CodeAnalysis.Workspace workspace,
-            DocumentId contextDocumentId, 
+            DocumentId contextDocumentId,
             CancellationToken cancellationToken)
         {
             // https://github.com/dotnet/roslyn/issues/17898

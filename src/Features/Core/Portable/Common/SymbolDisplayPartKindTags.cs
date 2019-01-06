@@ -64,6 +64,12 @@ namespace Microsoft.CodeAnalysis
                     return TextTags.TypeParameter;
                 case SymbolDisplayPartKind.RangeVariableName:
                     return TextTags.RangeVariable;
+                case SymbolDisplayPartKind.EnumMemberName:
+                    return TextTags.EnumMember;
+                case SymbolDisplayPartKind.ExtensionMethodName:
+                    return TextTags.ExtensionMethod;
+                case SymbolDisplayPartKind.ConstantName:
+                    return TextTags.Constant;
                 default:
                     return string.Empty;
             }

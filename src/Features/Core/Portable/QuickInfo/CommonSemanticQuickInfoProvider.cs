@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             textBuilder.AddSpace();
             textBuilder.Add(
                 new TaggedText(
-                    syntaxFacts.IsKeyword(operatorToken) ? TextTags.Keyword : TextTags.Operator,
+                    syntaxFacts.IsReservedKeyword(operatorToken) ? TextTags.Keyword : TextTags.Operator,
                     operatorToken.Text));
             textBuilder.AddSpace();
             textBuilder.AddRange(FormatValue(rightConstant.Value));

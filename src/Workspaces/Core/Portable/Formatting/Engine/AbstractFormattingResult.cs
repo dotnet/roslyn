@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
@@ -13,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         protected readonly TreeData TreeInfo;
         protected readonly TokenStream TokenStream;
-        protected readonly TaskExecutor TaskExecutor;
 
         private readonly CancellableLazy<IList<TextChange>> _lazyChanges;
         private readonly CancellableLazy<SyntaxNode> _lazyNode;
@@ -26,13 +26,11 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal AbstractFormattingResult(
             TreeData treeInfo,
             TokenStream tokenStream,
-            TextSpan formattedSpan,
-            TaskExecutor taskExecutor)
+            TextSpan formattedSpan)
         {
             this.TreeInfo = treeInfo;
             this.TokenStream = tokenStream;
             this.FormattedSpan = formattedSpan;
-            this.TaskExecutor = taskExecutor;
 
             _lazyChanges = new CancellableLazy<IList<TextChange>>(CreateTextChanges);
             _lazyNode = new CancellableLazy<SyntaxNode>(CreateFormattedRoot);
@@ -61,12 +59,15 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 var data = this.TokenStream.GetTriviaDataWithTokenPair(cancellationToken);
 
-                var filtered = this.TaskExecutor
-                                 .Filter(data, d => d.Item2.ContainsChanges, d => d, cancellationToken);
-
                 var result = new List<TextChange>();
-                foreach (var f in filtered)
+                foreach (var f in data)
                 {
+                    if (!f.Item2.ContainsChanges)
+                    {
+                        continue;
+                    }
+
+                    cancellationToken.ThrowIfCancellationRequested();
                     AddTextChanges(result, f.Item1.Item1, f.Item1.Item2, f.Item2);
                 }
 
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal IEnumerable<ValueTuple<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData>> GetChanges(CancellationToken cancellationToken)
         {
-            return this.TaskExecutor.Filter(this.TokenStream.GetTriviaDataWithTokenPair(cancellationToken), d => d.Item2.ContainsChanges, d => d, cancellationToken);
+            return TokenStream.GetTriviaDataWithTokenPair(cancellationToken).Where(d => d.Item2.ContainsChanges);
         }
 
         #endregion

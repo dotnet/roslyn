@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             where TDeclarationSyntax : SyntaxNode
         {
             var result = TryGetDesiredIndexIfGroupedWorker(
-                declarationList, declaration, availableIndices, 
+                declarationList, declaration, availableIndices,
                 comparerWithoutNameCheck, comparerWithNameCheck);
             if (result == null)
             {

@@ -371,6 +371,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                         async _ =>
                         {
                             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+                            cancellationToken.ThrowIfCancellationRequested();
+
                             ProcessBatchedChangesOnForeground(cancellationToken);
                         },
                         cancellationToken,
@@ -414,6 +416,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 async () =>
                 {
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     ProcessBatchedChangesOnForeground(cancellationToken);
                 },
                 cancellationToken,
