@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim wellKnown = ObjectDisplay.GetWellKnownCharacterName(c)
             If wellKnown IsNot Nothing Then
-                parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.FieldName, Nothing, wellKnown))
+                parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.ConstantName, Nothing, wellKnown))
                 Return
             End If
 

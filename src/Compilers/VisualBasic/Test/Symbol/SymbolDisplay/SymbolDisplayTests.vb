@@ -2941,11 +2941,11 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.ConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.ConstantName,
                 SymbolDisplayPartKind.Punctuation})
         End Sub
 
@@ -3006,7 +3006,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.ConstantName,
                 SymbolDisplayPartKind.Punctuation
                 })
         End Sub
@@ -4908,12 +4908,12 @@ class Outer
             Verify(
                 SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(8), decimalOptions),
                 "vbBack",
-                SymbolDisplayPartKind.FieldName)
+                SymbolDisplayPartKind.ConstantName)
 
             Verify(
                 SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(8), hexadecimalOptions),
                 "vbBack",
-                SymbolDisplayPartKind.FieldName)
+                SymbolDisplayPartKind.ConstantName)
 
             Verify(
                 SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(8), noQuotesDecimalOptions),
@@ -4973,11 +4973,11 @@ class Outer
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.FieldName, ' vbNullChar
+                SymbolDisplayPartKind.ConstantName, ' vbNullChar
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.FieldName) ' vbCrLf
+                SymbolDisplayPartKind.ConstantName) ' vbCrLf
 
             Verify(
             SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE) & "a" & ChrW(0) & vbCrLf, hexadecimalNumbersOptions),
@@ -4993,11 +4993,11 @@ class Outer
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.FieldName, ' vbNullChar
+                SymbolDisplayPartKind.ConstantName, ' vbNullChar
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.FieldName) ' vbCrLf
+                SymbolDisplayPartKind.ConstantName) ' vbCrLf
 
             Verify(
                 SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE) & "a" & ChrW(0) & vbCrLf, hexadecimalCharactersOptions),
@@ -5013,11 +5013,11 @@ class Outer
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.FieldName, ' vbNullChar
+                SymbolDisplayPartKind.ConstantName, ' vbNullChar
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.FieldName) ' vbCrLf
+                SymbolDisplayPartKind.ConstantName) ' vbCrLf
 
             Verify(
                 SymbolDisplay.FormatPrimitiveToDisplayParts(ChrW(&HFFFE) & "a" & ChrW(0) & vbCrLf, noQuotesDecimalOptions),

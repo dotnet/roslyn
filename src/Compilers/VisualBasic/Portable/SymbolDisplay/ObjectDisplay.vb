@@ -333,8 +333,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             Return (SymbolDisplayPartKind.StringLiteral << 16) Or AscW(c)
         End Function
 
-        Private Function FieldName(c As Char) As Integer
-            Return (SymbolDisplayPartKind.FieldName << 16) Or AscW(c)
+        Private Function ConstantName(c As Char) As Integer
+            Return (SymbolDisplayPartKind.ConstantName << 16) Or AscW(c)
         End Function
 
         Private Function MethodName(c As Char) As Integer
@@ -424,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
                         If wellKnown IsNot Nothing Then
                             For Each e In wellKnown
-                                Yield FieldName(e)
+                                Yield ConstantName(e)
                             Next
                         Else
                             Yield MethodName("C"c)
