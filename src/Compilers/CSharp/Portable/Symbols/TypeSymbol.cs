@@ -41,8 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // all directly implemented interfaces, their bases and all interfaces to the bases of the type recursively
             internal ImmutableArray<NamedTypeSymbol> allInterfaces;
 
-            // same as allInterfaces, but not sorted and does not include interfaces implemented by base types.
-            internal ImmutableHashSet<NamedTypeSymbol> interfacesAndTheirBaseInterfaces;
+            /// <summary>
+            /// <see cref="TypeSymbol.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics"/>
+            /// </summary>
+            internal MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> interfacesAndTheirBaseInterfaces;
+
+            internal readonly static MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> EmptyInterfacesAndTheirBaseInterfaces =
+                                                new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(0, EqualsCLRSignatureComparer);
 
             // Key is implemented member (method, property, or event), value is implementing member (from the 
             // perspective of this type).  Don't allocate until someone needs it.
@@ -64,8 +69,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // key = interface method/property/event, value = explicitly implementing method/property/event declared on this type
-            internal Dictionary<Symbol, Symbol> explicitInterfaceImplementationMap;
+            /// <summary>
+            /// key = interface method/property/event compared using <see cref="ExplicitInterfaceImplementationTargetMemberEqualityComparer"/>,
+            /// value = explicitly implementing methods/properties/events declared on this type (normally a single value, multiple in case of
+            /// an error).
+            /// </summary>
+            internal MultiDictionary<Symbol, Symbol> explicitInterfaceImplementationMap;
 
             internal bool IsDefaultValue()
             {
@@ -120,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer =
                                                                   new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference));
 
+        internal static readonly EqualityComparer<TypeSymbol> EqualsCLRSignatureComparer = new TypeSymbolComparer(TypeCompareKind.CLRSignatureCompareOptions);
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in
@@ -197,9 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// list. This is not quite the same as "all interfaces of which this type is a proper
         /// subtype" because it does not take into account variance: AllInterfaces for
         /// IEnumerable&lt;string&gt; will not include IEnumerable&lt;object&gt;
-        ///
-        /// Note: When interfaces specified on the same inheritance level differ by tuple names only,
-        /// only the last one will be listed here.
         /// </summary>
         internal ImmutableArray<NamedTypeSymbol> AllInterfacesNoUseSiteDiagnostics
         {
@@ -357,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected virtual ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
         {
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var visited = new HashSet<NamedTypeSymbol>(EqualsIgnoringTupleNamesAndNullability);
+            var visited = new HashSet<NamedTypeSymbol>();
 
             for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
             {
@@ -389,21 +396,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Gets the set of interfaces that this type directly implements, plus the base interfaces
-        /// of all such types.
+        /// of all such types. Keys are compared using <see cref="EqualsCLRSignatureComparer"/>,
+        /// values are distinct interfaces corresponding to the key, according to <see cref="TypeCompareKind.ConsiderEverything"/> rules.
         /// </summary>
         /// <remarks>
         /// CONSIDER: it probably isn't truly necessary to cache this.  If space gets tight, consider
         /// alternative approaches (recompute every time, cache on the side, only store on some types,
         /// etc).
         /// </remarks>
-        internal ImmutableHashSet<NamedTypeSymbol> InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics
+        internal MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics
         {
             get
             {
                 var info = this.GetInterfaceInfo();
                 if (info == s_noInterfaces)
                 {
-                    return ImmutableHashSet.Create<NamedTypeSymbol>();
+                    Debug.Assert(InterfaceInfo.EmptyInterfacesAndTheirBaseInterfaces.IsEmpty);
+                    return InterfaceInfo.EmptyInterfacesAndTheirBaseInterfaces;
                 }
 
                 if (info.interfacesAndTheirBaseInterfaces == null)
@@ -418,20 +427,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Note: Unlike MakeAllInterfaces, this doesn't need to be virtual. It depends on
         // AllInterfaces for its implementation, so it will pick up all changes to MakeAllInterfaces
         // indirectly.
-        private static ImmutableHashSet<NamedTypeSymbol> MakeInterfacesAndTheirBaseInterfaces(ImmutableArray<NamedTypeSymbol> declaredInterfaces)
+        private static MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> MakeInterfacesAndTheirBaseInterfaces(ImmutableArray<NamedTypeSymbol> declaredInterfaces)
         {
-            var resultBuilder = new HashSet<NamedTypeSymbol>();
+            var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(declaredInterfaces.Length, EqualsCLRSignatureComparer);
             foreach (var @interface in declaredInterfaces)
             {
-                if (!resultBuilder.Contains(@interface))
+                if (resultBuilder.Add(@interface, @interface))
                 {
-                    resultBuilder.Add(@interface);
-                    resultBuilder.UnionWith(@interface.AllInterfacesNoUseSiteDiagnostics);
+                    foreach (var baseInterface in @interface.AllInterfacesNoUseSiteDiagnostics)
+                    {
+                        resultBuilder.Add(baseInterface, baseInterface);
+                    }
                 }
             }
 
-            return resultBuilder.Count == 0 ?
-                ImmutableHashSet.Create<NamedTypeSymbol>() : ImmutableHashSet.CreateRange<NamedTypeSymbol>(resultBuilder);
+            return resultBuilder;
         }
 
         /// <summary>
@@ -633,7 +643,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result);
 
-        internal abstract TypeSymbol SetUnknownNullabilityForReferenceTypes();
+        internal abstract TypeSymbol SetNullabilityForReferenceTypes(Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> transform);
+
+        internal TypeSymbol SetUnknownNullabilityForReferenceTypes()
+        {
+            return SetNullabilityForReferenceTypes(s_setUnknownNullability);
+        }
+
+        private readonly static Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> s_setUnknownNullability =
+            (type) => type.SetUnknownNullabilityForReferenceTypes();
+
+        internal TypeSymbol SetSpeakableNullabilityForReferenceTypes()
+        {
+            return SetNullabilityForReferenceTypes(s_setSpeakableNullability);
+        }
+
+        private readonly static Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> s_setSpeakableNullability =
+           (type) => type.SetSpeakableNullabilityForReferenceTypes();
 
         /// <summary>
         /// Merges nested nullability from an otherwise identical type.
@@ -823,20 +849,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // even if it doesn't participate in interface mapping according to the C# rules.
 
                 // pass 1: check for explicit impls (can't assume name matches)
-                Symbol currTypeExplicitImpl = currType.GetExplicitImplementationForInterfaceMember(interfaceMember);
-                if ((object)currTypeExplicitImpl != null)
+                MultiDictionary<Symbol, Symbol>.ValueSet explicitImpl = currType.GetExplicitImplementationForInterfaceMember(interfaceMember);
+                if (explicitImpl.Count == 1)
                 {
-                    return currTypeExplicitImpl;
+                    return explicitImpl.Single();
+                }
+                else if (explicitImpl.Count > 1)
+                {
+                    diagnostics.Add(ErrorCode.ERR_DuplicateExplicitImpl, implementingType.Locations[0], interfaceMember);
+                    return null;
                 }
 
                 // WORKAROUND: see comment on method.
-                if (IsExplicitlyImplementedViaAccessors(interfaceMember, currType, out currTypeExplicitImpl))
+                if (IsExplicitlyImplementedViaAccessors(interfaceMember, currType, out Symbol currTypeExplicitImpl))
                 {
                     // NOTE: may be null.
                     return currTypeExplicitImpl;
                 }
 
-                seenTypeDeclaringInterface = seenTypeDeclaringInterface || currType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(interfaceType);
+                seenTypeDeclaringInterface = seenTypeDeclaringInterface || currType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey(interfaceType);
 
                 // We want the implementation from the most derived type at or above the first one to
                 // include the interface (or a subinterface) in its interface list
@@ -968,9 +999,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // NB: uses a map that was built (and saved) when we checked for an explicit
                 // implementation of the interface member.
-                Symbol implementation = currType.GetExplicitImplementationForInterfaceMember(interfaceAccessor);
-                if ((object)implementation != null)
+                MultiDictionary<Symbol, Symbol>.ValueSet set = currType.GetExplicitImplementationForInterfaceMember(interfaceAccessor);
+                if (set.Count == 1)
                 {
+                    Symbol implementation = set.Single();
                     associated = implementation.Kind == SymbolKind.Method
                         ? ((MethodSymbol)implementation).AssociatedSymbol
                         : null;
@@ -1428,12 +1460,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private Symbol GetExplicitImplementationForInterfaceMember(Symbol interfaceMember)
+        private MultiDictionary<Symbol, Symbol>.ValueSet GetExplicitImplementationForInterfaceMember(Symbol interfaceMember)
         {
             var info = this.GetInterfaceInfo();
             if (info == s_noInterfaces)
             {
-                return null;
+                return default;
             }
 
             if (info.explicitInterfaceImplementationMap == null)
@@ -1441,32 +1473,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Interlocked.CompareExchange(ref info.explicitInterfaceImplementationMap, MakeExplicitInterfaceImplementationMap(), null);
             }
 
-            Symbol implementingMethod;
-            info.explicitInterfaceImplementationMap.TryGetValue(interfaceMember, out implementingMethod); //no exception - just return null
-            return implementingMethod;
+            return info.explicitInterfaceImplementationMap[interfaceMember];
         }
 
-        private Dictionary<Symbol, Symbol> MakeExplicitInterfaceImplementationMap()
+        private MultiDictionary<Symbol, Symbol> MakeExplicitInterfaceImplementationMap()
         {
-            var map = new Dictionary<Symbol, Symbol>();
+            var map = new MultiDictionary<Symbol, Symbol>(ExplicitInterfaceImplementationTargetMemberEqualityComparer.Instance);
             foreach (var member in this.GetMembersUnordered())
             {
                 foreach (var interfaceMember in member.GetExplicitInterfaceImplementations())
                 {
-                    if (!map.ContainsKey(interfaceMember))
-                    {
-                        map[interfaceMember] = member;
-                    }
-                    else
-                    {
-                        // Source: just choose the first one - the error will be reported on the duplicate declaration
-                        // PE: actually determined at runtime - just choose the first one
-
-                        // CONSIDER: we could map to an error symbol or to a SymbolAndDiagnostics object
-                    }
+                    Debug.Assert(interfaceMember.Kind != SymbolKind.Method || (object)interfaceMember == ((MethodSymbol)interfaceMember).ConstructedFrom);
+                    map.Add(interfaceMember, member);
                 }
             }
             return map;
+        }
+
+        protected class ExplicitInterfaceImplementationTargetMemberEqualityComparer : IEqualityComparer<Symbol>
+        {
+            public static readonly ExplicitInterfaceImplementationTargetMemberEqualityComparer Instance = new ExplicitInterfaceImplementationTargetMemberEqualityComparer();
+
+            private ExplicitInterfaceImplementationTargetMemberEqualityComparer() { }
+            public bool Equals(Symbol x, Symbol y)
+            {
+                return x.OriginalDefinition == y.OriginalDefinition &&
+                       x.ContainingType.Equals(y.ContainingType, TypeCompareKind.CLRSignatureCompareOptions);
+            }
+
+            public int GetHashCode(Symbol obj)
+            {
+                return obj.OriginalDefinition.GetHashCode();
+            }
         }
 
         #endregion Interface member checks

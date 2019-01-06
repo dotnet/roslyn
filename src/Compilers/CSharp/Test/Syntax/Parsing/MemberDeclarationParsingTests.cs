@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
         public void ParsePrivate()
         {
-            UsingDeclaration("private",
+            UsingDeclaration("private", options: null,
                 // (1,8): error CS1519: Invalid token '' in class, struct, or interface member declaration
                 // private
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(1, 8)

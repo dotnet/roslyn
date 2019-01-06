@@ -70,8 +70,68 @@
         <NGenPriorityString Condition="'%(CompilerArtifact.NGenPriority)' != ''"> vs.file.ngenPriority=%(CompilerArtifact.NGenPriority)</NGenPriorityString>
         <NGenApplicationString Condition="'%(CompilerArtifact.NGenApplication)' != ''"> vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\%(CompilerArtifact.NGenApplication)"</NGenApplicationString>
       </_File>
-      
+
       <_FileEntries Include='file source="%(_File.Path)"%(_File.NGenArchitectureString)%(_File.NGenPriorityString)%(_File.NGenApplicationString)'/>
+
+      <!-- Satellite assemblies -->
+      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
+      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
+      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
+      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Scripting\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
+      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
+      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\**\*.resources.dll"/>
+
+      <_CsSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'cs\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_CsSatellite>
+
+      <_DeSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'de\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_DeSatellite>
+
+      <_EsSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'es\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_EsSatellite>
+
+      <_FrSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'fr\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_FrSatellite>
+
+      <_ItSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'it\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_ItSatellite>
+
+      <_JaSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'ja\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_JaSatellite>
+
+      <_KoSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'ko\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_KoSatellite>
+
+      <_PlSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'pl\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_PlSatellite>
+
+      <_PtBrSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'pt-BR\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_PtBrSatellite>
+
+      <_RuSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'ru\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_RuSatellite>
+
+      <_TrSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'tr\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_TrSatellite>
+
+      <_Zh-HansSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'zh-Hans\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_Zh-HansSatellite>
+
+      <_Zh-HantSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'zh-Hant\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_Zh-HantSatellite>
     </ItemGroup>
 
     <PropertyGroup>
@@ -92,6 +152,45 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn
 
 folder InstallDir:\Common7\Tools\vsdevcmd\ext
   file source="$(MSBuildProjectDirectory)\roslyn.bat"
+
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn\cs
+  @(_CsSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn\de
+  @(_DeSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn\es
+  @(_EsSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn\fr
+  @(_FrSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn\it
+  @(_ItSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn\ja
+  @(_JaSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn\ko
+  @(_KoSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn\pl
+  @(_PlSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn\pt-BR
+  @(_PlSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn\ru
+  @(_RuSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn\tr
+  @(_TrSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn\zh-Hans
+  @(_zh-HansSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn\zh-Hant
+  @(_zh-HantSatellite->'%(_FileEntries)', '%0d%0a  ')
 ]]>
       </_Lines>
     </PropertyGroup>
@@ -103,6 +202,6 @@ folder InstallDir:\Common7\Tools\vsdevcmd\ext
       <SwrFile Include="$(_SwrFilePath)"/>
     </ItemGroup>
   </Target>
-  
+
   <Import Project="..\..\..\NuGet\Microsoft.Net.Compilers\CompilerArtifacts.targets"/>
 </Project>

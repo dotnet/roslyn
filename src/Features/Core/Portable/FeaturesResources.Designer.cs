@@ -2951,6 +2951,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pull &apos;{0}&apos; up.
+        /// </summary>
+        internal static string Pull_0_up {
+            get {
+                return ResourceManager.GetString("Pull_0_up", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull &apos;{0}&apos; up to &apos;{1}&apos;.
+        /// </summary>
+        internal static string Pull_0_up_to_1 {
+            get {
+                return ResourceManager.GetString("Pull_0_up_to_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull members up to base type....
+        /// </summary>
+        internal static string Pull_members_up_to_base_type {
+            get {
+                return ResourceManager.GetString("Pull_members_up_to_base_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to range variable.
         /// </summary>
         internal static string range_variable {

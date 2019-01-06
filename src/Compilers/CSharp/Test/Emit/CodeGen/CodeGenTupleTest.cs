@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14877,21 +14878,15 @@ class C
                 // (6,24): error CS1525: Invalid expression term 'int'
                 //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 24),
-                // (6,29): error CS1026: ) expected
+                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "t").WithLocation(6, 29),
-                // (6,30): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(6, 18),
+                // (6,19): error CS0150: A constant value is expected
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 30),
-                // (6,30): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 19),
+                // (6,24): error CS0150: A constant value is expected
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 30),
-                // (6,18): error CS0150: A constant value is expected
-                //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(6, 18),
-                // (6,29): error CS0103: The name 't' does not exist in the current context
-                //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 24)
                 );
         }
 
@@ -14932,21 +14927,12 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,19): error CS8185: A declaration is not allowed in this context.
+                // (6,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(6, 19),
-                // (6,26): error CS8185: A declaration is not allowed in this context.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int a, int b)").WithArguments("object", "Deconstruct").WithLocation(6, 18),
+                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int b").WithLocation(6, 26),
-                // (6,18): error CS0150: A constant value is expected
-                //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int a, int b)").WithLocation(6, 18),
-                // (6,19): error CS0165: Use of unassigned local variable 'a'
-                //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int a").WithArguments("a").WithLocation(6, 19),
-                // (6,26): error CS0165: Use of unassigned local variable 'b'
-                //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int b").WithArguments("b").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int a, int b)").WithArguments("object", "2").WithLocation(6, 18)
                 );
         }
 
@@ -14965,9 +14951,12 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,18): error CS0150: A constant value is expected
-                //         if (o is (1, 2))
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 2)").WithLocation(6, 18)
+                // (6,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         if (o is (1, 2)) { }
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("object", "Deconstruct").WithLocation(6, 18),
+                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //         if (o is (1, 2)) { }
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 2)").WithArguments("object", "2").WithLocation(6, 18)
                 );
         }
 
@@ -14994,18 +14983,15 @@ class C
                 // (7,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 24),
-                // (7,29): error CS1003: Syntax error, ':' expected
+                // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "tuple").WithArguments(":", "").WithLocation(7, 29),
-                // (7,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(7, 18),
+                // (7,19): error CS0150: A constant value is expected
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(7, 18),
-                // (7,29): warning CS0162: Unreachable code detected
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(7, 19),
+                // (7,24): error CS0150: A constant value is expected
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "tuple").WithLocation(7, 29),
-                // (7,29): warning CS0164: This label has not been referenced
-                //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "tuple").WithLocation(7, 29)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(7, 24)
                );
         }
 
@@ -15026,12 +15012,12 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,18): error CS0150: A constant value is expected
+                // (7,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (1, 1): return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18),
-                // (7,26): warning CS0162: Unreachable code detected
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 1)").WithArguments("object", "Deconstruct").WithLocation(7, 18),
+                // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (1, 1): return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 26)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 1)").WithArguments("object", "2").WithLocation(7, 18)
                );
         }
 
@@ -15052,18 +15038,12 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,25): error CS1003: Syntax error, ':' expected
+                // (7,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(":", "").WithLocation(7, 25),
-                // (7,18): error CS0150: A constant value is expected
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 1)").WithArguments("object", "Deconstruct").WithLocation(7, 18),
+                // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18),
-                // (7,25): warning CS0162: Unreachable code detected
-                //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "t").WithLocation(7, 25),
-                // (7,25): warning CS0164: This label has not been referenced
-                //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "t").WithLocation(7, 25)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 1)").WithArguments("object", "2").WithLocation(7, 18)
                );
         }
 
@@ -18087,9 +18067,12 @@ public class C
             Assert.Equal("(System.Int32 a, System.Int32) x1", x1.ToTestDisplayString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/32006")]
         public void LambdaTypeInferenceWithDynamic()
         {
+            // See https://github.com/dotnet/roslyn/issues/32006
+            // need to relax assertion in GetImplicitTupleLiteralConversion
+
             var source = @"
 public class C
 {
@@ -18926,7 +18909,7 @@ public interface I1 : I0
         }
 
         [Fact]
-        public void DuplicateInterfaceDetectionWithDifferentTupleNames()
+        public void DuplicateInterfaceDetectionWithDifferentTupleNames_01()
         {
             var source = @"
 public interface I0<T> { }
@@ -18960,9 +18943,9 @@ public class C5<T, U> : I0<(int a, int b)>, I0<(T notA, U notB)> { }
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
             var c1 = nodes.OfType<ClassDeclarationSyntax>().First();
-            Assert.Equal(1, model.GetDeclaredSymbol(c1).AllInterfaces.Count());
-            // Note: the second set of names is the one listed in AllInterfaces
-            Assert.Equal("I0<(System.Int32 notA, System.Int32 notB)>", model.GetDeclaredSymbol(c1).AllInterfaces[0].ToTestDisplayString());
+            Assert.Equal(2, model.GetDeclaredSymbol(c1).AllInterfaces.Count());
+            Assert.Equal("I0<(System.Int32 a, System.Int32 b)>", model.GetDeclaredSymbol(c1).AllInterfaces[0].ToTestDisplayString());
+            Assert.Equal("I0<(System.Int32 notA, System.Int32 notB)>", model.GetDeclaredSymbol(c1).AllInterfaces[1].ToTestDisplayString());
 
             var c2 = nodes.OfType<ClassDeclarationSyntax>().Skip(1).First();
             Assert.Equal(1, model.GetDeclaredSymbol(c2).AllInterfaces.Count());
@@ -18971,6 +18954,446 @@ public class C5<T, U> : I0<(int a, int b)>, I0<(T notA, U notB)> { }
             var c3 = nodes.OfType<ClassDeclarationSyntax>().Skip(2).First();
             Assert.Equal(1, model.GetDeclaredSymbol(c3).AllInterfaces.Count());
             Assert.Equal("I0<System.Int32>", model.GetDeclaredSymbol(c3).AllInterfaces[0].ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(31977, "https://github.com/dotnet/roslyn/issues/31977")]
+        public void DuplicateInterfaceDetectionWithDifferentTupleNames_02()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M();
+}
+
+public interface I2 : I1<(int a, int b)> { }
+public interface I3 : I1<(int c, int d)> { }
+
+public class C1 : I2, I1<(int c, int d)> 
+{ 
+    void I1<(int a, int b)>.M(){}
+    void I1<(int c, int d)>.M(){}
+}
+
+public class C2 : I1<(int c, int d)>, I2 
+{ 
+    void I1<(int a, int b)>.M(){}
+    void I1<(int c, int d)>.M(){}
+}
+
+public class C3 : I1<(int a, int b)>, I1<(int c, int d)>
+{
+    void I1<(int a, int b)>.M(){}
+    void I1<(int c, int d)>.M(){}
+}
+
+public class C4 : I2, I3 
+{ 
+    void I1<(int a, int b)>.M(){}
+    void I1<(int c, int d)>.M(){}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,14): error CS8140: 'I1<(int c, int d)>' is already listed in the interface list on type 'C1' with different tuple element names, as 'I1<(int a, int b)>'.
+                // public class C1 : I2, I1<(int c, int d)> 
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I1<(int c, int d)>", "I1<(int a, int b)>", "C1").WithLocation(10, 14),
+                // (10,14): error CS8646: 'I1<(int a, int b)>.M()' is explicitly implemented more than once.
+                // public class C1 : I2, I1<(int c, int d)> 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("I1<(int a, int b)>.M()").WithLocation(10, 14),
+                // (10,14): error CS8646: 'I1<(int c, int d)>.M()' is explicitly implemented more than once.
+                // public class C1 : I2, I1<(int c, int d)> 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("I1<(int c, int d)>.M()").WithLocation(10, 14),
+                // (16,14): error CS8140: 'I1<(int a, int b)>' is already listed in the interface list on type 'C2' with different tuple element names, as 'I1<(int c, int d)>'.
+                // public class C2 : I1<(int c, int d)>, I2 
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C2").WithArguments("I1<(int a, int b)>", "I1<(int c, int d)>", "C2").WithLocation(16, 14),
+                // (16,14): error CS8646: 'I1<(int c, int d)>.M()' is explicitly implemented more than once.
+                // public class C2 : I1<(int c, int d)>, I2 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I1<(int c, int d)>.M()").WithLocation(16, 14),
+                // (16,14): error CS8646: 'I1<(int a, int b)>.M()' is explicitly implemented more than once.
+                // public class C2 : I1<(int c, int d)>, I2 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I1<(int a, int b)>.M()").WithLocation(16, 14),
+                // (22,14): error CS8140: 'I1<(int c, int d)>' is already listed in the interface list on type 'C3' with different tuple element names, as 'I1<(int a, int b)>'.
+                // public class C3 : I1<(int a, int b)>, I1<(int c, int d)>
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C3").WithArguments("I1<(int c, int d)>", "I1<(int a, int b)>", "C3").WithLocation(22, 14),
+                // (22,14): error CS8646: 'I1<(int a, int b)>.M()' is explicitly implemented more than once.
+                // public class C3 : I1<(int a, int b)>, I1<(int c, int d)>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C3").WithArguments("I1<(int a, int b)>.M()").WithLocation(22, 14),
+                // (22,14): error CS8646: 'I1<(int c, int d)>.M()' is explicitly implemented more than once.
+                // public class C3 : I1<(int a, int b)>, I1<(int c, int d)>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C3").WithArguments("I1<(int c, int d)>.M()").WithLocation(22, 14),
+                // (28,14): error CS8140: 'I1<(int c, int d)>' is already listed in the interface list on type 'C4' with different tuple element names, as 'I1<(int a, int b)>'.
+                // public class C4 : I2, I3 
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C4").WithArguments("I1<(int c, int d)>", "I1<(int a, int b)>", "C4").WithLocation(28, 14),
+                // (28,14): error CS8646: 'I1<(int a, int b)>.M()' is explicitly implemented more than once.
+                // public class C4 : I2, I3 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C4").WithArguments("I1<(int a, int b)>.M()").WithLocation(28, 14),
+                // (28,14): error CS8646: 'I1<(int c, int d)>.M()' is explicitly implemented more than once.
+                // public class C4 : I2, I3 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C4").WithArguments("I1<(int c, int d)>.M()").WithLocation(28, 14)
+                );
+
+            var c1 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C1");
+            var c1Interfaces = c1.Interfaces;
+            var c1AllInterfaces = c1.AllInterfaces;
+            Assert.Equal(2, c1Interfaces.Length);
+            Assert.Equal(3, c1AllInterfaces.Length);
+            Assert.Equal("I2", c1Interfaces[0].ToTestDisplayString());
+            Assert.Equal("I1<(System.Int32 c, System.Int32 d)>", c1Interfaces[1].ToTestDisplayString());
+            Assert.Equal("I2", c1AllInterfaces[0].ToTestDisplayString());
+            Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c1AllInterfaces[1].ToTestDisplayString());
+            Assert.Equal("I1<(System.Int32 c, System.Int32 d)>", c1AllInterfaces[2].ToTestDisplayString());
+            assertExplicitInterfaceImplementations(c1);
+
+            var c2 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C2");
+            var c2Interfaces = c2.Interfaces;
+            var c2AllInterfaces = c2.AllInterfaces;
+            Assert.Equal(2, c2Interfaces.Length);
+            Assert.Equal(3, c2AllInterfaces.Length);
+            Assert.Equal("I1<(System.Int32 c, System.Int32 d)>", c2Interfaces[0].ToTestDisplayString());
+            Assert.Equal("I2", c2Interfaces[1].ToTestDisplayString());
+            Assert.Equal("I1<(System.Int32 c, System.Int32 d)>", c2AllInterfaces[0].ToTestDisplayString());
+            Assert.Equal("I2", c2AllInterfaces[1].ToTestDisplayString());
+            Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c2AllInterfaces[2].ToTestDisplayString());
+            assertExplicitInterfaceImplementations(c2);
+
+            var c3 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C3");
+            var c3Interfaces = c3.Interfaces;
+            var c3AllInterfaces = c3.AllInterfaces;
+            Assert.Equal(2, c3Interfaces.Length);
+            Assert.Equal(2, c3AllInterfaces.Length);
+            Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c3Interfaces[0].ToTestDisplayString());
+            Assert.Equal("I1<(System.Int32 c, System.Int32 d)>", c3Interfaces[1].ToTestDisplayString());
+            Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c3AllInterfaces[0].ToTestDisplayString());
+            Assert.Equal("I1<(System.Int32 c, System.Int32 d)>", c3AllInterfaces[1].ToTestDisplayString());
+            assertExplicitInterfaceImplementations(c3);
+
+            var c4 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C4");
+            var c4Interfaces = c4.Interfaces;
+            var c4AllInterfaces = c4.AllInterfaces;
+            Assert.Equal(2, c4Interfaces.Length);
+            Assert.Equal(4, c4AllInterfaces.Length);
+            Assert.Equal("I2", c4Interfaces[0].ToTestDisplayString());
+            Assert.Equal("I3", c4Interfaces[1].ToTestDisplayString());
+            Assert.Equal("I2", c4AllInterfaces[0].ToTestDisplayString());
+            Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c4AllInterfaces[1].ToTestDisplayString());
+            Assert.Equal("I3", c4AllInterfaces[2].ToTestDisplayString());
+            Assert.Equal("I1<(System.Int32 c, System.Int32 d)>", c4AllInterfaces[3].ToTestDisplayString());
+            assertExplicitInterfaceImplementations(c4);
+
+            void assertExplicitInterfaceImplementations(INamedTypeSymbol c)
+            {
+                var cMabImplementations = ((IMethodSymbol)((TypeSymbol)c).GetMember("I1<(System.Int32a,System.Int32b)>.M")).ExplicitInterfaceImplementations;
+                Assert.Equal(1, cMabImplementations.Length);
+                Assert.Equal("void I1<(System.Int32 a, System.Int32 b)>.M()", cMabImplementations[0].ToTestDisplayString());
+                var cMcdImplementations = ((IMethodSymbol)((TypeSymbol)c).GetMember("I1<(System.Int32c,System.Int32d)>.M")).ExplicitInterfaceImplementations;
+                Assert.Equal(1, cMcdImplementations.Length);
+                Assert.Equal("void I1<(System.Int32 c, System.Int32 d)>.M()", cMcdImplementations[0].ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(31977, "https://github.com/dotnet/roslyn/issues/31977")]
+        public void DuplicateInterfaceDetectionWithDifferentTupleNames_03()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M1();
+    void M2();
+}
+public class C1 : I1<(int a, int b)> 
+{ 
+    public void M1() => System.Console.WriteLine(""C1.M1"");
+    void I1<(int a, int b)>.M2() => System.Console.WriteLine(""C1.M2"");
+}
+
+public class C2 : C1, I1<(int c, int d)> 
+{ 
+    new public void M1() => System.Console.WriteLine(""C2.M1""); 
+    void I1<(int c, int d)>.M2() => System.Console.WriteLine(""C2.M2"");
+
+    static void Main()
+    {
+        var x = (C1)new C2();
+        var y = (I1<(int a, int b)>)x;
+        y.M1();
+        y.M2();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            Action<ModuleSymbol> validate = (m) =>
+            {
+                bool isMetadata = m is PEModuleSymbol;
+
+                var c1 = (INamedTypeSymbol)m.GlobalNamespace.GetTypeMember("C1");
+                var c1Interfaces = c1.Interfaces;
+                var c1AllInterfaces = c1.AllInterfaces;
+                Assert.Equal(1, c1Interfaces.Length);
+                Assert.Equal(1, c1AllInterfaces.Length);
+                Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c1Interfaces[0].ToTestDisplayString());
+                Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c1AllInterfaces[0].ToTestDisplayString());
+
+                var c2 = (INamedTypeSymbol)m.GlobalNamespace.GetTypeMember("C2");
+                var c2Interfaces = c2.Interfaces;
+                var c2AllInterfaces = c2.AllInterfaces;
+                Assert.Equal(1, c2Interfaces.Length);
+                Assert.Equal(2, c2AllInterfaces.Length);
+                Assert.Equal("I1<(System.Int32 c, System.Int32 d)>", c2Interfaces[0].ToTestDisplayString());
+                Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c2AllInterfaces[0].ToTestDisplayString());
+                Assert.Equal("I1<(System.Int32 c, System.Int32 d)>", c2AllInterfaces[1].ToTestDisplayString());
+
+                Assert.Equal("void C2.M1()", c2.FindImplementationForInterfaceMember(((TypeSymbol)c2Interfaces[0]).GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void C2.M1()",
+                             c2.FindImplementationForInterfaceMember(((TypeSymbol)c1Interfaces[0]).GetMember("M1")).ToTestDisplayString());
+
+                var m2 = (IMethodSymbol)((TypeSymbol)c2).GetMember("I1<(System.Int32c,System.Int32d)>.M2");
+                var m2Implementations = m2.ExplicitInterfaceImplementations;
+                Assert.Equal(1, m2Implementations.Length);
+                Assert.Equal(isMetadata ?
+                                 "void I1<(System.Int32, System.Int32)>.M2()" :
+                                 "void I1<(System.Int32 c, System.Int32 d)>.M2()",
+                             m2Implementations[0].ToTestDisplayString());
+
+                Assert.Same(m2,
+                            c2.FindImplementationForInterfaceMember(((TypeSymbol)c2Interfaces[0]).GetMember("M2")));
+                Assert.Same(m2,
+                            c2.FindImplementationForInterfaceMember(((TypeSymbol)c1Interfaces[0]).GetMember("M2")));
+            };
+
+            CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput:
+@"C2.M1
+C2.M2
+");
+        }
+
+        [Fact]
+        [WorkItem(31977, "https://github.com/dotnet/roslyn/issues/31977")]
+        public void DuplicateInterfaceDetectionWithDifferentTupleNames_04()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M();
+}
+
+public interface I2<I2T> : I1<(I2T a, I2T b)> { }
+public interface I3<I3T> : I1<(I3T c, I3T d)> { }
+
+public class C1<T> : I2<T>, I1<(T c, T d)> 
+{ 
+    void I1<(T a, T b)>.M(){}
+    void I1<(T c, T d)>.M(){}
+}
+
+public class C2<T> : I1<(T c, T d)>, I2<T> 
+{ 
+    void I1<(T a, T b)>.M(){}
+    void I1<(T c, T d)>.M(){}
+}
+
+public class C3<T> : I1<(T a, T b)>, I1<(T c, T d)>
+{
+    void I1<(T a, T b)>.M(){}
+    void I1<(T c, T d)>.M(){}
+}
+
+public class C4<T> : I2<T>, I3<T> 
+{ 
+    void I1<(T a, T b)>.M(){}
+    void I1<(T c, T d)>.M(){}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,14): error CS8140: 'I1<(T c, T d)>' is already listed in the interface list on type 'C1<T>' with different tuple element names, as 'I1<(T a, T b)>'.
+                // public class C1<T> : I2<T>, I1<(T c, T d)> 
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I1<(T c, T d)>", "I1<(T a, T b)>", "C1<T>").WithLocation(10, 14),
+                // (10,14): error CS8646: 'I1<(T a, T b)>.M()' is explicitly implemented more than once.
+                // public class C1<T> : I2<T>, I1<(T c, T d)> 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("I1<(T a, T b)>.M()").WithLocation(10, 14),
+                // (10,14): error CS8646: 'I1<(T c, T d)>.M()' is explicitly implemented more than once.
+                // public class C1<T> : I2<T>, I1<(T c, T d)> 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("I1<(T c, T d)>.M()").WithLocation(10, 14),
+                // (16,14): error CS8140: 'I1<(T a, T b)>' is already listed in the interface list on type 'C2<T>' with different tuple element names, as 'I1<(T c, T d)>'.
+                // public class C2<T> : I1<(T c, T d)>, I2<T> 
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C2").WithArguments("I1<(T a, T b)>", "I1<(T c, T d)>", "C2<T>").WithLocation(16, 14),
+                // (16,14): error CS8646: 'I1<(T c, T d)>.M()' is explicitly implemented more than once.
+                // public class C2<T> : I1<(T c, T d)>, I2<T> 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I1<(T c, T d)>.M()").WithLocation(16, 14),
+                // (16,14): error CS8646: 'I1<(T a, T b)>.M()' is explicitly implemented more than once.
+                // public class C2<T> : I1<(T c, T d)>, I2<T> 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I1<(T a, T b)>.M()").WithLocation(16, 14),
+                // (22,14): error CS8140: 'I1<(T c, T d)>' is already listed in the interface list on type 'C3<T>' with different tuple element names, as 'I1<(T a, T b)>'.
+                // public class C3<T> : I1<(T a, T b)>, I1<(T c, T d)>
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C3").WithArguments("I1<(T c, T d)>", "I1<(T a, T b)>", "C3<T>").WithLocation(22, 14),
+                // (22,14): error CS8646: 'I1<(T a, T b)>.M()' is explicitly implemented more than once.
+                // public class C3<T> : I1<(T a, T b)>, I1<(T c, T d)>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C3").WithArguments("I1<(T a, T b)>.M()").WithLocation(22, 14),
+                // (22,14): error CS8646: 'I1<(T c, T d)>.M()' is explicitly implemented more than once.
+                // public class C3<T> : I1<(T a, T b)>, I1<(T c, T d)>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C3").WithArguments("I1<(T c, T d)>.M()").WithLocation(22, 14),
+                // (28,14): error CS8140: 'I1<(T c, T d)>' is already listed in the interface list on type 'C4<T>' with different tuple element names, as 'I1<(T a, T b)>'.
+                // public class C4<T> : I2<T>, I3<T> 
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C4").WithArguments("I1<(T c, T d)>", "I1<(T a, T b)>", "C4<T>").WithLocation(28, 14),
+                // (28,14): error CS8646: 'I1<(T a, T b)>.M()' is explicitly implemented more than once.
+                // public class C4<T> : I2<T>, I3<T> 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C4").WithArguments("I1<(T a, T b)>.M()").WithLocation(28, 14),
+                // (28,14): error CS8646: 'I1<(T c, T d)>.M()' is explicitly implemented more than once.
+                // public class C4<T> : I2<T>, I3<T> 
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C4").WithArguments("I1<(T c, T d)>.M()").WithLocation(28, 14)
+                );
+
+            var c1 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C1`1");
+            var c1Interfaces = c1.Interfaces;
+            var c1AllInterfaces = c1.AllInterfaces;
+            Assert.Equal(2, c1Interfaces.Length);
+            Assert.Equal(3, c1AllInterfaces.Length);
+            Assert.Equal("I2<T>", c1Interfaces[0].ToTestDisplayString());
+            Assert.Equal("I1<(T c, T d)>", c1Interfaces[1].ToTestDisplayString());
+            Assert.Equal("I2<T>", c1AllInterfaces[0].ToTestDisplayString());
+            Assert.Equal("I1<(T a, T b)>", c1AllInterfaces[1].ToTestDisplayString());
+            Assert.Equal("I1<(T c, T d)>", c1AllInterfaces[2].ToTestDisplayString());
+            assertExplicitInterfaceImplementations(c1);
+
+            var c2 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C2`1");
+            var c2Interfaces = c2.Interfaces;
+            var c2AllInterfaces = c2.AllInterfaces;
+            Assert.Equal(2, c2Interfaces.Length);
+            Assert.Equal(3, c2AllInterfaces.Length);
+            Assert.Equal("I1<(T c, T d)>", c2Interfaces[0].ToTestDisplayString());
+            Assert.Equal("I2<T>", c2Interfaces[1].ToTestDisplayString());
+            Assert.Equal("I1<(T c, T d)>", c2AllInterfaces[0].ToTestDisplayString());
+            Assert.Equal("I2<T>", c2AllInterfaces[1].ToTestDisplayString());
+            Assert.Equal("I1<(T a, T b)>", c2AllInterfaces[2].ToTestDisplayString());
+            assertExplicitInterfaceImplementations(c2);
+
+            var c3 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C3`1");
+            var c3Interfaces = c3.Interfaces;
+            var c3AllInterfaces = c3.AllInterfaces;
+            Assert.Equal(2, c3Interfaces.Length);
+            Assert.Equal(2, c3AllInterfaces.Length);
+            Assert.Equal("I1<(T a, T b)>", c3Interfaces[0].ToTestDisplayString());
+            Assert.Equal("I1<(T c, T d)>", c3Interfaces[1].ToTestDisplayString());
+            Assert.Equal("I1<(T a, T b)>", c3AllInterfaces[0].ToTestDisplayString());
+            Assert.Equal("I1<(T c, T d)>", c3AllInterfaces[1].ToTestDisplayString());
+            assertExplicitInterfaceImplementations(c3);
+
+            var c4 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C4`1");
+            var c4Interfaces = c4.Interfaces;
+            var c4AllInterfaces = c4.AllInterfaces;
+            Assert.Equal(2, c4Interfaces.Length);
+            Assert.Equal(4, c4AllInterfaces.Length);
+            Assert.Equal("I2<T>", c4Interfaces[0].ToTestDisplayString());
+            Assert.Equal("I3<T>", c4Interfaces[1].ToTestDisplayString());
+            Assert.Equal("I2<T>", c4AllInterfaces[0].ToTestDisplayString());
+            Assert.Equal("I1<(T a, T b)>", c4AllInterfaces[1].ToTestDisplayString());
+            Assert.Equal("I3<T>", c4AllInterfaces[2].ToTestDisplayString());
+            Assert.Equal("I1<(T c, T d)>", c4AllInterfaces[3].ToTestDisplayString());
+            assertExplicitInterfaceImplementations(c4);
+
+            void assertExplicitInterfaceImplementations(INamedTypeSymbol c)
+            {
+                var cMabImplementations = ((IMethodSymbol)((TypeSymbol)c).GetMember("I1<(Ta,Tb)>.M")).ExplicitInterfaceImplementations;
+                Assert.Equal(1, cMabImplementations.Length);
+                Assert.Equal("void I1<(T a, T b)>.M()", cMabImplementations[0].ToTestDisplayString());
+                var cMcdImplementations = ((IMethodSymbol)((TypeSymbol)c).GetMember("I1<(Tc,Td)>.M")).ExplicitInterfaceImplementations;
+                Assert.Equal(1, cMcdImplementations.Length);
+                Assert.Equal("void I1<(T c, T d)>.M()", cMcdImplementations[0].ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(31977, "https://github.com/dotnet/roslyn/issues/31977")]
+        public void DuplicateInterfaceDetectionWithDifferentTupleNames_05()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M();
+}
+
+public class C3<T, U> : I1<(T a, T b)>, I1<(U c, U d)>
+{
+    void I1<(T a, T b)>.M(){}
+    void I1<(U c, U d)>.M(){}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,14): error CS0695: 'C3<T, U>' cannot implement both 'I1<(T a, T b)>' and 'I1<(U c, U d)>' because they may unify for some type parameter substitutions
+                // public class C3<T, U> : I1<(T a, T b)>, I1<(U c, U d)>
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T, U>", "I1<(T a, T b)>", "I1<(U c, U d)>").WithLocation(7, 14)
+                );
+
+            var c3 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C3`2");
+            var c3Interfaces = c3.Interfaces;
+            var c3AllInterfaces = c3.AllInterfaces;
+            Assert.Equal(2, c3Interfaces.Length);
+            Assert.Equal(2, c3AllInterfaces.Length);
+            Assert.Equal("I1<(T a, T b)>", c3Interfaces[0].ToTestDisplayString());
+            Assert.Equal("I1<(U c, U d)>", c3Interfaces[1].ToTestDisplayString());
+            Assert.Equal("I1<(T a, T b)>", c3AllInterfaces[0].ToTestDisplayString());
+            Assert.Equal("I1<(U c, U d)>", c3AllInterfaces[1].ToTestDisplayString());
+            assertExplicitInterfaceImplementations(c3);
+
+            void assertExplicitInterfaceImplementations(INamedTypeSymbol c)
+            {
+                var cMabImplementations = ((IMethodSymbol)((TypeSymbol)c).GetMember("I1<(Ta,Tb)>.M")).ExplicitInterfaceImplementations;
+                Assert.Equal(1, cMabImplementations.Length);
+                Assert.Equal("void I1<(T a, T b)>.M()", cMabImplementations[0].ToTestDisplayString());
+                var cMcdImplementations = ((IMethodSymbol)((TypeSymbol)c).GetMember("I1<(Uc,Ud)>.M")).ExplicitInterfaceImplementations;
+                Assert.Equal(1, cMcdImplementations.Length);
+                Assert.Equal("void I1<(U c, U d)>.M()", cMcdImplementations[0].ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(31977, "https://github.com/dotnet/roslyn/issues/31977")]
+        public void DuplicateInterfaceDetectionWithDifferentTupleNames_06()
+        {
+            var source = @"
+public interface I1<T> 
+{
+    void M();
+}
+
+public class C3 : I1<(int a, int b)>
+{
+    void I1<(int c, int d)>.M(){}
+}
+
+public class C4 : I1<(int c, int d)>
+{
+    void I1<(int c, int d)>.M(){}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,10): error CS0540: 'C3.I1<(int c, int d)>.M()': containing type does not implement interface 'I1<(int c, int d)>'
+                //     void I1<(int c, int d)>.M(){}
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1<(int c, int d)>").WithArguments("C3.I1<(int c, int d)>.M()", "I1<(int c, int d)>").WithLocation(9, 10)
+                );
+
+            var c3 = (INamedTypeSymbol)comp.GetTypeByMetadataName("C3");
+            var c3Interfaces = c3.Interfaces;
+            var c3AllInterfaces = c3.AllInterfaces;
+            Assert.Equal(1, c3Interfaces.Length);
+            Assert.Equal(1, c3AllInterfaces.Length);
+            Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c3Interfaces[0].ToTestDisplayString());
+            Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c3AllInterfaces[0].ToTestDisplayString());
+
+            var mImplementations = ((IMethodSymbol)((TypeSymbol)c3).GetMember("I1<(System.Int32c,System.Int32d)>.M")).ExplicitInterfaceImplementations;
+            Assert.Equal(1, mImplementations.Length);
+            Assert.Equal("void I1<(System.Int32 c, System.Int32 d)>.M()", mImplementations[0].ToTestDisplayString());
+
+            Assert.Equal("void C3.I1<(System.Int32 c, System.Int32 d)>.M()",
+                         c3.FindImplementationForInterfaceMember(((TypeSymbol)c3Interfaces[0]).GetMember("M")).ToTestDisplayString());
+            Assert.Equal("void C3.I1<(System.Int32 c, System.Int32 d)>.M()",
+                         c3.FindImplementationForInterfaceMember(comp.GetTypeByMetadataName("C4").InterfacesNoUseSiteDiagnostics()[0].GetMember("M")).ToTestDisplayString());
         }
 
         [Fact]
@@ -22379,6 +22802,7 @@ class C
             Assert.Equal("Derived", derivedSymbol.ToTestDisplayString());
 
             Assert.Equal(new[] {
+                    "System.Collections.Generic.IEnumerable<(System.Int32 a, System.Int32 b)>",
                     "System.Collections.Generic.IEnumerable<(System.Int32 notA, System.Int32 notB)>",
                     "System.Collections.IEnumerable" },
                 derivedSymbol.AllInterfaces.Select(i => i.ToTestDisplayString()));
@@ -22441,6 +22865,7 @@ class C
             Assert.Equal("Derived", derivedSymbol.ToTestDisplayString());
 
             Assert.Equal(new[] {
+                    "System.Collections.Generic.IEnumerable<(System.Int32 a, System.Int32 b)>",
                     "System.Collections.Generic.IEnumerable<(System.Int32 notA, System.Int32 notB)>",
                     "System.Collections.IEnumerable" },
                 derivedSymbol.AllInterfaces.Select(i => i.ToTestDisplayString()));
@@ -22587,6 +23012,7 @@ class C
             Assert.Equal("Derived<(System.Int32 notA, System.Int32 notB)>", collectionSymbol.ToTestDisplayString());
 
             Assert.Equal(new[] {
+                    "System.Collections.Generic.IEnumerable<(System.Int32 a, System.Int32 b)>",
                     "System.Collections.Generic.IEnumerable<(System.Int32 notA, System.Int32 notB)>",
                     "System.Collections.IEnumerable" },
                 collectionSymbol.AllInterfaces().Select(i => i.ToTestDisplayString()));
@@ -22845,7 +23271,7 @@ class Derived : Base, I<(int notA, int notB)>
 
         [Fact]
         [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
-        public void ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames()
+        public void ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_01()
         {
             var source = @"
 interface I<T>
@@ -22870,6 +23296,105 @@ class Derived2 : Base, I<(int a, int b)>
                 // (10,24): error CS0535: 'Derived1' does not implement interface member 'I<(int notA, int notB)>.M()'
                 // class Derived1 : Base, I<(int notA, int notB)> { }
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<(int notA, int notB)>").WithArguments("Derived1", "I<(int notA, int notB)>.M()").WithLocation(10, 24)
+                );
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_02()
+        {
+            var source = @"
+interface I<T>
+{
+    T M();
+}
+class Base : I<(int a, int b)>
+{
+    (int a, int b) I<(int a, int b)>.M() { return (1, 2); } // explicit implementation
+    public (int notA, int notB) M() { return (1, 2); }
+}
+class Derived1 : Base, I<(int notA, int notB)>
+{
+    // error
+}
+class Derived2 : Base, I<(int a, int b)>
+{
+    // ok
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,24): error CS0535: 'Derived1' does not implement interface member 'I<(int notA, int notB)>.M()'
+                // class Derived1 : Base, I<(int notA, int notB)> { }
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<(int notA, int notB)>").WithArguments("Derived1", "I<(int notA, int notB)>.M()").WithLocation(11, 24)
+                );
+        }
+
+        [Fact]
+        public void ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_03()
+        {
+            var source = @"
+interface I<T>
+{
+    T M();
+}
+class Base : I<(int a, int b)>
+{
+}
+class Derived1 : Base, I<(int notA, int notB)>
+{
+    // error
+}
+class Derived2 : Base, I<(int a, int b)>
+{
+    // ok
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,14): error CS0535: 'Base' does not implement interface member 'I<(int a, int b)>.M()'
+                // class Base : I<(int a, int b)>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<(int a, int b)>").WithArguments("Base", "I<(int a, int b)>.M()").WithLocation(6, 14),
+                // (9,24): error CS0535: 'Derived1' does not implement interface member 'I<(int notA, int notB)>.M()'
+                // class Derived1 : Base, I<(int notA, int notB)>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<(int notA, int notB)>").WithArguments("Derived1", "I<(int notA, int notB)>.M()").WithLocation(9, 24)
+                );
+        }
+
+        [Fact]
+        public void ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_04()
+        {
+            var source1 = @"
+public interface I<T>
+{
+    T M();
+}
+public class Base : I<(int a, int b)>
+{
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            comp1.VerifyDiagnostics(
+                // (6,21): error CS0535: 'Base' does not implement interface member 'I<(int a, int b)>.M()'
+                // public class Base : I<(int a, int b)>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<(int a, int b)>").WithArguments("Base", "I<(int a, int b)>.M()").WithLocation(6, 21)
+                );
+
+            var source2 = @"
+class Derived1 : Base, I<(int notA, int notB)>
+{
+}
+class Derived2 : Base, I<(int a, int b)>
+{
+}
+";
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() });
+
+            comp2.VerifyDiagnostics(
+                // (2,24): error CS0535: 'Derived1' does not implement interface member 'I<(int notA, int notB)>.M()'
+                // class Derived1 : Base, I<(int notA, int notB)>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<(int notA, int notB)>").WithArguments("Derived1", "I<(int notA, int notB)>.M()").WithLocation(2, 24)
                 );
         }
 
@@ -23453,15 +23978,9 @@ class P
                 // (6,41): error CS1525: Invalid expression term ';'
                 //         var x1 = (1, 1) is (int, int a)?;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
-                // (6,34): error CS8185: A declaration is not allowed in this context.
+                // (6,29): error CS0150: A constant value is expected
                 //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(6, 34),
-                // (6,28): error CS0150: A constant value is expected
-                //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int a)").WithLocation(6, 28),
-                // (6,34): error CS0165: Use of unassigned local variable 'a'
-                //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "int a").WithArguments("a").WithLocation(6, 34)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 29)
                 );
         }
 

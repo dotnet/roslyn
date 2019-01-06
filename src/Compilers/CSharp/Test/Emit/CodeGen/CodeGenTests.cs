@@ -14490,11 +14490,12 @@ class C
             {
                 var result = compilation.Emit(stream);
                 result.Diagnostics.Verify(
-                    // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                    Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
-                    // (14,9): error CS0656: Missing compiler required member 'System.String.op_Equality'
-                    //         switch (s) { case "A": break; case "B": break; }
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (s) { case ""A"": break; case ""B"": break; }").WithArguments("System.String", "op_Equality").WithLocation(14, 9));
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (14,22): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                //         switch (s) { case "A": break; case "B": break; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""A"":").WithArguments("System.String", "op_Equality").WithLocation(14, 22)
+                );
             }
         }
 

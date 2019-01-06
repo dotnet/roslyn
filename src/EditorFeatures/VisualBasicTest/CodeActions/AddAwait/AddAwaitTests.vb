@@ -140,17 +140,7 @@ Module Program
 End Module
 </File>
 
-            Dim expected =
-<File>
-Imports System.Threading.Tasks
-Module Program
-    Async Function GetNumberAsync() As Task(Of Integer)
-        Dim x = (Await GetNumberAsync()).ToString()
-    End Function
-End Module
-</File>
-
-            Await TestAsync(markup, expected)
+            Await TestMissingAsync(markup)
         End Function
 
     End Class
