@@ -399,14 +399,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else
                         {
                             // '{0}' cannot derive from special class '{1}'
-                            diagnostics.Add(ErrorCode.ERR_DeriveFromEnumOrValueType, Locations[0], this, baseType);
+                            diagnostics.Add(ErrorCode.ERR_DeriveFromEnumOrValueType, location, this, baseType);
                             continue;
                         }
                     }
 
                     if (baseType.IsSealed && !this.IsStatic) // Give precedence to ERR_StaticDerivedFromNonObject
                     {
-                        diagnostics.Add(ErrorCode.ERR_CantDeriveFromSealedType, Locations[0], this, baseType);
+                        diagnostics.Add(ErrorCode.ERR_CantDeriveFromSealedType, location, this, baseType);
                         continue;
                     }
 

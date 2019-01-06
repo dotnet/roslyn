@@ -201,9 +201,9 @@ namespace System
 
             // Error elsewhere.
             CreateCompilation(source2).VerifyDiagnostics(
-                // (4,20): error CS0644: 'System.ArrayContract' cannot derive from special class 'System.Array'
+                // (4,36): error CS0644: 'System.ArrayContract' cannot derive from special class 'System.Array'
                 //     internal class ArrayContract : Array
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "ArrayContract").WithArguments("System.ArrayContract", "System.Array"));
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Array").WithArguments("System.ArrayContract", "System.Array"));
         }
     }
 }
