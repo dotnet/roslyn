@@ -264,48 +264,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             await EnsureOleCommandTargetAsync().ConfigureAwait(false);
 
-            var cmds_suspend = new OLECMD[1];
-            cmds_suspend[0].cmdID = SuspendId;
-            cmds_suspend[0].cmdf = 0;
-
-            var cmds_resume = new OLECMD[1];
-            cmds_resume[0].cmdID = ResumeId;
-            cmds_resume[0].cmdf = 0;
-
-            // poll until either suspend or resume button is available, or until operation is canceled
+           // poll until either suspend or resume botton is available, or until operation is canceled
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var hr_suspend = await QueryStatusAsync(cmds_suspend).ConfigureAwait(false);
+                var suspendFlag = await QueryStatusAsync(SuspendId).ConfigureAwait(false);
 
                 // In the case of an error when attempting to get the status, pretend that ReSharper isn't enabled. We also
                 // shut down monitoring so we don't keep hitting this.
-                if (ErrorHandler.Failed(hr_suspend))
+                if (suspendFlag == 0)
                 {
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr_suspend));
-                    await ShutdownAsync().ConfigureAwait(false);
-
                     return ReSharperStatus.NotInstalledOrDisabled;
                 }
 
-                var hr_resume = await QueryStatusAsync(cmds_resume).ConfigureAwait(false);
-                if (ErrorHandler.Failed((hr_resume)))
+                var resumeFlag = await QueryStatusAsync(ResumeId).ConfigureAwait(false);
+                if (resumeFlag == 0)
                 {
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr_resume));
-                    await ShutdownAsync().ConfigureAwait(false);
-
                     return ReSharperStatus.NotInstalledOrDisabled;
                 }
 
                 // When ReSharper is suspended, the ReSharper_Resume command is Enabled and not Invisible
-                if (((OLECMDF)cmds_resume[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED) && !((OLECMDF)cmds_resume[0].cmdf).HasFlag(OLECMDF.OLECMDF_INVISIBLE))
+                if (((OLECMDF)resumeFlag).HasFlag(OLECMDF.OLECMDF_ENABLED) && !((OLECMDF)resumeFlag).HasFlag(OLECMDF.OLECMDF_INVISIBLE))
                 {
                     return ReSharperStatus.Suspended;
                 }
 
                 // When ReSharper is running, the ReSharper_Suspend command is Enabled and not Invisible
-                if (((OLECMDF)cmds_suspend[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED) && !((OLECMDF)cmds_suspend[0].cmdf).HasFlag(OLECMDF.OLECMDF_INVISIBLE))
+                if (((OLECMDF)suspendFlag).HasFlag(OLECMDF.OLECMDF_ENABLED) && !((OLECMDF)suspendFlag).HasFlag(OLECMDF.OLECMDF_INVISIBLE))
                 {
                     return ReSharperStatus.Enabled;
                 }
@@ -314,8 +300,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken).ConfigureAwait(false);
             }
 
-            async Task<int> QueryStatusAsync(OLECMD[] cmds)
+            async Task<int> QueryStatusAsync(uint cmdId)
             {
+                var hr = await QueryStatusAsync(cmdId).ConfigureAwait(false);
+                if (ErrorHandler.Failed(hr))
+                {
+                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    await ShutdownAsync().ConfigureAwait(false);
+                    return 0;
+                }
+
+                var cmds = new OLECMD[1];
+                cmds[0].cmdID = cmdId;
+                cmds[0].cmdf = 0;
+
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
 
