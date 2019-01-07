@@ -686,13 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
         }
 
-        internal sealed override ManagedKind ManagedKind
-        {
-            get
-            {
-                return _underlyingType.ManagedKind;
-            }
-        }
+        internal sealed override ManagedKind ManagedKind => _underlyingType.ManagedKind;
 
         public override bool IsTupleType
         {

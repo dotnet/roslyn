@@ -220,13 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ManagedKind ManagedKind
-        {
-            get
-            {
-                return ManagedKind.Managed;
-            }
-        }
+        internal sealed override ManagedKind ManagedKind => ManagedKind.Managed;
 
         internal sealed override bool IsByRefLikeType
         {
