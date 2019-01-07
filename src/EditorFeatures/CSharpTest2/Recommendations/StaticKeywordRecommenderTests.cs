@@ -277,12 +277,17 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenUsings()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"using Goo;
+            var source = @"using Goo;
 $$
-using Bar;"));
+using Bar;";
+
+            await VerifyWorkerAsync(source, absent: true);
+
+            // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
+            //await VerifyWorkerAsync(source, absent: true, Options.Script);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
