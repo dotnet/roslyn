@@ -3166,5 +3166,17 @@ End Class
 "
             Await TestInRegularAndScriptAsync(source, expected, index:=1)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(30207, "https://github.com/dotnet/roslyn/issues/30207")>
+        Public Async Function TestExpressionOfUndeclaredType() As Task
+            Dim source = "
+Class C
+    Sub Test        
+        Dim array As A() = [|A|].Bar()
+    End Sub
+End Class"
+            Await TestMissingAsync(source)
+        End Function
     End Class
 End Namespace

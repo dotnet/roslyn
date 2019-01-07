@@ -5930,5 +5930,23 @@ class Program
 
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
+
+        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestExpressionOfUndeclaredType()
+        {
+            var code =
+@"class C
+{
+    void Test()
+    {
+        A[] array = [|A|].Foo();
+        foreach (A a in array)
+        {
+        }
+    }
+}";
+            await TestMissingAsync(code);
+        }
     }
 }
