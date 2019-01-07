@@ -152,6 +152,14 @@ jobs:
         publishLocation: Container
       condition: succeeded()
 
+    - task: PublishBuildArtifacts@1
+      displayName: Publish VSIX Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
+        ArtifactName: 'VSIX - PreRelease'
+        publishLocation: Container
+      condition: succeeded()
+
 - job: Linux_Test
   pool: DotNetCore-Linux
   strategy:
