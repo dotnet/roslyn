@@ -1,6 +1,6 @@
 # .NET Compiler Platform ("Roslyn") Overview
 
-[Download in PDF](https://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822125)
+[Download in PDF](https://docs.microsoft.com/en-us/dotnet/opbuildpdf/csharp/roslyn-sdk/toc.pdf?branch=live)
 
 Contents
 
