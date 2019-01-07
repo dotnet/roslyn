@@ -33,9 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
     [Order(After = PredefinedCommandHandlerNames.Completion)]
     internal sealed class CompleteStatementCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
     {
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-
         public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextCommandHandler) => nextCommandHandler();
 
         [ImportingConstructor]
