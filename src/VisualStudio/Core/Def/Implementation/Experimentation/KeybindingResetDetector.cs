@@ -285,13 +285,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 }
 
                 // When ReSharper is running, the ReSharper_Suspend command is Enabled and not Invisible
-                if ((suspendFlag).HasFlag(OLECMDF.OLECMDF_ENABLED) && !(suspendFlag).HasFlag(OLECMDF.OLECMDF_INVISIBLE))
+                if (suspendFlag.HasFlag(OLECMDF.OLECMDF_ENABLED) && !suspendFlag.HasFlag(OLECMDF.OLECMDF_INVISIBLE))
                 {
                     return ReSharperStatus.Enabled;
                 }
 
                 // When ReSharper is suspended, the ReSharper_Resume command is Enabled and not Invisible
-                if ((resumeFlag).HasFlag(OLECMDF.OLECMDF_ENABLED) && !(resumeFlag).HasFlag(OLECMDF.OLECMDF_INVISIBLE))
+                if (resumeFlag.HasFlag(OLECMDF.OLECMDF_ENABLED) && !resumeFlag.HasFlag(OLECMDF.OLECMDF_INVISIBLE))
                 {
                     return ReSharperStatus.Suspended;
                 }
