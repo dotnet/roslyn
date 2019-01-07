@@ -6638,7 +6638,7 @@ class Program
         }
 
         [Fact]
-        public void NormalInitializerType_ArrayOfGenericStruct8()
+        public void NormalInitializerType_ArrayOfGenericStruct()
         {
             var text = @"
 public struct MyStruct<T>
