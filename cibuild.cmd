@@ -2,6 +2,10 @@
 
 REM Parse Arguments.
 
+set TEMP=%~dp0\Binaries\Temp
+set TMP=%TEMP%
+mkdir %TEMP%
+
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 

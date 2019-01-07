@@ -1,0 +1,62 @@
+# Branches that trigger a build on commit
+trigger:
+- dev15.0.x
+
+# Branches that trigger builds on PR   
+pr:
+- dev15.0.x
+
+jobs:
+- job: Windows_Desktop_Unit_Tests
+  pool: dotnet-external-temp
+  strategy:
+    maxParallel: 4
+    matrix:
+      debug_32:
+        _configuration: debug
+        _testKind: test32
+      debug_64:
+        _configuration: debug
+        _testKind: test64
+      release_32:
+        _configuration: release
+        _testKind: test32
+      release_64:
+        _configuration: release
+        _testKind: test64
+  timeoutInMinutes: 90
+
+  steps:
+    - script: cibuild.cmd /$(_configuration) /$(_testKind)
+      displayName: Build and Test
+
+    - task: PublishTestResults@1
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\xUnitResults\*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Windows Desktop $(_configuration) $(_testKind)'
+      condition: always()
+
+           
+- job: Windows_Determinism_Test
+  pool: dotnet-external-temp
+  timeoutInMinutes: 90
+  steps:
+    - script: cibuild.cmd /testDeterminism
+      displayName: Build - Validate determinism
+
+- job: Windows_Correctness_Test
+  pool: dotnet-external-temp
+  timeoutInMinutes: 90
+  steps:
+    - script: cibuild.cmd /testBuildCorrectness
+      displayName: Build - Validate correctness
+
+- job: Microbuild
+  pool: dotnet-external-temp
+  timeoutInMinutes: 90
+  steps:
+    - script: src\Tools\MicroBuild\cibuild.cmd
+      displayName: Build
+
