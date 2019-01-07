@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (managedKind == ManagedKind.UnmanagedWithGenerics &&
                     currentCompilation is CSharpCompilation csCompilation &&
-                    csCompilation.LanguageVersion < MessageID.IDS_FeatureUnmanagedGenericStructs.RequiredVersion())
+                    !csCompilation.IsFeatureEnabled(MessageID.IDS_FeatureUnmanagedGenericStructs))
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
                     MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(csCompilation.LanguageVersion, diagnostics, typeArgument.TypeSymbol.Locations[0]);
