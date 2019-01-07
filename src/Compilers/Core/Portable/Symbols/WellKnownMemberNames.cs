@@ -313,5 +313,15 @@ namespace Microsoft.CodeAnalysis
         /// (see C# Specification, §7.7.7.1 Awaitable expressions).
         /// </summary>
         public const string OnCompleted = nameof(OnCompleted);
+
+        /// <summary>
+        /// The required name for the <c>Dispose</c> method used in a Using statement.
+        /// </summary>
+        public const string DisposeMethodName = "Dispose";
+
+        /// <summary>
+        /// The required name for the <c>DisposeAsync</c> method used in an await using statement.
+        /// </summary>
+        public const string DisposeAsyncMethodName = "DisposeAsync";
     }
 }

@@ -287,29 +287,38 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.UsingStatement);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
                                 N(SyntaxKind.UsingKeyword);
-                                M(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.AwaitExpression);
+                                N(SyntaxKind.VariableDeclaration);
                                 {
-                                    N(SyntaxKind.AwaitKeyword);
-                                    N(SyntaxKind.ParenthesizedExpression);
+                                    N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.ThisExpression);
+                                        N(SyntaxKind.IdentifierToken, "await");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.BracketedArgumentList);
                                         {
-                                            N(SyntaxKind.ThisKeyword);
+                                            M(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.ThisExpression);
+                                                {
+                                                    N(SyntaxKind.ThisKeyword);
+                                                }
+                                            }
+                                            M(SyntaxKind.CloseBracketToken);
                                         }
-                                        N(SyntaxKind.CloseParenToken);
                                     }
                                 }
-                                M(SyntaxKind.CloseParenToken);
-                                N(SyntaxKind.Block);
-                                {
-                                    N(SyntaxKind.OpenBraceToken);
-                                    N(SyntaxKind.CloseBraceToken);
-                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
                             }
                             N(SyntaxKind.CloseBraceToken);
                         }

@@ -136,18 +136,15 @@ var t = maybeNull; // t is !
 ```
 
 ### Suppression operator (`!`)
-The postfix `!` operator sets the top-level nullability to non-nullable.
+The postfix `!` operator sets the top-level nullability to non-nullable. Conversions on a suppressed expression produce no nullability warnings.
 ```c#
 var x = optionalString!; // x is string!
 var y = obliviousString!; // y is string!
 var z = new [] { optionalString, obliviousString }!; // no change, z is string?[]!
 ```
-An error is reported whenever the `!` operator is applied to a value type.
 A warning is reported when using the `!` operator absent a `NonNullTypes` context.
 
-_Should `!` suppress warnings for nested nullability?_
-_Should `nonNull!` result in a warning for unnecessary `!`?_
-_Should `!!` be an error?_
+Unnecessary usages of `!` do not produce any diagnostics, including `!!`.
 
 ### Explicit cast
 Explicit cast to `?` changes top-level nullability.

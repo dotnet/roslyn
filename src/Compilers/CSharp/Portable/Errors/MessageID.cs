@@ -169,6 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureIndexOperator = MessageBase + 12749,
         IDS_FeatureRangeOperator = MessageBase + 12750,
         IDS_FeatureAsyncStreams = MessageBase + 12751,
+        IDS_FeatureRecursivePatterns = MessageBase + 12752,
+        IDS_Disposable = MessageBase + 12753,
+        IDS_FeatureUsingDeclarations = MessageBase + 12754,
+        IDS_FeatureStaticLocalFunctions = MessageBase + 12755,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -229,6 +233,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
+            Debug.Assert(RequiredFeature(feature) == null);
+
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
@@ -242,6 +248,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureIndexOperator: // semantic check
                 case MessageID.IDS_FeatureRangeOperator: // semantic check
                 case MessageID.IDS_FeatureAsyncStreams:
+                case MessageID.IDS_FeatureRecursivePatterns:
+                case MessageID.IDS_FeatureUsingDeclarations:
+                case MessageID.IDS_FeatureStaticLocalFunctions:
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.
