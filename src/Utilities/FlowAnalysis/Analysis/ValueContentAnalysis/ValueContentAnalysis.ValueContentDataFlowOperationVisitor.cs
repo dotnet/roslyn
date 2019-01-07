@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
                 => CurrentAnalysisData.AddTrackedEntities(builder);
 
+            protected override void ResetAbstractValue(AnalysisEntity analysisEntity)
+                => SetAbstractValue(analysisEntity, ValueDomain.UnknownOrMayBeValue);
+
             protected override void SetAbstractValue(AnalysisEntity analysisEntity, ValueContentAbstractValue value)
                 => SetAbstractValue(CurrentAnalysisData, analysisEntity, value);
 

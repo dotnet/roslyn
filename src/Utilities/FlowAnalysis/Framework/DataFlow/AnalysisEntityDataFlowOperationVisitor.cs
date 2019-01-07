@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected abstract void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false);
         protected abstract void SetAbstractValue(AnalysisEntity analysisEntity, TAbstractAnalysisValue value);
+        protected abstract void ResetAbstractValue(AnalysisEntity analysisEntity);
         protected abstract TAbstractAnalysisValue GetAbstractValue(AnalysisEntity analysisEntity);
         protected abstract bool HasAbstractValue(AnalysisEntity analysisEntity);
         protected abstract void StopTrackingEntity(AnalysisEntity analysisEntity);
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var keys = currentAnalysisDataOpt?.Keys.ToImmutableArray();
             foreach (var key in keys)
             {
-                SetAbstractValue(key, ValueDomain.UnknownOrMayBeValue);
+                ResetAbstractValue(key);
             }
         }
 
@@ -279,8 +280,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             foreach (var dependentAnalysisEntity in dependantAnalysisEntities)
             {
-                // Reset value.
-                SetAbstractValue(dependentAnalysisEntity, ValueDomain.UnknownOrMayBeValue);
+                ResetAbstractValue(dependentAnalysisEntity);
             }
         }
 

@@ -91,6 +91,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             
             protected override CopyAbstractValue GetAbstractDefaultValue(ITypeSymbol type) => CopyAbstractValue.NotApplicable;
 
+            protected override void ResetAbstractValue(AnalysisEntity analysisEntity)
+                => SetAbstractValue(analysisEntity, GetResetValue(analysisEntity));
+
             protected override void SetAbstractValue(AnalysisEntity analysisEntity, CopyAbstractValue value)
             {
                 Debug.Assert(analysisEntity != null);
@@ -245,8 +248,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 // Do not escape the copy value for parameter at exit.
             }
 
+            private CopyAbstractValue GetResetValue(AnalysisEntity analysisEntity)
+                => GetResetValue(analysisEntity, GetAbstractValue(analysisEntity));
             private CopyAbstractValue GetResetValue(AnalysisEntity analysisEntity, CopyAbstractValue currentValue)
                 => currentValue.AnalysisEntities.Count > 1 ? GetDefaultCopyValue(analysisEntity) : currentValue;
+
             protected override void ResetCurrentAnalysisData() => CurrentAnalysisData.Reset(GetResetValue);
 
             protected override CopyAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, CopyAbstractValue defaultValue)
