@@ -264,7 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             await EnsureOleCommandTargetAsync().ConfigureAwait(false);
 
-           // poll until either suspend or resume botton is available, or until operation is canceled
+            // poll until either suspend or resume botton is available, or until operation is canceled
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -284,32 +284,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     return ReSharperStatus.NotInstalledOrDisabled;
                 }
 
-                // When ReSharper is suspended, the ReSharper_Resume command is Enabled and not Invisible
-                if (((OLECMDF)resumeFlag).HasFlag(OLECMDF.OLECMDF_ENABLED) && !((OLECMDF)resumeFlag).HasFlag(OLECMDF.OLECMDF_INVISIBLE))
-                {
-                    return ReSharperStatus.Suspended;
-                }
-
                 // When ReSharper is running, the ReSharper_Suspend command is Enabled and not Invisible
-                if (((OLECMDF)suspendFlag).HasFlag(OLECMDF.OLECMDF_ENABLED) && !((OLECMDF)suspendFlag).HasFlag(OLECMDF.OLECMDF_INVISIBLE))
+                if ((suspendFlag).HasFlag(OLECMDF.OLECMDF_ENABLED) && !(suspendFlag).HasFlag(OLECMDF.OLECMDF_INVISIBLE))
                 {
                     return ReSharperStatus.Enabled;
+                }
+
+                // When ReSharper is suspended, the ReSharper_Resume command is Enabled and not Invisible
+                if ((resumeFlag).HasFlag(OLECMDF.OLECMDF_ENABLED) && !(resumeFlag).HasFlag(OLECMDF.OLECMDF_INVISIBLE))
+                {
+                    return ReSharperStatus.Suspended;
                 }
 
                 // ReSharper has not finished initializing, so try again later
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken).ConfigureAwait(false);
             }
 
-            async Task<int> QueryStatusAsync(uint cmdId)
+            async Task<OLECMDF> QueryStatusAsync(uint cmdId)
             {
-                var hr = await QueryStatusAsync(cmdId).ConfigureAwait(false);
-                if (ErrorHandler.Failed(hr))
-                {
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
-                    await ShutdownAsync().ConfigureAwait(false);
-                    return 0;
-                }
-
                 var cmds = new OLECMD[1];
                 cmds[0].cmdID = cmdId;
                 cmds[0].cmdf = 0;
@@ -317,7 +309,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                return _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
+                var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
+                if (ErrorHandler.Failed(hr))
+                {
+                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    await ShutdownAsync().ConfigureAwait(false);
+
+                    return 0;
+                }
+
+                return (OLECMDF)cmds[0].cmdf;
             }
 
             async Task EnsureOleCommandTargetAsync()
