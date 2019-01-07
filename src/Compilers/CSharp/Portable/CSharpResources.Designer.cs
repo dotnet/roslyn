@@ -8242,6 +8242,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pattern-matching is not permitted for pointer types..
+        /// </summary>
+        internal static string ERR_PointerTypeInPatternMatching {
+            get {
+                return ResourceManager.GetString("ERR_PointerTypeInPatternMatching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The body of an async-iterator method must contain a &apos;yield&apos; statement..
         /// </summary>
         internal static string ERR_PossibleAsyncIteratorWithoutYield {
@@ -8256,15 +8265,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_PossibleAsyncIteratorWithoutYieldOrAwait {
             get {
                 return ResourceManager.GetString("ERR_PossibleAsyncIteratorWithoutYieldOrAwait", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pattern-matching is not permitted for pointer types..
-        /// </summary>
-        internal static string ERR_PointerTypeInPatternMatching {
-            get {
-                return ResourceManager.GetString("ERR_PointerTypeInPatternMatching", resourceCulture);
             }
         }
         
@@ -11312,6 +11312,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to warning action enable or safeonly.
+        /// </summary>
+        internal static string IDS_FeaturePragmaWarningEnableOrSafeOnly {
+            get {
+                return ResourceManager.GetString("IDS_FeaturePragmaWarningEnableOrSafeOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to private protected.
         /// </summary>
         internal static string IDS_FeaturePrivateProtected {
@@ -14149,7 +14158,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected disable or restore.
+        ///   Looks up a localized string similar to Expected disable, restore, enable or safeonly.
         /// </summary>
         internal static string WRN_IllegalPPWarning {
             get {
@@ -14158,11 +14167,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected disable or restore after #pragma warning.
+        ///   Looks up a localized string similar to Expected disable, restore, enable or safeonly after #pragma warning.
         /// </summary>
         internal static string WRN_IllegalPPWarning_Title {
             get {
                 return ResourceManager.GetString("WRN_IllegalPPWarning_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected nullable.
+        /// </summary>
+        internal static string WRN_IllegalPPWarningSafeOnly {
+            get {
+                return ResourceManager.GetString("WRN_IllegalPPWarningSafeOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected nullable after #pragma warning safeonly.
+        /// </summary>
+        internal static string WRN_IllegalPPWarningSafeOnly_Title {
+            get {
+                return ResourceManager.GetString("WRN_IllegalPPWarningSafeOnly_Title", resourceCulture);
             }
         }
         
