@@ -32,12 +32,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
             Public Overrides Function VisitMemberAccessExpression(node As MemberAccessExpressionSyntax) As SyntaxNode
                 ' Ignore name node in member access expression, since we can't replace it with the new variable.
-                ' For example:
+                ' For example, even though the first `c` binds to a field And we are introducing a local for it,
+                ' we don't want other refrences to that field to be replaced as well.
                 '
                 '   Class C
                 '       Dim c As C
                 '       Sub Foo()
-                '           Dim y = [|c|].c.c
+                '           Dim y = [|c|].c
                 '       End Sub
                 '   End Class
 

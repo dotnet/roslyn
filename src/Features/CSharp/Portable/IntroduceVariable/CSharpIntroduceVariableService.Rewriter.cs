@@ -37,14 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
             {
                 // Ignore name node in member access expression, since we can't replace it with the new variable.
-                // For example:
+                // For example, even though the first `c` binds to a field and we are introducing a local for it,
+                // we don't want other refrences to that field to be replaced as well.
                 //
                 //  class C
                 //  {
                 //      C c;
                 //      void Test()
                 //      {
-                //          var x = [|c|].c.c;
+                //          var x = [|c|].c;
                 //      }
                 //  }
 
