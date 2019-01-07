@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// The method whose body is being analyzed, or the field whose initializer is being analyzed.
-        /// It is used for
-        /// references to method parameters. Thus, 'member' should not be used directly, but
+        /// May be a top-level member or a lambda or local function. It is used for
+        /// references to method parameters. Thus, '_symbol' should not be used directly, but
         /// 'MethodParameters', 'MethodThisParameter' and 'AnalyzeOutParameters(...)' should be used
         /// instead.
         /// </summary>
-        protected readonly Symbol _member;
+        protected readonly Symbol _symbol;
 
         /// <summary>
         /// The bound node of the method or initializer being analyzed.
@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void SetState(TLocalState newState)
         {
+            Debug.Assert(newState != null);
             StateWhenTrue = StateWhenFalse = default(TLocalState);
             IsConditionalState = false;
             State = newState;
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected AbstractFlowPass(
             CSharpCompilation compilation,
-            Symbol member,
+            Symbol symbol,
             BoundNode node,
             BoundNode firstInRegion = null,
             BoundNode lastInRegion = null,
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _labels = PooledDictionary<LabelSymbol, TLocalState>.GetInstance();
             this.Diagnostics = DiagnosticBag.GetInstance();
             this.compilation = compilation;
-            _member = member;
+            _symbol = symbol;
             this.methodMainNode = node;
             this.firstInRegion = firstInRegion;
             this.lastInRegion = lastInRegion;
@@ -346,31 +347,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public readonly BoundNode Branch;
             public TLocalState State;
-            public LabelSymbol Label
-            {
-                get
-                {
-                    if (Branch == null)
-                    {
-                        return null;
-                    }
+            public readonly LabelSymbol Label;
 
-                    switch (Branch.Kind)
-                    {
-                        case BoundKind.GotoStatement: return ((BoundGotoStatement)Branch).Label;
-                        case BoundKind.ConditionalGoto: return ((BoundConditionalGoto)Branch).Label;
-                        case BoundKind.BreakStatement: return ((BoundBreakStatement)Branch).Label;
-                        case BoundKind.ContinueStatement: return ((BoundContinueStatement)Branch).Label;
-                        case BoundKind.PatternSwitchLabel: return ((BoundPatternSwitchLabel)Branch).Label;
-                        default: return null;
-                    }
-                }
-            }
-
-            public PendingBranch(BoundNode branch, TLocalState state)
+            public PendingBranch(BoundNode branch, TLocalState state, LabelSymbol label)
             {
                 this.Branch = branch;
                 this.State = state.Clone();
+                this.Label = label;
             }
         }
 
@@ -427,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = _member as MethodSymbol;
+                var method = _symbol as MethodSymbol;
                 return (object)method == null ? ImmutableArray<ParameterSymbol>.Empty : method.Parameters;
             }
         }
@@ -440,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = _member as MethodSymbol;
+                var method = _symbol as MethodSymbol;
                 return (object)method == null ? null : method.ThisParameter;
             }
         }
@@ -454,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>true if the out parameters of the method should be analyzed</returns>
         protected bool ShouldAnalyzeOutParameters(out Location location)
         {
-            var method = _member as MethodSymbol;
+            var method = _symbol as MethodSymbol;
             if ((object)method == null || method.Locations.Length != 1)
             {
                 location = null;
@@ -532,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     var access = (BoundPropertyAccess)node;
 
-                    if (Binder.AccessingAutoPropertyFromConstructor(access, _member))
+                    if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol))
                     {
                         var backingField = (access.PropertySymbol as SourcePropertySymbol)?.BackingField;
                         if (backingField != null)
@@ -879,15 +862,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         break;
-                    case BoundKind.PatternSwitchSection:
-                        {
-                            var sec = (BoundPatternSwitchSection)node;
-                            foreach (var label in sec.SwitchLabels)
-                            {
-                                stateChangedAfterUse |= ResolveBranches(label.Label, sec);
-                            }
-                        }
-                        break;
                     default:
                         // there are no other kinds of labels
                         throw ExceptionUtilities.UnexpectedValue(node.Kind);
@@ -941,76 +915,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             VisitRvalue(node.Expression);
-            VisitPattern(node.Expression, node.Pattern);
+            VisitPattern(node.Pattern);
+            var reachableLabels = node.DecisionDag.ReachableLabels;
+            if (!reachableLabels.Contains(node.WhenTrueLabel))
+            {
+                SetState(this.StateWhenFalse);
+                SetConditionalState(UnreachableState(), this.State);
+            }
+            else if (!reachableLabels.Contains(node.WhenFalseLabel))
+            {
+                SetState(this.StateWhenTrue);
+                SetConditionalState(this.State, UnreachableState());
+            }
+
             return node;
         }
 
-        public virtual void VisitPattern(BoundExpression expression, BoundPattern pattern)
+        public virtual void VisitPattern(BoundPattern pattern)
         {
             Split();
-            if (expression != null)
-            {
-                bool? knownMatch = CheckRefutations(expression, pattern);
-                switch (knownMatch)
-                {
-                    case true:
-                        SetState(StateWhenTrue);
-                        SetConditionalState(this.State, UnreachableState());
-                        break;
-                    case false:
-                        SetState(StateWhenFalse);
-                        SetConditionalState(UnreachableState(), this.State);
-                        break;
-                    case null:
-                        break;
-                }
-            }
         }
 
         public override BoundNode VisitConstantPattern(BoundConstantPattern node)
         {
             // All patterns are handled by VisitPattern
             throw ExceptionUtilities.Unreachable;
-        }
-
-        /// <summary>
-        /// Check if the given expression is known to *always* match, or *always* fail against the given pattern.
-        /// Return true for known match, false for known fail, and null otherwise. Used for the "is pattern" expression.
-        /// </summary>
-        private static bool? CheckRefutations(BoundExpression expression, BoundPattern pattern)
-        {
-            Debug.Assert(expression != null);
-            switch (pattern.Kind)
-            {
-                case BoundKind.DeclarationPattern:
-                    {
-                        var declPattern = (BoundDeclarationPattern)pattern;
-                        if (declPattern.IsVar || // var pattern always matches
-                            declPattern.DeclaredType?.Type?.IsValueType == true && declPattern.DeclaredType.Type == (object)expression.Type) // exact match
-                        {
-                            return true;
-                        }
-                        Debug.Assert(!declPattern.IsVar);
-                        switch (expression.ConstantValue?.IsNull)
-                        {
-                            case true: return false;
-                            case false: return true;
-                            default: return null;
-                        }
-                    }
-                case BoundKind.ConstantPattern:
-                    {
-                        var constPattern = (BoundConstantPattern)pattern;
-                        if (expression.ConstantValue == null || constPattern.ConstantValue == null)
-                        {
-                            return null;
-                        }
-
-                        return Equals(expression.ConstantValue.Value, constPattern.ConstantValue.Value);
-                    }
-            }
-
-            return null;
         }
 
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
@@ -1651,6 +1580,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitStatement(finallyBlock); // this should generate no pending branches
         }
 
+        public override BoundNode VisitExtractedFinallyBlock(BoundExtractedFinallyBlock node)
+        {
+            return VisitBlock(node.FinallyBlock);
+        }
+
         public sealed override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             var result = VisitReturnStatementNoAdjust(node);
@@ -1673,7 +1607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AdjustStateAfterReturnStatement(BoundReturnStatement node)
         {
-            PendingBranches.Add(new PendingBranch(node, this.State));
+            PendingBranches.Add(new PendingBranch(node, this.State, null));
             SetUnreachable();
         }
 
@@ -1737,7 +1671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _member);
+            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _symbol);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -1872,7 +1806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var property = node.PropertySymbol;
 
-            if (Binder.AccessingAutoPropertyFromConstructor(node, _member))
+            if (Binder.AccessingAutoPropertyFromConstructor(node, _symbol))
             {
                 var backingField = (property as SourcePropertySymbol)?.BackingField;
                 if (backingField != null)
@@ -1923,6 +1857,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        public override BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
+        {
+            if (AwaitUsingAndForeachAddsPendingBranch && node.AwaitOpt != null)
+            {
+                PendingBranches.Add(new PendingBranch(node, this.State, null));
+            }
+            return VisitMultipleLocalDeclarations(node);
         }
 
         public override BoundNode VisitWhileStatement(BoundWhileStatement node)
@@ -2183,7 +2126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             VisitRvalue(node.Expression);
-            PendingBranches.Add(new PendingBranch(node, this.State));
+            PendingBranches.Add(new PendingBranch(node, this.State, null));
             return null;
         }
 
@@ -2286,9 +2229,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             LoopTail(node);
             ResolveBreaks(breakState, node.BreakLabel);
 
-            if (((CommonForEachStatementSyntax)node.Syntax).AwaitKeyword != default)
+            if (AwaitUsingAndForeachAddsPendingBranch && ((CommonForEachStatementSyntax)node.Syntax).AwaitKeyword != default)
             {
-                PendingBranches.Add(new PendingBranch(node, this.State));
+                PendingBranches.Add(new PendingBranch(node, this.State, null));
             }
 
             return null;
@@ -2476,7 +2419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBreakStatement(BoundBreakStatement node)
         {
             Debug.Assert(!this.IsConditionalState);
-            PendingBranches.Add(new PendingBranch(node, this.State));
+            PendingBranches.Add(new PendingBranch(node, this.State, node.Label));
             SetUnreachable();
             return null;
         }
@@ -2484,7 +2427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitContinueStatement(BoundContinueStatement node)
         {
             Debug.Assert(!this.IsConditionalState);
-            PendingBranches.Add(new PendingBranch(node, this.State));
+            PendingBranches.Add(new PendingBranch(node, this.State, node.Label));
             SetUnreachable();
             return null;
         }
@@ -2559,7 +2502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitGotoStatement(BoundGotoStatement node)
         {
             Debug.Assert(!this.IsConditionalState);
-            PendingBranches.Add(new PendingBranch(node, this.State));
+            PendingBranches.Add(new PendingBranch(node, this.State, node.Label));
             SetUnreachable();
             return null;
         }
@@ -2623,14 +2566,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitStatement(node.Body);
 
-            if (AwaitUsingAddsPendingBranch && node.AwaitOpt != null)
+            if (AwaitUsingAndForeachAddsPendingBranch && node.AwaitOpt != null)
             {
-                PendingBranches.Add(new PendingBranch(node, this.State));
+                PendingBranches.Add(new PendingBranch(node, this.State, null));
             }
             return null;
         }
 
-        public abstract bool AwaitUsingAddsPendingBranch { get; }
+        public abstract bool AwaitUsingAndForeachAddsPendingBranch { get; }
 
         public override BoundNode VisitFixedStatement(BoundFixedStatement node)
         {
@@ -2656,7 +2599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitYieldBreakStatement(BoundYieldBreakStatement node)
         {
             Debug.Assert(!this.IsConditionalState);
-            PendingBranches.Add(new PendingBranch(node, this.State));
+            PendingBranches.Add(new PendingBranch(node, this.State, null));
             SetUnreachable();
             return null;
         }
@@ -2664,7 +2607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
             VisitRvalue(node.Expression);
-            PendingBranches.Add(new PendingBranch(node, this.State));
+            PendingBranches.Add(new PendingBranch(node, this.State, null));
             return null;
         }
 
@@ -2773,12 +2716,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(this.IsConditionalState);
             if (node.JumpIfTrue)
             {
-                PendingBranches.Add(new PendingBranch(node, this.StateWhenTrue));
+                PendingBranches.Add(new PendingBranch(node, this.StateWhenTrue, node.Label));
                 this.SetState(this.StateWhenFalse);
             }
             else
             {
-                PendingBranches.Add(new PendingBranch(node, this.StateWhenFalse));
+                PendingBranches.Add(new PendingBranch(node, this.StateWhenFalse, node.Label));
                 this.SetState(this.StateWhenTrue);
             }
 

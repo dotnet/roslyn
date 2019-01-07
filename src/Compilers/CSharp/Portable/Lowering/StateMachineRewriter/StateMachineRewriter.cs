@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected FieldSymbol stateField;
         protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies;
         protected int nextFreeHoistedLocalSlot;
-        protected IReadOnlySet<Symbol> hoistedVariables;
+        protected IOrderedReadOnlySet<Symbol> hoistedVariables;
         protected Dictionary<Symbol, CapturedSymbolReplacement> initialParameters;
         protected FieldSymbol initialThreadIdField;
 
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(body != null);
             Debug.Assert(method != null);
-            Debug.Assert(stateMachineType != null);
+            Debug.Assert((object)stateMachineType != null);
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
 
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.diagnostics = diagnostics;
 
             this.F = new SyntheticBoundNodeFactory(method, body.Syntax, compilationState, diagnostics);
-            Debug.Assert(F.CurrentType == method.ContainingType);
+            Debug.Assert(TypeSymbol.Equals(F.CurrentType, method.ContainingType, TypeCompareKind.ConsiderEverything2));
             Debug.Assert(F.Syntax == body.Syntax);
         }
 
@@ -151,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (local.RefKind != RefKind.None)
                     {
                         // we'll create proxies for these variables later:
-                        Debug.Assert(synthesizedKind == SynthesizedLocalKind.AwaitSpill);
+                        Debug.Assert(synthesizedKind == SynthesizedLocalKind.Spill);
                         continue;
                     }
 
@@ -250,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var synthesizedKind = local.SynthesizedKind;
             var optimizationLevel = F.Compilation.Options.OptimizationLevel;
 
-            // do not preallocate proxiy fields for user defined locals in release
+            // do not preallocate proxy fields for user defined locals in release
             // otherwise we will be allocating fields for all locals even when fields can be reused
             // see https://github.com/dotnet/roslyn/issues/15290
             if (optimizationLevel == OptimizationLevel.Release && synthesizedKind == SynthesizedLocalKind.UserDefined)
@@ -365,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    if (this.initialThreadId == {managedThreadId} && this.state == -2)
             //    {
             //        this.state = {initialState};
+            //        extraReset
             //        result = this;
             //    }
             //    else
@@ -390,18 +393,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)initialThreadIdField != null)
             {
                 managedThreadId = MakeCurrentThreadId();
+
+                var thenBuilder = ArrayBuilder<BoundStatement>.GetInstance(4);
+                thenBuilder.Add(
+                    // this.state = {initialState};
+                    F.Assignment(F.Field(F.This(), stateField), F.Literal(initialState)));
+
+                thenBuilder.Add(
+                    // result = this;
+                    F.Assignment(F.Local(resultVariable), F.This()));
+
+                var extraReset = GetExtraResetForIteratorGetEnumerator();
+                if (extraReset != null)
+                {
+                    thenBuilder.Add(extraReset);
+                }
+
+                thenBuilder.Add(
+                    method.IsStatic || method.ThisParameter.Type.IsReferenceType ? // if this is a reference type, no need to copy it since it is not assignable
+                        F.Goto(thisInitialized) : // goto thisInitialized
+                        (BoundStatement)F.StatementList());
+
                 makeIterator = F.If(
                     // if (this.state == -2 && this.initialThreadId == Thread.CurrentThread.ManagedThreadId)
                     condition: F.LogicalAnd(
-                            F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                        F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
                         F.IntEqual(F.Field(F.This(), initialThreadIdField), managedThreadId)),
-                    thenClause: F.Block(
-                            F.Assignment(F.Field(F.This(), stateField), F.Literal(initialState)), // this.state = {initialState};
-                            F.Assignment(F.Local(resultVariable), F.This()), // result = this;
-                            method.IsStatic || method.ThisParameter.Type.IsReferenceType ? // if this is a reference type, no need to copy it since it is not assignable
-                                F.Goto(thisInitialized) : // goto thisInitialized
-                                (BoundStatement)F.StatementList()),
-                    // else result = new {StateMachineType}({initialState})
+                    thenClause: F.Block(thenBuilder.ToImmutableAndFree()),
                     elseClauseOpt: makeIterator);
             }
 
@@ -441,6 +459,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CloseMethod(F.Block(ImmutableArray.Create(resultVariable), bodyBuilder.ToImmutableAndFree()));
             return getEnumerator;
         }
+
+        /// <summary>
+        /// Async-iterator methods use a GetAsyncEnumerator method just like the GetEnumerator of iterator methods.
+        /// But they need to do a bit more work (to reset the dispose mode).
+        /// </summary>
+        protected virtual BoundStatement GetExtraResetForIteratorGetEnumerator() => null;
 
         /// <summary>
         /// Returns true if either Thread.ManagedThreadId or Environment.CurrentManagedThreadId are available

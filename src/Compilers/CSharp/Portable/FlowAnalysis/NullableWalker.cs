@@ -51,11 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledDictionary<Symbol, TypeSymbolWithAnnotations> _variableTypes = PooledDictionary<Symbol, TypeSymbolWithAnnotations>.GetInstance();
 
-        /// <summary>
-        /// The current source assembly.
-        /// </summary>
-        private readonly SourceAssemblySymbol _sourceAssembly;
-
         private readonly Binder _binder;
 
         /// <summary>
@@ -82,9 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly MethodSymbol _methodSignatureOpt;
 
         /// <summary>
-        /// Types from return expressions. Used when inferring lambda return type in MethodTypeInferrer.
+        /// Return statements and the result types from analyzing the returned expressions. Used when inferring lambda return type in MethodTypeInferrer.
         /// </summary>
-        private readonly ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> _returnTypes;
+        private readonly ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> _returnTypesOpt;
 
         /// <summary>
         /// An optional callback for callers to receive notification of the inferred type and nullability
@@ -105,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Instances being constructed.
         /// </summary>
-        private PooledDictionary<BoundExpression, ObjectCreationPlaceholderLocal> _placeholderLocals;
+        private PooledDictionary<BoundExpression, ObjectCreationPlaceholderLocal> _placeholderLocalsOpt;
 
         /// <summary>
         /// For methods with annotations, we'll need to visit the arguments twice.
@@ -122,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void Free()
         {
             _variableTypes.Free();
-            _placeholderLocals?.Free();
+            _placeholderLocalsOpt?.Free();
             base.Free();
         }
 
@@ -133,12 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useMethodSignatureParameterTypes,
             MethodSymbol methodSignatureOpt,
             BoundNode node,
-            ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
+            ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypesOpt,
             VariableState initialState,
             Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
             : base(compilation, method, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: true)
         {
-            _sourceAssembly = (method is null) ? null : (SourceAssemblySymbol)method.ContainingAssembly;
             _callbackOpt = callbackOpt;
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             Debug.Assert(!_binder.Conversions.IncludeNullability);
@@ -146,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _useMethodSignatureReturnType = (object)methodSignatureOpt != null && useMethodSignatureReturnType;
             _useMethodSignatureParameterTypes = (object)methodSignatureOpt != null && useMethodSignatureParameterTypes;
             _methodSignatureOpt = methodSignatureOpt;
-            _returnTypes = returnTypes;
+            _returnTypesOpt = returnTypesOpt;
             if (initialState != null)
             {
                 var variableBySlot = initialState.VariableBySlot;
@@ -164,8 +158,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // For purpose of nullability analysis, awaits create pending branches, so async usings do too
-        public sealed override bool AwaitUsingAddsPendingBranch => true;
+        // For purpose of nullability analysis, awaits create pending branches, so async usings and foreachs do too
+        public sealed override bool AwaitUsingAndForeachAddsPendingBranch => true;
 
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
@@ -174,9 +168,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
         {
-            if (_returnTypes != null)
+            if (_returnTypesOpt != null)
             {
-                _returnTypes.Clear();
+                _returnTypesOpt.Clear();
             }
             this.Diagnostics.Clear();
             ParameterSymbol methodThisParameter = MethodThisParameter;
@@ -211,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLambda lambda,
             DiagnosticBag diagnostics,
             MethodSymbol delegateInvokeMethod,
-            ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
+            ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypes,
             VariableState initialState)
         {
             Analyze(
@@ -234,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useMethodSignatureReturnType,
             bool useMethodSignatureParameterTypes,
             MethodSymbol methodSignatureOpt,
-            ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
+            ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypes,
             VariableState initialState,
             Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
         {
@@ -380,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Remove this and populate struct members lazily to match classes.
         private Symbol GetBackingFieldIfStructProperty(Symbol symbol)
         {
-            if (symbol.Kind == SymbolKind.Property)
+            if (symbol.Kind == SymbolKind.Property && !symbol.ContainingType.IsNullableType())
             {
                 var property = (PropertySymbol)symbol;
                 var containingType = property.ContainingType;
@@ -411,10 +405,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (node.Kind)
             {
+                case BoundKind.ThisReference:
+                case BoundKind.BaseReference:
+                    {
+                        var method = getTopLevelMethod(_symbol as MethodSymbol);
+                        var thisParameter = method?.ThisParameter;
+                        return (object)thisParameter != null ? GetOrCreateSlot(thisParameter) : -1;
+                    }
+                case BoundKind.Conversion:
+                    {
+                        var conv = (BoundConversion)node;
+                        if (conv.Conversion.Kind == ConversionKind.ExplicitNullable)
+                        {
+                            var operand = conv.Operand;
+                            var operandType = operand.Type;
+                            var convertedType = conv.Type;
+                            if (operandType?.IsNullableType() == true &&
+                                convertedType?.IsNullableType() == false &&
+                                operandType.GetNullableUnderlyingType().Equals(convertedType, TypeCompareKind.AllIgnoreOptions))
+                            {
+                                // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
+                                // For instance, in the following, when evaluating `((A)a).B` we need to recognize
+                                // the nullability of `(A)a` (not nullable) and the slot (the slot for `a.Value`).
+                                //   struct A { B? B; }
+                                //   struct B { }
+                                //   if (a?.B != null) _ = ((A)a).B.Value; // no warning
+                                int containingSlot = MakeSlot(operand);
+                                return containingSlot < 0 ? -1 : GetNullableOfTValueSlot(operandType, containingSlot);
+                            }
+                        }
+                    }
+                    break;
                 case BoundKind.ObjectCreationExpression:
                 case BoundKind.DynamicObjectCreationExpression:
                 case BoundKind.AnonymousObjectCreationExpression:
-                    if (_placeholderLocals != null && _placeholderLocals.TryGetValue(node, out ObjectCreationPlaceholderLocal placeholder))
+                    if (_placeholderLocalsOpt != null && _placeholderLocalsOpt.TryGetValue(node, out ObjectCreationPlaceholderLocal placeholder))
                     {
                         return GetOrCreateSlot(placeholder);
                     }
@@ -429,6 +454,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
             return base.MakeSlot(node);
+
+            MethodSymbol getTopLevelMethod(MethodSymbol method)
+            {
+                while ((object)method != null)
+                {
+                    var container = method.ContainingSymbol;
+                    if (container.Kind == SymbolKind.NamedType)
+                    {
+                        return method;
+                    }
+                    method = container as MethodSymbol;
+                }
+                return null;
+            }
         }
 
         private new void VisitLvalue(BoundExpression node)
@@ -444,19 +483,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                     {
                         var fieldAccess = (BoundFieldAccess)node;
-                        VisitMemberAccess(fieldAccess.ReceiverOpt, fieldAccess.FieldSymbol, asLvalue: true);
+                        VisitMemberAccess(node, fieldAccess.ReceiverOpt, fieldAccess.FieldSymbol, asLvalue: true);
                     }
                     break;
                 case BoundKind.PropertyAccess:
                     {
                         var propertyAccess = (BoundPropertyAccess)node;
-                        VisitMemberAccess(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, asLvalue: true);
+                        VisitMemberAccess(node, propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, asLvalue: true);
                     }
                     break;
                 case BoundKind.EventAccess:
                     {
                         var eventAccess = (BoundEventAccess)node;
-                        VisitMemberAccess(eventAccess.ReceiverOpt, eventAccess.EventSymbol, asLvalue: true);
+                        VisitMemberAccess(node, eventAccess.ReceiverOpt, eventAccess.EventSymbol, asLvalue: true);
                     }
                     break;
                 case BoundKind.ObjectInitializerMember:
@@ -495,6 +534,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool ReportNullableAssignmentIfNecessary(BoundExpression value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings, AssignmentKind assignmentKind = AssignmentKind.Assignment, Symbol target = null)
         {
+            Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
+
             if (value == null)
             {
                 return false;
@@ -515,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (reportNullLiteralAssignmentIfNecessary())
+            if (reportNullLiteralAssignmentIfNecessary(value))
             {
                 return true;
             }
@@ -527,37 +568,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (assignmentKind == AssignmentKind.Argument)
             {
-                ReportDiagnostic(ErrorCode.WRN_NullReferenceArgument, value.Syntax,
+                ReportSafetyDiagnostic(ErrorCode.WRN_NullReferenceArgument, value.Syntax,
                     new FormattedSymbol(target, SymbolDisplayFormat.ShortFormat),
                     new FormattedSymbol(target.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
             else if (useLegacyWarnings)
             {
-                ReportWWarning(value.Syntax);
+                ReportNonSafetyDiagnostic(value.Syntax);
             }
             else
             {
-                ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullReferenceAssignment, value.Syntax);
+                ReportSafetyDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullReferenceAssignment, value.Syntax);
             }
 
             return true;
 
             // Report warning converting null literal to non-nullable reference type.
             // target (e.g.: `object x = null;` or calling `void F(object y)` with `F(null)`).
-            bool reportNullLiteralAssignmentIfNecessary()
+            bool reportNullLiteralAssignmentIfNecessary(BoundExpression expr)
             {
-                if (value.ConstantValue?.IsNull != true && !isDefaultOfUnconstrainedTypeParameter(value))
+                if (expr.ConstantValue?.IsNull != true && !isDefaultOfUnconstrainedTypeParameter(expr))
                 {
                     return false;
                 }
 
                 if (useLegacyWarnings)
                 {
-                    ReportWWarning(value.Syntax);
+                    ReportNonSafetyDiagnostic(expr.Syntax);
                 }
                 else
                 {
-                    ReportDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, value.Syntax);
+                    ReportSafetyDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, expr.Syntax);
                 }
                 return true;
             }
@@ -573,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 isDefaultOfUnconstrainedTypeParameter(conversion.Operand);
                         }
                     case BoundKind.DefaultExpression:
-                        return IsUnconstrainedTypeParameter(expr.Type);
+                        return IsTypeParameterDisallowingAnnotation(expr.Type);
                     default:
                         return false;
                 }
@@ -600,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var destinationType = targetType.TypeSymbol;
                 if ((object)sourceType != null && IsNullabilityMismatch(destinationType, sourceType))
                 {
-                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, value.Syntax, sourceType, destinationType);
+                    ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, value.Syntax, sourceType, destinationType);
                 }
             }
         }
@@ -696,11 +737,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private void ReportWWarning(SyntaxNode syntax)
+        private void ReportNonSafetyDiagnostic(SyntaxNode syntax)
         {
-            ReportDiagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, syntax);
+            ReportNonSafetyDiagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, syntax);
         }
 
+        private void ReportNonSafetyDiagnostic(ErrorCode errorCode, SyntaxNode syntax)
+        {
+            // All warnings should be in the `#pragma warning ... nullable` set.
+            Debug.Assert(!ErrorFacts.NullableFlowAnalysisSafetyWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)errorCode)));
+            Debug.Assert(ErrorFacts.NullableFlowAnalysisNonSafetyWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)errorCode)));
+#pragma warning disable CS0618
+            ReportDiagnostic(errorCode, syntax);
+#pragma warning restore CS0618
+        }
+
+        private void ReportSafetyDiagnostic(ErrorCode errorCode, SyntaxNode syntaxNode, params object[] arguments)
+        {
+            // All warnings should be in the `#pragma warning ... nullable` set.
+            Debug.Assert(ErrorFacts.NullableFlowAnalysisSafetyWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)errorCode)));
+            Debug.Assert(!ErrorFacts.NullableFlowAnalysisNonSafetyWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)errorCode)));
+#pragma warning disable CS0618
+            ReportDiagnostic(errorCode, syntaxNode, arguments);
+#pragma warning restore CS0618
+        }
+
+        [Obsolete("Use ReportSafetyDiagnostic/ReportNonSafetyDiagnostic instead", error: false)]
         private void ReportDiagnostic(ErrorCode errorCode, SyntaxNode syntaxNode, params object[] arguments)
         {
             if (!_disableDiagnostics)
@@ -729,14 +791,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbolWithAnnotations fieldOrPropertyType = member.GetTypeOrReturnType();
 
-            if (fieldOrPropertyType.IsReferenceType)
+            // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
+            // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
+            // When that issue is fixed, Nullable<T> should be handled there instead.
+            if (fieldOrPropertyType.IsReferenceType || fieldOrPropertyType.IsNullableType())
             {
                 int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
                 NullableAnnotation value = fieldOrPropertyType.NullableAnnotation;
                 // https://github.com/dotnet/roslyn/issues/29968 Remove isByRefTarget check?
                 if (isByRefTarget)
                 {
-                    // This is a member access through a by ref entity and it isn't considered declared as not-nullable. 
+                    // This is a member access through a by ref entity and it isn't considered declared as not-nullable.
                     // Since reference can point to the heap, we cannot assume the member doesn't have null value
                     // after this assignment, regardless of what value is being assigned.
                 }
@@ -814,6 +879,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private TypeSymbol GetSlotType(int slot)
+        {
+            return VariableType(variableBySlot[slot].Symbol).TypeSymbol;
+        }
+
         protected override LocalState TopState()
         {
             var state = new LocalState(reachable: true, BitVector.Create(nextVariableSlot), new ArrayBuilder<NullableAnnotation>(nextVariableSlot));
@@ -836,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void EnterParameters()
         {
-            var methodParameters = ((MethodSymbol)_member).Parameters;
+            var methodParameters = ((MethodSymbol)_symbol).Parameters;
             var signatureParameters = _useMethodSignatureParameterTypes ? _methodSignatureOpt.Parameters : methodParameters;
             Debug.Assert(signatureParameters.Length == methodParameters.Length);
             int n = methodParameters.Length;
@@ -919,6 +989,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _variableTypes[variable] = expressionResultType;
                             TrackNullableStateForAssignment(expression, expressionResultType, GetOrCreateSlot(variable), expressionResultType);
                         }
+
+                        whenFalse = NullableAnnotation.NotNullable; // whenFalse is unreachable
                     }
                     else
                     {
@@ -929,33 +1001,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!IsConditionalState);
-            int slot = -1;
+
+            int mainSlot = -1;
             if (whenTrue != NullableAnnotation.Unknown)
             {
                 // Create slot when the state is unconditional since EnsureCapacity should be
                 // called on all fields and that is simpler if state is limited to this.State.
-                slot = MakeSlot(expression);
-                if (slot > 0)
-                {
-                    Normalize(ref this.State);
-                }
+                mainSlot = MakeSlot(expression);
             }
 
-            base.VisitPattern(expression, pattern);
+            base.VisitPattern(pattern);
             Debug.Assert(IsConditionalState);
 
             // https://github.com/dotnet/roslyn/issues/29873 We should only report such
             // diagnostics for locals that are set or checked explicitly within this method.
-            if (!expressionResultType.IsNull && expressionResultType.ValueCanBeNull() == false && whenTrue == NullableAnnotation.Nullable)
+            if (!expressionResultType.IsPointerType() && !expressionResultType.IsNull && expressionResultType.ValueCanBeNull() == false && whenTrue == NullableAnnotation.Nullable)
             {
-                ReportDiagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, pattern.Syntax);
+                ReportNonSafetyDiagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, pattern.Syntax);
             }
 
-            if (slot > 0)
+            if (mainSlot > 0)
             {
                 Debug.Assert(whenTrue != NullableAnnotation.Unknown);
-                this.StateWhenTrue[slot] = whenTrue;
-                this.StateWhenFalse[slot] = whenFalse;
+                this.StateWhenTrue[mainSlot] = whenTrue;
+                this.StateWhenFalse[mainSlot] = whenFalse;
+            }
+
+            if (whenTrue == NullableAnnotation.NotNullable || whenFalse == NullableAnnotation.NotNullable)
+            {
+                var slotBuilder = ArrayBuilder<int>.GetInstance();
+                GetSlotsToMarkAsNotNullable(expression, slotBuilder);
+
+                // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c.
+                if (whenTrue == NullableAnnotation.NotNullable)
+                {
+                    MarkSlotsAsNotNullable(slotBuilder, ref StateWhenTrue);
+                }
+                else if (whenFalse == NullableAnnotation.NotNullable)
+                {
+                    MarkSlotsAsNotNullable(slotBuilder, ref StateWhenFalse);
+                }
+
+                slotBuilder.Free();
             }
         }
 
@@ -969,11 +1056,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (_returnTypes != null)
+            if (_returnTypesOpt != null)
             {
                 // Inferring return type. Should not convert to method return type.
                 TypeSymbolWithAnnotations result = VisitRvalueWithResult(expr);
-                _returnTypes.Add((node.RefKind, result));
+                _returnTypesOpt.Add((node, result));
                 return null;
             }
 
@@ -984,7 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbolWithAnnotations GetReturnType()
         {
-            var method = (MethodSymbol)_member;
+            var method = (MethodSymbol)_symbol;
             var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt : method).ReturnType;
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
             if (method.IsGenericTaskReturningAsync(compilation))
@@ -995,9 +1082,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return returnType;
         }
 
-        private static bool IsUnconstrainedTypeParameter(TypeSymbol typeOpt)
+        private static bool IsTypeParameterDisallowingAnnotation(TypeSymbol typeOpt)
         {
-            return typeOpt?.IsUnconstrainedTypeParameter() == true;
+            return typeOpt?.IsTypeParameterDisallowingAnnotation() == true;
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
@@ -1206,20 +1293,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ObjectCreationPlaceholderLocal GetOrCreateObjectCreationPlaceholder(BoundExpression node)
         {
             ObjectCreationPlaceholderLocal placeholder;
-            if (_placeholderLocals == null)
+            if (_placeholderLocalsOpt == null)
             {
-                _placeholderLocals = PooledDictionary<BoundExpression, ObjectCreationPlaceholderLocal>.GetInstance();
+                _placeholderLocalsOpt = PooledDictionary<BoundExpression, ObjectCreationPlaceholderLocal>.GetInstance();
                 placeholder = null;
             }
             else
             {
-                _placeholderLocals.TryGetValue(node, out placeholder);
+                _placeholderLocalsOpt.TryGetValue(node, out placeholder);
             }
 
             if ((object)placeholder == null)
             {
-                placeholder = new ObjectCreationPlaceholderLocal(_member, node);
-                _placeholderLocals.Add(node, placeholder);
+                placeholder = new ObjectCreationPlaceholderLocal(_symbol, node);
+                _placeholderLocalsOpt.Add(node, placeholder);
             }
 
             return placeholder;
@@ -1279,78 +1366,158 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ArrayTypeSymbol VisitArrayInitializer(BoundArrayCreation node)
         {
-            var arrayType = (ArrayTypeSymbol)node.Type;
-            var elementType = arrayType.ElementType;
-
             BoundArrayInitialization initialization = node.InitializerOpt;
-            var elementBuilder = ArrayBuilder<BoundExpression>.GetInstance(initialization.Initializers.Length);
-            GetArrayElements(initialization, elementBuilder);
+            var expressions = ArrayBuilder<BoundExpression>.GetInstance(initialization.Initializers.Length);
+            GetArrayElements(initialization, expressions);
+            int n = expressions.Count;
 
-            // https://github.com/dotnet/roslyn/issues/27961 Removing and recalculating conversions should not
-            // be necessary for explicitly typed arrays. In those cases, VisitConversion should warn
-            // on nullability mismatch (although we'll need to ensure we handle the case where
-            // initial binding calculated an Identity conversion, even though nullability was distinct).
-            int n = elementBuilder.Count;
-            var conversionBuilder = ArrayBuilder<Conversion>.GetInstance(n);
-            var resultBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
-            for (int i = 0; i < n; i++)
-            {
-                (BoundExpression element, Conversion conversion) = RemoveConversion(elementBuilder[i], includeExplicitConversions: false);
-                elementBuilder[i] = element;
-                conversionBuilder.Add(conversion);
-                resultBuilder.Add(VisitRvalueWithResult(element));
-            }
-
-            bool checkConversions = true;
             // Consider recording in the BoundArrayCreation
             // whether the array was implicitly typed, rather than relying on syntax.
-            if (node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
-            {
-                TypeSymbol bestType = null;
-                if (!node.HasErrors)
-                {
-                    var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
-                    for (int i = 0; i < n; i++)
-                    {
-                        placeholderBuilder.Add(CreatePlaceholderIfNecessary(elementBuilder[i], resultBuilder[i]));
-                    }
-                    var placeholders = placeholderBuilder.ToImmutableAndFree();
-                    bool hadNullabilityMismatch;
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, out hadNullabilityMismatch, ref useSiteDiagnostics);
-                    if (hadNullabilityMismatch)
-                    {
-                        ReportDiagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, node.Syntax);
-                        checkConversions = false;
-                    }
-                }
-                if ((object)bestType == null)
-                {
-                    elementType = elementType.SetUnknownNullabilityForReferenceTypes();
-                    checkConversions = false;
-                }
-                else
-                {
-                    elementType = TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(bestType, resultBuilder));
-                }
-                arrayType = arrayType.WithElementType(elementType);
-            }
-
-            if (checkConversions && !elementType.IsValueType)
+            bool isInferred = node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression;
+            var arrayType = (ArrayTypeSymbol)node.Type;
+            var elementType = arrayType.ElementType;
+            if (!isInferred)
             {
                 for (int i = 0; i < n; i++)
                 {
-                    var conversion = conversionBuilder[i];
-                    var element = elementBuilder[i];
-                    var resultType = resultBuilder[i];
-                    ApplyConversion(element, element, conversion, elementType, resultType, checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment);
+                    _ = VisitOptionalImplicitConversion(expressions[i], elementType, useLegacyWarnings: false, AssignmentKind.Assignment);
+                }
+
+                _resultType = _invalidType;
+                return arrayType;
+            }
+
+            var conversions = ArrayBuilder<Conversion>.GetInstance(n);
+            var resultTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                // collect expressions, conversions and result types
+                (BoundExpression expression, Conversion conversion) = RemoveConversion(expressions[i], includeExplicitConversions: false);
+                expressions[i] = expression;
+                conversions.Add(conversion);
+                var resultType = VisitRvalueWithResult(expression);
+                resultTypes.Add(resultType);
+            }
+
+            var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressions[i], resultTypes[i]));
+            }
+            var placeholders = placeholderBuilder.ToImmutableAndFree();
+
+            TypeSymbol bestType = null;
+            bool hadNestedNullabilityMismatch = false;
+            if (!node.HasErrors)
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, out hadNestedNullabilityMismatch, ref useSiteDiagnostics);
+                if (hadNestedNullabilityMismatch)
+                {
+                    ReportSafetyDiagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, node.Syntax);
                 }
             }
 
-            resultBuilder.Free();
-            elementBuilder.Free();
+            TypeSymbolWithAnnotations inferredType;
+            if (bestType is null)
+            {
+                inferredType = elementType.SetUnknownNullabilityForReferenceTypes();
+            }
+            else
+            {
+                inferredType = TypeSymbolWithAnnotations.Create(bestType);
+            }
+
+            if ((object)bestType != null && !inferredType.IsValueType)
+            {
+                // Note: so long as we have a best type, we can proceed. But we don't want to report warnings on nested nullability
+
+                // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
+                for (int i = 0; i < n; i++)
+                {
+                    var placeholder = placeholders[i];
+                    resultTypes[i] = ApplyConversion(placeholder, placeholder, conversions[i], inferredType, resultTypes[i], checkConversion: true,
+                        fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: !hadNestedNullabilityMismatch, reportTopLevelWarnings: false);
+                }
+
+                // Set top-level nullability on inferred element type
+                inferredType = TypeSymbolWithAnnotations.Create(inferredType.TypeSymbol, BestTypeInferrer.GetNullableAnnotation(resultTypes));
+
+                for (int i = 0; i < n; i++)
+                {
+                    var nodeForSyntax = expressions[i];
+                    // Report top-level warnings
+                    _ = ApplyConversion(nodeForSyntax, operandOpt: null, Conversion.Identity, targetTypeWithNullability: inferredType, operandType: resultTypes[i],
+                        checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false);
+                }
+            }
+
+            resultTypes.Free();
+            expressions.Free();
+
             _resultType = _invalidType;
+            arrayType = arrayType.WithElementType(inferredType);
             return arrayType;
+        }
+
+        /// <summary>
+        /// Applies a method similar to <see cref="VisitArrayInitializer(BoundArrayCreation)"/>
+        /// The expressions returned from a lambda are not converted though, so we'll have to classify fresh conversions.
+        /// Note: even if some conversions fail, we'll proceed to infer top-level nullability. That is reasonable in common cases.
+        /// </summary>
+        internal static TypeSymbolWithAnnotations BestTypeForLambdaReturns(
+            ArrayBuilder<(BoundExpression, TypeSymbolWithAnnotations)> returns,
+            CSharpCompilation compilation,
+            BoundNode node)
+        {
+            var walker = new NullableWalker(compilation, method: null,
+                useMethodSignatureReturnType: false, useMethodSignatureParameterTypes: false, methodSignatureOpt: null,
+                node, returnTypesOpt: null, initialState: null, callbackOpt: null);
+
+            int n = returns.Count;
+            var expressions = ArrayBuilder<BoundExpression>.GetInstance();
+            var resultTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
+            var placeholdersBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                var (returnExpr, resultType) = returns[i];
+                expressions.Add(returnExpr);
+                resultTypes.Add(resultType);
+                placeholdersBuilder.Add(CreatePlaceholderIfNecessary(returnExpr, resultType));
+            }
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var placeholders = placeholdersBuilder.ToImmutableAndFree();
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(placeholders, walker._conversions, hadNullabilityMismatch: out _, ref useSiteDiagnostics);
+
+            TypeSymbolWithAnnotations inferredType;
+            if ((object)bestType != null)
+            {
+                // Note: so long as we have a best type, we can proceed.
+                var bestTypeWithObliviousAnnotation = TypeSymbolWithAnnotations.Create(bestType);
+                ConversionsBase conversionsWithoutNullability = walker._conversions.WithNullability(false);
+                for (int i = 0; i < n; i++)
+                {
+                    BoundExpression placeholder = placeholders[i];
+                    Conversion conversion = conversionsWithoutNullability.ClassifyConversionFromExpression(placeholder, bestType, ref useSiteDiagnostics);
+                    resultTypes[i] = walker.ApplyConversion(placeholder, placeholder, conversion, bestTypeWithObliviousAnnotation, resultTypes[i],
+                        checkConversion: false, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Return,
+                        reportRemainingWarnings: false, reportTopLevelWarnings: false);
+                }
+
+                // Set top-level nullability on inferred type
+                inferredType = TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(resultTypes));
+            }
+            else
+            {
+                inferredType = default;
+            }
+
+            resultTypes.Free();
+            expressions.Free();
+            walker.Free();
+
+            return inferredType;
         }
 
         private static void GetArrayElements(BoundArrayInitialization node, ArrayBuilder<BoundExpression> builder)
@@ -1388,7 +1555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (node.Indices.Length == 1 &&
-                node.Indices[0].Type == compilation.GetWellKnownType(WellKnownType.System_Range))
+                TypeSymbol.Equals(node.Indices[0].Type, compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2))
             {
                 _resultType = TypeSymbolWithAnnotations.Create(type);
             }
@@ -1502,12 +1669,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (operandComparedToNull != null)
                     {
-                        // https://github.com/dotnet/roslyn/issues/29953 This check is incorrect since it compares declared
-                        // nullability rather than tracked nullability. Moreover, we should only report such
+                        // https://github.com/dotnet/roslyn/issues/29953: We should only report such
                         // diagnostics for locals that are set or checked explicitly within this method.
                         if (!operandComparedToNullType.IsNull && operandComparedToNullType.NullableAnnotation.IsAnyNotNullable())
                         {
-                            ReportDiagnostic(op == BinaryOperatorKind.Equal ?
+                            ReportNonSafetyDiagnostic(op == BinaryOperatorKind.Equal ?
                                                                     ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse :
                                                                     ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue,
                                                                 binary.Syntax);
@@ -1516,108 +1682,132 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Skip reference conversions
                         operandComparedToNull = SkipReferenceConversions(operandComparedToNull);
 
+                        // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c.
                         var slotBuilder = ArrayBuilder<int>.GetInstance();
-
-                        // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c
-                        // getOperandSlots will only return slots for locations that are reference types.
-                        getOperandSlots(operandComparedToNull, slotBuilder);
+                        GetSlotsToMarkAsNotNullable(operandComparedToNull, slotBuilder);
                         if (slotBuilder.Count != 0)
                         {
-                            Normalize(ref this.State);
                             Split();
-                            ref LocalState state = ref (op == BinaryOperatorKind.Equal) ? ref this.StateWhenFalse : ref this.StateWhenTrue;
-                            foreach (int slot in slotBuilder)
-                            {
-                                state[slot] = NullableAnnotation.NotNullable;
-                            }
+                            ref LocalState stateToUpdate = ref (op == BinaryOperatorKind.Equal) ? ref this.StateWhenFalse : ref this.StateWhenTrue;
+                            MarkSlotsAsNotNullable(slotBuilder, ref stateToUpdate);
                         }
-
                         slotBuilder.Free();
                     }
                 }
             }
+        }
 
-            void getOperandSlots(BoundExpression operand, ArrayBuilder<int> slotBuilder)
+        /// <summary>
+        /// If we learn that the operand is non-null, we can infer that certain
+        /// sub-expressions were also non-null.
+        /// Get all nested conditional slots for those sub-expressions. For example in a?.b?.c we'll set a, b, and c.
+        /// Only returns slots for tracked expressions.
+        /// </summary>
+        private void GetSlotsToMarkAsNotNullable(BoundExpression operand, ArrayBuilder<int> slotBuilder)
+        {
+            Debug.Assert(operand != null);
+            Debug.Assert(_lastConditionalAccessSlot == -1);
+
+            while (true)
             {
-                Debug.Assert(operand != null);
-                Debug.Assert(_lastConditionalAccessSlot == -1);
-
-                do
+                // Due to the nature of binding, if there are conditional access they will be at the top of the bound tree,
+                // potentially with a conversion on top of it. We go through any conditional accesses, adding slots for the
+                // conditional receivers if they have them. If we ever get to a receiver that MakeSlot doesn't return a slot
+                // for, nothing underneath is trackable and we bail at that point. Example:
+                //
+                //     a?.GetB()?.C // a is a field, GetB is a method, and C is a property
+                //
+                // The top of the tree is the a?.GetB() conditional call. We'll ask for a slot for a, and we'll get one because
+                // fields have slots. The AccessExpression of the BoundConditionalAccess is another BoundConditionalAccess, this time
+                // with a receiver of the GetB() BoundCall. Attempting to get a slot for this receiver will fail, and we'll
+                // return an array with just the slot for a.
+                int slot;
+                switch (operand.Kind)
                 {
-                    // Due to the nature of binding, if there are conditional access they will be at the top of the bound tree,
-                    // potentially with a conversion on top of it. We go through any conditional accesses, adding slots for the
-                    // conditional receivers if they have them. If we ever get to a receiver that MakeSlot doesn't return a slot
-                    // for, nothing underneath is trackable and we bail at that point. Example:
-                    //
-                    //     a?.GetB()?.C // a is a field, GetB is a method, and C is a property
-                    //
-                    // The top of the tree is the a?.GetB() conditional call. We'll ask for a slot for a, and we'll get one because
-                    // locals have slots. The AccessExpression of the BoundConditionalAccess is another BoundConditionalAccess, this time
-                    // with a receiver of the GetB() BoundCall. Attempting to get a slot for this receiver will fail, and we'll
-                    // return an array with just the slot for a.
-                    int slot;
-                    switch (operand.Kind)
-                    {
-                        case BoundKind.Conversion:
-                            // https://github.com/dotnet/roslyn/issues/29953 Detect when conversion has a nullable operand
-                            operand = ((BoundConversion)operand).Operand;
-                            continue;
-                        case BoundKind.ConditionalAccess:
-                            var conditional = (BoundConditionalAccess)operand;
+                    case BoundKind.SuppressNullableWarningExpression:
+                        operand = ((BoundSuppressNullableWarningExpression)operand).Expression;
+                        continue;
+                    case BoundKind.Conversion:
+                        // https://github.com/dotnet/roslyn/issues/29953 Detect when conversion has a nullable operand
+                        operand = ((BoundConversion)operand).Operand;
+                        continue;
+                    case BoundKind.ConditionalAccess:
+                        var conditional = (BoundConditionalAccess)operand;
 
-                            slot = MakeSlot(conditional.Receiver);
-                            if (slot > 0)
+                        slot = MakeSlot(conditional.Receiver);
+                        if (slot > 0)
+                        {
+                            // If we got a slot we must have processed the previous conditional receiver.
+                            Debug.Assert(_lastConditionalAccessSlot == -1);
+
+                            // We need to continue the walk regardless of whether the receiver should be updated.
+                            var receiverType = conditional.Receiver.Type;
+                            if (shouldUpdateType(receiverType))
                             {
-                                // If we got a slot we must have processed the previous conditional receiver.
-                                Debug.Assert(_lastConditionalAccessSlot == -1);
-
-                                // We need to continue the walk regardless of whether the receiver is a value
-                                // type, but we only want to update the slots of reference types
-                                if (shouldUpdateType(conditional.Receiver.Type))
-                                {
-                                    slotBuilder.Add(slot);
-                                }
-
-                                // When MakeSlot is called on the nested AccessExpression, it will recurse through receivers
-                                // until it gets to the BoundConditionalReceiver associated with this node. In our override,
-                                // we substitute this slot when we encounter a BoundConditionalReceiver, and reset the
-                                // _lastConditionalAccess field.
-                                _lastConditionalAccessSlot = slot;
-                                operand = conditional.AccessExpression;
-                                continue;
-                            }
-
-                            // If there's no slot for this receiver, there cannot be another slot for any of the remaining
-                            // access expressions.
-                            break;
-                        default:
-                            // Attempt to create a slot for the current thing. If there were any more conditional accesses,
-                            // they would have been on top, so this is the last thing we need to specially handle.
-
-                            // https://github.com/dotnet/roslyn/issues/29953 When we handle unconditional access survival (ie after
-                            // c.D has been invoked, c must be nonnull or we've thrown a NullRef), revisit whether
-                            // we need more special handling here
-
-                            slot = MakeSlot(operand);
-                            if (slot > 0 && shouldUpdateType(operand.Type))
-                            {
-                                // If we got a slot then all previous BoundCondtionalReceivers must have been handled.
-                                Debug.Assert(_lastConditionalAccessSlot == -1);
-
                                 slotBuilder.Add(slot);
                             }
 
-                            break;
-                    }
+                            if (receiverType.IsNullableType())
+                            {
+                                slot = GetNullableOfTValueSlot(receiverType, slot);
+                            }
+                        }
 
-                    // If we didn't get a slot, it's possible that the current _lastConditionalSlot was never processed,
-                    // so we reset before leaving the function.
-                    _lastConditionalAccessSlot = -1;
-                    return;
-                } while (true);
+                        if (slot > 0)
+                        {
+                            // When MakeSlot is called on the nested AccessExpression, it will recurse through receivers
+                            // until it gets to the BoundConditionalReceiver associated with this node. In our override,
+                            // we substitute this slot when we encounter a BoundConditionalReceiver, and reset the
+                            // _lastConditionalAccess field.
+                            _lastConditionalAccessSlot = slot;
+                            operand = conditional.AccessExpression;
+                            continue;
+                        }
 
-                bool shouldUpdateType(TypeSymbol operandType) =>
-                    !(operandType is null) && !operandType.IsValueType;
+                        // If there's no slot for this receiver, there cannot be another slot for any of the remaining
+                        // access expressions.
+                        break;
+                    default:
+                        // Attempt to create a slot for the current thing. If there were any more conditional accesses,
+                        // they would have been on top, so this is the last thing we need to specially handle.
+
+                        // https://github.com/dotnet/roslyn/issues/29953 When we handle unconditional access survival (ie after
+                        // c.D has been invoked, c must be nonnull or we've thrown a NullRef), revisit whether
+                        // we need more special handling here
+
+                        slot = MakeSlot(operand);
+                        if (slot > 0 && shouldUpdateType(operand.Type))
+                        {
+                            // If we got a slot then all previous BoundCondtionalReceivers must have been handled.
+                            Debug.Assert(_lastConditionalAccessSlot == -1);
+
+                            slotBuilder.Add(slot);
+                        }
+
+                        break;
+                }
+
+                // If we didn't get a slot, it's possible that the current _lastConditionalSlot was never processed,
+                // so we reset before leaving the function.
+                _lastConditionalAccessSlot = -1;
+
+                return;
+            }
+
+            bool shouldUpdateType(TypeSymbol operandType)
+                => !(operandType is null) && (!operandType.IsValueType || operandType.IsNullableType());
+        }
+
+        private static void MarkSlotsAsNotNullable(ArrayBuilder<int> slots, ref LocalState stateToUpdate)
+        {
+            if (slots is null)
+            {
+                return;
+            }
+
+            foreach (int slot in slots)
+            {
+                stateToUpdate[slot] = NullableAnnotation.NotNullable;
             }
         }
 
@@ -1670,7 +1860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftState = this.State.Clone();
             if (leftResult.ValueCanBeNull() == false)
             {
-                ReportDiagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, leftOperand.Syntax);
+                ReportNonSafetyDiagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, leftOperand.Syntax);
             }
 
             bool leftIsConstant = leftOperand.ConstantValue != null;
@@ -1819,7 +2009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (receiverType.ValueCanBeNull() == false)
                 {
-                    ReportDiagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, receiver.Syntax);
+                    ReportNonSafetyDiagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, receiver.Syntax);
                 }
 
                 int slot = MakeSlot(SkipReferenceConversions(receiver));
@@ -1850,7 +2040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (_resultType.IsPossiblyNullableReferenceTypeTypeParameter())
             {
-                Debug.Assert(_resultType.TypeSymbol == type);
+                Debug.Assert(TypeSymbol.Equals(_resultType.TypeSymbol, type, TypeCompareKind.ConsiderEverything2));
                 Conversion conversion;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
@@ -1870,21 +2060,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If T is not nullable - result is nullable if U is nullable
                     // If U is nullable - result is nullable
                     // If U is not nullable, T is also not nullable - result is not nullable
-                    // So, nullability of the result can be inferred from nullability of U, and the type of the result is U.   
+                    // So, nullability of the result can be inferred from nullability of U, and the type of the result is U.
 
                     // U ?. T
                     // If U is nullable - result is nullable
                     // If U is not nullable, T is also not nullable - result is not nullable
                     // If T is nullable, U is also nullable - result is nullable
                     // If T is not nullable - result is nullable if U is nullable
-                    // So, nullability of the result can be inferred from nullability of U, but the type of the result is T.   
+                    // So, nullability of the result can be inferred from nullability of U, but the type of the result is T.
                     // At the moment we don't have a way to represent this correlation, result type is one type parameter, but
-                    // nullability comes from another. 
+                    // nullability comes from another.
                     // Ideally, we would want to have the following behavior:
                     //     U x = U?.T - no warning
                     //     T y = U?.T - a warning
                     // But we can track the state only in the way when either both produce a warning, or none.
-                    // It feels like it is reasonable to prefer the latter approach, i.e. produce no warnings 
+                    // It feels like it is reasonable to prefer the latter approach, i.e. produce no warnings
                     // for both scenarios - no false diagnostics.
                     resultAnnotation = NullableAnnotation.NotAnnotated; // Inherit nullability of U
                 }
@@ -1978,7 +2168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)resultType != null);
                 if (hadNullabilityMismatch)
                 {
-                    ReportDiagnostic(
+                    ReportSafetyDiagnostic(
                         ErrorCode.WRN_NoBestNullabilityConditionalExpression,
                         node.Syntax,
                         GetTypeAsDiagnosticArgument(consequenceResult.TypeSymbol),
@@ -2094,6 +2284,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Placeholders are bound expressions with type and annotation, when available.
+        /// But for typeless expressions (such as `null` or `(null, null)` we hold onto the original bound expression,
+        /// as it will be useful for conversions from expression.
+        /// </summary>
         private static BoundExpression CreatePlaceholderIfNecessary(BoundExpression expr, TypeSymbolWithAnnotations type)
         {
             return type.IsNull ?
@@ -2223,8 +2418,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     annotations &= ~whenSense;
                 }
 
-                // NotNullWhenSense must be applied to a reference or unconstrained generic type
-                if ((annotations & whenSense) != 0 && parameter.Type.IsValueType != false)
+                // NotNullWhenSense must be applied to a reference type, a nullable value type, or an unconstrained generic type
+                if ((annotations & whenSense) != 0 && parameter.Type.IsValueType && !parameter.Type.IsNullableType())
                 {
                     annotations &= ~whenSense;
                 }
@@ -2450,30 +2645,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var argument = arguments[i];
-                if (argument.Type == null || argument.Type.IsValueType)
-                {
-                    continue;
-                }
-
-                int slot = MakeSlot(argument);
-                if (slot <= 0)
+                var argumentType = argument.Type;
+                if ((object)argumentType == null || (argumentType.IsValueType && !argumentType.IsNullableType()))
                 {
                     continue;
                 }
 
                 bool notNullWhenTrue = (annotation & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
                 bool notNullWhenFalse = (annotation & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
-                // The WhenTrue/False states correspond to the invocation returning true/false
-                bool wasPreviouslySplit = this.IsConditionalState;
-                Split();
-                if (notNullWhenTrue)
+                if (notNullWhenTrue || notNullWhenFalse)
                 {
-                    this.StateWhenTrue[slot] = NullableAnnotation.NotNullable;
-                }
-                if (notNullWhenFalse)
-                {
-                    this.StateWhenFalse[slot] = NullableAnnotation.NotNullable;
-                    if (notNullWhenTrue && !wasPreviouslySplit) Unsplit();
+                    // The WhenTrue/False states correspond to the invocation returning true/false
+                    bool wasPreviouslySplit = this.IsConditionalState;
+                    Split();
+
+                    var slotBuilder = ArrayBuilder<int>.GetInstance();
+                    GetSlotsToMarkAsNotNullable(arguments[i], slotBuilder);
+
+                    if (notNullWhenTrue)
+                    {
+                        MarkSlotsAsNotNullable(slotBuilder, ref StateWhenTrue);
+                    }
+                    if (notNullWhenFalse)
+                    {
+                        MarkSlotsAsNotNullable(slotBuilder, ref StateWhenFalse);
+                        if (notNullWhenTrue && !wasPreviouslySplit) Unsplit();
+                    }
+                    slotBuilder.Free();
                 }
             }
 
@@ -2751,6 +2949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol InferMethodTypeArguments(BoundCall node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
             Debug.Assert(method.IsGenericMethod);
+
             // https://github.com/dotnet/roslyn/issues/27961 OverloadResolution.IsMemberApplicableInNormalForm and
             // IsMemberApplicableInExpandedForm use the least overridden method. We need to do the same here.
             var definition = method.ConstructedFrom;
@@ -2759,6 +2958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 refKinds.AddRange(node.ArgumentRefKindsOpt);
             }
+
             // https://github.com/dotnet/roslyn/issues/27961 Do we really need OverloadResolution.GetEffectiveParameterTypes?
             // Aren't we doing roughly the same calculations in GetCorrespondingParameter?
             OverloadResolution.GetEffectiveParameterTypes(
@@ -2775,6 +2975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: node.Expanded,
                 parameterTypes: out ImmutableArray<TypeSymbolWithAnnotations> parameterTypes,
                 parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
+
             refKinds.Free();
             bool hadNullabilityMismatch;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -2788,17 +2989,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments,
                 out hadNullabilityMismatch,
                 ref useSiteDiagnostics,
-                getNullableAnnotationOpt: expr => GetNullableAnnotation(expr));
+                getTypeWithAnnotationOpt: s_getTypeWithSpeakableAnnotations);
+
             if (!result.Success)
             {
                 return method;
             }
             if (hadNullabilityMismatch)
             {
-                ReportDiagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, node.Syntax, definition);
+                ReportSafetyDiagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, node.Syntax, definition);
             }
             return definition.Construct(result.InferredTypeArguments);
         }
+
+        // Note: although only tuple types can have nested types that are unspeakable, we make all nested types speakable to be sure
+        private readonly static Func<BoundExpression, TypeSymbolWithAnnotations> s_getTypeWithSpeakableAnnotations =
+            (expr) => TypeSymbolWithAnnotations.Create(expr.Type, GetNullableAnnotation(expr)).SetSpeakableNullabilityForReferenceTypes();
 
         private ImmutableArray<BoundExpression> GetArgumentsForMethodTypeInference(ImmutableArray<BoundExpression> arguments, ImmutableArray<TypeSymbolWithAnnotations> argumentResults)
         {
@@ -2917,7 +3123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool canConvertNestedNullability = conversion.Exists;
             if (!canConvertNestedNullability && reportMismatch)
             {
-                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, sourceExpression.Syntax, GetTypeAsDiagnosticArgument(sourceType), destinationType);
+                ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, sourceExpression.Syntax, GetTypeAsDiagnosticArgument(sourceType), destinationType);
             }
             return conversion;
         }
@@ -2997,10 +3203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static Symbol AsMemberOfType(NamedTypeSymbol containingType, Symbol symbol)
         {
-            if (symbol is null)
-            {
-                return null;
-            }
+            Debug.Assert((object)symbol != null);
             if (symbol.Kind == SymbolKind.Method)
             {
                 if (((MethodSymbol)symbol).MethodKind == MethodKind.LocalFunction)
@@ -3089,7 +3292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: fromExplicitCast,
                 AssignmentKind.Assignment,
                 reportTopLevelWarnings: fromExplicitCast,
-                reportNestedWarnings: true);
+                reportRemainingWarnings: true);
             return null;
         }
 
@@ -3108,6 +3311,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(expr, includeExplicitConversions: false);
             var operandType = VisitRvalueWithResult(operand);
+            // If an explicit conversion was used in place of an implicit conversion, the explicit
+            // conversion was created by initial binding after reporting "error CS0266:
+            // Cannot implicitly convert type '...' to '...'. An explicit conversion exists ...".
+            // Since an error was reported, we don't need to report nested warnings as well.
+            bool reportNestedWarnings = !conversion.IsExplicit;
             return ApplyConversion(
                 expr,
                 operand,
@@ -3117,7 +3325,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 checkConversion: true,
                 fromExplicitCast: false,
                 useLegacyWarnings: useLegacyWarnings,
-                assignmentKind);
+                assignmentKind,
+                reportTopLevelWarnings: true,
+                reportRemainingWarnings: reportNestedWarnings);
         }
 
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
@@ -3162,7 +3372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (IsNullabilityMismatch(method.ReturnType, invoke.ReturnType, requireIdentity: false))
             {
-                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, syntax,
+                ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, syntax,
                     new FormattedSymbol(method, SymbolDisplayFormat.MinimallyQualifiedFormat),
                     delegateType);
             }
@@ -3174,7 +3384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodParameter = method.Parameters[i];
                 if (IsNullabilityMismatch(invokeParameter.Type, methodParameter.Type, requireIdentity: invokeParameter.RefKind != RefKind.None))
                 {
-                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
+                    ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
                         new FormattedSymbol(methodParameter, SymbolDisplayFormat.ShortFormat),
                         new FormattedSymbol(method, SymbolDisplayFormat.MinimallyQualifiedFormat),
                         delegateType);
@@ -3207,7 +3417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IsNullabilityMismatch(invokeParameter.Type, unboundLambda.ParameterType(i), requireIdentity: true))
                 {
                     // https://github.com/dotnet/roslyn/issues/29959 Consider using location of specific lambda parameter.
-                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
+                    ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
                         unboundLambda.ParameterName(i),
                         unboundLambda.MessageID.Localize(),
                         delegateType);
@@ -3259,16 +3469,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssignmentKind assignmentKind,
             ParameterSymbol target = null,
             bool reportTopLevelWarnings = true,
-            bool reportNestedWarnings = true,
+            bool reportRemainingWarnings = true,
             bool extensionMethodThisArgument = false)
         {
             Debug.Assert(node != null);
             Debug.Assert(operandOpt != null || !operandType.IsNull);
             Debug.Assert(!targetTypeWithNullability.IsNull);
+            Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
 
             NullableAnnotation resultAnnotation = NullableAnnotation.Unknown;
             bool forceOperandAnnotationForResult = false;
             bool canConvertNestedNullability = true;
+
+            if (operandOpt?.Kind == BoundKind.SuppressNullableWarningExpression)
+            {
+                reportTopLevelWarnings = false;
+                reportRemainingWarnings = false;
+            }
 
             TypeSymbol targetType = targetTypeWithNullability.TypeSymbol;
             switch (conversion.Kind)
@@ -3320,10 +3537,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             conversion.UserDefinedFromConversion,
                             TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.FromType),
                             operandType,
-                            checkConversion: false,
+                            checkConversion: true,
                             fromExplicitCast: false,
                             useLegacyWarnings,
-                            assignmentKind);
+                            assignmentKind,
+                            target);
 
                         // Update method based on operandType: see https://github.com/dotnet/roslyn/issues/29605.
                         // (see NullableReferenceTypesTests.ImplicitConversions_07).
@@ -3331,22 +3549,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert((object)methodOpt != null);
                         Debug.Assert(methodOpt.ParameterCount == 1);
                         var parameter = methodOpt.Parameters[0];
+                        var parameterType = parameter.Type;
+                        TypeSymbolWithAnnotations underlyingOperandType = default;
+                        bool isLiftedConversion =
+                            operandType.IsNullableType() &&
+                            !parameterType.IsNullableType() &&
+                            parameterType.Equals(underlyingOperandType = operandType.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions);
 
                         // conversion "from" type -> method parameter type
-                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, parameter.Type, operandType, useLegacyWarnings, AssignmentKind.Argument, target: parameter);
+                        NullableAnnotation operandAnnotation = operandType.NullableAnnotation;
+                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, parameterType, isLiftedConversion ? underlyingOperandType : operandType,
+                            useLegacyWarnings, AssignmentKind.Argument, target: parameter, reportWarnings: reportRemainingWarnings);
 
                         // method parameter type -> method return type
-                        operandType = methodOpt.ReturnType;
+                        var methodReturnType = methodOpt.ReturnType;
+                        if (isLiftedConversion)
+                        {
+                            operandType = TypeSymbolWithAnnotations.Create(
+                                methodReturnType.IsValueType && !methodReturnType.IsNullableType() ?
+                                    compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(methodReturnType)) :
+                                    methodReturnType.TypeSymbol,
+                                methodReturnType.NullableAnnotation.IsAnyNullable() || operandAnnotation.IsAnyNullable() ?
+                                    NullableAnnotation.Nullable :
+                                    (methodReturnType.IsPossiblyNullableReferenceTypeTypeParameter() ? methodReturnType.NullableAnnotation : NullableAnnotation.NotNullable));
+                        }
+                        else
+                        {
+                            operandType = methodReturnType;
+                        }
 
                         // method return type -> conversion "to" type
                         // May be distinct from method return type for Nullable<T>.
-                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType, useLegacyWarnings, assignmentKind, target: null);
+                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType,
+                            useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings);
 
                         // conversion "to" type -> final type
                         // https://github.com/dotnet/roslyn/issues/29959 If the original conversion was
                         // explicit, this conversion should not report nested nullability mismatches.
                         // (see NullableReferenceTypesTests.ExplicitCast_UserDefined_02).
-                        operandType = ClassifyAndApplyConversion(node, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target);
+                        operandType = ClassifyAndApplyConversion(node, targetTypeWithNullability, operandType,
+                            useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings);
                         return operandType;
                     }
 
@@ -3357,10 +3599,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         resultAnnotation = NullableAnnotation.NotNullable;
                     }
+                    else if (targetType.IsValueType)
+                    {
+                        Debug.Assert(!operandType.IsNull); // If assert fails, add a test that verifies resulting type is nullable.
+                        resultAnnotation = (targetType.IsNullableType() && (operandType.IsNull || operandType.NullableAnnotation.IsAnyNullable())) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                    }
+                    break;
+
+                case ConversionKind.ImplicitThrow:
                     break;
 
                 case ConversionKind.Unboxing:
-                    if (!operandType.IsNull && targetType.IsTypeParameter())
+                    if (targetType.IsValueType)
+                    {
+                        Debug.Assert(!operandType.IsNull); // If assert fails, add a test that verifies resulting type is nullable.
+                        resultAnnotation = (targetType.IsNullableTypeOrTypeParameter() && (operandType.IsNull || operandType.NullableAnnotation.IsAnyNullable())) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                    }
+                    else if (!operandType.IsNull && targetType.IsTypeParameter())
                     {
                         resultAnnotation = operandType.GetValueNullableAnnotation();
 
@@ -3371,36 +3626,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case ConversionKind.ImplicitThrow:
-                    break;
-
                 case ConversionKind.Boxing:
-                    if (!operandType.IsNull && operandType.IsValueType)
+                    if (!operandType.IsNull)
                     {
-                        // https://github.com/dotnet/roslyn/issues/29959 Should we worry about a pathological case of boxing nullable value known to be not null?
-                        //       For example, new int?(0)
-                        resultAnnotation = operandType.IsNullableType() ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
-                    }
-                    else if (!operandType.IsNull && IsUnconstrainedTypeParameter(operandType.TypeSymbol))
-                    {
-                        if (operandType.IsPossiblyNullableReferenceTypeTypeParameter() && !targetTypeWithNullability.IsPossiblyNullableReferenceTypeTypeParameter())
+                        if (operandType.IsValueType)
                         {
-                            resultAnnotation = NullableAnnotation.Nullable;
-                            forceOperandAnnotationForResult = targetType.IsPossiblyNullableReferenceTypeTypeParameter();
+                            resultAnnotation = (operandType.IsNullableTypeOrTypeParameter() && operandType.GetValueNullableAnnotation().IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                            break;
                         }
-                        else
+                        else if (IsTypeParameterDisallowingAnnotation(operandType.TypeSymbol))
                         {
-                            resultAnnotation = operandType.NullableAnnotation;
+                            if (operandType.IsPossiblyNullableReferenceTypeTypeParameter() && !targetTypeWithNullability.IsPossiblyNullableReferenceTypeTypeParameter())
+                            {
+                                resultAnnotation = NullableAnnotation.Nullable;
+                                forceOperandAnnotationForResult = targetType.IsPossiblyNullableReferenceTypeTypeParameter();
+                            }
+                            else
+                            {
+                                resultAnnotation = operandType.NullableAnnotation;
+                            }
+                            break;
                         }
                     }
-                    else
-                    {
-                        Debug.Assert(operandType.IsNull ||
-                            !operandType.IsReferenceType ||
-                            operandType.SpecialType == SpecialType.System_ValueType ||
-                            operandType.TypeKind == TypeKind.Interface ||
-                            operandType.TypeKind == TypeKind.Dynamic);
-                    }
+                    Debug.Assert(operandType.IsNull ||
+                        !operandType.IsReferenceType ||
+                        operandType.SpecialType == SpecialType.System_ValueType ||
+                        operandType.TypeKind == TypeKind.Interface ||
+                        operandType.TypeKind == TypeKind.Dynamic);
                     break;
 
                 case ConversionKind.NoConversion:
@@ -3472,7 +3724,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.ImplicitNullable:
+                    if (checkConversion)
+                    {
+                        conversion = GenerateConversion(_conversions, operandOpt, operandType.TypeSymbol, targetType, fromExplicitCast, extensionMethodThisArgument);
+                        canConvertNestedNullability = conversion.Exists;
+                    }
+                    if ((targetType.IsValueType && !targetType.IsNullableType()) ||
+                        (operandType.IsValueType && !operandType.IsNullableType()))
+                    {
+                        resultAnnotation = NullableAnnotation.NotNullable;
+                    }
+                    else
+                    {
+                        resultAnnotation = operandType.NullableAnnotation.IsAnyNullable() ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                    }
+                    break;
+
                 case ConversionKind.ExplicitNullable:
+                    if (operandType.TypeSymbol?.IsNullableType() == true &&
+                        !targetType.IsNullableType())
+                    {
+                        // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
+                        if (reportTopLevelWarnings && operandType.NullableAnnotation.IsAnyNullable())
+                        {
+                            ReportSafetyDiagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, node.Syntax);
+                        }
+                        // Mark the value as not nullable, regardless of whether it was known to be nullable,
+                        // because the implied call to `.Value` will only succeed if not null.
+                        if (operandOpt != null)
+                        {
+                            int slot = MakeSlot(operandOpt);
+                            if (slot > 0)
+                            {
+                                this.State[slot] = NullableAnnotation.NotNullable;
+                            }
+                        }
+                    }
+                    goto case ConversionKind.ImplicitNullable;
+
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ExplicitTupleLiteral:
@@ -3509,7 +3798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, resultType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target);
                 }
-                if (reportNestedWarnings && !canConvertNestedNullability)
+                if (reportRemainingWarnings && !canConvertNestedNullability)
                 {
                     if (assignmentKind == AssignmentKind.Argument)
                     {
@@ -3517,7 +3806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, GetTypeAsDiagnosticArgument(operandType.TypeSymbol), targetType);
+                        ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, GetTypeAsDiagnosticArgument(operandType.TypeSymbol), targetType);
                     }
                 }
             }
@@ -3530,11 +3819,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return resultType;
         }
 
-        private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundExpression node, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations operandType, bool useLegacyWarnings, AssignmentKind assignmentKind, ParameterSymbol target)
+        private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundExpression node, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations operandType,
+            bool useLegacyWarnings, AssignmentKind assignmentKind, ParameterSymbol target, bool reportWarnings)
         {
+            Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var conversion = _conversions.ClassifyStandardConversion(null, operandType.TypeSymbol, targetType.TypeSymbol, ref useSiteDiagnostics);
-            if (!conversion.Exists)
+            if (reportWarnings && !conversion.Exists)
             {
                 if (assignmentKind == AssignmentKind.Argument)
                 {
@@ -3542,9 +3833,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, operandType.TypeSymbol, targetType.TypeSymbol);
+                    ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, operandType.TypeSymbol, targetType.TypeSymbol);
                 }
             }
+
             return ApplyConversion(
                 node,
                 operandOpt: null,
@@ -3555,7 +3847,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fromExplicitCast: false,
                 useLegacyWarnings: useLegacyWarnings,
                 assignmentKind,
-                target);
+                target,
+                reportTopLevelWarnings: reportWarnings,
+                reportRemainingWarnings: reportWarnings);
         }
 
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
@@ -3754,7 +4048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         assignmentKind,
                         target,
                         reportTopLevelWarnings: true,
-                        reportNestedWarnings: true);
+                        reportRemainingWarnings: true);
                 }
                 else
                 {
@@ -3828,7 +4122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         useLegacyWarnings: false,
                         AssignmentKind.Assignment,
                         reportTopLevelWarnings: false,
-                        reportNestedWarnings: false);
+                        reportRemainingWarnings: true);
                 }
                 else
                 {
@@ -3912,7 +4206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void ReportNullabilityMismatchInArgument(BoundExpression argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType)
         {
-            ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, argument.Syntax, argumentType, parameterType,
+            ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, argument.Syntax, argumentType, parameterType,
                 new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
                 new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
         }
@@ -3939,13 +4233,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
-            VisitMemberAccess(node.ReceiverOpt, node.FieldSymbol, asLvalue: false);
+            VisitMemberAccess(node, node.ReceiverOpt, node.FieldSymbol, asLvalue: false);
             return null;
         }
 
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
-            VisitMemberAccess(node.ReceiverOpt, node.PropertySymbol, asLvalue: false);
+            VisitMemberAccess(node, node.ReceiverOpt, node.PropertySymbol, asLvalue: false);
             return null;
         }
 
@@ -3962,7 +4256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // https://github.com/dotnet/roslyn/issues/30620 remove before shipping dev16
             if (node.Arguments.Length == 1 &&
-                node.Arguments[0].Type == compilation.GetWellKnownType(WellKnownType.System_Range))
+                TypeSymbol.Equals(node.Arguments[0].Type, compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2))
             {
                 _resultType = TypeSymbolWithAnnotations.Create(node.Type);
             }
@@ -3975,11 +4269,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitEventAccess(BoundEventAccess node)
         {
-            VisitMemberAccess(node.ReceiverOpt, node.EventSymbol, asLvalue: false);
+            VisitMemberAccess(node, node.ReceiverOpt, node.EventSymbol, asLvalue: false);
             return null;
         }
 
-        private void VisitMemberAccess(BoundExpression receiverOpt, Symbol member, bool asLvalue)
+        private void VisitMemberAccess(BoundExpression node, BoundExpression receiverOpt, Symbol member, bool asLvalue)
         {
             Debug.Assert(!IsConditionalState);
 
@@ -3987,12 +4281,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitRvalue(receiverOpt);
 
+                SpecialMember? nullableOfTMember = null;
                 if (!member.IsStatic)
                 {
                     member = AsMemberOfResultType(_resultType, member);
+                    nullableOfTMember = GetNullableOfTMember(compilation, member);
                     // https://github.com/dotnet/roslyn/issues/30598: For l-values, mark receiver as not null
                     // after RHS has been visited, and only if the receiver has not changed.
-                    CheckPossibleNullReceiver(receiverOpt);
+                    bool allowValueType = nullableOfTMember == SpecialMember.System_Nullable_T_get_Value;
+                    CheckPossibleNullReceiver(receiverOpt, allowValueType, (allowValueType ? node : (receiverOpt ?? node)).Syntax);
                 }
 
                 var resultType = member.GetTypeOrReturnType();
@@ -4001,9 +4298,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We are supposed to track information for the node. Use whatever we managed to
                     // accumulate so far.
-                    if (!resultType.IsValueType)
+                    if (!resultType.IsValueType || resultType.IsNullableType())
                     {
-                        int containingSlot = (receiverOpt is null) ? -1 : MakeSlot(receiverOpt);
+                        int containingSlot = getReceiverSlot();
                         int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(member, containingSlot);
                         if (slot > 0 && slot < this.State.Capacity)
                         {
@@ -4014,10 +4311,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
+
+                    Debug.Assert(!IsConditionalState);
+                    if (nullableOfTMember == SpecialMember.System_Nullable_T_get_HasValue)
+                    {
+                        int containingSlot = getReceiverSlot();
+                        if (containingSlot > 0)
+                        {
+                            // https://github.com/dotnet/roslyn/issues/31516: Report HDN_NullCheckIsProbablyAlwaysTrue/False
+                            // when HasValue check is unnecessary.
+                            Split();
+                            this.StateWhenTrue[containingSlot] = NullableAnnotation.NotNullable;
+                        }
+                    }
                 }
 
                 _resultType = resultType;
             }
+
+            int getReceiverSlot() => (receiverOpt is null) ? -1 : MakeSlot(receiverOpt);
+        }
+
+        private static SpecialMember? GetNullableOfTMember(CSharpCompilation compilation, Symbol member)
+        {
+            if (member.Kind == SymbolKind.Property)
+            {
+                var getMethod = ((PropertySymbol)member.OriginalDefinition).GetMethod;
+                if ((object)getMethod != null && getMethod.ContainingType.SpecialType == SpecialType.System_Nullable_T)
+                {
+                    if (getMethod == compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value))
+                    {
+                        return SpecialMember.System_Nullable_T_get_Value;
+                    }
+                    if (getMethod == compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue))
+                    {
+                        return SpecialMember.System_Nullable_T_get_HasValue;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private int GetNullableOfTValueSlot(TypeSymbol containingType, int containingSlot)
+        {
+            Debug.Assert(containingType.IsNullableType());
+            Debug.Assert(TypeSymbol.Equals(GetSlotType(containingSlot), containingType, TypeCompareKind.ConsiderEverything2));
+
+            var getValue = (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value);
+            var member = getValue?.AsMember((NamedTypeSymbol)containingType)?.AssociatedSymbol;
+            return (member is null) ? -1 : GetOrCreateSlot(member, containingSlot);
         }
 
         protected override void VisitForEachExpression(BoundForEachStatement node)
@@ -4050,10 +4392,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         useLegacyWarnings: false,
                         AssignmentKind.Assignment,
                         reportTopLevelWarnings: false,
-                        reportNestedWarnings: false);
-                    if (destinationType.IsReferenceType && destinationType.NullableAnnotation.IsAnyNotNullable() && sourceType.NullableAnnotation.IsAnyNullable())
+                        reportRemainingWarnings: false);
+                    if (destinationType.IsReferenceType && destinationType.NullableAnnotation.IsAnyNotNullable() && result.NullableAnnotation.IsAnyNullable())
                     {
-                        ReportWWarning(node.IterationVariableType.Syntax);
+                        ReportNonSafetyDiagnostic(node.IterationVariableType.Syntax);
                     }
                     annotation = result.NullableAnnotation;
                 }
@@ -4260,6 +4602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             var result = base.VisitAwaitExpression(node);
+            CheckPossibleNullReceiver(node.Expression);
             if (node.Type.IsValueType || node.HasErrors || (object)node.AwaitableInfo.GetResult == null)
             {
                 SetResult(node);
@@ -4305,24 +4648,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!this.IsConditionalState);
 
-            int slot = -1;
             var operand = node.Operand;
-            if (operand.Type?.IsValueType == false)
-            {
-                slot = MakeSlot(operand);
-                if (slot > 0)
-                {
-                    Normalize(ref this.State);
-                }
-            }
-
             var result = base.VisitIsOperator(node);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Boolean);
 
-            if (slot > 0)
+            if (operand.Type?.IsValueType == false)
             {
-                Split();
-                this.StateWhenTrue[slot] = NullableAnnotation.NotNullable;
+                var slotBuilder = ArrayBuilder<int>.GetInstance();
+                GetSlotsToMarkAsNotNullable(operand, slotBuilder);
+                if (slotBuilder.Count > 0)
+                {
+                    Split();
+                    MarkSlotsAsNotNullable(slotBuilder, ref StateWhenTrue);
+                }
+                slotBuilder.Free();
             }
 
             SetResult(node);
@@ -4331,26 +4670,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAsOperator(BoundAsOperator node)
         {
-            var result = base.VisitAsOperator(node);
+            VisitRvalue(node.Operand);
 
             //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
                 NullableAnnotation nullableAnnotation = NullableAnnotation.Unknown;
-                if (!node.Type.IsValueType)
+                var type = node.Type;
+
+                if (!type.IsValueType || type.IsNullableType())
                 {
+                    var operandType = _resultType;
                     switch (node.Conversion.Kind)
                     {
                         case ConversionKind.Identity:
                             // Inherit nullability from the operand
-                            nullableAnnotation = _resultType.NullableAnnotation;
+                            nullableAnnotation = operandType.NullableAnnotation;
                             break;
 
                         case ConversionKind.ImplicitReference:
-
                             // Inherit nullability from the operand
-                            if (!_resultType.IsNull && _resultType.IsPossiblyNullableReferenceTypeTypeParameter())
+                            if (!operandType.IsNull && operandType.IsPossiblyNullableReferenceTypeTypeParameter())
                             {
-                                if (!node.Type.IsPossiblyNullableReferenceTypeTypeParameter())
+                                if (!type.IsPossiblyNullableReferenceTypeTypeParameter())
                                 {
                                     nullableAnnotation = NullableAnnotation.Nullable;
                                 }
@@ -4361,8 +4702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                nullableAnnotation = _resultType.NullableAnnotation;
-                                if (nullableAnnotation == NullableAnnotation.NotAnnotated && node.Type.IsTypeParameter())
+                                nullableAnnotation = operandType.NullableAnnotation;
+                                if (nullableAnnotation == NullableAnnotation.NotAnnotated && type.IsTypeParameter())
                                 {
                                     nullableAnnotation = NullableAnnotation.NotNullable;
                                 }
@@ -4370,25 +4711,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         case ConversionKind.Boxing:
-                            var operandType = node.Operand.Type;
-                            if (operandType?.IsValueType == true)
+                            if (operandType.TypeSymbol?.IsValueType == true)
                             {
-                                // https://github.com/dotnet/roslyn/issues/29959 We currently don't worry about a pathological case of boxing nullable value known to be not null
-                                nullableAnnotation = operandType.IsNullableType() ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                                nullableAnnotation = (operandType.TypeSymbol.IsNullableType() && operandType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
                             }
                             else
                             {
-                                Debug.Assert(operandType?.IsReferenceType != true);
+                                Debug.Assert(operandType.TypeSymbol?.IsReferenceType != true);
 
-                                if (!_resultType.IsNull)
+                                if (!operandType.IsNull)
                                 {
-                                    if (_resultType.IsPossiblyNullableReferenceTypeTypeParameter() && node.Type.IsPossiblyNullableReferenceTypeTypeParameter())
+                                    if (operandType.IsPossiblyNullableReferenceTypeTypeParameter() && type.IsPossiblyNullableReferenceTypeTypeParameter())
                                     {
                                         nullableAnnotation = NullableAnnotation.NotAnnotated;
                                     }
                                     else
                                     {
-                                        nullableAnnotation = _resultType.GetValueNullableAnnotation();
+                                        nullableAnnotation = operandType.GetValueNullableAnnotation();
                                     }
                                 }
                                 else
@@ -4398,16 +4737,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             break;
 
+                        case ConversionKind.ImplicitNullable:
+                            nullableAnnotation = (operandType.IsNullableType() && operandType.NullableAnnotation.IsAnyNullable()) ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
+                            break;
+
                         default:
                             nullableAnnotation = NullableAnnotation.Nullable;
                             break;
                     }
                 }
 
-                _resultType = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
+                _resultType = TypeSymbolWithAnnotations.Create(type, nullableAnnotation);
             }
 
-            return result;
+            return null;
         }
 
         public override BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
@@ -4416,7 +4759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
-                _resultType = _resultType.IsNull ? default : _resultType.WithTopLevelNonNullabilityForReferenceTypes();
+                _resultType = _resultType.IsNull ? default : _resultType.WithTopLevelNonNullability();
             }
 
             return null;
@@ -4543,7 +4886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             var receiverOpt = node.ReceiverOpt;
             var @event = node.Event;
-            if (!node.Event.IsStatic)
+            if (!@event.IsStatic)
             {
                 @event = (EventSymbol)AsMemberOfResultType(_resultType, @event);
                 // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
@@ -4645,14 +4988,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type.IsDynamic());
 
             // https://github.com/dotnet/roslyn/issues/29893 Update applicable members based on inferred argument types.
-            NullableAnnotation nullableAnnotation = node.Type != null && !node.Type.IsValueType ?
+            NullableAnnotation nullableAnnotation = (object)node.Type != null && !node.Type.IsValueType ?
                 InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableIndexers)) :
                 NullableAnnotation.Unknown;
             _resultType = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
             return null;
         }
 
-        private void CheckPossibleNullReceiver(BoundExpression receiverOpt)
+        private void CheckPossibleNullReceiver(BoundExpression receiverOpt, bool checkNullableValueType = false, SyntaxNode syntaxOpt = null)
         {
             Debug.Assert(!this.IsConditionalState);
             if (receiverOpt != null && this.State.Reachable)
@@ -4661,23 +5004,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(receiverOpt.Type is null || _resultType.TypeSymbol is null || AreCloseEnough(receiverOpt.Type, _resultType.TypeSymbol));
 #endif
                 var resultType = _resultType.TypeSymbol;
-                if ((object)resultType != null &&
-                    _resultType.GetValueNullableAnnotation().IsAnyNullable() &&
-                    !resultType.IsValueType)
+                if (resultType is null)
                 {
-                    ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
-                    int slot = MakeSlot(receiverOpt);
-                    if (slot > 0)
-                    {
-                        this.State[slot] = NullableAnnotation.NotNullable;
-                    }
+                    return;
                 }
+
+                if (_resultType.GetValueNullableAnnotation().IsAnyNullable())
+                {
+                    bool isValueType = resultType.IsValueType;
+                    if (isValueType && (!checkNullableValueType || !resultType.IsNullableType()))
+                    {
+                        return;
+                    }
+                    ReportSafetyDiagnostic(isValueType ? ErrorCode.WRN_NullableValueTypeMayBeNull : ErrorCode.WRN_NullReferenceReceiver, syntaxOpt ?? receiverOpt.Syntax);
+                }
+
+                var slotBuilder = ArrayBuilder<int>.GetInstance();
+                GetSlotsToMarkAsNotNullable(receiverOpt, slotBuilder);
+                MarkSlotsAsNotNullable(slotBuilder, ref State);
+                slotBuilder.Free();
             }
         }
 
         private static bool IsNullabilityMismatch(TypeSymbolWithAnnotations type1, TypeSymbolWithAnnotations type2)
         {
-            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch. 
+            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch.
             // See TypeCompareKind.UnknownNullableModifierMatchesAny and TypeCompareKind.IgnoreInsignificantNullableModifiersDifference
             return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions) &&
                 !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
@@ -4685,7 +5036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsNullabilityMismatch(TypeSymbol type1, TypeSymbol type2)
         {
-            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch. 
+            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch.
             // See TypeCompareKind.UnknownNullableModifierMatchesAny and TypeCompareKind.IgnoreInsignificantNullableModifiersDifference
             return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions) &&
                 !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
@@ -4791,7 +5142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
-            var method = (MethodSymbol)_member;
+            var method = (MethodSymbol)_symbol;
             TypeSymbolWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(compilation, RefKind.None, method.ReturnType.TypeSymbol, errorLocationNode: null, diagnostics: null);
             VisitOptionalImplicitConversion(expr, elementType, useLegacyWarnings: false, AssignmentKind.Return);
             return null;

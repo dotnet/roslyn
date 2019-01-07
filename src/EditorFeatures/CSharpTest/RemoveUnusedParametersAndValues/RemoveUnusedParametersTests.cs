@@ -65,10 +65,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         [InlineData("public", "public")]
         [InlineData("public", "protected")]
-        public async Task Parameter_Unused_NonPrivate_NotApplicable(string typeAccesibility, string methodAccessibility)
+        public async Task Parameter_Unused_NonPrivate_NotApplicable(string typeAccessibility, string methodAccessibility)
         {
             await TestDiagnosticMissingAsync(
-$@"{typeAccesibility} class C
+$@"{typeAccessibility} class C
 {{
     {methodAccessibility} void M(int [|p|])
     {{
@@ -83,10 +83,10 @@ $@"{typeAccesibility} class C
         [InlineData("internal", "public")]
         [InlineData("internal", "internal")]
         [InlineData("internal", "protected")]
-        public async Task Parameter_Unused_NonPublicMethod(string typeAccesibility, string methodAccessibility)
+        public async Task Parameter_Unused_NonPublicMethod(string typeAccessibility, string methodAccessibility)
         {
             await TestDiagnosticsAsync(
-$@"{typeAccesibility} class C
+$@"{typeAccessibility} class C
 {{
     {methodAccessibility} void M(int [|p|])
     {{
@@ -382,6 +382,105 @@ class C
     private static void M2(Action a) { }
 }",
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task ReadInLambda_LambdaPassedAsArgument()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private static void M(object [|p|])
+    {
+        M2(() => { M3(p); });
+    }
+
+    private static void M2(Action a) { }
+
+    private static void M3(object o) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task OnlyWrittenInLambda_LambdaPassedAsArgument()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private static void M(object [|p|])
+    {
+        M2(() => { M3(out p); });
+    }
+
+    private static void M2(Action a) { }
+
+    private static void M3(out object o) { o = null; }
+}");
+        }
+
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task UnusedInExpressionTree_PassedAsArgument()
+        {
+            await TestDiagnosticsAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1(object [|p|])
+    {
+        M2(x => x.M3());
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3() { return 0; }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task ReadInExpressionTree_PassedAsArgument()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1(object [|p|])
+    {
+        M2(x => x.M3(p));
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3(object o) { return 0; }
+}");
+        }
+
+        [WorkItem(31744, "https://github.com/dotnet/roslyn/issues/31744")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task OnlyWrittenInExpressionTree_PassedAsArgument()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    public static void M1(object [|p|])
+    {
+        M2(x => x.M3(out p));
+    }
+
+    private static C M2(Expression<Func<C, int>> a) { return null; }
+    private int M3(out object o) { o = null; return 0; }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
@@ -763,6 +862,21 @@ class C: I
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Parameter_ConditionalDirective()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    void M(int [|p|])
+    {
+#if DEBUG
+        System.Console.WriteLine(p);
+#endif
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task Parameter_EventHandler_FirstParameter()
         {
             await TestDiagnosticMissingAsync(
@@ -842,6 +956,60 @@ $@"class C
     {{
     }}
 }}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        [InlineData("System.Composition", "ImportingConstructorAttribute")]
+        [InlineData("System.ComponentModel.Composition", "ImportingConstructorAttribute")]
+        public async Task Parameter_ConstructorsWithSpecialAttributes(string attributeNamespace, string attributeName)
+        {
+            await TestDiagnosticMissingAsync(
+$@"
+namespace {attributeNamespace}
+{{
+    public class {attributeName} : System.Attribute {{ }}
+}}
+
+class C
+{{
+    [{attributeNamespace}.{attributeName}()]
+    public C(int [|p|])
+    {{
+    }}
+}}");
+        }
+
+        [WorkItem(32133, "https://github.com/dotnet/roslyn/issues/32133")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Parameter_SerializationConstructor()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+using System;
+using System.Runtime.Serialization;
+
+internal sealed class NonSerializable
+{
+    public NonSerializable(string value) => Value = value;
+
+    public string Value { get; set; }
+}
+
+[Serializable]
+internal sealed class CustomSerializingType : ISerializable
+{
+    private readonly NonSerializable _nonSerializable;
+
+    public CustomSerializingType(SerializationInfo info, StreamingContext [|context|])
+    {
+        _nonSerializable = new NonSerializable(info.GetString(""KEY""));
+    }
+
+    public void GetObjectData(SerializationInfo info, StreamingContext context)
+    {
+        info.AddValue(""KEY"", _nonSerializable.Value);
+    }
+}");
         }
 
         [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]

@@ -12,6 +12,7 @@ $PackagesDir = Join-Path $ArtifactsDir "packages\$configuration"
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
 $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
 $bootstrapDir = if (Test-Path variable:bootstrapDir) { $bootstrapDir } else { "" }
+$bootstrapConfiguration = if (Test-Path variable:bootstrapConfiguration) { $bootstrapConfiguration } else { "Release" }
 $properties = if (Test-Path variable:properties) { $properties } else { @() }
 
 function GetProjectOutputBinary([string]$fileName, [string]$projectName = "", [string]$configuration = $script:configuration, [string]$tfm = "net472", [string]$rid = "", [bool]$published = $false) {
@@ -176,23 +177,7 @@ function Get-PackageDir([string]$name, [string]$version = "") {
     return $p
 }
 
-# Restore a single project
-function Restore-Project([string]$projectFileName, [string]$logFilePath = "") {
-    $projectFilePath = $projectFileName
-    if (-not (Test-Path $projectFilePath)) {
-        $projectFilePath = Join-Path $RepoRoot $projectFileName
-    }
-
-    $logArg = ""
-    if ($logFilePath -ne "") {
-        $logArg = " /bl:$logFilePath"
-    }
-
-    $buildTool = InitializeBuildTool
-    Exec-Console $buildTool.Path "$($buildTool.Command) `"$projectFilePath`" /t:Restore /m /nologo /clp:None /v:quiet /nr:false /warnaserror $logArg $args"
-}
-
-function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$summary = $true, [switch]$warnAsError = $true) {
+function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$summary = $true, [switch]$warnAsError = $true, [string]$configuration = $script:configuration) {
     # Because we override the C#/VB toolset to build against our LKG package, it is important
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
@@ -261,7 +246,7 @@ function Make-BootstrapBuild() {
     $packageName = if ($msbuildEngine -eq 'dotnet') { "Microsoft.NETCore.Compilers" } else { "Microsoft.Net.Compilers" }
     $projectPath = "src\NuGet\$packageName\$packageName.Package.csproj"
 
-    Run-MSBuild $projectPath "/restore /t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:ApplyPartialNgenOptimization=false" -logFileName "Bootstrap"
+    Run-MSBuild $projectPath "/restore /t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:ApplyPartialNgenOptimization=false" -logFileName "Bootstrap" -configuration $bootstrapConfiguration
     $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"
     Unzip "$dir\$packageFile" $dir
 

@@ -1,3 +1,20 @@
+# Branches that trigger a build on commit
+trigger:
+- master
+- master-vs-deps
+
+# Branches that trigger builds on PR   
+pr:
+- master
+- master-vs-deps
+- features/NullableReferenceTypes
+- features/recursive-patterns
+- features/enhanced-using
+- features/nullabledogfood
+- features/unmanaged-constructed-types
+- features/editorconfig-in-compiler
+- features/NegatedConditionStatements
+
 jobs:
 - job: Windows_Desktop_Unit_Tests
   pool: dotnet-external-temp
@@ -127,6 +144,14 @@ jobs:
       continueOnError: true
       condition: not(succeeded())
 
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Artifact Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
+        ArtifactName: 'Packages - PreRelease'
+        publishLocation: Container
+      condition: succeeded()
+
 - job: Linux_Test
   pool: DotNetCore-Linux
   strategy:
@@ -139,6 +164,7 @@ jobs:
       mono:
         _args: --testMono --docker
         _name: Mono
+        _configuration: Debug
   timeoutInMinutes: 90
   steps:
     - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args)

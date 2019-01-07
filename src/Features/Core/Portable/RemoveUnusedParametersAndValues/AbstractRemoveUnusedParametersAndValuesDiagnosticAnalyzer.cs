@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
     ///        i.e. "_ = Computation();" or "var unused = Computation();"
     ///        This diagnostic configuration is controlled by language specific code style option "UnusedValueAssignment".
     ///     3. Redundant parameters that fall into one of the following two categories:
-    ///         a. Have no references in the executable code block(s) for it's containing method symbol.
-    ///         b. Have one or more references but it's initial value at start of code block is never used.
+    ///         a. Have no references in the executable code block(s) for its containing method symbol.
+    ///         b. Have one or more references but its initial value at start of code block is never used.
     ///            For example, if 'x' in the example for case 2. above was a parameter symbol with RefKind.None
-    ///            and "x = Computation();" is the first statement in the method body, then it's initial value
+    ///            and "x = Computation();" is the first statement in the method body, then its initial value
     ///            is never used. Such a parameter should be removed and 'x' should be converted into a local.
     ///        We provide additional information in the diagnostic message to clarify the above two categories
     ///        and also detect and mention about potential breaking change if the containing method is a public API.
@@ -88,6 +88,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
+        protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
+        protected abstract bool IsIfConditionalDirective(SyntaxNode node);
         protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
         protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
 

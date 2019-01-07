@@ -42,6 +42,15 @@ End Module
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
+        <Fact, WorkItem(744146, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")>
+        Public Sub DefaultAwaitExpressionInfo()
+            Dim awaitInfo As AwaitExpressionInfo = Nothing
+
+            Assert.Null(awaitInfo.GetAwaiterMethod)
+            Assert.Null(awaitInfo.IsCompletedProperty)
+            Assert.Null(awaitInfo.GetResultMethod)
+        End Sub
+
         <Fact()>
         Public Sub AwaitableType01()
             Dim source =

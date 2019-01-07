@@ -22,6 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         protected override bool SupportsDiscard(SyntaxTree tree)
             => ((CSharpParseOptions)tree.Options).LanguageVersion >= LanguageVersion.CSharp7;
 
+        protected override bool MethodHasHandlesClause(IMethodSymbol method)
+            => false;
+
+        protected override bool IsIfConditionalDirective(SyntaxNode node)
+            => node is IfDirectiveTriviaSyntax;
+
         // C# does not have an explicit "call" statement syntax for invocations with explicit value discard.
         protected override bool IsCallStatement(IExpressionStatementOperation expressionStatement)
             => false;
@@ -30,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         {
             switch (unusedDefinition.Syntax)
             {
-                case VariableDeclaratorSyntax variableDeclartor:
-                    return variableDeclartor.Identifier.GetLocation();
+                case VariableDeclaratorSyntax variableDeclarator:
+                    return variableDeclarator.Identifier.GetLocation();
 
                 case DeclarationPatternSyntax declarationPattern:
                     return declarationPattern.Designation.GetLocation();

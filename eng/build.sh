@@ -30,6 +30,7 @@ usage()
   echo "  --bootstrap                Build using a bootstrap compilers"
   echo "  --skipAnalyzers            Do not run analyzers during build operations"
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
+  echo "  --warnAsError              Treat all warnings as errors"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -61,6 +62,7 @@ ci=false
 bootstrap=false
 skip_analyzers=false
 prepare_machine=false
+warn_as_error=false
 properties=""
 
 docker=false
@@ -125,6 +127,9 @@ while [[ $# > 0 ]]; do
     --preparemachine)
       prepare_machine=true
       ;;
+    --warnaserror)
+      warn_as_error=true
+      ;;
     --docker)
       docker=true
       shift
@@ -149,7 +154,12 @@ then
 
   # Run this script with the same arguments (except for --docker) in a container that has Mono installed.
   BUILD_COMMAND=/opt/code/eng/build.sh "$scriptroot"/docker/mono.sh $args
-  
+  lastexitcode=$?
+  if [[ $lastexitcode != 0 ]]; then
+    echo "Docker build failed (exit code '$lastexitcode')." >&2
+    exit $lastexitcode
+  fi
+
   # Ensure that all docker containers are stopped.
   # Hence exit with true even if "kill" failed as it will fail if they stopped gracefully
   if [[ "$prepare_machine" == true ]]; then
@@ -209,6 +219,12 @@ function BuildSolution {
     enable_analyzers=false
   fi
 
+  # NuGet often exceeds the limit of open files on Mac and Linux
+  # https://github.com/NuGet/Home/issues/2163
+  if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
+    ulimit -n 6500
+  fi
+
   local quiet_restore=""
   if [[ "$ci" != true ]]; then
     quiet_restore=true
@@ -234,6 +250,10 @@ function BuildSolution {
     mono_tool=""
   fi
 
+  # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
+  # We don't pass /warnaserror to msbuild (warn_as_error is set to false by default above), but set 
+  # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
+  # Warnings reported from other msbuild tasks are not treated as errors for now.
   MSBuild $toolset_build_proj \
     $bl \
     /p:Configuration=$configuration \
@@ -250,14 +270,13 @@ function BuildSolution {
     /p:ContinuousIntegrationBuild=$ci \
     /p:QuietRestore=$quiet_restore \
     /p:QuietRestoreBinaryLog="$binary_log" \
+    /p:TreatWarningsAsErrors=true \
     $test_runtime \
     $mono_tool \
     $properties
 }
 
 InitializeDotNetCli $restore
-
-export PATH="$DOTNET_INSTALL_DIR:$PATH"
 
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then

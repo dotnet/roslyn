@@ -1393,6 +1393,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to When on multiple lines.
+        /// </summary>
+        internal static string When_on_multiple_lines {
+            get {
+                return ResourceManager.GetString("When_on_multiple_lines", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to When on single line.
         /// </summary>
         internal static string When_on_single_line {

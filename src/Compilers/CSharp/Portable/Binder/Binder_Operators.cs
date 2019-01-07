@@ -727,16 +727,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(kind == BinaryOperatorKind.LogicalAnd || kind == BinaryOperatorKind.LogicalOr);
 
-            // If either operand is bad, don't try to do binary operator overload resolution; that will just
-            // make cascading errors.
-
-            if (left.HasAnyErrors || right.HasAnyErrors)
-            {
-                // NOTE: no candidate user-defined operators.
-                return new BoundBinaryOperator(node, kind, ConstantValue.NotAvailable, methodOpt: null,
-                    resultKind: LookupResultKind.Empty, left, right, type: GetBinaryOperatorErrorType(kind, diagnostics, node), hasErrors: true);
-            }
-
             // Let's take an easy out here. The vast majority of the time the operands will
             // both be bool. This is the only situation in which the expression can be a
             // constant expression, so do the folding now if we can.
@@ -749,6 +739,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE: no candidate user-defined operators.
                 return new BoundBinaryOperator(node, kind | BinaryOperatorKind.Bool, constantValue, methodOpt: null,
                     resultKind: LookupResultKind.Viable, left, right, type: left.Type, hasErrors: constantValue != null && constantValue.IsBad);
+            }
+
+            // If either operand is bad, don't try to do binary operator overload resolution; that will just
+            // make cascading errors.
+
+            if (left.HasAnyErrors || right.HasAnyErrors)
+            {
+                // NOTE: no candidate user-defined operators.
+                return new BoundBinaryOperator(node, kind, ConstantValue.NotAvailable, methodOpt: null,
+                    resultKind: LookupResultKind.Empty, left, right, type: GetBinaryOperatorErrorType(kind, diagnostics, node), hasErrors: true);
             }
 
             if (left.HasDynamicType() || right.HasDynamicType())
@@ -925,9 +925,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // As mentioned above, we relax this restriction. The types must all be the same.
 
-            bool typesAreSame = signature.LeftType == signature.RightType && signature.LeftType == signature.ReturnType;
-            bool typeMatchesContainer = signature.ReturnType == t ||
-                signature.ReturnType.IsNullableType() && signature.ReturnType.GetNullableUnderlyingType() == t;
+            bool typesAreSame = TypeSymbol.Equals(signature.LeftType, signature.RightType, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(signature.LeftType, signature.ReturnType, TypeCompareKind.ConsiderEverything2);
+            bool typeMatchesContainer = TypeSymbol.Equals(signature.ReturnType, t, TypeCompareKind.ConsiderEverything2) ||
+                signature.ReturnType.IsNullableType() && TypeSymbol.Equals(signature.ReturnType.GetNullableUnderlyingType(), t, TypeCompareKind.ConsiderEverything2);
 
             if (!typesAreSame || !typeMatchesContainer)
             {
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasApplicableBooleanOperator(NamedTypeSymbol containingType, string name, TypeSymbol argumentType, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out MethodSymbol @operator)
         {
-            for (var type = containingType; type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            for (var type = containingType; (object)type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
                 var operators = type.GetOperators(name);
                 for (var i = 0; i < operators.Length; i++)
@@ -2041,12 +2041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var expr = BindExpression(node.Operand, diagnostics);
-            var type = expr.Type;
-            if (type?.IsValueType == true)
-            {
-                Error(diagnostics, ErrorCode.WRN_SuppressionOperatorNotReferenceType, node);
-            }
-            return new BoundSuppressNullableWarningExpression(node, expr, type);
+            return new BoundSuppressNullableWarningExpression(node, expr, expr.Type);
         }
 
         // Based on ExpressionBinder::bindPtrIndirection.
@@ -2671,9 +2666,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!operand.HasAnyErrors)
                     {
                         Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
-                        operand = BadExpression(node, operand).MakeCompilerGenerated();
                     }
 
+                    operand = BadExpression(node, operand).MakeCompilerGenerated();
                     return true;
 
                 default:
@@ -2685,6 +2680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Error(diagnostics, ErrorCode.ERR_BadUnaryOp, node, SyntaxFacts.GetText(SyntaxKind.IsKeyword), operand.Display);
                         }
 
+                        operand = BadExpression(node, operand).MakeCompilerGenerated();
                         return true;
                     }
 
@@ -2730,8 +2726,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var isTypeDiagnostics = DiagnosticBag.GetInstance();
             TypeSymbol targetType = BindType(node.Right, isTypeDiagnostics, out alias).TypeSymbol;
 
-            if (targetType?.IsErrorType() == true && isTypeDiagnostics.HasAnyResolvedErrors() &&
-                    ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
+            bool wasUnderscore = node.Right is IdentifierNameSyntax name && name.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken;
+            if (!wasUnderscore && targetType?.IsErrorType() == true && isTypeDiagnostics.HasAnyResolvedErrors() &&
+                ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
             {
                 // it did not bind as a type; try binding as a constant expression pattern
                 bool wasExpression;
@@ -2740,7 +2737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!operandHasErrors)
                     {
-                        isPatternDiagnostics.Add(ErrorCode.ERR_BadIsPatternExpression, node.Left.Location, operand.Display);
+                        isPatternDiagnostics.Add(ErrorCode.ERR_BadPatternExpression, node.Left.Location, operand.Display);
                     }
 
                     operand = ToBadExpression(operand);
@@ -2753,7 +2750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     isTypeDiagnostics.Free();
                     diagnostics.AddRangeAndFree(isPatternDiagnostics);
-                    return new BoundIsPatternExpression(node, operand, boundConstantPattern, resultType, operandHasErrors);
+                    return MakeIsPatternExpression(node, operand, boundConstantPattern, resultType, operandHasErrors, diagnostics);
                 }
 
                 isPatternDiagnostics.Free();
@@ -2765,6 +2762,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operandHasErrors || IsOperatorErrors(node, operand.Type, typeExpression, diagnostics))
             {
                 return new BoundIsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+            }
+
+            if (wasUnderscore && ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureRecursivePatterns))
+            {
+                diagnostics.Add(ErrorCode.WRN_IsTypeNamedUnderscore, node.Right.Location, alias ?? (Symbol)targetType);
             }
 
             // Is and As operator should have null ConstantValue as they are not constant expressions.
@@ -2913,11 +2915,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // nevertheless, X could be constructed as an enumerated type.
                     // However, we can sometimes know that the result will be false.
                     //
-                    // Scenario 2: Constrained type parameter compared to reference type.
+                    // Scenario 2a: Constrained type parameter compared to reference type.
                     //
-                    // bool M2<X>(X x) where X : struct { return x is string; }
+                    // bool M2a<X>(X x) where X : struct { return x is string; }
                     //
                     // We know that X, constrained to struct, will never be string.
+                    //
+                    // Scenario 2b: Reference type compared to constrained type parameter.
+                    //
+                    // bool M2b<X>(string x) where X : struct { return x is X; }
+                    //
+                    // We know that string will never be X, constrained to struct.
                     //
                     // Scenario 3: Value type compared to type parameter.
                     //
@@ -2958,11 +2966,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ConstantValue.False;
                     }
 
-                    // * Otherwise, at least one of them is of an open type. If the operand is of value type
-                    //   and the target is a class type other than System.Enum, then we are in scenario 2,
-                    //   not scenario 1, and can correctly deduce that the result is false.
+                    // * Otherwise, at least one of them is of an open type. If the operand is of value type 
+                    //   and the target is a class type other than System.Enum, or vice versa, then we are
+                    //   in scenario 2, not scenario 1, and can correctly deduce that the result is false.
 
-                    if (operandType.IsValueType && targetType.IsClassType() && targetType.SpecialType != SpecialType.System_Enum)
+                    if (operandType.IsValueType && targetType.IsClassType() && targetType.SpecialType != SpecialType.System_Enum ||
+                        targetType.IsValueType && operandType.IsClassType() && operandType.SpecialType != SpecialType.System_Enum)
                     {
                         return ConstantValue.False;
                     }
@@ -3552,7 +3561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // must be A (where A is the type of a), as it is where the result of the assignment will end up. Therefore,
             // we must ensure that B (where B is the type of b) is implicitly convertible to A.
             TypeSymbol leftType = leftOperand.Type;
-            Debug.Assert(leftType != null);
+            Debug.Assert((object)leftType != null);
 
             // If A is a non-nullable value type, a compile-time error occurs
             if (leftType.IsValueType && !leftType.IsNullableType())
@@ -3664,7 +3673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type;
             bool hasErrors = false;
 
-            if (trueType == falseType)
+            if (TypeSymbol.Equals(trueType, falseType, TypeCompareKind.ConsiderEverything2))
             {
                 // NOTE: Dev10 lets the type inferrer handle this case (presumably, for maximum consistency),
                 // but it seems like a worthwhile short-circuit for a common case.

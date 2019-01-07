@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ImmutableDictionary<ProjectId, IVsHierarchy> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
-        private ImmutableDictionary<string, VisualStudioProject> _projectUniqueNameToProjectMap = ImmutableDictionary<string, VisualStudioProject>.Empty;
+        private Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new Dictionary<string, List<VisualStudioProject>>();
 
         /// <summary>
         /// A set of documents that were added by <see cref="VisualStudioProject.AddSourceTextContainer"/>, and aren't otherwise
@@ -129,13 +129,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _openFileTrackerOpt?.CheckForFilesBeingOpen(newFileNames);
         }
 
-        internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy hierarchy, Guid guid, string projectUniqueName)
+        internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy hierarchy, Guid guid, string projectSystemName)
         {
             lock (_gate)
             {
                 _projectToHierarchyMap = _projectToHierarchyMap.Add(project.Id, hierarchy);
                 _projectToGuidMap = _projectToGuidMap.Add(project.Id, guid);
-                _projectUniqueNameToProjectMap = _projectUniqueNameToProjectMap.Add(projectUniqueName, project);
+                _projectSystemNameToProjectsMap.MultiAdd(projectSystemName, project);
             }
         }
 
@@ -181,10 +181,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return ContainedDocument.TryGetContainedDocument(documentId);
         }
 
-        internal VisualStudioProject GetProjectForUniqueName(string projectName)
+        internal VisualStudioProject GetProjectWithHierarchyAndName(IVsHierarchy hierarchy, string projectName)
         {
-            // This doesn't take a lock since _projectNameToProjectMap is immutable
-            return _projectUniqueNameToProjectMap.GetValueOrDefault(projectName, defaultValue: null);
+            lock (_gate)
+            {
+                if (_projectSystemNameToProjectsMap.TryGetValue(projectName, out var projects))
+                {
+                    foreach (var project in projects)
+                    {
+                        if (_projectToHierarchyMap.TryGetValue(project.Id, out var projectHierarchy))
+                        {
+                            if (projectHierarchy == hierarchy)
+                            {
+                                return project;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
 
         [Obsolete("This is a compatibility shim for Live Unit Testing; please do not use it.")]
@@ -1330,11 +1346,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _projectToGuidMap = _projectToGuidMap.Remove(projectId);
                 _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
 
-                foreach (var pair in _projectUniqueNameToProjectMap)
+                foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
                 {
-                    if (pair.Value.Id == projectId)
+                    if (projects.RemoveAll(p => p.Id == projectId) > 0)
                     {
-                        _projectUniqueNameToProjectMap = _projectUniqueNameToProjectMap.Remove(pair.Key);
+                        if (projects.Count == 0)
+                        {
+                            _projectSystemNameToProjectsMap.Remove(projectName);
+                        }
+
                         break;
                     }
                 }
