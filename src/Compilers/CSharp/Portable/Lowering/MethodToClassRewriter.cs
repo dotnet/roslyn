@@ -628,6 +628,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, receiverType, node.BinderOpt, type);
         }
 
+        public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            MethodSymbol method = VisitMethodSymbol(node.Method);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(operand, method, type);
+        }
+
         private static bool BaseReferenceInReceiverWasRewritten(BoundExpression originalReceiver, BoundExpression rewrittenReceiver)
         {
             return originalReceiver != null && originalReceiver.Kind == BoundKind.BaseReference &&
