@@ -3880,8 +3880,50 @@ public class C
                     //         M<(int, int)>();
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<(int, int)>").WithArguments("unmanaged generic structs", "8.0").WithLocation(14, 9)
                 );
-
+            
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void StructContainingGenericTuple_Unmanaged()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public (T, T) field;
+}
+
+public class C
+{
+    public unsafe void M<T>() where T : unmanaged { }
+
+    public void M2<U>() where U : unmanaged
+    {
+        M<MyStruct<U>>();
+    }
+
+    public void M3<V>()
+    {
+        M<MyStruct<V>>();
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (13,9): error CS8370: Feature 'unmanaged generic structs' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         M<MyStruct<U>>();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<MyStruct<U>>").WithArguments("unmanaged generic structs", "8.0").WithLocation(13, 9),
+                    // (18,9): error CS8377: The type 'MyStruct<V>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>()'
+                    //         M<MyStruct<V>>();
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<MyStruct<V>>").WithArguments("C.M<T>()", "T", "MyStruct<V>").WithLocation(18, 9)
+                );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (18,9): error CS8377: The type 'MyStruct<V>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>()'
+                    //         M<MyStruct<V>>();
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<MyStruct<V>>").WithArguments("C.M<T>()", "T", "MyStruct<V>").WithLocation(18, 9)
+                );
         }
 
         [Fact]
