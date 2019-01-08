@@ -918,14 +918,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     currentCompilation is CSharpCompilation csCompilation &&
                     !csCompilation.IsFeatureEnabled(MessageID.IDS_FeatureUnmanagedGenericStructs))
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    MessageID.IDS_FeatureUnmanagedGenericStructs.CheckFeatureAvailability(csCompilation.LanguageVersion, diagnostics, typeArgument.TypeSymbol.Locations[0]);
-                    foreach (var diagnostic in diagnostics.AsEnumerable())
-                    {
-                        // PROTOTYPE
-                        var typeParameterDiagnostic = new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo((ErrorCode) diagnostic.Code, args: (object[]) diagnostic.Arguments));
-                        diagnosticsBuilder.Add(typeParameterDiagnostic);
-                    }
+                    var csDiagnostic = Binder.GetFeatureAvailabilityDiagnosticInfo(csCompilation.SyntaxTrees[0], MessageID.IDS_FeatureUnmanagedGenericStructs);
+                    var typeParameterDiagnostic = new TypeParameterDiagnosticInfo(typeParameter, csDiagnostic);
+                    diagnosticsBuilder.Add(typeParameterDiagnostic);
                 }
             }
 

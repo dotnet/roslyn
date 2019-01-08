@@ -2248,7 +2248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfo(SyntaxTree tree, MessageID feature)
+        internal static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfo(SyntaxTree tree, MessageID feature)
         {
             CSharpParseOptions options = (CSharpParseOptions)tree.Options;
 
