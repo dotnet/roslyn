@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             CancellationToken cancellationToken)
         {
 
-            var emptyToken = SyntaxFactory.Token(SyntaxKind.None);
-
             foreach (var diagnostic in diagnostics)
             {
                 var diagnosticNode = diagnostic.Location.FindNode(cancellationToken);
@@ -48,13 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
                 foreach (var fieldDeclaration in fieldDeclarations)
                 {
-                    var readonlySyntaxToken = fieldDeclaration.ChildTokens()
-                        .FirstOrDefault(token => token.IsKind(SyntaxKind.ReadOnlyKeyword));
+                    var fieldDeclarationModifiers = editor.Generator.GetModifiers(fieldDeclaration);
+                    var containsReadonlyModifier = 
+                        (fieldDeclarationModifiers & DeclarationModifiers.ReadOnly) == DeclarationModifiers.ReadOnly;
 
-                    if (readonlySyntaxToken != default)
+                    if (containsReadonlyModifier)
                     {
-                        var fieldWithoutReadonly = fieldDeclaration.ReplaceToken(readonlySyntaxToken, emptyToken);
-                        editor.ReplaceNode(fieldDeclaration, fieldWithoutReadonly);
+                        editor.SetModifiers(fieldDeclaration, fieldDeclarationModifiers - DeclarationModifiers.ReadOnly);
                     }
                 }
             }
