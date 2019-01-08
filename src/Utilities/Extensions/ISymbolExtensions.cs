@@ -552,5 +552,13 @@ namespace Analyzer.Utilities.Extensions
         {
             return symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute));
         }
+
+        /// <summary>
+        /// Indicates if a symbol has at least one location in source.
+        /// </summary>
+        public static bool IsInSource(this ISymbol symbol)
+        {
+            return symbol.Locations.Any(l => l.IsInSource);
+        }
     }
 }
