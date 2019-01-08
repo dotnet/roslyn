@@ -27,6 +27,7 @@
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)"/>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />
     <Compile Include="..\..\Shared\NamedPipeUtil.cs" />
     <Compile Include="..\..\Shared\BuildClient.cs">
       <Link>BuildClient.cs</Link>

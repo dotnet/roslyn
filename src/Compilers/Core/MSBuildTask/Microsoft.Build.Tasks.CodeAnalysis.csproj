@@ -35,19 +35,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Shared\NamedPipeUtil.cs" />
-    <Compile Include="..\..\Shared\BuildServerConnection.cs">
-      <Link>BuildServerConnection.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Shared\CoreClrShim.cs">
-      <Link>CoreClrShim.cs</Link>
-    </Compile>
+    <Compile Include="..\..\Shared\BuildServerConnection.cs" Link="BulidServerConnection.cs" />
+    <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />
     <Compile Include="..\Portable\CommitHashAttribute.cs" Link="CommitHashAttribute.cs" />
-    <Compile Include="..\Portable\InternalUtilities\CommandLineUtilities.cs">
-      <Link>CommandLineUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs">
-      <Link>CompilerOptionParseUtilities.cs</Link>
-    </Compile>
+    <Compile Include="..\Portable\InternalUtilities\CommandLineUtilities.cs" Link="CommandLineUtilities.cs" />
+    <Compile Include="..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs" Link="CompilerOptionParserUtilities.cs" />
     <Compile Include="..\Portable\InternalUtilities\IReadOnlySet.cs">
       <Link>IReadOnlySet.cs</Link>
     </Compile>
