@@ -3,7 +3,6 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
@@ -146,6 +144,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 {
                     end = forStatementSyntax.Declaration.FullSpan.End;
                 }
+                else if (CaretIsInForStatementInitializers(caretPosition, forStatementSyntax))
+                {
+                    end = forStatementSyntax.Initializers.FullSpan.End;
+                }
                 else
                 {
                     // Should not be reachable because we returned earlier for this case
@@ -163,14 +165,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             return root.FindToken(end).GetPreviousToken().Span.End;
         }
 
-        private static bool CaretIsInForStatementDeclaration(int caretPosition, ForStatementSyntax forStatementSyntax)
-        {
-            return caretPosition > forStatementSyntax.Declaration.Span.Start && caretPosition < forStatementSyntax.Declaration.Span.End;
-        }
-
         private static bool CaretIsInForStatementCondition(int caretPosition, ForStatementSyntax forStatementSyntax)
         {
             return caretPosition > forStatementSyntax.Condition.SpanStart && caretPosition < forStatementSyntax.Condition.Span.End;
+        }
+
+        private static bool CaretIsInForStatementDeclaration(int caretPosition, ForStatementSyntax forStatementSyntax)
+        {
+            if (forStatementSyntax.Declaration == null)
+                return false;
+            else
+                return caretPosition > forStatementSyntax.Declaration.Span.Start && caretPosition < forStatementSyntax.Declaration.Span.End;
+        }
+
+        private static bool CaretIsInForStatementInitializers(int caretPosition, ForStatementSyntax forStatementSyntax)
+        {
+            if (forStatementSyntax.Initializers.Count == 0)
+                return false;
+            else
+                return caretPosition > forStatementSyntax.Initializers.Span.Start && caretPosition < forStatementSyntax.Initializers.Span.End;
         }
 
         /// <summary>
@@ -185,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             SnapshotPoint caret, ISyntaxFactsService syntaxFacts)
         {
             // work our way up the tree, looking for a node of interest within the current statement
-            bool nodeFound = false;
+            var nodeFound = false;
             while (!IsStatementOrFieldDeclaration(currentNode, syntaxFacts))
             {
                 // Look for the following types of nodes:
@@ -247,8 +260,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     return true;
                 case SyntaxKind.ForStatement:
                     var forStatementSyntax = (ForStatementSyntax)currentNode;
-                    return (CaretIsInForStatementCondition(caretPosition, forStatementSyntax) ||
-                        CaretIsInForStatementDeclaration(caretPosition, forStatementSyntax));
+                    return CaretIsInForStatementCondition(caretPosition, forStatementSyntax) ||
+                        CaretIsInForStatementDeclaration(caretPosition, forStatementSyntax) ||
+                        CaretIsInForStatementInitializers(caretPosition, forStatementSyntax);
                 default:
                     return false;
             }

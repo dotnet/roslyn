@@ -999,7 +999,7 @@ public class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ForLoopInitializer()
+        public void ForLoopDeclaration()
         {
             var code =
 @"
@@ -1025,7 +1025,85 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ForLoopInitializer_MissingParen()
+        public void ForLoopDeclaration2()
+        {
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd""$$), j=1 i < 10; i++)
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd""), j=1;$$ i < 10; i++)
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopDeclaration3()
+        {
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd""$$); i < 10; i++)
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd"");$$; i < 10; i++)
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopDeclaration4()
+        {
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd""$$), j=1; i < 10; i++)
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd""), j=1;$$; i < 10; i++)
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopDeclaration_MissingParen()
         {
             var code =
 @"
@@ -1045,6 +1123,153 @@ class C
     {
         string s = ""abcdefghij"";
         for (int i = s.IndexOf(""bcd"";$$ i < 10; i++)
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopInitializers()
+        {
+            // Semicolon location is incorrect https://github.com/dotnet/roslyn/issues/32250
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        int i;
+        for (i = s.IndexOf(""bcd""$$) i < 10; i++)
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        int i;
+        for (i = s.IndexOf(""bcd"") i < 10;$$; i++)
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopInitializers2()
+        {
+            // Semicolon location is incorrect https://github.com/dotnet/roslyn/issues/32250
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        int i;
+        int j;
+        for (i = s.IndexOf(""bcd""$$), j=1 i < 10; i++)
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        int i;
+        int j;
+        for (i = s.IndexOf(""bcd""), j=1 i < 10;$$; i++)
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopInitializers3()
+        {
+            // Semicolon location is incorrect https://github.com/dotnet/roslyn/issues/32250
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        int i;
+        for (i = s.IndexOf(""bcd""$$); i < 10; i++)
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        int i;
+        for (i = s.IndexOf(""bcd"");$$; i < 10; i++)
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopInitializers4()
+        {
+            // Semicolon location is incorrect https://github.com/dotnet/roslyn/issues/32250
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        int i;
+        int j;
+        for (i = s.IndexOf(""bcd""$$), j=1; i < 10; i++)
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        int i;
+        int j;
+        for (i = s.IndexOf(""bcd""), j=1;$$; i < 10; i++)
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopInitializers_MissingParen()
+        {
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        int i;
+        for (i = s.IndexOf(""bcd""$$ i < 10; i++)
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        int i;
+        for (i = s.IndexOf(""bcd"";$$ i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1232,7 +1457,7 @@ class SampleCollection<T>
     }
 }";
 
-            VerifyTypingSemicolon(code,expected);
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1665,7 +1890,7 @@ public class Class1
     }
 }";
 
-            VerifyTypingSemicolon(code,expected);
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1935,7 +2160,7 @@ class Program
 }
 ";
 
-            VerifyTypingSemicolon(code,expected);
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -2000,7 +2225,7 @@ class Program
     }
 }
 ";
-        var expected =
+            var expected =
 @"
 using System;
 class Program
@@ -2016,12 +2241,12 @@ class Program
 }
 ";
 
-        VerifyTypingSemicolon(code, expected);
-    }
+            VerifyTypingSemicolon(code, expected);
+        }
 
-    #endregion
+        #endregion
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ThrowStatement_MissingBoth()
         {
             var code = @"
@@ -2065,7 +2290,6 @@ public class Class1
 
             VerifyTypingSemicolon(code, expected);
         }
-
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_SemicolonBeforeClassDeclaration()
@@ -2687,6 +2911,141 @@ class Program
         {
             var code = CreateTestWithMethodCall(@"var s=$""{obj.ToString($$)}""");
 
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Attribute()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        // Warning: 'Program.Test()' is obsolete
+        Test();
+    }
+
+    [Obsolete$$]
+    static void Test()
+    {
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Attribute2()
+        {
+            var code = @"
+[assembly: System.Reflection.AssemblyVersionAttribute(null$$)]
+class Program
+{
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Attribute3()
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+using System;
+
+class DummyAttribute : Attribute
+{
+    public DummyAttribute([CallerMemberName$$] string callerName = """")
+    {
+        Console.WriteLine(""name: "" + callerName);
+    }
+}
+
+class A
+{
+    [Dummy]
+    public void MyMethod() {
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Attribute4()
+        {
+            var code = @"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(a: true, b: new object[$$] { ""Hello"", ""World"" })]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write($""B.Length={attr.B.Length}, B[0]={attr.B[0]}, B[1]={attr.B[1]}"");
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Attribute5()
+        {
+            var code = @"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(a: true, b: new object[] { ""Hello"", ""World""$$ })]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write($""B.Length={attr.B.Length}, B[0]={attr.B[0]}, B[1]={attr.B[1]}"");
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Attribute6()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        // Warning: 'Program.Test()' is obsolete
+        Test();
+    }
+
+    [Obsolete$$
+    static void Test()
+    {
+    }
+}";
             VerifyNoSpecialSemicolonHandling(code);
         }
 
