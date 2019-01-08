@@ -624,7 +624,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal bool IsManagedType => ManagedKind == ManagedKind.Managed;
 
-        // PROTOTYPE
+        /// <summary>
+        /// Indicates whether a type is managed or not (i.e. you can take a pointer to it).
+        /// Contains additional cases to help implement FeatureNotAvailable diagnostics.
+        /// </summary>
         internal abstract ManagedKind ManagedKind { get; }
 
         internal bool ContainsNullableReferenceTypes()

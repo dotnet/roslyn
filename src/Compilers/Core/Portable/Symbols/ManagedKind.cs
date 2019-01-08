@@ -5,14 +5,14 @@ using System;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// PROTOTYPE
+    /// Enumeration of the possible "degrees of managed" for a type.
     /// </summary>
     [Flags]
     internal enum ManagedKind : byte
     {
         Unknown = 0,
         Unmanaged = 1,
-        UnmanagedWithGenerics = 2,
+        UnmanagedWithGenerics = 2, // considered "managed" in C# 7.3 and earlier
         Managed = 3,
     }
 }
