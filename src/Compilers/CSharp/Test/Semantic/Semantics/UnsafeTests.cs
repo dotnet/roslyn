@@ -2511,6 +2511,7 @@ class C
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
             Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => !field.Type.IsManagedType));
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetField("f16").Type.TypeSymbol.ManagedKind);
         }
 
         [Fact]
@@ -2595,7 +2596,9 @@ struct R<T>
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedType);
+            Assert.Equal(ManagedKind.Unmanaged, globalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKind);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("P").IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, globalNamespace.GetMember<NamedTypeSymbol>("P").ManagedKind);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("S").IsManagedType);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("S").IsManagedType);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("Q").GetMember<NamedTypeSymbol>("S").IsManagedType);
@@ -2622,9 +2625,15 @@ struct S<T>
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.False(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f1").Type.TypeSymbol.ManagedKind);
             Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedType);
-            Assert.True(type.GetMember<FieldSymbol>("f3").Type.IsManagedType); // is managed due to being ErrorType due to protection level (CS0169)
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f2").Type.TypeSymbol.ManagedKind);
+
+            // these are managed due to S`1.R being ErrorType due to protection level (CS0169)
+            Assert.True(type.GetMember<FieldSymbol>("f3").Type.IsManagedType);
+            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f3").Type.TypeSymbol.ManagedKind);
             Assert.True(type.GetMember<FieldSymbol>("f4").Type.IsManagedType);
+            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f4").Type.TypeSymbol.ManagedKind);
         }
 
         [Fact]
@@ -2645,7 +2654,9 @@ struct S<T>
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.True(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
+            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f1").Type.TypeSymbol.ManagedKind);
             Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f2").Type.TypeSymbol.ManagedKind);
         }
 
         [Fact]
@@ -2864,6 +2875,7 @@ struct W<T> { X<W<W<T>>> x; }
             var globalNamespace = compilation.GlobalNamespace;
             Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("X").IsManagedType); // because of X.t
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("W").IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, globalNamespace.GetMember<NamedTypeSymbol>("W").ManagedKind);
         }
 
         [Fact]
