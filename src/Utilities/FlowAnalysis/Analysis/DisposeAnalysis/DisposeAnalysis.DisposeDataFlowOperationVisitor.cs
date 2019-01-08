@@ -233,11 +233,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(targetMethod, instance,
                     arguments, invokedAsDelegate, originaOperation, defaultValue);
 
-                var disposeMethodKind = targetMethod.GetDisposeMethodKind(WellKnownTypeProvider.IDisposable);
+                var disposeMethodKind = targetMethod.GetDisposeMethodKind(WellKnownTypeProvider.IDisposable, WellKnownTypeProvider.Task);
                 switch (disposeMethodKind)
                 {
                     case DisposeMethodKind.Dispose:
                     case DisposeMethodKind.DisposeBool:
+                    case DisposeMethodKind.DisposeAsync:
                         HandleDisposingOperation(originaOperation, instance);
                         break;
 
