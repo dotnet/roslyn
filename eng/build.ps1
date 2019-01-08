@@ -35,13 +35,17 @@ param (
     [string]$bootstrapConfiguration = "Release",
     [switch][Alias('bl')]$binaryLog,
     [switch]$ci,
-    [switch]$official,
     [switch]$procdump,
     [switch]$skipAnalyzers,
-    [switch]$deployExtensions,
+    [switch][Alias('d')]$deployExtensions,
     [switch]$prepareMachine,
     [switch]$useGlobalNuGetCache = $true,
     [switch]$warnAsError = $false,
+
+    # official build settings
+    [string]$officialBuildId = "",
+    [string]$vsDropName = "",
+    [string]$vsBranch = "",
 
     # Test actions
     [switch]$test32,
@@ -60,7 +64,7 @@ function Print-Usage() {
     Write-Host "Common settings:"
     Write-Host "  -configuration <value>    Build configuration: 'Debug' or 'Release' (short: -c)"
     Write-Host "  -verbosity <value>        Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]"
-    Write-Host "  -deployExtensions         Deploy built vsixes"
+    Write-Host "  -deployExtensions         Deploy built vsixes (short: -d)"
     Write-Host "  -binaryLog                Create MSBuild binary log (short: -bl)"
     Write-Host ""
     Write-Host "Actions:"
@@ -83,7 +87,6 @@ function Print-Usage() {
     Write-Host ""
     Write-Host "Advanced settings:"
     Write-Host "  -ci                       Set when running on CI server"
-    Write-Host "  -official                 Set when building an official build"
     Write-Host "  -bootstrap                Build using a bootstrap compilers"
     Write-Host "  -bootstrapConfiguration   Build configuration for bootstrap compiler: 'Debug' or 'Release'"
     Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
@@ -92,6 +95,11 @@ function Print-Usage() {
     Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
     Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
     Write-Host "  -warnAsError              Treat all warnings as errors"
+    Write-Host ""    
+    Write-Host "Official build settings:"
+    Write-Host "  -officialBuildId          An official build id, e.g. 20190102.3"
+    Write-Host "  -vsDropName               Visual Studio product drop name"
+    Write-Host "  -vsBranch                 Visual Studio insertion branch"
     Write-Host ""
     Write-Host "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -108,7 +116,19 @@ function Process-Arguments() {
        Print-Usage
        exit 0
     }
+    
+    if ($officialBuildId) {
+        if (!$vsBranch) {
+            Write-Host "vsBranch must be specified for official builds"
+            exit 1
+        }
 
+        if (!$vsDropName) {
+            Write-Host "vsDropName must be specified for official builds"
+            exit 1
+        }
+    }
+    
     if ($test32 -and $test64) {
         Write-Host "Cannot combine -test32 and -test64"
         exit 1
@@ -150,7 +170,6 @@ function BuildSolution() {
 
     $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "Build.binlog") } else { "" }
     $projects = Join-Path $RepoRoot $solution
-    $officialBuildId = if ($official) { $env:BUILD_BUILDNUMBER } else { "" }
     $enableAnalyzers = !$skipAnalyzers
     $toolsetBuildProj = InitializeToolset
     $quietRestore = !$ci
@@ -182,6 +201,7 @@ function BuildSolution() {
         /p:QuietRestore=$quietRestore `
         /p:QuietRestoreBinaryLog=$binaryLog `
         /p:TestTargetFrameworks=$testTargetFrameworks `
+        /p:VisualStudioDropName=$vsDropName `
         /p:TreatWarningsAsErrors=true `
         $suppressExtensionDeployment `
         @properties
@@ -189,23 +209,27 @@ function BuildSolution() {
 
 
 function Build-OptProfData() {
+    $insertionDir = Join-Path $VSSetupDir "Insertion"
+    $optProfDir = Join-Path $ArtifactsDir "OptProf\$configuration"
+    $optProfDataDir = Join-Path $optProfDir "Data"
+    $optProfBranchDir = Join-Path $optProfDir "BranchInfo"
+
+    $optProfConfigFile = Join-Path $EngRoot "config\OptProf.json"
     $optProfToolDir = Get-PackageDir "RoslynTools.OptProf"
     $optProfToolExe = Join-Path $optProfToolDir "tools\roslyn.optprof.exe"
-    $configFile = Join-Path $RepoRoot "eng\config\OptProf.json"
-    $insertionFolder = Join-Path $VSSetupDir "Insertion"
-    $outputFolder = Join-Path $ArtifactsDir "OptProf\$configuration"
-    $dataFolder = Join-Path $outputFolder "Data"
-    Write-Host "Generating optprof data using '$configFile' into '$dataFolder'"
-    $optProfArgs = "--configFile $configFile --insertionFolder $insertionFolder --outputFolder $dataFolder"
-    Exec-Console $optProfToolExe $optProfArgs
 
-    # Write Out Branch we are inserting into
-    $vsBranchFolder = Join-Path $outputFolder "BranchInfo"
-    New-Item -ItemType Directory -Force -Path $vsBranchFolder
-    $vsBranchText = Join-Path $vsBranchFolder "vsbranch.txt"
-    # InsertTargetBranchFullName is defined in .vsts-ci.yml
-    $vsBranch = $Env:InsertTargetBranchFullName
-    $vsBranch >> $vsBranchText
+    Write-Host "Generating optimization data using '$optProfConfigFile' into '$optProfDataDir'"
+    Exec-Console $optProfToolExe "--configFile $optProfConfigFile --insertionFolder $insertionDir --outputFolder $optProfDataDir"
+
+    # Write out branch we are inserting into
+    Create-Directory $optProfBranchDir
+    $vsBranchFile = Join-Path $optProfBranchDir "vsbranch.txt"
+    $vsBranch >> $vsBranchFile
+
+    # Set VSO variables used by MicroBuildBuildVSBootstrapper pipeline task
+    $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
+
+    Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
 }
 
 # Core function for running our unit / integration tests tests
@@ -412,7 +436,7 @@ try {
         BuildSolution
     }
     
-    if ($build -and $pack -and $official) {
+    if ($officialBuildId) {
         Build-OptProfData
     }
 

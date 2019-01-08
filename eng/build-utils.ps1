@@ -211,8 +211,8 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
         $args += " /bl:$logFilePath"
     }
 
-    if ($official) {
-        $args += " /p:OfficialBuildId=" + $env:BUILD_BUILDNUMBER
+    if ($officialBuildId) {
+        $args += " /p:OfficialBuildId=" + $officialBuildId
     }
 
     if ($ci) {
