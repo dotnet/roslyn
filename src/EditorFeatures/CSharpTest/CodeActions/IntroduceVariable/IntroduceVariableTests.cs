@@ -5132,6 +5132,46 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
+        [WorkItem(31795, "https://github.com/dotnet/roslyn/issues/31795")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestInAnonymousObjectMemberDeclaratorWithInferredType()
+        {
+            var code =
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void Test(Dictionary<int, List<Guid>> d)
+    {
+        _ = new
+        {
+            a = [|d.Values|].Where(l => l.Count == 1)
+        };
+    }
+}";
+
+            var expected =
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void Test(Dictionary<int, List<Guid>> d)
+    {
+        Dictionary<int, List<Guid>>.ValueCollection {|Rename:values|} = d.Values;
+        _ = new
+        {
+            a = values.Where(l => l.Count == 1)
+        };
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
         [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestPickNameBasedOnArgument1()
