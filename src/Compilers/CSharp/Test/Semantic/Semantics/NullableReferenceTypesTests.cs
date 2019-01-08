@@ -18030,6 +18030,28 @@ class C
         }
 
         [Fact]
+        public void NullCoalescingOperator_RightIsUnreachable()
+        {
+            var source = @"
+class C
+{
+    object? F = null;
+    void M(C? c1, C c2)
+    {
+        if (c1?.F == null) return;
+        _ = c1 ?? (c1 = c2);
+        c1.F.ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,13): hidden CS8607: Expression is probably never null.
+                //         _ = c1 ?? (c1 = c2);
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c1").WithLocation(8, 13));
+        }
+
+        [Fact]
         public void IdentityConversion_NullCoalescingOperator_01()
         {
             var source =

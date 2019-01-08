@@ -1891,6 +1891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftResult.ValueCanBeNull() == false)
             {
                 ReportNonSafetyDiagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, leftOperand.Syntax);
+                SetUnreachable();
             }
 
             bool leftIsConstant = leftOperand.ConstantValue != null;
