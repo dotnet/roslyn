@@ -1162,9 +1162,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (isAsync)
             {
-                TypeSymbol returnType = moveNextMethodCandidate.ReturnType.TypeSymbol;
-                return !returnType.IsGenericTaskType(Compilation) ||
-                    ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0].SpecialType != SpecialType.System_Boolean;
+                // We'll verify the return type from `MoveNextAsync` when we try to bind the `await` for it
+                return false;
             }
 
             // SPEC VIOLATION: Dev10 checks the return type of the original definition, rather than the return type of the actual method.

@@ -567,6 +567,7 @@ class C
     }
 }";
             var comp = CreateCompilationWithMscorlib46(source);
+            // TODO
             comp.VerifyDiagnostics(
                 // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C())
@@ -603,6 +604,7 @@ class C
     }
 }";
             var comp = CreateCompilationWithMscorlib46(source);
+            // TODO
             comp.VerifyDiagnostics(
                 // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C())
@@ -2017,7 +2019,7 @@ class C
     {
         return new AsyncEnumerator(0);
     }
-    public class AsyncEnumerator
+    public class AsyncEnumerator : System.IAsyncDisposable
     {
         int i;
         internal AsyncEnumerator(int start) { i = start; }
@@ -2044,7 +2046,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Done", verify: Verification.Skipped);
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done", verify: Verification.Skipped);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2058,6 +2060,101 @@ class C
             var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposeMethod);
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void TestWithPattern_MoveNextAsyncReturnsAwaitable()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+            Write(""SKIPPED"");
+        }
+        Write($""Done"");
+    }
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
+    {
+        return new AsyncEnumerator();
+    }
+    public class AsyncEnumerator : System.IAsyncDisposable
+    {
+        public int Current => throw null;
+        public Awaitable MoveNextAsync()
+        {
+            return new Awaitable();
+        }
+        public async ValueTask DisposeAsync()
+        {
+            Write(""Dispose "");
+            await Task.Yield();
+        }
+    }
+
+    public class Awaitable
+    {
+        public Awaiter GetAwaiter() { return new Awaiter(); }
+    }
+    public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
+    {
+        public bool IsCompleted { get { return true; } }
+        public bool GetResult() { Write(""GetResult ""); return false; }
+        public void OnCompleted(System.Action continuation) { }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            // TODO
+            var v = CompileAndVerify(comp, expectedOutput: "GetResult Dispose Done");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.Equal("C.Awaitable C.AsyncEnumerator.MoveNextAsync()", info.MoveNextMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void TestWithPattern_MoveNextAsyncReturnsBadType()
+        {
+            string source = @"
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
+    public class AsyncEnumerator
+    {
+        public int Current => throw null;
+        public int MoveNextAsync() => throw null;
+        public ValueTask DisposeAsync() => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable });
+            comp.VerifyDiagnostics(
+                // (7,33): error CS1061: 'int' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("int", "GetAwaiter").WithLocation(7, 33)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+            Assert.Null(info.MoveNextMethod);
+            Assert.Null(info.ElementType);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
