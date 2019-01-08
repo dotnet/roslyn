@@ -6527,7 +6527,7 @@ public class C
             Assert.Equal(1, peHeaders.PEHeader.MinorSubsystemVersion);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [Fact]
         public void CreateCompilationWithKeyFile()
         {
             string source = @"
@@ -10541,11 +10541,7 @@ class C
             var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
             var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { "/features:UseLegacyStrongNameProvider", "/nostdlib", "a.cs" });
             var comp = csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
-            var desktopProvider = Assert.IsType<DesktopStrongNameProvider>(comp.Options.StrongNameProvider);
-            using (var inputStream = Assert.IsType<DesktopStrongNameProvider.TempFileStream>(desktopProvider.CreateInputStream()))
-            {
-                Assert.Equal(tempDir.Path, Path.GetDirectoryName(inputStream.Path));
-            }
+            Assert.True(!comp.SignUsingBuilder);
         }
 
         public class QuotedArgumentTests : CommandLineTestBase

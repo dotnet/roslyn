@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: support for #load search paths
             Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger)
 
-            Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger)
+            Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory)
 
             Return VisualBasicCompilation.Create(
                  Arguments.CompilationName,
@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithMetadataReferenceResolver(referenceDirectiveResolver).
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
                      WithXmlReferenceResolver(xmlFileResolver).
-                     WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem, _tempDirectory)).
+                     WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
                      WithSourceReferenceResolver(sourceFileResolver))
         End Function
 

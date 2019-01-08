@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger);
+            var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory);
 
             return CSharpCompilation.Create(
                 Arguments.CompilationName,
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WithMetadataReferenceResolver(referenceDirectiveResolver).
                     WithAssemblyIdentityComparer(assemblyIdentityComparer).
                     WithXmlReferenceResolver(xmlFileResolver).
-                    WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem, _tempDirectory)).
+                    WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
                     WithSourceReferenceResolver(sourceFileResolver));
         }
 

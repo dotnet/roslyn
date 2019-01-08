@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis
                         var refPeStreamProviderOpt = finalRefPeFilePath != null ? new CompilerEmitStreamProvider(this, finalRefPeFilePath) : null;
 
                         RSAParameters? privateKeyOpt = null;
-                        if (compilation.Options.StrongNameProvider?.Capability == SigningCapability.SignsPeBuilder && !compilation.Options.PublicSign)
+                        if (compilation.Options.StrongNameProvider != null && compilation.SignUsingBuilder && !compilation.Options.PublicSign)
                         {
                             privateKeyOpt = compilation.StrongNameKeys.PrivateKey;
                         }
