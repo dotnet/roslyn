@@ -2585,7 +2585,7 @@ class Program
 {
     void M()
     {
-        Action<int> goo = x => [|x.Goo|];
+        Action<int> goo = x => [|x.ToString()|];
     }
 }",
 @"using System;
@@ -2596,7 +2596,7 @@ class Program
     {
         Action<int> goo = x =>
         {
-            object {|Rename:goo1|} = x.Goo;
+            string {|Rename:v|} = x.ToString();
         };
     }
 }");

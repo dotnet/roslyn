@@ -432,11 +432,13 @@ End Class"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestSharedModifierAbsentInGeneratedModuleFields() As Task
             Dim source = "Module Program
+    Private ReadOnly y As Integer = 1
     Dim x = Goo([|2 + y|])
 End Module"
             Dim expected = "Module Program
-    Private ReadOnly {|Rename:p|} As Object = 2 + y
-    Dim x = Goo(p)
+    Private ReadOnly y As Integer = 1
+    Private ReadOnly {|Rename:v|} As Integer = 2 + y
+    Dim x = Goo(v)
 End Module"
             Await TestInRegularAndScriptAsync(source, expected)
         End Function
