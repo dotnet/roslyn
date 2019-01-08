@@ -140,6 +140,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_MultipleAnalyzerConfigsInSameDir As Integer
+            Get
+                Return ERRID.ERR_MultipleAnalyzerConfigsInSameDir
+            End Get
+        End Property
+
         ' command line:
         Public Overrides ReadOnly Property ERR_ExpectedSingleScript As Integer
             Get
