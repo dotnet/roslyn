@@ -210,6 +210,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType.TypeSymbol ?? CreateErrorType());
                 awaitInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+
+                if (!hasErrors && awaitInfo.GetResult?.ReturnType.SpecialType != SpecialType.System_Boolean)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadGetAsyncEnumerator, _syntax.Expression.Location, collectionExpr.Type, GetAsyncEnumeratorMethodName);
+                    hasErrors = true;
+                }
             }
 
             TypeSymbol iterationVariableType;

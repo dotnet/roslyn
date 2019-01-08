@@ -567,11 +567,10 @@ class C
     }
 }";
             var comp = CreateCompilationWithMscorlib46(source);
-            // TODO
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C' of 'GetAsyncEnumerator' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
         }
 
@@ -604,11 +603,10 @@ class C
     }
 }";
             var comp = CreateCompilationWithMscorlib46(source);
-            // TODO
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C' of 'GetAsyncEnumerator' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
         }
 
@@ -1983,7 +1981,7 @@ class C
             i = i + 100; // Note: side-effects of async methods in structs are lost
             return more;
         }
-        public async ValueTask DisposeAsync() => throw null;
+        public ValueTask DisposeAsync() => throw null;
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
@@ -2069,7 +2067,8 @@ class C
     {
         await foreach (var i in new C())
         {
-            Write(""SKIPPED"");
+            Write($""Item({i}) "");
+            break;
         }
         Write($""Done"");
     }
@@ -2079,7 +2078,7 @@ class C
     }
     public class AsyncEnumerator : System.IAsyncDisposable
     {
-        public int Current => throw null;
+        public int Current => 1;
         public Awaitable MoveNextAsync()
         {
             return new Awaitable();
@@ -2098,14 +2097,13 @@ class C
     public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
     {
         public bool IsCompleted { get { return true; } }
-        public bool GetResult() { Write(""GetResult ""); return false; }
+        public bool GetResult() { return true; }
         public void OnCompleted(System.Action continuation) { }
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            // TODO
-            var v = CompileAndVerify(comp, expectedOutput: "GetResult Dispose Done");
+            var v = CompileAndVerify(comp, expectedOutput: "Item(1) Dispose Done");
 
             var tree = comp.SyntaxTrees.First();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
