@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         private static Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
             new Lazy<ComposableCatalog>(() => ExportProviderCache.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
-                        .WithParts(ExportProviderCache.GetOrCreateAssemblyCatalog(MinimalTestExportProvider.GetEditorAssemblies())));
+                        .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog()));
 
         private static Lazy<IExportProviderFactory> s_lazyMinimumExportProviderFactoryWithCSharpAndVisualBasic =
             new Lazy<IExportProviderFactory>(() => ExportProviderCache.GetOrCreateExportProviderFactory(MinimumCatalogWithCSharpAndVisualBasic));
@@ -122,15 +122,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         }
 
         private static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()
-        {
-            return ExportProviderCache
-                .GetOrCreateAssemblyCatalog(GetCSharpAndVisualBasicAssemblies(), ExportProviderCache.CreateResolver())
-                .WithCompositionService();
-        }
+            => GetCSharpAndVisualBasicAssemblyCatalog().WithCompositionService();
 
-        public static IEnumerable<Assembly> GetCSharpAndVisualBasicAssemblies()
+        public static ComposableCatalog GetCSharpAndVisualBasicAssemblyCatalog()
         {
-            return GetNeutralAndCSharpAndVisualBasicTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetEditorAssemblies());
+            return ExportProviderCache.GetOrCreateAssemblyCatalog(
+                GetNeutralAndCSharpAndVisualBasicTypes().Select(t => t.Assembly).Distinct(), ExportProviderCache.CreateResolver())
+                .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog());
         }
     }
 }
