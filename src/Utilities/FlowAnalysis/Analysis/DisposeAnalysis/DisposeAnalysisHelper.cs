@@ -43,6 +43,7 @@ namespace Analyzer.Utilities
         private readonly ImmutableHashSet<INamedTypeSymbol> _disposeOwnershipTransferLikelyTypes;
         private ConcurrentDictionary<INamedTypeSymbol, ImmutableHashSet<IFieldSymbol>> _lazyDisposableFieldsMap;
         public INamedTypeSymbol IDisposable => _wellKnownTypeProvider.IDisposable;
+        public INamedTypeSymbol Task => _wellKnownTypeProvider.Task;
 
         private DisposeAnalysisHelper(Compilation compilation)
         {

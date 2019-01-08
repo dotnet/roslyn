@@ -24,6 +24,17 @@ namespace Analyzer.Utilities
         DisposeBool,
 
         /// <summary>
+        /// A method named DisposeAsync that has no parameters and returns Task.
+        /// </summary>
+        DisposeAsync,
+
+        /// <summary>
+        /// An overridden method named DisposeCoreAsync that takes a single Boolean parameter and returns Task, as
+        /// is used when implementing the standard DisposeAsync pattern.
+        /// </summary>
+        DisposeCoreAsync,
+
+        /// <summary>
         /// A method named Close on a type that implements <see cref="System.IDisposable"/>.
         /// </summary>
         Close
