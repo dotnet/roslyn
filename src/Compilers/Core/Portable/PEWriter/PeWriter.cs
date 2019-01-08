@@ -245,8 +245,7 @@ namespace Microsoft.Cci
 
             if (privateKeyOpt != null && corFlags.HasFlag(CorFlags.StrongNameSigned))
             {
-                Debug.Assert(strongNameProvider.Capability == SigningCapability.SignsPeBuilder);
-                strongNameProvider.SignPeBuilder(peBuilder, peBlob, privateKeyOpt.Value);
+                strongNameProvider.SignBuilder(peBuilder, peBlob, privateKeyOpt.Value);
             }
 
             try

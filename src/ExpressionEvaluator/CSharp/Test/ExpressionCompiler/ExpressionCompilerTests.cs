@@ -5578,9 +5578,8 @@ public class C
         [Fact]
         public void UseSiteWarning()
         {
-            var signedDllOptions = TestOptions.ReleaseDll.
-                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(s_defaultDesktopProvider);
+            var signedDllOptions = TestOptions.SigningReleaseDll.
+                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile);
 
             var libBTemplate = @"
 [assembly: System.Reflection.AssemblyVersion(""{0}.0.0.0"")]
