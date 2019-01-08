@@ -51,17 +51,20 @@
     </PropertyGroup>
   </Target>
 
-  <!-- Find .editorconfig files above the source files and produce an EditorConfigFiles output group. Files are later
-       passed to the compiler. -->
-  <Target Name="DiscoverEditorConfigFiles" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" BeforeTargets="CoreCompile">
-    <DiscoverEditorConfigFiles InputFiles="@(Compile);@(AdditionalFile)">
-      <Output TaskParameter="EditorConfigFiles" ItemName="EditorConfigFiles" />
-      <Output TaskParameter="PotentialEditorConfigFiles" ItemName="PotentialEditorConfigFiles" />
-    </DiscoverEditorConfigFiles>
-  </Target>
-  
-  <!-- Find and return the files paths where we looked for .editorconfig files but did not find one. -->
-  <Target Name="GetPotentialAnalyzerConfigFiles" DependsOnTargets="DiscoverEditorConfigFiles" Returns="@(PotentialEditorConfigFiles)" />
+  <!--
+    ========================
+    .editorconfig Support
+    ========================
+    -->
+  <PropertyGroup>
+    <!-- Default this to false until the ".editorconfig in compiler" feature is no longer experimental.
+         At that point this PropertyGroup can simply be deleted. -->
+    <DiscoverEditorConfigFiles Condition="'$(DiscoverEditorConfigFiles)' == ''">false</DiscoverEditorConfigFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Include="@(Compile->GetPathsOfAllFilesAbove('.editorconfig'))" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+  </ItemGroup>
 
   <!--
     ========================
