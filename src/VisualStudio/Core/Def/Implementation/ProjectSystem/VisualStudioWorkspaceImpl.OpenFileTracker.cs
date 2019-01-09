@@ -207,64 +207,67 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var projectToHierarchyMap = _workspace._projectToHierarchyMap;
                 var solution = _workspace.CurrentSolution;
 
-                // We now must chase to the actual hierarchy that we know about. We'll do this as a loop as there may be multiple steps in order.
-                // intermediateHierarchy will be where we are so far, and we'll keep track of all of our intermediate steps (think a breadcrumb trail)
-                // in intermediateHierarchies.
-                var intermediateHierarchy = hierarchy;
-                var intermediateHierarchies = new HashSet<IVsHierarchy>();
-
+                // We now must chase to the actual hierarchy that we know about. First, we'll chase through multiple shared asset projects if
+                // we need to do so.
                 while (true)
                 {
-                    if (!intermediateHierarchies.Add(intermediateHierarchy))
+                    var contextHierarchy = hierarchy.GetActiveProjectContext();
+
+                    // The check for if contextHierarchy == hierarchy is working around downstream impacts of https://devdiv.visualstudio.com/DevDiv/_git/CPS/pullrequest/158271
+                    // Since that bug means shared projects have themselves as their own owner, it sometimes results in us corrupting state where we end up
+                    // having the context of shared project be itself, it seems.
+                    if (contextHierarchy == null || contextHierarchy == hierarchy)
                     {
-                        // We ended up somewhere we already were -- either we have a loop or we weren't able to make further progress. In this case,
-                        // just bail.
                         break;
                     }
 
-                    // Have we already arrived at a hierarchy we know about?
-                    var matchingProjectId = projectToHierarchyMap.FirstOrDefault(d => projectIds.Contains(d.Key) &&
-                                                                                      d.Value == intermediateHierarchy).Key;
+                    EnsureSubscribedToHierarchyPropertyChanges(hierarchy);
+                    hierarchy = contextHierarchy;
+                }
 
-                    if (matchingProjectId != null)
-                    {
-                        return matchingProjectId;
-                    }
+                // We may have multiple projects with the same hierarchy, but we can use __VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext to distinguish
+                if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out object contextProjectNameObject)))
+                {
+                    EnsureSubscribedToHierarchyPropertyChanges(hierarchy);
 
-                    // This is some intermediate hierarchy which we need to direct us somewhere else. At this point, we need to add an event sink to be aware if the redirection
-                    // ever changes.
-                    if (!_hierarchyEventSinks.ContainsKey(hierarchy))
+                    if (contextProjectNameObject is string contextProjectName)
                     {
-                        var eventSink = new HierarchyEventSink(intermediateHierarchy, this);
-                        if (eventSink.TryAdviseHierarchy())
+                        var project = _workspace.GetProjectWithHierarchyAndName(hierarchy, contextProjectName);
+
+                        if (project != null && projectIds.Contains(project.Id))
                         {
-                            _hierarchyEventSinks.Add(intermediateHierarchy, eventSink);
-                        }
-                    }
-
-                    // If this is a shared hierarchy, we can possibly ask it for it's context
-                    var contextHierarchy = intermediateHierarchy.GetActiveProjectContext();
-                    if (contextHierarchy != null)
-                    {
-                        intermediateHierarchy = contextHierarchy;
-                        continue;
-                    }
-
-                    if (ErrorHandler.Succeeded(intermediateHierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out object contextProjectNameObject)))
-                    {
-                        if (contextProjectNameObject is string contextProjectName)
-                        {
-                            var contextProject = solution.Projects.FirstOrDefault(p => p.Name == contextProjectName);
-                            if (contextProject != null)
-                            {
-                                return contextProject.Id;
-                            }
+                            return project.Id;
                         }
                     }
                 }
 
+                // At this point, we should hopefully have only one project that maches by hierarchy. If there's multiple, at this point we can't figure anything
+                // out better.
+                var matchingProjectId = projectIds.FirstOrDefault(id => projectToHierarchyMap.GetValueOrDefault(id) == hierarchy);
+
+                if (matchingProjectId != null)
+                {
+                    return matchingProjectId;
+                }
+
                 // If we had some trouble finding the project, we'll just pick one arbitrarily
                 return projectIds.First();
+            }
+
+            private void EnsureSubscribedToHierarchyPropertyChanges(IVsHierarchy hierarchy)
+            {
+                _foregroundAffinitization.AssertIsForeground();
+
+                // This is some intermediate hierarchy which we need to direct us somewhere else. At this point, we need to add an event sink to be aware if the redirection
+                // ever changes.
+                if (!_hierarchyEventSinks.ContainsKey(hierarchy))
+                {
+                    var eventSink = new HierarchyEventSink(hierarchy, this);
+                    if (eventSink.TryAdviseHierarchy())
+                    {
+                        _hierarchyEventSinks.Add(hierarchy, eventSink);
+                    }
+                }
             }
 
             private void RefreshContextForRunningDocumentTableHierarchyChange(uint cookie)
@@ -291,7 +294,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 });
             }
 
-            private void RefreshContextForHierarchyPropertyChange(IVsHierarchy hierarchy)
+            private void RefreshContextsForHierarchyPropertyChange()
             {
                 // HACK: for now, just refresh all the things. This is expensive
                 _foregroundAffinitization.AssertIsForeground();
@@ -535,7 +538,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     if (propid == (int)__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy ||
                         propid == (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext)
                     {
-                        _openFileTracker.RefreshContextForHierarchyPropertyChange(_hierarchy);
+                        _openFileTracker.RefreshContextsForHierarchyPropertyChange();
                     }
 
                     return VSConstants.S_OK;
