@@ -31,14 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         IAsyncCompletionCommitManager IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
-        {
-            if (!textView.Properties.TryGetProperty(CompletionSource.PotentialCommitCharacters, out ImmutableHashSet<char> potentialCommitCharacters))
-            {
-                // If we were not initialized with CompletionService or are called for a wrong textView, we should not make a commit.
-                potentialCommitCharacters = ImmutableHashSet<char>.Empty;
-            }
-
-            return new CommitManager(potentialCommitCharacters, _recentItemsManager, _threadingContext, _editorOperationsFactoryService);
-        }
+            => new CommitManager(textView, _recentItemsManager, _threadingContext, _editorOperationsFactoryService);
     }
 }

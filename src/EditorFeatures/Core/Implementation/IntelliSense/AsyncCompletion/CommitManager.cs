@@ -30,15 +30,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private readonly RecentItemsManager _recentItemsManager;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly ITextView _textView;
 
-        public IEnumerable<char> PotentialCommitCharacters { get; }
+        public IEnumerable<char> PotentialCommitCharacters
+            => GetPotentialCommitCharacters();
 
-        internal CommitManager(ImmutableHashSet<char> potentialCommitCharacters, RecentItemsManager recentItemsManager, IThreadingContext threadingContext, IEditorOperationsFactoryService editorOperationsFactoryService) : base(threadingContext)
+        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IThreadingContext threadingContext, IEditorOperationsFactoryService editorOperationsFactoryService) : base(threadingContext)
         {
-            PotentialCommitCharacters = potentialCommitCharacters;
             _recentItemsManager = recentItemsManager;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-    }
+            _textView = textView;
+        }
 
         /// <summary>
         /// The method performs a preliminarily filtering of commit availability.
@@ -61,6 +63,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return !(session.Properties.TryGetProperty(CompletionSource.ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharacter)
                 && excludedCommitCharacter.Contains(typedChar));
         }
+
+        private ImmutableHashSet<char> GetPotentialCommitCharacters()
+            => _textView.Properties.TryGetProperty(CompletionSource.PotentialCommitCharacters, out ImmutableHashSet<char> potentialCommitCharacters)
+            ? potentialCommitCharacters
+            // If we were not initialized with a CompletionService or are called for a wrong textView, we should not make a commit.
+            : ImmutableHashSet<char>.Empty;
 
         public AsyncCompletionData.CommitResult TryCommit(
             IAsyncCompletionSession session,
