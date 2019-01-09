@@ -627,7 +627,7 @@ ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 y)) (OperationK
       ReturnedValue: 
         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ";
-            var expectedDiagnostics = new []
+            var expectedDiagnostics = new[]
             {
                 // (14,20): error CS8421: A static local function cannot contain a reference to 'x'.
                 //             return x;

@@ -691,8 +691,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     diagnostics,
                                                     out var disposeMethod);
 
-            if ((!hasAwait && disposeMethod?.ReturnsVoid == false) 
-                || (hasAwait && disposeMethod?.ReturnType.TypeSymbol.IsNonGenericTaskType(Compilation) == false) 
+            if ((!hasAwait && disposeMethod?.ReturnsVoid == false)
+                || (hasAwait && disposeMethod?.ReturnType.TypeSymbol.IsNonGenericTaskType(Compilation) == false)
                 || result == PatternLookupResult.NotAMethod)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
