@@ -23,7 +23,7 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 {
     /// <summary>
-    /// When user types <c>;</c> in a statement, closing delimiters and semicolon are added and caret is placed after the semicolon
+    /// When user types <c>;</c> in a statement, semicolon is added and caret is placed after the semicolon
     /// </summary>
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return;
             }
 
+            // on the UI thread
             var root = document.GetSyntaxRootSynchronously(executionContext.OperationContext.UserCancellationToken);
             var caretPosition = caret.Position;
 
@@ -99,12 +100,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return;
             }
 
-            // verify all delimeters exist until you reach statement syntax that requires a semicolon
+            // verify all delimiters exist until you reach statement syntax that requires a semicolon
             while (!IsStatementOrFieldDeclaration(currentNode, syntaxFacts))
             {
                 if (RequiredDelimiterIsMissing(currentNode))
                 {
                     // A required delimiter is missing; do not treat semicolon as statement completion
+                    // Example: missing final `)` in `obj.Method($`
                     return;
                 }
 
@@ -116,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 currentNode = currentNode.Parent;
             }
 
-            // if the statement syntax itself requires a closing delimeter, verify it is there
+            // if the statement syntax itself requires a closing delimiter, verify it is there
             if (StatementClosingDelimiterIsMissing(currentNode))
             {
                 // Example: missing final `)` in `do { } while (x$$`
@@ -166,16 +168,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         }
 
         private static bool CaretIsInForStatementCondition(int caretPosition, ForStatementSyntax forStatementSyntax)
-        {
-            return caretPosition > forStatementSyntax.Condition.SpanStart && caretPosition < forStatementSyntax.Condition.Span.End;
-        }
+            // If condition is null and caret is in the condition section, as in `for ( ; $$; )`, 
+            // we will have bailed earlier due to not being inside supported delimiters
+            => forStatementSyntax.Condition == null ?
+                false :
+                caretPosition > forStatementSyntax.Condition.SpanStart && caretPosition < forStatementSyntax.Condition.Span.End;
 
         private static bool CaretIsInForStatementDeclaration(int caretPosition, ForStatementSyntax forStatementSyntax)
         {
-            if (forStatementSyntax.Declaration == null)
-                return false;
-            else
-                return caretPosition > forStatementSyntax.Declaration.Span.Start && caretPosition < forStatementSyntax.Declaration.Span.End;
+            return forStatementSyntax.Declaration != null && 
+                caretPosition > forStatementSyntax.Declaration.Span.Start && caretPosition < forStatementSyntax.Declaration.Span.End;
         }
 
         private static bool CaretIsInForStatementInitializers(int caretPosition, ForStatementSyntax forStatementSyntax)
@@ -201,7 +203,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             var nodeFound = false;
             while (!IsStatementOrFieldDeclaration(currentNode, syntaxFacts))
             {
-                // Look for the following types of nodes:
+                // This feature operates inside the following types of nodes, 
+                // and can be expanded if more cases are implemented:
                 // ArgumentList: covers method invocations like object.Method(arg)
                 // ArrayRankSpecifier: covers new Type[dim]
                 // ElementAccessExpression: covers indexer invocations like array[index]
@@ -233,7 +236,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return false;
             }
 
-            Debug.Assert(currentNode != null);
             return true;
         }
 
@@ -242,8 +244,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static bool IsInAString(SyntaxNode currentNode, SnapshotPoint caret)
             // If caret is at the end of the line, it is outside the string	
-            => (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
-                && caret.Position != caret.GetContainingLine().End);
+            => currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
+                && caret.Position != caret.GetContainingLine().End;
 
         private static bool StatementIsACandidate(SyntaxNode currentNode, int caretPosition)
         {

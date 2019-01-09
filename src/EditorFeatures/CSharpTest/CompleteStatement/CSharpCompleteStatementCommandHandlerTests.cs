@@ -1302,6 +1302,52 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopConditionIsNull()
+        {
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        for (int i = 0; $$ ; i++)
+        {
+            Console.WriteLine(""test"");
+        }
+";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopConditionIsNull2()
+        {
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        for (int i = Math.Min(3,4$$);  ; i++)
+        {
+            Console.WriteLine(""test"");
+        }
+";
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        for (int i = Math.Min(3,4);$$;  ; i++)
+        {
+            Console.WriteLine(""test"");
+        }
+";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ForLoopIncrement()
         {
             var code =
@@ -3046,6 +3092,33 @@ class Program
     {
     }
 }";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Using()
+        {
+            var code = @"
+using System.Linq$$
+";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Using2()
+        {
+            var code = @"
+using System.Linq;
+";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Using3()
+        {
+            var code = @"
+using System.$$Linq
+";
             VerifyNoSpecialSemicolonHandling(code);
         }
 
