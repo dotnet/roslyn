@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(compilationStartContext
-                => CompilationAnalyzer.CreateAndRegisterActions(compilationStartContext));
+                => SymbolAnalyzer.CreateAndRegisterActions(compilationStartContext));
         }
 
-        private sealed class CompilationAnalyzer
+        private sealed class SymbolAnalyzer
         {
             private bool _hasReadonlyField = false;
             private bool _hasTypeInstanceAssigment = false;
@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                     var namedTypeSymbol = (INamedTypeSymbol)symbolStartContext.Symbol;
                     if (namedTypeSymbol.TypeKind != TypeKind.Struct) return;
 
-                    var compilationAnalyzer = new CompilationAnalyzer();
-                    compilationAnalyzer.RegisterActions(symbolStartContext);
+                    var symbolAnalyzer = new SymbolAnalyzer();
+                    symbolAnalyzer.RegisterActions(symbolStartContext);
                 }, SymbolKind.NamedType);
             }
 
