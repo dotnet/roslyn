@@ -122,6 +122,7 @@
                 </Grid.ColumnDefinitions>
                 <u:AutomationDelegatingListView x:Uid="MemberSelectionList"
                           x:Name="Members"
+                          AutomationProperties.Name="Members"
                           Grid.Column="0"
                           Margin="9"
                           SelectionMode="Extended"
