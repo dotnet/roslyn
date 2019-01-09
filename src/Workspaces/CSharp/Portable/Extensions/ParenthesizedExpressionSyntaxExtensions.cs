@@ -273,13 +273,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool RemovalMayIntroduceInterpolationAmbiguity(ParenthesizedExpressionSyntax node)
         {
-            // First, find the parenting interpolation.
-            // If we find a parenthesize expression first, it doesn't mean we can bail, we still need to check : or ::
-            // For example: Func<bool, string> lambda = x => ($"{(x ? "foo" : "bar")}"), the outer parenthesis expression 
-            // will let us wrongly think we can remove the inner parenthesis expression.
+            // First, find the parenting interpolation. If we find a parenthesize expression first,
+            // we can bail out early.
             InterpolationSyntax interpolation = null;
             foreach (var ancestor in node.Parent.AncestorsAndSelf())
             {
+                if (ancestor.IsKind(SyntaxKind.ParenthesizedExpression))
+                {
+                    return false;
+                }
+
                 if (ancestor.IsKind(SyntaxKind.Interpolation))
                 {
                     interpolation = (InterpolationSyntax)ancestor;
