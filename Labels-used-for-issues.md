@@ -116,7 +116,7 @@ The label applies to both new documentation and to documentation that requires c
 ## General
 The following labels apply to both feature requests and bugs.
 
-##Areas
+## Areas
 
 ![image](https://cloud.githubusercontent.com/assets/20570/11489897/6e1cb9f0-9788-11e5-9123-7f4f006b1d8e.png)
 
