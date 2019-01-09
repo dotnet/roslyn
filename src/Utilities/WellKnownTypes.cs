@@ -7,6 +7,7 @@ namespace Analyzer.Utilities
     internal static class WellKnownTypes
     {
         public const string SystemSecurityCryptographyCipherMode = "System.Security.Cryptography.CipherMode";
+        public const string SystemNetSecurityRemoteCertificateValidationCallback = "System.Net.Security.RemoteCertificateValidationCallback";
 
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {
