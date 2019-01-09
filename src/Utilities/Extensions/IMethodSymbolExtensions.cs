@@ -215,18 +215,46 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Gets the <see cref="DisposeMethodKind"/> for the given method.
+        /// Checks if the given method has the signature "Task DisposeAsync()".
         /// </summary>
-        public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, Compilation compilation)
+        private static bool HasDisposeAsyncMethodSignature(this IMethodSymbol method, INamedTypeSymbol task)
         {
-            INamedTypeSymbol iDisposable = WellKnownTypes.IDisposable(compilation);
-            return method.GetDisposeMethodKind(iDisposable);
+            return method.Name == "DisposeAsync" &&
+                method.MethodKind == MethodKind.Ordinary &&
+                method.ReturnType.Equals(task) &&
+                method.Parameters.IsEmpty;
+        }
+
+        /// <summary>
+        /// Checks if the given method has the signature "override Task DisposeCoreAsync(bool)".
+        /// </summary>
+        private static bool HasOverriddenDisposeCoreAsyncMethodSignature(this IMethodSymbol method, INamedTypeSymbol task)
+        {
+            return method.Name == "DisposeCoreAsync" &&
+                method.MethodKind == MethodKind.Ordinary &&
+                method.IsOverride &&
+                method.ReturnType.Equals(task) &&
+                method.Parameters.Length == 1 &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean;
         }
 
         /// <summary>
         /// Gets the <see cref="DisposeMethodKind"/> for the given method.
         /// </summary>
-        public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, INamedTypeSymbol iDisposable)
+        public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, Compilation compilation)
+        {
+            INamedTypeSymbol iDisposable = WellKnownTypes.IDisposable(compilation);
+            INamedTypeSymbol task = WellKnownTypes.Task(compilation);
+            return method.GetDisposeMethodKind(iDisposable, task);
+        }
+
+        /// <summary>
+        /// Gets the <see cref="DisposeMethodKind"/> for the given method.
+        /// </summary>
+        public static DisposeMethodKind GetDisposeMethodKind(
+            this IMethodSymbol method,
+            INamedTypeSymbol iDisposable,
+            INamedTypeSymbol task)
         {
             if (method.ContainingType.IsDisposable(iDisposable))
             {
@@ -239,6 +267,14 @@ namespace Analyzer.Utilities.Extensions
                 else if (method.HasDisposeBoolMethodSignature())
                 {
                     return DisposeMethodKind.DisposeBool;
+                }
+                else if (method.HasDisposeAsyncMethodSignature(task))
+                {
+                    return DisposeMethodKind.DisposeAsync;
+                }
+                else if (method.HasOverriddenDisposeCoreAsyncMethodSignature(task))
+                {
+                    return DisposeMethodKind.DisposeCoreAsync;
                 }
                 else if (method.HasDisposeCloseMethodSignature())
                 {
@@ -382,5 +418,16 @@ namespace Analyzer.Utilities.Extensions
 
             throw new ArgumentException("Invalid paramater", nameof(parameterSymbol));
         }
+
+        /// <summary>
+        /// Returns true for void returning methods with two parameters, where
+        /// the first parameter is of <see cref="object"/> type and the second
+        /// parameter inherits from or equals <see cref="EventArgs"/> type.
+        /// </summary>
+        public static bool HasEventHandlerSignature(this IMethodSymbol method, INamedTypeSymbol eventArgsType)
+            => eventArgsType != null &&
+               method.Parameters.Length == 2 &&
+               method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+               method.Parameters[1].Type.DerivesFrom(eventArgsType, baseTypesOnly: true);
     }
 }
