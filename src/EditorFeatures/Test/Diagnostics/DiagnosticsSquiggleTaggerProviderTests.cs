@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     [UseExportProvider]
     public class DiagnosticsSquiggleTaggerProviderTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/28062"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task Test_TagSourceDiffer()
         {
             var analyzer = new Analyzer();
