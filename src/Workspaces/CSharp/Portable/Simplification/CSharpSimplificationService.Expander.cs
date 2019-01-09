@@ -576,6 +576,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             return replacement;
                         }
 
+                        if (replacement.IsKind(SyntaxKind.TupleType))
+                        {
+                            replacement = replacement.WithAdditionalAnnotations(identifier.GetAnnotations());
+
+                            if (_annotationForReplacedAliasIdentifier != null)
+                            {
+                                replacement = replacement.WithAdditionalAnnotations(_annotationForReplacedAliasIdentifier);
+                            }
+
+                            var aliasAnnotationInfo = AliasAnnotation.Create(aliasInfo.Name);
+
+                            replacement = replacement.WithAdditionalAnnotations(aliasAnnotationInfo);
+
+                            replacement = newNode.CopyAnnotationsTo(replacement);
+
+                            replacement = AppendElasticTriviaIfNecessary(replacement, originalSimpleName);
+
+                            return replacement;
+                        }
+
                         throw new NotImplementedException();
                     }
                 }

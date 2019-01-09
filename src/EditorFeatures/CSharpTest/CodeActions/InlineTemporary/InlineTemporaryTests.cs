@@ -4586,8 +4586,8 @@ class C
 }");
         }
 
-        [Fact]
         [WorkItem(24791, "https://github.com/dotnet/roslyn/issues/24791")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineVariableDoesNotAddUnnecessaryCast()
         {
             await TestInRegularAndScriptAsync(
@@ -4611,7 +4611,7 @@ class C
         }
 
         [WorkItem(16819, "https://github.com/dotnet/roslyn/issues/16819")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineVariableDoesNotAddsDuplicateCast()
         {
             await TestInRegularAndScriptAsync(
@@ -4632,6 +4632,32 @@ class C
     void M()
     {
         Console.Write((Exception)null == new Exception());
+    }
+}");
+        }
+
+        [WorkItem(30903, "https://github.com/dotnet/roslyn/issues/30903")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineVariableContainsAliasOfValueTupleType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using X = System.ValueTuple<int, int>;
+
+class C
+{
+    void M()
+    {
+        var [|x|] = (X)(0, 0);
+        var x2 = x;
+    }
+}",
+@"using X = System.ValueTuple<int, int>;
+
+class C
+{
+    void M()
+    {
+        var x2 = (System.ValueTuple<int, int>)(0, 0);
     }
 }");
         }
