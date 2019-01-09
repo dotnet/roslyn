@@ -2239,7 +2239,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 {
     void Foo(bool cond, double a, double b)
     {
-        $$(cond ? ref a : ref b) = 6.67e-11;
+        [||](cond ? ref a : ref b) = 6.67e-11;
     }
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
@@ -2251,8 +2251,11 @@ offeredWhenRequireForClarityIsEnabled: true);
             await TestMissingAsync(
 @"class Bar
 {
-    Func<int, string> lambda =
-        number => (number + $""{ [||](a ? ""foo"" : ""bar"") }"");
+    void Test(bool a)
+    {
+        Func<int, string> lambda =
+            number => (number + $""{ ($$a ? ""foo"" : ""bar"") }"");
+    }
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
     }

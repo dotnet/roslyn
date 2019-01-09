@@ -255,6 +255,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            // (condition ? ref a : ref b ) = SomeValue, parenthesis can't be removed for when conditional expression appears at left
+            // This syntax is only allowed since C# 7.2
+            if (expression.IsKind(SyntaxKind.ConditionalExpression) &&
+                node.IsLeftSideOfAnyAssignExpression())
+            {
+                return false;
+            }
+
             // Operator precedence cases:
             // - If the parent is not an expression, do not remove parentheses
             // - Otherwise, parentheses may be removed if doing so does not change operator associations.
@@ -265,18 +273,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool RemovalMayIntroduceInterpolationAmbiguity(ParenthesizedExpressionSyntax node)
         {
-            // First, find the parenting interpolation. If we find a parenthesize expression first,
-            // we can bail out early.
+            // First, find the parenting interpolation.
+            // If we find a parenthesize expression first, it doesn't mean we can bail, we still need to check : or ::
+            // For example: Func<bool, string> lambda = x => ($"{(x ? "foo" : "bar")}"), the outer parenthesis expression 
+            // will let us wrongly think we can remove the inner parenthesis expression.
             InterpolationSyntax interpolation = null;
             foreach (var ancestor in node.Parent.AncestorsAndSelf())
             {
-                switch (ancestor.Kind())
+                if (ancestor.IsKind(SyntaxKind.Interpolation))
                 {
-                    case SyntaxKind.ParenthesizedExpression:
-                        return false;
-                    case SyntaxKind.Interpolation:
-                        interpolation = (InterpolationSyntax)ancestor;
-                        break;
+                    interpolation = (InterpolationSyntax)ancestor;
+                    break;
                 }
             }
 
