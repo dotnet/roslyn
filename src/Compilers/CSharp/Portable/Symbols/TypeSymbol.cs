@@ -634,6 +634,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract bool IsManagedType { get; }
 
+        bool ITypeSymbol.IsUnmanagedType => !IsManagedType;
+
         internal bool NeedsNullableAttribute()
         {
             return TypeSymbolWithAnnotations.NeedsNullableAttribute(typeWithAnnotationsOpt: default, typeOpt: this);
@@ -671,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the type may contain embedded references
         /// </summary>
-        internal abstract bool IsByRefLikeType { get; }
+        public abstract bool IsRefLikeType { get; }
 
         /// <summary>
         /// Returns true if the type is a readonly struct

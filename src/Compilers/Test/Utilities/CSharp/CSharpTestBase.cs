@@ -1746,6 +1746,21 @@ namespace System.Runtime.CompilerServices
 
         #region Span
 
+        protected static CSharpCompilation CreateCompilationWithSpan(SyntaxTree tree)
+        {
+            var reference = CreateCompilation(
+                SpanSource,
+                options: TestOptions.UnsafeReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var comp = CreateCompilation(
+                tree,
+                references: new[] { reference.EmitToImageReference() });
+
+            return comp;
+        }
+
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateEmptyCompilation(

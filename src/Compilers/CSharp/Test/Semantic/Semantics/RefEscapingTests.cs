@@ -13,6 +13,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class RefEscapingTests : CompilingTestBase
     {
         [Fact]
+        public void RefStructSemanticModel()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+struct S1 { }
+ref struct S2 { public S1 F1; }
+class C<T>
+{
+    void M()
+    {
+        Span<int> span = stackalloc[0];
+        var s1 = new S1();
+        var s2 = new S2();
+        var i0 = 0;
+        var t1 = default(T);
+    }
+}");
+            var comp = CreateCompilationWithSpan(tree);
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+
+            Assert.True(getLocalType("span").IsRefLikeType);
+            Assert.False(getLocalType("s1").IsRefLikeType);
+            Assert.True(getLocalType("s2").IsRefLikeType);
+            Assert.False(getLocalType("i0").IsRefLikeType);
+            Assert.False(getLocalType("t1").IsRefLikeType);
+
+            ITypeSymbol getLocalType(string name)
+            {
+                var decl = root.DescendantNodes()
+                    .OfType<VariableDeclaratorSyntax>()
+                    .Single(n => n.Identifier.ValueText == name);
+                return ((ILocalSymbol)model.GetDeclaredSymbol(decl)).Type;
+            }
+        }
+
+        [Fact]
         public void RefStructUsing()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
