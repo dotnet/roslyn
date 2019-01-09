@@ -5,44 +5,74 @@ Imports Microsoft.CodeAnalysis.Completion
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestStateFactory
         Public Shared Function CreateCSharpTestState(completionImplementation As CompletionImplementation,
-                                                      documentElement As XElement,
+                                                     documentElement As XElement,
                                                      Optional extraCompletionProviders As CompletionProvider() = Nothing,
                                                      Optional excludedTypes As List(Of Type) = Nothing,
                                                      Optional extraExportedTypes As List(Of Type) = Nothing,
-                                                     Optional includeFormatCommandHandler As Boolean = False) As ITestState
-            If completionImplementation = CompletionImplementation.Legacy Then
-                Return TestState.CreateCSharpTestState(documentElement, extraCompletionProviders, excludedTypes, extraExportedTypes, includeFormatCommandHandler)
-            End If
+                                                     Optional includeFormatCommandHandler As Boolean = False,
+                                                     Optional languageVersion As CodeAnalysis.CSharp.LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Default) As TestStateBase
 
-            Throw New ArgumentException(completionImplementation.ToString())
+            Return CreateTestState(completionImplementation,
+                                   <Workspace>
+                                       <Project Language="C#" CommonReferences="true" LanguageVersion=<%= DirectCast(languageVersion, Int32) %>>
+                                           <Document>
+                                               <%= documentElement.Value %>
+                                           </Document>
+                                       </Project>
+                                   </Workspace>,
+                                   extraCompletionProviders, excludedTypes, extraExportedTypes,
+                                   includeFormatCommandHandler, workspaceKind:=Nothing)
         End Function
 
         Public Shared Function CreateVisualBasicTestState(completionImplementation As CompletionImplementation,
                                                            documentElement As XElement,
                                                            Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                                                           Optional extraExportedTypes As List(Of Type) = Nothing) As ITestState
-            If completionImplementation = CompletionImplementation.Legacy Then
-                Return TestState.CreateVisualBasicTestState(documentElement, extraCompletionProviders, extraExportedTypes)
-            End If
+                                                           Optional extraExportedTypes As List(Of Type) = Nothing) As TestStateBase
 
-            Throw New ArgumentException(completionImplementation.ToString())
+            Return CreateTestState(completionImplementation,
+                                   <Workspace>
+                                       <Project Language="Visual Basic" CommonReferences="true">
+                                           <Document>
+                                               <%= documentElement.Value %>
+                                           </Document>
+                                       </Project>
+                                   </Workspace>,
+                                   extraCompletionProviders, excludedTypes:=Nothing, extraExportedTypes,
+                                   includeFormatCommandHandler:=False, workspaceKind:=Nothing)
         End Function
 
         Public Shared Function CreateTestStateFromWorkspace(completionImplementation As CompletionImplementation,
                                                             workspaceElement As XElement,
                                                             Optional extraCompletionProviders As CompletionProvider() = Nothing,
                                                             Optional extraExportedTypes As List(Of Type) = Nothing,
-                                                            Optional workspaceKind As String = Nothing) As TestState
+                                                            Optional workspaceKind As String = Nothing) As TestStateBase
 
-            If completionImplementation = CompletionImplementation.Legacy Then
-                Return TestState.CreateTestStateFromWorkspace(workspaceElement, extraCompletionProviders, extraExportedTypes, workspaceKind)
-            End If
+            Return CreateTestState(completionImplementation, workspaceElement, extraCompletionProviders,
+                                   excludedTypes:=Nothing, extraExportedTypes, includeFormatCommandHandler:=False, workspaceKind)
+        End Function
+
+        Private Shared Function CreateTestState(completionImplementation As CompletionImplementation,
+                                                workspaceElement As XElement,
+                                                extraCompletionProviders As CompletionProvider(),
+                                                excludedTypes As List(Of Type),
+                                                extraExportedTypes As List(Of Type),
+                                                includeFormatCommandHandler As Boolean,
+                                                workspaceKind As String) As TestStateBase
+
+            Select Case completionImplementation
+                Case CompletionImplementation.Legacy
+                    Return New LegacyTestState(workspaceElement, extraCompletionProviders, excludedTypes, extraExportedTypes,
+                                         includeFormatCommandHandler, workspaceKind)
+                Case CompletionImplementation.Modern
+                    Return New ModernCompletionTestState(workspaceElement, extraCompletionProviders, excludedTypes, extraExportedTypes,
+                                                         includeFormatCommandHandler, workspaceKind)
+            End Select
 
             Throw New ArgumentException(completionImplementation.ToString())
         End Function
 
         Public Shared Function GetAllCompletionImplementations() As IEnumerable(Of Object())
-            Return {New Object() {CompletionImplementation.Legacy}}
+            Return {New Object() {CompletionImplementation.Legacy}, New Object() {CompletionImplementation.Modern}}
         End Function
     End Class
 End Namespace
