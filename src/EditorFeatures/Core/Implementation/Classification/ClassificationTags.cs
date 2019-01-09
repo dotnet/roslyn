@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 case TextTags.Parameter:
                 case TextTags.Property:
                 case TextTags.RangeVariable:
+                case TextTags.Constant:
                     return ClassificationTypeNames.Identifier;
 
                 case TextTags.NumericLiteral:
