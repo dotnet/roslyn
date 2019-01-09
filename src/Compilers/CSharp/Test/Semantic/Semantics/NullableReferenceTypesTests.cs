@@ -17484,77 +17484,6 @@ class C
             comp.VerifyTypes();
         }
 
-#if false
-        [Fact]
-        public void ConditionalOperator_NestedNullability_Tuples()
-        {
-            var source0 =
-@"public class A
-{
-    public static object F;
-}";
-            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
-            comp0.VerifyDiagnostics();
-            var ref0 = comp0.EmitToImageReference();
-
-            var source =
-@"interface I<T> { }
-class C
-{
-    static void F1(bool b, object x1, object? y1)
-    {
-        var z1 = A.F/*T:object*/;
-        object o;
-        o = (b ? (x1, x1) : (x1, y1))/*T:(object!, object!)*/;
-        o = (b ? (z1, x1) : (x1, x1))/*T:(object!, object!)*/;
-        o = (b ? (y1, y1) : (y1, z1))/*T:(object?, object?)*/;
-        o = (b ? (x1, y1) : (y1, y1))/*T:(object!, object?)*/;
-        o = (b ? (z1, z1) : (z1, x1))/*T:(object, object!)*/;
-        o = (b ? (y1, z1) : (z1, z1))/*T:(object?, object)*/;
-    }
-    static I<T> CreateI<T>(T t) => throw null;
-    static void F2(bool b, I<object> x2, I<object?> y2)
-    {
-        var z2 = CreateI(A.F)/*T:I<object>!*/;
-        object o;
-        o = (b ? (x2, x2) : (x2, y2))/*T:(I<object!>!, I<object!>!)*/;
-        o = (b ? (z2, x2) : (x2, x2))/*T:(I<object!>!, I<object!>!)*/;
-        o = (b ? (y2, y2) : (y2, z2))/*T:(I<object?>!, I<object?>!)*/;
-        o = (b ? (x2, y2) : (y2, y2))/*T:(I<object!>!, I<object?>!)*/;
-        o = (b ? (z2, z2) : (z2, x2))/*T:(I<object>!, I<object!>!)*/;
-        o = (b ? (y2, z2) : (z2, z2))/*T:(I<object?>!, I<object>!)*/;
-    }
-}";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
-            comp.VerifyDiagnostics(
-                // (8,14): warning CS8626: No best nullability for operands of conditional expression '(object, object)' and '(object x1, object? y1)'.
-                //         o = (b ? (x1, x1) : (x1, y1))/*T:(object!, object!)*/;
-                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? (x1, x1) : (x1, y1)").WithArguments("(object, object)", "(object x1, object? y1)").WithLocation(8, 14),
-                // (8,29): warning CS8619: Nullability of reference types in value of type '(object x1, object? y1)' doesn't match target type '(object, object)'.
-                //         o = (b ? (x1, x1) : (x1, y1))/*T:(object!, object!)*/;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x1, y1)").WithArguments("(object x1, object? y1)", "(object, object)").WithLocation(8, 29),
-                // (11,14): warning CS8626: No best nullability for operands of conditional expression '(object x1, object? y1)' and '(object?, object?)'.
-                //         o = (b ? (x1, y1) : (y1, y1))/*T:(object!, object?)*/;
-                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? (x1, y1) : (y1, y1)").WithArguments("(object x1, object? y1)", "(object?, object?)").WithLocation(11, 14),
-                // (11,29): warning CS8619: Nullability of reference types in value of type '(object?, object?)' doesn't match target type '(object, object?)'.
-                //         o = (b ? (x1, y1) : (y1, y1))/*T:(object!, object?)*/;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(y1, y1)").WithArguments("(object?, object?)", "(object, object?)").WithLocation(11, 29),
-                // (20,14): warning CS8626: No best nullability for operands of conditional expression '(I<object>, I<object>)' and '(I<object> x2, I<object?> y2)'.
-                //         o = (b ? (x2, x2) : (x2, y2))/*T:(I<object!>!, I<object!>!)*/;
-                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? (x2, x2) : (x2, y2)").WithArguments("(I<object>, I<object>)", "(I<object> x2, I<object?> y2)").WithLocation(20, 14),
-                // (20,29): warning CS8619: Nullability of reference types in value of type '(I<object> x2, I<object?> y2)' doesn't match target type '(I<object>, I<object>)'.
-                //         o = (b ? (x2, x2) : (x2, y2))/*T:(I<object!>!, I<object!>!)*/;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x2, y2)").WithArguments("(I<object> x2, I<object?> y2)", "(I<object>, I<object>)").WithLocation(20, 29),
-                // (23,14): warning CS8626: No best nullability for operands of conditional expression '(I<object> x2, I<object?> y2)' and '(I<object?>, I<object?>)'.
-                //         o = (b ? (x2, y2) : (y2, y2))/*T:(I<object!>!, I<object?>!)*/;
-                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? (x2, y2) : (y2, y2)").WithArguments("(I<object> x2, I<object?> y2)", "(I<object?>, I<object?>)").WithLocation(23, 14),
-                // (23,29): warning CS8619: Nullability of reference types in value of type '(I<object?>, I<object?>)' doesn't match target type '(I<object>, I<object?>)'.
-                //         o = (b ? (x2, y2) : (y2, y2))/*T:(I<object!>!, I<object?>!)*/;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(y2, y2)").WithArguments("(I<object?>, I<object?>)", "(I<object>, I<object?>)").WithLocation(23, 29));
-            comp.VerifyTypes();
-        }
-#endif
-
         [WorkItem(30432, "https://github.com/dotnet/roslyn/issues/30432")]
         [Fact]
         public void ConditionalOperator_TopLevelNullability_Ref()
@@ -20848,65 +20777,6 @@ class C
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { y3, x3 }").WithLocation(64, 14));
             comp.VerifyTypes();
         }
-
-#if false
-        [Fact]
-        public void ImplicitlyTypedArrayCreation_NestedNullability_Tuples()
-        {
-            var source0 =
-@"public class A
-{
-    public static object F;
-}";
-            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
-            comp0.VerifyDiagnostics();
-            var ref0 = comp0.EmitToImageReference();
-
-            var source =
-@"interface I<T> { }
-class C
-{
-    static void F1(bool b, object x1, object? y1)
-    {
-        var z1 = A.F/*T:object*/;
-        object o;
-        o = (new[] { (x1, x1), (x1, y1) })[0]/*T:(object!, object!)*/;
-        o = (new[] { (z1, x1), (x1, x1) })[0]/*T:(object!, object!)*/;
-        o = (new[] { (y1, y1), (y1, z1) })[0]/*T:(object?, object?)*/;
-        o = (new[] { (x1, y1), (y1, y1) })[0]/*T:(object!, object?)*/;
-        o = (new[] { (z1, z1), (z1, x1) })[0]/*T:(object, object!)*/;
-        o = (new[] { (y1, z1), (z1, z1) })[0]/*T:(object?, object)*/;
-    }
-    static I<T> CreateI<T>(T t) => throw null;
-    static void F2(bool b, I<object> x2, I<object?> y2)
-    {
-        var z2 = CreateI(A.F)/*T:I<object>!*/;
-        object o;
-        o = (new[] { (x2, x2), (x2, y2) })[0]/*T:(I<object!>!, I<object!>!)*/;
-        o = (new[] { (z2, x2), (x2, x2) })[0]/*T:(I<object!>!, I<object!>!)*/;
-        o = (new[] { (y2, y2), (y2, z2) })[0]/*T:(I<object?>!, I<object?>!)*/;
-        o = (new[] { (x2, y2), (y2, y2) })[0]/*T:(I<object!>!, I<object?>!)*/;
-        o = (new[] { (z2, z2), (z2, x2) })[0]/*T:(I<object>!, I<object!>!)*/;
-        o = (new[] { (y2, z2), (z2, z2) })[0]/*T:(I<object?>!, I<object>!)*/;
-    }
-}";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
-            comp.VerifyDiagnostics(
-                // (8,14): warning CS8639: No best nullability found for implicitly-typed array.
-                //         o = (new[] { (x1, x1), (x1, y1) })[0]/*T:(object!, object!)*/;
-                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { (x1, x1), (x1, y1) }").WithLocation(8, 14),
-                // (11,14): warning CS8639: No best nullability found for implicitly-typed array.
-                //         o = (new[] { (x1, y1), (y1, y1) })[0]/*T:(object!, object?)*/;
-                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { (x1, y1), (y1, y1) }").WithLocation(11, 14),
-                // (20,14): warning CS8639: No best nullability found for implicitly-typed array.
-                //         o = (new[] { (x2, x2), (x2, y2) })[0]/*T:(I<object!>!, I<object>!)*/;
-                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { (x2, x2), (x2, y2) }").WithLocation(20, 14),
-                // (23,14): warning CS8639: No best nullability found for implicitly-typed array.
-                //         o = (new[] { (x2, y2), (y2, y2) })[0]/*T:(I<object>!, I<object?>!)*/;
-                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { (x2, y2), (y2, y2) }").WithLocation(23, 14));
-            comp.VerifyTypes();
-        }
-#endif
 
         [Fact]
         public void ImplicitlyTypedArrayCreation_Empty()
@@ -39112,18 +38982,24 @@ struct S<T>
 }
 class Program
 {
-    static void F()
+    static void F<T, U, V>()
+        where U : class
+        where V : struct
     {
-        default(S<object>).F/*T:object?*/.ToString(); // 1
-        _ = default(S<int?>).F/*T:int?*/.Value; // 2
+        default(S<T>).F/*T:T*/.ToString(); // 1
+        default(S<U>).F/*T:U?*/.ToString(); // 2
+        _ = default(S<V?>).F/*T:V?*/.Value; // 3
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE: Missing // 1
+            // PROTOTYPE: Missing // 2
             comp.VerifyDiagnostics(
-                // (11,13): warning CS8629: Nullable value type may be null.
-                //         _ = default(S<int?>).F/*T:int?*/.Value; // 2
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "default(S<int?>).F/*T:int?*/.Value").WithLocation(11, 13));
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         default(S<T>).F/*T:T*/.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(S<T>).F").WithLocation(12, 9),
+                // (14,13): warning CS8629: Nullable value type may be null.
+                //         _ = default(S<V?>).F/*T:V?*/.Value; // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "default(S<V?>).F/*T:V?*/.Value").WithLocation(14, 13));
             comp.VerifyTypes();
         }
 
@@ -39139,20 +39015,26 @@ struct S<T>
 }
 class Program
 {
-    static void F()
+    static void F<T, U, V>()
+        where U : class
+        where V : struct
     {
-        new S<object>().F/*T:object?*/.ToString(); // 1
-        _ = new S<int?>().F/*T:int?*/.Value; // 2
+        new S<T>().F/*T:T*/.ToString(); // 1
+        new S<U>().F/*T:U?*/.ToString(); // 2
+        _ = new S<V?>().F/*T:V?*/.Value; // 3
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (10,9): warning CS8602: Possible dereference of a null reference.
-                //         new S<object>().F/*T:object?*/.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new S<object>().F").WithLocation(10, 9),
-                // (11,13): warning CS8629: Nullable value type may be null.
-                //         _ = new S<int?>().F/*T:int?*/.Value; // 2
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "new S<int?>().F/*T:int?*/.Value").WithLocation(11, 13));
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         new S<T>().F/*T:T*/.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new S<T>().F").WithLocation(12, 9),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         new S<U>().F/*T:U?*/.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new S<U>().F").WithLocation(13, 9),
+                // (14,13): warning CS8629: Nullable value type may be null.
+                //         _ = new S<V?>().F/*T:V?*/.Value; // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "new S<V?>().F/*T:V?*/.Value").WithLocation(14, 13));
             comp.VerifyTypes();
         }
 
@@ -39185,8 +39067,6 @@ class Program
                 //         y.F/*T:object?*/.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(13, 9));
             comp.VerifyTypes();
-
-            Assert.False(true); // Test default(S<T>) with unconstrained and constrained T.
         }
 
         [Fact]
@@ -39418,7 +39298,7 @@ class Program
 {
     static void F()
     {
-        default((object?, string))/*T:(object?, string?)*/.Item2.ToString(); // 1
+        default((object?, string))/*T:(object?, string!)*/.Item2.ToString(); // 1
         _ = default((int, int?))/*T:(int, int?)*/.Item2.Value; // 2
     }
 }";
@@ -39441,15 +39321,15 @@ class Program
 {
     static void F1()
     {
-        new ValueTuple<object?, string>()/*T:(object?, string?)*/.Item2.ToString(); // 1
+        new ValueTuple<object?, string>()/*T:(object?, string!)*/.Item2.ToString(); // 1
         _ = new ValueTuple<int, int?>()/*T:(int, int?)*/.Item2.Value; // 2
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
-                //         new ValueTuple<object?, string>()/*T:(object?, string?)*/.Item2.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new ValueTuple<object?, string>()/*T:(object?, string?)*/.Item2").WithLocation(6, 9),
+                //         new ValueTuple<object?, string>()/*T:(object?, string!)*/.Item2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new ValueTuple<object?, string>()/*T:(object?, string!)*/.Item2").WithLocation(6, 9),
                 // (7,13): warning CS8629: Nullable value type may be null.
                 //         _ = new ValueTuple<int, int?>()/*T:(int, int?)*/.Item2.Value; // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "new ValueTuple<int, int?>()/*T:(int, int?)*/.Item2.Value").WithLocation(7, 13));
@@ -39465,28 +39345,27 @@ class Program
 {
     static void F()
     {
-        (object, (object?, string)) t = default/*T:(object?, (object?, string?))*/; // 1
+        (object, (object?, string)) t = default/*T:(object!, (object?, string!))*/;
         (object, (object?, string)) u = t;
-        t.Item1/*T:object?*/.ToString(); // 2
-        t.Item2.Item2/*T:string?*/.ToString(); // 3
-        u.Item1/*T:object?*/.ToString(); // 4
-        u.Item2.Item2/*T:string?*/.ToString(); // 5
+        t.Item1/*T:object?*/.ToString(); // 1
+        t.Item2.Item2/*T:string?*/.ToString(); // 2
+        u.Item1/*T:object?*/.ToString(); // 3
+        u.Item2.Item2/*T:string?*/.ToString(); // 4
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE: Missing // 1
             comp.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Item1/*T:object?*/.ToString(); // 2
+                //         t.Item1/*T:object?*/.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item1").WithLocation(7, 9),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Item2.Item2/*T:string?*/.ToString(); // 3
+                //         t.Item2.Item2/*T:string?*/.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item2.Item2").WithLocation(8, 9),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
-                //         u.Item1/*T:object?*/.ToString(); // 4
+                //         u.Item1/*T:object?*/.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.Item1").WithLocation(9, 9),
                 // (10,9): warning CS8602: Possible dereference of a null reference.
-                //         u.Item2.Item2/*T:string?*/.ToString(); // 5
+                //         u.Item2.Item2/*T:string?*/.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.Item2.Item2").WithLocation(10, 9));
             comp.VerifyTypes();
         }
@@ -39526,28 +39405,27 @@ class Program
 {
     static void F1()
     {
-        var t = new ValueTuple<object, ValueTuple<object?, string>>()/*T:(object?, (object?, string?))*/; // 1
+        var t = new ValueTuple<object, ValueTuple<object?, string>>()/*T:(object!, (object?, string!))*/;
         var u = t;
-        t.Item1/*T:object?*/.ToString(); // 2
-        t.Item2.Item2/*T:string?*/.ToString(); // 3
-        u.Item1/*T:object?*/.ToString(); // 4
-        u.Item2.Item2/*T:string?*/.ToString(); // 5
+        t.Item1/*T:object?*/.ToString(); // 1
+        t.Item2.Item2/*T:string?*/.ToString(); // 2
+        u.Item1/*T:object?*/.ToString(); // 3
+        u.Item2.Item2/*T:string?*/.ToString(); // 4
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE: Missing // 1
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Item1/*T:object?*/.ToString(); // 2
+                //         t.Item1/*T:object?*/.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item1").WithLocation(8, 9),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Item2.Item2/*T:string?*/.ToString(); // 3
+                //         t.Item2.Item2/*T:string?*/.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item2.Item2").WithLocation(9, 9),
                 // (10,9): warning CS8602: Possible dereference of a null reference.
-                //         u.Item1/*T:object?*/.ToString(); // 4
+                //         u.Item1/*T:object?*/.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.Item1").WithLocation(10, 9),
                 // (11,9): warning CS8602: Possible dereference of a null reference.
-                //         u.Item2.Item2/*T:string?*/.ToString(); // 5
+                //         u.Item2.Item2/*T:string?*/.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.Item2.Item2").WithLocation(11, 9));
             comp.VerifyTypes();
         }
