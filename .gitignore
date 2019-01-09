@@ -188,3 +188,6 @@ $RECYCLE.BIN/
 
 # JetBrains Rider
 .idea/
+
+# WPF temp projects
+*wpftmp.*

@@ -2,12 +2,14 @@
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
+Imports Roslyn.Test.Utilities
 
 Public Class TestOptions
     Public Shared ReadOnly Script As New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
     ' https://github.com/dotnet/roslyn/issues/29819 remove explicit language version when VB 16 is latest
     Public Shared ReadOnly Regular As New VisualBasicParseOptions(kind:=SourceCodeKind.Regular, languageVersion:=LanguageVersion.VisualBasic16)
     Public Shared ReadOnly Regular15_5 As VisualBasicParseOptions = Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5)
+    Public Shared ReadOnly RegularWithLegacyStrongName As VisualBasicParseOptions = Regular.WithFeature("UseLegacyStrongNameProvider")
 
     Public Shared ReadOnly ReleaseDll As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Release).WithParseOptions(Regular)
     Public Shared ReadOnly ReleaseExe As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=OptimizationLevel.Release).WithParseOptions(Regular)
@@ -24,12 +26,23 @@ Public Class TestOptions
     Public Shared ReadOnly ReleaseModule As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.NetModule, optimizationLevel:=OptimizationLevel.Release).WithParseOptions(Regular)
     Public Shared ReadOnly ReleaseWinMD As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata, optimizationLevel:=OptimizationLevel.Release).WithParseOptions(Regular)
     Public Shared ReadOnly DebugWinMD As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata, optimizationLevel:=OptimizationLevel.Debug).WithParseOptions(Regular)
+
+    Public Shared ReadOnly SigningReleaseDll As VisualBasicCompilationOptions = ReleaseDll.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
+    Public Shared ReadOnly SigningReleaseExe As VisualBasicCompilationOptions = ReleaseExe.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
+    Public Shared ReadOnly SigningDebugDll As VisualBasicCompilationOptions = DebugDll.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
+    Public Shared ReadOnly SigningDebugExe As VisualBasicCompilationOptions = DebugExe.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
+    Public Shared ReadOnly SigningReleaseModule As VisualBasicCompilationOptions = ReleaseModule.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
 End Class
 
 Friend Module TestOptionExtensions
     <Extension()>
     Public Function WithStrictFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
-        Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)("Strict", "true")}))
+        Return WithFeature(options, "Strict")
+    End Function
+
+    <Extension()>
+    Public Function WithFeature(options As VisualBasicParseOptions, feature As String, Optional value As String = "True") As VisualBasicParseOptions
+        Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)(feature, value)}))
     End Function
 
     <Extension()>
