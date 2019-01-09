@@ -916,9 +916,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (managedKind == ManagedKind.UnmanagedWithGenerics &&
                     currentCompilation is CSharpCompilation csCompilation &&
-                    !csCompilation.IsFeatureEnabled(MessageID.IDS_FeatureUnmanagedGenericStructs))
+                    !csCompilation.IsFeatureEnabled(MessageID.IDS_FeatureUnmanagedConstructedTypes))
                 {
-                    var csDiagnostic = Binder.GetFeatureAvailabilityDiagnosticInfo(csCompilation.SyntaxTrees[0], MessageID.IDS_FeatureUnmanagedGenericStructs);
+                    var csDiagnostic = Binder.GetFeatureAvailabilityDiagnosticInfo(csCompilation.SyntaxTrees[0], MessageID.IDS_FeatureUnmanagedConstructedTypes);
                     var typeParameterDiagnostic = new TypeParameterDiagnosticInfo(typeParameter, csDiagnostic);
                     diagnosticsBuilder.Add(typeParameterDiagnostic);
                 }

@@ -1150,7 +1150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (managedKind == ManagedKind.UnmanagedWithGenerics)
             {
-                var supported = CheckFeatureAvailability(node, MessageID.IDS_FeatureUnmanagedGenericStructs, diagnostics);
+                var supported = CheckFeatureAvailability(node, MessageID.IDS_FeatureUnmanagedConstructedTypes, diagnostics);
                 return !supported;
             }
 
