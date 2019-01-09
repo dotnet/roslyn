@@ -33,7 +33,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly ITextView _textView;
 
         public IEnumerable<char> PotentialCommitCharacters
-            => GetPotentialCommitCharacters();
+        {
+            get
+            {
+                if (_textView.Properties.TryGetProperty(CompletionSource.PotentialCommitCharacters, out ImmutableArray<char> potentialCommitCharacters))
+                {
+                    return potentialCommitCharacters;
+                }
+                else
+                {
+                    // If we were not initialized with a CompletionService or are called for a wrong textView, we should not make a commit.
+                    return ImmutableArray<char>.Empty;
+                }
+            }
+        }
 
         internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IThreadingContext threadingContext, IEditorOperationsFactoryService editorOperationsFactoryService) : base(threadingContext)
         {
@@ -63,12 +76,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return !(session.Properties.TryGetProperty(CompletionSource.ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharacter)
                 && excludedCommitCharacter.Contains(typedChar));
         }
-
-        private ImmutableHashSet<char> GetPotentialCommitCharacters()
-            => _textView.Properties.TryGetProperty(CompletionSource.PotentialCommitCharacters, out ImmutableHashSet<char> potentialCommitCharacters)
-            ? potentialCommitCharacters
-            // If we were not initialized with a CompletionService or are called for a wrong textView, we should not make a commit.
-            : ImmutableHashSet<char>.Empty;
 
         public AsyncCompletionData.CommitResult TryCommit(
             IAsyncCompletionSession session,

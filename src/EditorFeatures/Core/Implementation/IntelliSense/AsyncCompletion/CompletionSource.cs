@@ -74,13 +74,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 _textView.Options.GlobalOptions.SetOptionValue(NonBlockingCompletionEditorOption, true);
             }
 
-            var commitCharacters = service.GetRules().DefaultCommitCharacters;
-
-            // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), we should merge potential commit characters together.
-            _textView.Properties[PotentialCommitCharacters] =
-                _textView.Properties.TryGetProperty(PotentialCommitCharacters, out ImmutableHashSet<char> savedCommitCharacters)
-                ? savedCommitCharacters.Union(commitCharacters)
-                : commitCharacters.ToImmutableHashSet();
+            // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), those completion services must not be called simultaneously for the same session.
+            // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
+            _textView.Properties[PotentialCommitCharacters] = service.GetRules().DefaultCommitCharacters;
 
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
