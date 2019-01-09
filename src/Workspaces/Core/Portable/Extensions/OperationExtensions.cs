@@ -57,6 +57,17 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
+                    case IRecursivePatternOperation _:
+                        // A declaration pattern within a recursive pattern is a
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj' below:
+                        //      (obj) switch
+                        //      {
+                        //          (X x) => ...
+                        //      };
+                        //
+                        return ValueUsageInfo.Write;
+
                     case IIsPatternOperation _:
                         // A declaration pattern within an is pattern is a
                         // write for the declared local.
