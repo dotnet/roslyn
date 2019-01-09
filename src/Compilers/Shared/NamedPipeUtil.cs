@@ -152,7 +152,6 @@ namespace Microsoft.CodeAnalysis
                 inBufferSize,
                 outBufferSize);
 
-
 #else
 #error Unsupported configuration
 #endif

@@ -18,7 +18,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected abstract string PathToManagedTool { get; }
 
-        protected string PathToManagedToolWithoutExtension => Path.ChangeExtension(PathToManagedTool, string.Empty);
+        protected string PathToManagedToolWithoutExtension
+        {
+            get
+            {
+                var extension = Path.GetExtension(PathToManagedTool);
+                return PathToManagedTool.Substring(0, PathToManagedTool.Length - extension.Length);
+            }
+        }
 
         /// <summary>
         /// Note: "Native" here does not necessarily mean "native binary".
