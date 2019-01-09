@@ -36,9 +36,11 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 case TextTags.Alias:
                 case TextTags.Assembly:
+                case TextTags.Constant:
                 case TextTags.Field:
                 case TextTags.ErrorType:
                 case TextTags.Event:
+                case TextTags.ExtensionMethod:
                 case TextTags.Label:
                 case TextTags.Local:
                 case TextTags.Method:
@@ -46,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 case TextTags.Parameter:
                 case TextTags.Property:
                 case TextTags.RangeVariable:
-                case TextTags.Constant:
                     return ClassificationTypeNames.Identifier;
 
                 case TextTags.NumericLiteral:
