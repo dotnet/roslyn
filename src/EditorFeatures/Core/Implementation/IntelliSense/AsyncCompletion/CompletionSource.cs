@@ -74,10 +74,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 _textView.Options.GlobalOptions.SetOptionValue(NonBlockingCompletionEditorOption, true);
             }
 
-            if (!triggerLocation.Snapshot.TextBuffer.Properties.ContainsProperty(PotentialCommitCharacters))
-            {
-                triggerLocation.Snapshot.TextBuffer.Properties.AddProperty(PotentialCommitCharacters, service.GetRules().DefaultCommitCharacters);
-            }
+            var commitCharacters = service.GetRules().DefaultCommitCharacters;
+
+            // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), we should merge potential commit characters together.
+            _textView.Properties[PotentialCommitCharacters] =
+                _textView.Properties.TryGetProperty(PotentialCommitCharacters, out ImmutableHashSet<char> savedCommitCharacters)
+                ? savedCommitCharacters.Union(commitCharacters)
+                : commitCharacters.ToImmutableHashSet();
 
             var sourceText = document.GetTextSynchronously(cancellationToken);
 

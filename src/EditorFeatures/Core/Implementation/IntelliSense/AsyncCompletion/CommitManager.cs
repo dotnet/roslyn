@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         public IEnumerable<char> PotentialCommitCharacters { get; }
 
-        internal CommitManager(ImmutableArray<char> potentialCommitCharacters, RecentItemsManager recentItemsManager, IThreadingContext threadingContext, IEditorOperationsFactoryService editorOperationsFactoryService) : base(threadingContext)
+        internal CommitManager(ImmutableHashSet<char> potentialCommitCharacters, RecentItemsManager recentItemsManager, IThreadingContext threadingContext, IEditorOperationsFactoryService editorOperationsFactoryService) : base(threadingContext)
         {
             PotentialCommitCharacters = potentialCommitCharacters;
             _recentItemsManager = recentItemsManager;
