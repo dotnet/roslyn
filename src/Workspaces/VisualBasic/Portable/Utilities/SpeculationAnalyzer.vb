@@ -428,19 +428,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Private Function ReplacementBreaksWithStatement(originalWithStatement As WithStatementSyntax, replacedWithStatement As WithStatementSyntax) As Boolean
             Dim originalExpression = originalWithStatement.Expression
             Dim replacedExpression = replacedWithStatement.Expression
-            Select Case originalExpression.Kind
-                Case SyntaxKind.CTypeExpression, SyntaxKind.DirectCastExpression, SyntaxKind.TryCastExpression
-                    Dim originalCastExpression = DirectCast(originalExpression, CastExpressionSyntax)
-                    Return Not IsCastReplacementSameType(originalCastExpression, replacedExpression)
-                Case SyntaxKind.PredefinedCastExpression
-                    Dim originalCastExpression = DirectCast(originalExpression, PredefinedCastExpressionSyntax)
-                    Return Not IsCastReplacementSameType(originalCastExpression, replacedExpression)
-                Case Else
-                    Return False
-            End Select
+            Return Not IsReplacementSameType(originalExpression, replacedExpression)
         End Function
 
-        Private Function IsCastReplacementSameType(originalExpression As ExpressionSyntax, replacedExpression As ExpressionSyntax) As Boolean
+        Private Function IsReplacementSameType(originalExpression As ExpressionSyntax, replacedExpression As ExpressionSyntax) As Boolean
             Dim originalTypeInfo = Me.OriginalSemanticModel.GetTypeInfo(originalExpression)
             Dim replacedTypeInfo = Me.SpeculativeSemanticModel.GetTypeInfo(replacedExpression)
             Return originalTypeInfo.Equals(replacedTypeInfo)
