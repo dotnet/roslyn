@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // target (e.g.: `object x = null;` or calling `void F(object y)` with `F(null)`).
             bool reportNullLiteralAssignmentIfNecessary(BoundExpression expr)
             {
-                if (expr.ConstantValue?.IsNull != true && !isDefaultOfUnconstrainedTypeParameter(expr))
+                if (expr.ConstantValue?.IsNull != true && !IsDefaultOfUnconstrainedTypeParameter(expr))
                 {
                     return false;
                 }
@@ -618,22 +618,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return true;
             }
+        }
 
-            bool isDefaultOfUnconstrainedTypeParameter(BoundExpression expr)
+        private static bool IsDefaultOfUnconstrainedTypeParameter(BoundExpression expr)
+        {
+            switch (expr.Kind)
             {
-                switch (expr.Kind)
-                {
-                    case BoundKind.Conversion:
-                        {
-                            var conversion = (BoundConversion)expr;
-                            return conversion.Conversion.Kind == ConversionKind.DefaultOrNullLiteral &&
-                                isDefaultOfUnconstrainedTypeParameter(conversion.Operand);
-                        }
-                    case BoundKind.DefaultExpression:
-                        return IsTypeParameterDisallowingAnnotation(expr.Type);
-                    default:
-                        return false;
-                }
+                case BoundKind.Conversion:
+                    {
+                        var conversion = (BoundConversion)expr;
+                        return conversion.Conversion.Kind == ConversionKind.DefaultOrNullLiteral &&
+                            IsDefaultOfUnconstrainedTypeParameter(conversion.Operand);
+                    }
+                case BoundKind.DefaultExpression:
+                    return IsTypeParameterDisallowingAnnotation(expr.Type);
+                default:
+                    return false;
+            }
+        }
+
+        private static bool IsDefaultValue(BoundExpression expr)
+        {
+            switch (expr.Kind)
+            {
+                case BoundKind.Conversion:
+                    {
+                        var conversion = (BoundConversion)expr;
+                        return conversion.Conversion.Kind == ConversionKind.DefaultOrNullLiteral &&
+                            IsDefaultValue(conversion.Operand);
+                    }
+                case BoundKind.DefaultExpression:
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -727,24 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
                     targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
-                    InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: isDefaultValue(value), isByRefTarget: IsByRefTarget(targetSlot), slotWatermark: GetSlotWatermark());
-                }
-            }
-
-            bool isDefaultValue(BoundExpression expr)
-            {
-                switch (expr.Kind)
-                {
-                    case BoundKind.Conversion:
-                        {
-                            var conversion = (BoundConversion)expr;
-                            return conversion.Conversion.Kind == ConversionKind.DefaultOrNullLiteral &&
-                                isDefaultValue(conversion.Operand);
-                        }
-                    case BoundKind.DefaultExpression:
-                        return true;
-                    default:
-                        return false;
+                    InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), isByRefTarget: IsByRefTarget(targetSlot), slotWatermark: GetSlotWatermark());
                 }
             }
         }
@@ -964,7 +964,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (EmptyStructTypeCache.IsTrackableStructType(parameterType.TypeSymbol))
                 {
-                    InheritNullableStateOfTrackableStruct(parameterType.TypeSymbol, slot, valueSlot: -1, isDefaultValue: false, isByRefTarget: parameter.RefKind != RefKind.None, slotWatermark: GetSlotWatermark());
+                    InheritNullableStateOfTrackableStruct(
+                        parameterType.TypeSymbol,
+                        slot,
+                        valueSlot: -1,
+                        isDefaultValue: parameter.ExplicitDefaultConstantValue?.IsNull == true,
+                        isByRefTarget: parameter.RefKind != RefKind.None,
+                        slotWatermark: GetSlotWatermark());
                 }
             }
         }

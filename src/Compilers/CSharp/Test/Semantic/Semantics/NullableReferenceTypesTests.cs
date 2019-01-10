@@ -38971,6 +38971,33 @@ class C
         }
 
         [Fact]
+        [WorkItem(32338, "https://github.com/dotnet/roslyn/issues/32338")]
+        public void CopyStructUnconstrainedFieldNullability()
+        {
+            var source =
+@"#pragma warning disable 649
+struct S<T>
+{
+    internal T F;
+}
+class Program
+{
+    static void M<T>(S<T> s)
+    {
+        if (s.F == null) return;
+        var t = s;
+        t.F.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/32338: Should not report a warning.
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         t.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.F").WithLocation(12, 9));
+        }
+
+        [Fact]
         [WorkItem(30731, "https://github.com/dotnet/roslyn/issues/30731")]
         public void StructField_Default_01()
         {
@@ -39176,6 +39203,100 @@ class Program
                 // (5,32): error CS0023: Operator '.' cannot be applied to operand of type 'default'
                 //         _ = default/*T:<null>*/.ToString();
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "default").WithLocation(5, 32));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        [WorkItem(30731, "https://github.com/dotnet/roslyn/issues/30731")]
+        public void StructField_ParameterDefaultValue_01()
+        {
+            var source =
+@"#pragma warning disable 649
+struct S<T>
+{
+    internal T F;
+}
+class Program
+{
+    static void F1<T1>(S<T1> x1 = default)
+    {
+        var y1 = x1;
+        x1.F/*T:T1*/.ToString(); // 1
+        y1.F/*T:T1*/.ToString(); // 2
+    }
+    static void F2<T2>(S<T2> x2 = default) where T2 : class
+    {
+        var y2 = x2;
+        x2.F/*T:T2?*/.ToString(); // 3
+        y2.F/*T:T2?*/.ToString(); // 4
+    }
+    static void F3<T3>(S<T3?> x3 = default) where T3 : struct
+    {
+        var y3 = x3;
+        _ = x3.F/*T:T3?*/.Value; // 5
+        _ = y3.F/*T:T3?*/.Value; // 6
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         x1.F/*T:T1*/.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1.F").WithLocation(11, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         y1.F/*T:T1*/.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1.F").WithLocation(12, 9),
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         x2.F/*T:T2?*/.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2.F").WithLocation(17, 9),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         y2.F/*T:T2?*/.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2.F").WithLocation(18, 9),
+                // (23,13): warning CS8629: Nullable value type may be null.
+                //         _ = x3.F/*T:T3?*/.Value; // 5
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x3.F/*T:T3?*/.Value").WithLocation(23, 13),
+                // (24,13): warning CS8629: Nullable value type may be null.
+                //         _ = y3.F/*T:T3?*/.Value; // 6
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y3.F/*T:T3?*/.Value").WithLocation(24, 13),
+                // (30,9): warning CS8602: Possible dereference of a null reference.
+                //         y4.F/*T:object?*/.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y4.F").WithLocation(30, 9),
+                // (31,9): warning CS8602: Possible dereference of a null reference.
+                //         z4.F/*T:object?*/.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z4.F").WithLocation(31, 9));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        [WorkItem(30731, "https://github.com/dotnet/roslyn/issues/30731")]
+        public void StructField_ParameterDefaultValue_02()
+        {
+            var source =
+@"#pragma warning disable 649
+struct S<T>
+{
+    internal T F;
+    internal S(T t) { F = t; }
+}
+class Program
+{
+    static void F<T>(S<T> x = new S<T>(), S<T> y = null, S<T> z = new S<T>(default)) where T : class
+    {
+        x.F/*T:T?*/.ToString(); // 1
+        y.F/*T:T!*/.ToString();
+        z.F/*T:T!*/.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,48): error CS1750: A value of type '<null>' cannot be used as a default parameter because there are no standard conversions to type 'S<T>'
+                //     static void F<T>(S<T> x = new S<T>(), S<T> y = null, S<T> z = new S<T>(default)) where T : class
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "y").WithArguments("<null>", "S<T>").WithLocation(9, 48),
+                // (9,67): error CS1736: Default parameter value for 'z' must be a compile-time constant
+                //     static void F<T>(S<T> x = new S<T>(), S<T> y = null, S<T> z = new S<T>(default)) where T : class
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new S<T>(default)").WithArguments("z").WithLocation(9, 67),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         x.F/*T:T?*/.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.F").WithLocation(11, 9));
             comp.VerifyTypes();
         }
 
@@ -39501,6 +39622,106 @@ class Program
                 // (6,38): error CS0117: '(object, default)' does not contain a definition for 'Item2'
                 //         _ = (x, default)/*T:<null>*/.Item2.ToString();
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Item2").WithArguments("(object, default)", "Item2").WithLocation(6, 38));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        [WorkItem(30731, "https://github.com/dotnet/roslyn/issues/30731")]
+        public void Tuple_ParameterDefaultValue_01()
+        {
+            var source =
+@"class Program
+{
+    static void F<T, U, V>((T x, U y, V? z) t = default)
+        where U : class
+        where V : struct
+    {
+        var u = t/*T:(T x, U! y, V? z)*/;
+        t.x/*T:T*/.ToString(); // 1
+        t.y/*T:U?*/.ToString(); // 2
+        _ = t.z/*T:V?*/.Value; // 3
+        u.x/*T:T*/.ToString(); // 4
+        u.y/*T:U?*/.ToString(); // 5
+        _ = u.z/*T:V?*/.Value; // 6
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         t.x/*T:T*/.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.x").WithLocation(8, 9),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         t.y/*T:U?*/.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.y").WithLocation(9, 9),
+                // (10,13): warning CS8629: Nullable value type may be null.
+                //         _ = t.z/*T:V?*/.Value; // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t.z/*T:V?*/.Value").WithLocation(10, 13),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         u.x/*T:T*/.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.x").WithLocation(11, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         u.y/*T:U?*/.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.y").WithLocation(12, 9),
+                // (13,13): warning CS8629: Nullable value type may be null.
+                //         _ = u.z/*T:V?*/.Value; // 6
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "u.z/*T:V?*/.Value").WithLocation(13, 13));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        [WorkItem(30731, "https://github.com/dotnet/roslyn/issues/30731")]
+        public void Tuple_ParameterDefaultValue_02()
+        {
+            var source =
+@"class Program
+{
+    static void F<T, U, V>(
+        (T, U, V?) x = new System.ValueTuple<T, U, V?>(),
+        (T, U, V?) y = null,
+        (T, U, V?) z = (default(T), new U(), new V()))
+        where U : class, new()
+        where V : struct
+    {
+        x.Item1/*T:T*/.ToString(); // 1
+        x.Item2/*T:U?*/.ToString(); // 2
+        _ = x.Item3/*T:V?*/.Value; // 3
+        y.Item1/*T:T*/.ToString(); // 4
+        y.Item2/*T:U*/.ToString();
+        _ = y.Item3/*T:V?*/.Value; // 5
+        z.Item1/*T:T*/.ToString(); // 6
+        z.Item2/*T:U*/.ToString();
+        _ = z.Item3/*T:V?*/.Value; // 7
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,20): error CS1750: A value of type '<null>' cannot be used as a default parameter because there are no standard conversions to type '(T, U, V?)'
+                //         (T, U, V?) y = null,
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "y").WithArguments("<null>", "(T, U, V?)").WithLocation(5, 20),
+                // (6,24): error CS1736: Default parameter value for 'z' must be a compile-time constant
+                //         (T, U, V?) z = (default(T), new U(), new V()))
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(default(T), new U(), new V())").WithArguments("z").WithLocation(6, 24),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         x.Item1/*T:T*/.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Item1").WithLocation(10, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         x.Item2/*T:U?*/.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Item2").WithLocation(11, 9),
+                // (12,13): warning CS8629: Nullable value type may be null.
+                //         _ = x.Item3/*T:V?*/.Value; // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x.Item3/*T:V?*/.Value").WithLocation(12, 13),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         y.Item1/*T:T*/.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Item1").WithLocation(13, 9),
+                // (15,13): warning CS8629: Nullable value type may be null.
+                //         _ = y.Item3/*T:V?*/.Value; // 5
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y.Item3/*T:V?*/.Value").WithLocation(15, 13),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         z.Item1/*T:T*/.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z.Item1").WithLocation(16, 9),
+                // (18,13): warning CS8629: Nullable value type may be null.
+                //         _ = z.Item3/*T:V?*/.Value; // 7
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "z.Item3/*T:V?*/.Value").WithLocation(18, 13));
             comp.VerifyTypes();
         }
 
