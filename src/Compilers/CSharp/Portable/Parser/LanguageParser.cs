@@ -3275,14 +3275,15 @@ parse_member_name:;
             SeparatedSyntaxListBuilder<TNode> list,
             Func<LanguageParser, bool> isNotExpectedFunction,
             Func<LanguageParser, bool> abortFunction,
-            SyntaxKind expected)
+            SyntaxKind expected,
+            bool resetOnAbort = false)
             where T : CSharpSyntaxNode
             where TNode : CSharpSyntaxNode
         {
             // We're going to cheat here and pass the underlying SyntaxListBuilder of "list" to the helper method so that
             // it can append skipped trivia to the last element, regardless of whether that element is a node or a token.
             GreenNode trailingTrivia;
-            var action = this.SkipBadListTokensWithExpectedKindHelper(list.UnderlyingBuilder, isNotExpectedFunction, abortFunction, expected, out trailingTrivia);
+            var action = this.SkipBadListTokensWithExpectedKindHelper(list.UnderlyingBuilder, isNotExpectedFunction, abortFunction, expected, resetOnAbort, out trailingTrivia);
             if (trailingTrivia != null)
             {
                 startToken = AddTrailingSkippedSyntax(startToken, trailingTrivia);
@@ -3317,16 +3318,18 @@ parse_member_name:;
             Func<LanguageParser, bool> isNotExpectedFunction,
             Func<LanguageParser, bool> abortFunction,
             SyntaxKind expected,
-            out GreenNode trailingTrivia)
+            bool resetOnAbort,
+            out GreenNode trailingTrivia
+            )
         {
             if (list.Count == 0)
             {
-                return SkipBadTokensWithExpectedKind(isNotExpectedFunction, abortFunction, expected, out trailingTrivia);
+                return SkipBadTokensWithExpectedKind(isNotExpectedFunction, abortFunction, expected, resetOnAbort, out trailingTrivia);
             }
             else
             {
                 GreenNode lastItemTrailingTrivia;
-                var action = SkipBadTokensWithExpectedKind(isNotExpectedFunction, abortFunction, expected, out lastItemTrailingTrivia);
+                var action = SkipBadTokensWithExpectedKind(isNotExpectedFunction, abortFunction, expected, resetOnAbort, out lastItemTrailingTrivia);
                 if (lastItemTrailingTrivia != null)
                 {
                     AddTrailingSkippedSyntax(list, lastItemTrailingTrivia);
@@ -3364,9 +3367,11 @@ parse_member_name:;
             Func<LanguageParser, bool> isNotExpectedFunction,
             Func<LanguageParser, bool> abortFunction,
             SyntaxKind expected,
+            bool resetOnAbort,
             out GreenNode trailingTrivia)
         {
             var nodes = _pool.Allocate();
+            var resetPoint = this.GetResetPoint();
             try
             {
                 bool first = true;
@@ -3376,6 +3381,13 @@ parse_member_name:;
                     if (abortFunction(this))
                     {
                         action = PostSkipAction.Abort;
+
+                        if (resetOnAbort)
+                        {
+                            this.Reset(ref resetPoint);
+                            nodes.Clear();
+                        }
+
                         break;
                     }
 
@@ -3390,6 +3402,7 @@ parse_member_name:;
             finally
             {
                 _pool.Free(nodes);
+                this.Release(ref resetPoint);
             }
         }
 
@@ -5443,10 +5456,48 @@ tryAgain:
                 {
                     break;
                 }
-                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
+                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     types.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     types.Add(this.ParseTypeArgument());
+                }
+                else if (this.IsPossibleType())
+                {
+                    var resetPoint = this.GetResetPoint();
+                    var seperator = this.EatToken(SyntaxKind.CommaToken);
+                    var type = this.ParseTypeArgument();
+                    if (type is IdentifierNameSyntax
+                        && _termState.HasFlag(TerminatorState.IsEndOfReturnType)
+                        && (this.CurrentToken.Kind == SyntaxKind.OpenParenToken
+                            || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
+                            || this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
+                            || this.CurrentToken.Kind == SyntaxKind.SemicolonToken
+                            || this.CurrentToken.Kind == SyntaxKind.EqualsToken))
+                    {
+                        // If the current token is a '{' or a '=>' we probably just ate the identifier for a Property
+                        // If the current token is a ';' or a '=' we probably just ate the identifier for a field
+                        // If the current token is an '(' there are two reasonable possibilities here:
+                        // a) Two commas are missing, and the next type is a tuple
+                        // eg.
+                        // Action<int String (int, string)>
+                        // 
+                        // b) A '>' token is missing, and the token just parsed as IdentifierName is actually the name of a method
+                        // eg. Action<int M()
+                        //
+                        // The second seems more common - it assumes only one token is missing and could easily happen in every method declaration returning a generic,
+                        // whereas the first requires at least two more type arguments, the second of which is a tuple.
+                        // The distribution of the length of Type Argument lists is very heavily weighted towards short lists.
+                        // It also leads to very bad error recovery if the first scenario is assumed when the second is the case - the entire method will often be incorrectly parsed.
+                        // So on balance we backtrack and insert a '>' before the identifier.
+
+                        this.Reset(ref resetPoint);
+                        this.Release(ref resetPoint);
+                        break;
+                    }
+
+                    types.AddSeparator(seperator);
+                    types.Add(type);
+                    this.Release(ref resetPoint);
                 }
                 else if (this.SkipBadTypeArgumentListTokens(types, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                 {
@@ -5457,14 +5508,18 @@ tryAgain:
             close = this.EatToken(SyntaxKind.GreaterThanToken);
         }
 
+
+
         private PostSkipAction SkipBadTypeArgumentListTokens(SeparatedSyntaxListBuilder<TypeSyntax> list, SyntaxKind expected)
         {
             CSharpSyntaxNode tmp = null;
             Debug.Assert(list.Count > 0);
+
+            //We reset on Abort here, as this leads to much better error recovery when a generic type appears in a baseList or in constraints, and has it's ending '>' token missing
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
                 p => this.CurrentToken.Kind != SyntaxKind.CommaToken && !this.IsPossibleType(),
                 p => this.CurrentToken.Kind == SyntaxKind.GreaterThanToken || this.IsTerminator(),
-                expected);
+                expected, true);
         }
 
         // Parses the individual generic parameter/arguments in a name.
@@ -7331,6 +7386,7 @@ tryAgain:
                 p => !p.IsPossibleStatement(acceptAccessibilityMods: false),
                 p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
                 expected,
+                false,
                 out trailingTrivia
             );
         }

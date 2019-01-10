@@ -4,7 +4,6 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -6363,6 +6362,94 @@ class C
 
         [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
         [Fact]
+        public void TestMissingCommaTokenInReturnTypeBeforeNullableType()
+        {
+            var text = @"class Class
+{
+    Dictionary<int int?> M(string a)
+    {
+        var x = 42;
+    }
+}";
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
+
+            Assert.Equal(new[]
+                {
+                    "(3,20): error CS1003: Syntax error, ',' expected"
+                },
+                syntaxTree.GetDiagnostics()
+                    .Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)));
+        }
+
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        [Fact]
+        public void TestMissingCommaTokenInReturnTypeBeforeArrayType()
+        {
+            var text = @"class Class
+{
+    Dictionary<int string[]> M(string a)
+    {
+        var x = 42;
+    }
+}";
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
+
+            Assert.Equal(new[]
+                {
+                    "(3,20): error CS1003: Syntax error, ',' expected"
+                },
+                syntaxTree.GetDiagnostics()
+                    .Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)));
+        }
+
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        [Fact]
+        public void TestMissingCommaTokenInReturnTypeBeforeInKeyowrd()
+        {
+            var text = @"class Class
+{
+    Dictionary<int in string> M(string a)
+    {
+        var x = 42;
+    }
+}";
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
+
+            Assert.Equal(new[]
+                {
+                    "(3,20): error CS1003: Syntax error, ',' expected", "(3,23): error CS1003: Syntax error, ',' expected"
+                },
+                syntaxTree.GetDiagnostics()
+                    .Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)));
+        }
+
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        [Fact]
+        public void TestMissingCommaTokenInReturnTypeBeforeOutKeyword()
+        {
+            var text = @"class Class
+{
+    Dictionary<int out string> M(string a)
+    {
+        var x = 42;
+    }
+}";
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
+
+            Assert.Equal(new[]
+                {
+                    "(3,20): error CS1003: Syntax error, ',' expected", "(3,24): error CS1003: Syntax error, ',' expected"
+                },
+                syntaxTree.GetDiagnostics()
+                    .Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)));
+        }
+
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        [Fact]
         public void TestMissingCommaTokenInReturnTypeBeforeGenericType()
         {
             var text = @"class Class
@@ -6375,7 +6462,10 @@ class C
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
 
-            Assert.Equal(new[] { "(3,20): error CS1003: Syntax error, ',' expected" },
+            Assert.Equal(new[]
+                {
+                    "(3,20): error CS1003: Syntax error, ',' expected"
+                },
                 syntaxTree.GetDiagnostics()
                     .Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)));
 
@@ -6401,6 +6491,164 @@ class C
                     .Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)));
 
             Assert.Equal(16, syntaxTree.FindNodeOrTokenByKind(SyntaxKind.MethodDeclaration).Position);
+        }
+
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        [Fact]
+        public void TestMissingGreaterThanTokenInReturnType()
+        {
+            var text = @"class Class
+{
+    List<int M()
+    {
+        var x = 42;
+    }
+}";
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
+
+            Assert.Equal(new[] { "(3,14): error CS1003: Syntax error, '>' expected" },
+                syntaxTree.GetDiagnostics()
+                    .Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)));
+
+            Assert.Equal(16, syntaxTree.FindNodeOrTokenByKind(SyntaxKind.MethodDeclaration).Position);
+        }
+
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        [Fact]
+        public void TestMissingGreaterThanTokenAfterMissingCommaTokenInReturnType()
+        {
+            var text = @"class Class
+{
+    List<int string M()
+    {
+        var x = 42;
+    }
+}";
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
+
+            Assert.Equal(new[] { "(3,14): error CS1003: Syntax error, ',' expected", "(3,21): error CS1003: Syntax error, '>' expected" },
+                syntaxTree.GetDiagnostics()
+                    .Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)));
+
+            Assert.Equal(16, syntaxTree.FindNodeOrTokenByKind(SyntaxKind.MethodDeclaration).Position);
+        }
+
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        [Fact]
+        public void TestMissingGreaterThanTokenInReturnTypeAfterGenericType()
+        {
+            var text = @"class Class
+{
+    List<List<int> M()
+    {
+        var x = 42;
+    }
+}";
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
+
+            Assert.Equal(new[] { "(3,20): error CS1003: Syntax error, '>' expected" },
+                syntaxTree.GetDiagnostics()
+                    .Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)));
+
+            Assert.Equal(16, syntaxTree.FindNodeOrTokenByKind(SyntaxKind.MethodDeclaration).Position);
+        }
+
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        [Fact]
+        public void TestMissingGreaterThanTokenInBothParametersInParameterList()
+        {
+            var text = @"class Class
+{
+    void M(List<int parameter1, List<int parameter2)
+    {
+        var x = 42;
+    }
+}";
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
+
+            Assert.Equal(new[] { "(3,21): error CS1003: Syntax error, ',' expected", "(3,42): error CS1003: Syntax error, ',' expected", "(3,52): error CS1003: Syntax error, '>' expected", "(3,52): error CS1003: Syntax error, '>' expected", "(3,52): error CS1001: Identifier expected" },
+                syntaxTree.GetDiagnostics()
+                    .Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)));
+
+            Assert.Equal(16, syntaxTree.FindNodeOrTokenByKind(SyntaxKind.MethodDeclaration).Position);
+        }
+
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        [Fact]
+        public void TestMissingGreaterThanTokenInNew()
+        {
+            var text = @"class Class
+{
+    void M()
+    {
+        var a = new List<int();
+        var b  = new List<int string();
+    }
+}";
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
+
+            Assert.Equal(new[] { "(5,29): error CS1003: Syntax error, '>' expected", "(6,31): error CS1003: Syntax error, ',' expected", "(6,37): error CS1003: Syntax error, '>' expected" },
+                syntaxTree.GetDiagnostics()
+                    .Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)));
+        }
+
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        [Fact]
+        public void TestMissingGreaterThanTokenInBaseList()
+        {
+            var text = @"class Class : Parent<int
+{
+}
+
+class Class<T> where T : Parent<int
+{
+}
+
+class Class<T, U> where T : Parent<int where U : Parent
+{
+}";
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
+
+            Assert.Equal(new[]
+                {
+                    "(1,25): error CS1003: Syntax error, '>' expected",
+                    "(5,36): error CS1003: Syntax error, '>' expected",
+                    "(9,40): error CS1003: Syntax error, ',' expected",
+                    "(9,46): error CS1003: Syntax error, ',' expected",
+                    "(9,48): error CS1003: Syntax error, ',' expected",
+                    "(9,50): error CS1003: Syntax error, ',' expected",
+                    "(9,56): error CS1003: Syntax error, '>' expected",
+                },
+                syntaxTree.GetDiagnostics()
+                    .Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)));
+        }
+
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        [Fact]
+        public void TestMissingGreaterThanTokenInConstraint()
+        {
+            var text = @"class Class
+{
+    void M<T>() where T : List<int
+    {
+        var x = 42;
+    }
+}";
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
+
+            Assert.Equal(new[]
+                {
+                    "(3,35): error CS1003: Syntax error, '>' expected"
+                },
+                syntaxTree.GetDiagnostics()
+                    .Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)));
         }
 
         [WorkItem(537210, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537210")]
