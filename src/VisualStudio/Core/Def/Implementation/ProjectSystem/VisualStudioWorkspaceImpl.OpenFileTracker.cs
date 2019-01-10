@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using Task = System.Threading.Tasks.Task;
 
@@ -50,7 +51,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             #region Fields read/and written to only on the UI thread to track active context for files
 
-            private readonly Dictionary<IVsHierarchy, HierarchyEventSink> _hierarchyEventSinks = new Dictionary<IVsHierarchy, HierarchyEventSink>();
+            private readonly ReferenceCountedDisposableCache<IVsHierarchy, HierarchyEventSink> _hierarchyEventSinkCache = new ReferenceCountedDisposableCache<IVsHierarchy, HierarchyEventSink>();
+
+            /// <summary>
+            /// The IVsHierarchies we have subscribed to to watch for any changes to this document cookie. We track this per document cookie, so
+            /// when a document is closed we know what we have to incrementally unsubscribe from rather than having to unsubscribe from everything.
+            /// </summary>
+            private readonly MultiDictionary<uint, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentCookie
+                = new MultiDictionary<uint, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>>();
 
             #endregion
 
@@ -168,8 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        _runningDocumentTable.GetDocumentHierarchyItem(cookie, out var hierarchy, out _);
-                        activeContextProjectId = GetActiveContextProjectId(hierarchy, documentIds.Select(d => d.ProjectId));
+                        activeContextProjectId = GetActiveContextProjectIdAndWatchHierarchies(cookie, documentIds.Select(d => d.ProjectId));
                     }
 
                     if ((object)_runningDocumentTable.GetDocumentData(cookie) is IVsTextBuffer bufferAdapter)
@@ -192,15 +199,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 });
             }
 
-            private ProjectId GetActiveContextProjectId(IVsHierarchy hierarchy, IEnumerable<ProjectId> projectIds)
+            private ProjectId GetActiveContextProjectIdAndWatchHierarchies(uint cookie, IEnumerable<ProjectId> projectIds)
             {
                 _foregroundAffinitization.AssertIsForeground();
+
+                // First clear off any existing IVsHierarchies we are watching. Any ones that still matter we will resubscribe to.
+                // We could be fancy and diff, but the cost is probably neglible.
+                UnsubscribeFromWatchedHierarchies(cookie);
+
+                _runningDocumentTable.GetDocumentHierarchyItem(cookie, out var hierarchy, out _);
 
                 if (hierarchy == null)
                 {
                     // Any item in the RDT should have a hierarchy associated; in this case we don't so there's absolutely nothing
                     // we can do at this point.
                     return projectIds.First();
+                }
+
+                void WatchHierarchy(IVsHierarchy hierarchyToWatch)
+                {
+                    _watchedHierarchiesForDocumentCookie.Add(cookie, _hierarchyEventSinkCache.GetOrCreate(hierarchyToWatch, h => new HierarchyEventSink(h, this)));
                 }
 
                 // Take a snapshot of the immutable data structure here to avoid mutation underneath us
@@ -221,14 +239,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         break;
                     }
 
-                    EnsureSubscribedToHierarchyPropertyChanges(hierarchy);
+                    WatchHierarchy(hierarchy);
                     hierarchy = contextHierarchy;
                 }
 
                 // We may have multiple projects with the same hierarchy, but we can use __VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext to distinguish
                 if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out object contextProjectNameObject)))
                 {
-                    EnsureSubscribedToHierarchyPropertyChanges(hierarchy);
+                    WatchHierarchy(hierarchy);
 
                     if (contextProjectNameObject is string contextProjectName)
                     {
@@ -243,7 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 // At this point, we should hopefully have only one project that maches by hierarchy. If there's multiple, at this point we can't figure anything
                 // out better.
-                var matchingProjectId = projectIds.FirstOrDefault(id => projectToHierarchyMap.GetValueOrDefault(id) == hierarchy);
+                var matchingProjectId = projectIds.FirstOrDefault(id => projectToHierarchyMap.GetValueOrDefault(id, null) == hierarchy);
 
                 if (matchingProjectId != null)
                 {
@@ -254,23 +272,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return projectIds.First();
             }
 
-            private void EnsureSubscribedToHierarchyPropertyChanges(IVsHierarchy hierarchy)
+            private void UnsubscribeFromWatchedHierarchies(uint cookie)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                // This is some intermediate hierarchy which we need to direct us somewhere else. At this point, we need to add an event sink to be aware if the redirection
-                // ever changes.
-                if (!_hierarchyEventSinks.ContainsKey(hierarchy))
+                foreach (var watchedHierarchy in _watchedHierarchiesForDocumentCookie[cookie])
                 {
-                    var eventSink = new HierarchyEventSink(hierarchy, this);
-                    if (eventSink.TryAdviseHierarchy())
-                    {
-                        _hierarchyEventSinks.Add(hierarchy, eventSink);
-                    }
+                    watchedHierarchy.Dispose();
                 }
+
+                _watchedHierarchiesForDocumentCookie.Remove(cookie);
             }
 
-            private void RefreshContextForRunningDocumentTableHierarchyChange(uint cookie)
+            private void RefreshContextForRunningDocumentTableCookie(uint cookie)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
@@ -288,8 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         return;
                     }
 
-                    _runningDocumentTable.GetDocumentHierarchyItem(cookie, out var hierarchy, out _);
-                    var activeProjectId = GetActiveContextProjectId(hierarchy, documentIds.Select(d => d.ProjectId));
+                    var activeProjectId = GetActiveContextProjectIdAndWatchHierarchies(cookie, documentIds.Select(d => d.ProjectId));
                     w.OnDocumentContextUpdated(documentIds.FirstOrDefault(d => d.ProjectId == activeProjectId));
                 });
             }
@@ -301,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 foreach (var cookie in GetInitializedRunningDocumentTableCookies())
                 {
-                    RefreshContextForRunningDocumentTableHierarchyChange(cookie);
+                    RefreshContextForRunningDocumentTableCookie(cookie);
                 }
             }
 
@@ -315,6 +328,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // calls to the RDT might accidentally initialize it.
                     return;
                 }
+
+                UnsubscribeFromWatchedHierarchies(cookie);
 
                 var moniker = _runningDocumentTable.GetDocumentMoniker(cookie);
                 _workspace.ApplyChangeToWorkspace(w =>
@@ -474,7 +489,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_Hierarchy) != 0)
                     {
-                        _openFileTracker.RefreshContextForRunningDocumentTableHierarchyChange(docCookie);
+                        _openFileTracker.RefreshContextForRunningDocumentTableCookie(docCookie);
                     }
 
                     return VSConstants.S_OK;
@@ -501,21 +516,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            private class HierarchyEventSink : IVsHierarchyEvents
+            private class HierarchyEventSink : IVsHierarchyEvents, IDisposable
             {
-                private uint _cookie;
                 private readonly IVsHierarchy _hierarchy;
+                private readonly uint _cookie;
                 private readonly OpenFileTracker _openFileTracker;
 
                 public HierarchyEventSink(IVsHierarchy hierarchy, OpenFileTracker openFileTracker)
                 {
                     _hierarchy = hierarchy;
                     _openFileTracker = openFileTracker;
+                    ErrorHandler.ThrowOnFailure(_hierarchy.AdviseHierarchyEvents(this, out _cookie));
                 }
 
-                public bool TryAdviseHierarchy()
+                void IDisposable.Dispose()
                 {
-                    return ErrorHandler.Succeeded(_hierarchy.AdviseHierarchyEvents(this, out _cookie));
+                    _hierarchy.UnadviseHierarchyEvents(_cookie);
                 }
 
                 int IVsHierarchyEvents.OnItemAdded(uint itemidParent, uint itemidSiblingPrev, uint itemidAdded)
