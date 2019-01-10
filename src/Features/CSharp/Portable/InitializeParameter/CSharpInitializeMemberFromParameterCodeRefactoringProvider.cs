@@ -24,9 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override SyntaxNode GetTypeBlock(SyntaxNode node)
             => node;
 
-        protected override IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => InitializeParameterHelpers.GetBlockOperation(functionDeclaration, semanticModel, cancellationToken);
-
         protected override SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt)
             => InitializeParameterHelpers.TryGetLastStatement(blockStatementOpt);
 
@@ -43,5 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         // Properties are always private by default in C#.
         protected override Accessibility DetermineDefaultPropertyAccessibility()
             => Accessibility.Private;
+
+        protected override SyntaxNode GetBody(SyntaxNode functionDeclaration) 
+            => InitializeParameterHelpers.GetBody(functionDeclaration);
     }
 }

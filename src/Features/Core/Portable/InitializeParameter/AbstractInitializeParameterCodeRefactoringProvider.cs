@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract bool IsFunctionDeclaration(SyntaxNode node);
-
-        protected abstract IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
+
+        protected abstract SyntaxNode GetBody(SyntaxNode functionDeclaration);
         protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
 
         protected abstract void InsertStatement(
@@ -98,15 +98,62 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
-            // We support initializing parameters, even when the containing member doesn't have a
-            // body. This is useful for when the user is typing a new constructor and hasn't written
-            // the body yet.
-            var blockStatementOpt = GetBlockOperation(functionDeclaration, semanticModel, cancellationToken);
+            if (!TryGetBlockStatement(out var blockStatementOpt, semanticModel, functionDeclaration, cancellationToken))
+            {
+                return;
+            }
 
             // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
             // actually determine if there are any viable refactorings here.
             context.RegisterRefactorings(await GetRefactoringsAsync(
                 document, parameter, functionDeclaration, method, blockStatementOpt, cancellationToken).ConfigureAwait(false));
+        }
+
+        private bool TryGetBlockStatement(out IBlockOperation blockStatementOpt, SemanticModel semanticModel, SyntaxNode functionDeclaration, CancellationToken cancellationToken)
+        {
+            blockStatementOpt = null;
+
+            var operation = semanticModel.GetOperation(functionDeclaration, cancellationToken);
+            if (operation == null)
+            {
+                // We support initializing parameters, even when the containing member doesn't have a
+                // body. This is useful for when the user is typing a new constructor and hasn't written
+                // the body yet.
+                if (GetBody(functionDeclaration) == null)
+                {
+                    blockStatementOpt = null;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            switch (operation.Kind)
+            {
+                case OperationKind.AnonymousFunction:
+                    blockStatementOpt = ((IAnonymousFunctionOperation)operation).Body;
+                    break;
+                case OperationKind.Block:
+                    blockStatementOpt = (IBlockOperation)operation;
+                    break;
+                case OperationKind.ConstructorBodyOperation:
+                    var constructorBodyOperation = (IConstructorBodyOperation)operation;
+                    blockStatementOpt = constructorBodyOperation.BlockBody ?? constructorBodyOperation.ExpressionBody;
+                    break;
+                case OperationKind.MethodBodyOperation:
+                    var methodBodyOperation = (IMethodBodyOperation)operation;
+                    blockStatementOpt = methodBodyOperation.BlockBody ?? methodBodyOperation.ExpressionBody;
+                    break;
+                case OperationKind.LocalFunction:
+                    blockStatementOpt = ((ILocalFunctionOperation)operation).Body;
+                    break;
+                default:
+                    return false;
+            }
+
+            return true;
         }
 
         private TParameterSyntax GetParameterNode(SyntaxToken token, int position)

@@ -13,11 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
                    TypeOf node Is LambdaExpressionSyntax
         End Function
 
-        Public Shared Function GetBlockOperation(functionDeclaration As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As IBlockOperation
-            Dim operation = semanticModel.GetOperation(functionDeclaration, cancellationToken)
-            Return If(TypeOf operation Is IAnonymousFunctionOperation,
-                DirectCast(operation, IAnonymousFunctionOperation).Body,
-                DirectCast(operation, IBlockOperation))
+        Public Shared Function GetBody(node As SyntaxNode) As SyntaxNode
+            Return Nothing
         End Function
 
         Private Shared Function GetStatements(functionDeclaration As SyntaxNode) As SyntaxList(Of StatementSyntax)

@@ -26,10 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return DirectCast(node, TypeStatementSyntax).Parent
         End Function
 
-        Protected Overrides Function GetBlockOperation(functionDeclaration As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As IBlockOperation
-            Return InitializeParameterHelpers.GetBlockOperation(functionDeclaration, semanticModel, cancellationToken)
-        End Function
-
         Protected Overrides Function IsImplicitConversion(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Boolean
             Return InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination)
         End Function
@@ -40,6 +36,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
         Protected Overrides Function CanOffer(body As SyntaxNode) As Boolean
             Return True
+        End Function
+
+        Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
+            Return InitializeParameterHelpers.GetBody(functionDeclaration)
         End Function
     End Class
 End Namespace
