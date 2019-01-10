@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (document?.SupportsDiagnostics() == false)
                 {
-                    // drop diagnostics for document that doesn't support
+                    // drop diagnostics for non-null document that doesn't support
                     // diagnostics
                     continue;
                 }
