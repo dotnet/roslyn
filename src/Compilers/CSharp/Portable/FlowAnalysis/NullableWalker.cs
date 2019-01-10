@@ -437,20 +437,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case BoundKind.DefaultExpression:
-                    {
-                        var type = ((BoundDefaultExpression)node).Type;
-                        if (EmptyStructTypeCache.IsTrackableStructType(type))
-                        {
-                            int slot = GetOrCreateObjectCreationPlaceholderSlot(node);
-                            if (slot > 0)
-                            {
-                                this.State[slot] = NullableAnnotation.NotNullable;
-                                InheritNullableStateOfTrackableStruct(type, slot, valueSlot: -1, isDefaultValue: true, isByRefTarget: false, slotWatermark: GetSlotWatermark());
-                            }
-                            return slot;
-                        }
-                    }
-                    break;
                 case BoundKind.ObjectCreationExpression:
                 case BoundKind.DynamicObjectCreationExpression:
                 case BoundKind.AnonymousObjectCreationExpression:
@@ -4682,8 +4668,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
+            Debug.Assert(!this.IsConditionalState);
+
             var result = base.VisitDefaultExpression(node);
             TypeSymbol type = node.Type;
+            if (EmptyStructTypeCache.IsTrackableStructType(type))
+            {
+                int slot = GetOrCreateObjectCreationPlaceholderSlot(node);
+                if (slot > 0)
+                {
+                    this.State[slot] = NullableAnnotation.NotNullable;
+                    InheritNullableStateOfTrackableStruct(type, slot, valueSlot: -1, isDefaultValue: true, isByRefTarget: false, slotWatermark: GetSlotWatermark());
+                }
+            }
             _resultType = TypeSymbolWithAnnotations.Create(type, (type is null || type.IsNullableType() || !type.IsValueType) ? NullableAnnotation.Nullable : NullableAnnotation.Unknown);
             return result;
         }

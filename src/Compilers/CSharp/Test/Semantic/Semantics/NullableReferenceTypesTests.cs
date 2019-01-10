@@ -39256,13 +39256,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x3.F/*T:T3?*/.Value").WithLocation(23, 13),
                 // (24,13): warning CS8629: Nullable value type may be null.
                 //         _ = y3.F/*T:T3?*/.Value; // 6
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y3.F/*T:T3?*/.Value").WithLocation(24, 13),
-                // (30,9): warning CS8602: Possible dereference of a null reference.
-                //         y4.F/*T:object?*/.ToString(); // 7
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y4.F").WithLocation(30, 9),
-                // (31,9): warning CS8602: Possible dereference of a null reference.
-                //         z4.F/*T:object?*/.ToString(); // 8
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z4.F").WithLocation(31, 9));
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y3.F/*T:T3?*/.Value").WithLocation(24, 13));
             comp.VerifyTypes();
         }
 
@@ -39430,6 +39424,33 @@ class Program
                 //         y.F/*T:object?*/.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(19, 9));
             comp.VerifyTypes();
+        }
+
+        // `default` expression in a split state.
+        [Fact]
+        public void IsPattern_DefaultTrackableStruct()
+        {
+            var source =
+@"#pragma warning disable 649
+struct S
+{
+    internal object F;
+}
+class Program
+{
+    static void F()
+    {
+        if (default(S) is default) { }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         if (default(S) is default) { }
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 27),
+                // (10,27): error CS0150: A constant value is expected
+                //         if (default(S) is default) { }
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "default").WithLocation(10, 27));
         }
 
         [Fact]
@@ -39686,10 +39707,10 @@ class Program
         x.Item2/*T:U?*/.ToString(); // 2
         _ = x.Item3/*T:V?*/.Value; // 3
         y.Item1/*T:T*/.ToString(); // 4
-        y.Item2/*T:U*/.ToString();
+        y.Item2/*T:U!*/.ToString();
         _ = y.Item3/*T:V?*/.Value; // 5
         z.Item1/*T:T*/.ToString(); // 6
-        z.Item2/*T:U*/.ToString();
+        z.Item2/*T:U!*/.ToString();
         _ = z.Item3/*T:V?*/.Value; // 7
     }
 }";
