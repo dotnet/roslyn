@@ -340,38 +340,24 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private void OnDocumentContextUpdated(DocumentId documentId, SourceTextContainer container)
         {
-            if (_isProjectUnloading.Value)
+            using (_serializationLock.DisposableWait())
             {
-                // When the project is unloading, the serialization lock is already taken, so there
-                // is no need for us to take the lock since everything is already serialized.
-                OnDocumentContextUpdated_NoSerializationLock(documentId, container);
-            }
-            else
-            {
-                using (_serializationLock.DisposableWait())
-                {
-                    OnDocumentContextUpdated_NoSerializationLock(documentId, container);
-                }
-            }
-        }
+                DocumentId oldActiveContextDocumentId;
 
-        private void OnDocumentContextUpdated_NoSerializationLock(DocumentId documentId, SourceTextContainer container)
-        {
-            DocumentId oldActiveContextDocumentId;
-
-            using (_stateLock.DisposableWait())
-            {
-                oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
-                if (documentId == oldActiveContextDocumentId)
+                using (_stateLock.DisposableWait())
                 {
-                    return;
+                    oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
+                    if (documentId == oldActiveContextDocumentId)
+                    {
+                        return;
+                    }
+
+                    UpdateCurrentContextMapping_NoLock(container, documentId, isCurrentContext: true);
                 }
 
-                UpdateCurrentContextMapping_NoLock(container, documentId, isCurrentContext: true);
+                // fire and forget
+                this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
             }
-
-            // fire and forget
-            this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
         }
 
         protected void CheckDocumentIsClosed(DocumentId documentId)
