@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../VSPackage.resx">
     <body>
@@ -76,7 +76,6 @@ at the end;
 When generating property;
 prefer throwing properties;
 prefer auto properties;</source>
-        <target state="needs-review-translation">反白資料指標下符號的參考項目; 反白資料指標下相關的關鍵字; 檔案開啟時輸入大綱模式; 顯示程序行分隔符號; 產生 XML 文件註解; 顯示關閉的檔案之診斷; 顯示重新命名追踨的預覽; 排序 usings 時先放置 'System' 指示詞; 自訂結構上不要放置 ref 或 out</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -85,7 +84,6 @@ Automatically format statement on semicolon ;
 Automatically format block on end brace;
 Automatically format on return;
 Automatically format on paste;</source>
-        <target state="needs-review-translation">於分號處自動格式化陳述式; 於大括弧處自動格式化區塊; 貼上時自動格式化; 清除程式碼;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
@@ -98,7 +96,6 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="needs-review-translation">縮排區塊內容;縮排左括號與右括號, 縮排 case 內容;縮排 case 標籤;標籤縮排</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
@@ -119,7 +116,6 @@ New line options for expression;
 Place members in object initializers on new line;
 Place members in anonymous types on new line;
 Place query expression clauses on new line;</source>
-        <target state="needs-review-translation">括號的新行格式化選項;關鍵字的新行格式化選項</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
@@ -154,7 +150,6 @@ Set spacing for operators;
 Ignore spaces around binary operators;
 Remove spaces before and after binary operators;
 Insert space before and after binary operators;</source>
-        <target state="needs-review-translation">設定方法宣告的間距;設定方法呼叫的間距;設定其他間距選項;設定括號間距;設定分隔符號間距;設定運算子間距</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
@@ -177,7 +172,6 @@ Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;</source>
-        <target state="needs-review-translation">變更完成清單設定;預先選取最近使用的成員</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

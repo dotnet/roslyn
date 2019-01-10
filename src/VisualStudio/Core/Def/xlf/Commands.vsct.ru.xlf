@@ -1,10 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../Commands.vsct">
     <body>
       <trans-unit id="cmdidContextOrganizeRemoveAndSort|ButtonText">
         <source>Remove &amp;and Sort</source>
-        <target state="translated">Удалить &amp;и упорядочить</target>
+        <target state="translated">Удалить &и упорядочить</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidContextOrganizeRemoveAndSort|LocCanonicalName">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeRemoveAndSort|ButtonText">
         <source>Remove &amp;and Sort</source>
-        <target state="translated">Удалить &amp;и упорядочить</target>
+        <target state="translated">Удалить &и упорядочить</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeRemoveAndSort|LocCanonicalName">
@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|ButtonText">
         <source>&amp;Analyzer...</source>
-        <target state="translated">&amp;Анализатор...</target>
+        <target state="translated">&Анализатор...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|LocCanonicalName">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="cmdidProjectAddAnalyzer|ButtonText">
         <source>Add &amp;Analyzer...</source>
-        <target state="translated">Добавить &amp;анализатор...</target>
+        <target state="translated">Добавить &анализатор...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidProjectAddAnalyzer|LocCanonicalName">
@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="cmdidReferencesContextAddAnalyzer|ButtonText">
         <source>Add &amp;Analyzer...</source>
-        <target state="translated">Добавить &amp;анализатор...</target>
+        <target state="translated">Добавить &анализатор...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidReferencesContextAddAnalyzer|LocCanonicalName">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="cmdidAddAnalyzer|ButtonText">
         <source>Add &amp;Analyzer...</source>
-        <target state="translated">Добавить &amp;анализатор...</target>
+        <target state="translated">Добавить &анализатор...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddAnalyzer|LocCanonicalName">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="cmdidRemoveAnalyzer|ButtonText">
         <source>&amp;Remove</source>
-        <target state="translated">&amp;Удалить</target>
+        <target state="translated">&Удалить</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveAnalyzer|LocCanonicalName">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="cmdidOpenRuleSet|ButtonText">
         <source>&amp;Open Active Rule Set</source>
-        <target state="translated">&amp;Открыть активный набор правил</target>
+        <target state="translated">&Открыть активный набор правил</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidOpenRuleSet|LocCanonicalName">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityDefault|ButtonText">
         <source>&amp;Default</source>
-        <target state="translated">&amp;По умолчанию</target>
+        <target state="translated">&По умолчанию</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityDefault|LocCanonicalName">
@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityError|ButtonText">
         <source>&amp;Error</source>
-        <target state="translated">&amp;Ошибка</target>
+        <target state="translated">&Ошибка</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityError|LocCanonicalName">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityWarning|ButtonText">
         <source>&amp;Warning</source>
-        <target state="translated">&amp;Предупреждение</target>
+        <target state="translated">&Предупреждение</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityWarning|LocCanonicalName">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|ButtonText">
         <source>&amp;Info</source>
-        <target state="translated">&amp;Информация</target>
+        <target state="translated">&Информация</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|LocCanonicalName">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|ButtonText">
         <source>&amp;Hidden</source>
-        <target state="translated">&amp;Скрытый</target>
+        <target state="translated">&Скрытый</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|LocCanonicalName">
@@ -169,12 +169,12 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|ButtonText">
         <source>&amp;None</source>
-        <target state="translated">&amp;Нет</target>
+        <target state="translated">&Нет</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|LocCanonicalName">
         <source>None</source>
-        <target state="translated">Нет</target>
+        <target state="translated">NONE</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|CommandName">
@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="cmdidOpenDiagnosticHelpLink|ButtonText">
         <source>&amp;View Help...</source>
-        <target state="translated">&amp;Перейти в справку...</target>
+        <target state="translated">&Перейти в справку...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidOpenDiagnosticHelpLink|LocCanonicalName">
@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetActiveRuleSet|ButtonText">
         <source>&amp;Set as Active Rule Set</source>
-        <target state="translated">&amp;Установить как активный набор правил</target>
+        <target state="translated">&Установить как активный набор правил</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetActiveRuleSet|LocCanonicalName">
@@ -214,7 +214,7 @@
       </trans-unit>
       <trans-unit id="cmdidRemoveSuppressions|ButtonText">
         <source>Remove&amp; Suppression(s)</source>
-        <target state="translated">Удалит&amp;ь подавления</target>
+        <target state="translated">Удалит&ь подавления</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveSuppressions|LocCanonicalName">
@@ -229,7 +229,7 @@
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsInSource|ButtonText">
         <source>In &amp;Source</source>
-        <target state="translated">В &amp;источнике</target>
+        <target state="translated">В &источнике</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsInSource|LocCanonicalName">
@@ -244,7 +244,7 @@
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsInSuppressionFile|ButtonText">
         <source>In&amp; Suppression File</source>
-        <target state="translated">В файле &amp;блокируемых предупреждений</target>
+        <target state="translated">В файле &блокируемых предупреждений</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsInSuppressionFile|LocCanonicalName">
@@ -339,17 +339,17 @@
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsContextMenu|ButtonText">
         <source>S&amp;uppress</source>
-        <target state="translated">&amp;Подавить</target>
+        <target state="translated">&Подавить</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsContextMenu|LocCanonicalName">
         <source>S&amp;uppress</source>
-        <target state="translated">&amp;Подавить</target>
+        <target state="translated">&Подавить</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsContextMenu|CommandName">
         <source>S&amp;uppress</source>
-        <target state="translated">&amp;Подавить</target>
+        <target state="translated">&Подавить</target>
         <note />
       </trans-unit>
     </body>

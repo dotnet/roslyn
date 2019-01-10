@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../VBScriptingResources.resx">
     <body>
@@ -34,12 +34,12 @@ betik-dosyası belirtilirse betiği yürütür, aksi takdirde etkileşimli bir R
 Seçenekler:
   /help                          Bu kullanım iletisini görüntüle (Kısa biçim: /?)
   /version                       Sürümü görüntüle ve çıkış yap
-  /reference:&lt;diğer ad&gt;=&lt;dosya&gt;      Verilen kısa biçimi kullanarak belirtilen derlemeden meta verilere başvur (Kısa biçim: /r)
-  /reference:&lt;dosya listesi&gt;         Belirtilen bütünleştirilmiş kod dosyalarından meta verilere başvur (Kısa biçim: /r)
-  /referencePath:&lt;yol listesi&gt;     Kökü belirtilmemiş yollar olarak belirtilen meta veri başvurularının aranacağı yolların listesi. (Kısa biçim: /rp)
-  /using:&lt;ad alanı&gt;             Genel ad alanı kullanımını tanımla (Kısa biçim: /u)
-  /define:&lt;ad&gt;=&lt;değer&gt;,...     Genel koşullu derleme sembollerini bildir (Kısa biçim: /d)
-  @&lt;dosya&gt;                        Daha fazla seçenek için yanıt dosyasını okuyun
+  /reference:<diğer ad>=<dosya>      Verilen kısa biçimi kullanarak belirtilen derlemeden meta verilere başvur (Kısa biçim: /r)
+  /reference:<dosya listesi>         Belirtilen bütünleştirilmiş kod dosyalarından meta verilere başvur (Kısa biçim: /r)
+  /referencePath:<yol listesi>     Kökü belirtilmemiş yollar olarak belirtilen meta veri başvurularının aranacağı yolların listesi. (Kısa biçim: /rp)
+  /using:<ad alanı>             Genel ad alanı kullanımını tanımla (Kısa biçim: /u)
+  /define:<ad>=<değer>,...     Genel koşullu derleme sembollerini bildir (Kısa biçim: /d)
+  @<dosya>                        Daha fazla seçenek için yanıt dosyasını okuyun
 </target>
         <note />
       </trans-unit>

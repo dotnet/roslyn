@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../VBScriptingResources.resx">
     <body>
@@ -34,12 +34,12 @@ Options:
 選項:
   /help                          顯示使用方式訊息 (簡短形式: /?)
   /version                       顯示版本並結束
-  /reference:&lt;別名&gt;=&lt;檔案&gt;      使用指定別名參考指定組件檔的中繼資料 (簡短形式: /r)
-  /reference:&lt;檔案清單&gt;         參考指定組件檔的中繼資料 (簡短形式: /r)
-  /referencePath:&lt;路徑清單&gt;     要尋找指定為非根路徑之中繼資料參考的路徑清單。(簡短形式: /rp)
-  /using:&lt;命名空間&gt;             定義全域命名空間 using (簡短形式: /u)
-  /define:&lt;名稱&gt;=&lt;值&gt;,...     宣告全域條件式編譯符號 (簡短形式: /d)
-  @&lt;檔案&gt;                        讀取回應檔以取得更多選項
+  /reference:<別名>=<檔案>      使用指定別名參考指定組件檔的中繼資料 (簡短形式: /r)
+  /reference:<檔案清單>         參考指定組件檔的中繼資料 (簡短形式: /r)
+  /referencePath:<路徑清單>     要尋找指定為非根路徑之中繼資料參考的路徑清單。(簡短形式: /rp)
+  /using:<命名空間>             定義全域命名空間 using (簡短形式: /u)
+  /define:<名稱>=<值>,...     宣告全域條件式編譯符號 (簡短形式: /d)
+  @<檔案>                        讀取回應檔以取得更多選項
 </target>
         <note />
       </trans-unit>

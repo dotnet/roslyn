@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../VSPackage.resx">
     <body>
@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="102">
         <source>Advanced</source>
-        <target state="translated">Avanzadas</target>
+        <target state="translated">Opciones avanzadas</target>
         <note>"Advanced" node under Tools &gt; Options, Text Editor, C#.</note>
       </trans-unit>
       <trans-unit id="103">
@@ -76,7 +76,6 @@ at the end;
 When generating property;
 prefer throwing properties;
 prefer auto properties;</source>
-        <target state="needs-review-translation">Resaltar referencias al símbolo bajo el cursor;Resaltar palabras clave relacionadas bajo el cursor;Especificar el modo de esquematización al abrir los archivos;Mostrar separadores de líneas de procedimientos;Generar comentarios de documentación XML;Mostrar diagnóstico para archivos cerrados;Mostrar vista previa para seguimiento de cambio de nombre;Al ordenar instrucciones Using, colocar primero las directivas 'System';No colocar 'out' o 'ref' en estructura personalizada</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -85,7 +84,6 @@ Automatically format statement on semicolon ;
 Automatically format block on end brace;
 Automatically format on return;
 Automatically format on paste;</source>
-        <target state="needs-review-translation">Formato automático en instrucciones al escribir punto y coma;Formato automático en bloques al escribir llave;Formato automático al pegar;Limpieza de código;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
@@ -98,7 +96,6 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="needs-review-translation">Aplicar sangría al contenido del bloque;Aplicar sangría a llaves de apertura y cierre; Aplicar sangría al contenido de case;Aplicar sangría a etiquetas case;Sangría de etiquetas</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
@@ -119,7 +116,6 @@ New line options for expression;
 Place members in object initializers on new line;
 Place members in anonymous types on new line;
 Place query expression clauses on new line;</source>
-        <target state="needs-review-translation">Opción de formato de nueva línea para llaves;Opciones de formato de nueva línea para palabras clave</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
@@ -154,7 +150,6 @@ Set spacing for operators;
 Ignore spaces around binary operators;
 Remove spaces before and after binary operators;
 Insert space before and after binary operators;</source>
-        <target state="needs-review-translation">Establecer espaciado para declaraciones de método;Establecer espaciado para llamadas a métodos;Establecer otras opciones de espaciado;Establecer espaciado para corchetes;Establecer espaciado para delimitadores;Establecer espaciado para operadores</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
@@ -177,7 +172,6 @@ Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;</source>
-        <target state="needs-review-translation">Cambiar configuración de la lista de finalización;Preseleccionar el miembro usado recientemente</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

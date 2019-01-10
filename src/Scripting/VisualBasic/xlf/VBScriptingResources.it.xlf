@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../VBScriptingResources.resx">
     <body>
@@ -34,12 +34,12 @@ Esegue lo script se è specificato un valore per file-script; in caso contrario,
 Opzioni:
   /help                          Visualizza questo messaggio relativo alla sintassi. Forma breve: -?
   /version                       Visualizza la versione ed esce
-  /reference:&lt;alias&gt;=&lt;file&gt;      Crea un riferimento ai metadati dal file di assembly specificato usando l'alias specificato. Forma breve: /r
-  /reference:&lt;elenco di file&gt;         Crea un riferimento ai metadati dai file di assembly specificati. Forma breve: /r
-  /referencePath:&lt;elenco di percorsi&gt;     Elenco di percorsi in cui cercare i riferimenti ai metadati specificati come percorsi non completi. Forma breve: /rp
-  /using:&lt;spazio dei nomi&gt;             Definisce lo spazio dei nomi globale using. Forma breve: /u
-  /define:&lt;nome&gt;=&lt;valore&gt;,...     Dichiara i simboli di compilazione condizionale globali. Forma breve: /d
-  @&lt;file&gt;                        Legge il file di risposta per altre opzioni
+  /reference:<alias>=<file>      Crea un riferimento ai metadati dal file di assembly specificato usando l'alias specificato. Forma breve: /r
+  /reference:<elenco di file>         Crea un riferimento ai metadati dai file di assembly specificati. Forma breve: /r
+  /referencePath:<elenco di percorsi>     Elenco di percorsi in cui cercare i riferimenti ai metadati specificati come percorsi non completi. Forma breve: /rp
+  /using:<spazio dei nomi>             Definisce lo spazio dei nomi globale using. Forma breve: /u
+  /define:<nome>=<valore>,...     Dichiara i simboli di compilazione condizionale globali. Forma breve: /d
+  @<file>                        Legge il file di risposta per altre opzioni
 </target>
         <note />
       </trans-unit>

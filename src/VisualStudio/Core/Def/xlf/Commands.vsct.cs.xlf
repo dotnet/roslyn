@@ -1,10 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../Commands.vsct">
     <body>
       <trans-unit id="cmdidContextOrganizeRemoveAndSort|ButtonText">
         <source>Remove &amp;and Sort</source>
-        <target state="translated">Odebrat &amp;a seřadit</target>
+        <target state="translated">Odebrat &a seřadit</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidContextOrganizeRemoveAndSort|LocCanonicalName">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeRemoveAndSort|ButtonText">
         <source>Remove &amp;and Sort</source>
-        <target state="translated">Odebrat &amp;a seřadit</target>
+        <target state="translated">Odebrat &a seřadit</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeRemoveAndSort|LocCanonicalName">
@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|ButtonText">
         <source>&amp;Analyzer...</source>
-        <target state="translated">&amp;Analyzátor...</target>
+        <target state="translated">&Analyzátor...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|LocCanonicalName">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="cmdidProjectAddAnalyzer|ButtonText">
         <source>Add &amp;Analyzer...</source>
-        <target state="translated">Přidat &amp;analyzátor...</target>
+        <target state="translated">Přidat &analyzátor...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidProjectAddAnalyzer|LocCanonicalName">
@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="cmdidReferencesContextAddAnalyzer|ButtonText">
         <source>Add &amp;Analyzer...</source>
-        <target state="translated">Přidat &amp;analyzátor...</target>
+        <target state="translated">Přidat &analyzátor...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidReferencesContextAddAnalyzer|LocCanonicalName">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="cmdidAddAnalyzer|ButtonText">
         <source>Add &amp;Analyzer...</source>
-        <target state="translated">Přidat &amp;analyzátor...</target>
+        <target state="translated">Přidat &analyzátor...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddAnalyzer|LocCanonicalName">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="cmdidRemoveAnalyzer|ButtonText">
         <source>&amp;Remove</source>
-        <target state="translated">O&amp;debrat</target>
+        <target state="translated">O&debrat</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveAnalyzer|LocCanonicalName">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="cmdidOpenRuleSet|ButtonText">
         <source>&amp;Open Active Rule Set</source>
-        <target state="translated">&amp;Otevřít aktivní sadu pravidel</target>
+        <target state="translated">&Otevřít aktivní sadu pravidel</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidOpenRuleSet|LocCanonicalName">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityDefault|ButtonText">
         <source>&amp;Default</source>
-        <target state="translated">&amp;Výchozí</target>
+        <target state="translated">&Výchozí</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityDefault|LocCanonicalName">
@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityError|ButtonText">
         <source>&amp;Error</source>
-        <target state="translated">&amp;Chyba</target>
+        <target state="translated">&Chyba</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityError|LocCanonicalName">
@@ -124,12 +124,12 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityWarning|ButtonText">
         <source>&amp;Warning</source>
-        <target state="translated">&amp;Upozornění</target>
+        <target state="translated">&Upozornění</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityWarning|LocCanonicalName">
         <source>Warning</source>
-        <target state="translated">Varování</target>
+        <target state="translated">Upozornění</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityWarning|CommandName">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|ButtonText">
         <source>&amp;Info</source>
-        <target state="translated">&amp;Informace</target>
+        <target state="translated">&Informace</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|LocCanonicalName">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|ButtonText">
         <source>&amp;Hidden</source>
-        <target state="translated">&amp;Skryté</target>
+        <target state="translated">&Skryté</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityHidden|LocCanonicalName">
@@ -169,12 +169,12 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|ButtonText">
         <source>&amp;None</source>
-        <target state="translated">Žád&amp;ná</target>
+        <target state="translated">Žád&ná</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|LocCanonicalName">
         <source>None</source>
-        <target state="translated">Žádná</target>
+        <target state="translated">žádné</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|CommandName">
@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="cmdidOpenDiagnosticHelpLink|ButtonText">
         <source>&amp;View Help...</source>
-        <target state="translated">&amp;Zobrazit nápovědu...</target>
+        <target state="translated">&Zobrazit nápovědu...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidOpenDiagnosticHelpLink|LocCanonicalName">
@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetActiveRuleSet|ButtonText">
         <source>&amp;Set as Active Rule Set</source>
-        <target state="translated">Nas&amp;tavit jako aktivní sadu pravidel</target>
+        <target state="translated">Nas&tavit jako aktivní sadu pravidel</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetActiveRuleSet|LocCanonicalName">
@@ -214,7 +214,7 @@
       </trans-unit>
       <trans-unit id="cmdidRemoveSuppressions|ButtonText">
         <source>Remove&amp; Suppression(s)</source>
-        <target state="translated">Odebrat&amp; potlačení</target>
+        <target state="translated">Odebrat& potlačení</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveSuppressions|LocCanonicalName">
@@ -229,7 +229,7 @@
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsInSource|ButtonText">
         <source>In &amp;Source</source>
-        <target state="translated">Ve &amp;zdroji</target>
+        <target state="translated">Ve &zdroji</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsInSource|LocCanonicalName">
@@ -244,7 +244,7 @@
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsInSuppressionFile|ButtonText">
         <source>In&amp; Suppression File</source>
-        <target state="translated">V&amp; souboru potlačení</target>
+        <target state="translated">V& souboru potlačení</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsInSuppressionFile|LocCanonicalName">
@@ -314,12 +314,12 @@
       </trans-unit>
       <trans-unit id="cmdidDiagnosticContextMenu|ButtonText">
         <source>Diagnostic</source>
-        <target state="translated">Diagnostika</target>
+        <target state="translated">Diagnostický</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidDiagnosticContextMenu|LocCanonicalName">
         <source>Diagnostic</source>
-        <target state="translated">Diagnostika</target>
+        <target state="translated">Diagnostický</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeveritySubMenu|ButtonText">
@@ -339,17 +339,17 @@
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsContextMenu|ButtonText">
         <source>S&amp;uppress</source>
-        <target state="translated">&amp;Potlačit</target>
+        <target state="translated">&Potlačit</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsContextMenu|LocCanonicalName">
         <source>S&amp;uppress</source>
-        <target state="translated">&amp;Potlačit</target>
+        <target state="translated">&Potlačit</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAddSuppressionsContextMenu|CommandName">
         <source>S&amp;uppress</source>
-        <target state="translated">&amp;Potlačit</target>
+        <target state="translated">&Potlačit</target>
         <note />
       </trans-unit>
     </body>

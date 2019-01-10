@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../VSPackage.resx">
     <body>
@@ -76,7 +76,6 @@ at the end;
 When generating property;
 prefer throwing properties;
 prefer auto properties;</source>
-        <target state="needs-review-translation">Zvýrazňovat odkazy na symbol pod kurzorem;Zvýrazňovat související klíčová slova pod kurzorem;Po otevření souborů vejít do režimu osnovy;Zobrazit oddělovače řádků procedury;Generovat komentáře dokumentace XML;Zobrazit diagnostiku pro zavřené soubory;Zobrazit náhled pro sledování přejmenování;Umísťovat první direktivy System při řazení direktiv using;Nevkládat ref ani out do vlastních struktur</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -85,7 +84,6 @@ Automatically format statement on semicolon ;
 Automatically format block on end brace;
 Automatically format on return;
 Automatically format on paste;</source>
-        <target state="needs-review-translation">Automaticky formátovat příkaz při středníku;Automaticky formátovat blok při složené závorce;Automaticky formátovat při vložení;vyčištění kódu;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
@@ -98,7 +96,6 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="needs-review-translation">Odsadit obsah bloku; odsadit pravé a levé složené závorky;odsadit obsah příkazu case;odsadit návěští case;odsazení návěští</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
@@ -119,7 +116,6 @@ New line options for expression;
 Place members in object initializers on new line;
 Place members in anonymous types on new line;
 Place query expression clauses on new line;</source>
-        <target state="needs-review-translation">Možnost formátování nového řádku pro složené závorky;Možnosti formátování nového řádku pro klíčová slova</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
@@ -154,7 +150,6 @@ Set spacing for operators;
 Ignore spaces around binary operators;
 Remove spaces before and after binary operators;
 Insert space before and after binary operators;</source>
-        <target state="needs-review-translation">Nastavit mezery pro deklarace metod;nastavit mezery pro volání metod;nastavit jiné možnosti pro mezery;nastavit mezery pro kulaté závorky;nastavit mezery pro oddělovače;nastavit mezery pro operátory</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
@@ -177,7 +172,6 @@ Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;</source>
-        <target state="needs-review-translation">Změnit nastavení pro seznam dokončení;Předvolit naposledy použitou položku</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

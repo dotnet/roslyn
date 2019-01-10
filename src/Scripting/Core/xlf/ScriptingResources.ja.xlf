@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="StackOverflowWhileEvaluating">
         <source>!&lt;Stack overflow while evaluating object&gt;</source>
-        <target state="translated">!&lt;オブジェクトの評価中にスタック オーバーフローが発生しました&gt;</target>
+        <target state="translated">!<オブジェクトの評価中にスタック オーバーフローが発生しました></target>
         <note />
       </trans-unit>
       <trans-unit id="CantAssignTo">

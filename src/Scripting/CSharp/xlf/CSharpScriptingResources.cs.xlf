@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../CSharpScriptingResources.resx">
     <body>
@@ -37,12 +37,12 @@ Možnosti:
   /help                          Zobrazí tuto zprávu u použití (alternativní tvar: /?).
   /version                       Zobrazí verzi a ukončí se.
   /i                             Přejde k REPL po spuštění zadaného skriptu.
-  /r:&lt;soubor&gt;                      Odkazuje na metadata ze zadaného souboru sestavení (alternativní tvar: /reference).
-  /r:&lt;seznam souborů&gt;                 Odkazuje na metadata ze zadaných souborů sestavení (alternativní tvar: /reference).
-  /lib:&lt;seznam cest&gt;               Seznam adresářů, kde se mají hledat knihovny zadané direktivou #r 
+  /r:<soubor>                      Odkazuje na metadata ze zadaného souboru sestavení (alternativní tvar: /reference).
+  /r:<seznam souborů>                 Odkazuje na metadata ze zadaných souborů sestavení (alternativní tvar: /reference).
+  /lib:<seznam cest>               Seznam adresářů, kde se mají hledat knihovny zadané direktivou #r 
                                  (alternativní tvary: /libPath /libPaths).
-  /u:&lt;obor názvů&gt;                 Definuje globální obor názvů using (alternativní tvary: /using, /usings, /import, /imports).
-  @&lt;soubor&gt;                        Přečte další možnosti ze souboru odpovědi.
+  /u:<obor názvů>                 Definuje globální obor názvů using (alternativní tvary: /using, /usings, /import, /imports).
+  @<soubor>                        Přečte další možnosti ze souboru odpovědi.
   --                             Označuje, že se zbývající argumenty nemají považovat za parametry.
 </target>
         <note />

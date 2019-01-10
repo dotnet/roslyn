@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="StackOverflowWhileEvaluating">
         <source>!&lt;Stack overflow while evaluating object&gt;</source>
-        <target state="translated">!&lt;評估物件時發生堆疊溢位&gt;</target>
+        <target state="translated">!<評估物件時發生堆疊溢位></target>
         <note />
       </trans-unit>
       <trans-unit id="CantAssignTo">

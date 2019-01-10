@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="StackOverflowWhileEvaluating">
         <source>!&lt;Stack overflow while evaluating object&gt;</source>
-        <target state="translated">!&lt;Переполнение стека при вычислении объекта&gt;</target>
+        <target state="translated">!<Переполнение стека при вычислении объекта></target>
         <note />
       </trans-unit>
       <trans-unit id="CantAssignTo">

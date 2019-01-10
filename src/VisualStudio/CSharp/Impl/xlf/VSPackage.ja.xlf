@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../VSPackage.resx">
     <body>
@@ -76,7 +76,6 @@ at the end;
 When generating property;
 prefer throwing properties;
 prefer auto properties;</source>
-        <target state="needs-review-translation">カーソルの下にあるシンボルへの参照をハイライトする;カーソルの下にあるキーワードの関連キーワードをハイライトする;ファイルを開くときにアウトライン モードに入る;プロシージャ行の区切り記号を表示する;XML ドキュメント コメントを生成する;閉じているファイルの診断結果を表示する;名前変更の追跡用プレビューの表示;using を並べ替える際に、'System' ディレクティブを先頭に配置する;カスタム構造体に ref または out を設定しない</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -85,7 +84,6 @@ Automatically format statement on semicolon ;
 Automatically format block on end brace;
 Automatically format on return;
 Automatically format on paste;</source>
-        <target state="needs-review-translation">セミコロンでステートメントをオート フォーマットする;中かっこでブロックをオート フォーマットする;貼り付け時にオート フォーマットする;コードをクリーンアップする</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
@@ -98,7 +96,6 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="needs-review-translation">ブロックの内容をインデントする;始めと終わりの中かっこをインデントする、case の内容をインデントする;case ラベルをインデントする;ラベル インデント</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
@@ -119,7 +116,6 @@ New line options for expression;
 Place members in object initializers on new line;
 Place members in anonymous types on new line;
 Place query expression clauses on new line;</source>
-        <target state="needs-review-translation">中かっこの改行書式オプション;キーワードの改行書式オプション</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
@@ -154,7 +150,6 @@ Set spacing for operators;
 Ignore spaces around binary operators;
 Remove spaces before and after binary operators;
 Insert space before and after binary operators;</source>
-        <target state="needs-review-translation">メソッド宣言子のスペースを設定する;メソッドの呼び出しのスペースを設定する;他のスペース オプションを設定する;大かっこのスペースを設定する;区切り記号のスペースを設定する;演算子のスペースを設定する</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
@@ -177,7 +172,6 @@ Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;</source>
-        <target state="needs-review-translation">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
@@ -217,7 +211,7 @@ Show name suggestions;</source>
       </trans-unit>
       <trans-unit id="2359">
         <source>CSharp Editor with Encoding</source>
-        <target state="translated">エンコード付き CSharp エディター</target>
+        <target state="translated">Encoding 付き CSharp エディター</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -237,7 +231,7 @@ Show name suggestions;</source>
       </trans-unit>
       <trans-unit id="115">
         <source>Naming</source>
-        <target state="translated">名前指定</target>
+        <target state="translated">名前付け</target>
         <note />
       </trans-unit>
       <trans-unit id="314">

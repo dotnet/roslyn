@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../CSharpScriptingResources.resx">
     <body>
@@ -37,12 +37,12 @@ Seçenekler:
   /help                          Bu kullanım iletisini görüntüle (alternatif biçim: /?)
   /version                       Sürümü görüntüle ve çıkış yap
   /i                             Belirtilen betiği yürüttükten sonra REPL’ye bırak.
-  /r:&lt;dosya&gt;                      Belirtilen bütünleştirilmiş kod dosyasındaki meta veriye başvur (alternatif biçim: /reference)
-  /r:&lt;dosya listesi&gt;                 Belirtilen bütünleştirilmiş kod dosyalarındaki meta veriye başvur (alternatif biçim: /reference)
-  /lib:&lt;yol listesi&gt;               #r yönergesiyle belirtilen kitaplıklar için bakılacak dizinler listesi. 
+  /r:<dosya>                      Belirtilen bütünleştirilmiş kod dosyasındaki meta veriye başvur (alternatif biçim: /reference)
+  /r:<dosya listesi>                 Belirtilen bütünleştirilmiş kod dosyalarındaki meta veriye başvur (alternatif biçim: /reference)
+  /lib:<yol listesi>               #r yönergesiyle belirtilen kitaplıklar için bakılacak dizinler listesi. 
                                  (alternatif biçimler: /libPath /libPaths)
-  /u:&lt;ad alanı&gt;                 Genel ad alanı kullanımını tanımla (alternatif biçimler: /using, /usings, /import, /imports)
-  @&lt;dosya&gt;                        Daha fazla seçenek için yanıt dosyasını okuyun
+  /u:<ad alanı>                 Genel ad alanı kullanımını tanımla (alternatif biçimler: /using, /usings, /import, /imports)
+  @<dosya>                        Daha fazla seçenek için yanıt dosyasını okuyun
   --                             Kalan bağımsız değişkenlerin seçenek olarak değerlendirilmemesi gerektiğini belirtir.
 </target>
         <note />

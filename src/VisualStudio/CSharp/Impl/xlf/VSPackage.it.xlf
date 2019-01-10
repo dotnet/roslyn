@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../VSPackage.resx">
     <body>
@@ -76,7 +76,6 @@ at the end;
 When generating property;
 prefer throwing properties;
 prefer auto properties;</source>
-        <target state="needs-review-translation">Evidenzia riferimenti a simbolo sotto il cursore;Evidenzia parole chiave correlate sotto il cursore;Attiva modalità struttura all'apertura del file;Mostra separatori di riga routine;Genera commenti in formato documentazione XML;Mostra diagnostica per file chiusi;Visualizza anteprima per verifica ridenominazione;Inserisci prima le direttive 'System' durante l'ordinamento delle using;Non inserire out o ref in struct personalizzato</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -85,7 +84,6 @@ Automatically format statement on semicolon ;
 Automatically format block on end brace;
 Automatically format on return;
 Automatically format on paste;</source>
-        <target state="needs-review-translation">Formatta automaticamente istruzione dopo l'immissione del punto e virgola;Formatta automaticamente blocco dopo l'immissione della parentesi graffa;Formatta automaticamente dopo operazione Incolla;Pulizia codice</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
@@ -98,7 +96,6 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="needs-review-translation">Rientra contenuto blocco;Rientra parentesi graffe di apertura e chiusura;Rientra contenuto case;Rientra etichette case;Rientro etichetta</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
@@ -119,7 +116,6 @@ New line options for expression;
 Place members in object initializers on new line;
 Place members in anonymous types on new line;
 Place query expression clauses on new line;</source>
-        <target state="needs-review-translation">Nuova opzione formattazione riga per parentesi graffe;Nuove opzioni formattazione riga per parole chiave</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
@@ -154,7 +150,6 @@ Set spacing for operators;
 Ignore spaces around binary operators;
 Remove spaces before and after binary operators;
 Insert space before and after binary operators;</source>
-        <target state="needs-review-translation">Imposta spaziatura per dichiarazioni di metodi;Imposta spaziatura per chiamate ai metodi;Imposta altre opzioni di spaziatura;Imposta spaziatura per parentesi quadre;Imposta spaziatura per delimitatori;Imposta spaziatura per operatori</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
@@ -177,7 +172,6 @@ Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;</source>
-        <target state="needs-review-translation">Modifica impostazioni di completamento elenco;Preseleziona membri usati più di recente</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
@@ -232,7 +226,7 @@ Show name suggestions;</source>
       </trans-unit>
       <trans-unit id="313">
         <source>Style;Qualify;This;Code Style;var;member access;locals;parameters;var preferences;predefined type;framework type;built-in types;when variable type is apparent;elsewhere;qualify field access;qualify property access; qualify method access;qualify event access;</source>
-        <target state="translated">Stile;Qualifica;This;Stile codice;var;accesso ai membri;variabili locali;parametri;preferenze var;tipo predefinito;tipo di framework;tipi predefiniti;quando il tipo della variabile è apparente;altrove;qualifica l'accesso ai campi;qualifica l'accesso alle proprietà; qualifica l'accesso ai metodi;qualifica l'accesso agli eventi;</target>
+        <target state="translated">Stile;Qualifica;This;Stile codice;var;accesso ai membri;variabili locali;parametri;preferenze var;tipo predefinito;tipo di framework;tipi predefiniti;quando il tipo della variabile ?? apparente;altrove;qualifica l'accesso ai campi;qualifica l'accesso alle propriet??; qualifica l'accesso ai metodi;qualifica l'accesso agli eventi;</target>
         <note>C# Code Style options page keywords</note>
       </trans-unit>
       <trans-unit id="115">
@@ -252,7 +246,7 @@ Show name suggestions;</source>
       </trans-unit>
       <trans-unit id="117">
         <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
-        <target state="translated">Componenti di C# usati nell'IDE. A seconda del tipo e delle impostazioni del processo, è possibile che venga usata una versione diversa del compilatore.</target>
+        <target state="translated">Componenti di C# usati nell'IDE. A seconda del tipo e delle impostazioni del processo, ?? possibile che venga usata una versione diversa del compilatore.</target>
         <note>Help &gt; About</note>
       </trans-unit>
     </body>

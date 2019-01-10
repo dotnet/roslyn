@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../VSPackage.resx">
     <body>
@@ -76,7 +76,6 @@ at the end;
 When generating property;
 prefer throwing properties;
 prefer auto properties;</source>
-        <target state="needs-review-translation">Wyróżnij odwołania do symbolu pod kursorem;Wyróżnij pokrewne słowa kluczowe pod kursorem;Przejdź do trybu konspektu po otwarciu plików;Pokaż separatory wierszy procedury;Generuj komentarze dokumentacji XML;Pokaż diagnostykę zamkniętych plików;Pokaż podglad śledzenia zmian nazw;Umieść na początku dyrektywy System podczas sortowania użyć;Nie umieszczaj klauzul ref lub out w niestandardowych strukturach</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -85,7 +84,6 @@ Automatically format statement on semicolon ;
 Automatically format block on end brace;
 Automatically format on return;
 Automatically format on paste;</source>
-        <target state="needs-review-translation">Automatycznie sformatuj instrukcję w pozycji średnika;Automatycznie sformatuj blok w pozycji nawiasu klamrowego;Automatycznie sformatuj przy wklejeniu;czyszczenie kodu;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
@@ -98,7 +96,6 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="needs-review-translation">Wcięcie zawartości bloku;Wcięcie otwierających i zamykających nawiasów klamrowych, wcięcie zawartości elementu case;wcięcie etykiet elementu case;wcięcia etykiet</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
@@ -119,7 +116,6 @@ New line options for expression;
 Place members in object initializers on new line;
 Place members in anonymous types on new line;
 Place query expression clauses on new line;</source>
-        <target state="needs-review-translation">Opcja formatowania nowego wiersza dla nawiasów;Opcje formatowania nowego wiersza dla słów kluczowych</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
@@ -154,7 +150,6 @@ Set spacing for operators;
 Ignore spaces around binary operators;
 Remove spaces before and after binary operators;
 Insert space before and after binary operators;</source>
-        <target state="needs-review-translation">Ustaw odstępy dla deklaracji metod;ustaw odstępy dla wywołań metod;ustaw inne opcje ostępów;ustaw odstępy dla nawiasów klamrowych;ustaw odstępy dla ograniczników;ustaw odstępy dla operatorów</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
@@ -177,7 +172,6 @@ Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;</source>
-        <target state="needs-review-translation">Zmień ustawienia listy uzupełniania;Wybierz wstępnie ostatnio używaną składową</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
