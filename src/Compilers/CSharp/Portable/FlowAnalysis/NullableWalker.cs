@@ -391,14 +391,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // https://github.com/dotnet/roslyn/issues/29619 Temporary, until we're using
         // properties on structs directly.
-        private new int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool createIfMissing = true)
+        private new int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
         {
             symbol = GetBackingFieldIfStructProperty(symbol);
             if ((object)symbol == null)
             {
                 return -1;
             }
-            return base.GetOrCreateSlot(symbol, containingSlot, createIfMissing);
+            return base.GetOrCreateSlot(symbol, containingSlot);
         }
 
         protected override int MakeSlot(BoundExpression node)
@@ -854,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int valueMemberSlot = -1;
                     if (valueContainerSlot > 0)
                     {
-                        int slot = GetOrCreateSlot(member, valueContainerSlot, createIfMissing: false);
+                        int slot = GetOrCreateSlot(member, valueContainerSlot);
                         if (slot < slotWatermark)
                         {
                             valueMemberSlot = slot;
@@ -1116,7 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocal(BoundLocal node)
         {
             var local = node.LocalSymbol;
-            int slot = GetOrCreateSlot(local, createIfMissing: false);
+            int slot = GetOrCreateSlot(local);
             var type = GetDeclaredLocalResult(local);
             _resultType = GetAdjustedResult(type, slot);
             return null;
@@ -3970,7 +3970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitParameter(BoundParameter node)
         {
             var parameter = node.ParameterSymbol;
-            int slot = GetOrCreateSlot(parameter, createIfMissing: false);
+            int slot = GetOrCreateSlot(parameter);
             var type = GetDeclaredParameterResult(parameter);
             _resultType = GetAdjustedResult(type, slot);
             return null;
@@ -4331,7 +4331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!resultType.IsValueType || resultType.IsNullableType())
                     {
                         int containingSlot = getReceiverSlot();
-                        int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(member, containingSlot, createIfMissing: false);
+                        int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(member, containingSlot);
                         if (slot > 0 && slot < this.State.Capacity)
                         {
                             var annotation = this.State[slot];
