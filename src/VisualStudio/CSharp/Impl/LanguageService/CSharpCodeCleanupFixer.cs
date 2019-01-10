@@ -405,7 +405,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                 var project = solution.GetProject(projectId);
                 progressTracker.Description = project.Name;
-                var newProject = await FixProjectAsync(project, enabledFixIds, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
+
+                // FixProjectAsync reports progress for documents within a project, but we limit progress reporting for
+                // a solution to the current project.
+                var projectProgressTracker = new ProgressTracker();
+
+                var newProject = await FixProjectAsync(project, enabledFixIds, projectProgressTracker, cancellationToken).ConfigureAwait(false);
                 solution = newProject.Solution;
                 progressTracker.ItemCompleted();
             }
@@ -427,7 +432,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                 var document = project.GetDocument(documentId);
                 progressTracker.Description = document.Name;
-                var fixedDocument = await FixDocumentAsync(document, enabledFixIds, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
+
+                // FixDocumentAsync reports progress within a document, but we limit progress reporting for a project
+                // to the current document.
+                var documentProgressTracker = new ProgressTracker();
+
+                var fixedDocument = await FixDocumentAsync(document, enabledFixIds, documentProgressTracker, cancellationToken).ConfigureAwait(false);
                 project = fixedDocument.Project;
                 progressTracker.ItemCompleted();
             }
