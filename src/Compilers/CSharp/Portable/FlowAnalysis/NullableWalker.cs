@@ -5143,7 +5143,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
             var method = (MethodSymbol)_symbol;
-            TypeSymbolWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(compilation, RefKind.None, method.ReturnType.TypeSymbol, errorLocationNode: null, diagnostics: null);
+            TypeSymbolWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(compilation, RefKind.None,
+                method.ReturnType.TypeSymbol, errorLocationNode: null, diagnostics: null).elementType;
+
             VisitOptionalImplicitConversion(expr, elementType, useLegacyWarnings: false, AssignmentKind.Return);
             return null;
         }
