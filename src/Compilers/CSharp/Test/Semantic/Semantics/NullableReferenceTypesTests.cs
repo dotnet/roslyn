@@ -39188,6 +39188,40 @@ class Program
         }
 
         [Fact]
+        public void StructField_Default_ParameterlessConstructor()
+        {
+            var source =
+@"#pragma warning disable 649
+struct S<T>
+{
+    internal T F;
+    internal S() { F = default!; }
+    internal S(T t) { F = t; }
+}
+class Program
+{
+    static void F()
+    {
+        var x = default(S<object>);
+        x.F/*T:object?*/.ToString(); // 1
+        var y = new S<object>();
+        y.F/*T:object!*/.ToString();
+        var z = new S<object>(1);
+        z.F/*T:object!*/.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,14): error CS0568: Structs cannot contain explicit parameterless constructors
+                //     internal S() { F = default!; }
+                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S").WithLocation(5, 14),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         x.F/*T:object?*/.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.F").WithLocation(13, 9));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
         public void StructField_Default_NoType()
         {
             var source =
