@@ -1208,7 +1208,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.Kind == BoundKind.ObjectCreationExpression || node.Kind == BoundKind.DynamicObjectCreationExpression);
 
-            LocalSymbol receiver = null;
             int slot = -1;
             TypeSymbol type = node.Type;
             if ((object)type != null)
@@ -1224,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             type,
                             slot,
                             valueSlot: -1,
-                            isDefaultValue: (node as BoundObjectCreationExpression)?.Constructor.IsImplicitConstructor == true,
+                            isDefaultValue: (node as BoundObjectCreationExpression)?.Constructor.IsDefaultValueTypeConstructor() == true,
                             isByRefTarget: false,
                             slotWatermark: GetSlotWatermark());
                     }
@@ -1233,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initializerOpt != null)
             {
-                VisitObjectCreationInitializer(receiver, slot, initializerOpt);
+                VisitObjectCreationInitializer(null, slot, initializerOpt);
             }
 
             _resultType = TypeSymbolWithAnnotations.Create(type, NullableAnnotation.NotNullable);
@@ -1249,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (initializer.Kind)
                         {
                             case BoundKind.AssignmentOperator:
-                                VisitObjectElementInitializer(containingSymbol, containingSlot, (BoundAssignmentOperator)initializer);
+                                VisitObjectElementInitializer(containingSlot, (BoundAssignmentOperator)initializer);
                                 break;
                             default:
                                 VisitRvalue(initializer);
@@ -1273,6 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 default:
                     TypeSymbolWithAnnotations resultType = VisitRvalueWithResult(node);
+                    Debug.Assert((object)containingSymbol != null);
                     if ((object)containingSymbol != null)
                     {
                         var type = containingSymbol.GetTypeOrReturnType();
@@ -1283,7 +1283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void VisitObjectElementInitializer(Symbol containingSymbol, int containingSlot, BoundAssignmentOperator node)
+        private void VisitObjectElementInitializer(int containingSlot, BoundAssignmentOperator node)
         {
             var left = node.Left;
             switch (left.Kind)
