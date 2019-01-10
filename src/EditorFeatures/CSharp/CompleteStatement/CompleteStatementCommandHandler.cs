@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(semicolonPosition));
         }
 
-        private int GetSemicolonLocation(SyntaxNode root, SyntaxNode currentNode, int caretPosition)
+        private static int GetSemicolonLocation(SyntaxNode root, SyntaxNode currentNode, int caretPosition)
         {
             int end;
             if (currentNode.IsKind(SyntaxKind.ForStatement))
@@ -153,7 +153,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 else
                 {
                     // Should not be reachable because we returned earlier for this case
-                    end = 0;
                     throw ExceptionUtilities.Unreachable;
                 }
             }
@@ -172,21 +171,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             // we will have bailed earlier due to not being inside supported delimiters
             => forStatementSyntax.Condition == null ?
                 false :
-                caretPosition > forStatementSyntax.Condition.SpanStart && caretPosition < forStatementSyntax.Condition.Span.End;
+                caretPosition > forStatementSyntax.Condition.SpanStart && 
+                caretPosition < forStatementSyntax.Condition.Span.End;
 
         private static bool CaretIsInForStatementDeclaration(int caretPosition, ForStatementSyntax forStatementSyntax)
-        {
-            return forStatementSyntax.Declaration != null && 
-                caretPosition > forStatementSyntax.Declaration.Span.Start && caretPosition < forStatementSyntax.Declaration.Span.End;
-        }
+            => forStatementSyntax.Declaration != null &&
+                caretPosition > forStatementSyntax.Declaration.Span.Start &&
+                caretPosition < forStatementSyntax.Declaration.Span.End;
 
         private static bool CaretIsInForStatementInitializers(int caretPosition, ForStatementSyntax forStatementSyntax)
-        {
-            if (forStatementSyntax.Initializers.Count == 0)
-                return false;
-            else
-                return caretPosition > forStatementSyntax.Initializers.Span.Start && caretPosition < forStatementSyntax.Initializers.Span.End;
-        }
+            => forStatementSyntax.Initializers.Count != 0 &&
+                caretPosition > forStatementSyntax.Initializers.Span.Start &&
+                caretPosition < forStatementSyntax.Initializers.Span.End;
 
         /// <summary>
         /// Examines the enclosing statement-like syntax for an expression which is eligible for statement completion.

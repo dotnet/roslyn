@@ -3108,7 +3108,7 @@ using System.Linq$$
         public void DontComplete_Using2()
         {
             var code = @"
-using System.Linq;
+using System.Linq$$;
 ";
             VerifyNoSpecialSemicolonHandling(code);
         }
