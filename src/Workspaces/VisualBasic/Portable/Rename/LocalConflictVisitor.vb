@@ -154,7 +154,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     ' is this local declared in the for or for each loop?
                     ' if not it was already added to the tracker before.
                     If local.IsFor OrElse local.IsForEach Then
-                        tokens.Add(DirectCast(controlVariable, IdentifierNameSyntax).Identifier)
+                        If controlVariable.Kind = SyntaxKind.IdentifierName Then
+                            tokens.Add(DirectCast(controlVariable, IdentifierNameSyntax).Identifier)
+                        Else
+                            Debug.Fail($"Unexpected control variable kind '{controlVariable.Kind}'")
+                        End If
                     End If
                 End If
             End If
