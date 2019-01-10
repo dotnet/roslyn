@@ -303,7 +303,7 @@ class C
     {
         await foreach (var i in new C()) { }
     }
-    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
+    public Enumerator GetAsyncEnumerator() => throw null;
     public sealed class Enumerator
     {
         public System.Threading.Tasks.Task<object> MoveNextAsync() => throw null;
@@ -563,9 +563,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'GetAsyncEnumerator' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "GetAsyncEnumerator").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
         }
 
@@ -599,9 +599,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'GetAsyncEnumerator' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "GetAsyncEnumerator").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(6, 33)
                 );
         }
 
@@ -2067,7 +2067,7 @@ class C
         }
         Write($""Done"");
     }
-    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
+    public AsyncEnumerator GetAsyncEnumerator()
     {
         return new AsyncEnumerator();
     }
@@ -2123,7 +2123,7 @@ class C
         {
         }
     }
-    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default) => throw null;
     public class AsyncEnumerator : System.IAsyncDisposable
     {
         public int Current => 1;
@@ -2157,7 +2157,7 @@ class C
         {
         }
     }
-    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
+    public AsyncEnumerator GetAsyncEnumerator() => throw null;
     public class AsyncEnumerator : System.IAsyncDisposable
     {
         public int Current => 1;
@@ -2222,15 +2222,14 @@ class C
     public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
     {
         public bool IsCompleted { get { return true; } }
-        public bool GetResult() { return true; }
         public void OnCompleted(System.Action continuation) { }
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (7,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
+                // (7,33): error CS1061: 'C.Awaiter' does not contain a definition for 'GetResult' and no accessible extension method 'GetResult' accepting a first argument of type 'C.Awaiter' could be found (are you missing a using directive or an assembly reference?)
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(7, 33)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C.Awaiter", "GetResult").WithLocation(7, 33)
                 );
             VerifyEmptyForEachStatementInfo(comp);
         }
@@ -2249,7 +2248,7 @@ class C
         {
         }
     }
-    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default) => throw null;
     public class AsyncEnumerator : System.IAsyncDisposable
     {
         public int Current => 1;
@@ -2289,7 +2288,7 @@ class C
         {
         }
     }
-    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
+    public AsyncEnumerator GetAsyncEnumerator() => throw null;
     public class AsyncEnumerator
     {
         public int Current => throw null;
