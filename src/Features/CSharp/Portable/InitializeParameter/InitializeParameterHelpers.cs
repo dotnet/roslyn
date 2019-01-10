@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             || node is LocalFunctionStatementSyntax
             || node is AnonymousFunctionExpressionSyntax;
 
-        public  static SyntaxNode GetBody(SyntaxNode functionDeclaration)
+        public static SyntaxNode GetBody(SyntaxNode functionDeclaration)
         {
             switch (functionDeclaration)
             {

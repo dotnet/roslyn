@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -98,36 +97,37 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
-            if (!TryGetBlockStatement(out var blockStatementOpt, semanticModel, functionDeclaration, cancellationToken))
+            if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
             {
-                return;
+                // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
+                // actually determine if there are any viable refactorings here.
+                context.RegisterRefactorings(await GetRefactoringsAsync(
+                    document, parameter, functionDeclaration, method, blockStatementOpt, cancellationToken).ConfigureAwait(false));
             }
-
-            // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
-            // actually determine if there are any viable refactorings here.
-            context.RegisterRefactorings(await GetRefactoringsAsync(
-                document, parameter, functionDeclaration, method, blockStatementOpt, cancellationToken).ConfigureAwait(false));
         }
 
-        private bool TryGetBlockStatement(out IBlockOperation blockStatementOpt, SemanticModel semanticModel, SyntaxNode functionDeclaration, CancellationToken cancellationToken)
+        private bool CanOfferRefactoring(SyntaxNode functionDeclaration, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out IBlockOperation blockStatementOpt)
         {
             blockStatementOpt = null;
 
-            var operation = semanticModel.GetOperation(functionDeclaration, cancellationToken);
-            if (operation == null)
+            var functionBody = GetBody(functionDeclaration);
+            if (functionBody == null)
             {
                 // We support initializing parameters, even when the containing member doesn't have a
                 // body. This is useful for when the user is typing a new constructor and hasn't written
                 // the body yet.
-                if (GetBody(functionDeclaration) == null)
-                {
-                    blockStatementOpt = null;
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                return true;
+            }
+
+            // In order to get the block operation for the body of an anonymous function, we need to
+            // get it via `IAnonymousFunctionOperation.Body` instead of getting it directly from the body syntax.
+            var operation = semanticModel.GetOperation(
+                syntaxFacts.IsAnonymousFunction(functionDeclaration) ? functionDeclaration : functionBody,
+                cancellationToken);
+
+            if (operation == null)
+            {
+                return false;
             }
 
             switch (operation.Kind)
@@ -137,17 +137,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     break;
                 case OperationKind.Block:
                     blockStatementOpt = (IBlockOperation)operation;
-                    break;
-                case OperationKind.ConstructorBodyOperation:
-                    var constructorBodyOperation = (IConstructorBodyOperation)operation;
-                    blockStatementOpt = constructorBodyOperation.BlockBody ?? constructorBodyOperation.ExpressionBody;
-                    break;
-                case OperationKind.MethodBodyOperation:
-                    var methodBodyOperation = (IMethodBodyOperation)operation;
-                    blockStatementOpt = methodBodyOperation.BlockBody ?? methodBodyOperation.ExpressionBody;
-                    break;
-                case OperationKind.LocalFunction:
-                    blockStatementOpt = ((ILocalFunctionOperation)operation).Body;
                     break;
                 default:
                     return false;
