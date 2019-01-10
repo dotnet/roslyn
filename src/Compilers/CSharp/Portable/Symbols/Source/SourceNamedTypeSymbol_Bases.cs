@@ -144,14 +144,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (set.Count > 1)
                     {
-                        NamedTypeSymbol other = null;
+                        NamedTypeSymbol other = pair.Key;
                         foreach (var @interface in set)
                         {
-                            if (other is null)
+                            if ((object)other == @interface)
                             {
-                                other = @interface;
                                 continue;
                             }
+
+                            Debug.Assert(!other.Equals(@interface, TypeCompareKind.ConsiderEverything));
 
                             if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
