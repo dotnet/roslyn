@@ -303,16 +303,11 @@ class C
     {
         await foreach (var i in new C()) { }
     }
-    public Enumerator GetAsyncEnumerator()
-        => throw null;
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
     public sealed class Enumerator
     {
-        public System.Threading.Tasks.Task<object> MoveNextAsync()
-        => throw null;
-        public int Current
-        {
-            get => throw null;
-        }
+        public System.Threading.Tasks.Task<object> MoveNextAsync() => throw null;
+        public int Current => throw null;
      }
 }";
             var comp = CreateCompilationWithMscorlib46(source);
@@ -568,9 +563,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C' of 'GetAsyncEnumerator' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'GetAsyncEnumerator' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
         }
 
@@ -604,9 +599,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C' of 'GetAsyncEnumerator' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+                // (6,33): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'GetAsyncEnumerator' must have a suitable public 'MoveNextAsync' method and public 'Current' property
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
         }
 
@@ -2103,7 +2098,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var v = CompileAndVerify(comp, expectedOutput: "Item(1) Dispose Done");
+            CompileAndVerify(comp, expectedOutput: "Item(1) Dispose Done");
 
             var tree = comp.SyntaxTrees.First();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2112,6 +2107,173 @@ class C
 
             Assert.Equal("C.Awaitable C.AsyncEnumerator.MoveNextAsync()", info.MoveNextMethod.ToTestDisplayString());
             Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
+        public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutGetAwaiter()
+        {
+            string source = @"
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
+    public class AsyncEnumerator : System.IAsyncDisposable
+    {
+        public int Current => 1;
+        public Awaitable MoveNextAsync() => throw null;
+        public ValueTask DisposeAsync() => throw null;
+    }
+    public class Awaitable
+    {
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,33): error CS1061: 'C.Awaitable' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'C.Awaitable' could be found (are you missing a using directive or an assembly reference?)
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C.Awaitable", "GetAwaiter").WithLocation(7, 33)
+                );
+            VerifyEmptyForEachStatementInfo(comp);
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
+        public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutIsCompleted()
+        {
+            string source = @"
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
+    public class AsyncEnumerator : System.IAsyncDisposable
+    {
+        public int Current => 1;
+        public Awaitable MoveNextAsync() => throw null;
+        public ValueTask DisposeAsync() => throw null;
+    }
+    public class Awaitable
+    {
+        public Awaiter GetAwaiter() => throw null;
+    }
+    public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
+    {
+        public bool GetResult() { return true; }
+        public void OnCompleted(System.Action continuation) { }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,33): error CS0117: 'C.Awaiter' does not contain a definition for 'IsCompleted'
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Awaiter", "IsCompleted").WithLocation(7, 33)
+                );
+            VerifyEmptyForEachStatementInfo(comp);
+        }
+
+        private static void VerifyEmptyForEachStatementInfo(CSharpCompilation comp)
+        {
+            var tree = comp.SyntaxTrees.First();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.Null(info.MoveNextMethod);
+            Assert.Null(info.ElementType);
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
+        public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutGetResult()
+        {
+            string source = @"
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public AsyncEnumerator GetAsyncEnumerator() => throw null;
+    public class AsyncEnumerator : System.IAsyncDisposable
+    {
+        public int Current => 1;
+        public Awaitable MoveNextAsync() => throw null;
+        public ValueTask DisposeAsync() => throw null;
+    }
+    public class Awaitable
+    {
+        public Awaiter GetAwaiter() => throw null;
+    }
+    public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
+    {
+        public bool IsCompleted { get { return true; } }
+        public bool GetResult() { return true; }
+        public void OnCompleted(System.Action continuation) { }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(7, 33)
+                );
+            VerifyEmptyForEachStatementInfo(comp);
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
+        public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutOnCompleted()
+        {
+            string source = @"
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
+    public class AsyncEnumerator : System.IAsyncDisposable
+    {
+        public int Current => 1;
+        public Awaitable MoveNextAsync() => throw null;
+        public ValueTask DisposeAsync() => throw null;
+    }
+
+    public class Awaitable
+    {
+        public Awaiter GetAwaiter() => throw null;
+    }
+    public class Awaiter
+    {
+        public bool IsCompleted { get { return true; } }
+        public bool GetResult() { return true; }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,33): error CS4027: 'C.Awaiter' does not implement 'INotifyCompletion'
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_DoesntImplementAwaitInterface, "new C()").WithArguments("C.Awaiter", "System.Runtime.CompilerServices.INotifyCompletion").WithLocation(7, 33)
+                );
+            VerifyEmptyForEachStatementInfo(comp);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]

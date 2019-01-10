@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!hasErrors && awaitInfo.GetResult?.ReturnType.SpecialType != SpecialType.System_Boolean)
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadGetAsyncEnumerator, _syntax.Expression.Location, collectionExpr.Type, GetAsyncEnumeratorMethodName);
+                    diagnostics.Add(ErrorCode.ERR_BadGetAsyncEnumerator, _syntax.Expression.Location, builder.GetEnumeratorMethod.ReturnType, GetAsyncEnumeratorMethodName);
                     hasErrors = true;
                 }
             }
