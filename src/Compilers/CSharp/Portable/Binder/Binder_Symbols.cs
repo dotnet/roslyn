@@ -2248,7 +2248,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfo(SyntaxTree tree, MessageID feature)
+        internal static CSDiagnosticInfo GetLanguageVersionDiagnosticInfo(LanguageVersion availableVersion, MessageID feature)
+        {
+            LanguageVersion requiredVersion = feature.RequiredVersion();
+            if (requiredVersion > availableVersion)
+            {
+                return new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
+            }
+
+            return null;
+        }
+
+        private static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfo(SyntaxTree tree, MessageID feature)
         {
             CSharpParseOptions options = (CSharpParseOptions)tree.Options;
 
@@ -2263,14 +2274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new CSDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
             }
 
-            LanguageVersion availableVersion = options.LanguageVersion;
-            LanguageVersion requiredVersion = feature.RequiredVersion();
-            if (requiredVersion > availableVersion)
-            {
-                return new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
-            }
-
-            return null;
+            return GetLanguageVersionDiagnosticInfo(options.LanguageVersion, feature);
         }
     }
 }

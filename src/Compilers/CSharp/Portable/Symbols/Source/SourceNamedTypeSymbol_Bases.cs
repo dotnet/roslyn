@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var conversions = new TypeConversions(corLibrary);
                 var location = singleDeclaration.NameLocation;
 
-                localBase.CheckAllConstraints(conversions, location, diagnostics);
+                localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
             }
         }
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var @interface in interfaces)
                 {
-                    @interface.CheckAllConstraints(conversions, location, diagnostics);
+                    @interface.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
                 }
 
                 if (interfaces.Count > 1)

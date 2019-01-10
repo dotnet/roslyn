@@ -457,19 +457,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static void CheckAllConstraints(
             this TypeSymbol type,
+            CSharpCompilation compilation,
             ConversionsBase conversions,
             Location location,
             DiagnosticBag diagnostics)
         {
-            type.VisitType(s_checkConstraintsSingleTypeFunc, new CheckConstraintsArgs(type.DeclaringCompilation, conversions, location, diagnostics));
+            type.VisitType(s_checkConstraintsSingleTypeFunc, new CheckConstraintsArgs(compilation, conversions, location, diagnostics));
         }
 
         public static bool CheckAllConstraints(
             this TypeSymbol type,
+            CSharpCompilation compilation,
             ConversionsBase conversions)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            type.CheckAllConstraints(conversions, NoLocation.Singleton, diagnostics);
+            type.CheckAllConstraints(compilation, conversions, NoLocation.Singleton, diagnostics);
             bool ok = !diagnostics.HasAnyErrors();
             diagnostics.Free();
             return ok;
@@ -914,13 +916,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.TypeSymbol)));
                     return false;
                 }
-                else if (managedKind == ManagedKind.UnmanagedWithGenerics &&
-                    currentCompilation is CSharpCompilation csCompilation &&
-                    !csCompilation.IsFeatureEnabled(MessageID.IDS_FeatureUnmanagedConstructedTypes))
+                else if (managedKind == ManagedKind.UnmanagedWithGenerics)
                 {
-                    var csDiagnostic = Binder.GetFeatureAvailabilityDiagnosticInfo(csCompilation.SyntaxTrees[0], MessageID.IDS_FeatureUnmanagedConstructedTypes);
-                    var typeParameterDiagnostic = new TypeParameterDiagnosticInfo(typeParameter, csDiagnostic);
-                    diagnosticsBuilder.Add(typeParameterDiagnostic);
+                    var csCompilation = (CSharpCompilation)currentCompilation;
+                    var csDiagnosticInfo = Binder.GetLanguageVersionDiagnosticInfo(csCompilation.LanguageVersion, MessageID.IDS_FeatureUnmanagedConstructedTypes);
+                    if (csDiagnosticInfo != null)
+                    {
+                        var typeParameterDiagnosticInfo = new TypeParameterDiagnosticInfo(typeParameter, csDiagnosticInfo);
+                        diagnosticsBuilder.Add(typeParameterDiagnosticInfo);
+                        return false;
+                    }
                 }
             }
 
