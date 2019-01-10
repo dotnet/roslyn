@@ -291,8 +291,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private SourceTextContainer GetOpenDocumentSourceTextContainer_NoLock(DocumentId documentId) =>
-            _bufferToAssociatedDocumentsMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
+        private SourceTextContainer GetOpenDocumentSourceTextContainer_NoLock(DocumentId documentId)
+        {
+            // TODO: remove linear search
+            return _bufferToAssociatedDocumentsMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
+        }
 
         private DocumentId GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
         {
@@ -321,7 +324,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentContextUpdated(DocumentId documentId)
         {
-            // TODO: remove linear search
 
             SourceTextContainer container = null;
             using (_stateLock.DisposableWait())
