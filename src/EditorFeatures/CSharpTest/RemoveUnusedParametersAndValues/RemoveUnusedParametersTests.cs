@@ -1051,5 +1051,21 @@ internal sealed class CustomSerializingType : ISerializable
                 Assert.Equal("Remove unused parameter 'p4' if it is not part of a shipped public API, its initial value is never used", sortedDiagnostics[3].GetMessage());
             }
         }
+
+        [WorkItem(32287, "https://github.com/dotnet/roslyn/issues/32287")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Parameter_DeclarationPatternWithNullDeclaredSymbol()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    void M(object [|o|])
+    {
+        if (o is int _)
+        {
+        }
+    }
+}");
+        }
     }
 }
