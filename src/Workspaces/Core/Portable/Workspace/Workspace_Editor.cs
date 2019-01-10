@@ -89,7 +89,26 @@ namespace Microsoft.CodeAnalysis
         {
             using (_stateLock.DisposableWait())
             {
-                this.ClearOpenDocument_NoLock(documentId);
+                if (_projectToOpenDocumentsMap.TryGetValue(documentId.ProjectId, out var openDocIds) && openDocIds != null)
+                {
+                    openDocIds.Remove(documentId);
+                }
+
+                RemoveIfEmpty(_projectToOpenDocumentsMap, documentId.ProjectId);
+
+                // Stop tracking the buffer or update the documentId associated with the buffer.
+                if (_textTrackers.TryGetValue(documentId, out var tracker))
+                {
+                    tracker.Disconnect();
+                    _textTrackers.Remove(documentId);
+
+                    var currentContextDocumentId = UpdateCurrentContextMapping_NoLock(tracker.TextContainer, documentId);
+                    if (currentContextDocumentId == null)
+                    {
+                        // No documentIds are attached to this buffer, so stop tracking it.
+                        this.UnregisterText(tracker.TextContainer);
+                    }
+                }
             }
         }
 
@@ -97,38 +116,6 @@ namespace Microsoft.CodeAnalysis
         protected void ClearOpenDocument(DocumentId documentId, bool isSolutionClosing)
         {
             ClearOpenDocument(documentId);
-        }
-
-        /// <returns>The DocumentId of the current context document for the buffer that was 
-        /// previously attached to the given documentId, if any</returns>
-        private DocumentId ClearOpenDocument_NoLock(DocumentId documentId)
-        {
-            _stateLock.AssertHasLock();
-            if (_projectToOpenDocumentsMap.TryGetValue(documentId.ProjectId, out var openDocIds) && openDocIds != null)
-            {
-                openDocIds.Remove(documentId);
-            }
-
-            RemoveIfEmpty(_projectToOpenDocumentsMap, documentId.ProjectId);
-            // Stop tracking the buffer or update the documentId associated with the buffer.
-            if (_textTrackers.TryGetValue(documentId, out var tracker))
-            {
-                tracker.Disconnect();
-                _textTrackers.Remove(documentId);
-
-                var currentContextDocumentId = UpdateCurrentContextMapping_NoLock(tracker.TextContainer, documentId);
-                if (currentContextDocumentId != null)
-                {
-                    return currentContextDocumentId;
-                }
-                else
-                {
-                    // No documentIds are attached to this buffer, so stop tracking it.
-                    this.UnregisterText(tracker.TextContainer);
-                }
-            }
-
-            return null;
         }
 
         /// <summary>
