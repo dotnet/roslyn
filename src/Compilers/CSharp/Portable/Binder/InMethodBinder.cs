@@ -137,27 +137,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and deduce an iterator element type from the return type.  If we didn't do this, the 
                 // TypeInfo.ConvertedType of the yield statement would always be an error type.  However, we will 
                 // not mutate any state (i.e. we won't store the result).
-                return GetIteratorElementTypeFromReturnType(refKind, returnType, node, diagnostics) ?? CreateErrorType();
+                return GetIteratorElementTypeFromReturnType(refKind, returnType, node, diagnostics).elementType ?? CreateErrorType();
             }
 
             if (_iteratorInfo == IteratorInfo.Empty)
             {
-                TypeSymbol elementType = null;
                 DiagnosticBag elementTypeDiagnostics = DiagnosticBag.GetInstance();
 
-                elementType = GetIteratorElementTypeFromReturnType(refKind, returnType, node, elementTypeDiagnostics);
+                (TypeSymbol elementType, bool asyncInterface) = GetIteratorElementTypeFromReturnType(refKind, returnType, node, elementTypeDiagnostics);
 
+                Location errorLocation = _methodSymbol.Locations[0];
                 if ((object)elementType == null)
                 {
                     if (refKind != RefKind.None)
                     {
-                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturnRef, _methodSymbol.Locations[0], _methodSymbol);
+                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturnRef, errorLocation, _methodSymbol);
                     }
                     else if (!returnType.IsErrorType())
                     {
-                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
+                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, errorLocation, _methodSymbol, returnType);
                     }
                     elementType = CreateErrorType();
+                }
+                else if (asyncInterface && !_methodSymbol.IsAsync)
+                {
+                    Error(elementTypeDiagnostics, ErrorCode.ERR_IteratorMustBeAsync, errorLocation, _methodSymbol, returnType);
                 }
 
                 var info = new IteratorInfo(elementType, elementTypeDiagnostics.ToReadOnlyAndFree());
@@ -175,12 +179,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _iteratorInfo.ElementType;
         }
 
-        private TypeSymbol GetIteratorElementTypeFromReturnType(RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
+        private (TypeSymbol elementType, bool asyncInterface) GetIteratorElementTypeFromReturnType(RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
         {
-            return GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocationNode, diagnostics).TypeSymbol;
+            (TypeSymbolWithAnnotations elementType, bool asyncInterface) = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocationNode, diagnostics);
+            return (elementType.TypeSymbol, asyncInterface);
         }
 
-        internal static TypeSymbolWithAnnotations GetIteratorElementTypeFromReturnType(CSharpCompilation compilation, RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
+        // If an element type is found, we also return whether the interface is meant to be used with async.
+        internal static (TypeSymbolWithAnnotations elementType, bool asyncInterface) GetIteratorElementTypeFromReturnType(CSharpCompilation compilation,
+            RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
         {
             if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
             {
@@ -194,17 +201,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             ReportUseSiteDiagnostics(objectType, diagnostics, errorLocationNode);
                         }
-                        return TypeSymbolWithAnnotations.Create(objectType);
+                        return (TypeSymbolWithAnnotations.Create(objectType), false);
 
                     case SpecialType.System_Collections_Generic_IEnumerable_T:
                     case SpecialType.System_Collections_Generic_IEnumerator_T:
-                        return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
+                        return (((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0], false);
                 }
 
                 if (TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T), TypeCompareKind.ConsiderEverything2) ||
                     TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T), TypeCompareKind.ConsiderEverything2))
                 {
-                    return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
+                    return (((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0], true);
                 }
             }
 
