@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// 
+        /// Call this method when a document has been made the active context in the host environment.
         /// </summary>
         protected internal void OnDocumentContextUpdated(DocumentId documentId)
         {
