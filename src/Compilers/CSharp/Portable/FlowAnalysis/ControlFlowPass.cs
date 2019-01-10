@@ -328,10 +328,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Diagnostics.Add(ErrorCode.ERR_GoToForwardJumpOverUsingVar, sourceLocation);
                     break;
                 }
-                else if(sourceStart > usingStart && targetStart < usingStart)
+                else if (sourceStart > usingStart && targetStart < usingStart)
                 {
                     // Backwards jump, so we must have already seen the label
-                    Debug.Assert(_labelsDefined.ContainsKey(node.Label)); 
+                    Debug.Assert(_labelsDefined.ContainsKey(node.Label));
 
                     // Error if label and using are part of the same block
                     if (_labelsDefined[node.Label] == usingDecl.block)
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parentBlock = _currentBlock;
             _currentBlock = node;
             var initialUsingCount = _usingDeclarations.Count;
-            foreach(var local in node.Locals)
+            foreach (var local in node.Locals)
             {
                 if (local.IsUsing)
                 {

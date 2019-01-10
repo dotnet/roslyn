@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement MakeDeclarationUsingStatement(SyntaxNode syntax,
-                                                       BoundBlock body, 
+                                                       BoundBlock body,
                                                        ImmutableArray<LocalSymbol> locals,
                                                        ImmutableArray<BoundLocalDeclaration> declarations,
                                                        Conversion iDisposableConversion,
@@ -90,10 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var usingStatement = MakeDeclarationUsingStatement(syntax,
                                                                body,
                                                                ImmutableArray<LocalSymbol>.Empty,
-                                                               usingDeclarations.LocalDeclarations, 
+                                                               usingDeclarations.LocalDeclarations,
                                                                usingDeclarations.IDisposableConversion,
-                                                               usingDeclarations.DisposeMethodOpt, 
-                                                               awaitOpt: usingDeclarations.AwaitOpt, 
+                                                               usingDeclarations.DisposeMethodOpt,
+                                                               awaitOpt: usingDeclarations.AwaitOpt,
                                                                awaitKeyword: syntax.AwaitKeyword);
 
             return usingStatement;
