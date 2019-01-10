@@ -2972,10 +2972,10 @@ BC30668: 'S2' is obsolete: 'Types with embedded references are not supported in 
                                    Return CType(model.GetDeclaredSymbol(decl), ILocalSymbol).Type
                                End Function
             ' VB does not have a concept of a ref-like type
-            Assert.False(getLocalType("s1").IsUnmanagedType)
-            Assert.False(getLocalType("s2").IsUnmanagedType)
-            Assert.False(getLocalType("s3").IsUnmanagedType)
-            Assert.False(getLocalType("e1").IsUnmanagedType)
+            Assert.False(getLocalType("s1").IsRefLikeType)
+            Assert.False(getLocalType("s2").IsRefLikeType)
+            Assert.False(getLocalType("s3").IsRefLikeType)
+            Assert.False(getLocalType("e1").IsRefLikeType)
         End Sub
 
         <Fact()>
