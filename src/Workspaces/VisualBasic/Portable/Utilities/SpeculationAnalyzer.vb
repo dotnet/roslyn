@@ -379,6 +379,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Dim newInterpolation = DirectCast(currentReplacedNode, InterpolationSyntax)
 
                 Return ReplacementBreaksInterpolation(orignalInterpolation, newInterpolation)
+            ElseIf currentOriginalNode.Kind = SyntaxKind.WithStatement Then
+                Dim originalWithStatement = DirectCast(currentOriginalNode, WithStatementSyntax)
+                Dim newWithStatement = DirectCast(currentReplacedNode, WithStatementSyntax)
+
+                Return ReplacementBreaksWithStatement(originalWithStatement, newWithStatement)
             Else
                 Dim originalCollectionRangeVariableSyntax = TryCast(currentOriginalNode, CollectionRangeVariableSyntax)
                 If originalCollectionRangeVariableSyntax IsNot Nothing Then
@@ -418,6 +423,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             End If
 
             Return False
+        End Function
+
+        Private Function ReplacementBreaksWithStatement(originalWithStatement As WithStatementSyntax, replacedWithStatement As WithStatementSyntax) As Boolean
+            Dim originalExpression = originalWithStatement.Expression
+            Dim replacedExpression = replacedWithStatement.Expression
+            Select Case originalExpression.Kind
+                Case SyntaxKind.CTypeExpression, SyntaxKind.DirectCastExpression, SyntaxKind.TryCastExpression
+                    Dim originalCastExpression = DirectCast(originalExpression, CastExpressionSyntax)
+                    Return Not IsCastReplacementSameType(originalCastExpression, replacedExpression)
+                Case SyntaxKind.PredefinedCastExpression
+                    Dim originalCastExpression = DirectCast(originalExpression, PredefinedCastExpressionSyntax)
+                    Return Not IsCastReplacementSameType(originalCastExpression, replacedExpression)
+                Case Else
+                    Return False
+            End Select
+        End Function
+
+        Private Function IsCastReplacementSameType(originalExpression As ExpressionSyntax, replacedExpression As ExpressionSyntax) As Boolean
+            Dim originalTypeInfo = Me.OriginalSemanticModel.GetTypeInfo(originalExpression)
+            Dim replacedTypeInfo = Me.SpeculativeSemanticModel.GetTypeInfo(replacedExpression)
+            Return originalTypeInfo.Equals(replacedTypeInfo)
         End Function
 
         Private Function ReplacementBreaksCollectionInitializerAddMethod(originalInitializer As ExpressionSyntax, newInitializer As ExpressionSyntax) As Boolean
