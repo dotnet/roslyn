@@ -30,26 +30,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 Return MyBase.Visit(node)
             End Function
 
-            Public Overrides Function VisitMemberAccessExpression(node As MemberAccessExpressionSyntax) As SyntaxNode
-                ' Ignore name node in member access expression, since we can't replace it with the new variable.
-                ' For example, even though the first `c` binds to a field And we are introducing a local for it,
-                ' we don't want other refrences to that field to be replaced as well.
-                '
-                '   Class C
-                '       Dim c As C
-                '       Sub Foo()
-                '           Dim y = [|c|].c
-                '       End Sub
-                '   End Class
-
-                Dim newExpression = DirectCast(Visit(node.Expression), ExpressionSyntax)
-                If node.Expression IsNot newExpression Then
-                    Return SyntaxFactory.MemberAccessExpression(node.Kind, newExpression, node.OperatorToken, node.Name)
-                Else
-                    Return node
-                End If
-            End Function
-
             Public Overrides Function VisitParenthesizedExpression(node As ParenthesizedExpressionSyntax) As SyntaxNode
                 Dim newNode = MyBase.VisitParenthesizedExpression(node)
                 If node IsNot newNode AndAlso newNode.IsKind(SyntaxKind.ParenthesizedExpression) Then

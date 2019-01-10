@@ -3148,7 +3148,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         <WorkItem(30207, "https://github.com/dotnet/roslyn/issues/30207")>
-        Public Async Function TestRecursiveMemberAccess_ForAllOccurrences() As Task
+        Public Async Function TestExplicitRecursiveInstanceMemberAccess_ForAllOccurrences() As Task
             Dim source = "
 Class C
     Dim c As C
@@ -3162,6 +3162,29 @@ Class C
     Dim c As C
     Sub Foo()
         Dim {|Rename:c1|} As C = c
+        Dim y = c1.c.c
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(30207, "https://github.com/dotnet/roslyn/issues/30207")>
+        Public Async Function TestImplicitRecursiveInstanceMemberAccess_ForAllOccurrences() As Task
+            Dim source = "
+Class C
+    Dim c As C
+    Sub Foo()
+        Dim y = [|Me.c|].c.c
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Dim c As C
+    Sub Foo()
+        Dim {|Rename:c1|} As C = Me.c
         Dim y = c1.c.c
     End Sub
 End Class
