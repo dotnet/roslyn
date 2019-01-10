@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var docId in docIds)
             {
-                this.ClearOpenDocument(docId, isSolutionClosing: true);
+                this.ClearOpenDocument(docId);
             }
         }
 
@@ -85,20 +85,18 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected void ClearOpenDocument(DocumentId documentId, bool isSolutionClosing = false)
+        protected void ClearOpenDocument(DocumentId documentId)
         {
-            DocumentId currentContextDocumentId;
             using (_stateLock.DisposableWait())
             {
-                currentContextDocumentId = this.ClearOpenDocument_NoLock(documentId);
+                this.ClearOpenDocument_NoLock(documentId);
             }
+        }
 
-            // If the solution is closing, then setting the updated document context can fail
-            // if the host documents are already closed.
-            if (!isSolutionClosing && this.CanChangeActiveContextDocument && currentContextDocumentId != null)
-            {
-                SetDocumentContext(currentContextDocumentId);
-            }
+        [Obsolete("The isSolutionClosing parameter is now obsolete. Please call the overload without that parameter.")]
+        protected void ClearOpenDocument(DocumentId documentId, bool isSolutionClosing)
+        {
+            ClearOpenDocument(documentId);
         }
 
         /// <returns>The DocumentId of the current context document for the buffer that was 
@@ -563,16 +561,10 @@ namespace Microsoft.CodeAnalysis
             this.CheckDocumentIsInCurrentSolution(documentId);
             this.CheckDocumentIsOpen(documentId);
 
-            // When one file from a set of linked or shared documents is closed, we first update
-            // our data structures and then call SetDocumentContext to tell the project system 
-            // what the new active context is. This can cause reentrancy, so we call 
-            // SetDocumentContext after releasing the serializationLock.
-            DocumentId currentContextDocumentId;
-
             using (_serializationLock.DisposableWait())
             {
                 // forget any open document info
-                currentContextDocumentId = ForgetAnyOpenDocumentInfo(documentId);
+                ClearOpenDocument(documentId);
 
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetDocument(documentId);
@@ -588,23 +580,6 @@ namespace Microsoft.CodeAnalysis
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
                 this.RaiseDocumentClosedEventAsync(newDoc); // don't wait for this
             }
-
-            if (updateActiveContext && currentContextDocumentId != null && this.CanChangeActiveContextDocument)
-            {
-                // Closing this document did not result in the buffer closing, so some 
-                // document is now the current context of that buffer. Fire the appropriate
-                // events to set that document as the current context of that buffer.
-
-                SetDocumentContext(currentContextDocumentId);
-            }
-        }
-
-        private DocumentId ForgetAnyOpenDocumentInfo(DocumentId documentId)
-        {
-            using (_stateLock.DisposableWait())
-            {
-                return this.ClearOpenDocument_NoLock(documentId);
-            }
         }
 
         protected internal void OnAdditionalDocumentClosed(DocumentId documentId, TextLoader reloader)
@@ -614,7 +589,7 @@ namespace Microsoft.CodeAnalysis
             using (_serializationLock.DisposableWait())
             {
                 // forget any open document info
-                ForgetAnyOpenDocumentInfo(documentId);
+                ClearOpenDocument(documentId);
 
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetAdditionalDocument(documentId);
