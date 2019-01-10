@@ -177,6 +177,11 @@
         <target state="new">An expression of type '{0}' can never match the provided pattern.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IteratorMustBeAsync">
+        <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
+        <target state="new">Method '{0}' with an iterator block must be 'async' to return '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="new">Pattern missing</target>

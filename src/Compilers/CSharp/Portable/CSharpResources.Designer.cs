@@ -6307,6 +6307,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Method &apos;{0}&apos; with an iterator block must be &apos;async&apos; to return &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_IteratorMustBeAsync {
+            get {
+                return ResourceManager.GetString("ERR_IteratorMustBeAsync", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No such label &apos;{0}&apos; within the scope of the goto statement.
         /// </summary>
         internal static string ERR_LabelNotFound {

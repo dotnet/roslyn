@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Lower the body, adding an entry state (-3) at the start,
-        /// so that we can differentiate a async-iterator that was never moved forward with MoveNextAsync()
+        /// so that we can differentiate an async-iterator that was never moved forward with MoveNextAsync()
         /// from one that is running (-1).
         /// Then we can guard against some bad usages of DisposeAsync.
         /// </summary>
