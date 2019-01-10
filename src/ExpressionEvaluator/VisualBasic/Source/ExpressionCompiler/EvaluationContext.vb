@@ -369,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Using stream As New MemoryStream()
                 Cci.PeWriter.WritePeToStream(
-                        New EmitContext(moduleBuilder, Nothing, diagnostics, metadataOnly:=False, includePrivateMembers:=True, includeManifestResources:=True),
+                        New EmitContext(moduleBuilder, Nothing, diagnostics, metadataOnly:=False, includePrivateMembers:=True),
                         context.MessageProvider,
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,
@@ -418,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Using stream As New MemoryStream()
                 Cci.PeWriter.WritePeToStream(
-                        New EmitContext(modulebuilder, Nothing, diagnostics, metadataOnly:=False, includePrivateMembers:=True, includeManifestResources:=True),
+                        New EmitContext(modulebuilder, Nothing, diagnostics, metadataOnly:=False, includePrivateMembers:=True),
                         context.MessageProvider,
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,
@@ -468,7 +468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If modulebuilder IsNot Nothing AndAlso locals.Count > 0 Then
                 Using stream As New MemoryStream()
                     Cci.PeWriter.WritePeToStream(
-                        New EmitContext(modulebuilder, Nothing, diagnostics, metadataOnly:=False, includePrivateMembers:=True, includeManifestResources:=True),
+                        New EmitContext(modulebuilder, Nothing, diagnostics, metadataOnly:=False, includePrivateMembers:=True),
                         context.MessageProvider,
                         Function() stream,
                         getPortablePdbStreamOpt:=Nothing,

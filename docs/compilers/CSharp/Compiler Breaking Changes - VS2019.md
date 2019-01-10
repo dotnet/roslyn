@@ -78,3 +78,6 @@ Each entry should include a short description of the break, followed by either a
         if (x is C<T>) { } // warning: the given expression is never of the provided ('C<T>') type.
     }
   ```
+
+10. Previously, reference assemblies were emitted including embedded resources. In Visual Studio 2019, embedded resources are no longer emitted into ref assemblies.
+  See https://github.com/dotnet/roslyn/issues/31197

@@ -856,7 +856,7 @@ public class C
 
         [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
-        public void RefAssembly_InvariantToResourceChanges_RefOut()
+        public void RefAssembly_InvariantToResourceChanges()
         {
             var arrayOfEmbeddedData1 = new byte[] { 1, 2, 3, 4, 5 };
             var arrayOfEmbeddedData2 = new byte[] { 1, 2, 3, 4, 5, 6 };
@@ -875,6 +875,7 @@ public class C
 
             void verify()
             {
+                // Verify refout
                 string name = GetUniqueName();
                 var (image1, metadataImage1) = emitRefOut(manifestResources1, name);
                 var (image2, metadataImage2) = emitRefOut(manifestResources2, name);
@@ -883,6 +884,15 @@ public class C
 
                 var refAssembly1 = Assembly.ReflectionOnlyLoad(metadataImage1.ToArray());
                 Assert.DoesNotContain("A", refAssembly1.GetManifestResourceNames());
+
+                // Verify refonly
+                string name2 = GetUniqueName();
+                var refOnlyMetadataImage1 = emitRefOnly(manifestResources1, name2);
+                var refOnlyMetadataImage2 = emitRefOnly(manifestResources2, name2);
+                AssertEx.Equal(refOnlyMetadataImage1, refOnlyMetadataImage2, message: "Expecting identical ref assemblies produced by refonly");
+
+                var refOnlyAssembly1 = Assembly.ReflectionOnlyLoad(refOnlyMetadataImage1.ToArray());
+                Assert.DoesNotContain("A", refOnlyAssembly1.GetManifestResourceNames());
             }
 
             (ImmutableArray<byte>, ImmutableArray<byte>) emitRefOut(IEnumerable<ResourceDescription> manifestResources, string name)
@@ -897,30 +907,8 @@ public class C
 
                 return (peStream, metadataPEStream.ToImmutable());
             }
-        }
 
-        [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
-        public void RefAssembly_SensitiveToResourceChanges_RefOnly()
-        {
-            var arrayOfEmbeddedData1 = new byte[] { 1, 2, 3, 4, 5 };
-            IEnumerable<ResourceDescription> manifestResources1 = new[] {
-                new ResourceDescription(resourceName: "A", fileName: "x.goo", () => new MemoryStream(arrayOfEmbeddedData1), isPublic: true)};
-
-            var arrayOfEmbeddedData2 = new byte[] { 1, 2, 3, 4, 5, 6 };
-            IEnumerable<ResourceDescription> manifestResources2 = new[] {
-                new ResourceDescription(resourceName: "A", fileName: "x.goo", () => new MemoryStream(arrayOfEmbeddedData2), isPublic: true)};
-
-            string name = GetUniqueName();
-            var image1 = emitRefOnly(manifestResources1);
-            var image2 = emitRefOnly(manifestResources2);
-
-            AssertEx.NotEqual(image1, image2, message: "Expecting different ref assembly produced by refonly");
-
-            var refAssembly1 = Assembly.ReflectionOnlyLoad(image1.ToArray());
-            Assert.Contains("A", refAssembly1.GetManifestResourceNames());
-
-            ImmutableArray<byte> emitRefOnly(IEnumerable<ResourceDescription> manifestResources)
+            ImmutableArray<byte> emitRefOnly(IEnumerable<ResourceDescription> manifestResources, string name)
             {
                 var source = Parse("");
                 var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
@@ -2338,7 +2326,7 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
             var class1TypeDef = (Cci.ITypeDefinition)class1;
 
             var symbolSynthesized = class1.GetSynthesizedExplicitImplementations(CancellationToken.None);
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true, includeManifestResources: true);
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var cciExplicit = class1TypeDef.GetExplicitImplementationOverrides(context);
             var cciMethods = class1TypeDef.GetMethods(context).Where(m => ((MethodSymbol)m).MethodKind != MethodKind.Constructor);
 

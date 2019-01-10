@@ -839,10 +839,10 @@ End Function",
             Dim name As String = GetUniqueName()
             Dim image1 = RefAssembly_SensitiveToResourceChanges_RefOnly_emit(manifestResources1, name)
             Dim image2 = RefAssembly_SensitiveToResourceChanges_RefOnly_emit(manifestResources2, name)
-            AssertEx.NotEqual(image1, image2, message:="Expecting different ref assembly produced by refonly")
+            AssertEx.Equal(image1, image2, message:="Expecting different ref assembly produced by refonly")
 
             Dim refAssembly1 = Assembly.ReflectionOnlyLoad(image1.ToArray())
-            Assert.Contains("A", refAssembly1.GetManifestResourceNames())
+            Assert.DoesNotContain("A", refAssembly1.GetManifestResourceNames())
         End Sub
 
         Private Function RefAssembly_SensitiveToResourceChanges_RefOnly_emit(ByVal manifestResources As IEnumerable(Of ResourceDescription), name As String) _

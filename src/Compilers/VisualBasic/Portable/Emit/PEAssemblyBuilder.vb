@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public NotOverridable Overrides Function GetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference)
-            If (context.IncludeManifestResources) Then
+            If Not context.IsRefAssembly Then
                 Return GetFilesCore(context, _lazyFiles)
             End If
 
@@ -77,7 +77,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         builder.Add(DirectCast(Translate(modules(i), context.Diagnostics), Cci.IFileReference))
                     Next
 
-                    If context.IncludeManifestResources Then
+                    If Not context.IsRefAssembly Then
+                        ' resources are not emitted into ref assemblies
                         For Each resource In ManifestResources
                             If Not resource.IsEmbedded Then
                                 builder.Add(resource)

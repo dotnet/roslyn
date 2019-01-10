@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private readonly SourceAssemblySymbol _sourceAssembly;
         private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
         private ImmutableArray<Cci.IFileReference> _lazyFiles;
-        private ImmutableArray<Cci.IFileReference> _lazyFilesWithoutManifestResources; // we don't include manifest resources in ref assemblies from refout
+        private ImmutableArray<Cci.IFileReference> _lazyFilesWithoutManifestResources; // we don't include manifest resources in ref assemblies
 
         private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public sealed override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context)
         {
-            if (context.IncludeManifestResources)
+            if (!context.IsRefAssembly)
             {
                 return getFiles(ref _lazyFiles);
             }
@@ -123,9 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             builder.Add((Cci.IFileReference)Translate(modules[i], context.Diagnostics));
                         }
 
-                        if (context.IncludePrivateMembers)
+                        if (!context.IsRefAssembly)
                         {
-                            // resources are not emitted into ref assemblies when a full assembly is also produced
+                            // resources are not emitted into ref assemblies
                             foreach (ResourceDescription resource in ManifestResources)
                             {
                                 if (!resource.IsEmbedded)

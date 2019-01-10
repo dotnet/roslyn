@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Emit
             uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out added);
             if (added)
             {
-                ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true, includeManifestResources: true));
+                ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true));
             }
             return token;
         }
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public ImmutableArray<Cci.ManagedResource> GetResources(EmitContext context)
         {
-            if (!context.IncludeManifestResources)
+            if (context.IsRefAssembly)
             {
                 // Manifest resources are not included in ref assemblies
                 // Ref assemblies don't support added modules
