@@ -99,7 +99,7 @@ If `T` is a reference type, `default(T)` is `T?`.
 string? s = default(string); // assigns ?, no warning
 string t = default; // assigns ?, warning
 ```
-If `T` is a value type, `default(T)` is `T` and any non-nullable fields in `T` are maybe null.
+If `T` is a value type, `default(T)` is `T` and any non-value-type fields in `T` are maybe null.
 If `T` is a value type, `new T()` is equivalent to `default(T)`.
 ```c#
 struct Pair<T, U> { public T First; public U Second; }

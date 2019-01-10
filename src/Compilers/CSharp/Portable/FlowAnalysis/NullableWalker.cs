@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var type = ((BoundDefaultExpression)node).Type;
                         if (EmptyStructTypeCache.IsTrackableStructType(type))
                         {
-                            int slot = GetOrCreateObjectCreationPlaceholder(node);
+                            int slot = GetOrCreateObjectCreationPlaceholderSlot(node);
                             if (slot > 0)
                             {
                                 this.State[slot] = NullableAnnotation.NotNullable;
@@ -1224,7 +1224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isTrackableStructType = EmptyStructTypeCache.IsTrackableStructType(type);
                 if (!type.IsValueType || isTrackableStructType)
                 {
-                    slot = GetOrCreateObjectCreationPlaceholder(node);
+                    slot = GetOrCreateObjectCreationPlaceholderSlot(node);
                     if (slot > 0 && isTrackableStructType)
                     {
                         this.State[slot] = NullableAnnotation.NotNullable;
@@ -1329,7 +1329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _resultType = TypeSymbolWithAnnotations.Create(node.Type);
         }
 
-        private int GetOrCreateObjectCreationPlaceholder(BoundExpression node)
+        private int GetOrCreateObjectCreationPlaceholderSlot(BoundExpression node)
         {
             ObjectCreationPlaceholderLocal placeholder;
             if (_placeholderLocalsOpt == null)
@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PropertySymbol property = node.Declarations[i].Property;
                 if (receiverSlot <= 0)
                 {
-                    receiverSlot = GetOrCreateObjectCreationPlaceholder(node);
+                    receiverSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
                 }
 
                 TypeSymbolWithAnnotations propertyType = property.Type;
