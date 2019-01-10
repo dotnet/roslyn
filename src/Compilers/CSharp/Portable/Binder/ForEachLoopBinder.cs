@@ -900,19 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var lookupResult = LookupResult.GetInstance();
             string methodName = isAsync ? GetAsyncEnumeratorMethodName : GetEnumeratorMethodName;
-
-            ImmutableArray<BoundExpression> arguments;
-            if (isAsync)
-            {
-                var cancellationTokenType = Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
-                arguments = ImmutableArray.Create<BoundExpression>(new BoundAwaitableValuePlaceholder(_syntax, cancellationTokenType));
-            }
-            else
-            {
-                arguments = ImmutableArray<BoundExpression>.Empty;
-            }
-
-            MethodSymbol getEnumeratorMethod = FindForEachPatternMethod(collectionExprType, methodName, lookupResult, warningsOnly: true, diagnostics: diagnostics, isAsync: isAsync, arguments);
+            MethodSymbol getEnumeratorMethod = FindForEachPatternMethod(collectionExprType, methodName, lookupResult, warningsOnly: true, diagnostics: diagnostics, isAsync: isAsync);
             lookupResult.Free();
 
             builder.GetEnumeratorMethod = getEnumeratorMethod;
@@ -929,10 +917,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="warningsOnly">True if failures should result in warnings; false if they should result in errors.</param>
         /// <param name="diagnostics">Populated with binding diagnostics.</param>
         /// <returns>The desired method or null.</returns>
-        private MethodSymbol FindForEachPatternMethod(TypeSymbol patternType, string methodName, LookupResult lookupResult, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync, ImmutableArray<BoundExpression> arguments)
+        private MethodSymbol FindForEachPatternMethod(TypeSymbol patternType, string methodName, LookupResult lookupResult, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync)
         {
             Debug.Assert(lookupResult.IsClear);
-            Debug.Assert(!arguments.IsDefault);
 
             // Not using LookupOptions.MustBeInvocableMember because we don't want the corresponding lookup error.
             // We filter out non-methods below.
@@ -977,13 +964,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // some custom logic in ExpressionBinder.BindGrpToParams.  The biggest difference
                 // we've found (so far) is that it only considers methods with expected number of parameters
                 // (i.e. doesn't work with "params" or optional parameters).
-                if (method.ParameterCount == arguments.Length)
+
+                // Note: for pattern-based lookup for `await foreach` we accept `GetAsyncEnumerator` and
+                // `MoveNextAsync` methods with optional/params parameters.
+                if (method.ParameterCount == 0 || isAsync)
                 {
                     candidateMethods.Add((MethodSymbol)member);
                 }
             }
 
-            MethodSymbol patternMethod = PerformForEachPatternOverloadResolution(patternType, candidateMethods, warningsOnly, diagnostics, isAsync, arguments);
+            MethodSymbol patternMethod = PerformForEachPatternOverloadResolution(patternType, candidateMethods, warningsOnly, diagnostics, isAsync);
 
             candidateMethods.Free();
 
@@ -994,12 +984,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The overload resolution portion of FindForEachPatternMethod.
         /// If no arguments are passed in, then an empty argument list will be used.
         /// </summary>
-        private MethodSymbol PerformForEachPatternOverloadResolution(TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync, ImmutableArray<BoundExpression> arguments)
+        private MethodSymbol PerformForEachPatternOverloadResolution(TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync)
         {
-            Debug.Assert(!arguments.IsDefault);
             var analyzedArguments = AnalyzedArguments.GetInstance();
-            analyzedArguments.Arguments.AddRange(arguments);
-
             var typeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
@@ -1152,7 +1139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 MethodSymbol moveNextMethodCandidate = FindForEachPatternMethod(enumeratorType,
                     isAsync ? MoveNextAsyncMethodName : MoveNextMethodName,
-                    lookupResult, warningsOnly: false, diagnostics: diagnostics, isAsync: isAsync, arguments: ImmutableArray<BoundExpression>.Empty);
+                    lookupResult, warningsOnly: false, diagnostics: diagnostics, isAsync: isAsync);
 
                 if ((object)moveNextMethodCandidate == null ||
                     moveNextMethodCandidate.IsStatic || moveNextMethodCandidate.DeclaredAccessibility != Accessibility.Public ||
