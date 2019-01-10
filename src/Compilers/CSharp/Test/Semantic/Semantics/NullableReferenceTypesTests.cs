@@ -26275,8 +26275,8 @@ class C
     {
         _ /*T:object*/ = o1;
         _ /*T:object*/ = o2;
-        _ /*T:C<object>*/ = o3;
-        _ /*T:C<object>*/ = o4;
+        _ /*T:C<object!>*/ = o3;
+        _ /*T:C<object?>*/ = o4;
     }
 " + NonNullTypesOff() + @"
     void F(C<object> o)

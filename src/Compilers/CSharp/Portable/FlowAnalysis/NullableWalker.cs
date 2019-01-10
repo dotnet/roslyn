@@ -5162,8 +5162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDiscardExpression(BoundDiscardExpression node)
         {
-            // Should initial binding have set the top-level and nested nullability to unknown?
-            _resultType = TypeSymbolWithAnnotations.Create(node.Type.SetUnknownNullabilityForReferenceTypes());
+            SetResult(node);
             return null;
         }
 
