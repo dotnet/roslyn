@@ -332,67 +332,49 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return false;
         }
 
-        private async Task<bool> FixSolutionAsync(Solution solution, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
+        private Task<bool> FixSolutionAsync(Solution solution, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
         {
-            using (var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(context.OperationContext.UserCancellationToken, cancellationToken))
+            return FixAsync(solution.Workspace, ApplyFixAsync, context, cancellationToken);
+
+            // Local function
+            Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken innerCancellationToken)
             {
-                cancellationToken = cancellationTokenSource.Token;
-
-                using (var scope = context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Applying_changes))
-                {
-                    var progressTracker = new ProgressTracker((description, completed, total) =>
-                    {
-                        if (scope != null)
-                        {
-                            scope.Description = description;
-                            scope.Progress.Report(new ProgressInfo(completed, total));
-                        }
-                    });
-
-                    var newSolution = await FixSolutionAsync(solution, context.EnabledFixIds, progressTracker, cancellationToken).ConfigureAwait(true);
-
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    return solution.Workspace.TryApplyChanges(newSolution, progressTracker);
-                }
+                return FixSolutionAsync(solution, context.EnabledFixIds, progressTracker, cancellationToken);
             }
         }
 
-        private async Task<bool> FixProjectAsync(Project project, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
+        private Task<bool> FixProjectAsync(Project project, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
         {
-            using (var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(context.OperationContext.UserCancellationToken, cancellationToken))
+            return FixAsync(project.Solution.Workspace, ApplyFixAsync, context, cancellationToken);
+
+            // Local function
+            async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken innerCancellationToken)
             {
-                cancellationToken = cancellationTokenSource.Token;
-
-                using (var scope = context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Applying_changes))
-                {
-                    var progressTracker = new ProgressTracker((description, completed, total) =>
-                    {
-                        if (scope != null)
-                        {
-                            scope.Description = description;
-                            scope.Progress.Report(new ProgressInfo(completed, total));
-                        }
-                    });
-
-                    var newProject = await FixProjectAsync(project, context.EnabledFixIds, progressTracker, cancellationToken).ConfigureAwait(true);
-
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    return project.Solution.Workspace.TryApplyChanges(newProject.Solution, progressTracker);
-                }
+                var newProject = await FixProjectAsync(project, context.EnabledFixIds, progressTracker, cancellationToken).ConfigureAwait(true);
+                return newProject.Solution;
             }
         }
 
-        private async Task<bool> FixTextBufferAsync(TextBufferCodeCleanUpScope textBufferScope, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
+        private Task<bool> FixTextBufferAsync(TextBufferCodeCleanUpScope textBufferScope, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
+        {
+            var buffer = textBufferScope.SubjectBuffer;
+            return FixAsync(buffer.GetWorkspace(), ApplyFixAsync, context, cancellationToken);
+
+            // Local function
+            async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken innerCancellationToken)
+            {
+                var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var newDoc = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, innerCancellationToken).ConfigureAwait(true);
+                return document.Project.Solution;
+            }
+        }
+
+        private async Task<bool> FixAsync(Workspace workspace, Func<ProgressTracker, CancellationToken, Task<Solution>> applyFixAsync, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
         {
             using (var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(context.OperationContext.UserCancellationToken, cancellationToken))
             {
                 cancellationToken = cancellationTokenSource.Token;
 
-                var buffer = textBufferScope.SubjectBuffer;
                 using (var scope = context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Applying_changes))
                 {
                     var progressTracker = new ProgressTracker((description, completed, total) =>
@@ -404,13 +386,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                         }
                     });
 
-                    var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    var newDoc = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, cancellationToken).ConfigureAwait(true);
+                    var solution = await applyFixAsync(progressTracker, cancellationToken).ConfigureAwait(true);
 
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    return document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution, progressTracker);
+                    return workspace.TryApplyChanges(solution, progressTracker);
                 }
             }
         }
