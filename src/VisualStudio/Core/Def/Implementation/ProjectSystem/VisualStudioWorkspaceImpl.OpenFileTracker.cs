@@ -307,14 +307,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 });
             }
 
-            private void RefreshContextsForHierarchyPropertyChange()
+            private void RefreshContextsForHierarchyPropertyChange(IVsHierarchy hierarchy)
             {
-                // HACK: for now, just refresh all the things. This is expensive
                 _foregroundAffinitization.AssertIsForeground();
 
-                foreach (var cookie in GetInitializedRunningDocumentTableCookies())
+                // We're going to go through each file that has subscriptions, and update them appropriately.
+                // We have to clone this since we will be modifying it under the covers.
+                foreach (var cookie in _watchedHierarchiesForDocumentCookie.Keys.ToList())
                 {
-                    RefreshContextForRunningDocumentTableCookie(cookie);
+                    foreach (var subscribedHierarchy in _watchedHierarchiesForDocumentCookie[cookie])
+                    {
+                        if (subscribedHierarchy.Target.Key == hierarchy)
+                        {
+                            RefreshContextForRunningDocumentTableCookie(cookie);
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -554,7 +562,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     if (propid == (int)__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy ||
                         propid == (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext)
                     {
-                        _openFileTracker.RefreshContextsForHierarchyPropertyChange();
+                        _openFileTracker.RefreshContextsForHierarchyPropertyChange(_hierarchy);
                     }
 
                     return VSConstants.S_OK;
