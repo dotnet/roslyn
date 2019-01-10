@@ -3424,6 +3424,45 @@ public class C
         }
 
         [Fact]
+        public void UnmanagedGenericStructMultipleConstraints()
+        {
+            // A diagnostic will only be produced for the first violated constraint.
+            var code = @"
+public struct MyStruct<T> where T : unmanaged, System.IDisposable
+{
+    public T field;
+}
+
+public struct InnerStruct<U>
+{
+    public U value;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<InnerStruct<int>> myStruct = default;
+        _ = myStruct;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (16,18): error CS0315: The type 'InnerStruct<int>' cannot be used as type parameter 'T' in the generic type or method 'MyStruct<T>'. There is no boxing conversion from 'InnerStruct<int>' to 'System.IDisposable'.
+                    //         MyStruct<InnerStruct<int>> myStruct = default;
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "InnerStruct<int>").WithArguments("MyStruct<T>", "System.IDisposable", "T", "InnerStruct<int>").WithLocation(16, 18)
+                );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (16,18): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         MyStruct<InnerStruct<int>> myStruct = default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "InnerStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(16, 18)
+                );
+        }
+
+        [Fact]
         public void UnmanagedGenericConstraintPartialConstructedStruct()
         {
             var code = @"
