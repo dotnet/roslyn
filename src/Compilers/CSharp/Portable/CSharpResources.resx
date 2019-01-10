@@ -2794,6 +2794,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadYieldInFinally" xml:space="preserve">
     <value>Cannot yield in the body of a finally clause</value>
   </data>
+  <data name="ERR_IteratorMustBeAsync" xml:space="preserve">
+    <value>Method '{0}' with an iterator block must be 'async' to return '{1}'</value>
+  </data>
   <data name="ERR_BadYieldInTryOfCatch" xml:space="preserve">
     <value>Cannot yield a value in the body of a try block with a catch clause</value>
   </data>
