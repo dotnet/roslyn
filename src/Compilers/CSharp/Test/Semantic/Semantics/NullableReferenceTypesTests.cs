@@ -38992,11 +38992,13 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE: Missing // 2
             comp.VerifyDiagnostics(
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         default(S<T>).F/*T:T*/.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(S<T>).F").WithLocation(12, 9),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         default(S<U>).F/*T:U?*/.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(S<U>).F").WithLocation(13, 9),
                 // (14,13): warning CS8629: Nullable value type may be null.
                 //         _ = default(S<V?>).F/*T:V?*/.Value; // 3
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "default(S<V?>).F/*T:V?*/.Value").WithLocation(14, 13));
@@ -39159,6 +39161,25 @@ class Program
         }
 
         [Fact]
+        public void StructField_Default_NoType()
+        {
+            var source =
+@"class Program
+{
+    static void F()
+    {
+        _ = default/*T:<null>*/.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,32): error CS0023: Operator '.' cannot be applied to operand of type 'default'
+                //         _ = default/*T:<null>*/.ToString();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "default").WithLocation(5, 32));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
         [WorkItem(30731, "https://github.com/dotnet/roslyn/issues/30731")]
         public void StructField_Default_Nested()
         {
@@ -39221,8 +39242,8 @@ class Program
         [Fact]
         public void StructField_Cycle_Default()
         {
-            // Nullability of x.F and y.F are object! because a struct with cycles is not
-            // a "trackable" struct type (see EmptyStructTypeCache.IsTrackableStructType).
+            // Nullability of F is treated as object!, even for default instances, because a struct with cycles
+            // is not a "trackable" struct type (see EmptyStructTypeCache.IsTrackableStructType).
             var source =
 @"#pragma warning disable 649
 struct S
@@ -39234,6 +39255,7 @@ class Program
 {
     static void F()
     {
+        default(S).F/*T:object!*/.ToString();
         S x = default;
         S y = x;
         x.F/*T:object!*/.ToString();
@@ -39253,8 +39275,8 @@ class Program
         [Fact]
         public void StructProperty_Cycle_Default()
         {
-            // Nullability of x.Next.F and y.Next.F are object! because only auto-properties
-            // are tracked (see https://github.com/dotnet/roslyn/issues/29619).
+            // Nullability of Next.F is treated as object!, even for default instances, because only
+            // auto -properties are tracked (see https://github.com/dotnet/roslyn/issues/29619).
             var source =
 @"#pragma warning disable 649
 struct S
@@ -39303,8 +39325,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE: Missing // 1
             comp.VerifyDiagnostics(
+                // (5,9): warning CS8602: Possible dereference of a null reference.
+                //         default((object?, string))/*T:(object?, string!)*/.Item2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default((object?, string))/*T:(object?, string!)*/.Item2").WithLocation(5, 9),
                 // (6,13): warning CS8629: Nullable value type may be null.
                 //         _ = default((int, int?))/*T:(int, int?)*/.Item2.Value; // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "default((int, int?))/*T:(int, int?)*/.Item2.Value").WithLocation(6, 13));
@@ -39454,6 +39478,29 @@ class Program
                 // (9,13): warning CS8629: Nullable value type may be null.
                 //         _ = u.Item2.Value; // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "u.Item2.Value").WithLocation(9, 13));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void Tuple_Default_NoType()
+        {
+            var source =
+@"class Program
+{
+    static void F(object? x)
+    {
+        _ = (default, default)/*T:<null>*/.Item1.ToString();
+        _ = (x, default)/*T:<null>*/.Item2.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,44): error CS0117: '(default, default)' does not contain a definition for 'Item1'
+                //         _ = (default, default)/*T:<null>*/.Item1.ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Item1").WithArguments("(default, default)", "Item1").WithLocation(5, 44),
+                // (6,38): error CS0117: '(object, default)' does not contain a definition for 'Item2'
+                //         _ = (x, default)/*T:<null>*/.Item2.ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Item2").WithArguments("(object, default)", "Item2").WithLocation(6, 38));
             comp.VerifyTypes();
         }
 

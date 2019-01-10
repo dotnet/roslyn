@@ -436,6 +436,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
+                case BoundKind.DefaultExpression:
+                    {
+                        var type = ((BoundDefaultExpression)node).Type;
+                        if (EmptyStructTypeCache.IsTrackableStructType(type))
+                        {
+                            int slot = GetOrCreateObjectCreationPlaceholder(node);
+                            if (slot > 0)
+                            {
+                                this.State[slot] = NullableAnnotation.NotNullable;
+                                InheritNullableStateOfTrackableStruct(type, slot, valueSlot: -1, isDefaultValue: true, isByRefTarget: false, slotWatermark: GetSlotWatermark());
+                            }
+                            return slot;
+                        }
+                    }
+                    break;
                 case BoundKind.ObjectCreationExpression:
                 case BoundKind.DynamicObjectCreationExpression:
                 case BoundKind.AnonymousObjectCreationExpression:
@@ -445,15 +460,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case BoundKind.ConditionalReceiver:
-                    if (_lastConditionalAccessSlot != -1)
                     {
                         int slot = _lastConditionalAccessSlot;
                         _lastConditionalAccessSlot = -1;
                         return slot;
                     }
-                    break;
+                default:
+                    return base.MakeSlot(node);
             }
-            return base.MakeSlot(node);
+
+            return -1;
 
             MethodSymbol getTopLevelMethod(MethodSymbol method)
             {
@@ -806,7 +822,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(targetContainerSlot > 0);
             Debug.Assert(valueContainerSlot <= slotWatermark);
-            Debug.Assert(TypeSymbol.Equals(GetSlotType(targetContainerSlot), (TypeSymbol)member.ContainingSymbol, TypeCompareKind.AllIgnoreOptions));
 
             TypeSymbolWithAnnotations fieldOrPropertyType = member.GetTypeOrReturnType();
 
@@ -1209,8 +1224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isTrackableStructType = EmptyStructTypeCache.IsTrackableStructType(type);
                 if (!type.IsValueType || isTrackableStructType)
                 {
-                    receiver = GetOrCreateObjectCreationPlaceholder(node);
-                    slot = GetOrCreateSlot(receiver);
+                    slot = GetOrCreateObjectCreationPlaceholder(node);
                     if (slot > 0 && isTrackableStructType)
                     {
                         this.State[slot] = NullableAnnotation.NotNullable;
@@ -1315,7 +1329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _resultType = TypeSymbolWithAnnotations.Create(node.Type);
         }
 
-        private ObjectCreationPlaceholderLocal GetOrCreateObjectCreationPlaceholder(BoundExpression node)
+        private int GetOrCreateObjectCreationPlaceholder(BoundExpression node)
         {
             ObjectCreationPlaceholderLocal placeholder;
             if (_placeholderLocalsOpt == null)
@@ -1334,7 +1348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _placeholderLocalsOpt.Add(node, placeholder);
             }
 
-            return placeholder;
+            return GetOrCreateSlot(placeholder);
         }
 
         public override BoundNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)
@@ -1362,8 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PropertySymbol property = node.Declarations[i].Property;
                 if (receiverSlot <= 0)
                 {
-                    ObjectCreationPlaceholderLocal implicitReceiver = GetOrCreateObjectCreationPlaceholder(node);
-                    receiverSlot = GetOrCreateSlot(implicitReceiver);
+                    receiverSlot = GetOrCreateObjectCreationPlaceholder(node);
                 }
 
                 TypeSymbolWithAnnotations propertyType = property.Type;
