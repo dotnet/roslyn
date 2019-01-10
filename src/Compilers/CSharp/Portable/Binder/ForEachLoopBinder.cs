@@ -51,27 +51,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (_syntax.Kind())
             {
                 case SyntaxKind.ForEachVariableStatement:
-                {
-                    var syntax = (ForEachVariableStatementSyntax)_syntax;
-                    var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                    CollectLocalsFromDeconstruction(
-                        syntax.Variable,
-                        LocalDeclarationKind.ForEachIterationVariable,
-                        locals,
-                        syntax);
-                    return locals.ToImmutableAndFree();
-                }
+                    {
+                        var syntax = (ForEachVariableStatementSyntax)_syntax;
+                        var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                        CollectLocalsFromDeconstruction(
+                            syntax.Variable,
+                            LocalDeclarationKind.ForEachIterationVariable,
+                            locals,
+                            syntax);
+                        return locals.ToImmutableAndFree();
+                    }
                 case SyntaxKind.ForEachStatement:
-                {
-                    var syntax = (ForEachStatementSyntax)_syntax;
-                    var iterationVariable = SourceLocalSymbol.MakeForeachLocal(
-                        (MethodSymbol)this.ContainingMemberOrLambda,
-                        this,
-                        syntax.Type,
-                        syntax.Identifier,
-                        syntax.Expression);
-                    return ImmutableArray.Create<LocalSymbol>(iterationVariable);
-                }
+                    {
+                        var syntax = (ForEachStatementSyntax)_syntax;
+                        var iterationVariable = SourceLocalSymbol.MakeForeachLocal(
+                            (MethodSymbol)this.ContainingMemberOrLambda,
+                            this,
+                            syntax.Type,
+                            syntax.Identifier,
+                            syntax.Expression);
+                        return ImmutableArray.Create<LocalSymbol>(iterationVariable);
+                    }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(_syntax.Kind());
             }
@@ -87,23 +87,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (declaration.Kind())
             {
                 case SyntaxKind.TupleExpression:
-                {
-                    var tuple = (TupleExpressionSyntax)declaration;
-                    foreach (var arg in tuple.Arguments)
                     {
-                        CollectLocalsFromDeconstruction(arg.Expression, kind, locals, deconstructionStatement, enclosingBinderOpt);
+                        var tuple = (TupleExpressionSyntax)declaration;
+                        foreach (var arg in tuple.Arguments)
+                        {
+                            CollectLocalsFromDeconstruction(arg.Expression, kind, locals, deconstructionStatement, enclosingBinderOpt);
+                        }
+                        break;
                     }
-                    break;
-                }
                 case SyntaxKind.DeclarationExpression:
-                {
-                    var declarationExpression = (DeclarationExpressionSyntax)declaration;
-                    CollectLocalsFromDeconstruction(
-                        declarationExpression.Designation, declarationExpression.Type,
-                        kind, locals, deconstructionStatement, enclosingBinderOpt);
+                    {
+                        var declarationExpression = (DeclarationExpressionSyntax)declaration;
+                        CollectLocalsFromDeconstruction(
+                            declarationExpression.Designation, declarationExpression.Type,
+                            kind, locals, deconstructionStatement, enclosingBinderOpt);
 
-                    break;
-                }
+                        break;
+                    }
                 case SyntaxKind.IdentifierName:
                     break;
                 default:
@@ -124,28 +124,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (designation.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
-                {
-                    var single = (SingleVariableDesignationSyntax)designation;
-                    SourceLocalSymbol localSymbol = SourceLocalSymbol.MakeDeconstructionLocal(
-                                                                this.ContainingMemberOrLambda,
-                                                                this,
-                                                                enclosingBinderOpt ?? this,
-                                                                closestTypeSyntax,
-                                                                single.Identifier,
-                                                                kind,
-                                                                deconstructionStatement);
-                    locals.Add(localSymbol);
-                    break;
-                }
-                case SyntaxKind.ParenthesizedVariableDesignation:
-                {
-                    var tuple = (ParenthesizedVariableDesignationSyntax)designation;
-                    foreach (var d in tuple.Variables)
                     {
-                        CollectLocalsFromDeconstruction(d, closestTypeSyntax, kind, locals, deconstructionStatement, enclosingBinderOpt);
+                        var single = (SingleVariableDesignationSyntax)designation;
+                        SourceLocalSymbol localSymbol = SourceLocalSymbol.MakeDeconstructionLocal(
+                                                                    this.ContainingMemberOrLambda,
+                                                                    this,
+                                                                    enclosingBinderOpt ?? this,
+                                                                    closestTypeSyntax,
+                                                                    single.Identifier,
+                                                                    kind,
+                                                                    deconstructionStatement);
+                        locals.Add(localSymbol);
+                        break;
                     }
-                    break;
-                }
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    {
+                        var tuple = (ParenthesizedVariableDesignationSyntax)designation;
+                        foreach (var d in tuple.Variables)
+                        {
+                            CollectLocalsFromDeconstruction(d, closestTypeSyntax, kind, locals, deconstructionStatement, enclosingBinderOpt);
+                        }
+                        break;
+                    }
                 case SyntaxKind.DiscardDesignation:
                     break;
                 default:
@@ -221,132 +221,132 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (_syntax.Kind())
             {
                 case SyntaxKind.ForEachStatement:
-                {
-                    var node = (ForEachStatementSyntax)_syntax;
-                    // Check for local variable conflicts in the *enclosing* binder; obviously the *current*
-                    // binder has a local that matches!
-                    hasNameConflicts = originalBinder.ValidateDeclarationNameConflictsInScope(IterationVariable, diagnostics);
-
-                    // If the type in syntax is "var", then the type should be set explicitly so that the
-                    // Type property doesn't fail.
-                    TypeSyntax typeSyntax = node.Type.SkipRef(out _);
-
-                    bool isVar;
-                    AliasSymbol alias;
-                    TypeSymbolWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out alias);
-
-                    if (isVar)
                     {
-                        declType = inferredType.IsNull ? TypeSymbolWithAnnotations.Create(CreateErrorType("var")) : inferredType;
-                    }
-                    else
-                    {
-                        Debug.Assert(!declType.IsNull);
-                    }
+                        var node = (ForEachStatementSyntax)_syntax;
+                        // Check for local variable conflicts in the *enclosing* binder; obviously the *current*
+                        // binder has a local that matches!
+                        hasNameConflicts = originalBinder.ValidateDeclarationNameConflictsInScope(IterationVariable, diagnostics);
 
-                    iterationVariableType = declType.TypeSymbol;
-                    boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
+                        // If the type in syntax is "var", then the type should be set explicitly so that the
+                        // Type property doesn't fail.
+                        TypeSyntax typeSyntax = node.Type.SkipRef(out _);
 
-                    SourceLocalSymbol local = this.IterationVariable;
-                    local.SetType(declType);
-                    local.SetValEscape(collectionEscape);
+                        bool isVar;
+                        AliasSymbol alias;
+                        TypeSymbolWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out alias);
 
-                    if (local.RefKind != RefKind.None)
-                    {
-                        // The ref-escape of a ref-returning property is decided
-                        // by the value escape of its receiverm, in this case the
-                        // collection
-                        local.SetRefEscape(collectionEscape);
-
-                        if (IsDirectlyInIterator)
+                        if (isVar)
                         {
-                            diagnostics.Add(ErrorCode.ERR_BadIteratorLocalType, local.IdentifierToken.GetLocation());
-                            hasErrors = true;
+                            declType = inferredType.IsNull ? TypeSymbolWithAnnotations.Create(CreateErrorType("var")) : inferredType;
                         }
-                        else if (IsInAsyncMethod())
+                        else
                         {
-                            diagnostics.Add(ErrorCode.ERR_BadAsyncLocalType, local.IdentifierToken.GetLocation());
-                            hasErrors = true;
-                        }
-                    }
-
-                    if (!hasErrors)
-                    {
-                        BindValueKind requiredCurrentKind;
-                        switch (local.RefKind)
-                        {
-                            case RefKind.None:
-                                requiredCurrentKind = BindValueKind.RValue;
-                                break;
-                            case RefKind.Ref:
-                                requiredCurrentKind = BindValueKind.Assignable | BindValueKind.RefersToLocation;
-                                break;
-                            case RefKind.RefReadOnly:
-                                requiredCurrentKind = BindValueKind.RefersToLocation;
-                                break;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(local.RefKind);
+                            Debug.Assert(!declType.IsNull);
                         }
 
-                        hasErrors |= !CheckMethodReturnValueKind(
-                            builder.CurrentPropertyGetter,
-                            callSyntaxOpt: null,
-                            collectionExpr.Syntax,
-                            requiredCurrentKind,
-                            checkingReceiver: false,
-                            diagnostics);
-                    }
+                        iterationVariableType = declType.TypeSymbol;
+                        boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
 
-                    break;
-                }
+                        SourceLocalSymbol local = this.IterationVariable;
+                        local.SetType(declType);
+                        local.SetValEscape(collectionEscape);
+
+                        if (local.RefKind != RefKind.None)
+                        {
+                            // The ref-escape of a ref-returning property is decided
+                            // by the value escape of its receiverm, in this case the
+                            // collection
+                            local.SetRefEscape(collectionEscape);
+
+                            if (IsDirectlyInIterator)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_BadIteratorLocalType, local.IdentifierToken.GetLocation());
+                                hasErrors = true;
+                            }
+                            else if (IsInAsyncMethod())
+                            {
+                                diagnostics.Add(ErrorCode.ERR_BadAsyncLocalType, local.IdentifierToken.GetLocation());
+                                hasErrors = true;
+                            }
+                        }
+
+                        if (!hasErrors)
+                        {
+                            BindValueKind requiredCurrentKind;
+                            switch (local.RefKind)
+                            {
+                                case RefKind.None:
+                                    requiredCurrentKind = BindValueKind.RValue;
+                                    break;
+                                case RefKind.Ref:
+                                    requiredCurrentKind = BindValueKind.Assignable | BindValueKind.RefersToLocation;
+                                    break;
+                                case RefKind.RefReadOnly:
+                                    requiredCurrentKind = BindValueKind.RefersToLocation;
+                                    break;
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(local.RefKind);
+                            }
+
+                            hasErrors |= !CheckMethodReturnValueKind(
+                                builder.CurrentPropertyGetter,
+                                callSyntaxOpt: null,
+                                collectionExpr.Syntax,
+                                requiredCurrentKind,
+                                checkingReceiver: false,
+                                diagnostics);
+                        }
+
+                        break;
+                    }
                 case SyntaxKind.ForEachVariableStatement:
-                {
-                    var node = (ForEachVariableStatementSyntax)_syntax;
-                    iterationVariableType = inferredType.TypeSymbol ?? CreateErrorType("var");
-
-                    var variables = node.Variable;
-                    if (variables.IsDeconstructionLeft())
                     {
-                        var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, collectionEscape, iterationVariableType).MakeCompilerGenerated();
-                        DeclarationExpressionSyntax declaration = null;
-                        ExpressionSyntax expression = null;
-                        BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
-                                                                                variables,
-                                                                                variables,
-                                                                                right: _syntax.Expression,
-                                                                                diagnostics: diagnostics,
-                                                                                rightPlaceholder: valuePlaceholder,
-                                                                                declaration: ref declaration,
-                                                                                expression: ref expression);
+                        var node = (ForEachVariableStatementSyntax)_syntax;
+                        iterationVariableType = inferredType.TypeSymbol ?? CreateErrorType("var");
 
-                        if (expression != null)
+                        var variables = node.Variable;
+                        if (variables.IsDeconstructionLeft())
                         {
-                            // error: must declare foreach loop iteration variables.
-                            Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
+                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, collectionEscape, iterationVariableType).MakeCompilerGenerated();
+                            DeclarationExpressionSyntax declaration = null;
+                            ExpressionSyntax expression = null;
+                            BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
+                                                                                    variables,
+                                                                                    variables,
+                                                                                    right: _syntax.Expression,
+                                                                                    diagnostics: diagnostics,
+                                                                                    rightPlaceholder: valuePlaceholder,
+                                                                                    declaration: ref declaration,
+                                                                                    expression: ref expression);
+
+                            if (expression != null)
+                            {
+                                // error: must declare foreach loop iteration variables.
+                                Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
+                                hasErrors = true;
+                            }
+
+                            deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder).MakeCompilerGenerated();
+                        }
+                        else
+                        {
+                            // Bind the expression for error recovery, but discard all new diagnostics
+                            iterationErrorExpression = BindExpression(node.Variable, new DiagnosticBag());
+                            if (iterationErrorExpression.Kind == BoundKind.DiscardExpression)
+                            {
+                                iterationErrorExpression = ((BoundDiscardExpression)iterationErrorExpression).FailInference(this, diagnosticsOpt: null);
+                            }
                             hasErrors = true;
+
+                            if (!node.HasErrors)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
+                            }
                         }
 
-                        deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder).MakeCompilerGenerated();
+                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType).MakeCompilerGenerated();
+                        break;
                     }
-                    else
-                    {
-                        // Bind the expression for error recovery, but discard all new diagnostics
-                        iterationErrorExpression = BindExpression(node.Variable, new DiagnosticBag());
-                        if (iterationErrorExpression.Kind == BoundKind.DiscardExpression)
-                        {
-                            iterationErrorExpression = ((BoundDiscardExpression)iterationErrorExpression).FailInference(this, diagnosticsOpt: null);
-                        }
-                        hasErrors = true;
-
-                        if (!node.HasErrors)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
-                        }
-                    }
-
-                    boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType).MakeCompilerGenerated();
-                    break;
-                }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(_syntax.Kind());
             }

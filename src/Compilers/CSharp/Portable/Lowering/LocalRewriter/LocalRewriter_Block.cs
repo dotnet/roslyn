@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return MakeLocalUsingDeclarationStatement((BoundUsingLocalDeclarations)node, builder.ToImmutableAndFree());
                 default:
                     replacedLocalDeclarations = false;
-                    return (BoundStatement) Visit(node);
+                    return (BoundStatement)Visit(node);
             }
         }
 
