@@ -277,10 +277,9 @@ namespace Microsoft.CodeAnalysis
         /// is in the current context. If the <see cref="DocumentId"/> is currently closed, then 
         /// it is returned directly. If it is open, then this returns the same result that 
         /// <see cref="GetDocumentIdInCurrentContext(SourceTextContainer)"/> would return for the
-        /// <see cref="SourceTextContainer"/>. Hosts can override this method to provide more 
-        /// customized behaviors (e.g. special handling of documents in Shared Projects).
+        /// <see cref="SourceTextContainer"/>.
         /// </summary>
-        internal virtual DocumentId GetDocumentIdInCurrentContext(DocumentId documentId)
+        internal DocumentId GetDocumentIdInCurrentContext(DocumentId documentId)
         {
             if (documentId == null)
             {
