@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         public virtual bool CanOpenDocuments => false;
 
         /// <summary>
-        /// True if this workspace supports manually changing the active context document of a text buffer.
+        /// True if this workspace supports manually changing the active context document of a text buffer by calling <see cref="SetDocumentContext(DocumentId)" />.
         /// </summary>
         internal virtual bool CanChangeActiveContextDocument => false;
 
@@ -299,7 +299,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// 
+        /// Call this method to tell the host environment to change the current active context to this document. Only supported if
+        /// <see cref="CanChangeActiveContextDocument"/> returns true.
         /// </summary>
         internal virtual void SetDocumentContext(DocumentId documentId)
         {
