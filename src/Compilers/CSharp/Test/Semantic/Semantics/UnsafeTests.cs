@@ -3038,6 +3038,9 @@ class C<T>
         var t1 = default(T);
         var u1 = default(U);
         void* p1 = null;
+        var a1 = new { X = 0 };
+        var a2 = new int[1];
+        var t2 = (0, 0);
     }
 }");
             var comp = CreateCompilation(tree);
@@ -3061,6 +3064,9 @@ class C<T>
             Assert.False(getLocalType("t1").IsUnmanagedType);
             Assert.True(getLocalType("u1").IsUnmanagedType);
             Assert.True(getLocalType("p1").IsUnmanagedType);
+            Assert.False(getLocalType("a1").IsUnmanagedType);
+            Assert.False(getLocalType("a2").IsUnmanagedType);
+            Assert.False(getLocalType("t2").IsUnmanagedType);
 
             ITypeSymbol getLocalType(string name)
             {

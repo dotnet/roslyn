@@ -19,18 +19,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 using System;
 struct S1 { }
 ref struct S2 { public S1 F1; }
+enum E1 { }
 class C<T>
 {
-    void M()
+    unsafe void M<U>() where U : unmanaged
     {
-        Span<int> span = stackalloc[0];
+        Span<int> span = default;
         var s1 = new S1();
         var s2 = new S2();
         var i0 = 0;
+        var e1 = new E1();
+        var o1 = new object();
+        var c1 = new C<int>();
         var t1 = default(T);
+        var u1 = default(U);
+        void* p1 = null;
+        var a1 = new { X = 0 };
+        var a2 = new int[1];
+        var t2 = (0, 0);
     }
-}");
-            var comp = CreateCompilationWithSpan(tree);
+}", options: TestOptions.Regular7_3);
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            Assert.True(comp.GetDiagnostics().All(d => d.Severity != DiagnosticSeverity.Error));
             var model = comp.GetSemanticModel(tree);
             var root = tree.GetRoot();
 
@@ -39,6 +49,15 @@ class C<T>
             Assert.True(getLocalType("s2").IsRefLikeType);
             Assert.False(getLocalType("i0").IsRefLikeType);
             Assert.False(getLocalType("t1").IsRefLikeType);
+            Assert.False(getLocalType("e1").IsRefLikeType);
+            Assert.False(getLocalType("o1").IsRefLikeType);
+            Assert.False(getLocalType("c1").IsRefLikeType);
+            Assert.False(getLocalType("t1").IsRefLikeType);
+            Assert.False(getLocalType("u1").IsRefLikeType);
+            Assert.False(getLocalType("p1").IsRefLikeType);
+            Assert.False(getLocalType("a1").IsRefLikeType);
+            Assert.False(getLocalType("a2").IsRefLikeType);
+            Assert.False(getLocalType("t2").IsRefLikeType);
 
             ITypeSymbol getLocalType(string name)
             {

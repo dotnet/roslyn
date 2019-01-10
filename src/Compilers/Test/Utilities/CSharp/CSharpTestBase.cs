@@ -1746,7 +1746,7 @@ namespace System.Runtime.CompilerServices
 
         #region Span
 
-        protected static CSharpCompilation CreateCompilationWithSpan(SyntaxTree tree)
+        protected static CSharpCompilation CreateCompilationWithSpan(SyntaxTree tree, CSharpCompilationOptions options = null)
         {
             var reference = CreateCompilation(
                 SpanSource,
@@ -1756,7 +1756,8 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(
                 tree,
-                references: new[] { reference.EmitToImageReference() });
+                references: new[] { reference.EmitToImageReference() },
+                options: options);
 
             return comp;
         }
