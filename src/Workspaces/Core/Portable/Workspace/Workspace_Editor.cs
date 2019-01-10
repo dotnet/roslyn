@@ -324,30 +324,20 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentContextUpdated(DocumentId documentId)
         {
-
-            SourceTextContainer container = null;
-            using (_stateLock.DisposableWait())
-            {
-                container = GetOpenDocumentSourceTextContainer_NoLock(documentId);
-            }
-
-            if (container != null)
-            {
-                OnDocumentContextUpdated(documentId, container);
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void OnDocumentContextUpdated(DocumentId documentId, SourceTextContainer container)
-        {
             using (_serializationLock.DisposableWait())
             {
                 DocumentId oldActiveContextDocumentId;
+                SourceTextContainer container;
 
                 using (_stateLock.DisposableWait())
                 {
+                    container = GetOpenDocumentSourceTextContainer_NoLock(documentId);
+
+                    if (container == null)
+                    {
+                        return;
+                    }
+
                     oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
                     if (documentId == oldActiveContextDocumentId)
                     {
