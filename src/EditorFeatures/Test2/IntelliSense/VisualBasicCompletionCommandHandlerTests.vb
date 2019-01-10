@@ -1370,7 +1370,7 @@ End Class
                 Await state.AssertCompletionSession()
                 state.SendTypeChars("!")
                 Await state.AssertCompletionSession()
-                                             Await state.AssertSelectedCompletionItem("!--")
+                Await state.AssertSelectedCompletionItem("!--")
             End Using
         End Function
 
