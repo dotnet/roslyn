@@ -12,6 +12,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
     public enum DkmEvaluationFlags
     {
         None,
+        NoSideEffects = 4,
         ShowValueRaw = 128,
         HideNonPublicMembers = 512,
         NoToString = 1024,
