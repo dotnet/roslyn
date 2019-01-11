@@ -71280,5 +71280,144 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(default, x)").WithArguments("(T?, object? x)", "(T? x, object y)").WithLocation(12, 32));
             comp.VerifyTypes();
         }
+
+        [Fact]
+        [WorkItem(31862, "https://github.com/dotnet/roslyn/issues/31862")]
+        public void Issue31862_01()
+        {
+            var source =
+@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public class Working<T> : IEnumerable<IEquatable<T>>
+{
+    public IEnumerator<IEquatable<T>> GetEnumerator() => null;
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+public class Broken<T> : IEnumerable<IEquatable<T>>
+{
+    IEnumerator<IEquatable<T>> IEnumerable<IEquatable<T>>.GetEnumerator() => null;
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,58): warning CS8603: Possible null reference return.
+                //     public IEnumerator<IEquatable<T>> GetEnumerator() => null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(8, 58),
+                // (15,78): warning CS8603: Possible null reference return.
+                //     IEnumerator<IEquatable<T>> IEnumerable<IEquatable<T>>.GetEnumerator() => null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(15, 78)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31862, "https://github.com/dotnet/roslyn/issues/31862")]
+        public void Issue31862_02()
+        {
+            var source =
+@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public class Working<T> : IEnumerable<IEquatable<T>>
+{
+    public IEnumerator<IEquatable<T>?> GetEnumerator() => throw null;
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+public class Broken<T> : IEnumerable<IEquatable<T>>
+{
+    IEnumerator<IEquatable<T>?> IEnumerable<IEquatable<T>>.GetEnumerator() => throw null;
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,40): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'IEnumerator<IEquatable<T>> IEnumerable<IEquatable<T>>.GetEnumerator()'.
+                //     public IEnumerator<IEquatable<T>?> GetEnumerator() => throw null;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "GetEnumerator").WithArguments("IEnumerator<IEquatable<T>> IEnumerable<IEquatable<T>>.GetEnumerator()").WithLocation(8, 40),
+                // (15,60): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'IEnumerator<IEquatable<T>> IEnumerable<IEquatable<T>>.GetEnumerator()'.
+                //     IEnumerator<IEquatable<T>?> IEnumerable<IEquatable<T>>.GetEnumerator() => throw null;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "GetEnumerator").WithArguments("IEnumerator<IEquatable<T>> IEnumerable<IEquatable<T>>.GetEnumerator()").WithLocation(15, 60)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31862, "https://github.com/dotnet/roslyn/issues/31862")]
+        public void Issue31862_03()
+        {
+            var source =
+@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public class Working<T> : IEnumerable<IEquatable<T>>
+{
+    public IEnumerator<IEquatable<T?>> GetEnumerator() => throw null;
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+public class Broken<T> : IEnumerable<IEquatable<T>>
+{
+    IEnumerator<IEquatable<T?>> IEnumerable<IEquatable<T>>.GetEnumerator() => throw null;
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,35): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public IEnumerator<IEquatable<T?>> GetEnumerator() => throw null;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(8, 35),
+                // (8,40): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'IEnumerator<IEquatable<T>> IEnumerable<IEquatable<T>>.GetEnumerator()'.
+                //     public IEnumerator<IEquatable<T?>> GetEnumerator() => throw null;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "GetEnumerator").WithArguments("IEnumerator<IEquatable<T>> IEnumerable<IEquatable<T>>.GetEnumerator()").WithLocation(8, 40),
+                // (15,28): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     IEnumerator<IEquatable<T?>> IEnumerable<IEquatable<T>>.GetEnumerator() => throw null;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(15, 28),
+                // (15,60): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'IEnumerator<IEquatable<T>> IEnumerable<IEquatable<T>>.GetEnumerator()'.
+                //     IEnumerator<IEquatable<T?>> IEnumerable<IEquatable<T>>.GetEnumerator() => throw null;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "GetEnumerator").WithArguments("IEnumerator<IEquatable<T>> IEnumerable<IEquatable<T>>.GetEnumerator()").WithLocation(15, 60)
+                );
+        }
+
+        [Fact]
+        [WorkItem(31862, "https://github.com/dotnet/roslyn/issues/31862")]
+        public void Issue31862_04()
+        {
+            var source =
+@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public class Working<T> : IEnumerable<IEquatable<T>>
+{
+    public IEnumerator<IEquatable<T>>? GetEnumerator() => throw null;
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+public class Broken<T> : IEnumerable<IEquatable<T>>
+{
+    IEnumerator<IEquatable<T>>? IEnumerable<IEquatable<T>>.GetEnumerator() => throw null;
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
     }
 }
