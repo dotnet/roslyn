@@ -105,30 +105,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// be managed even if it had no fields.  e.g. struct S { S s; } is not managed, but struct S { S s; object o; }
         /// is because we can point to object.
         /// </summary>
-        internal static bool IsManagedType(NamedTypeSymbol type)
+        internal static ManagedKind GetManagedKind(NamedTypeSymbol type)
         {
-            // If this is a type with an obvious answer, return quickly.
-            switch (IsManagedTypeHelper(type))
+            var (isManaged, hasGenerics) = IsManagedTypeHelper(type);
+            var definitelyManaged = isManaged == ThreeState.True;
+            if (isManaged == ThreeState.Unknown)
             {
-                case ThreeState.True:
-                    return true;
-                case ThreeState.False:
-                    return false;
+                // Otherwise, we have to build and inspect the closure of depended-upon types.
+                var hs = PooledHashSet<Symbol>.GetInstance();
+                var result = DependsOnDefinitelyManagedType(type, hs);
+                definitelyManaged = result.definitelyManaged;
+                hasGenerics = hasGenerics || result.hasGenerics;
+                hs.Free();
             }
 
-            // Otherwise, we have to build and inspect the closure of depended-upon types.
-            var hs = PooledHashSet<Symbol>.GetInstance();
-            bool result = DependsOnDefinitelyManagedType(type, hs);
-            hs.Free();
-            return result;
+
+            if (definitelyManaged)
+            {
+                return ManagedKind.Managed;
+            }
+            else if (hasGenerics)
+            {
+                return ManagedKind.UnmanagedWithGenerics;
+            }
+            else
+            {
+                return ManagedKind.Unmanaged;
+            }
         }
 
-        private static bool DependsOnDefinitelyManagedType(NamedTypeSymbol type, HashSet<Symbol> partialClosure)
+        private static (bool definitelyManaged, bool hasGenerics) DependsOnDefinitelyManagedType(NamedTypeSymbol type, HashSet<Symbol> partialClosure)
         {
             Debug.Assert((object)type != null);
 
-            // NOTE: unlike in StructDependsClosure, we don't have to check for expanding cycles,
-            // because as soon as we see something with non-zero arity we kick out (generic => managed).
+            var hasGenerics = false;
             if (partialClosure.Add(type))
             {
                 foreach (var member in type.GetInstanceFieldsAndEvents())
@@ -169,24 +179,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (fieldType.IsManagedType)
                         {
-                            return true;
+                            return (true, hasGenerics);
                         }
                     }
                     else
                     {
-                        // NOTE: don't use IsManagedType on a NamedTypeSymbol - that could lead
+                        var result = IsManagedTypeHelper(fieldNamedType);
+                        hasGenerics = hasGenerics || result.hasGenerics;
+                        // NOTE: don't use ManagedKind.get on a NamedTypeSymbol - that could lead
                         // to infinite recursion.
-                        switch (IsManagedTypeHelper(fieldNamedType))
+                        switch (result.isManaged)
                         {
                             case ThreeState.True:
-                                return true;
+                                return (true, hasGenerics);
+
                             case ThreeState.False:
                                 continue;
+
                             case ThreeState.Unknown:
-                                if (!fieldNamedType.OriginalDefinition.KnownCircularStruct &&
-                                    DependsOnDefinitelyManagedType(fieldNamedType, partialClosure))
+                                if (!fieldNamedType.OriginalDefinition.KnownCircularStruct)
                                 {
-                                    return true;
+                                    var (definitelyManaged, childHasGenerics) = DependsOnDefinitelyManagedType(fieldNamedType, partialClosure);
+                                    hasGenerics = hasGenerics || childHasGenerics;
+                                    if (definitelyManaged)
+                                    {
+                                        return (true, hasGenerics);
+                                    }
                                 }
                                 continue;
                         }
@@ -194,20 +212,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return false;
+            return (false, hasGenerics);
         }
 
         /// <summary>
         /// Returns a boolean value if we can determine whether the type is managed
         /// without looking at its fields and Unset otherwise.
         /// </summary>
-        private static ThreeState IsManagedTypeHelper(NamedTypeSymbol type)
+        private static (ThreeState isManaged, bool hasGenerics) IsManagedTypeHelper(NamedTypeSymbol type)
         {
             // To match dev10, we treat enums as their underlying types.
             if (type.IsEnumType())
             {
                 type = type.GetEnumUnderlyingType();
             }
+
+            bool hasGenerics = type.TupleUnderlyingTypeOrSelf().GetArity() > 0;
 
             // Short-circuit common cases.
             switch (type.SpecialType)
@@ -231,21 +251,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SpecialType.System_TypedReference:
                 case SpecialType.System_ArgIterator:
                 case SpecialType.System_RuntimeArgumentHandle:
-                    return ThreeState.False;
+                    return (ThreeState.False, hasGenerics);
                 case SpecialType.None:
                 default:
                     // CONSIDER: could provide cases for other common special types.
                     break; // Proceed with additional checks.
             }
-
             switch (type.TypeKind)
             {
                 case TypeKind.Enum:
-                    return ThreeState.False;
+                    return (ThreeState.False, hasGenerics);
                 case TypeKind.Struct:
-                    return ThreeState.Unknown;
+                    return (ThreeState.Unknown, hasGenerics);
                 default:
-                    return ThreeState.True;
+                    return (ThreeState.True, hasGenerics);
             }
         }
 

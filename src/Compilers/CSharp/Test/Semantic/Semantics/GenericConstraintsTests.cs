@@ -3406,6 +3406,60 @@ public class C
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
                 .VerifyDiagnostics();
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (16,18): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         MyStruct<InnerStruct<int>> myStruct;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "InnerStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(16, 18),
+                    // (17,12): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         M2(&myStruct);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&myStruct").WithArguments("unmanaged constructed types", "8.0").WithLocation(17, 12),
+                    // (20,27): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     public unsafe void M2(MyStruct<InnerStruct<int>>* ms) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<InnerStruct<int>>*").WithArguments("unmanaged constructed types", "8.0").WithLocation(20, 27),
+                    // (20,55): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     public unsafe void M2(MyStruct<InnerStruct<int>>* ms) { }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(20, 55));
+        }
+
+        [Fact]
+        public void UnmanagedGenericStructMultipleConstraints()
+        {
+            // A diagnostic will only be produced for the first violated constraint.
+            var code = @"
+public struct MyStruct<T> where T : unmanaged, System.IDisposable
+{
+    public T field;
+}
+
+public struct InnerStruct<U>
+{
+    public U value;
+}
+
+public class C
+{
+    public unsafe void M()
+    {
+        MyStruct<InnerStruct<int>> myStruct = default;
+        _ = myStruct;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (16,18): error CS0315: The type 'InnerStruct<int>' cannot be used as type parameter 'T' in the generic type or method 'MyStruct<T>'. There is no boxing conversion from 'InnerStruct<int>' to 'System.IDisposable'.
+                    //         MyStruct<InnerStruct<int>> myStruct = default;
+                    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "InnerStruct<int>").WithArguments("MyStruct<T>", "System.IDisposable", "T", "InnerStruct<int>").WithLocation(16, 18)
+                );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (16,18): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         MyStruct<InnerStruct<int>> myStruct = default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "InnerStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(16, 18)
+                );
         }
 
         [Fact]
@@ -3628,6 +3682,386 @@ public struct YourStruct<T> where T : unmanaged
                     // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
+        }
+
+        [Fact]
+        public void NestedGenericStructContainingPointer()
+        {
+            var code = @"
+public unsafe struct MyStruct<T> where T : unmanaged
+{
+    public T* field;
+
+    public T this[int index]
+    {
+        get { return field[index]; }
+    }
+}
+
+public class C
+{
+    public static unsafe void Main()
+    {
+        float f = 42;
+        var ms = new MyStruct<float> { field = &f };
+        var test = new MyStruct<MyStruct<float>> { field = &ms };
+        float value = test[0][0];
+        System.Console.Write(value);
+    }
+}
+";
+            CompileAndVerify(code, options: TestOptions.UnsafeReleaseExe, expectedOutput: "42", verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void SimpleGenericStructPointer_ILValidation()
+        {
+            var code = @"
+public unsafe struct MyStruct<T> where T : unmanaged
+{
+    public T field;
+
+    public static void Test()
+    {
+        var ms = new MyStruct<int>();
+        MyStruct<int>* ptr = &ms;
+        ptr->field = 42;
+    }
+}
+";
+            var il = @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (MyStruct<int> V_0) //ms
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""MyStruct<int>""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  conv.u
+  IL_000b:  ldc.i4.s   42
+  IL_000d:  stfld      ""int MyStruct<int>.field""
+  IL_0012:  ret
+}
+";
+            CompileAndVerify(code, options: TestOptions.UnsafeReleaseDll, verify: Verification.Skipped)
+                .VerifyIL("MyStruct<T>.Test", il);
+        }
+
+        [Fact]
+        public void CircularGenericUnmanagedInstantation()
+        {
+            var code = @"
+public struct X<T>
+    where T : unmanaged
+{
+}
+
+public struct Z
+{
+    public X<Z> field;
+}";
+            CreateCompilation(code).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericStructAddressOfRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+
+    public static unsafe void Test()
+    {
+        var ms = new MyStruct<int>();
+        var ptr = &ms;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (9,19): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         var ptr = &ms;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(9, 19)
+                );
+        }
+
+        [Fact]
+        public void GenericStructFixedRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class MyClass
+{
+    public MyStruct<int> ms;
+    public static unsafe void Test(MyClass c)
+    {
+        fixed (MyStruct<int>* ptr = &c.ms)
+        {
+        }
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (12,16): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         fixed (MyStruct<int>* ptr = &c.ms)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>*").WithArguments("unmanaged constructed types", "8.0").WithLocation(12, 16),
+                    // (12,37): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         fixed (MyStruct<int>* ptr = &c.ms)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&c.ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(12, 37)
+                );
+        }
+
+        [Fact]
+        public void GenericStructSizeofRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+
+    public static unsafe void Test()
+    {
+        var size = sizeof(MyStruct<int>);
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (8,20): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         var size = sizeof(MyStruct<int>);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "sizeof(MyStruct<int>)").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 20)
+                );
+        }
+
+        [Fact]
+        public void GenericImplicitStackallocRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+
+    public static unsafe void Test()
+    {
+        var arr = stackalloc[] { new MyStruct<int>() };
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (8,19): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         var arr = stackalloc[] { new MyStruct<int>() };
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc[] { new MyStruct<int>() }").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 19)
+                );
+        }
+
+        [Fact]
+        public void GenericStackallocRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+
+    public static unsafe void Test()
+    {
+        var arr = stackalloc MyStruct<int>[4];
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (8,30): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         var arr = stackalloc MyStruct<int>[4];
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 30)
+                );
+        }
+
+        [Fact]
+        public void GenericStructPointerFieldRequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public unsafe struct OtherStruct
+{
+    public MyStruct<int>* ms;
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (9,12): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     public MyStruct<int>* ms;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>*").WithArguments("unmanaged constructed types", "8.0").WithLocation(9, 12)
+                );
+        }
+
+        [Fact]
+        public void StructContainingTuple_Unmanaged_RequiresCSharp8()
+        {
+            var code = @"
+public struct MyStruct
+{
+    public (int, int) field;
+}
+
+public class C
+{
+    public unsafe void M<T>() where T : unmanaged { }
+
+    public void M2()
+    {
+        M<MyStruct>();
+        M<(int, int)>();
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (13,9): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         M<MyStruct>();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<MyStruct>").WithArguments("unmanaged constructed types", "8.0").WithLocation(13, 9),
+                    // (14,9): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         M<(int, int)>();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<(int, int)>").WithArguments("unmanaged constructed types", "8.0").WithLocation(14, 9)
+                );
+            
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void StructContainingGenericTuple_Unmanaged()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public (T, T) field;
+}
+
+public class C
+{
+    public unsafe void M<T>() where T : unmanaged { }
+
+    public void M2<U>() where U : unmanaged
+    {
+        M<MyStruct<U>>();
+    }
+
+    public void M3<V>()
+    {
+        M<MyStruct<V>>();
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                    // (13,9): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         M<MyStruct<U>>();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<MyStruct<U>>").WithArguments("unmanaged constructed types", "8.0").WithLocation(13, 9),
+                    // (18,9): error CS8377: The type 'MyStruct<V>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>()'
+                    //         M<MyStruct<V>>();
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<MyStruct<V>>").WithArguments("C.M<T>()", "T", "MyStruct<V>").WithLocation(18, 9)
+                );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (18,9): error CS8377: The type 'MyStruct<V>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M<T>()'
+                    //         M<MyStruct<V>>();
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M<MyStruct<V>>").WithArguments("C.M<T>()", "T", "MyStruct<V>").WithLocation(18, 9)
+                );
+        }
+
+        [Fact]
+        public void GenericRefStructAddressOf()
+        {
+            var code = @"
+public ref struct MyStruct<T>
+{
+    public T field;
+}
+
+public class MyClass
+{
+    public static unsafe void Main()
+    {
+        var ms = new MyStruct<int>() { field = 42 };
+        var ptr = &ms;
+        System.Console.Write(ptr->field);
+    }
+}
+";
+
+            CompileAndVerify(code,
+                options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Skipped,
+                expectedOutput: "42");
+        }
+
+        [Fact]
+        public void GenericStructFixedStatement()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class MyClass
+{
+    public MyStruct<int> ms;
+    public static unsafe void Main()
+    {
+        var c = new MyClass();
+        c.ms.field = 42;
+        fixed (MyStruct<int>* ptr = &c.ms)
+        {
+            System.Console.Write(ptr->field);
+        }
+    }
+}
+";
+
+            CompileAndVerify(code,
+                options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Skipped,
+                expectedOutput: "42");
+        }
+
+        [Fact]
+        public void GenericStructLocalFixedStatement()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+public class MyClass
+{
+    public static unsafe void Main()
+    {
+        var ms = new MyStruct<int>();
+        fixed (int* ptr = &ms.field)
+        {
+        }
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(
+                    // (12,27): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                    //         fixed (int* ptr = &ms.field)
+                    Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&ms.field").WithLocation(12, 27)
+                );
         }
     }
 }

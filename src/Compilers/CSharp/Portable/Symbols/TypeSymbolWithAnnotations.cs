@@ -627,9 +627,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    Symbol.GetUnificationUseSiteDiagnosticRecursive(ref result, this.CustomModifiers, owner, ref checkedTypes);
         }
 
-        public void CheckAllConstraints(ConversionsBase conversions, Location location, DiagnosticBag diagnostics)
+        public void CheckAllConstraints(CSharpCompilation compilation, ConversionsBase conversions, Location location, DiagnosticBag diagnostics)
         {
-            TypeSymbol.CheckAllConstraints(conversions, location, diagnostics);
+            TypeSymbol.CheckAllConstraints(compilation, conversions, location, diagnostics);
         }
 
         public bool IsAtLeastAsVisibleAs(Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

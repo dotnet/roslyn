@@ -2131,10 +2131,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowManagedAddressOf);
             if (!allowManagedAddressOf)
             {
-                if (!hasErrors && isManagedType)
+                if (!hasErrors)
                 {
-                    hasErrors = true;
-                    Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, operandType);
+                    hasErrors = CheckManagedAddr(operandType, node, diagnostics);
                 }
 
                 if (!hasErrors)
