@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     AddSpace();
                                 }
 
-                                if (csharpType.IsByRefLikeType)
+                                if (csharpType.IsRefLikeType)
                                 {
                                     AddKeyword(SyntaxKind.RefKeyword);
                                     AddSpace();

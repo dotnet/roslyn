@@ -2585,7 +2585,7 @@ class Program
 {
     void M()
     {
-        Action<int> goo = x => [|x.Goo|];
+        Action<int> goo = x => [|x.ToString()|];
     }
 }",
 @"using System;
@@ -2596,7 +2596,7 @@ class Program
     {
         Action<int> goo = x =>
         {
-            object {|Rename:goo1|} = x.Goo;
+            string {|Rename:v|} = x.ToString();
         };
     }
 }");
@@ -5941,6 +5941,136 @@ class Program
 }";
 
             await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestImplicitRecursiveInstanceMemberAccess_ForAllOccurrences()
+        {
+            var code =
+@"class C
+{
+    C c;
+    void Test()
+    {
+        var x = [|c|].c.c;
+    }
+}";
+
+            var expected =
+@"class C
+{
+    C c;
+    void Test()
+    {
+        C {|Rename:c1|} = c;
+        var x = c1.c.c;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestExplicitRecursiveInstanceMemberAccess_ForAllOccurrences()
+        {
+            var code =
+@"class C
+{
+    C c;
+    void Test()
+    {
+        var x = [|this.c|].c.c;
+    }
+}";
+
+            var expected =
+@"class C
+{
+    C c;
+    void Test()
+    {
+        C {|Rename:c1|} = this.c;
+        var x = c1.c.c;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestExplicitInstanceMemberAccess_ForAllOccurrences()
+        {
+            var code =
+@"class C
+{
+    C c;
+    void Test(C arg)
+    {
+        var x = [|this.c|].Test(this.c);
+    }
+}";
+
+            var expected =
+@"class C
+{
+    C c;
+    void Test(C arg)
+    {
+        C {|Rename:c1|} = this.c;
+        var x = c1.Test(c1);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestImplicitInstanceMemberAccess_ForAllOccurrences()
+        {
+            var code =
+@"class C
+{
+    C c;
+    void Test(C arg)
+    {
+        var x = [|c|].Test(c);
+    }
+}";
+
+            var expected =
+@"class C
+{
+    C c;
+    void Test(C arg)
+    {
+        C {|Rename:c1|} = c;
+        var x = c1.Test(c1);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestExpressionOfUndeclaredType()
+        {
+            var code =
+@"class C
+{
+    void Test()
+    {
+        A[] array = [|A|].Foo();
+        foreach (A a in array)
+        {
+        }
+    }
+}";
+            await TestMissingAsync(code);
         }
     }
 }

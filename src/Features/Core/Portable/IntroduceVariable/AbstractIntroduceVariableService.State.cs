@@ -70,6 +70,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
+                var expressionType = this.Document.SemanticModel.GetTypeInfo(this.Expression, cancellationToken).Type;
+                if (expressionType is IErrorTypeSymbol)
+                {
+                    return false;
+                }
+
                 var containingType = this.Expression.AncestorsAndSelf()
                     .Select(n => this.Document.SemanticModel.GetDeclaredSymbol(n, cancellationToken))
                     .OfType<INamedTypeSymbol>()
