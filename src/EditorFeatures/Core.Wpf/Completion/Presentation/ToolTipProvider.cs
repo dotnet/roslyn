@@ -94,8 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 }
 
                 var description = obj.Result;
-                this.Content = description.TaggedParts.Select(part => part.ToRun( _toolTipProvider._formatMap, _toolTipProvider._typeMap))
-                                                            .ToTextBlock(_toolTipProvider._formatMap, wrap: true);
+                this.Content = description.TaggedParts.ToTextBlock(_toolTipProvider._formatMap, _toolTipProvider._typeMap);
 
                 // The editor will pull AutomationProperties.Name from our UIElement and expose
                 // it to automation.

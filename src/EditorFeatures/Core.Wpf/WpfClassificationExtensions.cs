@@ -16,16 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     internal static partial class WpfClassificationExtensions
     {
         public static Run ToRun(this ClassifiedText part, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
-            => ToRun(part.Text, part.ClassificationType, formatMap, typeMap);
-
-        public static Run ToRun(this TaggedText part, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
-            => ToRun(part.ToVisibleDisplayString(includeLeftToRightMarker: true), part.Tag.ToClassificationTypeName(), formatMap, typeMap);
-
-        private static Run ToRun(string text, string classificationTypeName, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
         {
-            var run = new Run(text);
+            var run = new Run(part.Text);
 
-            var classificationType = typeMap.GetClassificationType(classificationTypeName);
+            var classificationType = typeMap.GetClassificationType(part.ClassificationType);
 
             var format = formatMap.GetTextProperties(classificationType);
             run.SetTextProperties(format);
