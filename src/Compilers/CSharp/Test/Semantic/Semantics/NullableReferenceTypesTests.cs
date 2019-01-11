@@ -39188,6 +39188,54 @@ class Program
         }
 
         [Fact]
+        public void StructField_Default_07()
+        {
+            var source =
+@"#pragma warning disable 649
+struct S<T, U>
+{
+    internal T F;
+    internal U G;
+}
+class Program
+{
+    static void F(object a, string b)
+    {
+        var x = new S<object, string>() { F = a };
+        x.F/*T:object!*/.ToString();
+        x.G/*T:string?*/.ToString(); // 1
+        var y = new S<object, string>() { G = b };
+        y.F/*T:object?*/.ToString(); // 2
+        y.G/*T:string!*/.ToString();
+        var z = new S<object, string>() { F = default, G = default }; // 3, 4
+        z.F/*T:object?*/.ToString(); // 5
+        z.G/*T:string?*/.ToString(); // 6
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         x.G/*T:string?*/.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.G").WithLocation(13, 9),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         y.F/*T:object?*/.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(15, 9),
+                // (17,47): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         var z = new S<object, string>() { F = default, G = default }; // 3, 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(17, 47),
+                // (17,60): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         var z = new S<object, string>() { F = default, G = default }; // 3, 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(17, 60),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         z.F/*T:object?*/.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z.F").WithLocation(18, 9),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         z.G/*T:string?*/.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z.G").WithLocation(19, 9));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
         public void StructField_Default_ParameterlessConstructor()
         {
             var source =
