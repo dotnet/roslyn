@@ -127,5 +127,113 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     }
 }");
         }
+
+        [Fact]
+        public async Task Test5()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        return type.Name == ""ValueTuple"" [||]&& type.IsStruct;
+    }
+}",
+@"class C
+{
+    bool M()
+    {
+        return type is
+        {
+            Name: ""ValueTuple"", IsStruct: true
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public async Task Test6()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        return type.Name == ""ValueTuple"" [||]&& !type.IsClass;
+    }
+}",
+@"class C
+{
+    bool M()
+    {
+        return type is
+        {
+            Name: ""ValueTuple"", IsClass: false
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public async Task Test7()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        return type.ContainingSymbol is var declContainer &&
+            declContainer.Kind == SymbolKind.Namespace &&
+            declContainer.Name == ""System"" [||]&&
+            (declContainer.ContainingSymbol as NamespaceSymbol)?.IsGlobalNamespace == true;
+    }
+}",
+@"class C
+{
+    bool M()
+    {
+        return type is
+        {
+            ContainingSymbol:
+            {
+                ContainingSymbol: NamespaceSymbol
+                {
+                    IsGlobalNamespace: true
+                }
+
+                , Name: ""System"", Kind: SymbolKind.Namespace
+            }
+
+            declContainer
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public async Task Test8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        return (declContainer.ContainingSymbol as NamespaceSymbol)?.IsGlobalNamespace [||]== true;
+    }
+}",
+@"class C
+{
+    bool M()
+    {
+        return declContainer is
+        {
+            ContainingSymbol: NamespaceSymbol
+            {
+                IsGlobalNamespace: true
+            }
+        };
+    }
+}");
+        }
     }
 }

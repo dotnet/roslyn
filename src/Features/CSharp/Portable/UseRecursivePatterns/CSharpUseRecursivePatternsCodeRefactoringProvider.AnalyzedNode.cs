@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -102,11 +103,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     case SyntaxKind.IdentifierName:
                         return this;
 
+                    case SyntaxKind.MemberBindingExpression:
+                        var memberBinding = (MemberBindingExpressionSyntax)Expression;
+                        return new PatternMatch((IdentifierNameSyntax)memberBinding.Name, Pattern);
+
+                    case SyntaxKind.ConditionalAccessExpression:
+                        var conditionalAccess = (ConditionalAccessExpressionSyntax)Expression;
+                        var asExpression = (BinaryExpressionSyntax)conditionalAccess.Expression.WalkDownParentheses();
+                        return new PatternMatch(asExpression.Left,
+                            new Conjuction(
+                                new TypePattern((TypeSyntax)asExpression.Right),
+                                new PatternMatch(conditionalAccess.WhenNotNull, Pattern).Expand())).Expand();
+
                     case SyntaxKind.SimpleMemberAccessExpression:
                         var memberAccess = (MemberAccessExpressionSyntax)Expression;
                         // TODO this is wasteful, refactor
                         return new PatternMatch(memberAccess.Expression,
-                            new PatternMatch((IdentifierNameSyntax)memberAccess.Name, Pattern)).Expand();
+                            new PatternMatch(memberAccess.Name, Pattern)).Expand();
 
                     case var value:
                         throw ExceptionUtilities.UnexpectedValue(value);
@@ -249,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override AnalyzedNode VisitPatternMatch(PatternMatch node)
             {
-                return new PatternMatch(node.Expression, new Conjuction(this, node.Pattern));
+                return new Conjuction(this, node);
             }
 
             public override AnalyzedNode VisitTypePattern(TypePattern node)

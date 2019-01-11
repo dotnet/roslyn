@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
                 switch (node.Kind())
                 {
-                    case SyntaxKind.EqualsExpression when IsIdentifierOrSimpleMemberAccses(left):
+                    case SyntaxKind.EqualsExpression when AnalyzeLeftOfPatternMatch(left):
                         return new PatternMatch(left, new ConstantPattern(right));
 
                     case SyntaxKind.IsExpression:
@@ -45,29 +45,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return null;
             }
 
-            private static bool IsIdentifierOrSimpleMemberAccses(ExpressionSyntax node)
+            private static bool AnalyzeLeftOfPatternMatch(ExpressionSyntax node)
             {
                 switch (node.Kind())
                 {
                     case SyntaxKind.IdentifierName:
                         return true;
 
+                    case SyntaxKind.MemberBindingExpression:
+                        var memberBinding = (MemberBindingExpressionSyntax)node;
+                        return memberBinding.Name.IsKind(SyntaxKind.IdentifierName);
+
+                    case SyntaxKind.ConditionalAccessExpression:
+                        var conditionalAccess = (ConditionalAccessExpressionSyntax)node;
+                        var expression = conditionalAccess.Expression.WalkDownParentheses();
+                        return expression.IsKind(SyntaxKind.AsExpression) &&
+                            AnalyzeLeftOfPatternMatch(conditionalAccess.WhenNotNull);
+
                     case SyntaxKind.SimpleMemberAccessExpression:
                         var memberAccess = (MemberAccessExpressionSyntax)node;
-                        if (!memberAccess.Name.IsKind(SyntaxKind.IdentifierName))
-                        {
-                            break;
-                        }
-
-                        return IsIdentifierOrSimpleMemberAccses(memberAccess.Expression);
+                        return memberAccess.Name.IsKind(SyntaxKind.IdentifierName) &&
+                            AnalyzeLeftOfPatternMatch(memberAccess.Expression);
                 }
 
-                throw new NotImplementedException();
+                return false;
             }
 
             public override AnalyzedNode VisitIsPatternExpression(IsPatternExpressionSyntax node)
             {
                 return new PatternMatch(node.Expression, new SourcePattern(node.Pattern));
+            }
+
+            public override AnalyzedNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+            {
+                if (AnalyzeLeftOfPatternMatch(node))
+                {
+                    return new PatternMatch(node,
+                        new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)));
+                }
+
+                return null;
+            }
+
+            public override AnalyzedNode VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
+            {
+                if (node.IsKind(SyntaxKind.LogicalNotExpression) && 
+                    AnalyzeLeftOfPatternMatch(node.Operand))
+                {
+                    return new PatternMatch(node.Operand,
+                        new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)));
+                }
+
+                return null;
             }
         }
     }
