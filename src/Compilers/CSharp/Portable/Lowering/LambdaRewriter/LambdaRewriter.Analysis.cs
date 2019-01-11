@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 break;
                             }
-                            
+
                             var envs = curScope.DeclaredEnvironments.Where(e => !e.IsStruct);
                             if (!envs.IsEmpty())
                             {
@@ -499,36 +500,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SyntaxKind.ForEachStatement:
                         case SyntaxKind.WhileStatement:
                             return false;
-                        default:
-                            switch (scope.Parent.BoundNode.Syntax.Kind())
+                        case SyntaxKind.ForStatement:
+                            // Check if this is the initializer (which can be moved to the parent scope) or the condition/iterator (which cannot)
+                            // To do so, we check if the variables declared in the scope appear before the first semicolon, or after the first semicolon in the for statement
+                            var forStatement = (ForStatementSyntax)scope.BoundNode.Syntax;
+                            var variables = scope.DeclaredVariables;
+
+                            // A closure cannot capture a scope unless it contains some variables
+                            Debug.Assert(variables.Count > 0);
+                            var declaration = variables[0].DeclaringSyntaxReferences;
+
+                            // A local can only be declared in one location
+                            Debug.Assert(declaration.Length == 1);
+                            if (forStatement.FirstSemicolonToken.Span.Start < declaration[0].Span.End)
                             {
-                                case SyntaxKind.ForStatement:
+                                return false;
+                            }
+                            goto default;
+                        default:
+                            // walk up the syntax tree till you reach the parent scope, and make sure no backwards jumps occur along the way
+                            var currentSyntaxNode = scope.BoundNode.Syntax.Parent;
+                            if(currentSyntaxNode == null)
+                            {
+                                throw ExceptionUtilities.Unreachable;
+                            }
+                            while (currentSyntaxNode.Position >= scope.Parent.BoundNode.Syntax.Position)
+                            {
+                                var kind = currentSyntaxNode.Kind();
+                                if (kind == SyntaxKind.DoStatement || kind == SyntaxKind.ForStatement)
+                                {
                                     return false;
-                                default:
-                                    // a do statement doesn't create a separate scope, so we have to check if a Parent syntax node in between here and the parent scope is a do statement
-                                    var currentSyntaxNode = scope.BoundNode.Syntax;
-                                    while (currentSyntaxNode.Position >= scope.Parent.BoundNode.Syntax.Position)
+                                }
+                                if (kind == SyntaxKind.WhileStatement && currentSyntaxNode.Position > scope.Parent.BoundNode.Syntax.Position)
+                                {
+                                    return false;
+                                }
+
+                                if (currentSyntaxNode.Parent == null)
+                                {
+                                    if (currentSyntaxNode.Position == scope.Parent.BoundNode.Syntax.Position)
                                     {
-                                        if (currentSyntaxNode.Kind() == SyntaxKind.DoStatement)
-                                        {
-                                            return false;
-                                        }
-
-                                        if (currentSyntaxNode.Parent == null)
-                                        {
-                                            if (currentSyntaxNode.Position == scope.Parent.BoundNode.Syntax.Position)
-                                            {
-                                                return true;
-                                            }
-
-                                            throw ExceptionUtilities.Unreachable;
-                                        }
-
-                                        currentSyntaxNode = currentSyntaxNode.Parent;
+                                        return true;
                                     }
 
-                                    return true;
+                                    throw ExceptionUtilities.Unreachable;
+                                }
+
+                                currentSyntaxNode = currentSyntaxNode.Parent;
                             }
+
+                            return true;
                     }
                 }
             }

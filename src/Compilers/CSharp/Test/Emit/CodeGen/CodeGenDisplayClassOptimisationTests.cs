@@ -108,6 +108,145 @@ one");
         }
 
         [Fact]
+        public void ForInsideWhileCorrectDisplayClassesAreCreated()
+        {
+            var source =
+                @"using System;
+class C
+{
+    public static void Main()
+    {
+        int x = 0;
+        int y = 0;
+        while (y < 10)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                Func<int> f = () => i + x;
+            }
+            y++;
+        }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL(
+                "C.Main",
+                @"{
+  // Code size       75 (0x4b)
+  .maxstack  3
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                int V_1, //y
+                C.<>c__DisplayClass0_1 V_2, //CS$<>8__locals1
+                int V_3)
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_000d:  ldc.i4.0
+  IL_000e:  stloc.1
+  IL_000f:  br.s       IL_0045
+  IL_0011:  newobj     ""C.<>c__DisplayClass0_1..ctor()""
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.2
+  IL_0018:  ldloc.0
+  IL_0019:  stfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
+  IL_001e:  ldloc.2
+  IL_001f:  ldc.i4.0
+  IL_0020:  stfld      ""int C.<>c__DisplayClass0_1.i""
+  IL_0025:  br.s       IL_0037
+  IL_0027:  ldloc.2
+  IL_0028:  ldfld      ""int C.<>c__DisplayClass0_1.i""
+  IL_002d:  stloc.3
+  IL_002e:  ldloc.2
+  IL_002f:  ldloc.3
+  IL_0030:  ldc.i4.1
+  IL_0031:  add
+  IL_0032:  stfld      ""int C.<>c__DisplayClass0_1.i""
+  IL_0037:  ldloc.2
+  IL_0038:  ldfld      ""int C.<>c__DisplayClass0_1.i""
+  IL_003d:  ldc.i4.s   10
+  IL_003f:  blt.s      IL_0027
+  IL_0041:  ldloc.1
+  IL_0042:  ldc.i4.1
+  IL_0043:  add
+  IL_0044:  stloc.1
+  IL_0045:  ldloc.1
+  IL_0046:  ldc.i4.s   10
+  IL_0048:  blt.s      IL_0011
+  IL_004a:  ret
+}");
+        }
+
+        [Fact]
+        public void ForInsideEmptyForCorrectDisplayClassesAreCreated()
+        {
+            var source =
+                @"using System;
+class C
+{
+    public static void Main()
+    {
+        int x = 0;
+        int y = 0;
+        for(;;)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                Func<int> f = () => i + x;
+            }
+            y++;
+            break;
+        }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL(
+                "C.Main",
+                @"{
+  // Code size       68 (0x44)
+  .maxstack  3
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                int V_1, //y
+                C.<>c__DisplayClass0_1 V_2, //CS$<>8__locals1
+                int V_3)
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_000d:  ldc.i4.0
+  IL_000e:  stloc.1
+  IL_000f:  newobj     ""C.<>c__DisplayClass0_1..ctor()""
+  IL_0014:  stloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  stfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
+  IL_001c:  ldloc.2
+  IL_001d:  ldc.i4.0
+  IL_001e:  stfld      ""int C.<>c__DisplayClass0_1.i""
+  IL_0023:  br.s       IL_0035
+  IL_0025:  ldloc.2
+  IL_0026:  ldfld      ""int C.<>c__DisplayClass0_1.i""
+  IL_002b:  stloc.3
+  IL_002c:  ldloc.2
+  IL_002d:  ldloc.3
+  IL_002e:  ldc.i4.1
+  IL_002f:  add
+  IL_0030:  stfld      ""int C.<>c__DisplayClass0_1.i""
+  IL_0035:  ldloc.2
+  IL_0036:  ldfld      ""int C.<>c__DisplayClass0_1.i""
+  IL_003b:  ldc.i4.s   10
+  IL_003d:  blt.s      IL_0025
+  IL_003f:  ldloc.1
+  IL_0040:  ldc.i4.1
+  IL_0041:  add
+  IL_0042:  stloc.1
+  IL_0043:  ret
+}");
+        }
+
+        [Fact]
         public void ForWithoutBlockCorrectDisplayClassesAreCreated()
         {
             var source =
@@ -1220,6 +1359,70 @@ public static class Program
 
             Action action = null;
             for (int i = 0; i is int j && null == (action = () => { Console.WriteLine(strings[i + j]); });) break; ;
+            action();
+        }
+    }";
+            var compilation = CompileAndVerify(source, expectedOutput: @"one");
+            compilation.VerifyIL(
+                "Program.Main",
+                @"{
+  // Code size       89 (0x59)
+  .maxstack  4
+  .locals init (Program.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                System.Action V_1, //action
+                Program.<>c__DisplayClass0_1 V_2) //CS$<>8__locals1
+  IL_0000:  newobj     ""Program.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  newobj     ""System.Collections.Generic.List<string>..ctor()""
+  IL_000c:  dup
+  IL_000d:  ldstr      ""one""
+  IL_0012:  callvirt   ""void System.Collections.Generic.List<string>.Add(string)""
+  IL_0017:  stfld      ""System.Collections.Generic.List<string> Program.<>c__DisplayClass0_0.strings""
+  IL_001c:  ldnull
+  IL_001d:  stloc.1
+  IL_001e:  ldloc.0
+  IL_001f:  ldc.i4.0
+  IL_0020:  stfld      ""int Program.<>c__DisplayClass0_0.i""
+  IL_0025:  newobj     ""Program.<>c__DisplayClass0_1..ctor()""
+  IL_002a:  stloc.2
+  IL_002b:  ldloc.2
+  IL_002c:  ldloc.0
+  IL_002d:  stfld      ""Program.<>c__DisplayClass0_0 Program.<>c__DisplayClass0_1.CS$<>8__locals1""
+  IL_0032:  ldloc.2
+  IL_0033:  ldloc.2
+  IL_0034:  ldfld      ""Program.<>c__DisplayClass0_0 Program.<>c__DisplayClass0_1.CS$<>8__locals1""
+  IL_0039:  ldfld      ""int Program.<>c__DisplayClass0_0.i""
+  IL_003e:  stfld      ""int Program.<>c__DisplayClass0_1.j""
+  IL_0043:  ldloc.2
+  IL_0044:  ldftn      ""void Program.<>c__DisplayClass0_1.<Main>b__0()""
+  IL_004a:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_004f:  dup
+  IL_0050:  stloc.1
+  IL_0051:  pop
+  IL_0052:  ldloc.1
+  IL_0053:  callvirt   ""void System.Action.Invoke()""
+  IL_0058:  ret
+}");
+        }
+
+        [Fact]
+        public void ForWithVariableDeclaredInConditionAndNoneInIntializerCorrectDisplayClassesAreCreated()
+        {
+            var source =
+                @"using System;
+using System.Collections.Generic;
+
+public static class Program
+{
+	public static void Main()
+	{
+		var strings = new List<string>() { ""one"" };
+
+
+            Action action = null;
+            int i = 0;
+            for (; i is int j && null == (action = () => { Console.WriteLine(strings[i + j]); });) break; ;
             action();
         }
     }";
