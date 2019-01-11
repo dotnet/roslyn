@@ -426,15 +426,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Private Function ReplacementBreaksWithStatement(originalWithStatement As WithStatementSyntax, replacedWithStatement As WithStatementSyntax) As Boolean
-            Dim originalExpression = originalWithStatement.Expression
-            Dim replacedExpression = replacedWithStatement.Expression
-            Return Not IsReplacementSameType(originalExpression, replacedExpression)
-        End Function
-
-        Private Function IsReplacementSameType(originalExpression As ExpressionSyntax, replacedExpression As ExpressionSyntax) As Boolean
-            Dim originalTypeInfo = Me.OriginalSemanticModel.GetTypeInfo(originalExpression)
-            Dim replacedTypeInfo = Me.SpeculativeSemanticModel.GetTypeInfo(replacedExpression)
-            Return originalTypeInfo.Equals(replacedTypeInfo)
+            Dim originalTypeInfo = Me.OriginalSemanticModel.GetTypeInfo(originalWithStatement.Expression)
+            Dim replacedTypeInfo = Me.SpeculativeSemanticModel.GetTypeInfo(replacedWithStatement.Expression)
+            Return Not originalTypeInfo.Equals(replacedTypeInfo)
         End Function
 
         Private Function ReplacementBreaksCollectionInitializerAddMethod(originalInitializer As ExpressionSyntax, newInitializer As ExpressionSyntax) As Boolean
