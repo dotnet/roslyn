@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
@@ -103,7 +101,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 AutomationProperties.SetName(this, description.Text);
             }
 
-
             public static Run GetRun(TaggedText part, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
             {
                 var text = GetVisibleDisplayString(part, includeLeftToRightMarker: true);
@@ -111,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 var run = new Run(text);
 
                 var format = formatMap.GetTextProperties(
-                    typeMap.GetClassificationType(ClassificationTags.GetClassificationTypeName(part.Tag)));
+                    typeMap.GetClassificationType(part.Tag.ToClassificationTypeName()));
 
                 run.SetTextProperties(format);
 
@@ -126,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
                 if (includeLeftToRightMarker)
                 {
-                    var classificationTypeName = ClassificationTags.GetClassificationTypeName(part.Tag);
+                    var classificationTypeName = part.Tag.ToClassificationTypeName();
                     if (classificationTypeName == ClassificationTypeNames.Punctuation ||
                         classificationTypeName == ClassificationTypeNames.WhiteSpace)
                     {
@@ -146,27 +143,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 foreach (var part in parts)
                 {
                     result.Inlines.Add(GetRun(part, _toolTipProvider._formatMap, _toolTipProvider._typeMap));
-                }
-
-                return result;
-            }
-
-            private static IList<ClassificationSpan> GetClassificationSpans(
-                IEnumerable<TaggedText> parts,
-                ITextSnapshot textSnapshot,
-                ClassificationTypeMap typeMap)
-            {
-                var result = new List<ClassificationSpan>();
-
-                var index = 0;
-                foreach (var part in parts)
-                {
-                    var text = part.ToString();
-                    result.Add(new ClassificationSpan(
-                        new SnapshotSpan(textSnapshot, new Microsoft.VisualStudio.Text.Span(index, text.Length)),
-                        typeMap.GetClassificationType(ClassificationTags.GetClassificationTypeName(part.Tag))));
-
-                    index += text.Length;
                 }
 
                 return result;
