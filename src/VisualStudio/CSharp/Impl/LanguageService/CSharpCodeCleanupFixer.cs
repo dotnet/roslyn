@@ -447,6 +447,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private async Task<Document> FixDocumentAsync(Document document, FixIdContainer enabledFixIds, ProgressTracker progressTracker, CancellationToken cancellationToken)
         {
+            if (document.IsGeneratedCode(cancellationToken))
+            {
+                return document;
+            }
+
             var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
 
             var allDiagnostics = codeCleanupService.GetAllDiagnostics();
