@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var assemblyDirectory = GetAssemblyDirectory();
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
                 var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
-                var baseFileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}";
+                var baseFileName = $"{DateTime.Now:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
                 ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
 
                 var exception = eventArgs.Exception;
