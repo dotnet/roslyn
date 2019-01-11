@@ -4,13 +4,13 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -94,39 +94,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 }
 
                 var description = obj.Result;
-                this.Content = GetTextBlock(description.TaggedParts);
+                this.Content = description.TaggedParts.Select(part => part.ToRun( _toolTipProvider._formatMap, _toolTipProvider._typeMap))
+                                                            .ToTextBlock(_toolTipProvider._formatMap, wrap: true);
 
                 // The editor will pull AutomationProperties.Name from our UIElement and expose
                 // it to automation.
                 AutomationProperties.SetName(this, description.Text);
-            }
-
-            private static Run GetRun(TaggedText part, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
-            {
-                var text = part.ToVisibleDisplayString(includeLeftToRightMarker: true);
-
-                var run = new Run(text);
-
-                var format = formatMap.GetTextProperties(
-                    typeMap.GetClassificationType(part.Tag.ToClassificationTypeName()));
-
-                run.SetTextProperties(format);
-
-                return run;
-            }
-
-            private TextBlock GetTextBlock(ImmutableArray<TaggedText> parts)
-            {
-                var result = new TextBlock() { TextWrapping = TextWrapping.Wrap };
-
-                result.SetDefaultTextProperties(_toolTipProvider._formatMap);
-
-                foreach (var part in parts)
-                {
-                    result.Inlines.Add(GetRun(part, _toolTipProvider._formatMap, _toolTipProvider._typeMap));
-                }
-
-                return result;
             }
         }
     }
