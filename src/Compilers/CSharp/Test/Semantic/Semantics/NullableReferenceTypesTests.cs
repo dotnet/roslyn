@@ -66459,6 +66459,371 @@ partial class Program
             AssertDiagnosticOptions_36(source);
         }
 
+        [Fact]
+        public void DiagnosticOptions_62()
+        {
+            var source =
+@"
+#pragma warning disable nullable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+        var x = M();
+        x = null;
+    }
+}";
+            AssertDiagnosticOptions_02(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_63()
+        {
+            var source =
+@"
+#pragma warning enable nullable
+partial class Program
+{
+    static void Test()
+    {
+        var x = M();
+        x = null;
+    }
+}";
+            AssertDiagnosticOptions_38(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_64()
+        {
+            var source =
+@"
+#pragma warning disable
+#pragma warning enable nullable
+partial class Program
+{
+    static void Test()
+    {
+        var x = M();
+        x = null;
+    }
+}";
+            AssertDiagnosticOptions_38(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_65()
+        {
+            var source =
+@"
+#pragma warning disable " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ConvertingNullableToNonNullable) + @"
+#pragma warning enable nullable
+partial class Program
+{
+    static void Test()
+    {
+        var x = M();
+        x = null;
+    }
+}";
+            AssertDiagnosticOptions_38(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_66()
+        {
+            var source =
+@"
+#pragma warning restore
+#pragma warning enable nullable
+partial class Program
+{
+    static void Test()
+    {
+        var x = M();
+        x = null;
+    }
+}";
+            AssertDiagnosticOptions_38(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_67()
+        {
+            var source =
+@"
+#nullable restore
+#pragma warning enable nullable
+partial class Program
+{
+    static void Test()
+    {
+        var x = M();
+        x = null;
+    }
+}";
+            AssertDiagnosticOptions_38(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_68()
+        {
+            var source =
+@"
+#pragma warning restore nullable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_01(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_69()
+        {
+            var source =
+@"
+#nullable disable
+#pragma warning restore nullable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_01(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_70()
+        {
+            var source =
+@"
+#nullable enable
+#pragma warning restore nullable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_01(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_71()
+        {
+            var source =
+@"
+#nullable safeonly
+#pragma warning restore nullable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_01(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_72()
+        {
+            var source =
+@"
+#pragma warning restore nullable
+partial class Program
+{
+    static void Test()
+    {
+        var x = M();
+        x = null;
+    }
+}";
+            AssertDiagnosticOptions_36(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_73()
+        {
+            var source =
+@"
+#nullable disable
+#pragma warning restore nullable
+partial class Program
+{
+    static void Test()
+    {
+        var x = M();
+        x = null;
+    }
+}";
+            AssertDiagnosticOptions_36(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_74()
+        {
+            var source =
+@"
+#nullable enable
+#pragma warning restore nullable
+partial class Program
+{
+    static void Test()
+    {
+        var x = M();
+        x = null;
+    }
+}";
+            AssertDiagnosticOptions_36(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_75()
+        {
+            var source =
+@"
+#nullable safeonly
+#pragma warning restore nullable
+partial class Program
+{
+    static void Test()
+    {
+        var x = M();
+        x = null;
+    }
+}";
+            AssertDiagnosticOptions_36(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_76()
+        {
+            var source =
+@"
+#pragma warning safeonly nullable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_06(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_77()
+        {
+            var source =
+@"
+#pragma warning disable
+#pragma warning safeonly nullable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_06(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_78()
+        {
+            var source =
+@"
+#nullable restore
+#pragma warning safeonly nullable
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_06(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_79()
+        {
+            var source =
+@"
+#pragma warning safeonly nullable
+#pragma warning restore
+partial class Program
+{
+    static void Test()
+    {
+        F(null);
+    }
+}";
+            AssertDiagnosticOptions_01(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_80()
+        {
+            var source =
+@"
+#pragma warning safeonly nullable
+partial class Program
+{
+    static void Test()
+    {
+        var x = M();
+        x = null;
+    }
+}";
+            AssertDiagnosticOptions_02(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_81()
+        {
+            var source =
+@"
+#pragma warning restore
+#pragma warning safeonly nullable
+partial class Program
+{
+    static void Test()
+    {
+        var x = M();
+        x = null;
+    }
+}";
+            AssertDiagnosticOptions_02(source);
+        }
+
+        [Fact]
+        public void DiagnosticOptions_82()
+        {
+            var source =
+@"
+#nullable restore
+#pragma warning safeonly nullable
+partial class Program
+{
+    static void Test()
+    {
+        var x = M();
+        x = null;
+    }
+}";
+            AssertDiagnosticOptions_02(source);
+        }
+
         private readonly static NullableAnnotation[] s_AllNullableAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
         private readonly static NullableAnnotation[] s_AllSpeakableNullableAnnotations = new[] { NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated, NullableAnnotation.Annotated };
 

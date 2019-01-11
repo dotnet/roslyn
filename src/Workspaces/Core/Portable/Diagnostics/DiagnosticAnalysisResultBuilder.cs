@@ -113,7 +113,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private void AppendDiagnostics(ref Dictionary<DocumentId, List<DiagnosticData>> map, Document documentOpt, Diagnostic diagnostic)
         {
-            if (documentOpt?.SupportsDiagnostics() == false)
+            if (documentOpt is null)
+            {
+                return;
+            }
+
+            if (!documentOpt.SupportsDiagnostics())
             {
                 return;
             }
