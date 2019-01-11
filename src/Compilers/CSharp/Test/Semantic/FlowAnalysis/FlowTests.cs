@@ -450,7 +450,7 @@ public class DATest : DATestBase {
         if (f) { int a; switch (f && G(out a)) { case false: No(); break; case true: F(a); break; } } // Error
 
         // Exhaust cases
-        if (f) { int a; switch (f) { case false: G(out a); break; case true: G(out a); break; } F(a); } // Error - BUG? The cases are exhaustive.
+        if (f) { int a; switch (f) { case false: G(out a); break; case true: G(out a); break; } F(a); }
         if (f) { int a; switch (val) { case 0: goto default; default: G(out a); break; } F(a); }
         if (f) { int a; switch (val) { case 0: G(out a); break; default: goto case 0; } F(a); }
         if (f) { int a; switch (val) { case 0: G(out a); break; default: goto LSkip; } F(a); LSkip: No(); }
@@ -479,7 +479,7 @@ public class DATest : DATestBase {
                 G(out a);
                 break;
             }
-            F(a); // Error - BUG? The cases are exhaustive.
+            F(a); // Error - we don't consider enumerating values for integral types to be exhaustive
         }
 
         if (f) { int a; switch (val) { default: goto case 0; case 0: goto default; } F(a); } // Unreachable
@@ -505,11 +505,8 @@ public class DATest : DATestBase {
                 // (86,88): error CS0165: Use of unassigned local variable 'a'
                 //         if (f) { int a; switch (f && G(out a)) { case false: No(); break; case true: F(a); break; } } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(86, 88),
-                // (89,99): error CS0165: Use of unassigned local variable 'a'
-                //         if (f) { int a; switch (f) { case false: G(out a); break; case true: G(out a); break; } F(a); } // Error - BUG? The cases are exhaustive.
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(89, 99),
                 // (118,15): error CS0165: Use of unassigned local variable 'a'
-                //             F(a); // Error - BUG? The cases are exhaustive.
+                //             F(a); // Error - we don't consider enumerating values for integral types to be exhaustive
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(118, 15)
                 );
         }

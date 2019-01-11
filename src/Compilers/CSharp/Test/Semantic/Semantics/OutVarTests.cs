@@ -1968,7 +1968,7 @@ class Test : System.Attribute
                 // (9,15): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     [Test(p = x4 && TakeOutParam(out int x4))]
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(9, 15),
-                // (11,40): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (11,40): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //               TakeOutParam(52, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(11, 40),
                 // (10,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -1976,7 +1976,7 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"TakeOutParam(51, out int x5) && 
               TakeOutParam(52, out int x5) && 
               x5 > 0").WithLocation(10, 15),
-                // (14,37): error CS0128: A local variable named 'x6' is already defined in this scope
+                // (14,37): error CS0128: A local variable or function named 'x6' is already defined in this scope
                 //           p2 = TakeOutParam(out int x6) && x6 > 0)]
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(14, 37),
                 // (13,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -2078,7 +2078,7 @@ class Test : System.Attribute
                 // (9,11): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     [Test(x4 && TakeOutParam(out int x4))]
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(9, 11),
-                // (11,36): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (11,36): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //           TakeOutParam(52, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(11, 36),
                 // (10,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -2086,7 +2086,7 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"TakeOutParam(51, out int x5) && 
           TakeOutParam(52, out int x5) && 
           x5 > 0").WithLocation(10, 11),
-                // (14,32): error CS0128: A local variable named 'x6' is already defined in this scope
+                // (14,32): error CS0128: A local variable or function named 'x6' is already defined in this scope
                 //           TakeOutParam(out int x6) && x6 > 0)]
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(14, 32),
                 // (13,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -2190,7 +2190,7 @@ class Test : System.Attribute
                 // (9,15): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     [Test(p = x4 && TakeOutParam(out var x4))]
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(9, 15),
-                // (11,40): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (11,40): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //               TakeOutParam(52, out var x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(11, 40),
                 // (10,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -2198,7 +2198,7 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"TakeOutParam(51, out var x5) && 
               TakeOutParam(52, out var x5) && 
               x5 > 0").WithLocation(10, 15),
-                // (14,37): error CS0128: A local variable named 'x6' is already defined in this scope
+                // (14,37): error CS0128: A local variable or function named 'x6' is already defined in this scope
                 //           p2 = TakeOutParam(out var x6) && x6 > 0)]
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(14, 37),
                 // (13,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -2300,7 +2300,7 @@ class Test : System.Attribute
                 // (9,11): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     [Test(x4 && TakeOutParam(out var x4))]
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(9, 11),
-                // (11,36): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (11,36): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //           TakeOutParam(52, out var x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(11, 36),
                 // (10,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -2308,7 +2308,7 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"TakeOutParam(51, out var x5) && 
           TakeOutParam(52, out var x5) && 
           x5 > 0").WithLocation(10, 11),
-                // (14,32): error CS0128: A local variable named 'x6' is already defined in this scope
+                // (14,32): error CS0128: A local variable or function named 'x6' is already defined in this scope
                 //           TakeOutParam(out var x6) && x6 > 0)]
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(14, 32),
                 // (13,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -4418,7 +4418,23 @@ public class X
                 // (18,30): error CS0841: Cannot use local variable 'x4' before it is declared
                 //         bool f (object o) => x4 && TakeOutParam(o, out int x4);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(18, 30),
-                // (25,67): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (25,67): error CS0128: A local variable or function named 'x5' is already defined in this scope
+                //                                          TakeOutParam(o2, out int x5) && 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(25, 67),
+                // (39,15): error CS0103: The name 'x7' does not exist in the current context
+                //         Dummy(x7, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(39, 15),
+                // (43,15): error CS0103: The name 'x7' does not exist in the current context
+                //         Dummy(x7, 2); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(43, 15)
+                );
+
+            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
+            compilation.VerifyDiagnostics(
+                // (18,30): error CS0841: Cannot use local variable 'x4' before it is declared
+                //         bool f (object o) => x4 && TakeOutParam(o, out int x4);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(18, 30),
+                // (25,67): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //                                          TakeOutParam(o2, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(25, 67),
                 // (39,15): error CS0103: The name 'x7' does not exist in the current context
@@ -11585,9 +11601,6 @@ public class X
                 // (94,15): error CS0103: The name 'u7' does not exist in the current context
                 //         Dummy(u7); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(94, 15),
-                // (88,68): error CS0165: Use of unassigned local variable 'u7'
-                //                           x > y7 && TakeOutParam(1, out var u7) && u7 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(88, 68),
                 // (102,15): error CS0103: The name 'z8' does not exist in the current context
                 //         Dummy(z8); 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z8").WithArguments("z8").WithLocation(102, 15),
@@ -24232,10 +24245,7 @@ static bool TakeOutParam<T>(T y, out T x)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(82, 7),
                 // (83,7): error CS0103: The name 'u9' does not exist in the current context
                 // Dummy(u9); 
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(83, 7),
-                // (62,62): error CS0165: Use of unassigned local variable 'u7'
-                //                     x > y7 && TakeOutParam(1, out var u7) && u7 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 62)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(83, 7)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -28406,7 +28416,7 @@ class H
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void GlobalCode_LabeledStatement_06()
         {
             string source =
@@ -31421,7 +31431,7 @@ class Program
     {
         switch (true)
         {
-            case TakeOutParam(3, out var x1):
+            case !TakeOutParam(3, out var x1):
                 System.Console.WriteLine(x1);
                 break;
         }
@@ -31437,11 +31447,8 @@ class Program
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
                 // (8,18): error CS0150: A constant value is expected
-                //             case TakeOutParam(3, out var x1):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "TakeOutParam(3, out var x1)").WithLocation(8, 18),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
+                //             case !TakeOutParam(3, out var x1):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "!TakeOutParam(3, out var x1)").WithLocation(8, 18)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -31462,7 +31469,7 @@ class Program
     {
         switch (true)
         {
-            case TakeOutParam(3, out UndeclaredType x1):
+            case !TakeOutParam(3, out UndeclaredType x1):
                 System.Console.WriteLine(x1);
                 break;
         }
@@ -31472,15 +31479,12 @@ class Program
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
             compilation.VerifyDiagnostics(
-                // (8,38): error CS0246: The type or namespace name 'UndeclaredType' could not be found (are you missing a using directive or an assembly reference?)
-                //             case TakeOutParam(3, out UndeclaredType x1):
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UndeclaredType").WithArguments("UndeclaredType").WithLocation(8, 38),
-                // (8,18): error CS0103: The name 'TakeOutParam' does not exist in the current context
-                //             case TakeOutParam(3, out UndeclaredType x1):
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "TakeOutParam").WithArguments("TakeOutParam").WithLocation(8, 18),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
+                // (8,19): error CS0103: The name 'TakeOutParam' does not exist in the current context
+                //             case !TakeOutParam(3, out UndeclaredType x1):
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TakeOutParam").WithArguments("TakeOutParam").WithLocation(8, 19),
+                // (8,39): error CS0246: The type or namespace name 'UndeclaredType' could not be found (are you missing a using directive or an assembly reference?)
+                //             case !TakeOutParam(3, out UndeclaredType x1):
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UndeclaredType").WithArguments("UndeclaredType").WithLocation(8, 39)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -33206,10 +33210,10 @@ class C
     {
         switch ((object)args.Length)
         {
-            case M(nameof(M(out int z1)), z1):
+            case !M(nameof(M(out int z1)), z1):
                 System.Console.WriteLine(z1);
                 break;
-            case M(nameof(M(out var z2)), z2):
+            case !M(nameof(M(out var z2)), z2):
                 System.Console.WriteLine(z2);
                 break;
         }
@@ -33220,24 +33224,24 @@ class C
 ";
             var compilation = CreateCompilationWithMscorlib45(text);
             compilation.VerifyDiagnostics(
-                // (8,27): error CS8081: Expression does not have a name.
-                //             case M(nameof(M(out int z1)), z1):
-                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(8, 27),
+                // (8,28): error CS8081: Expression does not have a name.
+                //             case !M(nameof(M(out int z1)), z1):
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out int z1)").WithLocation(8, 28),
                 // (8,18): error CS0150: A constant value is expected
-                //             case M(nameof(M(out int z1)), z1):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M(nameof(M(out int z1)), z1)").WithLocation(8, 18),
-                // (11,27): error CS8081: Expression does not have a name.
-                //             case M(nameof(M(out var z2)), z2):
-                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(11, 27),
+                //             case !M(nameof(M(out int z1)), z1):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "!M(nameof(M(out int z1)), z1)").WithLocation(8, 18),
+                // (11,28): error CS8081: Expression does not have a name.
+                //             case !M(nameof(M(out var z2)), z2):
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "M(out var z2)").WithLocation(11, 28),
                 // (11,18): error CS0150: A constant value is expected
-                //             case M(nameof(M(out var z2)), z2):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M(nameof(M(out var z2)), z2)").WithLocation(11, 18),
-                // (9,17): warning CS0162: Unreachable code detected
-                //                 System.Console.WriteLine(z1);
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 System.Console.WriteLine(z2);
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(12, 17)
+                //             case !M(nameof(M(out var z2)), z2):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "!M(nameof(M(out var z2)), z2)").WithLocation(11, 18),
+                // (8,44): error CS0165: Use of unassigned local variable 'z1'
+                //             case !M(nameof(M(out int z1)), z1):
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(8, 44),
+                // (11,44): error CS0165: Use of unassigned local variable 'z2'
+                //             case !M(nameof(M(out var z2)), z2):
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z2").WithArguments("z2").WithLocation(11, 44)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

@@ -273,7 +273,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         public ImmutableArray<T> ToImmutableAndFree()
         {
             ImmutableArray<T> result;
-            if (_builder.Capacity == Count)
+            if (Count == 0)
+            {
+                result = ImmutableArray<T>.Empty;
+            }
+            else if (_builder.Capacity == Count)
             {
                 result = _builder.MoveToImmutable();
             }

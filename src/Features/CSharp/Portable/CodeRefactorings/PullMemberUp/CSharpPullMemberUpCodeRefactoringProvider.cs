@@ -3,6 +3,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
+using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -12,6 +13,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.PullMemberUp)), Shared]
     internal class CSharpPullMemberUpCodeRefactoringProvider : AbstractPullMemberUpRefactoringProvider
     {
+        /// <summary>
+        /// Test purpose only.
+        /// </summary>
+        public CSharpPullMemberUpCodeRefactoringProvider(IPullMemberUpOptionsService service) : base(service)
+        {
+        }
+
+        [ImportingConstructor]
+        public CSharpPullMemberUpCodeRefactoringProvider() : base(null)
+        {
+        }
+
         protected override bool IsSelectionValid(TextSpan span, SyntaxNode selectedNode)
         {
             var identifier = GetIdentifier(selectedNode);
@@ -24,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
                 // Selection lies within the identifier's span
                 return true;
             }
-            else if (identifier.Span.Contains(span) && span.Length == 0)
+            else if (identifier.Span.Contains(span) && span.IsEmpty)
             {
                 // Cursor stands on the identifier
                 return true;
