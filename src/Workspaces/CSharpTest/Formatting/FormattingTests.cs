@@ -8873,35 +8873,6 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task DummyTest()
-        {
-            await AssertFormatAsync(
-               @"
-public class Test
-{
-    public void Foo()
-    {
-        var tuple2 = (
-            1,
-            2,
-            3);
-    }
-}",
-               @"
-public class Test
-{
-    public void Foo()
-    {
-        var tuple2 = (
-            1       ,
-            2  ,
-            3);
-    }
-}");
-        }
-
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(32113, "https://github.com/dotnet/roslyn/issues/32113")]
         public async Task FormatCommaAfterCloseBrace_ShouldRemainInTheSameLine()
         {
