@@ -167,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     _state = <next_state>;
             //     goto _exprReturnLabelTrue;
             //     <next_state_label>: ;
+            //     <hidden sequence point>
             //     this.state = cachedState = NotStartedStateMachine;
             //     if (disposeMode) goto _enclosingFinallyOrExitLabel;
 
@@ -195,6 +196,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             blockBuilder.Add(
                 // <next_state_label>: ;
                 F.Label(resumeLabel));
+
+            blockBuilder.Add(F.HiddenSequencePoint());
 
             blockBuilder.Add(
                 // this.state = cachedState = NotStartedStateMachine
