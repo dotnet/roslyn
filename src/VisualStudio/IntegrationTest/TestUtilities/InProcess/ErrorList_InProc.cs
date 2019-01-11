@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
@@ -22,10 +24,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public int ErrorListErrorCount
             => GetErrorCount();
 
-        public void WaitForNoErrorsInErrorList()
+        public void WaitForNoErrorsInErrorList(TimeSpan timeout)
         {
+            var stopwatch = Stopwatch.StartNew();
             while (GetErrorCount() != 0)
             {
+                if (stopwatch.Elapsed >= timeout)
+                {
+                    var message = new StringBuilder();
+                    message.AppendLine("Unexpected errors in error list:");
+                    foreach (var error in GetErrorListContents())
+                    {
+                        message.Append("  ").AppendLine(error.ToString());
+                    }
+
+                    throw new TimeoutException(message.ToString());
+                }
+
                 Thread.Yield();
             }
         }
