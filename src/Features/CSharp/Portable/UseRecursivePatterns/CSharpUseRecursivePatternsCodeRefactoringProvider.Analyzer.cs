@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                         return new PatternMatch(left, new TypePattern((TypeSyntax)right));
 
                     case SyntaxKind.NotEqualsExpression when right.IsKind(SyntaxKind.NullLiteralExpression):
-                        return new PatternMatch(left, new NotNullPattern());
+                        return new PatternMatch(left, NotNullPattern.Instance);
 
                     case SyntaxKind.LogicalAndExpression
                         when Visit(left) is AnalyzedNode analyzedLeft &&
