@@ -984,7 +984,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
                 p => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         private bool IsPossibleAttribute()
@@ -1068,7 +1069,8 @@ tryAgain:
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttributeArgument(),
                 p => p.CurrentToken.Kind == SyntaxKind.CloseParenToken || p.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         private bool IsPossibleAttributeArgument()
@@ -1795,7 +1797,8 @@ tryAgain:
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref colon, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
                 p => p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         private bool IsCurrentTokenWhereOfConstraintClause()
@@ -1931,7 +1934,8 @@ tryAgain:
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
                 p => this.CurrentToken.Kind != SyntaxKind.CommaToken && !this.IsPossibleTypeParameterConstraint(),
                 p => this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || this.IsCurrentTokenWhereOfConstraintClause() || this.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         private bool IsPossibleMemberStart()
@@ -3776,7 +3780,8 @@ tryAgain:
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleParameter(),
                 p => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         private bool IsPossibleParameter()
@@ -4258,7 +4263,8 @@ tryAgain:
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
                 p => this.CurrentToken.Kind != SyntaxKind.CommaToken,
                 p => this.CurrentToken.Kind == SyntaxKind.SemicolonToken || this.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         [Flags]
@@ -4849,7 +4855,8 @@ tryAgain:
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && p.CurrentToken.Kind != SyntaxKind.SemicolonToken && !p.IsPossibleEnumMemberDeclaration(),
                 p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         private EnumMemberDeclarationSyntax ParseEnumMemberDeclaration()
@@ -5080,7 +5087,8 @@ tryAgain:
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
                 p => this.CurrentToken.Kind != SyntaxKind.CommaToken,
                 p => this.CurrentToken.Kind == SyntaxKind.GreaterThanToken || this.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         private TypeParameterSyntax ParseTypeParameter()
@@ -6560,7 +6568,8 @@ tryAgain:
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBracket, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
                 p => p.CurrentToken.Kind == SyntaxKind.CloseBracketToken || p.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         private TypeSyntax ParseUnderlyingType(bool parentIsParameter, NameOptions options = NameOptions.None)
@@ -7889,7 +7898,8 @@ tryAgain:
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
                 p => p.CurrentToken.Kind == SyntaxKind.CloseParenToken || p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         private CommonForEachStatementSyntax ParseForEachStatement(SyntaxToken awaitTokenOpt)
@@ -9929,7 +9939,8 @@ tryAgain:
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleArgumentExpression(),
                 p => p.CurrentToken.Kind == closeKind || p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         private bool IsEndOfArgumentList()
@@ -10820,7 +10831,8 @@ tryAgain:
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref startToken, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleExpression(),
                 p => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken || p.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         private ExpressionSyntax ParseObjectInitializerNamedAssignment()
@@ -11033,7 +11045,8 @@ tryAgain:
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleVariableInitializer(),
                 p => this.CurrentToken.Kind == SyntaxKind.CloseBraceToken || this.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         private ExpressionSyntax ParseStackAllocExpression()
@@ -11286,7 +11299,8 @@ tryAgain:
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openParen, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleLambdaParameter(),
                 p => p.CurrentToken.Kind == closeKind || p.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         private ParameterSyntax ParseLambdaParameter()
@@ -11685,7 +11699,8 @@ tryAgain:
                     || p.CurrentToken.Kind == SyntaxKind.SemicolonToken
                     || p.IsCurrentTokenQueryContextualKeyword
                     || p.IsTerminator(),
-                expected, false);
+                expected,
+                false);
         }
 
         private OrderingSyntax ParseOrdering()

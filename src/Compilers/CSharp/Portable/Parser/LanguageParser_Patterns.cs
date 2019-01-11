@@ -634,7 +634,8 @@ tryAgain:
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleSubpatternElement(),
                 p => p.CurrentToken.Kind == closeKind || p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.IsTerminator(),
-                expected);
+                expected, 
+                false);
         }
 
         private ExpressionSyntax ParseSwitchExpression(ExpressionSyntax leftOperand)
