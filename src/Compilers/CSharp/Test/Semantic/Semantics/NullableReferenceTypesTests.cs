@@ -39378,6 +39378,35 @@ class Program
 
         [Fact]
         [WorkItem(30731, "https://github.com/dotnet/roslyn/issues/30731")]
+        public void StructField_ParameterDefaultValue_03()
+        {
+            var source =
+@"#pragma warning disable 649
+struct S<T>
+{
+    internal T F;
+}
+class Program
+{
+    static void F<T>(S<T> x = /*missing*/, S<T> y = default) where T : class
+    {
+        x.F/*T:T!*/.ToString();
+        y.F/*T:T?*/.ToString(); // 1
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,42): error CS1525: Invalid expression term ','
+                //     static void F<T>(S<T> x = /*missing*/, S<T> y = default) where T : class
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(8, 42),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         y.F/*T:T?*/.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(11, 9));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        [WorkItem(30731, "https://github.com/dotnet/roslyn/issues/30731")]
         public void StructField_Default_Nested()
         {
             var source =
