@@ -42,14 +42,6 @@ namespace Roslyn.Test.Utilities
         internal ImmutableArray<byte> Assembly { get; }
         internal ImmutableArray<byte> Pdb { get; }
 
-        private static unsafe ImmutableArray<byte> ReadMetadata(MetadataReader mdReader)
-        {
-            var length = mdReader.MetadataLength;
-            var bytes = new byte[length];
-            Marshal.Copy((IntPtr)mdReader.MetadataPointer, bytes, 0, length);
-            return ImmutableByteArrayInterop.DangerousCreateFromUnderlyingArray(ref bytes);
-        }
-
         internal EmitOutput(ImmutableArray<byte> assembly, ImmutableArray<byte> pdb)
         {
             Assembly = assembly;
@@ -65,13 +57,21 @@ namespace Roslyn.Test.Utilities
                         using (var embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(portablePdbEntry))
                         {
                             var mdReader = embeddedMetadataProvider.GetMetadataReader();
-                            pdb = ReadMetadata(mdReader);
+                            pdb = readMetadata(mdReader);
                         }
                     }
                 }
             }
 
             Pdb = pdb;
+
+            unsafe ImmutableArray<byte> readMetadata(MetadataReader mdReader)
+            {
+                var length = mdReader.MetadataLength;
+                var bytes = new byte[length];
+                Marshal.Copy((IntPtr)mdReader.MetadataPointer, bytes, 0, length);
+                return ImmutableArray.Create(bytes);
+            }
         }
     }
 
@@ -244,7 +244,7 @@ namespace Roslyn.Test.Utilities
 
                 var embeddedTexts = compilation.SyntaxTrees
                     .Select(t => (filePath: t.FilePath, text: t.GetText()))
-                    .Where(t => t.text.CanBeEmbedded)
+                    .Where(t => t.text.CanBeEmbedded && !string.IsNullOrEmpty(t.filePath))
                     .Select(t => EmbeddedText.FromSource(t.filePath, t.text))
                     .ToImmutableArray();
 
