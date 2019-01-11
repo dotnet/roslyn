@@ -38972,7 +38972,7 @@ class C
 
         [Fact]
         [WorkItem(32338, "https://github.com/dotnet/roslyn/issues/32338")]
-        public void CopyStructUnconstrainedFieldNullability()
+        public void CopyStructUnconstrainedFieldNullability_01()
         {
             var source =
 @"#pragma warning disable 649
@@ -38982,19 +38982,102 @@ struct S<T>
 }
 class Program
 {
-    static void M<T>(S<T> s)
+    static void M<T>(T t)
     {
-        if (s.F == null) return;
-        var t = s;
-        t.F.ToString();
+        var x = new S<T>() { F = t };
+        var y = x;
+        y.F.ToString(); // 1
+        if (t == null) return;
+        x = new S<T>() { F = t };
+        var z = x;
+        z.F.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/32338: Should not report a warning.
             comp.VerifyDiagnostics(
                 // (12,9): warning CS8602: Possible dereference of a null reference.
-                //         t.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.F").WithLocation(12, 9));
+                //         y.F.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(12, 9));
+        }
+
+        [Fact]
+        [WorkItem(32338, "https://github.com/dotnet/roslyn/issues/32338")]
+        public void CopyStructUnconstrainedFieldNullability_02()
+        {
+            var source =
+@"#pragma warning disable 649
+struct S<T>
+{
+    internal T F;
+}
+class Program
+{
+    static void M<T>(S<T> x)
+    {
+        var y = x;
+        y.F.ToString(); // 1
+        if (x.F == null) return;
+        var z = x;
+        z.F.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         y.F.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(11, 9));
+        }
+
+        [Fact]
+        [WorkItem(32338, "https://github.com/dotnet/roslyn/issues/32338")]
+        public void CopyTupleUnconstrainedElementNullability_01()
+        {
+            var source =
+@"class Program
+{
+    static void M<T, U>(T t, U u)
+    {
+        var x = (t, u);
+        var y = x;
+        y.Item1.ToString(); // 1
+        if (t == null) return;
+        x = (t, u);
+        var z = x;
+        z.Item1.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/29970: Should not report warning for `z.Item1`.
+            comp.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         y.Item1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Item1").WithLocation(7, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         z.Item1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z.Item1").WithLocation(11, 9));
+        }
+
+        [Fact]
+        [WorkItem(32338, "https://github.com/dotnet/roslyn/issues/32338")]
+        public void CopyTupleUnconstrainedElementNullability_02()
+        {
+            var source =
+@"class Program
+{
+    static void M<T, U>((T, U) x)
+    {
+        var y = x;
+        y.Item1.ToString(); // 1
+        if (x.Item1 == null) return;
+        var z = x;
+        z.Item1.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         y.Item1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Item1").WithLocation(6, 9));
         }
 
         [Fact]
@@ -40467,7 +40550,6 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // Should there be a warning for // 4?
             comp.VerifyDiagnostics(
                 // (10,36): warning CS8601: Possible null reference assignment.
                 //         c1 = new C<object>() { F = x1 }; // 1
@@ -40481,6 +40563,9 @@ class Program
                 // (17,31): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         c2 = new C<T>() { F = default }; // 3
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(17, 31),
+                // (18,31): warning CS8601: Possible null reference assignment.
+                //         c2 = new C<T>() { F = c2.F }; // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c2.F").WithLocation(18, 31),
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         c2.F.ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2.F").WithLocation(19, 9));
