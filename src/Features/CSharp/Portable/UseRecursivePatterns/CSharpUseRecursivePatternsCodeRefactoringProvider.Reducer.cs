@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public static AnalyzedNode Reduce(AnalyzedNode analyzedNode) => s_instance.Visit(analyzedNode);
 
-            public override AnalyzedNode VisitPatternMatch(PatternMatch node) => VisitPatternMatch(node.Expression, Visit(node.Pattern));
+            public override AnalyzedNode VisitPatternMatch(PatternMatch node) => MakePatternMatch(node.Expression, Visit(node.Pattern));
 
             public override AnalyzedNode VisitConjuction(Conjuction node) => Visit(node.Left).Visit(Visit(node.Right));
 
-            private static AnalyzedNode VisitPatternMatch(ExpressionSyntax expression, AnalyzedNode pattern)
+            private static PatternMatch MakePatternMatch(ExpressionSyntax expression, AnalyzedNode pattern)
             {
                 switch (expression.Kind())
                 {
@@ -30,18 +30,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
                     case SyntaxKind.MemberBindingExpression:
                         var memberBinding = (MemberBindingExpressionSyntax)expression;
-                        return new PatternMatch((IdentifierNameSyntax)memberBinding.Name, pattern);
+                        return new PatternMatch(memberBinding.Name, pattern);
 
                     case SyntaxKind.ConditionalAccessExpression:
                         var conditionalAccess = (ConditionalAccessExpressionSyntax)expression;
                         var asExpression = (BinaryExpressionSyntax)conditionalAccess.Expression.WalkDownParentheses();
-                        return VisitPatternMatch(asExpression.Left,
+                        return MakePatternMatch(asExpression.Left,
                             new Conjuction(new TypePattern((TypeSyntax)asExpression.Right),
-                                VisitPatternMatch(conditionalAccess.WhenNotNull, pattern)));
+                                MakePatternMatch(conditionalAccess.WhenNotNull, pattern)));
 
                     case SyntaxKind.SimpleMemberAccessExpression:
                         var memberAccess = (MemberAccessExpressionSyntax)expression;
-                        return VisitPatternMatch(memberAccess.Expression,
+                        return MakePatternMatch(memberAccess.Expression,
                             new PatternMatch(memberAccess.Name, pattern));
 
                     case var value:
