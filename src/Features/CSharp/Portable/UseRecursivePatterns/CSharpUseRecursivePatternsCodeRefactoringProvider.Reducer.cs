@@ -1,15 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 {
@@ -23,20 +17,65 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public static AnalyzedNode Reduce(AnalyzedNode analyzedNode) => s_instance.Visit(analyzedNode);
 
-            public override AnalyzedNode VisitPatternMatch(PatternMatch node) => Visit(node.Expand());
-
-            private AnalyzedNode Visit(PatternMatch node) => new PatternMatch(node.Expression, Visit(node.Pattern));
+            public override AnalyzedNode VisitPatternMatch(PatternMatch node) => VisitPatternMatch(node.Expression, Visit(node.Pattern));
 
             public override AnalyzedNode VisitConjuction(Conjuction node) => Visit(node.Left).Visit(Visit(node.Right));
 
+            private static AnalyzedNode VisitPatternMatch(ExpressionSyntax expression, AnalyzedNode pattern)
+            {
+                switch (expression.Kind())
+                {
+                    case SyntaxKind.IdentifierName:
+                        return new PatternMatch(expression, pattern);
+
+                    case SyntaxKind.MemberBindingExpression:
+                        var memberBinding = (MemberBindingExpressionSyntax)expression;
+                        return new PatternMatch((IdentifierNameSyntax)memberBinding.Name, pattern);
+
+                    case SyntaxKind.ConditionalAccessExpression:
+                        var conditionalAccess = (ConditionalAccessExpressionSyntax)expression;
+                        var asExpression = (BinaryExpressionSyntax)conditionalAccess.Expression.WalkDownParentheses();
+                        return VisitPatternMatch(asExpression.Left,
+                            new Conjuction(new TypePattern((TypeSyntax)asExpression.Right),
+                                VisitPatternMatch(conditionalAccess.WhenNotNull, pattern)));
+
+                    case SyntaxKind.SimpleMemberAccessExpression:
+                        var memberAccess = (MemberAccessExpressionSyntax)expression;
+                        return VisitPatternMatch(memberAccess.Expression,
+                            new PatternMatch(memberAccess.Name, pattern));
+
+                    case var value:
+                        throw ExceptionUtilities.UnexpectedValue(value);
+                }
+            }
+
+            public override AnalyzedNode VisitSourcePattern(SourcePattern node)
+            {
+                switch (node.Pattern)
+                {
+                    case ConstantPatternSyntax n:
+                        return new ConstantPattern(n.Expression);
+
+                    case DeclarationPatternSyntax n when n.Designation is DiscardDesignationSyntax:
+                        return new TypePattern(n.Type);
+
+                    case DeclarationPatternSyntax n when n.Designation is SingleVariableDesignationSyntax d:
+                        return new Conjuction(new TypePattern(n.Type), new VarPattern(d.Identifier));
+
+                    case VarPatternSyntax n when n.Designation is SingleVariableDesignationSyntax d:
+                        return new VarPattern(d.Identifier);
+
+                    case RecursivePatternSyntax n:
+                        throw new NotImplementedException();
+
+                    case var value:
+                        throw ExceptionUtilities.UnexpectedValue(value);
+                }
+            }
+
             public override AnalyzedNode VisitConstantPattern(ConstantPattern node) => node;
-
-            public override AnalyzedNode VisitTypePattern(TypePattern node) => node;
-
-            public override AnalyzedNode VisitSourcePattern(SourcePattern node) => node.Expand();
-
             public override AnalyzedNode VisitNotNullPattern(NotNullPattern node) => node;
-
+            public override AnalyzedNode VisitTypePattern(TypePattern node) => node;
             public override AnalyzedNode VisitVarPattern(VarPattern node) => node;
         }
     }

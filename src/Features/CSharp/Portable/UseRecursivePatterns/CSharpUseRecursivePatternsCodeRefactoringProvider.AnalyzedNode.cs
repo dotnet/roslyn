@@ -2,7 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -153,36 +152,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             public override T Accept<T>(Visitor<T> visitor) => visitor.VisitPatternMatch(this);
             public override string ToString() => $"{Expression} is ({Pattern})";
 
-            public PatternMatch Expand()
-            {
-                switch (Expression.Kind())
-                {
-                    case SyntaxKind.IdentifierName:
-                        return this;
-
-                    case SyntaxKind.MemberBindingExpression:
-                        var memberBinding = (MemberBindingExpressionSyntax)Expression;
-                        return new PatternMatch((IdentifierNameSyntax)memberBinding.Name, Pattern);
-
-                    case SyntaxKind.ConditionalAccessExpression:
-                        var conditionalAccess = (ConditionalAccessExpressionSyntax)Expression;
-                        var asExpression = (BinaryExpressionSyntax)conditionalAccess.Expression.WalkDownParentheses();
-                        return new PatternMatch(asExpression.Left,
-                            new Conjuction(
-                                new TypePattern((TypeSyntax)asExpression.Right),
-                                new PatternMatch(conditionalAccess.WhenNotNull, Pattern).Expand())).Expand();
-
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        var memberAccess = (MemberAccessExpressionSyntax)Expression;
-                        // TODO this is wasteful, refactor
-                        return new PatternMatch(memberAccess.Expression,
-                            new PatternMatch(memberAccess.Name, Pattern)).Expand();
-
-                    case var value:
-                        throw ExceptionUtilities.UnexpectedValue(value);
-                }
-            }
-
             public override AnalyzedNode VisitConstantPattern(ConstantPattern node) => Visit(this, node);
             public override AnalyzedNode VisitNotNullPattern(NotNullPattern node) => Visit(node, this);
             public override AnalyzedNode VisitPatternMatch(PatternMatch node) => Visit(this, node);
@@ -262,30 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override T Accept<T>(Visitor<T> visitor) => visitor.VisitSourcePattern(this);
             public override string ToString() => Pattern.ToString();
-
-            public AnalyzedNode Expand()
-            {
-                switch (Pattern)
-                {
-                    case ConstantPatternSyntax n:
-                        return new ConstantPattern(n.Expression);
-
-                    case DeclarationPatternSyntax n when n.Designation is DiscardDesignationSyntax:
-                        return new TypePattern(n.Type);
-
-                    case DeclarationPatternSyntax n when n.Designation is SingleVariableDesignationSyntax d:
-                        return new Conjuction(new TypePattern(n.Type), new VarPattern(d.Identifier));
-
-                    case VarPatternSyntax n when n.Designation is SingleVariableDesignationSyntax d:
-                        return new VarPattern(d.Identifier);
-
-                    case RecursivePatternSyntax n:
-                        throw new NotImplementedException();
-
-                    case var value:
-                        throw ExceptionUtilities.UnexpectedValue(value);
-                }
-            }
 
             public override AnalyzedNode VisitConstantPattern(ConstantPattern node) => throw ExceptionUtilities.Unreachable;
             public override AnalyzedNode VisitNotNullPattern(NotNullPattern node) => throw ExceptionUtilities.Unreachable;
