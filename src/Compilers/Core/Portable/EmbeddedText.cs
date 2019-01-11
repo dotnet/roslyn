@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
 
         private EmbeddedText(string filePath, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm, ImmutableArray<byte> blob)
         {
-            Debug.Assert(filePath != null);
+            Debug.Assert(filePath?.Length > 0);
             Debug.Assert(Cci.DebugSourceDocument.IsSupportedAlgorithm(checksumAlgorithm));
             Debug.Assert(!blob.IsDefault && blob.Length >= sizeof(int));
 
@@ -194,6 +194,11 @@ namespace Microsoft.CodeAnalysis
             if (filePath == null)
             {
                 throw new ArgumentNullException(nameof(filePath));
+            }
+
+            if (filePath.Length == 0)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(filePath));
             }
         }
 

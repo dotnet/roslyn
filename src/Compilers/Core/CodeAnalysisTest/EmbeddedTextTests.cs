@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void FromBytes_ArgumentErrors()
         {
             Assert.Throws<ArgumentNullException>("filePath", () => EmbeddedText.FromBytes(null, default(ArraySegment<byte>)));
+            Assert.Throws<ArgumentException>("filePath", () => EmbeddedText.FromBytes("", default(ArraySegment<byte>)));
             Assert.Throws<ArgumentNullException>("bytes", () => EmbeddedText.FromBytes("path", default(ArraySegment<byte>)));
             Assert.Throws<ArgumentException>("checksumAlgorithm", () => EmbeddedText.FromBytes("path", new ArraySegment<byte>(new byte[0], 0, 0), SourceHashAlgorithm.None));
         }
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void FromSource_ArgumentErrors()
         {
             Assert.Throws<ArgumentNullException>("filePath", () => EmbeddedText.FromSource(null, null));
+            Assert.Throws<ArgumentException>("filePath", () => EmbeddedText.FromSource("", null));
             Assert.Throws<ArgumentNullException>("text", () => EmbeddedText.FromSource("path", null));
 
             // no encoding
@@ -41,6 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void FromStream_ArgumentErrors()
         {
             Assert.Throws<ArgumentNullException>("filePath", () => EmbeddedText.FromStream(null, null));
+            Assert.Throws<ArgumentException>("filePath", () => EmbeddedText.FromStream("", null));
             Assert.Throws<ArgumentNullException>("stream", () => EmbeddedText.FromStream("path", null));
             Assert.Throws<ArgumentException>("stream", () => EmbeddedText.FromStream("path", new CannotReadStream()));
             Assert.Throws<ArgumentException>("stream", () => EmbeddedText.FromStream("path", new CannotSeekStream()));
@@ -53,6 +56,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<IOException>(() => EmbeddedText.FromStream("path", new HugeStream()));
             Assert.Throws<EndOfStreamException>(() => EmbeddedText.FromStream("path", new TruncatingStream(10)));
             Assert.Throws<EndOfStreamException>(() => EmbeddedText.FromStream("path", new TruncatingStream(1000)));
+
+            // Should be Assert.Throws<IOException>, but impeded by https://github.com/dotnet/roslyn/issues/12926
             Assert.Throws<IOException>(() => EmbeddedText.FromStream("path", new ReadFailsStream()));
         }
 

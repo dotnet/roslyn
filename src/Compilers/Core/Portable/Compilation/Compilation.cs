@@ -1991,7 +1991,7 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var text in embeddedTexts)
                 {
-                    Debug.Assert(text.FilePath != null);
+                    Debug.Assert(!string.IsNullOrEmpty(text.FilePath));
                     string normalizedPath = documentsBuilder.NormalizeDebugDocumentPath(text.FilePath, basePath: null);
                     var existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
                     if (existingDoc == null)
