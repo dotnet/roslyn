@@ -16,6 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Protected ReadOnly m_SourceAssembly As SourceAssemblySymbol
         Private ReadOnly _additionalTypes As ImmutableArray(Of NamedTypeSymbol)
         Private _lazyFiles As ImmutableArray(Of Cci.IFileReference)
+
+        ''' <summary>This is a cache of a subset of <seealso cref="_lazyFiles"/>. We don't include manifest resources in ref assemblies</summary>
         Private _lazyFilesWithoutManifestResources As ImmutableArray(Of Cci.IFileReference)
 
         ''' <summary>

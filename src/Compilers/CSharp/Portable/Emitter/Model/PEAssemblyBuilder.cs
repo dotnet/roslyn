@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private readonly SourceAssemblySymbol _sourceAssembly;
         private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
         private ImmutableArray<Cci.IFileReference> _lazyFiles;
-        private ImmutableArray<Cci.IFileReference> _lazyFilesWithoutManifestResources; // we don't include manifest resources in ref assemblies
+
+        /// <summary>This is a cache of a subset of <seealso cref="_lazyFiles"/>. We don't include manifest resources in ref assemblies</summary>
+        private ImmutableArray<Cci.IFileReference> _lazyFilesWithoutManifestResources;
 
         private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
