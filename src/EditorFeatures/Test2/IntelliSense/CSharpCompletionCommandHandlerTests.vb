@@ -3590,53 +3590,52 @@ class C
                     Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
                     Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
                     tcs.SetResult(True)
-
-                    Await state.WaitForAsynchronousOperationsAsync()
-                    Await state.AssertNoCompletionSession()
-                    Assert.Contains("System", state.GetLineTextFromCaretPosition())
                 Else
                     Dim task1 As Task = Nothing
                     Dim task2 As Task = Nothing
 
-                    Dim providerCalledHandler = Sub()
-                                                    task1 = Task.Run(Sub()
-                                                                         ' 2. Hang here as well.
-                                                                         Dim completionItem = state.GetSelectedItemOpt()
-                                                                     End Sub)
-                                                    task2 = Task.Run(Sub()
-                                                                         Thread.Sleep(250)
-                                                                         Try
-                                                                             ' 3. Check that the other task is running/hanging.
-                                                                             Assert.Equal(TaskStatus.Running, task1.Status)
-                                                                             Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
-                                                                             Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
-                                                                         Finally
-                                                                             ' 4. Unblock the first task and the main thread.
-                                                                             tcs.SetResult(True)
-                                                                         End Try
-                                                                     End Sub)
-                                                End Sub
+                    Dim providerCalledHandler =
+                        Sub()
+                            task1 = Task.Run(
+                            Sub()
+                                ' 2. Hang here as well: getting items is waiting provider to respond.
+                                Dim completionItem = state.GetSelectedItemOpt()
+                            End Sub)
 
-                    Try
-                        AddHandler provider.ProviderCalled, providerCalledHandler
+                            task2 = Task.Run(
+                            Sub()
+                                Thread.Sleep(250)
+                                Try
+                                    ' 3. Check that the other task is running/hanging.
+                                    Assert.Equal(TaskStatus.Running, task1.Status)
+                                    Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
+                                    Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
+                                    ' Need the Finally to avoid hangs if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
+                                Finally
+                                    ' 4. Unblock the first task and the main thread.
+                                    tcs.SetResult(True)
+                                End Try
+                            End Sub)
+                        End Sub
 
-                        ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
-                        ' 1. Hang here.
-                        state.SendCommitUniqueCompletionListItem()
+                    AddHandler provider.ProviderCalled, providerCalledHandler
 
-                        Assert.NotNull(task1)
-                        Assert.NotNull(task2)
-                        Await Task.WhenAll(task1, task2)
+                    ' SendCommitUniqueCompletionListItem is a synchronous operation. 
+                    ' It guarantees that ProviderCalled will be triggered and after that the completion will hang waiting for a task to be resolved.
+                    ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
+                    ' 1. Hang here.
+                    state.SendCommitUniqueCompletionListItem()
 
-                        Await state.WaitForAsynchronousOperationsAsync()
-                        Await state.AssertNoCompletionSession()
-                        Assert.Contains("System", state.GetLineTextFromCaretPosition())
-                    Finally
-                        RemoveHandler provider.ProviderCalled, providerCalledHandler
-                    End Try
+                    Assert.NotNull(task1)
+                    Assert.NotNull(task2)
+                    Await Task.WhenAll(task1, task2)
+                    RemoveHandler provider.ProviderCalled, providerCalledHandler
                 End If
-            End Using
 
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("System", state.GetLineTextFromCaretPosition())
+            End Using
         End Function
 
         <MemberData(NameOf(AllCompletionImplementations))>
@@ -3685,44 +3684,50 @@ class C
                     Dim task1 As Task = Nothing
                     Dim task2 As Task = Nothing
 
-                    Dim providerCalledHandler = Sub()
-                                                    task1 = Task.Run(Sub()
-                                                                         ' 2. Hang here as well.
-                                                                         Dim completionItem = state.GetSelectedItemOpt()
-                                                                     End Sub)
-                                                    task2 = Task.Run(Sub()
-                                                                         Thread.Sleep(250)
-                                                                         Try
-                                                                             ' 3. Check that the other task is running/hanging.
-                                                                             Assert.Equal(TaskStatus.Running, task1.Status)
-                                                                             Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
-                                                                             Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
-                                                                         Finally
-                                                                             ' 4. Unblock the first task and the main thread.
-                                                                             tcs.SetResult(True)
-                                                                         End Try
-                                                                     End Sub)
-                                                End Sub
+                    Dim providerCalledHandler =
+                        Sub()
+                            task1 = Task.Run(
+                            Sub()
+                                ' 2. Hang here as well: getting items is waiting provider to respond.
+                                Dim completionItem = state.GetSelectedItemOpt()
+                            End Sub)
+                            task2 = Task.Run(
+                                Sub()
+                                    Thread.Sleep(250)
+                                    Try
+                                        ' 3. Check that the other task is running/hanging.
+                                        Assert.Equal(TaskStatus.Running, task1.Status)
+                                        Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
+                                        Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
+                                        ' Need the Finally to avoid hangs if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
+                                    Finally
+                                        ' 4. Unblock the first task and the main thread.
+                                        tcs.SetResult(True)
+                                    End Try
+                                End Sub)
+                        End Sub
 
-                    Try
-                        AddHandler provider.ProviderCalled, providerCalledHandler
+                    AddHandler provider.ProviderCalled, providerCalledHandler
 
-                        ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
-                        ' 1. Hang here.
-                        state.SendCommitUniqueCompletionListItem()
-                        ' 5. Put insertion of 'a' into the edtior queue. It can be executed in the foreground thread only
-                        state.SendTypeChars("a")
+                    ' SendCommitUniqueCompletionListItem is a synchronous operation. 
+                    ' It guarantees that ProviderCalled will be triggered and after that the completion will hang waiting for a task to be resolved.
+                    ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
+                    ' 1. Hang here.
+                    state.SendCommitUniqueCompletionListItem()
+                    ' 5. Put insertion of 'a' into the edtior queue. It can be executed in the foreground thread only
+                    state.SendTypeChars("a")
 
-                        Assert.NotNull(task1)
-                        Assert.NotNull(task2)
-                        Await Task.WhenAll(task1, task2)
+                    Assert.NotNull(task1)
+                    Assert.NotNull(task2)
+                    Await Task.WhenAll(task1, task2)
 
-                        Await state.WaitForAsynchronousOperationsAsync()
-                        Await state.AssertNoCompletionSession()
-                        Assert.Contains("Systema", state.GetLineTextFromCaretPosition())
-                    Finally
-                        RemoveHandler provider.ProviderCalled, providerCalledHandler
-                    End Try
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertNoCompletionSession()
+                    ' Here is a difference between the old and the new completions:
+                    ' The old completion adds 'a' to 'Sys' and displays 'Sysa'. CommitIfUnique is canceled because it was interrupted by typing 'a'.
+                    ' The new completion completes CommitIfUnique and then adds 'a'.
+                    Assert.Contains("Systema", state.GetLineTextFromCaretPosition())
+                    RemoveHandler provider.ProviderCalled, providerCalledHandler
                 End If
             End Using
         End Function

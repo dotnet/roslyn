@@ -135,6 +135,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             Dim completionItems = session.GetComputedItems(CancellationToken.None)
+            ' During the computation we can explicitly dismiss the session or we can return no items.
+            ' Each of these conditions mean that there is no active completion.
             Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0)
         End Function
 
@@ -150,13 +152,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             ' If completionItems cannot be calculated in 5 seconds, no session exists.
             Dim task1 = Task.Delay(5000)
-            Dim task2 = Task.Run(Sub()
-                                     Dim completionItems = session.GetComputedItems(CancellationToken.None)
-                                     ' In the non blocking mode, we are not interested for a session appeared later than in 5 seconds.
-                                     If task1.Status = TaskStatus.Running Then
-                                         Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0)
-                                     End If
-                                 End Sub)
+            Dim task2 = Task.Run(
+                Sub()
+                    Dim completionItems = session.GetComputedItems(CancellationToken.None)
+
+                    ' In the non blocking mode, we are not interested for a session appeared later than in 5 seconds.
+                    If task1.Status = TaskStatus.Running Then
+                        ' During the computation we can explicitly dismiss the session or we can return no items.
+                        ' Each of these conditions mean that there is no active completion.
+                        Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0)
+                    End If
+                End Sub)
 
             Task.WaitAny(task1, task2)
         End Sub
