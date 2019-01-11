@@ -1155,6 +1155,25 @@ class Program
             Assert.NotNull(symbolInfo);
         }
 
+        [WorkItem(31587, "https://github.com/dotnet/roslyn/issues/31587")]
+        [Fact]
+        public void NullableDecimalToEnumConversion()
+        {
+            var source = @"
+using System;
+enum e1 { v1, v2 }
+public class C {
+    public void M(Decimal? d) {
+        switch ((e1)d) {
+            case e1.v1: break;
+            default: break;
+        }
+    }
+}
+";
+            CompileAndVerify(source).VerifyDiagnostics();
+        }
+
         #endregion
 
         #region "Switch Governing Type with Implicit User Defined Conversion Tests"
