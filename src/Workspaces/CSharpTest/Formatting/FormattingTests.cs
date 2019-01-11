@@ -8873,6 +8873,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(32113, "https://github.com/dotnet/roslyn/issues/32113")]
         public async Task FormatCommaAfterCloseBrace_ShouldRemainInTheSameLine()
         {
             await AssertFormatAsync(
