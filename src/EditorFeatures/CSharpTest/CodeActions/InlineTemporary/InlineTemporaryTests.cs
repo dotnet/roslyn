@@ -4650,16 +4650,42 @@ class C
         var [|x|] = (X)(0, 0);
         var x2 = x;
     }
-}",
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
 @"using X = System.ValueTuple<int, int>;
 
 class C
 {
     void M()
     {
-        var x2 = (System.ValueTuple<int, int>)(0, 0);
+        var x2 = (X)(0, 0);
     }
-}");
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+        }
+
+        [WorkItem(30903, "https://github.com/dotnet/roslyn/issues/30903")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineVariableContainsAliasOfMixedValueTupleType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using X = System.ValueTuple<int, (int, int)>;
+
+class C
+{
+    void M()
+    {
+        var [|x|] = (X)(0, (0, 0));
+        var x2 = x;
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"using X = System.ValueTuple<int, (int, int)>;
+
+class C
+{
+    void M()
+    {
+        var x2 = (X)(0, (0, 0));
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
     }
 }

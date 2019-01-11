@@ -480,6 +480,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             aliasTarget = ((INamedTypeSymbol)aliasTarget).ConstructUnboundGenericType();
                         }
 
+                        if (aliasTarget is INamedTypeSymbol typeSymbol && typeSymbol.IsTupleType)
+                        {
+                            // ValueTuple type is not allowed in using alias, so when expanding an alias
+                            // of ValueTuple types, always use its underlying type, i.e. `System.ValueTuple<>` instead of `(...)`
+                            aliasTarget = typeSymbol.TupleUnderlyingType;
+                        }
+
                         // the expanded form replaces the current identifier name.
                         var replacement = FullyQualifyIdentifierName(
                             aliasTarget,
@@ -568,26 +575,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             newIdentifier = newIdentifier.WithAdditionalAnnotations(aliasAnnotationInfo);
 
                             replacement = replacement.ReplaceToken(identifier, newIdentifier);
-
-                            replacement = newNode.CopyAnnotationsTo(replacement);
-
-                            replacement = AppendElasticTriviaIfNecessary(replacement, originalSimpleName);
-
-                            return replacement;
-                        }
-
-                        if (replacement.IsKind(SyntaxKind.TupleType))
-                        {
-                            replacement = replacement.WithAdditionalAnnotations(identifier.GetAnnotations());
-
-                            if (_annotationForReplacedAliasIdentifier != null)
-                            {
-                                replacement = replacement.WithAdditionalAnnotations(_annotationForReplacedAliasIdentifier);
-                            }
-
-                            var aliasAnnotationInfo = AliasAnnotation.Create(aliasInfo.Name);
-
-                            replacement = replacement.WithAdditionalAnnotations(aliasAnnotationInfo);
 
                             replacement = newNode.CopyAnnotationsTo(replacement);
 
