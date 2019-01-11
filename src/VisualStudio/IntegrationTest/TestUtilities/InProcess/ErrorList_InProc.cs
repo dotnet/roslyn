@@ -30,15 +30,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void NavigateToErrorListItem(int itemIndex)
+        public ErrorListItem NavigateToErrorListItem(int itemIndex, __VSERRORCATEGORY minimumSeverity = __VSERRORCATEGORY.EC_WARNING)
         {
-            var errorItems = GetErrorItems().AsEnumerable().ToArray();
+            var errorItems = GetErrorItems()
+                .AsEnumerable()
+                .Where(e => ((IVsErrorItem)e).GetCategory() <= minimumSeverity)
+                .ToArray();
             if (itemIndex > errorItems.Count())
             {
                 throw new ArgumentException($"Cannot Navigate to Item '{itemIndex}', Total Items found '{errorItems.Count()}'.");
             }
 
-            ErrorHandler.ThrowOnFailure(errorItems.ElementAt(itemIndex).NavigateTo());
+            var item = errorItems.ElementAt(itemIndex);
+            ErrorHandler.ThrowOnFailure(item.NavigateTo());
+            return new ErrorListItem(item.GetSeverity(), item.GetDescription(), item.GetProject(), item.GetFileName(), item.GetLine(), item.GetColumn());
         }
 
         public int GetErrorCount(__VSERRORCATEGORY minimumSeverity = __VSERRORCATEGORY.EC_WARNING)
