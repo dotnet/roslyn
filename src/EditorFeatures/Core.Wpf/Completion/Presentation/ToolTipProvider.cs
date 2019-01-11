@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 AutomationProperties.SetName(this, description.Text);
             }
 
-            public static Run GetRun(TaggedText part, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
+            private static Run GetRun(TaggedText part, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
             {
-                var text = GetVisibleDisplayString(part, includeLeftToRightMarker: true);
+                var text = part.ToVisibleDisplayString(includeLeftToRightMarker: true);
 
                 var run = new Run(text);
 
@@ -113,25 +113,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 run.SetTextProperties(format);
 
                 return run;
-            }
-
-            private const string LeftToRightMarkerPrefix = "\u200e";
-
-            private static string GetVisibleDisplayString(TaggedText part, bool includeLeftToRightMarker)
-            {
-                var text = part.Text;
-
-                if (includeLeftToRightMarker)
-                {
-                    var classificationTypeName = part.Tag.ToClassificationTypeName();
-                    if (classificationTypeName == ClassificationTypeNames.Punctuation ||
-                        classificationTypeName == ClassificationTypeNames.WhiteSpace)
-                    {
-                        text = LeftToRightMarkerPrefix + text;
-                    }
-                }
-
-                return text;
             }
 
             private TextBlock GetTextBlock(ImmutableArray<TaggedText> parts)
