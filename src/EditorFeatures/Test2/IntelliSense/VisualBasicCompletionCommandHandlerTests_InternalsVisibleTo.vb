@@ -174,9 +174,7 @@ End Namespace
                         Await state.AssertNoCompletionSession()
                         state.SendInvokeCompletionList()
                         Await state.WaitForAsynchronousOperationsAsync()
-                        Assert.True(
-                            state.CurrentCompletionPresenterSession Is Nothing OrElse
-                            Not state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                        Await state.AssertSessionIsNothingOrNoCompletionItemLike("ClassLibrary1")
                     End Function
                 Await AssertNoCompletionAndCompletionDoesNotContainClassLibrary1()
                 state.SendTypeChars("("c)
@@ -205,9 +203,7 @@ Imports System.Reflection
                     Await state.AssertCompletionSession()
                     Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
                 Else
-                    If Not state.CurrentCompletionPresenterSession Is Nothing Then
-                        Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
-                    End If
+                    Await state.AssertSessionIsNothingOrNoCompletionItemLike("ClassLibrary1")
                 End If
             End Using
         End Function

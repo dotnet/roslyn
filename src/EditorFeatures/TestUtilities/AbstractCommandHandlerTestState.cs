@@ -224,12 +224,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         #endregion
 
         #region editor related operation
-        public void SendBackspace()
+        public virtual void SendBackspace()
         {
             EditorOperations.Backspace();
         }
 
-        public void SendDelete()
+        public virtual void SendDelete()
         {
             EditorOperations.Delete();
         }
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             EditorOperations.MoveToPreviousCharacter(extendSelection);
         }
 
-        public void SendDeleteWordToLeft()
+        public virtual void SendDeleteWordToLeft()
         {
             EditorOperations.DeleteWordToLeft();
         }
@@ -258,6 +258,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             var history = UndoHistoryRegistry.GetHistory(SubjectBuffer);
             history.Undo(count);
+        }
+
+        public void SelectAndMoveCaret(int offset)
+        {
+            var currentCaret = GetCaretPoint();
+            EditorOperations.SelectAndMoveCaret(
+                new VirtualSnapshotPoint(SubjectBuffer.CurrentSnapshot, currentCaret.BufferPosition.Position),
+                new VirtualSnapshotPoint(SubjectBuffer.CurrentSnapshot, currentCaret.BufferPosition.Position + offset));
         }
         #endregion
 
