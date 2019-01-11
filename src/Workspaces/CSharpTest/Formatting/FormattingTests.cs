@@ -8874,7 +8874,38 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(32113, "https://github.com/dotnet/roslyn/issues/32113")]
-        public async Task FormatCommaAfterCloseBrace_ShouldRemainInTheSameLine()
+        public async Task FormatCommaAfterCloseBrace_CommaRemainIntheSameLine()
+        {
+            await AssertFormatAsync(
+                @"
+public class Test
+{
+    public void Foo()
+    {
+        (Action, Action, Action) tuple = (
+            () => { Console.WriteLine(2.997e8); },
+            () => { Console.WriteLine(6.67e-11); },
+            () => { Console.WriteLine(1.602e-19); }
+        );
+    }
+}",
+                @"
+public class Test
+{
+    public void Foo()
+    {
+        (Action, Action, Action) tuple = (
+            () => { Console.WriteLine(2.997e8); },
+            () => { Console.WriteLine(6.67e-11); },
+            () => { Console.WriteLine(1.602e-19); }
+        );
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(32113, "https://github.com/dotnet/roslyn/issues/32113")]
+        public async Task FormatCommaAfterCloseBrace_SpaceSurroundWillBeRemoved()
         {
             await AssertFormatAsync(
                 @"
@@ -8896,7 +8927,7 @@ public class Test
     {
         (Action, Action, Action) tuple = (
             () => { Console.WriteLine(2.997e8); }                             ,        
-            () => { Console.WriteLine(6.67e-11); },
+            () => { Console.WriteLine(6.67e-11); }   ,    
             () => { Console.WriteLine(1.602e-19); }
         );
     }
