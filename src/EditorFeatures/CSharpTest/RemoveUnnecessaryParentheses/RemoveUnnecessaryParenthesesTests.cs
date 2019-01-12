@@ -2229,5 +2229,56 @@ offeredWhenRequireForClarityIsEnabled: true);
     }
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
+
+        [WorkItem(31103, "https://github.com/dotnet/roslyn/issues/31103")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestMissingForConditionalRefAsLeftHandSideValue()
+        {
+            await TestMissingAsync(
+@"class Bar
+{
+    void Foo(bool cond, double a, double b)
+    {
+        [||](cond ? ref a : ref b) = 6.67e-11;
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [WorkItem(31103, "https://github.com/dotnet/roslyn/issues/31103")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestConditionalExpressionAsRightHandSideValue()
+        {
+            await TestInRegularAndScript1Async(
+@"class Bar
+{
+    void Foo(bool cond, double a, double b)
+    {
+        double c = $$(cond ? a : b);
+    }
+}",
+@"class Bar
+{
+    void Foo(bool cond, double a, double b)
+    {
+        double c = cond ? a : b;
+    }
+}",
+parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [WorkItem(32085, "https://github.com/dotnet/roslyn/issues/32085")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestMissingForNestedConditionalExpressionInLambda()
+        {
+            await TestMissingAsync(
+@"class Bar
+{
+    void Test(bool a)
+    {
+        Func<int, string> lambda =
+            number => (number + $""{ ($$a ? ""foo"" : ""bar"") }"");
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
     }
 }
