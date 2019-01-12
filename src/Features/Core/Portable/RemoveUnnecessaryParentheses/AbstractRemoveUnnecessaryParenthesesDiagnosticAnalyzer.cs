@@ -5,6 +5,8 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 {
@@ -15,11 +17,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         where TLanguageKindEnum : struct
         where TParenthesizedExpressionSyntax : SyntaxNode
     {
+        private readonly DiagnosticDescriptor _unnecessaryWithoutSuggestionWithoutFadeDescriptor;
+
         protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_unnecessary_parentheses), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Parentheses_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
+            _unnecessaryWithoutSuggestionWithoutFadeDescriptor = CreateDescriptorWithId(
+                DescriptorId + "WithoutSuggestion", _localizableTitle, _localizableMessageFormat,
+                isUnneccessary: false);
         }
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
@@ -116,9 +123,31 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 additionalLocations,
                 properties: null));
 
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                _unnecessaryWithoutSuggestionWithoutFadeDescriptor,
+                GetDiagnosticSquiggleLocation(parenthesizedExpression),
+                severity,
+                additionalLocations,
+                properties: null));
+
             context.ReportDiagnostic(Diagnostic.Create(
                 UnnecessaryWithoutSuggestionDescriptor,
                 parenthesizedExpression.GetLastToken().GetLocation(), additionalLocations));
+        }
+
+        private Location GetDiagnosticSquiggleLocation(TParenthesizedExpressionSyntax parenthesizedExpression)
+        {
+            var parenthesizedExpressionLocation = parenthesizedExpression.GetLocation();
+            var expressionLineSpan = parenthesizedExpressionLocation.GetLineSpan();
+
+            if (expressionLineSpan.StartLinePosition.Line < expressionLineSpan.EndLinePosition.Line)
+            {
+                var lines = parenthesizedExpression.SyntaxTree.GetText().Lines;
+                var expressionFirstLine = lines.GetLineFromPosition(parenthesizedExpressionLocation.SourceSpan.Start);
+                var spanUntilEndOfLine = TextSpan.FromBounds(parenthesizedExpressionLocation.SourceSpan.Start, expressionFirstLine.Span.End);
+                return Location.Create(parenthesizedExpression.SyntaxTree, spanUntilEndOfLine);
+            }
+            return parenthesizedExpressionLocation;
         }
     }
 }
