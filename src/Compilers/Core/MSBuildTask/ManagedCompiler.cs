@@ -26,14 +26,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal abstract RequestLanguage Language { get; }
 
-        static ManagedCompiler()
-        {
-            AssemblyResolution.Install();
-        }
-
         public ManagedCompiler()
         {
             TaskResources = ErrorString.ResourceManager;
+
+            // If there is a crash, the runtime error is output to stderr and
+            // we want MSBuild to print it out regardless of verbosity.
+            LogStandardErrorAsError = true;
         }
 
         #region Properties
@@ -451,9 +450,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
+                var workingDir = CurrentDirectoryToUse();
+                string tempDir = BuildServerConnection.GetTempPath(workingDir);
+
                 if (!UseSharedCompilation ||
                     HasToolBeenOverridden ||
-                    !BuildServerConnection.IsCompilerServerSupported)
+                    !BuildServerConnection.IsCompilerServerSupported(tempDir))
                 {
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
@@ -471,13 +473,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // we'll just print our own message that contains the real client location
                     Log.LogMessage(ErrorString.UsingSharedCompilation, clientDir);
 
-                    var workingDir = CurrentDirectoryToUse();
                     var buildPaths = new BuildPathsAlt(
                         clientDir: clientDir,
                         // MSBuild doesn't need the .NET SDK directory
                         sdkDir: null,
                         workingDir: workingDir,
-                        tempDir: BuildServerConnection.GetTempPath(workingDir));
+                        tempDir: tempDir);
 
                     // Note: using ToolArguments here (the property) since
                     // commandLineCommands (the parameter) may have been mucked with
@@ -606,6 +607,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 case BuildResponse.ResponseType.MismatchedVersion:
                     LogErrorOutput("Roslyn compiler server reports different protocol version than build task.");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
+                case BuildResponse.ResponseType.IncorrectHash:
+                    LogErrorOutput("Roslyn compiler server reports different hash version than build task.");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.Rejected:

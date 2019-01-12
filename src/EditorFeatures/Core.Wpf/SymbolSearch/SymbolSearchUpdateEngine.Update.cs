@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     /// <summary>
     /// A service which enables searching for packages matching certain criteria.
-    /// It works against an <see cref="Microsoft.CodeAnalysis.Elfie"/> database to find results.
+    /// It works against a <see cref="Microsoft.CodeAnalysis.Elfie"/> database to find results.
     /// 
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             if (ourSentinel != currentSentinel)
             {
                 // We already have an update loop for this source.  Nothing for us to do.
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             // We were the first ones to try to update this source.  Spawn off a task to do
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
                     // We retrieved bytes from the server, but we couldn't make a DB
-                   // out of it.  That's very bad.  Just trying again one minute later
+                    // out of it.  That's very bad.  Just trying again one minute later
                     // isn't going to help.  We need to wait until there is good data
                     // on the server for us to download.
                     var failureDelay = _service._delayService.CatastrophicFailureDelay;
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     using (var inStream = new MemoryStream(compressedBytes))
                     using (var deflateStream = new DeflateStream(inStream, CompressionMode.Decompress))
                     {
-                        deflateStream.CopyTo(outStream);
+                        await deflateStream.CopyToAsync(outStream).ConfigureAwait(false);
                     }
 
                     var bytes = outStream.ToArray();

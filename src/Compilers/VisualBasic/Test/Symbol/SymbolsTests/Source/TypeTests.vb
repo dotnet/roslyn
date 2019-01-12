@@ -3020,7 +3020,7 @@ end namespace
     </file>
 </compilation>
 
-            Dim moduleRef2 = CreateCompilationWithMscorlib40(mod2, TestOptions.ReleaseModule).EmitToImageReference()
+            Dim moduleRef2 = CreateCompilationWithMscorlib40(mod2, options:=TestOptions.ReleaseModule).EmitToImageReference()
 
             Dim compilation = CreateCompilationWithMscorlib40AndReferences(source, {moduleRef1, moduleRef2}, TestOptions.ReleaseDll)
 
@@ -3050,15 +3050,15 @@ End Class
 </compilation>
 
             forwardedTypesSource.@name = "ForwardedTypes1"
-            Dim forwardedTypes1 = CreateCompilationWithMscorlib40(forwardedTypesSource, TestOptions.ReleaseDll)
+            Dim forwardedTypes1 = CreateCompilationWithMscorlib40(forwardedTypesSource, options:=TestOptions.ReleaseDll)
             Dim forwardedTypes1Ref = New VisualBasicCompilationReference(forwardedTypes1)
 
             forwardedTypesSource.@name = "ForwardedTypes2"
-            Dim forwardedTypes2 = CreateCompilationWithMscorlib40(forwardedTypesSource, TestOptions.ReleaseDll)
+            Dim forwardedTypes2 = CreateCompilationWithMscorlib40(forwardedTypesSource, options:=TestOptions.ReleaseDll)
             Dim forwardedTypes2Ref = New VisualBasicCompilationReference(forwardedTypes2)
 
             forwardedTypesSource.@name = "forwardedTypesMod"
-            Dim forwardedTypesModRef = CreateCompilationWithMscorlib40(forwardedTypesSource, TestOptions.ReleaseModule).EmitToImageReference()
+            Dim forwardedTypesModRef = CreateCompilationWithMscorlib40(forwardedTypesSource, options:=TestOptions.ReleaseModule).EmitToImageReference()
 
             Dim modSource =
             <![CDATA[

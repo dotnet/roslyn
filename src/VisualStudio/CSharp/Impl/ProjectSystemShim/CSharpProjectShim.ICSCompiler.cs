@@ -49,8 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public string GetOutputFileName()
         {
-            // in-proc compiler, return the output we got set.
-            return this.ObjOutputPath;
+            return VisualStudioProject.IntermediateOutputFilePath;
         }
 
         public object CreateParser()

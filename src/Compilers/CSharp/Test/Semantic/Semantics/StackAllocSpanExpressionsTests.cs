@@ -419,7 +419,7 @@ public class Test
 }
 ";
             CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var v = stackalloc int[1])
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("int*").WithLocation(6, 16));
         }
@@ -741,6 +741,58 @@ class Test
                 // (20,98): error CS0315: The type 'NonComparable' cannot be used as type parameter 'T' in the generic type or method 'Span<T>'. There is no boxing conversion from 'NonComparable' to 'System.IComparable'.
                 //         var implicitError = explicitError.Length > 0 ? stackalloc NonComparable[10] : stackalloc NonComparable[100];
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "NonComparable[100]").WithArguments("System.Span<T>", "System.IComparable", "T", "NonComparable").WithLocation(20, 98));
+        }
+
+        [Fact]
+        [WorkItem(26195, "https://github.com/dotnet/roslyn/issues/26195")]
+        public void StackAllocImplicitConversion_TwpStep_ToPointer()
+        {
+            var code = @"
+class Test2
+{
+}
+unsafe class Test
+{
+	public void Method()
+	{
+		Test obj1 = stackalloc int[2];
+	}
+	public static implicit operator Test2(int* value) => default;
+}";
+
+            CreateCompilationWithMscorlibAndSpan(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (11,34): error CS0556: User-defined conversion must convert to or from the enclosing type
+                // 	public static implicit operator Test2(int* value) => default;
+                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "Test2").WithLocation(11, 34),
+                // (9,15): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'Test' is not possible.
+                // 		Test obj1 = stackalloc int[2];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[2]").WithArguments("int", "Test").WithLocation(9, 15));
+        }
+
+        [Fact]
+        [WorkItem(26195, "https://github.com/dotnet/roslyn/issues/26195")]
+        public void StackAllocImplicitConversion_TwpStep_ToSpan()
+        {
+            var code = @"
+class Test2
+{
+}
+unsafe class Test
+{
+	public void Method()
+	{
+		Test obj1 = stackalloc int[2];
+	}
+	public static implicit operator Test2(System.Span<int> value) => default;
+}";
+
+            CreateCompilationWithMscorlibAndSpan(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (11,34): error CS0556: User-defined conversion must convert to or from the enclosing type
+                // 	public static implicit operator Test2(System.Span<int> value) => default;
+                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "Test2").WithLocation(11, 34),
+                // (9,15): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'Test' is not possible.
+                // 		Test obj1 = stackalloc int[2];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[2]").WithArguments("int", "Test").WithLocation(9, 15));
         }
     }
 }

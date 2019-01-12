@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// <summary>
         /// Reference to an assembly that defines Expression Trees.
         /// </summary>
-        protected new static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
+        protected static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
 
 
         #region A string containing expression-tree dumping utilities
@@ -381,6 +381,67 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
 ";
         #endregion A string containing expression-tree dumping utilities
 
+        [Fact]
+        public void ExprLambdaReordering()
+        {
+            var verifier = CompileAndVerify(new[] { ExpressionTestLibrary, @"
+using System;
+using System.Linq;
+
+class C
+{
+    public static void Main() => F(new[] { 1, 2, 3}.AsQueryable());
+    static void F(IQueryable<int> q)
+    {
+        IQueryable<int> result = from/*0*/ a in q
+                     join/*1*/ b in new[] { 5 } on a + 1 equals b - 1
+                     group/*2*/ new { a, b = a + 5 } by new { c = a + 4 } into d
+                     select/*3*/ d.Key.c;
+        Console.WriteLine(ExpressionPrinter.Print(result.Expression));
+    }
+}" },
+
+// The exact result of this test isn't important, only that it was unchanged
+// by making AnonymousFunction conversions be side-affecting in the local rewriter
+expectedOutput: @"Call(null.[System.Linq.IQueryable`1[System.Int32] Select[IGrouping`2,Int32](System.Linq.IQueryable`1[System.Linq.IGrouping`2[<>f__AnonymousType1`1[System.Int32],<>f__AnonymousType0`2[System.Int32,System.Int32]]], System.Linq.Expressions.Expression`1[System.Func`2[System.Linq.IGrouping`2[<>f__AnonymousType1`1[System.Int32],<>f__AnonymousType0`2[System.Int32,System.Int32]],System.Int32]])](Call(null.[System.Linq.IQueryable`1[System.Linq.IGrouping`2[<>f__AnonymousType1`1[System.Int32],<>f__AnonymousType0`2[System.Int32,System.Int32]]] GroupBy[<>f__AnonymousType0`2,<>f__AnonymousType1`1,<>f__AnonymousType0`2](System.Linq.IQueryable`1[<>f__AnonymousType0`2[System.Int32,System.Int32]], System.Linq.Expressions.Expression`1[System.Func`2[<>f__AnonymousType0`2[System.Int32,System.Int32],<>f__AnonymousType1`1[System.Int32]]], System.Linq.Expressions.Expression`1[System.Func`2[<>f__AnonymousType0`2[System.Int32,System.Int32],<>f__AnonymousType0`2[System.Int32,System.Int32]]])](Call(null.[System.Linq.IQueryable`1[<>f__AnonymousType0`2[System.Int32,System.Int32]] Join[Int32,Int32,Int32,<>f__AnonymousType0`2](System.Linq.IQueryable`1[System.Int32], System.Collections.Generic.IEnumerable`1[System.Int32], System.Linq.Expressions.Expression`1[System.Func`2[System.Int32,System.Int32]], System.Linq.Expressions.Expression`1[System.Func`2[System.Int32,System.Int32]], System.Linq.Expressions.Expression`1[System.Func`3[System.Int32,System.Int32,<>f__AnonymousType0`2[System.Int32,System.Int32]]])](Constant(System.Int32[] Type:System.Linq.EnumerableQuery`1[System.Int32]), Constant(System.Int32[] Type:System.Collections.Generic.IEnumerable`1[System.Int32]), Quote(Lambda((Parameter(a Type:System.Int32)) => Add(Parameter(a Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Int32) ReturnType:System.Int32 Type:System.Func`2[System.Int32,System.Int32]) Type:System.Linq.Expressions.Expression`1[System.Func`2[System.Int32,System.Int32]]), Quote(Lambda((Parameter(b Type:System.Int32)) => Subtract(Parameter(b Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Int32) ReturnType:System.Int32 Type:System.Func`2[System.Int32,System.Int32]) Type:System.Linq.Expressions.Expression`1[System.Func`2[System.Int32,System.Int32]]), Quote(Lambda((Parameter(a Type:System.Int32) Parameter(b Type:System.Int32)) => New([Void .ctor(Int32, Int32)](Parameter(a Type:System.Int32), Parameter(b Type:System.Int32)){Int32 a Int32 b} Type:<>f__AnonymousType0`2[System.Int32,System.Int32]) ReturnType:<>f__AnonymousType0`2[System.Int32,System.Int32] Type:System.Func`3[System.Int32,System.Int32,<>f__AnonymousType0`2[System.Int32,System.Int32]]) Type:System.Linq.Expressions.Expression`1[System.Func`3[System.Int32,System.Int32,<>f__AnonymousType0`2[System.Int32,System.Int32]]])) Type:System.Linq.IQueryable`1[<>f__AnonymousType0`2[System.Int32,System.Int32]]), Quote(Lambda((Parameter(<>h__TransparentIdentifier0 Type:<>f__AnonymousType0`2[System.Int32,System.Int32])) => New([Void .ctor(Int32)](Add(MemberAccess(Parameter(<>h__TransparentIdentifier0 Type:<>f__AnonymousType0`2[System.Int32,System.Int32]).a Type:System.Int32) Constant(4 Type:System.Int32) Type:System.Int32)){Int32 c} Type:<>f__AnonymousType1`1[System.Int32]) ReturnType:<>f__AnonymousType1`1[System.Int32] Type:System.Func`2[<>f__AnonymousType0`2[System.Int32,System.Int32],<>f__AnonymousType1`1[System.Int32]]) Type:System.Linq.Expressions.Expression`1[System.Func`2[<>f__AnonymousType0`2[System.Int32,System.Int32],<>f__AnonymousType1`1[System.Int32]]]), Quote(Lambda((Parameter(<>h__TransparentIdentifier0 Type:<>f__AnonymousType0`2[System.Int32,System.Int32])) => New([Void .ctor(Int32, Int32)](MemberAccess(Parameter(<>h__TransparentIdentifier0 Type:<>f__AnonymousType0`2[System.Int32,System.Int32]).a Type:System.Int32), Add(MemberAccess(Parameter(<>h__TransparentIdentifier0 Type:<>f__AnonymousType0`2[System.Int32,System.Int32]).a Type:System.Int32) Constant(5 Type:System.Int32) Type:System.Int32)){Int32 a Int32 b} Type:<>f__AnonymousType0`2[System.Int32,System.Int32]) ReturnType:<>f__AnonymousType0`2[System.Int32,System.Int32] Type:System.Func`2[<>f__AnonymousType0`2[System.Int32,System.Int32],<>f__AnonymousType0`2[System.Int32,System.Int32]]) Type:System.Linq.Expressions.Expression`1[System.Func`2[<>f__AnonymousType0`2[System.Int32,System.Int32],<>f__AnonymousType0`2[System.Int32,System.Int32]]])) Type:System.Linq.IQueryable`1[System.Linq.IGrouping`2[<>f__AnonymousType1`1[System.Int32],<>f__AnonymousType0`2[System.Int32,System.Int32]]]), Quote(Lambda((Parameter(d Type:System.Linq.IGrouping`2[<>f__AnonymousType1`1[System.Int32],<>f__AnonymousType0`2[System.Int32,System.Int32]])) => MemberAccess(MemberAccess(Parameter(d Type:System.Linq.IGrouping`2[<>f__AnonymousType1`1[System.Int32],<>f__AnonymousType0`2[System.Int32,System.Int32]]).Key Type:<>f__AnonymousType1`1[System.Int32]).c Type:System.Int32) ReturnType:System.Int32 Type:System.Func`2[System.Linq.IGrouping`2[<>f__AnonymousType1`1[System.Int32],<>f__AnonymousType0`2[System.Int32,System.Int32]],System.Int32]) Type:System.Linq.Expressions.Expression`1[System.Func`2[System.Linq.IGrouping`2[<>f__AnonymousType1`1[System.Int32],<>f__AnonymousType0`2[System.Int32,System.Int32]],System.Int32]])) Type:System.Linq.IQueryable`1[System.Int32])");
+        }
+
+        [Fact]
+        public void ExprLambdaIndexerCompoundAssignment()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+using System.Linq.Expressions;
+
+class C
+{
+    private static Expression<Func<int>> _f1;
+    private static Expression<Func<int>> _f2;
+
+    public static void Main() {
+        var c = new C();
+        c[() => 0] += 1;
+        Console.WriteLine(object.ReferenceEquals(_f1, _f2));
+    }
+
+    int this[Expression<Func<int>> f] {
+        get
+        {
+            Console.WriteLine(f.Compile()());
+            _f1 = f;
+            return 0;
+        }
+        set
+        {
+            Console.WriteLine(f.Compile()());
+            _f2 = f;
+        }
+    }
+}", expectedOutput: @"0
+0
+True");
+        }
+
         [WorkItem(544283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544283")]
         [Fact]
         public void MissingLibrary()
@@ -583,9 +644,9 @@ class Program : TestBase
                 new string[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
-        [WorkItem(544027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544027")]
-        [Fact]
 
+        [WorkItem(544027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544027")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void AnonymousCreation()
         {
             var source =
@@ -605,9 +666,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
+
         [WorkItem(544028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544028")]
         [Fact]
-
         public void ArrayIndex()
         {
             var source =
@@ -1350,7 +1411,7 @@ class P
 @"Invoke(MemberAccess(Constant(P+<>c__DisplayClass0_0 Type:P+<>c__DisplayClass0_0).f Type:System.Func`2[System.Int32,System.Int32])(Constant(12 Type:System.Int32)) Type:System.Int32)
 () => Invoke(value(P+<>c__DisplayClass0_0).f, 12)");
         }
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10838")]
 
         public void GrabBag02()
         {
@@ -1772,7 +1833,7 @@ class Test
         }
 
         [WorkItem(544226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544226")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void BinaryAddOperandTypesDelegate()
         {
             var text = @"
@@ -1985,7 +2046,7 @@ class Test
         }
 
         [WorkItem(544222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544222")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CoalesceWithImplicitUDC()
         {
             var text =
@@ -2174,7 +2235,7 @@ Lambda:
         }
 
         [WorkItem(544241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544241")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void ArrayIndexTypeLong()
         {
             var text =
@@ -2256,7 +2317,7 @@ class Program
 
 
         [WorkItem(544276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544276")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void UnsafeParamTypeInDelegate()
         {
             var text = @"
@@ -2494,7 +2555,7 @@ public class Test
             CompileAndVerifyUtil(text, expectedOutput: "45");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void AnonTypes2()
         {
             var text =
@@ -3125,7 +3186,7 @@ public class A
         }
 
         [WorkItem(544403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544403")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void ConditionalWithOperandTypesObjectArrAndStringArr()
         {
             var text =
@@ -5051,7 +5112,7 @@ Convert(Not(Convert(Parameter(x Type:Test+Color) Type:System.Int32) Type:System.
         }
 
         [WorkItem(531382, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531382")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void IndexerIsIndexedProperty()
         {
             var source1 =
@@ -5090,7 +5151,7 @@ class Program
         }
 
         [WorkItem(579711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579711")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CheckedEnumConversion()
         {
             var text =
@@ -5863,7 +5924,7 @@ public class Program
         }
 
         [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void EnumConversions001()
         {
             const string source = @"
@@ -5902,7 +5963,7 @@ class C //: TestBase
         }
 
         [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void EnumConversions002()
         {
             const string source = @"

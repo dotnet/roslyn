@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertForEachToFor;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
         protected override ForEachStatementSyntax GetForEachStatement(TextSpan selection, SyntaxToken token)
         {
             var foreachStatement = token.Parent.FirstAncestorOrSelf<ForEachStatementSyntax>();
-            if (foreachStatement == null)
+            // https://github.com/dotnet/roslyn/issues/30584: Add tests for this scenario
+            if (foreachStatement == null || foreachStatement.AwaitKeyword != default)
             {
                 return null;
             }
@@ -87,10 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             var collectionVariable = GetCollectionVariableName(
                 model, generator, foreachInfo, foreachCollectionExpression, cancellationToken);
 
-            var collectionStatementType = foreachInfo.RequireExplicitCastInterface
-                ? generator.GetTypeExpression(foreachInfo.Options, foreachInfo.ExplicitCastInterface) :
-                  generator.GetTypeExpression(foreachInfo.Options,
-                     model.GetTypeInfo(foreachCollectionExpression).Type ?? model.Compilation.GetSpecialType(SpecialType.System_Object));
+            var typeSymbol = foreachInfo.RequireExplicitCastInterface
+                ? foreachInfo.ExplicitCastInterface
+                : model.GetTypeInfo(foreachCollectionExpression).Type ?? model.Compilation.GetSpecialType(SpecialType.System_Object);
+
+            var collectionStatementType = typeSymbol.GenerateTypeSyntax();
 
             // first, see whether we need to introduce new statement to capture collection
             IntroduceCollectionStatement(
@@ -104,8 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             // create for statement from foreach statement
             var forStatement = SyntaxFactory.ForStatement(
                 SyntaxFactory.VariableDeclaration(
-                    generator.GetTypeExpression(
-                        foreachInfo.Options, model.Compilation.GetSpecialType(SpecialType.System_Int32)),
+                    model.Compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(),
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.VariableDeclarator(
                             indexVariable.WithAdditionalAnnotations(RenameAnnotation.Create()),
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             {
                 // create variable statement
                 var variableStatement = AddItemVariableDeclaration(
-                    generator, generator.GetTypeExpression(foreachInfo.Options, foreachInfo.ForEachElementType),
+                    generator, foreachInfo.ForEachElementType.GenerateTypeSyntax(),
                     foreachStatement.Identifier, foreachInfo.ForEachElementType, collectionVariableName, indexVariable);
 
                 bodyBlock = bodyBlock.InsertNodesBefore(

@@ -3,8 +3,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertLinq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -13,12 +15,12 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 {
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertLinqQueryToForEachProvider)), Shared]
     internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertLinqQueryToForEachProvider<QueryExpressionSyntax, StatementSyntax>
     {
         private static readonly TypeSyntax VarNameIdentifier = SyntaxFactory.IdentifierName("var");
@@ -507,9 +509,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 ExpressionSyntax expression,
                 bool generateTypeFromExpression)
             {
-                var typeSyntax = generateTypeFromExpression ?
-                     _semanticModel.GetTypeInfo(expression, _cancellationToken).ConvertedType.GenerateTypeSyntax() :
-                     VarNameIdentifier;
+                var typeSyntax = generateTypeFromExpression
+                    ? _semanticModel.GetTypeInfo(expression, _cancellationToken).ConvertedType.GenerateTypeSyntax()
+                    : VarNameIdentifier;
                 return SyntaxFactory.LocalDeclarationStatement(
                             SyntaxFactory.VariableDeclaration(
                                 typeSyntax,

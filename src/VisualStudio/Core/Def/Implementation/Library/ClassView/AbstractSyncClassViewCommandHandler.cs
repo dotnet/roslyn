@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -22,10 +23,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
 
         private readonly IServiceProvider _serviceProvider;
 
-        public string DisplayName => ServicesVSResources.Sync_Class_View_Command_Handler;
+        public string DisplayName => ServicesVSResources.Sync_Class_View;
 
         protected AbstractSyncClassViewCommandHandler(
+            IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             Contract.ThrowIfNull(serviceProvider);
 
@@ -44,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
 
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
 
-            using (var waitScope = context.WaitContext.AddScope(allowCancellation: true, string.Format(ServicesVSResources.Synchronizing_with_0, ClassView)))
+            using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, string.Format(ServicesVSResources.Synchronizing_with_0, ClassView)))
             {
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
@@ -52,19 +55,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
                     return true;
                 }
 
-                var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                 if (syntaxFactsService == null)
                 {
                     return true;
                 }
 
-                var libraryService = document.Project.LanguageServices.GetService<ILibraryService>();
+                var libraryService = document.GetLanguageService<ILibraryService>();
                 if (libraryService == null)
                 {
                     return true;
                 }
 
-                var userCancellationToken = context.WaitContext.UserCancellationToken;
+                var userCancellationToken = context.OperationContext.UserCancellationToken;
                 var semanticModel = document
                     .GetSemanticModelAsync(userCancellationToken)
                     .WaitAndGetResult(userCancellationToken);

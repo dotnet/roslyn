@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Editing;
 namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
 {
     internal abstract class AbstractAddAccessibilityModifiersDiagnosticAnalyzer<TCompilationUnitSyntax>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TCompilationUnitSyntax : SyntaxNode
     {
         protected AbstractAddAccessibilityModifiersDiagnosticAnalyzer()
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         }
 
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxAnalysis;
+            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         public sealed override bool OpenFileOnly(Workspace workspace)
             => false;

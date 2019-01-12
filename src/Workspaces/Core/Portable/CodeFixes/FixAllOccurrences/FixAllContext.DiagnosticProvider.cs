@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -15,7 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
-    /// Context for "Fix all occurrences" code fixes provided by an <see cref="FixAllProvider"/>.
+    /// Context for "Fix all occurrences" code fixes provided by a <see cref="FixAllProvider"/>.
     /// </summary>
     public partial class FixAllContext
     {
@@ -54,129 +52,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             internal virtual async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(
                 FixAllContext fixAllContext)
             {
-                var cancellationToken = fixAllContext.CancellationToken;
-
                 using (Logger.LogBlock(
                     FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics,
                     FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
-                    cancellationToken))
+                    fixAllContext.CancellationToken))
                 {
-                    var allDiagnostics = ImmutableArray<Diagnostic>.Empty;
-                    var projectsToFix = ImmutableArray<Project>.Empty;
-
-                    var document = fixAllContext.Document;
-                    var project = fixAllContext.Project;
-
-                    switch (fixAllContext.Scope)
-                    {
-                        case FixAllScope.Document:
-                            if (document != null && !document.IsGeneratedCode(cancellationToken))
-                            {
-                                var documentDiagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
-                                var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(document, documentDiagnostics));
-                                return ImmutableDictionary.CreateRange(kvp);
-                            }
-
-                            break;
-
-                        case FixAllScope.Project:
-                            projectsToFix = ImmutableArray.Create(project);
-                            allDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
-                            break;
-
-                        case FixAllScope.Solution:
-                            projectsToFix = project.Solution.Projects
-                                .Where(p => p.Language == project.Language)
-                                .ToImmutableArray();
-
-                            var progressTracker = fixAllContext.ProgressTracker;
-                            progressTracker.AddItems(projectsToFix.Length);
-
-                            var diagnostics = new ConcurrentBag<Diagnostic>();
-                            var tasks = new Task[projectsToFix.Length];
-                            for (int i = 0; i < projectsToFix.Length; i++)
-                            {
-                                cancellationToken.ThrowIfCancellationRequested();
-                                var projectToFix = projectsToFix[i];
-                                tasks[i] = Task.Run(async () =>
-                                {
-                                    var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false);
-                                    foreach (var diagnostic in projectDiagnostics)
-                                    {
-                                        cancellationToken.ThrowIfCancellationRequested();
-                                        diagnostics.Add(diagnostic);
-                                    }
-
-                                    progressTracker.ItemCompleted();
-                                }, cancellationToken);
-                            }
-
-                            await Task.WhenAll(tasks).ConfigureAwait(false);
-                            allDiagnostics = allDiagnostics.AddRange(diagnostics);
-                            break;
-                    }
-
-                    if (allDiagnostics.IsEmpty)
-                    {
-                        return ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
-                    }
-
-                    return await GetDocumentDiagnosticsToFixAsync(
-                        allDiagnostics, projectsToFix, fixAllContext.CancellationToken).ConfigureAwait(false);
+                    return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
+                        fixAllContext,
+                        fixAllContext.ProgressTracker,
+                        (document, cancellationToken) => document.IsGeneratedCode(cancellationToken)).ConfigureAwait(false);
                 }
-            }
-
-            private async static Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
-                ImmutableArray<Diagnostic> diagnostics,
-                ImmutableArray<Project> projects,
-                CancellationToken cancellationToken)
-            {
-                var treeToDocumentMap = await GetTreeToDocumentMapAsync(projects, cancellationToken).ConfigureAwait(false);
-
-                var builder = ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
-                foreach (var documentAndDiagnostics in diagnostics.GroupBy(d => GetReportedDocument(d, treeToDocumentMap)))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var document = documentAndDiagnostics.Key;
-                    if (!document.IsGeneratedCode(cancellationToken))
-                    {
-                        var diagnosticsForDocument = documentAndDiagnostics.ToImmutableArray();
-                        builder.Add(document, diagnosticsForDocument);
-                    }
-                }
-
-                return builder.ToImmutable();
-            }
-
-            private static async Task<ImmutableDictionary<SyntaxTree, Document>> GetTreeToDocumentMapAsync(ImmutableArray<Project> projects, CancellationToken cancellationToken)
-            {
-                var builder = ImmutableDictionary.CreateBuilder<SyntaxTree, Document>();
-                foreach (var project in projects)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    foreach (var document in project.Documents)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                        builder.Add(tree, document);
-                    }
-                }
-
-                return builder.ToImmutable();
-            }
-
-            private static Document GetReportedDocument(Diagnostic diagnostic, ImmutableDictionary<SyntaxTree, Document> treeToDocumentsMap)
-            {
-                var tree = diagnostic.Location.SourceTree;
-                if (tree != null)
-                {
-                    if (treeToDocumentsMap.TryGetValue(tree, out var document))
-                    {
-                        return document;
-                    }
-                }
-
-                return null;
             }
 
             internal virtual async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
@@ -194,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         {
                             case FixAllScope.Project:
                                 var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
-                                var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(project, diagnostics));
+                                var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create(project, diagnostics));
                                 return ImmutableDictionary.CreateRange(kvp);
 
                             case FixAllScope.Solution:

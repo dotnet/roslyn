@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing
     /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/548409), the part implementing
     /// Microsoft.CodeAnalysis.Editor.ICommandHandler can be deleted.
     /// </summary>
-    internal abstract class AbstractBlockCommentEditingCommandHandler : BaseAbstractBlockCommentEditingCommandHandler, 
+    internal abstract class AbstractBlockCommentEditingCommandHandler : BaseAbstractBlockCommentEditingCommandHandler,
         ICommandHandler<ReturnKeyCommandArgs>,
         VSCommanding.ICommandHandler<VSEditorCommands.ReturnKeyCommandArgs>
     {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing
 
         #region Modern editor ICommandHandler
 
-        public string DisplayName => EditorFeaturesResources.Block_Comment_Editing_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
 
         public VSCommanding.CommandState GetCommandState(VSEditorCommands.ReturnKeyCommandArgs args) => VSCommanding.CommandState.Unspecified;
 

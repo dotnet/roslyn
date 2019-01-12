@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -29,24 +30,20 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
     [Name(PredefinedCommandHandlerNames.FindReferences)]
     internal class FindReferencesCommandHandler : VSCommanding.ICommandHandler<FindReferencesCommandArgs>
     {
-        private readonly IEnumerable<IDefinitionsAndReferencesPresenter> _synchronousPresenters;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
 
         private readonly IAsynchronousOperationListener _asyncListener;
 
-        public string DisplayName => EditorFeaturesResources.Find_References_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Find_References;
 
         [ImportingConstructor]
         internal FindReferencesCommandHandler(
-            [ImportMany] IEnumerable<IDefinitionsAndReferencesPresenter> synchronousPresenters,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
-            Contract.ThrowIfNull(synchronousPresenters);
             Contract.ThrowIfNull(streamingPresenters);
             Contract.ThrowIfNull(listenerProvider);
 
-            _synchronousPresenters = synchronousPresenters;
             _streamingPresenters = streamingPresenters;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
         }
@@ -94,18 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             // a presenter that can accept streamed results.
             if (streamingService != null && streamingPresenter != null)
             {
-                StreamingFindReferences(document, caretPosition, streamingService, streamingPresenter);
-                return true;
-            }
-
-            // Otherwise, either the language doesn't support streaming results,
-            // or the host has no way to present results in a streaming manner.
-            // Fall back to the old non-streaming approach to finding and presenting 
-            // results.
-            var synchronousService = document.GetLanguageService<IFindReferencesService>();
-            if (synchronousService != null)
-            {
-                FindReferences(document, synchronousService, caretPosition, context);
+                _ = StreamingFindReferencesAsync(document, caretPosition, streamingService, streamingPresenter);
                 return true;
             }
 
@@ -124,14 +110,14 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             }
         }
 
-        private async void StreamingFindReferences(
+        private async Task StreamingFindReferencesAsync(
             Document document, int caretPosition,
             IFindUsagesService findUsagesService,
             IStreamingFindUsagesPresenter presenter)
         {
             try
             {
-                using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferences)))
+                using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync)))
                 {
                     // Let the presented know we're starting a search.  It will give us back
                     // the context object that the FAR service will push results into.
@@ -159,27 +145,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-            }
-        }
-
-        internal void FindReferences(
-            Document document, IFindReferencesService service, int caretPosition, CommandExecutionContext context)
-        {
-            using (var waitScope = context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_references))
-            using (Logger.LogBlock(
-                FunctionId.CommandHandler_FindAllReference,
-                KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "legacy"),
-                context.WaitContext.UserCancellationToken))
-            {
-                if (!service.TryFindReferences(document, caretPosition, new WaitContextAdapter(waitScope)))
-                {
-                    // The service failed, so just present an empty list of references
-                    foreach (var presenter in _synchronousPresenters)
-                    {
-                        presenter.DisplayResult(DefinitionsAndReferences.Empty);
-                        return;
-                    }
-                }
             }
         }
     }

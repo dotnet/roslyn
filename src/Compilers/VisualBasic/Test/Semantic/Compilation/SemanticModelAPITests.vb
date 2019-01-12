@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -2090,6 +2091,7 @@ Module M
             Assert.True(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsIdentity)
+            Assert.True(compilation.HasImplicitConversion(listOfInt32_1, listOfInt32_2))
 
             ' Convert List(Of Integer) -> Integer : Should be no conversion
             conv = compilation.ClassifyConversion(listOfInt32_1, int32)
@@ -2097,6 +2099,7 @@ Module M
             Assert.False(conv.Exists)
             Assert.False(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
+            Assert.False(compilation.HasImplicitConversion(listOfInt32_1, int32))
 
             ' Convert String -> Integer: Should be narrowing string conversion
             conv = compilation.ClassifyConversion(str, int32)
@@ -2106,6 +2109,7 @@ Module M
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsString)
             Assert.Equal("NarrowingString", conv.ToString())
+            Assert.False(compilation.HasImplicitConversion(str, int32))
 
             ' Convert Enum -> Integer: Should be  widening numeric conversion
             conv = compilation.ClassifyConversion(enumType, int32)
@@ -2115,6 +2119,7 @@ Module M
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsNumeric)
             Assert.Equal("WideningNumeric, InvolvesEnumTypeConversions", conv.ToString())
+            Assert.True(compilation.HasImplicitConversion(enumType, int32))
 
             ' Convert Enum -> String: Should be  narrowing string conversion
             conv = compilation.ClassifyConversion(enumType, str)
@@ -2123,6 +2128,7 @@ Module M
             Assert.False(conv.IsWidening)
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsString)
+            Assert.False(compilation.HasImplicitConversion(enumType, str))
 
             ' Convert Long -> Integer: Should be narrowing numeric conversion
             conv = compilation.ClassifyConversion(int64, int32)
@@ -2131,6 +2137,7 @@ Module M
             Assert.False(conv.IsWidening)
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsNumeric)
+            Assert.False(compilation.HasImplicitConversion(int64, int32))
 
             ' Convert Boolean -> Enum: Should be narrowing boolean conversion
             conv = compilation.ClassifyConversion(bool, enumType)
@@ -2140,6 +2147,7 @@ Module M
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsBoolean)
             Assert.Equal("NarrowingBoolean, InvolvesEnumTypeConversions", conv.ToString())
+            Assert.False(compilation.HasImplicitConversion(bool, enumType))
 
             ' Convert List(Of Integer) -> Object: Should be widening reference conversion
             conv = compilation.ClassifyConversion(listOfInt32_1, objType)
@@ -2149,6 +2157,7 @@ Module M
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsReference)
             Assert.Equal("WideningReference", conv.ToString())
+            Assert.True(compilation.HasImplicitConversion(listOfInt32_1, objType))
 
             ' Convert Object -> List(Of Integer): Should be narrow reference conversion
             conv = compilation.ClassifyConversion(objType, listOfInt32_1)
@@ -2157,6 +2166,7 @@ Module M
             Assert.False(conv.IsWidening)
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsReference)
+            Assert.False(compilation.HasImplicitConversion(objType, listOfInt32_1))
 
             ' Convert AAA -> System.ICloneable: SHould be widening reference conversion
             conv = compilation.ClassifyConversion(classAAA, cloneableType)
@@ -2165,6 +2175,7 @@ Module M
             Assert.True(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsReference)
+            Assert.True(compilation.HasImplicitConversion(classAAA, cloneableType))
 
             ' Convert AAA() -> Object(): SHould be widening array conversion
             conv = compilation.ClassifyConversion(aaaArray, objArray)
@@ -2173,6 +2184,7 @@ Module M
             Assert.True(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsArray)
+            Assert.True(compilation.HasImplicitConversion(aaaArray, objArray))
 
             ' Convert Object() -> AAA(): SHould be narrowing array conversion
             conv = compilation.ClassifyConversion(objArray, aaaArray)
@@ -2182,6 +2194,7 @@ Module M
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsArray)
             Assert.Equal("NarrowingArray", conv.ToString())
+            Assert.False(compilation.HasImplicitConversion(objArray, aaaArray))
 
             ' Convert Short -> Integer?: Should be widening nullable value type conversion
             conv = compilation.ClassifyConversion(int16, nullInt32)
@@ -2191,6 +2204,7 @@ Module M
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsNullableValueType)
             Assert.Equal("WideningNullable", conv.ToString())
+            Assert.True(compilation.HasImplicitConversion(int16, nullInt32))
 
             ' Convert Integer? -> Integer: Should be narrowing nullable value type conversion
             conv = compilation.ClassifyConversion(nullInt32, int32)
@@ -2199,6 +2213,7 @@ Module M
             Assert.False(conv.IsWidening)
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsNullableValueType)
+            Assert.False(compilation.HasImplicitConversion(nullInt32, int32))
 
             ' Convert T -> Object: Widening type parameter conversion
             conv = compilation.ClassifyConversion(typeParam, objType)
@@ -2207,6 +2222,7 @@ Module M
             Assert.True(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsTypeParameter)
+            Assert.True(compilation.HasImplicitConversion(typeParam, objType))
 
             ' Convert Object -> T : Narrowing type parameter conversion
             conv = compilation.ClassifyConversion(objType, typeParam)
@@ -2216,6 +2232,7 @@ Module M
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsTypeParameter)
             Assert.Equal("NarrowingTypeParameter", conv.ToString())
+            Assert.False(compilation.HasImplicitConversion(objType, typeParam))
 
             ' Check equality, hash code.
             Dim conv2 = compilation.ClassifyConversion(objType, typeParam)
@@ -2883,6 +2900,83 @@ End Class
 #End Region
 
 #Region "Msic."
+
+        <Fact>
+        Public Sub IsUnmanagedType()
+            Dim csharpComp = CreateCSharpCompilation("
+public struct S1 { }
+public struct S2 { public S1 F1; }
+public struct S3 { public object F1; }
+public struct S4<T> { public T F1; }
+public enum E1 { }
+")
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+    Sub M()
+        Dim s1 = new S1()
+        Dim s2 = new S2()
+        Dim s3 = new S3()
+        Dim s4 = new S4(Of Integer)()
+        Dim e1 = new E1()
+    End Sub
+End Class")
+            Dim comp = CreateCompilation(tree, references:={csharpComp.EmitToImageReference()})
+            comp.AssertTheseCompileDiagnostics()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim root = tree.GetRoot()
+            Dim getLocalType = Function(name As String) As ITypeSymbol
+                                   Dim decl = root.DescendantNodes().
+                                   OfType(Of ModifiedIdentifierSyntax)().
+                                   Single(Function(n) n.Identifier.ValueText = name)
+                                   Return CType(model.GetDeclaredSymbol(decl), ILocalSymbol).Type
+                               End Function
+            ' VB does not have a concept of a managed type
+            Assert.False(getLocalType("s1").IsUnmanagedType)
+            Assert.False(getLocalType("s2").IsUnmanagedType)
+            Assert.False(getLocalType("s3").IsUnmanagedType)
+            Assert.False(getLocalType("s4").IsUnmanagedType)
+            Assert.False(getLocalType("e1").IsUnmanagedType)
+        End Sub
+
+        <Fact>
+        Public Sub IsRefLikeType()
+            Dim csharpComp = CreateCSharpCompilation("
+public struct S1 { }
+public ref struct S2 { public S1 F1; }
+public enum E1 { }
+", parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp7_3))
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Structure S3 
+    Dim F1 As Object
+End Structure
+Class C
+    Sub M()
+        Dim s1 = new S1()
+        Dim s2 = new S2()
+        Dim s3 = new S3()
+        Dim e1 = new E1()
+    End Sub
+End Class")
+            Dim comp = CreateCompilation(tree, references:={csharpComp.EmitToImageReference()})
+            comp.AssertTheseDiagnostics(<errors>
+BC30668: 'S2' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
+        Dim s2 = new S2()
+                     ~~
+                                        </errors>)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim root = tree.GetRoot()
+            Dim getLocalType = Function(name As String) As ITypeSymbol
+                                   Dim decl = root.DescendantNodes().
+                                   OfType(Of ModifiedIdentifierSyntax)().
+                                   Single(Function(n) n.Identifier.ValueText = name)
+                                   Return CType(model.GetDeclaredSymbol(decl), ILocalSymbol).Type
+                               End Function
+            ' VB does not have a concept of a ref-like type
+            Assert.False(getLocalType("s1").IsRefLikeType)
+            Assert.False(getLocalType("s2").IsRefLikeType)
+            Assert.False(getLocalType("s3").IsRefLikeType)
+            Assert.False(getLocalType("e1").IsRefLikeType)
+        End Sub
 
         <Fact()>
         Public Sub IsAccessible()

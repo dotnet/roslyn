@@ -108,7 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
     }}
 
     // {CSharpFeaturesResources.TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources}
-    // ~{classDecl.Identifier.Value}() {{
+    // ~{classDecl.Identifier.Value}()
+    // {{
     //   // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
     //   Dispose(false);
     // }}
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             decls[decls.Length - 1] = decls[decls.Length - 1].WithAppendedTrailingTrivia(
                 SyntaxFactory.TriviaList(
                     SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)),
-                    SyntaxFactory.CarriageReturnLineFeed));
+                    SyntaxFactory.ElasticCarriageReturnLineFeed));
 
             // Ensure that open and close brace tokens are generated in case they are missing.
             var newNode = classDecl.EnsureOpenAndCloseBraceTokens().AddMembers(decls);

@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class PrivateProtected
         Inherits BasicTestBase
 
-        Private Shared ReadOnly s_defaultProvider As StrongNameProvider = SigningTestHelpers.s_defaultPortableProvider
+        Private Shared ReadOnly s_defaultProvider As StrongNameProvider = SigningTestHelpers.DefaultDesktopStrongNameProvider
 
         <Fact>
         Public Sub RejectIncompatibleModifiers()

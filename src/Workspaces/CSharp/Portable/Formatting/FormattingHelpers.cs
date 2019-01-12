@@ -332,6 +332,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                      (token.Parent is AnonymousObjectCreationExpressionSyntax));
         }
 
+        public static bool IsColonInCasePatternSwitchLabel(this SyntaxToken token)
+            => token.Kind() == SyntaxKind.ColonToken && token.Parent is CasePatternSwitchLabelSyntax;
+
+        public static bool IsColonInSwitchExpressionArm(this SyntaxToken token)
+            => token.Kind() == SyntaxKind.ColonToken && token.Parent.IsKind(SyntaxKindEx.SwitchExpressionArm);
+
+        public static bool IsCommaInSwitchExpression(this SyntaxToken token)
+            => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKindEx.SwitchExpression);
+
+        public static bool IsCommaInPropertyPatternClause(this SyntaxToken token)
+            => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKindEx.PropertyPatternClause);
+
         public static bool IsIdentifierInLabeledStatement(this SyntaxToken token)
         {
             var labeledStatement = token.Parent as LabeledStatementSyntax;
@@ -542,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         /// <summary>
-        /// Checks whether currentToken is the opening paren of a deconstruction-declaration in var form, such as `var (x, y) = ...`
+        /// Checks whether currentToken is the opening paren of a deconstruction-declaration in var form, such as <c>var (x, y) = ...</c>
         /// </summary>
         public static bool IsOpenParenInVarDeconstructionDeclaration(this SyntaxToken currentToken)
         {

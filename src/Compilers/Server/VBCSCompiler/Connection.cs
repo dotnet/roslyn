@@ -105,7 +105,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return new ConnectionData(CompletionReason.CompilationNotStarted);
                 }
 
-                if (IsShutdownRequest(request))
+                if (request.ProtocolVersion != BuildProtocolConstants.ProtocolVersion)
+                {
+                    return await HandleMismatchedVersionRequest(cancellationToken).ConfigureAwait(false);
+                }
+                else if (!string.Equals(request.CompilerHash, BuildProtocolConstants.GetCommitHash(), StringComparison.OrdinalIgnoreCase))
+                {
+                    return await HandleIncorrectHashRequest(cancellationToken).ConfigureAwait(false);
+                }
+                else if (IsShutdownRequest(request))
                 {
                     return await HandleShutdownRequest(cancellationToken).ConfigureAwait(false);
                 }
@@ -162,6 +170,20 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // Begin the tear down of the Task which didn't complete.
             buildCts.Cancel();
             return new ConnectionData(reason, keepAlive);
+        }
+
+        private async Task<ConnectionData> HandleMismatchedVersionRequest(CancellationToken cancellationToken)
+        {
+            var response = new MismatchedVersionBuildResponse();
+            await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
+            return new ConnectionData(CompletionReason.CompilationNotStarted);
+        }
+
+        private async Task<ConnectionData> HandleIncorrectHashRequest(CancellationToken cancellationToken)
+        {
+            var response = new IncorrectHashBuildResponse();
+            await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
+            return new ConnectionData(CompletionReason.CompilationNotStarted);
         }
 
         private async Task<ConnectionData> HandleRejectedRequest(CancellationToken cancellationToken)

@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-            ExitDecodeTypeName:
+ExitDecodeTypeName:
                 HandleDecodedTypeName(typeNameBuilder.ToString(), decodingTopLevelType, ref topLevelType, ref nestedTypesBuilder);
                 pooledStrBuilder.Free();
 
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 goto default;
                             }
-                             
+
                             Advance();
                             if (Current != ']')
                             {
@@ -823,8 +823,8 @@ namespace Microsoft.CodeAnalysis
                                 lastChildNamespaceName, typesInLastChildNamespace));
                     }
 
-                DoneWithSequence:
-                    /*empty statement*/
+DoneWithSequence:
+/*empty statement*/
                     ;
                 }
             } // using
@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             Debug.Assert(keyIndex < i);
                             var primaryPair = nestedNamespaces[keyIndex];
-                            nestedNamespaces[keyIndex] = KeyValuePair.Create(primaryPair.Key, primaryPair.Value.Concat(pair.Value));
+                            nestedNamespaces[keyIndex] = KeyValuePairUtil.Create(primaryPair.Key, primaryPair.Value.Concat(pair.Value));
                             nestedNamespaces[i] = default(KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>);
                         }
                     }
@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis
             if (errorArgumentResourceId != null)
             {
                 diagnostics.Add(
-                    messageProvider.CreateDiagnostic(code, Location.None, 
+                    messageProvider.CreateDiagnostic(code, Location.None,
                         new CodeAnalysisResourcesLocalizableErrorArgument(errorArgumentResourceId)));
             }
         }

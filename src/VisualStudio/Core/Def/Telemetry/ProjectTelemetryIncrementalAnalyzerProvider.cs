@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
+namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
     /// <summary>
     /// Creates an <see cref="IIncrementalAnalyzer"/> that collects basic information on <see cref="Project"/> inputs
@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
 
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             /// <summary>
@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
             {
                 if (!semanticsChanged)
                 {
-                    return SpecializedTasks.EmptyTask;
+                    return Task.CompletedTask;
                 }
 
                 var projectId = project.Id;
@@ -163,11 +163,11 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
                     try
                     {
                         var workspace = (VisualStudioWorkspaceImpl)project.Solution.Workspace;
-                        var vsProject = workspace.GetHostProject(projectId);
 
                         var telemetryEvent = TelemetryHelper.TelemetryService.CreateEvent(TelemetryEventPath);
                         telemetryEvent.SetStringProperty(TelemetryProjectIdName, projectId.Id.ToString());
-                        telemetryEvent.SetStringProperty(TelemetryProjectGuidName, vsProject?.Guid.ToString() ?? Guid.Empty.ToString());
+                        // TODO: reconnect project GUID
+                        telemetryEvent.SetStringProperty(TelemetryProjectGuidName, Guid.Empty.ToString());
                         telemetryEvent.SetStringProperty(TelemetryLanguageName, language);
                         telemetryEvent.SetIntProperty(TelemetryAnalyzerReferencesCountName, analyzerReferencesCount);
                         telemetryEvent.SetIntProperty(TelemetryProjectReferencesCountName, projectReferencesCount);
@@ -195,27 +195,27 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
                     }
                 }
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public void RemoveDocument(DocumentId documentId)

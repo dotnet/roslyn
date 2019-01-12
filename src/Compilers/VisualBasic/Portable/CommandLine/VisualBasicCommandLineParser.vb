@@ -73,6 +73,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
         ''' <returns>A CommandLineArguments object representing the parsed command line.</returns>
         Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
+            Debug.Assert(baseDirectory Is Nothing OrElse PathUtilities.IsAbsolute(baseDirectory))
+
             Const GenerateFileNameForDocComment As String = "USE-OUTPUT-NAME"
 
             Dim diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
@@ -390,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Try
                             preferredUILang = New CultureInfo(value)
-                            If (CorLightup.Desktop.IsUserCustomCulture(preferredUILang)) Then
+                            If (preferredUILang.CultureTypes And CultureTypes.UserCustomCulture) <> 0 Then
                                 ' Do not use user custom cultures.
                                 preferredUILang = Nothing
                             End If
@@ -574,6 +576,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             sdkPaths.Clear()
                             sdkPaths.AddRange(ParseSeparatedPaths(value))
+                            Continue For
+
+                        Case "nosdkpath"
+                            sdkDirectory = Nothing
+                            sdkPaths.Clear()
                             Continue For
 
                         Case "instrument"
@@ -827,7 +834,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ElseIf value = "?" Then
                                 displayLangVersions = True
                             Else
-                                If Not value.TryParse(languageVersion) Then
+                                If Not TryParse(value, languageVersion) Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
                                 End If
                             End If
@@ -1160,7 +1167,6 @@ lVbRuntimePlus:
                             Continue For
 
                         Case "additionalfile"
-                            value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
                                 Continue For
@@ -1170,7 +1176,6 @@ lVbRuntimePlus:
                             Continue For
 
                         Case "embed"
-                            value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 embedAllSourceFiles = True
                                 Continue For
@@ -1252,7 +1257,7 @@ lVbRuntimePlus:
             End If
 
             ' add additional reference paths if specified
-            If Not String.IsNullOrWhiteSpace(additionalReferenceDirectories) Then
+            If Not String.IsNullOrEmpty(additionalReferenceDirectories) Then
                 libPaths.AddRange(ParseSeparatedPaths(additionalReferenceDirectories))
             End If
 
@@ -1260,7 +1265,7 @@ lVbRuntimePlus:
             Dim searchPaths As ImmutableArray(Of String) = BuildSearchPaths(baseDirectory, sdkPaths, responsePaths, libPaths)
 
             ' Public sign doesn't use legacy search path settings
-            If publicSign AndAlso Not String.IsNullOrWhiteSpace(keyFileSetting) Then
+            If publicSign AndAlso Not String.IsNullOrEmpty(keyFileSetting) Then
                 keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory)
             End If
 
@@ -1291,8 +1296,11 @@ lVbRuntimePlus:
 
             ' Dev10 searches for the keyfile in the current directory and assembly output directory.
             ' We always look to base directory and then examine the search paths.
-            keyFileSearchPaths.Add(baseDirectory)
-            If baseDirectory <> outputDirectory Then
+            If Not String.IsNullOrEmpty(baseDirectory) Then
+                keyFileSearchPaths.Add(baseDirectory)
+            End If
+
+            If Not String.IsNullOrEmpty(outputDirectory) AndAlso baseDirectory <> outputDirectory Then
                 keyFileSearchPaths.Add(outputDirectory)
             End If
 
@@ -1625,8 +1633,8 @@ lVbRuntimePlus:
                 Return Nothing
             End If
 
-            If fullPath Is Nothing OrElse fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 Then
-                AddDiagnostic(diagnostics, ERRID.FTL_InputFileNameTooLong, filePath)
+            If Not PathUtilities.IsValidFilePath(fullPath) Then
+                AddDiagnostic(diagnostics, ERRID.FTL_InvalidInputFileName, filePath)
                 Return Nothing
             End If
 
@@ -2208,7 +2216,7 @@ lVbRuntimePlus:
                     outputFileName = simpleName & kind.GetDefaultExtension()
 
                     If simpleName.Length = 0 AndAlso Not kind.IsNetModule() Then
-                        AddDiagnostic(diagnostics, ERRID.FTL_InputFileNameTooLong, outputFileName)
+                        AddDiagnostic(diagnostics, ERRID.FTL_InvalidInputFileName, outputFileName)
                         simpleName = Nothing
                         outputFileName = Nothing
                     End If
@@ -2235,7 +2243,7 @@ lVbRuntimePlus:
                         ' /out:".exe"
                         ' Dev11 emits assembly with an empty name, we don't
                         If simpleName.Length = 0 Then
-                            AddDiagnostic(diagnostics, ERRID.FTL_InputFileNameTooLong, outputFileName)
+                            AddDiagnostic(diagnostics, ERRID.FTL_InvalidInputFileName, outputFileName)
                             simpleName = Nothing
                             outputFileName = Nothing
                         End If

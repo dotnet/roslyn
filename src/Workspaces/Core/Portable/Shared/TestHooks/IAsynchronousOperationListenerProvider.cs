@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
@@ -61,14 +62,23 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// </summary>
         private bool? _enableDiagnosticTokens;
 
+        /// <summary>
+        /// Provides a default value for <see cref="_enableDiagnosticTokens"/>.
+        /// </summary>
+        private static bool? s_enableDiagnosticTokens;
+
         public static void Enable(bool enable)
+            => Enable(enable, diagnostics: null);
+
+        public static void Enable(bool enable, bool? diagnostics)
         {
             // right now, made it static so that one can enable it through reflection easy
             // but we can think of some other way
             s_enabled = enable;
+            s_enableDiagnosticTokens = diagnostics;
         }
 
-        [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AsynchronousOperationListenerProvider()
         {
             _singletonListeners = new ConcurrentDictionary<string, AsynchronousOperationListener>(concurrencyLevel: 2, capacity: 20);
@@ -192,9 +202,16 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             {
                 if (!_enableDiagnosticTokens.HasValue)
                 {
-                    // if _trackingBehavior has never been set, check environment variable to see whether it should be enabled.
-                    var enabled = Environment.GetEnvironmentVariable("RoslynWaiterDiagnosticTokenEnabled");
-                    _enableDiagnosticTokens = string.Equals(enabled, "1", StringComparison.OrdinalIgnoreCase) || string.Equals(enabled, "True", StringComparison.OrdinalIgnoreCase);
+                    if (s_enableDiagnosticTokens.HasValue)
+                    {
+                        _enableDiagnosticTokens = s_enableDiagnosticTokens;
+                    }
+                    else
+                    {
+                        // if _enableDiagnosticTokens has never been set, check environment variable to see whether it should be enabled.
+                        var enabled = Environment.GetEnvironmentVariable("RoslynWaiterDiagnosticTokenEnabled");
+                        _enableDiagnosticTokens = string.Equals(enabled, "1", StringComparison.OrdinalIgnoreCase) || string.Equals(enabled, "True", StringComparison.OrdinalIgnoreCase);
+                    }
                 }
 
                 return _enableDiagnosticTokens.Value;

@@ -38,6 +38,25 @@ class C
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
+        [WorkItem(655607, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/655607")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestMissingTupleElement()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        (a, ) = [|($$
+|]  }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("(object a, object)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvocationAfterOpenParen2()
         {

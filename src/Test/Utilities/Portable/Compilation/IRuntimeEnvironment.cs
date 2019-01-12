@@ -206,9 +206,7 @@ namespace Roslyn.Test.Utilities
             {
                 var pdb = default(ImmutableArray<byte>);
                 var assembly = default(ImmutableArray<byte>);
-                var pdbStream = MonoHelpers.IsRunningOnMono()
-                    ? null
-                    : new MemoryStream();
+                var pdbStream = new MemoryStream();
 
                 EmitResult result;
                 try
@@ -268,7 +266,7 @@ namespace Roslyn.Test.Utilities
 
                     if (dumpDirectory == null)
                     {
-                        dumpDirectory = Path.GetTempPath();
+                        dumpDirectory = TempRoot.Root;
                         try
                         {
                             Directory.CreateDirectory(dumpDirectory);

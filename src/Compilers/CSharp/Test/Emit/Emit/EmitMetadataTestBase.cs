@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 elem.Add(new XAttribute("Of", typeParams));
             }
 
-            if (t.BaseType() != null)
+            if ((object)t.BaseType() != null)
             {
                 elem.Add(new XAttribute("base", t.BaseType().ToTestDisplayString()));
             }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             XElement elem = new XElement("field");
 
             elem.Add(new XAttribute("name", f.Name));
-            elem.Add(new XAttribute("type", f.Type.ToTestDisplayString()));
+            elem.Add(new XAttribute("type", f.Type.TypeSymbol.ToTestDisplayString()));
 
             return elem;
         }

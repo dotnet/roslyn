@@ -519,8 +519,9 @@
   <data name="Fade_out_unused_usings" xml:space="preserve">
     <value>Fade out unused usings</value>
   </data>
-  <data name="Prefer_is_null_over_ReferenceEquals" xml:space="preserve">
-    <value>Prefer 'is null' over 'object.ReferenceEquals(..., null)'</value>
+  <data name="Prefer_is_null_for_reference_equality_checks" xml:space="preserve">
+    <value>Prefer 'is null' for reference equality checks</value>
+    <comment>'is null' is a C# string and should not be localized.</comment>
   </data>
   <data name="Report_invalid_placeholders_in_string_dot_format_calls" xml:space="preserve">
     <value>Report invalid placeholders in 'string.Format' calls</value>
@@ -528,10 +529,49 @@
   <data name="Separate_using_directive_groups" xml:space="preserve">
     <value>Separate using directive groups</value>
   </data>
+  <data name="In_arithmetic_binary_operators" xml:space="preserve">
+    <value>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</value>
+  </data>
+  <data name="In_other_binary_operators" xml:space="preserve">
+    <value>In other binary operators:  &amp;&amp;   ||   ??</value>
+  </data>
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
   </data>
-  <data name="Event_Hookup_Command_Handler" xml:space="preserve">
-    <value>Generate Event Subscription Command Handler</value>
+  <data name="Generate_Event_Subscription" xml:space="preserve">
+    <value>Generate Event Subscription</value>
+  </data>
+  <data name="Remove_unnecessary_usings" xml:space="preserve">
+    <value>Remove unnecessary usings</value>
+  </data>
+  <data name="Sort_usings" xml:space="preserve">
+    <value>Sort usings</value>
+  </data>
+  <data name="Format_document_settings" xml:space="preserve">
+    <value>Format Document Settings (Experiment) </value>
+  </data>
+  <data name="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing" xml:space="preserve">
+    <value>Apply all C# formatting rules (indentation, wrapping, spacing)</value>
+  </data>
+  <data name="In_relational_binary_operators" xml:space="preserve">
+    <value>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</value>
+  </data>
+  <data name="Perform_additional_code_cleanup_during_formatting" xml:space="preserve">
+    <value>Perform additional code cleanup during formatting</value>
+  </data>
+  <data name="CSharp_Coding_Conventions" xml:space="preserve">
+    <value>C# Coding Conventions</value>
+  </data>
+  <data name="CSharp_Formatting_Rules" xml:space="preserve">
+    <value>C# Formatting Rules</value>
+  </data>
+  <data name="Discard" xml:space="preserve">
+    <value>Discard</value>
+  </data>
+  <data name="Unused_local" xml:space="preserve">
+    <value>Unused local</value>
+  </data>
+  <data name="When_on_multiple_lines" xml:space="preserve">
+    <value>When on multiple lines</value>
   </data>
 </root>

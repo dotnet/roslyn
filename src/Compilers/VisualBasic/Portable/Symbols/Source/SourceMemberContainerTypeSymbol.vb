@@ -1714,10 +1714,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim added As Boolean = s_SymbolsBuildingMembersAndInitializers.Add(Me)
-
             Debug.Assert(added)
-            Try
 #End If
+
+            Try
                 ' Get type members
                 Dim typeMembers = GetTypeMembersDictionary()
 
@@ -1738,14 +1738,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         membersAndInitializers.Members(name) = nontypeSymbols.Concat(StaticCast(Of Symbol).From(typeSymbols))
                     End If
                 Next
-
-#If DEBUG Then
             Finally
+#If DEBUG Then
                 If added Then
                     s_SymbolsBuildingMembersAndInitializers.Remove(Me)
                 End If
-            End Try
 #End If
+            End Try
+
             Return membersAndInitializers
         End Function
 
@@ -3140,13 +3140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ImmutableInterlocked.InterlockedInitialize(Me._lazyMembersFlattened, result)
             End If
 
-#If DEBUG Then
-            ' In DEBUG, swap first And last elements so that use of Unordered in a place it isn't warranted is caught
-            ' more obviously.
-            Return _lazyMembersFlattened.DeOrder()
-#Else
-            Return _lazyMembersFlattened
-#End If
+            Return _lazyMembersFlattened.ConditionallyDeOrder()
         End Function
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)

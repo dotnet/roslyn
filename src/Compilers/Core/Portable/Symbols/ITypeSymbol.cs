@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -41,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         /// relationship: if interface type A extends interface type B, then A precedes B in the
         /// list. This is not quite the same as "all interfaces of which this type is a proper
         /// subtype" because it does not take into account variance: AllInterfaces for
-        /// <c><![CDATA[IEnumerable<string>]]></c> will not include <c><![CDATA[IEnumerable<object>]]></c>;
+        /// IEnumerable&lt;string&gt; will not include IEnumerable&lt;object&gt;.
         /// </summary>
         ImmutableArray<INamedTypeSymbol> AllInterfaces { get; }
 
@@ -93,5 +96,81 @@ namespace Microsoft.CodeAnalysis
         /// Must be a non-null interface property, method, or event.
         /// </param>
         ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember);
+
+        /// <summary>
+        /// True if the type is ref-like, meaning it follows rules similar to CLR by-ref variables. False if the type
+        /// is not ref-like or if the language has no concept of ref-like types.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Span{T}" /> is a commonly used ref-like type.
+        /// </remarks>
+        bool IsRefLikeType { get; }
+
+        /// <summary>
+        /// True if the type is unmanaged according to language rules. False if managed or if the language
+        /// has no concept of unmanaged types.
+        /// </summary>
+        bool IsUnmanagedType { get; }
+    }
+
+    // Intentionally not extension methods. We don't want them ever be called for symbol classes
+    // Once Default Interface Implementations are supported, we can move these methods into the interface. 
+    static internal class ITypeSymbolHelpers
+    {
+        internal static bool IsNullableType(ITypeSymbol typeOpt)
+        {
+            return typeOpt?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+        }
+
+        internal static bool IsNullableOfBoolean(ITypeSymbol type)
+        {
+            return IsNullableType(type) && IsBooleanType(GetNullableUnderlyingType(type));
+        }
+
+        internal static ITypeSymbol GetNullableUnderlyingType(ITypeSymbol type)
+        {
+            Debug.Assert(IsNullableType(type));
+            return ((INamedTypeSymbol)type).TypeArguments[0];
+        }
+
+        internal static bool IsBooleanType(ITypeSymbol type)
+        {
+            return type?.SpecialType == SpecialType.System_Boolean;
+        }
+
+        internal static bool IsObjectType(ITypeSymbol type)
+        {
+            return type?.SpecialType == SpecialType.System_Object;
+        }
+
+        internal static bool IsSignedIntegralType(ITypeSymbol type)
+        {
+            return type?.SpecialType.IsSignedIntegralType() == true;
+        }
+
+        internal static bool IsUnsignedIntegralType(ITypeSymbol type)
+        {
+            return type?.SpecialType.IsUnsignedIntegralType() == true;
+        }
+
+        internal static bool IsNumericType(ITypeSymbol type)
+        {
+            return type?.SpecialType.IsNumericType() == true;
+        }
+
+        internal static ITypeSymbol GetEnumUnderlyingType(ITypeSymbol type)
+        {
+            return (type as INamedTypeSymbol)?.EnumUnderlyingType;
+        }
+
+        internal static ITypeSymbol GetEnumUnderlyingTypeOrSelf(ITypeSymbol type)
+        {
+            return GetEnumUnderlyingType(type) ?? type;
+        }
+
+        internal static bool IsDynamicType(ITypeSymbol type)
+        {
+            return type?.Kind == SymbolKind.DynamicType;
+        }
     }
 }

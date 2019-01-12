@@ -12,16 +12,6 @@
         <target state="translated">組件名稱包含無效的字元</target>
         <note />
       </trans-unit>
-      <trans-unit id="Msbuild_failed_when_processing_the_file_0">
-        <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="translated">Msbuild 在處理檔案 '{0}' 時失敗</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
-        <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="translated">Msbuild 在處理檔案 '{0}' 時失敗，出現訊息: {1}</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

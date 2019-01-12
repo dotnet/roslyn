@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// A collection of type parameter constraints, populated when
         /// constraints for the first type parameter are requested.
+        /// Initialized in two steps. Hold a copy if accessing during initialization.
         /// </summary>
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
 
@@ -59,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (BaseTypeSyntax baseTypeSyntax in inheritedTypeDecls)
                 {
                     TypeSyntax t = baseTypeSyntax.Type;
-                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics);
+                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics).TypeSymbol;
 
-                    if (bt == @base)
+                    if (TypeSymbol.Equals(bt, @base, TypeCompareKind.ConsiderEverything2))
                     {
                         unusedDiagnostics.Free();
                         return t.GetLocation();
@@ -191,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
                             }
                         }
-                    next:;
+next:;
                     }
                     else if (!typeParameterMismatchReported)
                     {
@@ -227,35 +228,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters.AsImmutable();
         }
 
-        internal TypeParameterConstraintKind GetTypeParameterConstraints(int ordinal)
+        /// <summary>
+        /// Returns the constraint clause for the given type parameter.
+        /// The `early` parameter indicates whether the clauses can be from the first phase of constraint
+        /// checking where the constraint types may still contain invalid or duplicate types.
+        /// </summary>
+        internal TypeParameterConstraintClause GetTypeParameterConstraintClause(bool early, int ordinal)
         {
-            var clause = this.GetTypeParameterConstraintClause(ordinal);
-            return (clause != null) ? clause.Constraints : TypeParameterConstraintKind.None;
-        }
-
-        internal ImmutableArray<TypeSymbol> GetTypeParameterConstraintTypes(int ordinal)
-        {
-            var clause = this.GetTypeParameterConstraintClause(ordinal);
-            return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
-        }
-
-        private TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)
-        {
-            if (_lazyTypeParameterConstraints.IsDefault)
+            var clauses = _lazyTypeParameterConstraints;
+            if (clauses.IsDefault)
             {
+                // Early step.
                 var diagnostics = DiagnosticBag.GetInstance();
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
+                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraintsEarly(diagnostics)))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
                 diagnostics.Free();
+                clauses = _lazyTypeParameterConstraints;
             }
 
-            var clauses = _lazyTypeParameterConstraints;
-            return (clauses.Length > 0) ? clauses[ordinal] : null;
+            if (!early && clauses.IsEarly())
+            {
+                // Late step.
+                var diagnostics = DiagnosticBag.GetInstance();
+                var constraints = ConstraintsHelper.MakeTypeParameterConstraintsLate(TypeParameters, clauses, diagnostics);
+                Debug.Assert(!constraints.IsEarly());
+                if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, constraints, clauses) == clauses)
+                {
+                    this.AddDeclarationDiagnostics(diagnostics);
+                }
+                diagnostics.Free();
+                clauses = _lazyTypeParameterConstraints;
+            }
+
+            return (clauses.Length > 0) ? clauses[ordinal] : TypeParameterConstraintClause.Empty;
         }
 
-        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(DiagnosticBag diagnostics)
+        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraintsEarly(DiagnosticBag diagnostics)
         {
             var typeParameters = this.TypeParameters;
             var results = ImmutableArray<TypeParameterConstraintClause>.Empty;
@@ -285,7 +295,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (results.Length == 0)
                     {
-                        this.CheckConstraintTypesVisibility(decl.NameLocation, constraints, diagnostics);
                         results = constraints;
                     }
                     else
@@ -300,6 +309,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
                             }
                         }
+                        // Merge in the other partial declaration constraints so all
+                        // partial declarations can be checked in late step.
+                        results = results.ZipAsArray(constraints, (x, y) => x.AddPartialDeclaration(y));
                     }
                 }
             }
@@ -334,28 +346,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var constraintTypes1 = clause1.ConstraintTypes;
-            var constraintTypes2 = clause2.ConstraintTypes;
-
-            int n = constraintTypes1.Length;
-            if (constraintTypes2.Length != n)
+            if (clause1.ConstraintTypes.Length == 0 && clause2.ConstraintTypes.Length == 0)
             {
-                return false;
+                return true;
             }
 
-            // Construct a HashSet<T> for one of the sets
-            // to allow O(n) comparison of the two sets.
-            var setTypes2 = new HashSet<TypeSymbol>();
-            foreach (var constraintType in constraintTypes2)
-            {
-                // Binder should have dropped any duplicates.
-                Debug.Assert(!setTypes2.Contains(constraintType));
-                setTypes2.Add(constraintType);
-            }
+            var comparer = TypeSymbolWithAnnotations.EqualsComparer.Instance;
+            var constraintTypes1 = clause1.ConstraintTypes.ToImmutableHashSet(comparer);
+            var constraintTypes2 = clause2.ConstraintTypes.ToImmutableHashSet(comparer);
 
             foreach (var constraintType in constraintTypes1)
             {
-                if (!setTypes2.Contains(constraintType))
+                if (!constraintTypes2.Contains(constraintType))
+                {
+                    return false;
+                }
+            }
+
+            foreach (var constraintType in constraintTypes2)
+            {
+                if (!constraintTypes1.Contains(constraintType))
                 {
                     return false;
                 }
@@ -364,25 +374,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+        internal sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
         {
             get
             {
-                return TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+                return GetTypeParametersAsTypeArguments();
             }
-        }
-
-        internal override bool HasTypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
-        {
-            return GetEmptyTypeArgumentCustomModifiers(ordinal);
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -745,6 +742,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown && attribute.IsTargetAttribute(this, AttributeDescription.TypeIdentifierAttribute))
             {
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.True;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+            {
+                // NullableAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else
             {
@@ -1159,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
             }
 
-            if (this.IsByRefLikeType)
+            if (this.IsRefLikeType)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
 
@@ -1171,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //     we will not emit Obsolete even if Deprecated or Experimental was used.
                 //     we do not want to get into a scenario where different kinds of deprecation are combined together.
                 //
-                if (obsoleteData == null && !this.IsRestrictedType(ignoreSpanLikeTypes:true))
+                if (obsoleteData == null && !this.IsRestrictedType(ignoreSpanLikeTypes: true))
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
                         ImmutableArray.Create(
@@ -1207,6 +1209,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (baseType.ContainsTupleNames())
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(baseType));
+                }
+
+                if (baseType.NeedsNullableAttribute())
+                {
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, TypeSymbolWithAnnotations.Create(baseType)));
                 }
             }
         }

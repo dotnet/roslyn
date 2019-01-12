@@ -3,9 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System;
 
@@ -21,17 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public SynthesizedIntrinsicOperatorSymbol(TypeSymbol leftType, string name, TypeSymbol rightType, TypeSymbol returnType, bool isCheckedBuiltin)
         {
-            if (leftType.Equals(rightType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            if (leftType.Equals(rightType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 _containingType = leftType;
             }
-            else if (rightType.Equals(returnType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            else if (rightType.Equals(returnType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 _containingType = rightType;
             }
             else
             {
-                Debug.Assert(leftType.Equals(returnType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+                Debug.Assert(leftType.Equals(returnType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                 _containingType = leftType;
             }
 
@@ -224,19 +221,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
-                return _returnType;
+                return TypeSymbolWithAnnotations.Create(_returnType);
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get
             {
-                return ImmutableArray<TypeSymbol>.Empty;
+                return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
             }
         }
 
@@ -261,14 +258,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return ImmutableArray<MethodSymbol>.Empty;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
             }
         }
 
@@ -427,12 +416,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_isCheckedBuiltin == other._isCheckedBuiltin &&
                 _parameters.Length == other._parameters.Length &&
                 string.Equals(_name, other._name, StringComparison.Ordinal) &&
-                _containingType == other._containingType &&
-                _returnType == other._returnType)
+                TypeSymbol.Equals(_containingType, other._containingType, TypeCompareKind.ConsiderEverything2) &&
+                TypeSymbol.Equals(_returnType, other._returnType, TypeCompareKind.ConsiderEverything2))
             {
                 for (int i = 0; i < _parameters.Length; i++)
                 {
-                    if (_parameters[i].Type != other._parameters[i].Type)
+                    if (!TypeSymbol.Equals(_parameters[i].Type.TypeSymbol, other._parameters[i].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
                     {
                         return false;
                     }
@@ -456,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol type,
                 int ordinal,
                 string name
-            ) : base(container, type, ordinal, RefKind.None, name)
+            ) : base(container, TypeSymbolWithAnnotations.Create(type), ordinal, RefKind.None, name)
             {
             }
 
@@ -480,11 +469,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override int GetHashCode()
             {
                 return Hash.Combine(ContainingSymbol, Ordinal.GetHashCode());
-            }
-
-            public override ImmutableArray<CustomModifier> CustomModifiers
-            {
-                get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers

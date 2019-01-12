@@ -1153,7 +1153,7 @@ class Program
   IL_0001:  throw
 }");
         }
-        
+
         [Fact]
         public void RefExtensionMethod_PassThrough_LocalNoCopying()
         {
@@ -1169,7 +1169,7 @@ class Test
         int x = 5;
         x.M();
     }
-}", references: new[] { SystemCoreRef }, verify: Verification.Fails).VerifyIL("Test.M", @"
+}", verify: Verification.Fails).VerifyIL("Test.M", @"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -1198,7 +1198,7 @@ class Test
     {
         x.M();
     }
-}", references: new[] { SystemCoreRef }, verify: Verification.Fails).VerifyIL("Test.M", @"
+}", verify: Verification.Fails).VerifyIL("Test.M", @"
 {
   // Code size       13 (0xd)
   .maxstack  1
@@ -1225,7 +1225,7 @@ class Test
     {
         x.M().M().M();
     }
-}", references: new[] { SystemCoreRef }, verify: Verification.Fails).VerifyIL("Test.M", @"
+}", verify: Verification.Fails).VerifyIL("Test.M", @"
 {
   // Code size       23 (0x17)
   .maxstack  1
@@ -1253,7 +1253,7 @@ class Test
     {
         5.M();
     }
-}", references: new[] { SystemCoreRef }, verify: Verification.Fails).VerifyIL("Test.M", @"
+}", verify: Verification.Fails).VerifyIL("Test.M", @"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -1282,7 +1282,7 @@ class Test
         int x = 5;
         x.M();
     }
-}", references: new[] { SystemCoreRef }, verify: Verification.Fails).VerifyIL("Test.M", @"
+}", verify: Verification.Fails).VerifyIL("Test.M", @"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -1311,7 +1311,7 @@ class Test
     {
         x.M();
     }
-}", references: new[] { SystemCoreRef }, verify: Verification.Fails).VerifyIL("Test.M", @"
+}", verify: Verification.Fails).VerifyIL("Test.M", @"
 {
   // Code size       13 (0xd)
   .maxstack  1
@@ -1338,7 +1338,7 @@ class Test
     {
         x.M().M().M();
     }
-}", references: new[] { SystemCoreRef }, verify: Verification.Fails).VerifyIL("Test.M", @"
+}", verify: Verification.Fails).VerifyIL("Test.M", @"
 {
   // Code size       23 (0x17)
   .maxstack  1

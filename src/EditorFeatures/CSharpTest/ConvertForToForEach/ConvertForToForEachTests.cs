@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForToForEach
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertForToForEachCodeRefactoringProvider();
 
-        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
+        private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
 
         private IDictionary<OptionKey, object> ImplicitTypeEverywhere() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithSilent));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
         public async Task TestArray1()
@@ -1050,11 +1050,11 @@ class C
 
 class MyList
 {
-  public object this[int i] { get; }
+    public object this[int i] { get => default; }
 
-  public Enumerator GetEnumerator() { }
+    public Enumerator GetEnumerator() { return default; }
 
-  public struct Enumerator { public object Current { get; } }
+    public struct Enumerator { public object Current { get; } public bool MoveNext() => true; }
 }
 
 class C
@@ -1072,11 +1072,11 @@ class C
 
 class MyList
 {
-  public object this[int i] { get; }
+    public object this[int i] { get => default; }
 
-  public Enumerator GetEnumerator() { }
+    public Enumerator GetEnumerator() { return default; }
 
-  public struct Enumerator { public object Current { get; } }
+    public struct Enumerator { public object Current { get; } public bool MoveNext() => true; }
 }
 
 class C

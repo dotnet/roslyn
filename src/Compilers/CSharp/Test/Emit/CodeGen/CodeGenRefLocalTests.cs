@@ -13,6 +13,253 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CodeGenRefLocalTests : CompilingTestBase
     {
         [Fact]
+        public void RefReassignInArrayElement()
+        {
+            const string src = @"
+using System;
+class C
+{
+    void M()
+    {
+        object o = string.Empty;
+        M2(o);
+    }
+    void M2(in object o)
+    {
+        o = ref (new object[1])[0];
+        Console.WriteLine(o?.GetHashCode() ?? 5);
+    }
+}";
+            var verifier = CompileAndVerify(src, verify: Verification.Fails);
+            const string expectedIL = @"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     ""object""
+  IL_0006:  ldc.i4.0
+  IL_0007:  readonly.
+  IL_0009:  ldelema    ""object""
+  IL_000e:  starg.s    V_1
+  IL_0010:  ldarg.1
+  IL_0011:  ldind.ref
+  IL_0012:  dup
+  IL_0013:  brtrue.s   IL_0019
+  IL_0015:  pop
+  IL_0016:  ldc.i4.5
+  IL_0017:  br.s       IL_001e
+  IL_0019:  callvirt   ""int object.GetHashCode()""
+  IL_001e:  call       ""void System.Console.WriteLine(int)""
+  IL_0023:  ret
+}";
+            verifier.VerifyIL("C.M2", expectedIL);
+
+            // N.B. Even with PEVerify compat this generates unverifiable code.
+            // Compat mode has no effect because it would generate a temp variable
+            // which, if we assign to the in parameter, violates safety by allowing
+            // a local to be returned outside of the method scope.
+            verifier = CompileAndVerify(src,
+                parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(),
+                verify: Verification.Fails);
+            verifier.VerifyIL("C.M2", expectedIL);
+        }
+
+        [Fact]
+        public void ReassignmentFixed()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+class C
+{
+    unsafe static void Main()
+    {
+        int x = 5, y = 11;
+        ref int rx = ref x;
+        fixed (int* ptr = &(rx = ref y))
+        {
+            Console.WriteLine(*ptr);
+            rx = ref *ptr;
+            Console.WriteLine(rx);
+            rx = ref ptr[0];
+            Console.WriteLine(rx);
+        }
+    }
+}", options: TestOptions.UnsafeReleaseExe,
+verify: Verification.Fails,
+expectedOutput: @"11
+11
+11");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (int V_0, //x
+                int V_1, //y
+                pinned int& V_2)
+  IL_0000:  ldc.i4.5
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.s   11
+  IL_0004:  stloc.1
+  IL_0005:  ldloca.s   V_1
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  conv.u
+  IL_000a:  dup
+  IL_000b:  ldind.i4
+  IL_000c:  call       ""void System.Console.WriteLine(int)""
+  IL_0011:  dup
+  IL_0012:  ldind.i4
+  IL_0013:  call       ""void System.Console.WriteLine(int)""
+  IL_0018:  ldind.i4
+  IL_0019:  call       ""void System.Console.WriteLine(int)""
+  IL_001e:  ldc.i4.0
+  IL_001f:  conv.u
+  IL_0020:  stloc.2
+  IL_0021:  ret
+}");
+        }
+
+        [Fact]
+        public void ReassignmentInOut()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        int x = 1, y = 2;
+        ref int rx = ref x;
+        M(out (rx = ref y));
+        Console.WriteLine(rx);
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+    }
+    static void M(out int rx)
+    {
+        rx = 5;
+    }
+}", expectedOutput: @" 5
+1
+5");
+        }
+
+        [Fact]
+        public void ReassignmentWithReorderParameters()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        int x1 = 5, x2 = 7;
+        ref int rx1 = ref x2, rx2 = ref x2;
+        M2(p2: (rx1 = ref x2), p1: (rx1 = ref x1));
+    }
+
+    static void M2(int p1, int p2)
+    {
+        Console.WriteLine(p1);
+        Console.WriteLine(p2);
+    }
+}", expectedOutput: @"5
+7");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  .locals init (int V_0, //x1
+                int V_1, //x2
+                int V_2)
+  IL_0000:  ldc.i4.5
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.7
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.1
+  IL_0005:  stloc.2
+  IL_0006:  ldloc.0
+  IL_0007:  ldloc.2
+  IL_0008:  call       ""void C.M2(int, int)""
+  IL_000d:  ret
+}");
+        }
+
+        [Fact]
+        public void ReassignmentWithReorderRefParameters()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        int x1 = 5, x2 = 7;
+        ref int rx1 = ref x2, rx2 = ref x2;
+        M2(p2: ref (rx1 = ref x2), p1: ref (rx1 = ref x1));
+    }
+
+    static void M2(ref int p1, ref int p2)
+    {
+        Console.WriteLine(p1);
+        Console.WriteLine(p2);
+    }
+}", expectedOutput: @"5
+7");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0, //x1
+                int V_1, //x2
+                int& V_2)
+  IL_0000:  ldc.i4.5
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.7
+  IL_0003:  stloc.1
+  IL_0004:  ldloca.s   V_1
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloc.2
+  IL_000a:  call       ""void C.M2(ref int, ref int)""
+  IL_000f:  ret
+}");
+        }
+
+        [Fact]
+        public void InReassignmentWithConversion()
+        {
+            var verifier = CompileAndVerify(@"
+class C
+{
+    void M(string s)
+    {
+        ref string rs = ref s;
+        M2((rs = ref s));
+    }
+    void M2(in object o) {}
+}");
+            verifier.VerifyIL("C.M(string)", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  3
+  .locals init (string& V_0, //rs
+                object V_1)
+  IL_0000:  ldarga.s   V_1
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  ldarga.s   V_1
+  IL_0006:  dup
+  IL_0007:  stloc.0
+  IL_0008:  ldind.ref
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  call       ""void C.M2(in object)""
+  IL_0011:  ret
+}");
+        }
+
+        [Fact]
         public void RefExprNullPropagation()
         {
             var verifier = CompileAndVerify(@"
@@ -3121,7 +3368,7 @@ public class C
             );
         }
 
-        [Fact, WorkItem(25264, "https://github.com/dotnet/roslyn/issues/25264")]
+        [Fact, WorkItem(25264, "https://github.com/dotnet/roslyn/issues/25264"), CompilerTrait(CompilerFeature.IOperation)]
         public void TestNewRefArray()
         {
             var text = @"
@@ -3143,7 +3390,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new ref[
               Children(2):
                   IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '1')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ?[], IsInvalid, IsImplicit) (Syntax: 'ref[]')
+                        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: ?[], IsInvalid, IsImplicit) (Syntax: 'ref[]')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
 

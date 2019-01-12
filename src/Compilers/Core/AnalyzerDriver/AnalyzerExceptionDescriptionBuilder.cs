@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return exception.ToString();
             }
 
-            var fusionLog = DesktopShim.FileNotFoundException.TryGetFusionLog(fileNotFoundException);
+            var fusionLog = DesktopShim.FileNotFoundExceptionShim.TryGetFusionLog(fileNotFoundException);
             if (fusionLog == null)
             {
                 return exception.ToString();

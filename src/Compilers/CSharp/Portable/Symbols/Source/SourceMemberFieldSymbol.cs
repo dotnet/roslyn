@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             DeclarationModifiers modifiers,
             string name,
-            SyntaxReference syntax, 
+            SyntaxReference syntax,
             Location location)
             : base(containingType, name, syntax, location)
         {
@@ -49,15 +49,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (type.SpecialType == SpecialType.System_Void)
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax.Location);
+                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax?.Location ?? this.Locations[0]);
             }
             else if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax.Location, type);
+                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax?.Location ?? this.Locations[0], type);
             }
-            else if (type.IsByRefLikeType && (this.IsStatic || !containingType.IsByRefLikeType))
+            else if (type.IsRefLikeType && (this.IsStatic || !containingType.IsRefLikeType))
             {
-                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax.Location, type);
+                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax?.Location ?? this.Locations[0], type);
             }
             else if (IsConst && !type.CanBeConst())
             {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!this.IsFixed, "Subclasses representing fixed fields must override");
+                Debug.Assert(!this.IsFixedSizeBuffer, "Subclasses representing fixed fields must override");
                 state.NotePartComplete(CompletionPart.FixedSize);
                 return 0;
             }
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
         {
-            Debug.Assert(!this.IsFixed, "Subclasses representing fixed fields must override");
+            Debug.Assert(!this.IsFixedSizeBuffer, "Subclasses representing fixed fields must override");
             return null;
         }
     }
@@ -281,13 +281,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly bool _hasInitializer;
 
-        private TypeSymbol _lazyType;
+        private TypeSymbolWithAnnotations.Builder _lazyType;
 
         // Non-zero if the type of the field has been inferred from the type of its initializer expression
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
         private int _lazyFieldTypeInferred;
-
-        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
 
         internal SourceMemberFieldSymbolFromDeclarator(
             SourceMemberContainerTypeSymbol containingType,
@@ -370,12 +368,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if ((object)_lazyType != null)
+                if (!_lazyType.IsNull)
                 {
-                    Debug.Assert(_lazyType.IsPointerType() ==
+                    Debug.Assert(_lazyType.DefaultType.IsPointerType() ==
                         IsPointerFieldSyntactically());
 
-                    return _lazyType.IsPointerType();
+                    return _lazyType.DefaultType.IsPointerType();
                 }
 
                 return IsPointerFieldSyntactically();
@@ -404,13 +402,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal sealed override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal sealed override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             Debug.Assert(fieldsBeingBound != null);
 
-            if ((object)_lazyType != null)
+            if (!_lazyType.IsNull)
             {
-                return _lazyType;
+                return _lazyType.ToType();
             }
 
             var declarator = VariableDeclaratorNode;
@@ -420,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
 
             var diagnostics = DiagnosticBag.GetInstance();
-            TypeSymbol type;
+            TypeSymbolWithAnnotations type;
 
             // When we have multiple declarators, we report the type diagnostics on only the first.
             DiagnosticBag diagnosticsForFirstDeclarator = DiagnosticBag.GetInstance();
@@ -436,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // CONSIDER: Do we want to guard against the possibility that someone has created their own EventRegistrationTokenTable<T>
                     // type that has additional generic constraints?
-                    type = tokenTableType.Construct(@event.Type);
+                    type = TypeSymbolWithAnnotations.Create(tokenTableType.Construct(ImmutableArray.Create(@event.Type)));
                 }
                 else
                 {
@@ -458,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     bool isVar;
                     type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
 
-                    Debug.Assert((object)type != null || isVar);
+                    Debug.Assert(!type.IsNull || isVar);
 
                     if (isVar)
                     {
@@ -470,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (fieldsBeingBound.ContainsReference(this))
                         {
                             diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, this.ErrorLocation, this);
-                            type = null;
+                            type = default;
                         }
                         else if (fieldSyntax.Declaration.Variables.Count > 1)
                         {
@@ -479,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else if (this.IsConst && this.ContainingType.IsScriptClass)
                         {
                             // For const var in script, we won't try to bind the initializer (case below), as it can lead to an unbound recursion
-                            type = null;
+                            type = default;
                         }
                         else
                         {
@@ -492,30 +490,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if ((object)initializerOpt.Type != null && !initializerOpt.Type.IsErrorType())
                                 {
-                                    type = initializerOpt.Type;
+                                    type = TypeSymbolWithAnnotations.Create(initializerOpt.Type);
                                 }
 
                                 _lazyFieldTypeInferred = 1;
                             }
                         }
 
-                        if ((object)type == null)
+                        if (type.IsNull)
                         {
-                            type = binder.CreateErrorType("var");
+                            type = TypeSymbolWithAnnotations.Create(binder.CreateErrorType("var"));
                         }
                     }
                 }
 
-                if (IsFixed)
+                if (IsFixedSizeBuffer)
                 {
-                    type = new PointerTypeSymbol(type);
+                    type = TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(type));
 
                     if (ContainingType.TypeKind != TypeKind.Struct)
                     {
                         diagnostics.Add(ErrorCode.ERR_FixedNotInStruct, ErrorLocation);
                     }
 
-                    var elementType = ((PointerTypeSymbol)type).PointedAtType;
+                    var elementType = ((PointerTypeSymbol)type.TypeSymbol).PointedAtType.TypeSymbol;
                     int elementSize = elementType.FixedBufferElementSizeInBytes();
                     if (elementSize == 0)
                     {
@@ -531,9 +529,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // update the lazyType only if it contains value last seen by the current thread:
-            if ((object)Interlocked.CompareExchange(ref _lazyType, type, null) == null)
+            if (_lazyType.InterlockedInitialize(type.WithModifiers(this.RequiredCustomModifiers)))
             {
-                TypeChecks(type, diagnostics);
+                TypeChecks(type.TypeSymbol, diagnostics);
 
                 // CONSIDER: SourceEventFieldSymbol would like to suppress these diagnostics.
                 compilation.DeclarationDiagnostics.AddRange(diagnostics);
@@ -549,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Free();
             diagnosticsForFirstDeclarator.Free();
-            return _lazyType;
+            return _lazyType.ToType();
         }
 
         internal bool FieldTypeInferred(ConsList<FieldSymbol> fieldsBeingBound)
@@ -573,19 +571,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return ConstantValueUtils.EvaluateFieldConstant(this, (EqualsValueClauseSyntax)VariableDeclaratorNode.Initializer, dependencies, earlyDecodingWellKnownAttributes, diagnostics);
-        }
-
-        public sealed override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                if (_lazyCustomModifiers.IsDefault)
-                {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCustomModifiers, base.CustomModifiers, default(ImmutableArray<CustomModifier>));
-                }
-
-                return _lazyCustomModifiers;
-            }
         }
 
         internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))

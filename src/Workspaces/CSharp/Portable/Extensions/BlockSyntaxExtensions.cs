@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool TryConvertToExpressionBody(
             this BlockSyntax block, SyntaxKind declarationKind,
             ParseOptions options, ExpressionBodyPreference preference,
-            out ArrowExpressionClauseSyntax arrowExpression,
+            out ExpressionSyntax expression,
             out SyntaxToken semicolonToken)
         {
             if (preference != ExpressionBodyPreference.Never &&
@@ -30,11 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     var firstStatement = block.Statements[0];
 
-                    if (TryGetExpression(version, firstStatement, out var expression, out semicolonToken) &&
+                    if (TryGetExpression(version, firstStatement, out expression, out semicolonToken) &&
                         MatchesPreference(expression, preference))
                     {
-                        arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
-
                         // The close brace of the block may have important trivia on it (like 
                         // comments or directives).  Preserve them on the semicolon when we
                         // convert to an expression body.
@@ -45,9 +43,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            arrowExpression = null;
+            expression = null;
             semicolonToken = default;
             return false;
+        }
+
+        public static bool TryConvertToArrowExpressionBody(
+            this BlockSyntax block, SyntaxKind declarationKind,
+            ParseOptions options, ExpressionBodyPreference preference,
+            out ArrowExpressionClauseSyntax arrowExpression,
+            out SyntaxToken semicolonToken)
+        {
+            if (!block.TryConvertToExpressionBody(
+                    declarationKind, options, preference,
+                    out var expression, out semicolonToken))
+            {
+                arrowExpression = default;
+                return false;
+            }
+
+            arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
+            return true;
         }
 
         private static bool IsSupportedInCSharp6(SyntaxKind declarationKind)

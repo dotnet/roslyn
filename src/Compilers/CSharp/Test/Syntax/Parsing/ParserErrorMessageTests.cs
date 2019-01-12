@@ -4741,7 +4741,7 @@ public class Test
                 // (7,30): error CS1575: A stackalloc expression requires [] after type
                 //         int *pp = stackalloc int 30;
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(7, 30),
-                // (7,34): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (7,34): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         int *pp = stackalloc int 30;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "30").WithLocation(7, 34)
                 );
@@ -4795,7 +4795,7 @@ unsafe public class Test
                 Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15)
             );
         }
-        
+
         [Fact]
         public void CS1674ERR_StackAllocInUsing1()
         {
@@ -4812,7 +4812,7 @@ public class Test
 }
 ";
             CreateCompilation(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var v = stackalloc int[1])
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("int*").WithLocation(6, 16));
         }
@@ -5730,7 +5730,7 @@ public static class Program
     }
 }";
 
-            CreateCompilationWithMscorlib40AndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
+            CreateCompilation(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
                // (4,30): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
                //     public static void Print(in this int p)
                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(4, 30),
@@ -5739,7 +5739,7 @@ public static class Program
                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("ref extension methods", "7.2").WithLocation(4, 30)
             );
 
-            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "5");
+            CompileAndVerify(code, expectedOutput: "5");
         }
 
         [Fact]
@@ -5762,13 +5762,13 @@ public static class Program
     }
 }";
 
-            CreateCompilationWithMscorlib40AndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
+            CreateCompilation(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
                // (4,30): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
                //     public static void Print(ref this int p)
                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("ref extension methods", "7.2").WithLocation(4, 30)
             );
 
-            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "5");
+            CompileAndVerify(code, expectedOutput: "5");
         }
 
         #endregion
@@ -5937,8 +5937,12 @@ class Test
     }
 }
 ";
-
-            ParseAndValidate(test, Diagnostic(ErrorCode.WRN_EmptySwitch, "{"));
+            ParseAndValidate(test);
+            CreateCompilation(test).VerifyDiagnostics(
+                // (8,9): warning CS1522: Empty switch block
+                //         {}
+                Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(8, 9)
+                );
         }
 
         [Fact]

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     <[UseExportProvider]>
     Public MustInherit Class AbstractSimplificationTests
 
-        Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional simplificationOptions As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task
+        Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional options As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task
             Using workspace = TestWorkspace.Create(definition)
                 Dim hostDocument = workspace.Documents.Single()
 
@@ -32,7 +32,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                                                         explicitSpanToSimplifyAnnotatedSpans.Single().Value,
                                                         Nothing)
 
-                Await TestAsync(workspace, spansToAddSimplifierAnnotation, explicitSpansToSimplifyWithin, expected, simplificationOptions)
+                Await TestAsync(
+                    workspace, spansToAddSimplifierAnnotation,
+                    explicitSpansToSimplifyWithin, expected, options)
             End Using
 
         End Function
@@ -41,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                          listOfLabelToAddSimplifierAnnotationSpans As IEnumerable(Of KeyValuePair(Of String, ImmutableArray(Of TextSpan))),
                          explicitSpansToSimplifyWithin As ImmutableArray(Of TextSpan),
                          expected As XElement,
-                         simplificationOptions As Dictionary(Of OptionKey, Object)) As System.Threading.Tasks.Task
+                         options As Dictionary(Of OptionKey, Object)) As System.Threading.Tasks.Task
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
 
             Dim root = Await document.GetSyntaxRootAsync()
@@ -84,8 +86,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Next
 
             Dim optionSet = workspace.Options
-            If simplificationOptions IsNot Nothing Then
-                For Each entry In simplificationOptions
+            If options IsNot Nothing Then
+                For Each entry In options
                     optionSet = optionSet.WithChangedOption(entry.Key, entry.Value)
                 Next
             End If

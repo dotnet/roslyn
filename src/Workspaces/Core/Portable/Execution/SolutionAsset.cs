@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal abstract class SolutionAsset : RemotableData
     {
-        protected SolutionAsset(Checksum checksum, WellKnownSynchronizationKind kind) 
+        protected SolutionAsset(Checksum checksum, WellKnownSynchronizationKind kind)
             : base(checksum, kind)
         {
         }
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Execution
             public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
             {
                 _serializer.Serialize(_value, writer, cancellationToken);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 

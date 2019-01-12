@@ -97,9 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            public sealed override ImmutableArray<TypeSymbol> TypeArguments
+            public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
             {
-                get { return ImmutableArray<TypeSymbol>.Empty; }
+                get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
             }
 
             public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -115,11 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public sealed override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
             {
                 get { return ImmutableArray<MethodSymbol>.Empty; }
-            }
-
-            public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-            {
-                get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
             public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -215,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected SyntheticBoundNodeFactory CreateBoundNodeFactory(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
                 var F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-                F.CurrentMethod = this;
+                F.CurrentFunction = this;
                 return F;
             }
 

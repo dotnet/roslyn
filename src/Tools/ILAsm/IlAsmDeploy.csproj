@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <OutputType>Exe</OutputType>
+
+    <!-- 
+      When the project is published as a self-contained app do not require the latest runtime patch. 
+      This is ok since the app is only used for testing.
+    -->
+    <TargetLatestRuntimePatch>false</TargetLatestRuntimePatch>
+    <SelfContained>true</SelfContained>
+
+    <!-- Do not build again when publishing -->
+    <NoBuild>true</NoBuild>
+
+    <PublishDir>$(ArtifactsDir)tools\ILAsm\$(Configuration)\</PublishDir>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(OS)' == 'Windows_NT'">
+      <PropertyGroup>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">
+      <PropertyGroup>
+        <RuntimeIdentifier>osx-x64</RuntimeIdentifier>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">
+      <PropertyGroup>
+        <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+      </PropertyGroup>
+    </When>
+  </Choose>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETCore.ILAsm" Version="$(MicrosoftNETCoreILAsmVersion)" />
+  </ItemGroup>
+
+  <!-- Workaround for https://github.com/dotnet/sdk/issues/2573 -->
+  <PropertyGroup>
+    <_IlasmIncrementalBuildMarker>$(PublishDir).v$(MicrosoftNETCoreILAsmVersion)</_IlasmIncrementalBuildMarker>
+  </PropertyGroup>
+
+  <Target Name="_PublishILAsm"
+          AfterTargets="Build"
+          Inputs="$(MSBuildThisFileFullPath)"
+          Outputs="$(_IlasmIncrementalBuildMarker)">
+
+    <Error Text="Unknown OS" Condition="'$(RuntimeIdentifier)' == ''" />
+
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="Publish"/>
+
+    <Touch Files="$(_IlasmIncrementalBuildMarker)" AlwaysCreate="true">
+      <Output TaskParameter="TouchedFiles" ItemName="FileWrites"/>
+    </Touch>
+  </Target>
+</Project>

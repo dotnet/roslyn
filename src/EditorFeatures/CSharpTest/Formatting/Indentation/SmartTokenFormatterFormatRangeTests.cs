@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -21,7 +22,6 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -448,12 +448,38 @@ class Class
 class Class
 {
     int Prop {
+        get { return 1;
+        }";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList5b()
+        {
+            var code = @"using System;
+class Class
+{
+    int Prop {
+        get { return 1;   
+}$$
+}
+}";
+
+            var expected = @"using System;
+class Class
+{
+    int Prop {
         get
         {
             return 1;
-        }";
+        }
+}
+}";
 
-            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.GetKeyword);
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
         [WpfFact]
@@ -509,6 +535,138 @@ class Class
     }";
 
             await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList8()
+        {
+            var code = @"class C
+{
+    int Prop
+    {
+get
+        {
+            return 0;
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    int Prop
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList9()
+        {
+            var code = @"class C
+{
+    int Prop
+    {
+set
+        {
+            ;
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    int Prop
+    {
+        set
+        {
+            ;
+        }
+    }
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList10()
+        {
+            var code = @"class C
+{
+    event EventHandler E
+    {
+add
+        {
+        }$$
+        remove
+        {
+        }
+    }
+
+}";
+
+            var expected = @"class C
+{
+    event EventHandler E
+    {
+        add
+        {
+        }
+        remove
+        {
+        }
+    }
+
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList11()
+        {
+            var code = @"class C
+{
+    event EventHandler E
+    {
+        add
+        {
+        }
+remove
+        {
+        }$$
+    }
+
+}";
+
+            var expected = @"class C
+{
+    event EventHandler E
+    {
+        add
+        {
+        }
+        remove
+        {
+        }
+    }
+
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.CloseBraceToken);
         }
 
         [WpfFact]
@@ -3284,12 +3442,7 @@ class Program{
             {
                 var subjectDocument = workspace.Documents.Single();
 
-                var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
-                var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
-                var editorOperations = new Mock<IEditorOperations>();
-                editorOperationsFactory.Setup(x => x.GetEditorOperations(subjectDocument.GetTextView())).Returns(editorOperations.Object);
-
-                var commandHandler = new FormatCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object);
+                var commandHandler = workspace.GetService<FormatCommandHandler>();
                 var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
                 commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.TextBuffer, typedChar[0]), () => { }, TestCommandExecutionContext.Create());
 

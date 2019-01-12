@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     {
         private const string ChangeSignatureDialogAutomationId = "ChangeSignatureDialog";
 
-        public ChangeSignatureDialog_OutOfProc(VisualStudioInstance visualStudioInstance) 
+        public ChangeSignatureDialog_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
         }
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             // Wait for application idle to ensure the dialog is fully initialized
             VisualStudioInstance.WaitForApplicationIdle(CancellationToken.None);
         }
-  
+
         public void VerifyClosed()
         {
             // FindDialog will wait until the dialog is closed, so the return value is unused.
@@ -81,12 +81,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             {
                 // Modifier | Type | Parameter | Default
                 var item = gridPattern.GetItem(i, columnToSelect);
-                var name = item.CurrentName;
+                var name = AutomationElementExtensions.RetryIfNotAvailable(element => element.CurrentName, item);
                 if (name == parameterName)
                 {
                     // The parent of a cell is of DataItem control type, which support SelectionItemPattern.
                     var walker = Helper.Automation.ControlViewWalker;
-                    var parent = walker.GetParentElement(item);
+                    var parent = AutomationElementExtensions.RetryIfNotAvailable(element => walker.GetParentElement(element), item);
                     parent.Select();
                     return;
                 }

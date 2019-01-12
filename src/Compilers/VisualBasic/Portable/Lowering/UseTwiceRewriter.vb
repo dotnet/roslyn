@@ -358,6 +358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             isLValue:=node.IsLValue,
                             receiverOpt:=receiver.First,
                             arguments:=firstArgs,
+                            defaultArguments:=node.DefaultArguments,
                             type:=node.Type)
 
             Dim second = node.Update(
@@ -368,6 +369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             isLValue:=node.IsLValue,
                             receiverOpt:=receiver.Second,
                             arguments:=secondArgs,
+                            defaultArguments:=node.DefaultArguments,
                             type:=node.Type)
 
             Return New Result(first, second)

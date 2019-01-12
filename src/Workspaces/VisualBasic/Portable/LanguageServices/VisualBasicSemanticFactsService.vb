@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -86,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsPreProcessorDirectiveContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsPreProcessorDirectiveContext
-            Return DirectCast(semanticModel.SyntaxTree, SyntaxTree).IsInPreprocessorDirectiveContext(position, cancellationToken)
+            Return semanticModel.SyntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken)
         End Function
 
         Public Function IsGlobalStatementContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsGlobalStatementContext
@@ -173,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Function TryGetSpeculativeSemanticModel(oldSemanticModel As SemanticModel, oldNode As SyntaxNode, newNode As SyntaxNode, <Out> ByRef speculativeModel As SemanticModel) As Boolean Implements ISemanticFactsService.TryGetSpeculativeSemanticModel
-            Contract.Requires(oldNode.Kind = newNode.Kind)
+            Debug.Assert(oldNode.Kind = newNode.Kind)
 
             Dim model = oldSemanticModel
 
@@ -256,20 +257,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
+        Public Function GetGetAwaiterMethod(model As SemanticModel, node As SyntaxNode) As IMethodSymbol Implements ISemanticFactsService.GetGetAwaiterMethod
+            If node.IsKind(SyntaxKind.AwaitExpression) Then
+                Dim awaitExpression = DirectCast(node, AwaitExpressionSyntax)
+                Dim info = model.GetAwaitExpressionInfo(awaitExpression)
+                Return info.GetAwaiterMethod
+            End If
+
+            Return Nothing
+        End Function
+
         Public Function GetDeconstructionAssignmentMethods(model As SemanticModel, deconstruction As SyntaxNode) As ImmutableArray(Of IMethodSymbol) Implements ISemanticFactsService.GetDeconstructionAssignmentMethods
             Return ImmutableArray(Of IMethodSymbol).Empty
         End Function
 
         Public Function GetDeconstructionForEachMethods(model As SemanticModel, deconstruction As SyntaxNode) As ImmutableArray(Of IMethodSymbol) Implements ISemanticFactsService.GetDeconstructionForEachMethods
             Return ImmutableArray(Of IMethodSymbol).Empty
-        End Function
-
-        Public Function IsAssignableTo(fromSymbol As ITypeSymbol, toSymbol As ITypeSymbol, compilation As Compilation) As Boolean Implements ISemanticFactsService.IsAssignableTo
-            Return fromSymbol IsNot Nothing AndAlso toSymbol IsNot Nothing AndAlso DirectCast(compilation, VisualBasicCompilation).ClassifyConversion(fromSymbol, toSymbol).IsWidening
-        End Function
-
-        Public Function IsNameOfContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsNameOfContext
-            Return semanticModel.SyntaxTree.IsNameOfContext(position, cancellationToken)
         End Function
 
         Public Function IsNamespaceDeclarationNameContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsNamespaceDeclarationNameContext
@@ -294,8 +297,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return {semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken)}
         End Function
 
-        Public Function GetSymbolInfo(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As SymbolInfo Implements ISemanticFactsService.GetSymbolInfo
-            Return semanticModel.GetSymbolInfo(node, cancellationToken)
+        Public Function FindParameterForArgument(semanticModel As SemanticModel, argumentNode As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFactsService.FindParameterForArgument
+            Return DirectCast(argumentNode, ArgumentSyntax).DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
+        End Function
+
+        Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFactsService.GetBestOrAllSymbols
+            Return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols()
         End Function
 
         Private Function ISemanticFactsService_GenerateUniqueName(
@@ -311,6 +318,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ISemanticFactsService_GenerateUniqueLocalName(
             semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueLocalName
             Return MyBase.GenerateUniqueLocalName(semanticModel, location, containerOpt, baseName, cancellationToken)
+        End Function
+
+        Public Function IsInsideNameOfExpression(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInsideNameOfExpression
+            Return node.FirstAncestorOrSelf(Of NameOfExpressionSyntax) IsNot Nothing
         End Function
     End Class
 End Namespace

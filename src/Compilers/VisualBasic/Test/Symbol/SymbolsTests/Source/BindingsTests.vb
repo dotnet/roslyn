@@ -224,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             WithEvents MyWithEvent As String = "MyWithEventInitializer"
         End Namespace
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)
@@ -315,7 +315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Namespace
     </file>
 
-      </compilation>, options)
+      </compilation>, options:=options)
 
             Dim expectedErrors = <errors>
 BC30179: class 'Q' and structure 'Q' conflict in namespace 'Goo.Bar.N1.N2'.
@@ -451,7 +451,7 @@ BC30179: interface 'Q' and class 'Q' conflict in namespace 'Goo.Bar.N1.N2'.
             End Module
         End Namespace
     </file>
-      </compilation>, options)
+      </compilation>, options:=options)
 
             Dim symbols As ImmutableArray(Of ISymbol)
             Dim symbol As Symbol

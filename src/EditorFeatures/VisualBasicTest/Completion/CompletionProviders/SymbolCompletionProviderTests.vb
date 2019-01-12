@@ -1346,7 +1346,8 @@ Class C
                 text, position, usePreviousCharAsTrigger:=True,
                 expectedItemOrNull:="10", expectedDescriptionOrNull:=Nothing,
                 sourceCodeKind:=SourceCodeKind.Regular, checkForAbsence:=False,
-                glyph:=Nothing, matchPriority:=Nothing, hasSuggestionItem:=Nothing)
+                glyph:=Nothing, matchPriority:=Nothing, hasSuggestionItem:=Nothing,
+                displayTextSuffix:=Nothing)
         End Function
 
         <WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
@@ -1852,6 +1853,142 @@ End Class
 
             Await VerifyItemExistsAsync(markup, "Something")
             Await VerifyItemIsAbsentAsync(markup, "C2")
+        End Function
+
+        <WorkItem(25589, "https://github.com/dotnet/roslyn/issues/25589")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute1() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<$$>
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "Namespace1")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute2() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<Namespace1.$$>
+]]></Text>.Value
+
+            Await VerifyItemIsAbsentAsync(markup, "Namespace2")
+            Await VerifyItemExistsAsync(markup, "Namespace3")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute3() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<Namespace1.Namespace3.$$>
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "Namespace4")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute4() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<Namespace1.Namespace3.Namespace4.$$>
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "Custom")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithNestedAttribute_NamespaceAlias() As Task
+            Dim markup = <Text><![CDATA[
+Imports Namespace1Alias = Namespace1
+Imports Namespace2Alias = Namespace1.Namespace2
+Imports Namespace3Alias = Namespace1.Namespace3
+Imports Namespace4Alias = Namespace1.Namespace3.Namespace4
+
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class CustomAttribute
+            Inherits System.Attribute
+        End Class
+    End Namespace
+End Namespace
+
+<$$>
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "Namespace1Alias")
+            Await VerifyItemIsAbsentAsync(markup, "Namespace2Alias")
+            Await VerifyItemExistsAsync(markup, "Namespace3Alias")
+            Await VerifyItemExistsAsync(markup, "Namespace4Alias")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeSearch_NamespaceWithoutNestedAttribute() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Namespace Namespace2
+        Class NonAttribute
+        End Class
+    End Namespace
+    Namespace Namespace3.Namespace4
+        Class NonAttribute
+            Inherits System.NonAttribute
+        End Class
+    End Namespace
+End Namespace
+
+<$$>
+]]></Text>.Value
+
+            Await VerifyItemIsAbsentAsync(markup, "Namespace1")
         End Function
 
         <WorkItem(542737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542737")>
@@ -5160,7 +5297,7 @@ Public Class derived
 End Class
 "
 
-            Await VerifyItemExistsAsync(markup, "base(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemExistsAsync(markup, "base", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -5175,7 +5312,7 @@ Public Class bar
 End Class
 "
 
-            Await VerifyItemExistsAsync(markup, "IGoo(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemExistsAsync(markup, "IGoo", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(546610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546610")>
@@ -5417,7 +5554,7 @@ Class C(Of T)
 End Class
 "
 
-            Await VerifyItemExistsAsync(markup, "I(Of …)")
+            Await VerifyItemExistsAsync(markup, "I", displayTextSuffix:="(Of …)")
         End Function
 
         <WorkItem(622563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622563")>
@@ -7140,7 +7277,7 @@ Module Program
     End Sub
 End Module
 ]]></code>.Value
-            Await VerifyItemIsAbsentAsync(text, "Func(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemIsAbsentAsync(text, "Func", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7158,7 +7295,7 @@ Module Program
     End Sub
 End Module
 ]]></code>.Value
-            Await VerifyItemIsAbsentAsync(text, "Func(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemIsAbsentAsync(text, "Func", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7176,7 +7313,7 @@ Module Program
     End Sub
 End Module
 ]]></code>.Value
-            Await VerifyItemIsAbsentAsync(text, "Func(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemIsAbsentAsync(text, "Func", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7194,7 +7331,7 @@ Module Program
     End Sub
 End Module
 ]]></code>.Value
-            Await VerifyItemExistsAsync(text, "Func(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemExistsAsync(text, "Func", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7212,7 +7349,7 @@ Module Program
     End Sub
 End Module
 ]]></code>.Value
-            Await VerifyItemExistsAsync(text, "Func(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemExistsAsync(text, "Func", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7229,7 +7366,7 @@ Module Program
     End Function
 End Module
 ]]></code>.Value
-            Await VerifyItemExistsAsync(text, "Func(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemExistsAsync(text, "Func", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7245,7 +7382,7 @@ Module Program
     Dim x as $$
 End Module
 ]]></code>.Value
-            Await VerifyItemExistsAsync(text, "Func(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemExistsAsync(text, "Func", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7281,7 +7418,7 @@ Module Program
     End Sub
 End Module
 ]]></code>.Value
-            Await VerifyItemIsAbsentAsync(text, "Action(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemIsAbsentAsync(text, "Action", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7299,7 +7436,7 @@ Module Program
     End Sub
 End Module
 ]]></code>.Value
-            Await VerifyItemIsAbsentAsync(text, "Action(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemIsAbsentAsync(text, "Action", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7317,7 +7454,7 @@ Module Program
     End Sub
 End Module
 ]]></code>.Value
-            Await VerifyItemIsAbsentAsync(text, "Action(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemIsAbsentAsync(text, "Action", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7335,7 +7472,7 @@ Module Program
     End Sub
 End Module
 ]]></code>.Value
-            Await VerifyItemExistsAsync(text, "Action(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemExistsAsync(text, "Action", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7353,7 +7490,7 @@ Module Program
     End Sub
 End Module
 ]]></code>.Value
-            Await VerifyItemExistsAsync(text, "Action(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemExistsAsync(text, "Action", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7370,7 +7507,7 @@ Module Program
     End Function
 End Module
 ]]></code>.Value
-            Await VerifyItemExistsAsync(text, "Action(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemExistsAsync(text, "Action", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7386,7 +7523,7 @@ Module Program
     Dim x as $$
 End Module
 ]]></code>.Value
-            Await VerifyItemExistsAsync(text, "Action(Of " & s_unicodeEllipsis & ")")
+            Await VerifyItemExistsAsync(text, "Action", displayTextSuffix:="(Of " & s_unicodeEllipsis & ")")
         End Function
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
@@ -7666,9 +7803,9 @@ End Namespace
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
                 Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing)
                 Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing)
             End Using
 
         End Function

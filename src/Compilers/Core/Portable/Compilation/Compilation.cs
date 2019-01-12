@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
@@ -335,6 +336,17 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 return _lazySubmissionSlotIndex != SubmissionSlotIndexNotApplicable;
+            }
+        }
+
+        /// <summary>
+        /// The previous submission, if any, or null.
+        /// </summary>
+        private Compilation PreviousSubmission
+        {
+            get
+            {
+                return ScriptCompilationInfo?.PreviousScriptCompilation;
             }
         }
 
@@ -793,12 +805,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Get the symbol for the predefined type member from the COR Library referenced by this compilation.
+        /// </summary>
+        internal abstract ISymbol CommonGetSpecialTypeMember(SpecialMember specialMember);
+
+        /// <summary>
         /// Returns true if the type is System.Type.
         /// </summary>
         internal abstract bool IsSystemTypeReference(ITypeSymbol type);
 
         protected abstract INamedTypeSymbol CommonGetSpecialType(SpecialType specialType);
 
+        /// <summary>
+        /// Lookup member declaration in well known type used by this Compilation.
+        /// </summary>
         internal abstract ISymbol CommonGetWellKnownTypeMember(WellKnownMember member);
 
         /// <summary>
@@ -893,6 +913,15 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType);
 
+        // PERF: ETW Traces show that analyzers may use this method frequently, often requesting
+        // the same symbol over and over again. XUnit analyzers, in particular, were consuming almost
+        // 1% of CPU time when building Roslyn itself. This is an extremely simple cache that evicts on
+        // hash code conflicts, but seems to do the trick. The size is mostly arbitrary. My guess
+        // is that there are maybe a couple dozen analyzers in the solution and each one has
+        // ~0-2 unique well-known types, and the chance of hash collision is very low.
+        private ConcurrentCache<string, INamedTypeSymbol> _getTypeCache =
+            new ConcurrentCache<string, INamedTypeSymbol>(50, ReferenceEqualityComparer.Instance);
+
         /// <summary>
         /// Gets the type within the compilation's assembly and all referenced assemblies (other than
         /// those that can only be referenced via an extern alias) using its canonical CLR metadata name.
@@ -903,7 +932,13 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public INamedTypeSymbol GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            return CommonGetTypeByMetadataName(fullyQualifiedMetadataName);
+            if (!_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var val))
+            {
+                val = CommonGetTypeByMetadataName(fullyQualifiedMetadataName);
+                // Ignore if someone added the same value before us
+                _ = _getTypeCache.TryAdd(fullyQualifiedMetadataName, val);
+            }
+            return val;
         }
 
         protected abstract INamedTypeSymbol CommonGetTypeByMetadataName(string metadataName);
@@ -1026,7 +1061,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns a new anonymous type symbol with the given member types member names.
         /// Anonymous type members will be readonly by default.  Writable properties are
-        /// supported in VB and can be created by passing in <code>false</code> in the
+        /// supported in VB and can be created by passing in <see langword="false"/> in the
         /// appropriate locations in <paramref name="memberIsReadOnly"/>.
         ///
         /// Source locations can also be provided through <paramref name="memberLocations"/>
@@ -1091,6 +1126,163 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<string> memberNames,
             ImmutableArray<Location> memberLocations,
             ImmutableArray<bool> memberIsReadOnly);
+
+        /// <summary>
+        /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
+        /// to this compilation's programming language.
+        /// </summary>
+        /// <param name="source">Source type of value to be converted</param>
+        /// <param name="destination">Destination type of value to be converted</param>
+        /// <returns>A <see cref="CommonConversion"/> that classifies the conversion from the
+        /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
+        public abstract CommonConversion ClassifyCommonConversion(ITypeSymbol source, ITypeSymbol destination);
+
+        /// <summary>
+        /// Returns true if there is an implicit (C#) or widening (VB) conversion from
+        /// <paramref name="fromType"/> to <paramref name="toType"/>. Returns false if
+        /// either <paramref name="fromType"/> or <paramref name="toType"/> is null, or
+        /// if no such conversion exists.
+        /// </summary>
+        public bool HasImplicitConversion(ITypeSymbol fromType, ITypeSymbol toType)
+            => fromType != null && toType != null && this.ClassifyCommonConversion(fromType, toType).IsImplicit;
+
+        /// <summary>
+        /// Checks if <paramref name="symbol"/> is accessible from within <paramref name="within"/>. An optional qualifier of type
+        /// <paramref name="throughType"/> is used to resolve protected access for instance members. All symbols are
+        /// required to be from this compilation or some assembly referenced (<see cref="References"/>) by this
+        /// compilation. <paramref name="within"/> is required to be an <see cref="INamedTypeSymbol"/> or <see cref="IAssemblySymbol"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>Submissions can reference symbols from previous submissions and their referenced assemblies, even
+        /// though those references are missing from <see cref="References"/>.
+        /// See https://github.com/dotnet/roslyn/issues/27356.
+        /// This implementation works around that by permitting symbols from previous submissions as well.</para>
+        /// <para>It is advised to avoid the use of this API within the compilers, as the compilers have additional
+        /// requirements for access checking that are not satisfied by this implementation, including the
+        /// avoidance of infinite recursion that could result from the use of the ISymbol APIs here, the detection
+        /// of use-site diagnostics, and additional returned details (from the compiler's internal APIs) that are
+        /// helpful for more precisely diagnosing reasons for accessibility failure.</para>
+        /// </remarks>
+        public bool IsSymbolAccessibleWithin(
+            ISymbol symbol,
+            ISymbol within,
+            ITypeSymbol throughType = null)
+        {
+            if (symbol is null)
+            {
+                throw new ArgumentNullException(nameof(symbol));
+            }
+
+            if (within is null)
+            {
+                throw new ArgumentNullException(nameof(within));
+            }
+
+            if (!(within is INamedTypeSymbol || within is IAssemblySymbol))
+            {
+                throw new ArgumentException(string.Format(CodeAnalysisResources.IsSymbolAccessibleBadWithin, nameof(within)), nameof(within));
+            }
+
+            checkInCompilationReferences(symbol, nameof(symbol));
+            checkInCompilationReferences(within, nameof(within));
+            if (!(throughType is null))
+            {
+                checkInCompilationReferences(throughType, nameof(throughType));
+            }
+
+            return IsSymbolAccessibleWithinCore(symbol, within, throughType);
+
+            void checkInCompilationReferences(ISymbol s, string parameterName)
+            {
+                var containingAssembly = computeContainingAssembly(s);
+                if (!assemblyIsInReferences(containingAssembly))
+                {
+                    throw new ArgumentException(string.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, parameterName), parameterName);
+                }
+            }
+
+            bool assemblyIsInReferences(IAssemblySymbol a)
+            {
+                if (assemblyIsInCompilationReferences(a, this))
+                {
+                    return true;
+                }
+
+                if (this.IsSubmission)
+                {
+                    // Submissions can reference symbols from previous submissions and their referenced assemblies, even
+                    // though those references are missing from this.References. We work around that by digging in
+                    // to find references of previous submissions. See https://github.com/dotnet/roslyn/issues/27356
+                    for (Compilation c = this.PreviousSubmission; c != null; c = c.PreviousSubmission)
+                    {
+                        if (assemblyIsInCompilationReferences(a, c))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+
+            bool assemblyIsInCompilationReferences(IAssemblySymbol a, Compilation compilation)
+            {
+                if (a.Equals(compilation.Assembly))
+                {
+                    return true;
+                }
+
+                foreach (var reference in compilation.References)
+                {
+                    if (a.Equals(compilation.GetAssemblyOrModuleSymbol(reference)))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            IAssemblySymbol computeContainingAssembly(ISymbol s)
+            {
+                while (true)
+                {
+                    switch (s.Kind)
+                    {
+                        case SymbolKind.Assembly:
+                            return (IAssemblySymbol)s;
+                        case SymbolKind.PointerType:
+                            s = ((IPointerTypeSymbol)s).PointedAtType;
+                            continue;
+                        case SymbolKind.ArrayType:
+                            s = ((IArrayTypeSymbol)s).ElementType;
+                            continue;
+                        case SymbolKind.Alias:
+                            s = ((IAliasSymbol)s).Target;
+                            continue;
+                        case SymbolKind.Discard:
+                            s = ((IDiscardSymbol)s).Type;
+                            continue;
+                        case SymbolKind.DynamicType:
+                        case SymbolKind.ErrorType:
+                        case SymbolKind.Preprocessing:
+                        case SymbolKind.Namespace:
+                            // these symbols are not restricted in where they can be accessed, so unless they report
+                            // a containing assembly, we treat them as in the current assembly for access purposes
+                            return s.ContainingAssembly ?? this.Assembly;
+                        default:
+                            return s.ContainingAssembly;
+                    }
+                }
+            }
+        }
+
+        private protected abstract bool IsSymbolAccessibleWithinCore(
+            ISymbol symbol,
+            ISymbol within,
+            ITypeSymbol throughType);
+
+        internal abstract IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out Optional<object> constantValue);
 
         #endregion
 
@@ -1461,6 +1653,20 @@ namespace Microsoft.CodeAnalysis
         #region Emit
 
         /// <summary>
+        /// There are two ways to sign PE files
+        ///   1. By directly signing the <see cref="PEBuilder"/>
+        ///   2. Write the unsigned PE to disk and use CLR COM APIs to sign.
+        /// The preferred method is #1 as it's more efficient and more resilient (no reliance on %TEMP%). But 
+        /// we must continue to support #2 as it's the only way to do the following:
+        ///   - Access private keys stored in a key container
+        ///   - Do proper counter signature verification for AssemblySignatureKey attributes
+        /// </summary>
+        internal bool SignUsingBuilder =>
+            string.IsNullOrEmpty(StrongNameKeys.KeyContainer) &&
+            !StrongNameKeys.HasCounterSignature &&
+            !_features.ContainsKey("UseLegacyStrongNameProvider");
+
+        /// <summary>
         /// Constructs the module serialization properties out of the compilation options of this compilation.
         /// </summary>
         internal Cci.ModulePropertiesForSerialization ConstructModuleSerializationProperties(
@@ -1544,7 +1750,7 @@ namespace Microsoft.CodeAnalysis
             switch (platform)
             {
                 case Platform.Arm64:
-                    machine = (Machine)0xAA64; //Machine.Arm64; https://github.com/dotnet/roslyn/issues/25185 
+                    machine = Machine.Arm64;
                     break;
 
                 case Platform.Arm:
@@ -2222,7 +2428,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             ReportUnusedImports(null, diagnostics, cancellationToken);
                         }
-                   }
+                    }
                 }
                 finally
                 {
@@ -2230,7 +2436,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 RSAParameters? privateKeyOpt = null;
-                if (Options.StrongNameProvider?.Capability == SigningCapability.SignsPeBuilder && !Options.PublicSign)
+                if (Options.StrongNameProvider != null && SignUsingBuilder && !Options.PublicSign)
                 {
                     privateKeyOpt = StrongNameKeys.PrivateKey;
                 }
@@ -2418,10 +2624,8 @@ namespace Microsoft.CodeAnalysis
             cancellationToken.ThrowIfCancellationRequested();
 
             Cci.PdbWriter nativePdbWriter = null;
-            Stream signingInputStream = null;
             DiagnosticBag metadataDiagnostics = null;
             DiagnosticBag pdbBag = null;
-            Stream peStream = null;
 
             bool deterministic = IsEmitDeterministic;
 
@@ -2439,11 +2643,20 @@ namespace Microsoft.CodeAnalysis
 
             if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded && !string.IsNullOrEmpty(pePdbFilePath))
             {
-                pePdbFilePath = Path.GetFileName(pePdbFilePath);
+                pePdbFilePath = PathUtilities.GetFileName(pePdbFilePath);
             }
 
+            EmitStream emitPeStream = null;
+            EmitStream emitMetadataStream = null;
             try
             {
+                var signKind = IsRealSigned
+                    ? (SignUsingBuilder ? EmitStreamSignKind.SignedWithBulider : EmitStreamSignKind.SignedWithFile)
+                    : EmitStreamSignKind.None;
+                emitPeStream = new EmitStream(peStreamProvider, signKind, Options.StrongNameProvider);
+                emitMetadataStream = metadataPEStreamProvider == null
+                    ? null
+                    : new EmitStream(metadataPEStreamProvider, signKind, Options.StrongNameProvider);
                 metadataDiagnostics = DiagnosticBag.GetInstance();
 
                 if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Pdb && pdbStreamProvider != null)
@@ -2457,22 +2670,10 @@ namespace Microsoft.CodeAnalysis
                     nativePdbWriter = new Cci.PdbWriter(pePdbFilePath, testSymWriterFactory, deterministic ? moduleBeingBuilt.PdbChecksumAlgorithm : default);
                 }
 
-                Func<Stream> getPeStream = () =>
-                {
-                    Stream ret;
-                    (peStream, signingInputStream, ret) = GetPeStream(metadataDiagnostics, peStreamProvider, metadataOnly);
-                    return ret;
-                };
-
-                Func<Stream> getRefPeStream = 
-                    metadataPEStreamProvider == null
-                    ? null
-                    : (Func<Stream>) (() => ConditionalGetOrCreateStream(metadataPEStreamProvider, metadataDiagnostics));
-
                 Func<Stream> getPortablePdbStream =
                     moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.PortablePdb || pdbStreamProvider == null
                     ? null
-                    : (Func<Stream>) (() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
+                    : (Func<Stream>)(() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
 
                 try
                 {
@@ -2480,8 +2681,8 @@ namespace Microsoft.CodeAnalysis
                         moduleBeingBuilt,
                         metadataDiagnostics,
                         MessageProvider,
-                        getPeStream,
-                        getRefPeStream,
+                        emitPeStream.GetCreateStreamFunc(metadataDiagnostics),
+                        emitMetadataStream?.GetCreateStreamFunc(metadataDiagnostics),
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
@@ -2531,36 +2732,18 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                if (signingInputStream != null && peStream != null)
-                {
-                    Debug.Assert(Options.StrongNameProvider != null);
-
-                    try
-                    {
-                        Options.StrongNameProvider.SignStream(StrongNameKeys, signingInputStream, peStream);
-                    }
-                    catch (DesktopStrongNameProvider.ClrStrongNameMissingException)
-                    {
-                        diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer,
-                            new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported)), MessageProvider));
-                        return false;
-                    }
-                    catch (IOException ex)
-                    {
-                        diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer, ex.Message, MessageProvider));
-                        return false;
-                    }
-                }
+                return
+                    emitPeStream.Complete(StrongNameKeys, MessageProvider, diagnostics) &&
+                    (emitMetadataStream?.Complete(StrongNameKeys, MessageProvider, diagnostics) ?? true);
             }
             finally
             {
                 nativePdbWriter?.Dispose();
-                signingInputStream?.Dispose();
+                emitPeStream?.Close();
+                emitMetadataStream?.Close();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();
             }
-
-            return true;
         }
 
         private static Stream ConditionalGetOrCreateStream(EmitStreamProvider metadataPEStreamProvider, DiagnosticBag metadataDiagnostics)
@@ -2573,58 +2756,6 @@ namespace Microsoft.CodeAnalysis
             var auxStream = metadataPEStreamProvider.GetOrCreateStream(metadataDiagnostics);
             Debug.Assert(auxStream != null || metadataDiagnostics.HasAnyErrors());
             return auxStream;
-        }
-
-        /// <summary>
-        /// Returns a tuple of streams where
-        /// * `peStream` is a stream which will carry the output PE bits
-        /// * `signingStream` is the stream which will be signed by the legacy strong name signer, or null if we aren't using the legacy signer
-        /// * `selectedStream` is an alias of either peStream or signingStream, and is the stream that will be written to by the emitter.
-        /// </summary>
-        private (Stream peStream, Stream signingStream, Stream selectedStream) GetPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider peStreamProvider, bool metadataOnly)
-        {
-            Stream peStream = null;
-            Stream signingStream = null;
-            Stream selectedStream = null;
-
-            if (metadataDiagnostics.HasAnyErrors())
-            {
-                return (peStream, signingStream, selectedStream);
-            }
-
-            peStream = peStreamProvider.GetOrCreateStream(metadataDiagnostics);
-            if (peStream == null)
-            {
-                Debug.Assert(metadataDiagnostics.HasAnyErrors());
-                return (peStream, signingStream, selectedStream);
-            }
-
-            // If the current strong name provider is the Desktop version, signing can only be done to on-disk files.
-            // If this binary is configured to be signed, create a temp file, output to that
-            // then stream that to the stream that this method was called with. Otherwise output to the
-            // stream that this method was called with.
-            if (!metadataOnly && IsRealSigned && Options.StrongNameProvider.Capability == SigningCapability.SignsStream)
-            {
-                Debug.Assert(Options.StrongNameProvider != null);
-
-                try
-                {
-                    signingStream = Options.StrongNameProvider.CreateInputStream();
-                }
-                catch (IOException e)
-                {
-                    throw new Cci.PeWritingException(e);
-                }
-
-                selectedStream = signingStream;
-            }
-            else
-            {
-                signingStream = null;
-                selectedStream = peStream;
-            }
-
-            return (peStream, signingStream, selectedStream);
         }
 
         internal static bool SerializePeToStream(
@@ -2907,6 +3038,24 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract IEnumerable<ISymbol> GetSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Return true if there is a source declaration symbol name that matches the provided name.
+        /// This may be faster than <see cref="ContainsSymbolsWithName(Func{string, bool},
+        /// SymbolFilter, CancellationToken)"/> when predicate is just a simple string check.
+        /// <paramref name="name"/> is case sensitive or not depending on the target language.
+        /// </summary>
+        public abstract bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Return source declaration symbols whose name matches the provided name.  This may be
+        /// faster than <see cref="GetSymbolsWithName(Func{string, bool}, SymbolFilter,
+        /// CancellationToken)"/> when predicate is just a simple string check.  <paramref
+        /// name="name"/> is case sensitive or not depending on the target language.
+        /// </summary>
+        public abstract IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+
         #endregion
 
         internal void MakeMemberMissing(WellKnownMember member)
@@ -2944,7 +3093,17 @@ namespace Microsoft.CodeAnalysis
             return _lazyMakeMemberMissingMap != null && _lazyMakeMemberMissingMap.ContainsKey(member);
         }
 
+        internal void MakeTypeMissing(SpecialType type)
+        {
+            MakeTypeMissing((int)type);
+        }
+
         internal void MakeTypeMissing(WellKnownType type)
+        {
+            MakeTypeMissing((int)type);
+        }
+
+        private void MakeTypeMissing(int type)
         {
             if (_lazyMakeWellKnownTypeMissingMap == null)
             {
@@ -2954,7 +3113,17 @@ namespace Microsoft.CodeAnalysis
             _lazyMakeWellKnownTypeMissingMap[(int)type] = true;
         }
 
+        internal bool IsTypeMissing(SpecialType type)
+        {
+            return IsTypeMissing((int)type);
+        }
+
         internal bool IsTypeMissing(WellKnownType type)
+        {
+            return IsTypeMissing((int)type);
+        }
+
+        private bool IsTypeMissing(int type)
         {
             return _lazyMakeWellKnownTypeMissingMap != null && _lazyMakeWellKnownTypeMissingMap.ContainsKey((int)type);
         }

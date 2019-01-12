@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CSharp.AddImport
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -9,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.IncrementalCaches
 Imports Microsoft.CodeAnalysis.SolutionCrawler
-Imports Microsoft.CodeAnalysis.UnitTests
+Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
 Imports Roslyn.Utilities
 
@@ -265,7 +264,9 @@ namespace CSAssembly2
 }
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="CSAssembly1", onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
+            Await TestAsync(
+                input, expected, codeActionIndex:=0, addedReference:="CSAssembly1",
+                glyphTags:=WellKnownTagArrays.CSharpProject, onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -344,7 +345,9 @@ namespace CSAssembly2
 }
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="NewName", onAfterWorkspaceCreated:=
+            Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="NewName",
+                            glyphTags:=WellKnownTagArrays.CSharpProject,
+                            onAfterWorkspaceCreated:=
                             Sub(workspace As TestWorkspace)
                                 WaitForSolutionCrawler(workspace)
                                 Dim project = workspace.CurrentSolution.Projects.Single(Function(p) p.AssemblyName = "CSAssembly1")
@@ -388,7 +391,9 @@ Namespace VBAssembly2
 End Namespace
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="VBAssembly1", onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
+            Await TestAsync(
+                input, expected, codeActionIndex:=0, addedReference:="VBAssembly1",
+                glyphTags:=WellKnownTagArrays.VisualBasicProject, onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
         End Function
 
         Private Sub WaitForSolutionCrawler(workspace As TestWorkspace)
@@ -468,7 +473,7 @@ namespace A
                     </Project>
                 </Workspace>
 
-            Await TestAsync(input, addedReference:="CSAssembly2",
+            Await TestAsync(input, addedReference:="CSAssembly2", glyphTags:=WellKnownTagArrays.CSharpProject,
                             onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
         End Function
 
@@ -506,10 +511,11 @@ namespace CSAssembly2
         End Function
 
         Friend Overloads Async Function TestAsync(definition As XElement,
-                            Optional expected As String = Nothing,
-                            Optional codeActionIndex As Integer = 0,
-                            Optional addedReference As String = Nothing,
-                            Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing) As Task
+                                                  Optional expected As String = Nothing,
+                                                  Optional codeActionIndex As Integer = 0,
+                                                  Optional addedReference As String = Nothing,
+                                                  Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing,
+                                                  Optional glyphTags As ImmutableArray(Of String) = Nothing) As Task
             Dim verifySolutions As Func(Of Solution, Solution, Task) = Nothing
             Dim workspace As TestWorkspace = Nothing
 
@@ -530,12 +536,13 @@ namespace CSAssembly2
                                                    Select p.Name
 
                         Assert.True(newProjectReferences.Contains(addedReference))
-                        Return SpecializedTasks.EmptyTask
+                        Return Task.CompletedTask
                     End Function
             End If
 
             Await TestAsync(definition, expected, codeActionIndex,
                             verifySolutions:=verifySolutions,
+                            glyphTags:=glyphTags,
                             onAfterWorkspaceCreated:=Sub(ws As TestWorkspace)
                                                          workspace = ws
                                                          onAfterWorkspaceCreated?.Invoke(ws)

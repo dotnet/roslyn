@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_NoSourcesOut = 2029
         ERR_NeedModule = 2030
         ERR_InvalidAssemblyName = 2031
-        FTL_InputFileNameTooLong = 2032 ' new in Roslyn
+        FTL_InvalidInputFileName = 2032 ' new in Roslyn
         ERR_ConflictingManifestSwitches = 2033
         WRN_IgnoreModuleManifest = 2034
         'ERR_NoDefaultManifest = 2035
@@ -2018,5 +2018,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_LeadingDigitSeparator
         FEATURE_PrivateProtected
         FEATURE_InterpolatedStrings
+        FEATURE_UnconstrainedTypeParameterInConditional
     End Enum
 End Namespace

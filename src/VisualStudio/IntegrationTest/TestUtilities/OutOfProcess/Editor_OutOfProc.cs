@@ -187,12 +187,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void DialogSendKeys(string dialogAutomationName, string keys)
             => _editorInProc.DialogSendKeys(dialogAutomationName, keys);
 
-        public void FormatDocument() {
+        public void FormatDocument()
+        {
             VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.D, ShiftState.Ctrl));
         }
 
-        public void FormatSelection() {
+        public void FormatDocumentViaCommand()
+        {
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Dte.ExecuteCommand(WellKnownCommandNames.Edit_FormatDocument);
+        }
+
+        public void FormatSelection()
+        {
             VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
         }
@@ -212,7 +220,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void NavigateToSendKeys(string keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
-            
+
         public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>
             _editorInProc.GetLightbulbPreviewClassifications(menuText);
 
@@ -223,7 +231,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _editorInProc.GetErrorTags();
 
         public List<string> GetF1Keyword()
-            => _editorInProc.GetF1Keywords();        
+            => _editorInProc.GetF1Keywords();
 
         public void ExpandProjectNavBar()
         {
@@ -282,7 +290,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SelectProjectNavbarItem(string item)
         {
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
-             _editorInProc.SelectNavBarItem(0, item);
+            _editorInProc.SelectNavBarItem(0, item);
         }
 
         public void SelectTypeNavBarItem(string item)

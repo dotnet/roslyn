@@ -655,6 +655,24 @@ public class C<T> where T : int
             Assert.Equal(SpecialType.System_Int32, retargetingTypeParameterConstraint.SpecialType);
         }
 
+        [Theory]
+        [InlineData("class Test<T> where T : unmanaged { }", true)]
+        [InlineData("class Test<T> { }", false)]
+        public void RetargetingUnmanagedTypeParameters(string code, bool isUnmanaged)
+        {
+            var compilation = CreateCompilation(code).VerifyDiagnostics();
+            var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
+
+            SourceTypeParameterSymbol sourceTypeParameter = (SourceTypeParameterSymbol)sourceAssembly.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+            Assert.Equal(isUnmanaged, sourceTypeParameter.HasUnmanagedTypeConstraint);
+
+            var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
+            retargetingAssembly.SetCorLibrary(sourceAssembly.CorLibrary);
+
+            RetargetingTypeParameterSymbol retargetingTypeParameter = (RetargetingTypeParameterSymbol)retargetingAssembly.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+            Assert.Equal(isUnmanaged, retargetingTypeParameter.HasUnmanagedTypeConstraint);
+        }
+
         private void CheckTypes(ImmutableArray<TypeSymbol> source, ImmutableArray<TypeSymbol> retargeting)
         {
             Assert.Equal(source.Length, retargeting.Length);
@@ -734,6 +752,11 @@ class C1<T>
 
     internal abstract class SymbolChecker
     {
+        public void CheckSymbols(TypeSymbolWithAnnotations a, TypeSymbolWithAnnotations b, bool recurse)
+        {
+            CheckSymbols(a.TypeSymbol, b.TypeSymbol, recurse);
+        }
+
         public void CheckSymbols(Symbol a, Symbol b, bool recurse)
         {
             Assert.Equal(a == null, b == null);
@@ -879,7 +902,7 @@ class C1<T>
                 case SymbolKind.NamedType:
                     {
                         var retargeting = symbol as RetargetingNamedTypeSymbol;
-                        return (retargeting != null) ? retargeting.UnderlyingNamedType : symbol;
+                        return ((object)retargeting != null) ? retargeting.UnderlyingNamedType : symbol;
                     }
                 case SymbolKind.Field:
                     return ((RetargetingFieldSymbol)symbol).UnderlyingField;

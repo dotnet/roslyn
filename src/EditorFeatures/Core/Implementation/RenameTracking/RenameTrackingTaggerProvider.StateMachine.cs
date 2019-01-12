@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -47,10 +48,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             public event Action<ITrackingSpan> TrackingSessionCleared = delegate { };
 
             public StateMachine(
+                IThreadingContext threadingContext,
                 ITextBuffer buffer,
                 IInlineRenameService inlineRenameService,
                 IAsynchronousOperationListener asyncListener,
                 IDiagnosticAnalyzerService diagnosticAnalyzerService)
+                : base(threadingContext)
             {
                 _buffer = buffer;
                 _buffer.Changed += Buffer_Changed;
@@ -341,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 var document = _buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                    syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                 }
 
                 return syntaxFactsService != null;
@@ -355,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 var document = _buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    languageHeuristicsService = document.Project.LanguageServices.GetService<IRenameTrackingLanguageHeuristicsService>();
+                    languageHeuristicsService = document.GetLanguageService<IRenameTrackingLanguageHeuristicsService>();
                 }
 
                 return languageHeuristicsService != null;

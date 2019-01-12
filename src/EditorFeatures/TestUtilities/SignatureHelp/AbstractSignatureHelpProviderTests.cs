@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         private static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
-            var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var service = document.GetLanguageService<ISyntaxFactsService>();
             var node = (await document.GetSyntaxRootAsync()).FindToken(position).Parent;
 
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
@@ -416,6 +417,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             if (expectedOrderedItemsOrNull != null)
             {
                 CompareAndAssertCollectionsAndCurrentParameter(expectedOrderedItemsOrNull, items, signatureHelpProvider, document, cursorPosition);
+                CompareSelectedIndex(expectedOrderedItemsOrNull, items.SelectedItemIndex);
+            }
+        }
+
+        private void CompareSelectedIndex(IEnumerable<SignatureHelpTestItem> expectedOrderedItemsOrNull, int? selectedItemIndex)
+        {
+            if (expectedOrderedItemsOrNull == null ||
+                !expectedOrderedItemsOrNull.Any(i => i.IsSelected))
+            {
+                return;
+            }
+
+            Assert.True(expectedOrderedItemsOrNull.Count(i => i.IsSelected) == 1, "Only one expected item can be marked with 'IsSelected'");
+            Assert.True(selectedItemIndex != null, "Expected an item to be selected, but no item was actually selected");
+
+            int counter = 0;
+            foreach (var item in expectedOrderedItemsOrNull)
+            {
+                if (item.IsSelected)
+                {
+                    Assert.True(selectedItemIndex == counter,
+                        $"Expected item with index {counter} to be selected, but the actual selected index is {selectedItemIndex}.");
+                }
+                else
+                {
+                    Assert.True(selectedItemIndex != counter,
+                        $"Found unexpected selected item. Actual selected index is {selectedItemIndex}.");
+                }
+
+                counter++;
             }
         }
 

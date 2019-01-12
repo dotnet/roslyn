@@ -98,7 +98,8 @@ using F = System.IO;
         {
             var comp = CreateCompilation(
                 "extern alias A; extern alias B;",
-                new[]
+                targetFramework: TargetFramework.Mscorlib40,
+                references: new[]
                 {
                     SystemCoreRef.WithAliases(new[] { "A" }),
                     SystemDataRef.WithAliases(new[] { "B" }),
@@ -140,7 +141,7 @@ using F = System.IO;
             var compilationUnits = trees.Select(tree => (CompilationUnitSyntax)tree.GetRoot());
             var externAliases = compilationUnits.SelectMany(cu => cu.Externs).Select(e => e.Identifier.ValueText).Distinct();
 
-            var comp = CreateCompilation(trees, new[] { SystemCoreRef.WithAliases(externAliases) });
+            var comp = CreateCompilation(trees, targetFramework: TargetFramework.Mscorlib40, references: new[] { SystemCoreRef.WithAliases(externAliases) });
             comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
 
             var factories = trees.Select(tree => comp.GetBinderFactory(tree));

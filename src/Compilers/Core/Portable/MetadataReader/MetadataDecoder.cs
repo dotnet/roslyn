@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis
                 bool argumentRefersToNoPia;
                 SignatureTypeCode typeCode;
                 ImmutableArray<ModifierInfo<TypeSymbol>> modifiers = DecodeModifiersOrThrow(ref ppSig, AllowedRequiredModifierType.None, out typeCode, out _);
-                argumentsBuilder.Add(KeyValuePair.Create(DecodeTypeOrThrow(ref ppSig, typeCode, out argumentRefersToNoPia), modifiers));
+                argumentsBuilder.Add(KeyValuePairUtil.Create(DecodeTypeOrThrow(ref ppSig, typeCode, out argumentRefersToNoPia), modifiers));
                 argumentRefersToNoPiaLocalTypeBuilder.Add(argumentRefersToNoPia);
             }
 
@@ -747,10 +747,10 @@ namespace Microsoft.CodeAnalysis
             TypeSymbol type;
             bool isNoPiaLocalType;
 
-            // According to ECMA spec:
-            //  The CMOD_OPT or CMOD_REQD is followed by a metadata token that
-            //  indexes a row in the TypeDef table or the TypeRef table.
-            tryAgain:
+// According to ECMA spec:
+//  The CMOD_OPT or CMOD_REQD is followed by a metadata token that
+//  indexes a row in the TypeDef table or the TypeRef table.
+tryAgain:
             switch (token.Kind)
             {
                 case HandleKind.TypeDefinition:
@@ -893,7 +893,10 @@ namespace Microsoft.CodeAnalysis
 
                             if (modReqFound)
                             {
-                                if (type.SpecialType == SpecialType.System_ValueType)
+                                // Any other modifiers, optional or not, are not allowed: http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
+                                Debug.Assert(!modifiers.IsDefaultOrEmpty);
+
+                                if (type.SpecialType == SpecialType.System_ValueType && modifiers.Length == 1)
                                 {
                                     isUnmanagedConstraint = true;
                                 }
@@ -904,8 +907,7 @@ namespace Microsoft.CodeAnalysis
                             }
                             else if (!modifiers.IsDefaultOrEmpty)
                             {
-                                // Optional modifiers (also, other required parameters) not allowed on generic parameters
-                                // http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
+                                // Any other modifiers, optional or not, are not allowed: http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
                                 return GetUnsupportedMetadataTypeSymbol();
                             }
 
@@ -1129,7 +1131,7 @@ namespace Microsoft.CodeAnalysis
                 throw new UnsupportedSignatureContent();
             }
 
-            fixed (byte* ptr = ImmutableByteArrayInterop.DangerousGetUnderlyingArray(signature))
+            fixed (byte* ptr = signature.AsSpan())
             {
                 var blobReader = new BlobReader(ptr, signature.Length);
                 var info = DecodeLocalVariableOrThrow(ref blobReader);

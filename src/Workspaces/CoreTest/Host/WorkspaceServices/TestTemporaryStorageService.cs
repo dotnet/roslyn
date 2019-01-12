@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
             public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
             {
                 WriteText(text, cancellationToken);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
     }

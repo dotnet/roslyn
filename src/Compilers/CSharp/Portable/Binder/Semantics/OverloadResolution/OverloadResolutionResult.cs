@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System;
 
 #if DEBUG
 using System.Text;
@@ -299,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Since we didn't return...
-            AssertNone(MemberResolutionKind.BadArguments);
+            AssertNone(MemberResolutionKind.BadArgumentConversion);
 
             // Otherwise, if there is any such method where type inference succeeded but inferred
             // type arguments that violate the constraints on the method, then the first such method is 
@@ -372,12 +371,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<TMember> firstSupported = default(MemberResolutionResult<TMember>);
             MemberResolutionResult<TMember> firstUnsupported = default(MemberResolutionResult<TMember>);
 
-            var supportedInPriorityOrder = new MemberResolutionResult<TMember>[5]; // from highest to lowest priority
-            const int requiredParameterMissingPriority = 0;
-            const int nameUsedForPositionalPriority = 1;
-            const int noCorrespondingNamedParameterPriority = 2;
-            const int noCorrespondingParameterPriority = 3;
-            const int badNonTrailingNamedArgument = 4;
+            var supportedInPriorityOrder = new MemberResolutionResult<TMember>[6]; // from highest to lowest priority
+            const int duplicateNamedArgumentPriority = 0;
+            const int requiredParameterMissingPriority = 1;
+            const int nameUsedForPositionalPriority = 2;
+            const int noCorrespondingNamedParameterPriority = 3;
+            const int noCorrespondingParameterPriority = 4;
+            const int badNonTrailingNamedArgumentPriority = 5;
 
             foreach (MemberResolutionResult<TMember> result in this.ResultsBuilder)
             {
@@ -421,10 +421,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     case MemberResolutionKind.BadNonTrailingNamedArgument:
-                        if (supportedInPriorityOrder[badNonTrailingNamedArgument].IsNull ||
-                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[badNonTrailingNamedArgument].Result.BadArgumentsOpt[0])
+                        if (supportedInPriorityOrder[badNonTrailingNamedArgumentPriority].IsNull ||
+                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[badNonTrailingNamedArgumentPriority].Result.BadArgumentsOpt[0])
                         {
-                            supportedInPriorityOrder[badNonTrailingNamedArgument] = result;
+                            supportedInPriorityOrder[badNonTrailingNamedArgumentPriority] = result;
+                        }
+                        break;
+                    case MemberResolutionKind.DuplicateNamedArgument:
+                        {
+                            if (supportedInPriorityOrder[duplicateNamedArgumentPriority].IsNull ||
+                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[duplicateNamedArgumentPriority].Result.BadArgumentsOpt[0])
+                            {
+                                supportedInPriorityOrder[duplicateNamedArgumentPriority] = result;
+                            }
                         }
                         break;
                     default:
@@ -481,6 +490,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // and followed by unnamed arguments.
                         case MemberResolutionKind.BadNonTrailingNamedArgument:
                             ReportBadNonTrailingNamedArgument(firstSupported, diagnostics, arguments, symbols);
+                            return;
+
+                        case MemberResolutionKind.DuplicateNamedArgument:
+                            ReportDuplicateNamedArgument(firstSupported, diagnostics, arguments);
                             return;
                     }
                 }
@@ -623,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!mismatch.IsNull)
             {
                 var method = (MethodSymbol)(Symbol)mismatch.Member;
-                diagnostics.Add(ErrorCode.ERR_BadRetType, location, method, method.ReturnType);
+                diagnostics.Add(ErrorCode.ERR_BadRetType, location, method, method.ReturnType.TypeSymbol);
                 return true;
             }
 
@@ -738,6 +751,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ErrorCode.ERR_BadNonTrailingNamedArgument,
                 new object[] { badName.Identifier.ValueText },
                 symbols), location);
+        }
+
+        private void ReportDuplicateNamedArgument(MemberResolutionResult<TMember> result, DiagnosticBag diagnostics, AnalyzedArguments arguments)
+        {
+            Debug.Assert(result.Result.BadArgumentsOpt.Length == 1);
+            IdentifierNameSyntax name = arguments.Names[result.Result.BadArgumentsOpt[0]];
+            Debug.Assert(name != null);
+
+            // CS: Named argument '{0}' cannot be specified multiple times
+            diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_DuplicateNamedArgument, name.Identifier.Text), name.Location);
         }
 
         private static void ReportNoCorrespondingNamedParameter(
@@ -950,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // without being violated on the method. Report that the constraint is violated on the 
             // formal parameter type.
 
-            TypeSymbol formalParameterType = method.ParameterTypes[result.Result.BadParameter];
+            TypeSymbol formalParameterType = method.ParameterTypes[result.Result.BadParameter].TypeSymbol;
             formalParameterType.CheckAllConstraints(conversions, location, diagnostics);
 
             return true;
@@ -980,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinderFlags flags,
             bool isMethodGroupConversion)
         {
-            var badArg = GetFirstMemberKind(MemberResolutionKind.BadArguments);
+            var badArg = GetFirstMemberKind(MemberResolutionKind.BadArgumentConversion);
             if (badArg.IsNull)
             {
                 return false;
@@ -1093,7 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argument.Kind != BoundKind.OutVariablePendingInference &&
                 argument.Kind != BoundKind.DiscardExpression)
             {
-                TypeSymbol parameterType = UnwrapIfParamsArray(parameter, isLastParameter) is TypeSymbol t ? t : parameter.Type;
+                TypeSymbol parameterType = UnwrapIfParamsArray(parameter, isLastParameter) is TypeSymbol t ? t : parameter.Type.TypeSymbol;
 
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 // The argument and parameter type might match, but may not have same in/out modifiers
@@ -1175,8 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (argument.Display is TypeSymbol argType)
                     {
                         SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
-                            argType,
-                            ImmutableArray<CustomModifier>.Empty,
+                            TypeSymbolWithAnnotations.Create(argType),
                             ImmutableArray<CustomModifier>.Empty,
                             isParams: false,
                             refKind: refArg);
@@ -1216,10 +1238,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We only try to unwrap parameters if they are a parameter array and are on the last position
             if (parameter.IsParams && isLastParameter)
             {
-                ArrayTypeSymbol arrayType = parameter.Type as ArrayTypeSymbol;
+                ArrayTypeSymbol arrayType = parameter.Type.TypeSymbol as ArrayTypeSymbol;
                 if ((object)arrayType != null && arrayType.IsSZArray)
                 {
-                    return arrayType.ElementType;
+                    return arrayType.ElementType.TypeSymbol;
                 }
             }
             return parameter;

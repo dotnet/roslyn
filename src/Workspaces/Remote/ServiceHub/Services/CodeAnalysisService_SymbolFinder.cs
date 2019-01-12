@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteSymbolFinder
     {
-        public Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs, CancellationToken cancellationToken)
+        public Task FindReferencesAsync(
+            SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs,
+            SerializableFindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async token =>
             {
@@ -44,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Remote
                                                  .ToImmutableHashSet();
 
                     await SymbolFinder.FindReferencesInCurrentProcessAsync(
-                        symbolAndProjectId.Value, solution,
-                        progressCallback, documents, token).ConfigureAwait(false);
+                        symbolAndProjectId.Value, solution, progressCallback,
+                        documents, options.Rehydrate(), token).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
@@ -66,10 +68,10 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public async Task<IList<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
+        public Task<IList<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
             ProjectId projectId, string name, SearchKind searchKind, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            return await RunServiceAsync(async token =>
+            return RunServiceAsync(async token =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -81,16 +83,16 @@ namespace Microsoft.CodeAnalysis.Remote
                         var result = await DeclarationFinder.FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
                             project, query, criteria, token).ConfigureAwait(false);
 
-                        return result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+                        return (IList<SerializableSymbolAndProjectId>)result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
                     }
                 }
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
-        public async Task<IList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
+        public Task<IList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
             string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            return await RunServiceAsync(async token =>
+            return RunServiceAsync(async token =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -98,15 +100,15 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
                         solution, name, ignoreCase, criteria, token).ConfigureAwait(false);
 
-                    return result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+                    return (IList<SerializableSymbolAndProjectId>)result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
                 }
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
-        public async Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
+        public Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
             ProjectId projectId, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            return await RunServiceAsync(async token =>
+            return RunServiceAsync(async token =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -116,15 +118,32 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
                         project, name, ignoreCase, criteria, token).ConfigureAwait(false);
 
-                    return result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+                    return (IList<SerializableSymbolAndProjectId>)result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
                 }
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
-        public async Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
+        public Task<IList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithPatternAsync(
+            string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async token =>
+            {
+                using (UserOperationBooster.Boost())
+                {
+                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
+
+                    var result = await DeclarationFinder.FindSourceDeclarationsWithPatternInCurrentProcessAsync(
+                        solution, pattern, criteria, token).ConfigureAwait(false);
+
+                    return (IList<SerializableSymbolAndProjectId>)result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+                }
+            }, cancellationToken);
+        }
+
+        public Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
             ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            return await RunServiceAsync(async token =>
+            return RunServiceAsync(async token =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -134,9 +153,9 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await DeclarationFinder.FindSourceDeclarationsWithPatternInCurrentProcessAsync(
                         project, pattern, criteria, token).ConfigureAwait(false);
 
-                    return result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+                    return (IList<SerializableSymbolAndProjectId>)result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
                 }
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
         private class FindLiteralReferencesProgressCallback : IStreamingFindLiteralReferencesProgress

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         /// True if the <see cref="Path"/> is a mapped path.
         /// </summary>
         /// <remarks>
-        /// A mapped path is a path specified in source via <code>#line</code> (C#) or <code>#ExternalSource</code> (VB) directives.
+        /// A mapped path is a path specified in source via <c>#line</c> (C#) or <c>#ExternalSource</c> (VB) directives.
         /// </remarks>
         public bool HasMappedPath { get { return _hasMappedPath; } }
 

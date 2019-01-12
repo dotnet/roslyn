@@ -30,6 +30,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Finally handler of the try.
         /// </summary>
         IBlockOperation Finally { get; }
+        /// <summary>
+        /// Exit label for the try. This will always be null for C#.
+        /// </summary>
+        ILabelSymbol ExitLabel { get; }
     }
 }
 

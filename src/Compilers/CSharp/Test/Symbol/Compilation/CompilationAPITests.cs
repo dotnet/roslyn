@@ -23,7 +23,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using KeyValuePair = Roslyn.Utilities.KeyValuePair;
+using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
 using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name cannot start with whitespace.").WithLocation(1, 1)
                 );
             CSharpCompilation.Create(@"\u2000a", options: compilationOptions).VerifyEmitDiagnostics( // U+20700 is whitespace
-                // error CS8203: Invalid assembly name: Name contains invalid characters.
+                                                                                                     // error CS8203: Invalid assembly name: Name contains invalid characters.
                 Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
                 );
             CSharpCompilation.Create("..\\..\\RelativePath", options: compilationOptions).VerifyEmitDiagnostics(
@@ -208,7 +208,7 @@ namespace A.B {
                 // error CS2042: Invalid debug information format: -1
                 Diagnostic(ErrorCode.ERR_InvalidDebugInformationFormat).WithArguments("-1").WithLocation(1, 1),
                 // error CS2041: Invalid output name: Name cannot start with whitespace.
-                Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameCannotStartWithWhitespace).WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments("Name cannot start with whitespace.").WithLocation(1, 1),
                 // error CS2024: Invalid file section alignment '513'
                 Diagnostic(ErrorCode.ERR_InvalidFileAlignment).WithArguments("513").WithLocation(1, 1),
                 // error CS1773: Invalid version 1000000.-1000000 for /subsystemversion. The version must be 6.02 or greater for ARM or AppContainerExe, and 4.00 or greater otherwise
@@ -248,8 +248,8 @@ namespace A.B {
             Assert.Throws<ArgumentException>("pdbStream", () => comp.Emit(peStream: new MemoryStream(), pdbStream: new MemoryStream(), options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)));
 
             Assert.Throws<ArgumentException>("sourceLinkStream", () => comp.Emit(
-                peStream: new MemoryStream(), 
-                pdbStream: new MemoryStream(), 
+                peStream: new MemoryStream(),
+                pdbStream: new MemoryStream(),
                 options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 sourceLinkStream: new TestStream(canRead: false, canWrite: true, canSeek: true)));
 
@@ -275,8 +275,8 @@ namespace A.B {
 
             // we don't report an error when we can't write to the XML doc stream:
             Assert.True(comp.Emit(
-                peStream: new MemoryStream(), 
-                pdbStream: new MemoryStream(), 
+                peStream: new MemoryStream(),
+                pdbStream: new MemoryStream(),
                 xmlDocumentationStream: new TestStream(canRead: true, canWrite: false, canSeek: true)).Success);
         }
 
@@ -1520,7 +1520,7 @@ class A
 
                 Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly);
                 Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly);
-                Assert.Equal(taskOfObject, entryPoint.ReturnType);
+                Assert.Equal(taskOfObject, entryPoint.ReturnType.TypeSymbol);
             }
 
             var firstCompilation = CSharpCompilation.CreateScriptCompilation(
@@ -2295,7 +2295,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             Assert.True(type.IsAnonymousType);
             Assert.Equal(1, type.GetMembers().OfType<IPropertySymbol>().Count());
             Assert.Equal("<anonymous type: int m1>", type.ToDisplayString());
-            Assert.All(type.GetMembers().OfType<IPropertySymbol>().Select(p => p.Locations.FirstOrDefault()), 
+            Assert.All(type.GetMembers().OfType<IPropertySymbol>().Select(p => p.Locations.FirstOrDefault()),
                 loc => Assert.Equal(loc, Location.None));
         }
 
@@ -2545,7 +2545,7 @@ System.Func<object> f = delegate ()
         public void LoadedFileWithWrongReturnType()
         {
             var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", "return \"Who returns a string?\";"));
+                KeyValuePairUtil.Create("a.csx", "return \"Who returns a string?\";"));
             var script = CreateSubmission(@"
 #load ""a.csx""
 42", returnType: typeof(int), options: TestOptions.DebugDll.WithSourceReferenceResolver(resolver));

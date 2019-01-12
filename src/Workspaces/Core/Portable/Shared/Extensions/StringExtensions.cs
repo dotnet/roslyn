@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -47,8 +48,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static int ConvertTabToSpace(this string textSnippet, int tabSize, int initialColumn, int endPosition)
         {
-            Contract.Requires(tabSize > 0);
-            Contract.Requires(endPosition >= 0 && endPosition <= textSnippet.Length);
+            Debug.Assert(tabSize > 0);
+            Debug.Assert(endPosition >= 0 && endPosition <= textSnippet.Length);
 
             int column = initialColumn;
 
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             builder.Add(alias);
 
             var caseSensitive = builder.KeyComparer == StringComparer.Ordinal;
-            Contract.Requires(builder.KeyComparer == StringComparer.Ordinal || builder.KeyComparer == StringComparer.OrdinalIgnoreCase);
+            Debug.Assert(builder.KeyComparer == StringComparer.Ordinal || builder.KeyComparer == StringComparer.OrdinalIgnoreCase);
             if (alias.TryGetWithoutAttributeSuffix(caseSensitive, out var aliasWithoutAttribute))
             {
                 builder.Add(aliasWithoutAttribute);

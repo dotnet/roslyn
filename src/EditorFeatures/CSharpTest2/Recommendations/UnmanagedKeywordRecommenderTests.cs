@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInUsingAlias()
         {
@@ -162,6 +162,60 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             await VerifyKeywordAsync(
 @"delegate void D<T>() where T : I, $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterName_LocalFunction()
+        {
+            await VerifyAbsenceAsync(
+@"class Test {
+    void N() {
+        void M $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterWhereClause_LocalFunction()
+        {
+            await VerifyAbsenceAsync(
+@"class Test {
+    void N() {
+        void M<T> where $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterWhereClauseType_LocalFunction()
+        {
+            await VerifyAbsenceAsync(
+@"class Test {
+    void N() {
+        void M<T> where T $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterWhereClauseColon_LocalFunction()
+        {
+            await VerifyKeywordAsync(
+@"class Test {
+    void N() {
+        void M<T> where T : $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterTypeConstraint_LocalFunction()
+        {
+            await VerifyAbsenceAsync(
+@"class Test {
+    void N() {
+        void M<T> where T : I $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterTypeConstraintComma_LocalFunction()
+        {
+            await VerifyKeywordAsync(
+@"class Test {
+    void N() {
+        void M<T> where T : I, $$");
         }
     }
 }
