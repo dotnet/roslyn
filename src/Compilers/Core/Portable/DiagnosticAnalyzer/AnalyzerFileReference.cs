@@ -52,7 +52,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
-            assemblyLoader.AddDependencyLocation(fullPath);
+            if (PathUtilities.IsAbsolute(fullPath))
+            {
+                assemblyLoader.AddDependencyLocation(fullPath);
+            }
         }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()

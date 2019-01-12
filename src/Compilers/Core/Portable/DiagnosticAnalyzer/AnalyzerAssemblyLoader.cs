@@ -5,9 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -37,8 +34,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths))
                 {
-                    // Use case sensitive string comparer for file paths.
-                    paths = new HashSet<string>(StringComparer.Ordinal);
+                    paths = new HashSet<string>(PathUtilities.Comparer);
                     _knownAssemblyPathsBySimpleName.Add(simpleName, paths);
                 }
 
