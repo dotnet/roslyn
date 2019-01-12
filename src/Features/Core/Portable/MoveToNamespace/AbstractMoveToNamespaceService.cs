@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
     {
         private IMoveToNamespaceOptionsService _moveToNamespaceOptionsService;
 
+        protected abstract string GetNamespaceName(TNamespaceDeclarationSyntax syntax);
+
         public AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
         {
             _moveToNamespaceOptionsService = moveToNamespaceOptionsService;
@@ -70,7 +72,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                     return new MoveToNamespaceAnalysisResult("Container contains nested namespace declaration");
                 }
 
-                return new MoveToNamespaceAnalysisResult(document, node, declarationSyntax.GetTypeDisplayName());
+                var @namespace = symbol?.Name ?? GetNamespaceName(declarationSyntax);
+                return new MoveToNamespaceAnalysisResult(document, node, @namespace);
             }
 
             return new MoveToNamespaceAnalysisResult("Not a valid position");

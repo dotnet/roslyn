@@ -18,5 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
             : base(moveToNamespaceOptionsService)
         {
         }
+
+        protected override string GetNamespaceName(NamespaceDeclarationSyntax syntax)
+        {
+            return syntax.Name.ToString();
+        }
     }
 }
