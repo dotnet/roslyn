@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
             // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
             // When that issue is fixed, Nullable<T> should be handled there instead.
-            if (fieldOrPropertyType.IsReferenceType || fieldOrPropertyType.IsNullableType())
+            if (fieldOrPropertyType.IsReferenceType || fieldOrPropertyType.IsPossiblyNullableReferenceTypeTypeParameter() || fieldOrPropertyType.IsNullableType())
             {
                 int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
                 NullableAnnotation value = (isDefaultValue && fieldOrPropertyType.IsReferenceType) ?
