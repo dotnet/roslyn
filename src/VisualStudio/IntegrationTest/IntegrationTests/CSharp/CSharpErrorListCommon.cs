@@ -51,7 +51,8 @@ class C
             };
             var actualContents = VisualStudio.ErrorList.GetErrorListContents();
             Assert.Equal(expectedContents, actualContents);
-            VisualStudio.ErrorList.NavigateToErrorListItem(0);
+            var target = VisualStudio.ErrorList.NavigateToErrorListItem(0);
+            Assert.Equal(expectedContents[0], target);
             VisualStudio.Editor.Verify.CaretPosition(25);
             VisualStudio.SolutionExplorer.BuildSolution(waitForBuildToFinish: true);
             VisualStudio.ErrorList.ShowErrorList();
