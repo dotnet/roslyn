@@ -122,6 +122,11 @@
         <target state="new">Sort accessibility modifiers</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unseal_class_0">
+        <source>Unseal class '{0}'</source>
+        <target state="new">Unseal class '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_0">
         <source>Use '{0}'</source>
         <target state="new">Use '{0}'</target>

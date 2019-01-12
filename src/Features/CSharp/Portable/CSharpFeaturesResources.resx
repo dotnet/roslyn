@@ -586,4 +586,7 @@
     <value>Introduce 'using' statement</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Unseal_class_0" xml:space="preserve">
+    <value>Unseal class '{0}'</value>
+  </data>
 </root>
