@@ -69,6 +69,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             return inlines.ToTextBlock(formatMap);
         }
 
+        [Obsolete("Use the method redirected")]
+        public static TextBlock ToTextBlock(
+            this IEnumerable<Inline> inlines,
+            IClassificationFormatMap formatMap,
+            ClassificationTypeMap typeMap,
+            string classificationFormatMap = null,
+            bool wrap = true)
+            => inlines.ToTextBlock(formatMap, wrap);
+
         public static TextBlock ToTextBlock(
             this IEnumerable<Inline> inlines,
             IClassificationFormatMap formatMap,
