@@ -34,7 +34,7 @@ class D : C
 }");
         }
 
-        [Fact(Skip = "SyntaxGenerator doesn't understand unsafe")]
+        [Fact]
         public async Task RemovedFromSealedClassWithOtherModifiersPreserved()
         {
             await TestInRegularAndScriptAsync(@"
