@@ -1435,5 +1435,22 @@ class C
     }
 }");
         }
+
+        [WorkItem(29333, "https://github.com/dotnet/roslyn/issues/29333")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestLambdaWithIncorrectNumberOfParameters()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M(Action<int, int> a)
+    {
+        M((x[||]
+    }
+}");
+        }
     }
 }

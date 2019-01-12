@@ -1,11 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -30,10 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return InitializeParameterHelpers.TryGetLastStatement(blockStatement)
         End Function
 
-        Protected Overrides Function GetBlockOperation(functionDeclaration As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As IBlockOperation
-            Return InitializeParameterHelpers.GetBlockOperation(functionDeclaration, semanticModel, cancellationToken)
-        End Function
-
         Protected Overrides Function IsImplicitConversion(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Boolean
             Return InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination)
         End Function
@@ -50,6 +44,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         ' Properties are always public by default in VB.
         Protected Overrides Function DetermineDefaultPropertyAccessibility() As Accessibility
             Return Accessibility.Public
+        End Function
+
+        Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
+            Return InitializeParameterHelpers.GetBody(functionDeclaration)
         End Function
     End Class
 End Namespace
