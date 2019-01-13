@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeRefStruct
             => (null, new CSharpMakeRefStructCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
-        [WorkItem(32037, "https://github.com/dotnet/roslyn/pull/32037")]
+        [WorkItem(31831, "https://github.com/dotnet/roslyn/issues/31831")]
         public async Task FieldInNotRefStruct()
         {
             var text = @"
@@ -61,7 +61,7 @@ ref struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
-        [WorkItem(32037, "https://github.com/dotnet/roslyn/pull/32037")]
+        [WorkItem(31831, "https://github.com/dotnet/roslyn/issues/31831")]
         public async Task FieldInNestedClassInsideNotRefStruct()
         {
             var text = @"
@@ -86,7 +86,7 @@ struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
-        [WorkItem(32037, "https://github.com/dotnet/roslyn/pull/32037")]
+        [WorkItem(31831, "https://github.com/dotnet/roslyn/issues/31831")]
         public async Task FieldStaticInRefStruct()
         {
             var text = @"
@@ -108,7 +108,7 @@ ref struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
-        [WorkItem(32037, "https://github.com/dotnet/roslyn/pull/32037")]
+        [WorkItem(31831, "https://github.com/dotnet/roslyn/issues/31831")]
         public async Task FieldStaticInNotRefStruct()
         {
             var text = @"
@@ -145,7 +145,7 @@ ref struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
-        [WorkItem(32037, "https://github.com/dotnet/roslyn/pull/32037")]
+        [WorkItem(31831, "https://github.com/dotnet/roslyn/issues/31831")]
         public async Task PropInNotRefStruct()
         {
             var text = @"
@@ -183,7 +183,7 @@ ref struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
-        [WorkItem(32037, "https://github.com/dotnet/roslyn/pull/32037")]
+        [WorkItem(31831, "https://github.com/dotnet/roslyn/issues/31831")]
         public async Task PropInNestedClassInsideNotRefStruct()
         {
             var text = @"
@@ -208,7 +208,7 @@ struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
-        [WorkItem(32037, "https://github.com/dotnet/roslyn/pull/32037")]
+        [WorkItem(31831, "https://github.com/dotnet/roslyn/issues/31831")]
         public async Task PropStaticInRefStruct()
         {
             var text = @"
@@ -230,7 +230,7 @@ ref struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
-        [WorkItem(32037, "https://github.com/dotnet/roslyn/pull/32037")]
+        [WorkItem(31831, "https://github.com/dotnet/roslyn/issues/31831")]
         public async Task PropStaticInNotRefStruct()
         {
             var text = @"
