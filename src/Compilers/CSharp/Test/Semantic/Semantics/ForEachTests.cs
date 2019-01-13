@@ -3399,5 +3399,93 @@ class C
 
             CompileAndVerify(comp, expectedOutput: "1");
         }
+
+        [WorkItem(32334, "https://github.com/dotnet/roslyn/issues/32334")]
+        [Fact]
+        public void SupressForEachMissingMemberErrorOnErrorType()
+        {
+            CreateCompilation(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Goo()
+    {
+
+        var nonsense = Nonsense;
+        //Should not have error
+        foreach(var nons in nonsense) {}
+
+        var nonsense = new Nonsense();
+        //Should not have error
+        foreach(var nons in nonsense) {}
+
+        var lazyNonsense = default(Lazy<Nonsense>);
+        //Should have error
+        foreach(var nons in lazyNonsense) {}
+
+        var listNonsense = new List<Nonsense>();
+        //Should not have error
+        foreach(var nons in listNonsense) {}
+
+        var nonsenseArray = new Nonsense[0];
+        //Should not have error
+        foreach(var nons in nonsenseArray) {}
+
+        var stringNonsense = new String.Nonsense();
+        //Should not have error
+        foreach(var nons in stringNonsense) {}
+
+        var nonsenseString = new Nonsense.String();
+        //Should not have error
+        foreach(var nons in nonsenseString) {}
+
+        Nonsense? nullableNonsense = default;
+        //Should not have error
+        foreach(var nons in nullableNonsense) {}
+
+        var nonsenseTuple = (new Nonsense(), 42);
+        //Should have error
+        foreach(var nons in nonsenseTuple) {}
+    }
+}
+").VerifyDiagnostics(
+                // (9,24): error CS0103: The name 'Nonsense' does not exist in the current context
+                //         var nonsense = Nonsense;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Nonsense").WithArguments("Nonsense").WithLocation(9, 24),
+                // (13,13): error CS0128: A local variable or function named 'nonsense' is already defined in this scope
+                //         var nonsense = new Nonsense();
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "nonsense").WithArguments("nonsense").WithLocation(13, 13),
+                // (13,28): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
+                //         var nonsense = new Nonsense();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(13, 28),
+                // (17,41): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
+                //         var lazyNonsense = default(Lazy<Nonsense>);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(17, 41),
+                // (19,29): error CS1579: foreach statement cannot operate on variables of type 'Lazy<Nonsense>' because 'Lazy<Nonsense>' does not contain a public instance definition for 'GetEnumerator'
+                //         foreach(var nons in lazyNonsense) {}
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "lazyNonsense").WithArguments("System.Lazy<Nonsense>", "GetEnumerator").WithLocation(19, 29),
+                // (21,37): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
+                //         var listNonsense = new List<Nonsense>();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(21, 37),
+                // (25,33): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
+                //         var nonsenseArray = new Nonsense[0];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(25, 33),
+                // (29,41): error CS0426: The type name 'Nonsense' does not exist in the type 'string'
+                //         var stringNonsense = new String.Nonsense();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nonsense").WithArguments("Nonsense", "string").WithLocation(29, 41),
+                // (33,34): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
+                //         var nonsenseString = new Nonsense.String();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(33, 34),
+                // (37,9): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
+                //         Nonsense? nullableNonsense = default;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(37, 9),
+                // (41,34): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
+                //         var nonsenseTuple = (new Nonsense(), 42);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(41, 34),
+                // (43,29): error CS1579: foreach statement cannot operate on variables of type '(Nonsense, int)' because '(Nonsense, int)' does not contain a public instance definition for 'GetEnumerator'
+                //         foreach(var nons in nonsenseTuple) {}
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "nonsenseTuple").WithArguments("(Nonsense, int)", "GetEnumerator").WithLocation(43, 29));
+        }
     }
 }

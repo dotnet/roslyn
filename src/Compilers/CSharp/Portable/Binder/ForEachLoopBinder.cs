@@ -623,6 +623,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool wrongAsync = GetEnumeratorInfo(ref ignoredBuilder, collectionExpr, !isAsync, ignoredDiagnostics) == EnumeratorResult.Succeeded;
             ignoredDiagnostics.Free();
 
+            if (collectionExpr.Type.IsErrorType())
+                return false;
+
             var errorCode = wrongAsync
                 ? (isAsync ? ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync : ErrorCode.ERR_ForEachMissingMemberWrongAsync)
                 : (isAsync ? ErrorCode.ERR_AwaitForEachMissingMember : ErrorCode.ERR_ForEachMissingMember);
