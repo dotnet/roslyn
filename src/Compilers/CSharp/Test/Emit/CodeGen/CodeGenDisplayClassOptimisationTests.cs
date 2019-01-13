@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -557,6 +558,190 @@ one");
   IL_00ac:  callvirt   ""System.Action System.Collections.Generic.List<System.Action>.this[int].get""
   IL_00b1:  callvirt   ""void System.Action.Invoke()""
   IL_00b6:  ret
+}");
+        }
+
+        [CompilerTrait(CompilerFeature.AsyncStreams)]
+        [Fact]
+        public void AwaitForeachCorrectDisplayClassesAreCreated()
+        {
+            var source =
+                @"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
+    {
+        throw null;
+    }
+
+    public sealed class Enumerator
+    {
+        public int Current { get; }
+
+        public System.Threading.Tasks.Task<bool> MoveNextAsync() => null;
+    }
+}
+
+public class Program
+{
+	public static async void M(C enumerable)
+	{
+		var actions = new List<Action>();
+		var strings = new List<string>() { ""one"", ""two"", ""three"" };
+
+		await foreach (var i in enumerable)
+            actions.Add(i is int x ? (Action)(() => Console.WriteLine(strings[i - x])) : () => {});
+
+		actions[0]();
+		actions[1]();
+		actions[2]();
+	}
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL(
+                "Program.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+                @"{
+  // Code size      388 (0x184)
+  .maxstack  4
+  .locals init (int V_0,
+                System.Threading.CancellationToken V_1,
+                Program.<>c__DisplayClass0_1 V_2, //CS$<>8__locals0
+                System.Runtime.CompilerServices.TaskAwaiter<bool> V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<M>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse    IL_00f3
+    IL_000d:  ldarg.0
+    IL_000e:  newobj     ""Program.<>c__DisplayClass0_0..ctor()""
+    IL_0013:  stfld      ""Program.<>c__DisplayClass0_0 Program.<M>d__0.<>8__1""
+    IL_0018:  ldarg.0
+    IL_0019:  newobj     ""System.Collections.Generic.List<System.Action>..ctor()""
+    IL_001e:  stfld      ""System.Collections.Generic.List<System.Action> Program.<M>d__0.<actions>5__2""
+    IL_0023:  ldarg.0
+    IL_0024:  ldfld      ""Program.<>c__DisplayClass0_0 Program.<M>d__0.<>8__1""
+    IL_0029:  newobj     ""System.Collections.Generic.List<string>..ctor()""
+    IL_002e:  dup
+    IL_002f:  ldstr      ""one""
+    IL_0034:  callvirt   ""void System.Collections.Generic.List<string>.Add(string)""
+    IL_0039:  dup
+    IL_003a:  ldstr      ""two""
+    IL_003f:  callvirt   ""void System.Collections.Generic.List<string>.Add(string)""
+    IL_0044:  dup
+    IL_0045:  ldstr      ""three""
+    IL_004a:  callvirt   ""void System.Collections.Generic.List<string>.Add(string)""
+    IL_004f:  stfld      ""System.Collections.Generic.List<string> Program.<>c__DisplayClass0_0.strings""
+    IL_0054:  ldarg.0
+    IL_0055:  ldarg.0
+    IL_0056:  ldfld      ""C Program.<M>d__0.enumerable""
+    IL_005b:  ldloca.s   V_1
+    IL_005d:  initobj    ""System.Threading.CancellationToken""
+    IL_0063:  ldloc.1
+    IL_0064:  callvirt   ""C.Enumerator C.GetAsyncEnumerator(System.Threading.CancellationToken)""
+    IL_0069:  stfld      ""C.Enumerator Program.<M>d__0.<>7__wrap2""
+    IL_006e:  br.s       IL_00b6
+    IL_0070:  newobj     ""Program.<>c__DisplayClass0_1..ctor()""
+    IL_0075:  stloc.2
+    IL_0076:  ldloc.2
+    IL_0077:  ldarg.0
+    IL_0078:  ldfld      ""Program.<>c__DisplayClass0_0 Program.<M>d__0.<>8__1""
+    IL_007d:  stfld      ""Program.<>c__DisplayClass0_0 Program.<>c__DisplayClass0_1.CS$<>8__locals1""
+    IL_0082:  ldloc.2
+    IL_0083:  ldarg.0
+    IL_0084:  ldfld      ""C.Enumerator Program.<M>d__0.<>7__wrap2""
+    IL_0089:  callvirt   ""int C.Enumerator.Current.get""
+    IL_008e:  stfld      ""int Program.<>c__DisplayClass0_1.i""
+    IL_0093:  ldarg.0
+    IL_0094:  ldfld      ""System.Collections.Generic.List<System.Action> Program.<M>d__0.<actions>5__2""
+    IL_0099:  ldloc.2
+    IL_009a:  ldloc.2
+    IL_009b:  ldfld      ""int Program.<>c__DisplayClass0_1.i""
+    IL_00a0:  stfld      ""int Program.<>c__DisplayClass0_1.x""
+    IL_00a5:  ldloc.2
+    IL_00a6:  ldftn      ""void Program.<>c__DisplayClass0_1.<M>b__0()""
+    IL_00ac:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+    IL_00b1:  callvirt   ""void System.Collections.Generic.List<System.Action>.Add(System.Action)""
+    IL_00b6:  ldarg.0
+    IL_00b7:  ldfld      ""C.Enumerator Program.<M>d__0.<>7__wrap2""
+    IL_00bc:  callvirt   ""System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()""
+    IL_00c1:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
+    IL_00c6:  stloc.3
+    IL_00c7:  ldloca.s   V_3
+    IL_00c9:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
+    IL_00ce:  brtrue.s   IL_010f
+    IL_00d0:  ldarg.0
+    IL_00d1:  ldc.i4.0
+    IL_00d2:  dup
+    IL_00d3:  stloc.0
+    IL_00d4:  stfld      ""int Program.<M>d__0.<>1__state""
+    IL_00d9:  ldarg.0
+    IL_00da:  ldloc.3
+    IL_00db:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> Program.<M>d__0.<>u__1""
+    IL_00e0:  ldarg.0
+    IL_00e1:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<M>d__0.<>t__builder""
+    IL_00e6:  ldloca.s   V_3
+    IL_00e8:  ldarg.0
+    IL_00e9:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, Program.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref Program.<M>d__0)""
+    IL_00ee:  leave      IL_0183
+    IL_00f3:  ldarg.0
+    IL_00f4:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> Program.<M>d__0.<>u__1""
+    IL_00f9:  stloc.3
+    IL_00fa:  ldarg.0
+    IL_00fb:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> Program.<M>d__0.<>u__1""
+    IL_0100:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
+    IL_0106:  ldarg.0
+    IL_0107:  ldc.i4.m1
+    IL_0108:  dup
+    IL_0109:  stloc.0
+    IL_010a:  stfld      ""int Program.<M>d__0.<>1__state""
+    IL_010f:  ldloca.s   V_3
+    IL_0111:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
+    IL_0116:  brtrue     IL_0070
+    IL_011b:  ldarg.0
+    IL_011c:  ldnull
+    IL_011d:  stfld      ""C.Enumerator Program.<M>d__0.<>7__wrap2""
+    IL_0122:  ldarg.0
+    IL_0123:  ldfld      ""System.Collections.Generic.List<System.Action> Program.<M>d__0.<actions>5__2""
+    IL_0128:  ldc.i4.0
+    IL_0129:  callvirt   ""System.Action System.Collections.Generic.List<System.Action>.this[int].get""
+    IL_012e:  callvirt   ""void System.Action.Invoke()""
+    IL_0133:  ldarg.0
+    IL_0134:  ldfld      ""System.Collections.Generic.List<System.Action> Program.<M>d__0.<actions>5__2""
+    IL_0139:  ldc.i4.1
+    IL_013a:  callvirt   ""System.Action System.Collections.Generic.List<System.Action>.this[int].get""
+    IL_013f:  callvirt   ""void System.Action.Invoke()""
+    IL_0144:  ldarg.0
+    IL_0145:  ldfld      ""System.Collections.Generic.List<System.Action> Program.<M>d__0.<actions>5__2""
+    IL_014a:  ldc.i4.2
+    IL_014b:  callvirt   ""System.Action System.Collections.Generic.List<System.Action>.this[int].get""
+    IL_0150:  callvirt   ""void System.Action.Invoke()""
+    IL_0155:  leave.s    IL_0170
+  }
+  catch System.Exception
+  {
+    IL_0157:  stloc.s    V_4
+    IL_0159:  ldarg.0
+    IL_015a:  ldc.i4.s   -2
+    IL_015c:  stfld      ""int Program.<M>d__0.<>1__state""
+    IL_0161:  ldarg.0
+    IL_0162:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<M>d__0.<>t__builder""
+    IL_0167:  ldloc.s    V_4
+    IL_0169:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
+    IL_016e:  leave.s    IL_0183
+  }
+  IL_0170:  ldarg.0
+  IL_0171:  ldc.i4.s   -2
+  IL_0173:  stfld      ""int Program.<M>d__0.<>1__state""
+  IL_0178:  ldarg.0
+  IL_0179:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<M>d__0.<>t__builder""
+  IL_017e:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
+  IL_0183:  ret
 }");
         }
 
