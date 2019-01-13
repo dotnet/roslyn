@@ -884,7 +884,7 @@ End Function")
 
             VerifySyntax(Of MethodBlockSyntax)(
                 Generator.MethodDeclaration("m", accessibility:=Accessibility.Private, modifiers:=DeclarationModifiers.Partial),
-"Private Partial Sub m()
+"Partial Private Sub m()
 End Sub")
 
         End Sub
@@ -1421,7 +1421,7 @@ End Structure")
 
             VerifySyntax(Of StructureBlockSyntax)(
                 Generator.StructDeclaration("s", accessibility:=Accessibility.Public, modifiers:=DeclarationModifiers.Partial),
-"Public Partial Structure s
+"Partial Public Structure s
 End Structure")
 
             VerifySyntax(Of StructureBlockSyntax)(
