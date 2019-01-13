@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Editing
             bool isWithEvents = false,
             bool isPartial = false,
             bool isAsync = false,
-            bool isWriteOnly = false)
+            bool isWriteOnly = false,
+            bool isRef = false)
             : this(
                   (isStatic ? Modifiers.Static : Modifiers.None) |
                   (isAbstract ? Modifiers.Abstract : Modifiers.None) |
@@ -39,7 +40,8 @@ namespace Microsoft.CodeAnalysis.Editing
                   (isConst ? Modifiers.Const : Modifiers.None) |
                   (isWithEvents ? Modifiers.WithEvents : Modifiers.None) |
                   (isPartial ? Modifiers.Partial : Modifiers.None) |
-                  (isAsync ? Modifiers.Async : Modifiers.None))
+                  (isAsync ? Modifiers.Async : Modifiers.None) |
+                  (isRef ? Modifiers.Ref : Modifiers.None))
         {
         }
 

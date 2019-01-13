@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeRefStruct
     public class MakeRefStructTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         private static readonly CSharpParseOptions s_parseOptions =
-            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3);
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpMakeRefStructCodeFixProvider());
@@ -27,6 +27,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeRefStruct
         public async Task FieldInNotRefStruct()
         {
             var text = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
 struct S
 {
     Span<int>[||] m;
@@ -34,6 +43,15 @@ struct S
 ";
 
             var expected = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
 ref struct S
 {
     Span<int> m;
@@ -47,6 +65,15 @@ ref struct S
         public async Task FieldInNestedClassInsideNotRefStruct()
         {
             var text = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
 struct S
 {
     class C
@@ -63,6 +90,15 @@ struct S
         public async Task FieldStaticInRefStruct()
         {
             var text = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
 ref struct S
 {
     static Span<int>[||] m;
@@ -76,12 +112,30 @@ ref struct S
         public async Task FieldStaticInNotRefStruct()
         {
             var text = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
 struct S
 {
     static Span<int>[||] m;
 }
 ";
             var expected = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
 ref struct S
 {
     static Span<int> m;
@@ -95,6 +149,15 @@ ref struct S
         public async Task PropInNotRefStruct()
         {
             var text = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
 struct S
 {
     Span<int>[||] M { get; }
@@ -102,6 +165,15 @@ struct S
 ";
 
             var expected = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
 ref struct S
 {
     Span<int> M { get; }
@@ -115,6 +187,15 @@ ref struct S
         public async Task PropInNestedClassInsideNotRefStruct()
         {
             var text = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
 struct S
 {
     class C
@@ -131,6 +212,15 @@ struct S
         public async Task PropStaticInRefStruct()
         {
             var text = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
 ref struct S
 {
     static Span<int>[||] M { get; }
@@ -144,12 +234,30 @@ ref struct S
         public async Task PropStaticInNotRefStruct()
         {
             var text = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
 struct S
 {
     static Span<int>[||] M { get; }
 }
 ";
             var expected = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
 ref struct S
 {
     static Span<int> M { get; }
