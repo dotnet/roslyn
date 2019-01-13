@@ -4524,7 +4524,7 @@ tryAgain:
                 case SyntaxKind.OpenBracketToken:
                     bool sawNonOmittedSize;
                     _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
-                    var specifier = this.ParseArrayRankSpecifier(isArrayCreation: false, expectSizes: flags == VariableFlags.Fixed, questionTokenModeOpt: null, sawNonOmittedSize: out sawNonOmittedSize);
+                    var specifier = this.ParseArrayRankSpecifier(isArrayCreation: false, expectSizes: flags == VariableFlags.Fixed, sawNonOmittedSize: out sawNonOmittedSize);
                     _termState = saveTerm;
                     var open = specifier.OpenBracketToken;
                     var sizes = specifier.Sizes;
@@ -5880,15 +5880,14 @@ tryAgain:
             return IsPredefinedType(tk) || this.IsTrueIdentifier();
         }
 
-        private bool IsPossibleName()
-        {
-            return this.IsTrueIdentifier();
-        }
-
         private ScanTypeFlags ScanType(bool forPattern = false)
         {
-            SyntaxToken lastTokenOfType;
-            return ScanType(out lastTokenOfType, forPattern);
+            return ScanType(out _, forPattern);
+        }
+
+        private ScanTypeFlags ScanNonArrayType()
+        {
+            return ScanType(ParseTypeMode.ArrayCreation, out _, permitArray: false);
         }
 
         private ScanTypeFlags ScanType(out SyntaxToken lastTokenOfType, bool forPattern = false)
@@ -5896,74 +5895,7 @@ tryAgain:
             return ScanType(forPattern ? ParseTypeMode.DefinitePattern : ParseTypeMode.Normal, out lastTokenOfType);
         }
 
-        private ScanTypeFlags ScanType(ParseTypeMode mode, out SyntaxToken lastTokenOfType)
-        {
-            ScanTypeFlags result = this.ScanNonArrayType(mode, out lastTokenOfType);
-
-            if (result == ScanTypeFlags.NotType)
-            {
-                return result;
-            }
-
-            // Finally, check for array types.
-            while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
-            {
-                this.EatToken();
-                while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                {
-                    this.EatToken();
-                }
-
-                if (this.CurrentToken.Kind != SyntaxKind.CloseBracketToken)
-                {
-                    lastTokenOfType = null;
-                    return ScanTypeFlags.NotType;
-                }
-
-                lastTokenOfType = this.EatToken();
-                result = ScanTypeFlags.MustBeType;
-
-                if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
-                {
-                    lastTokenOfType = this.EatToken();
-                }
-            }
-
-            return result;
-        }
-
-        private void ScanNamedTypePart()
-        {
-            SyntaxToken lastTokenOfType;
-            ScanNamedTypePart(out lastTokenOfType);
-        }
-
-        private ScanTypeFlags ScanNamedTypePart(out SyntaxToken lastTokenOfType)
-        {
-            if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken || !this.IsTrueIdentifier())
-            {
-                lastTokenOfType = null;
-                return ScanTypeFlags.NotType;
-            }
-
-            lastTokenOfType = this.EatToken();
-            if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
-            {
-                return this.ScanPossibleTypeArgumentList(ref lastTokenOfType, out _);
-            }
-            else
-            {
-                return ScanTypeFlags.NonGenericTypeOrExpression;
-            }
-        }
-
-        private ScanTypeFlags ScanNonArrayType()
-        {
-            SyntaxToken lastTokenOfType;
-            return ScanNonArrayType(ParseTypeMode.Normal, out lastTokenOfType);
-        }
-
-        private ScanTypeFlags ScanNonArrayType(ParseTypeMode mode, out SyntaxToken lastTokenOfType)
+        private ScanTypeFlags ScanType(ParseTypeMode mode, out SyntaxToken lastTokenOfType, bool permitArray = true)
         {
             ScanTypeFlags result;
 
@@ -6034,45 +5966,98 @@ tryAgain:
                 return ScanTypeFlags.NotType;
             }
 
-            if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+            int lastTokenPosition = -1;
+            while (IsMakingProgress(ref lastTokenPosition))
             {
-                lastTokenOfType = this.EatToken();
-                result = ScanTypeFlags.NullableType;
-            }
-
-            // Now check for pointer type(s)
-            switch (mode)
-            {
-                case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
-                case ParseTypeMode.AfterTupleComma:
-                    // We are parsing the type for a declaration expression in a tuple, which does
-                    // not permit pointer types except as an element type of an array type.
-                    // In that context a `*` is parsed as a multiplication.
-                    if (PointerTypeModsFollowedByRankAndDimensionSpecifier())
-                    {
-                        goto default;
-                    }
-                    break;
-                case ParseTypeMode.DefinitePattern:
-                    // pointer type syntax is not supported in patterns.
-                    break;
-                default:
-                    while (this.CurrentToken.Kind == SyntaxKind.AsteriskToken)
-                    {
+                switch (this.CurrentToken.Kind)
+                {
+                    case SyntaxKind.QuestionToken
+                            when lastTokenOfType.Kind != SyntaxKind.QuestionToken && // don't allow `Type??`
+                                 lastTokenOfType.Kind != SyntaxKind.AsteriskToken && // don't allow `Type*?`
+                                 (mode != ParseTypeMode.ArrayCreation || this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken): // don't allow `new Type[0]?`
                         lastTokenOfType = this.EatToken();
-                        if (result == ScanTypeFlags.GenericTypeOrExpression || result == ScanTypeFlags.NonGenericTypeOrExpression)
+                        result = ScanTypeFlags.NullableType;
+                        break;
+                    case SyntaxKind.AsteriskToken
+                            when lastTokenOfType.Kind != SyntaxKind.CloseBracketToken:
+                        // Check for pointer type(s)
+                        switch (mode)
                         {
-                            result = ScanTypeFlags.PointerOrMultiplication;
+                            case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
+                            case ParseTypeMode.AfterTupleComma:
+                                // We are parsing the type for a declaration expression in a tuple, which does
+                                // not permit pointer types except as an element type of an array type.
+                                // In that context a `*` is parsed as a multiplication.
+                                if (PointerTypeModsFollowedByRankAndDimensionSpecifier())
+                                {
+                                    goto default;
+                                }
+                                goto done;
+                            case ParseTypeMode.DefinitePattern:
+                                // pointer type syntax is not supported in patterns.
+                                goto done;
+                            default:
+                                lastTokenOfType = this.EatToken();
+                                if (result == ScanTypeFlags.GenericTypeOrExpression || result == ScanTypeFlags.NonGenericTypeOrExpression)
+                                {
+                                    result = ScanTypeFlags.PointerOrMultiplication;
+                                }
+                                else if (result == ScanTypeFlags.GenericTypeOrMethod)
+                                {
+                                    result = ScanTypeFlags.MustBeType;
+                                }
+                                break;
                         }
-                        else if (result == ScanTypeFlags.GenericTypeOrMethod)
+                        break;
+                    case SyntaxKind.OpenBracketToken when permitArray:
+                        // Check for array types.
+                        this.EatToken();
+                        while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                         {
-                            result = ScanTypeFlags.MustBeType;
+                            this.EatToken();
                         }
-                    }
-                    break;
+
+                        if (this.CurrentToken.Kind != SyntaxKind.CloseBracketToken)
+                        {
+                            lastTokenOfType = null;
+                            return ScanTypeFlags.NotType;
+                        }
+
+                        lastTokenOfType = this.EatToken();
+                        result = ScanTypeFlags.MustBeType;
+                        break;
+                    default:
+                        goto done;
+                }
             }
 
+done:;
             return result;
+        }
+
+        private void ScanNamedTypePart()
+        {
+            SyntaxToken lastTokenOfType;
+            ScanNamedTypePart(out lastTokenOfType);
+        }
+
+        private ScanTypeFlags ScanNamedTypePart(out SyntaxToken lastTokenOfType)
+        {
+            if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken || !this.IsTrueIdentifier())
+            {
+                lastTokenOfType = null;
+                return ScanTypeFlags.NotType;
+            }
+
+            lastTokenOfType = this.EatToken();
+            if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
+            {
+                return this.ScanPossibleTypeArgumentList(ref lastTokenOfType, out _);
+            }
+            else
+            {
+                return ScanTypeFlags.NonGenericTypeOrExpression;
+            }
         }
 
         /// <summary>
@@ -6142,42 +6127,6 @@ tryAgain:
             }
 
             return this.ParseType();
-        }
-
-        private bool IsTerm()
-        {
-            switch (this.CurrentToken.Kind)
-            {
-                case SyntaxKind.ArgListKeyword:
-                case SyntaxKind.MakeRefKeyword:
-                case SyntaxKind.RefTypeKeyword:
-                case SyntaxKind.RefValueKeyword:
-                case SyntaxKind.BaseKeyword:
-                case SyntaxKind.CheckedKeyword:
-                case SyntaxKind.DefaultKeyword:
-                case SyntaxKind.DelegateKeyword:
-                case SyntaxKind.FalseKeyword:
-                case SyntaxKind.NewKeyword:
-                case SyntaxKind.NullKeyword:
-                case SyntaxKind.SizeOfKeyword:
-                case SyntaxKind.ThisKeyword:
-                case SyntaxKind.TrueKeyword:
-                case SyntaxKind.TypeOfKeyword:
-                case SyntaxKind.UncheckedKeyword:
-                case SyntaxKind.NumericLiteralToken:
-                case SyntaxKind.StringKeyword:
-                case SyntaxKind.StringLiteralToken:
-                case SyntaxKind.CharacterLiteralToken:
-                case SyntaxKind.OpenParenToken:
-                case SyntaxKind.EqualsGreaterThanToken:
-                case SyntaxKind.InterpolatedStringToken:
-                case SyntaxKind.InterpolatedStringStartToken:
-                    return true;
-                case SyntaxKind.IdentifierToken:
-                    return this.IsTrueIdentifier();
-                default:
-                    return false;
-            }
         }
 
         private enum ParseTypeMode
@@ -6251,59 +6200,79 @@ tryAgain:
             var type = this.ParseUnderlyingType(parentIsParameter: mode == ParseTypeMode.Parameter, options: nameOptions);
             Debug.Assert(type != null);
 
-            if (this.CurrentToken.Kind == SyntaxKind.QuestionToken &&
-                // we do not permit nullable types in a declaration pattern
-                (mode != ParseTypeMode.AfterIs && mode != ParseTypeMode.DefinitePattern || !IsTrueIdentifier(this.PeekToken(1))))
+            int lastTokenPosition = -1;
+            while (IsMakingProgress(ref lastTokenPosition))
             {
-                var question = EatNullableQualifierIfApplicable(mode);
-                if (question != null)
+                switch (this.CurrentToken.Kind)
                 {
-                    type = _syntaxFactory.NullableType(type, question);
+                    case SyntaxKind.QuestionToken when
+                            type.Kind != SyntaxKind.NullableType &&
+                            type.Kind != SyntaxKind.PointerType &&
+                            // We permit a nullable type in an is-type expression, but not an is-pattern expression
+                            (mode != ParseTypeMode.AfterIs || !CanNextTokenStartExpression()) &&
+                            // we do not permit nullable types in a declaration pattern
+                            (mode != ParseTypeMode.DefinitePattern || this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken) &&
+                            (mode != ParseTypeMode.ArrayCreation || this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken):
+                        {
+                            var question = EatNullableQualifierIfApplicable(mode);
+                            if (question != null)
+                            {
+                                type = _syntaxFactory.NullableType(type, question);
+                                continue;
+                            }
+                            goto done; // token not consumed
+                        }
+                    case SyntaxKind.AsteriskToken when type.Kind != SyntaxKind.ArrayType:
+                        switch (mode)
+                        {
+                            case ParseTypeMode.AfterIs:
+                            case ParseTypeMode.DefinitePattern:
+                            case ParseTypeMode.AfterTupleComma:
+                            case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
+                                // these contexts do not permit a pointer type except as an element type of an array.
+                                if (PointerTypeModsFollowedByRankAndDimensionSpecifier())
+                                {
+                                    type = this.ParsePointerTypeMods(type);
+                                    continue;
+                                }
+                                break;
+                            case ParseTypeMode.Normal:
+                            case ParseTypeMode.Parameter:
+                            case ParseTypeMode.AfterOut:
+                            case ParseTypeMode.ArrayCreation:
+                            case ParseTypeMode.AsExpression:
+                                type = this.ParsePointerTypeMods(type);
+                                continue;
+                        }
+                        goto done; // token not consumed
+                    case SyntaxKind.OpenBracketToken:
+                        // Now check for arrays.
+                        if (this.IsPossibleRankAndDimensionSpecifier())
+                        {
+                            var ranks = _pool.Allocate<ArrayRankSpecifierSyntax>();
+                            try
+                            {
+                                while (this.IsPossibleRankAndDimensionSpecifier())
+                                {
+                                    var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, out _);
+                                    ranks.Add(rank);
+                                    expectSizes = false;
+                                }
+
+                                type = _syntaxFactory.ArrayType(type, ranks);
+                            }
+                            finally
+                            {
+                                _pool.Free(ranks);
+                            }
+                            continue;
+                        }
+                        goto done; // token not consumed
+                    default:
+                        goto done; // token not consumed
                 }
             }
-
-            switch (mode)
-            {
-                case ParseTypeMode.AfterIs:
-                case ParseTypeMode.DefinitePattern:
-                case ParseTypeMode.AfterTupleComma:
-                case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
-                    // these contexts do not permit a pointer type except as an element type of an array.
-                    if (PointerTypeModsFollowedByRankAndDimensionSpecifier())
-                    {
-                        type = this.ParsePointerTypeMods(type);
-                    }
-                    break;
-                case ParseTypeMode.Normal:
-                case ParseTypeMode.Parameter:
-                case ParseTypeMode.AfterOut:
-                case ParseTypeMode.ArrayCreation:
-                case ParseTypeMode.AsExpression:
-                    type = this.ParsePointerTypeMods(type);
-                    break;
-            }
-
-            // Now check for arrays.
-            if (this.IsPossibleRankAndDimensionSpecifier())
-            {
-                var ranks = _pool.Allocate<ArrayRankSpecifierSyntax>();
-                try
-                {
-                    while (this.IsPossibleRankAndDimensionSpecifier())
-                    {
-                        bool unused;
-                        var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, questionTokenModeOpt: mode, out unused);
-                        ranks.Add(rank);
-                        expectSizes = false;
-                    }
-
-                    type = _syntaxFactory.ArrayType(type, ranks);
-                }
-                finally
-                {
-                    _pool.Free(ranks);
-                }
-            }
+done:;
 
             Debug.Assert(type != null);
             return type;
@@ -6312,31 +6281,37 @@ tryAgain:
         private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
-
-            // we do not permit nullable types in a declaration pattern
-            if (mode != ParseTypeMode.AfterIs && mode != ParseTypeMode.DefinitePattern || !IsTrueIdentifier(this.PeekToken(1)))
+            var resetPoint = this.GetResetPoint();
+            try
             {
-                var resetPoint = this.GetResetPoint();
-                try
+                var questionToken = this.EatToken();
+                switch (mode)
                 {
-                    var question = this.EatToken();
+                    case ParseTypeMode.AfterIs:
+                    case ParseTypeMode.DefinitePattern:
+                    case ParseTypeMode.AsExpression:
+                    case ParseTypeMode.ArrayCreation:
+                        // These contexts might be a type that is at the end of an expression.
+                        // In these contexts we only permit the nullable qualifier if it is followed
+                        // by a token that could not start an expression, because for backward
+                        // compatibility we want to consider a `?` token as part of the `?:`
+                        // operator if possible.
+                        if (CanStartExpression())
+                        {
+                            // Restore current token index
+                            this.Reset(ref resetPoint);
+                            return null;
+                        }
 
-                    var isOrAs = mode == ParseTypeMode.AsExpression || mode == ParseTypeMode.AfterIs;
-                    if (isOrAs && (IsTerm() || IsPredefinedType(this.CurrentToken.Kind) || SyntaxFacts.IsAnyUnaryExpression(this.CurrentToken.Kind)))
-                    {
-                        this.Reset(ref resetPoint);
-                        return null;
-                    }
+                        break;
+                }
 
-                    return CheckFeatureAvailability(question, MessageID.IDS_FeatureNullable);
-                }
-                finally
-                {
-                    this.Release(ref resetPoint);
-                }
+                return CheckFeatureAvailability(questionToken, MessageID.IDS_FeatureNullable);
             }
-
-            return null;
+            finally
+            {
+                this.Release(ref resetPoint);
+            }
         }
 
         private bool PointerTypeModsFollowedByRankAndDimensionSpecifier()
@@ -6361,7 +6336,7 @@ tryAgain:
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
-        private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, ParseTypeMode? questionTokenModeOpt, out bool sawNonOmittedSize)
+        private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, out bool sawNonOmittedSize)
         {
             sawNonOmittedSize = false;
             bool sawOmittedSize = false;
@@ -6426,14 +6401,7 @@ tryAgain:
 
                 // Eat the close brace and we're done.
                 var close = this.EatToken(SyntaxKind.CloseBracketToken);
-
-                SyntaxToken questionToken = null;
-                if (questionTokenModeOpt != null && this.CurrentToken.Kind == SyntaxKind.QuestionToken)
-                {
-                    questionToken = EatNullableQualifierIfApplicable(questionTokenModeOpt.GetValueOrDefault());
-                }
-
-                return _syntaxFactory.ArrayRankSpecifier(open, list, close, questionToken);
+                return _syntaxFactory.ArrayRankSpecifier(open, list, close);
             }
             finally
             {
@@ -8801,9 +8769,46 @@ tryAgain:
             return this.ParseSubExpression(Precedence.Expression);
         }
 
-        private bool IsPossibleExpression(bool allowBinaryExpressions = true, bool allowAssignmentExpressions = true)
+        /// <summary>
+        /// Is the current token one that could start an expression?
+        /// </summary>
+        private bool CanStartExpression()
         {
-            var tk = this.CurrentToken.Kind;
+            return IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false);
+        }
+
+        /// <summary>
+        /// Can the token after the current token be one that could start an expression?
+        /// </summary>
+        /// <returns></returns>
+        private bool CanNextTokenStartExpression()
+        {
+            var resetPoint = this.GetResetPoint();
+            try
+            {
+                // skip one token
+                this.EatToken();
+                return CanStartExpression();
+            }
+            finally
+            {
+                // Restore current token index
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+            }
+        }
+
+        /// <summary>
+        /// Is the current token one that could be in an expression?
+        /// </summary>
+        private bool IsPossibleExpression()
+        {
+            return IsPossibleExpression(allowBinaryExpressions: true, allowAssignmentExpressions: true);
+        }
+
+        private bool IsPossibleExpression(bool allowBinaryExpressions, bool allowAssignmentExpressions)
+        {
+            SyntaxKind tk = this.CurrentToken.Kind;
             switch (tk)
             {
                 case SyntaxKind.TypeOfKeyword:
@@ -9118,7 +9123,7 @@ tryAgain:
                 newPrecedence = GetPrecedence(opKind);
 
                 ExpressionSyntax rightOperand;
-                if (IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false))
+                if (CanStartExpression())
                 {
                     rightOperand = this.ParseSubExpression(newPrecedence);
                 }
@@ -9272,7 +9277,7 @@ tryAgain:
                             Debug.Assert(opKind == SyntaxKind.RangeExpression);
 
                             ExpressionSyntax rightOperand;
-                            if (IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false))
+                            if (CanStartExpression())
                             {
                                 newPrecedence = GetPrecedence(opKind);
                                 rightOperand = this.ParseSubExpression(newPrecedence);

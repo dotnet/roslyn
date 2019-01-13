@@ -1478,14 +1478,14 @@ class C
 ";
             var tree = Parse(source);
             var specifier = tree.GetRoot().DescendantNodes().OfType<ArrayRankSpecifierSyntax>().Single();
-            Assert.Equal("[]?", specifier.ToString());
+            Assert.Equal("[]", specifier.ToString());
 
             var newSpecifier = specifier.Update(
                 specifier.OpenBracketToken,
                 SyntaxFactory.SeparatedList<ExpressionSyntax>(
                     new[] { SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(3)) }),
                 specifier.CloseBracketToken);
-            Assert.Equal("[3]?", newSpecifier.ToString());
+            Assert.Equal("[3]", newSpecifier.ToString());
         }
 
         [Fact]
@@ -19804,17 +19804,18 @@ class C
     void Test8()
     {
         object []?[,] u8 = null;
-        u8[0] = null;
-        u8[0][0,0] = null;
-        u8[0][0,0].ToString();
+        u8[0,0] = null;
+        u8[0,0].ToString();
+        u8[0,0][0] = null;
+        u8[0,0][0].ToString();
     }
 
     void Test9()
     {
         object []?[,]? u9 = null;
-        u9[0] = null;
-        u9[0][0,0] = null;
-        u9[0][0,0].ToString();
+        u9[0,0] = null;
+        u9[0,0][0] = null;
+        u9[0,0][0].ToString();
     }
 }
 " }, options: WithNonNullTypesTrue());
@@ -19835,21 +19836,15 @@ class C
                 // (33,16): warning CS8603: Possible null reference return.
                 //         return u5;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "u5").WithLocation(33, 16),
-                // (38,28): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         object [][,]? u6 = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(38, 28),
                 // (39,9): warning CS8602: Possible dereference of a null reference.
                 //         u6[0] = null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u6").WithLocation(39, 9),
-                // (40,9): warning CS8602: Possible dereference of a null reference.
-                //         u6[0][0,0] = null;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u6[0]").WithLocation(40, 9),
+                // (39,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         u6[0] = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(39, 17),
                 // (40,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         u6[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(40, 22),
-                // (41,9): warning CS8602: Possible dereference of a null reference.
-                //         u6[0][0,0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u6[0]").WithLocation(41, 9),
                 // (46,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object [][,] u7 = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(46, 27),
@@ -19862,27 +19857,36 @@ class C
                 // (48,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         u7[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(48, 22),
+                // (53,28): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object []?[,] u8 = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(53, 28),
                 // (54,9): warning CS8602: Possible dereference of a null reference.
-                //         u8[0] = null;
+                //         u8[0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u8").WithLocation(54, 9),
-                // (54,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //         u8[0] = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(54, 17),
-                // (55,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //         u8[0][0,0] = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(55, 22),
-                // (62,9): warning CS8602: Possible dereference of a null reference.
-                //         u9[0] = null;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9").WithLocation(62, 9),
+                // (55,9): warning CS8602: Possible dereference of a null reference.
+                //         u8[0,0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u8[0,0]").WithLocation(55, 9),
+                // (56,9): warning CS8602: Possible dereference of a null reference.
+                //         u8[0,0][0] = null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u8[0,0]").WithLocation(56, 9),
+                // (56,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         u8[0,0][0] = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(56, 22),
+                // (57,9): warning CS8602: Possible dereference of a null reference.
+                //         u8[0,0][0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u8[0,0]").WithLocation(57, 9),
                 // (63,9): warning CS8602: Possible dereference of a null reference.
-                //         u9[0][0,0] = null;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9[0]").WithLocation(63, 9),
-                // (63,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //         u9[0][0,0] = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(63, 22),
+                //         u9[0,0] = null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9").WithLocation(63, 9),
                 // (64,9): warning CS8602: Possible dereference of a null reference.
-                //         u9[0][0,0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9[0]").WithLocation(64, 9)
+                //         u9[0,0][0] = null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9[0,0]").WithLocation(64, 9),
+                // (64,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         u9[0,0][0] = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(64, 22),
+                // (65,9): warning CS8602: Possible dereference of a null reference.
+                //         u9[0,0][0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9[0,0]").WithLocation(65, 9)
                 );
         }
 
@@ -19903,8 +19907,8 @@ class C
 
     void Test6()
     {
-        var u6 = new object [][,]? {null, 
-                                    new object[,]? {{null}}};
+        var u6 = new object [,]?[] {null, 
+                                    new object[,] {{null}}};
         u6[0] = null;
         u6[0][0,0] = null;
         u6[0][0,0].ToString();
@@ -19920,7 +19924,7 @@ class C
 
     void Test8()
     {
-        var u8 = new object []?[,] {null, 
+        object [][,]? u8 = new object [][,] {null, 
                                     new object[,] {{null}}};
         u8[0] = null;
         u8[0][0,0] = null;
@@ -19929,8 +19933,8 @@ class C
 
     void Test9()
     {
-        var u9 = new object []?[,]? {null, 
-                                     new object[,]? {{null}}};
+        object [,]?[]? u9 = new object [,]?[] {null, 
+                                     new object[,] {{null}}};
         u9[0] = null;
         u9[0][0,0] = null;
         u9[0][0,0].ToString();
@@ -19939,9 +19943,10 @@ class C
 " }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
-                // (16,54): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //                                     new object[,]? {{null}}};
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 54),
+
+                // (16,53): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //                                     new object[,] {{null}}};
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 53),
                 // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         u6[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u6[0]").WithLocation(18, 9),
@@ -19951,33 +19956,33 @@ class C
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         u6[0][0,0].ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u6[0]").WithLocation(19, 9),
-                // (25,52): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //                                    new object[,] {{null}}};
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(25, 52),
                 // (24,36): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         var u7 = new object [][,] {null, 
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(24, 36),
+                // (25,52): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //                                    new object[,] {{null}}};
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(25, 52),
                 // (26,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         u7[0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(26, 17),
                 // (27,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         u7[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(27, 22),
+                // (32,46): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         object [][,]? u8 = new object [][,] {null, 
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(32, 46),
                 // (33,53): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //                                     new object[,] {{null}}};
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(33, 53),
-                // (32,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //         var u8 = new object []?[,] {null, 
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(32, 37),
                 // (34,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         u8[0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(34, 17),
                 // (35,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         u8[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(35, 22),
-                // (42,55): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //                                      new object[,]? {{null}}};
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(42, 55),
+                // (42,54): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //                                      new object[,] {{null}}};
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(42, 54),
                 // (44,9): warning CS8602: Possible dereference of a null reference.
                 //         u9[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9[0]").WithLocation(44, 9),
@@ -71278,6 +71283,28 @@ class Program
                 // (12,32): warning CS8619: Nullability of reference types in value of type '(T?, object? x)' doesn't match target type '(T? x, object y)'.
                 //         F(b => { if (b) return (default, x); return (x, y); })/*T:(T?, object?)*/;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(default, x)").WithArguments("(T?, object? x)", "(T? x, object y)").WithLocation(12, 32));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void DisplayMultidimensionalArray()
+        {
+            var source = @"
+class C
+{
+    void M(A<object> o, A<string[][][,]?> s)
+    {
+        o = s;
+    }
+}
+interface A<out T> {}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8619: Nullability of reference types in value of type 'A<string[]?[][*,*]>' doesn't match target type 'A<object>'.
+                //         o = s;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "s").WithArguments("A<string[][][*,*]?>", "A<object>").WithLocation(6, 13)
+                );
             comp.VerifyTypes();
         }
 

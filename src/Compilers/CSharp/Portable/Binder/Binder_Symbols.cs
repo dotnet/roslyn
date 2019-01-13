@@ -438,16 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var a = node.RankSpecifiers[i];
                             var array = ArrayTypeSymbol.CreateCSharpArray(this.Compilation.Assembly, type, a.Rank);
-
-                            if (a.QuestionToken.IsKind(SyntaxKind.QuestionToken))
-                            {
-                                type = TypeSymbolWithAnnotations.Create(array, NullableAnnotation.Annotated);
-                                reportNullableReferenceTypesIfNeeded(a.QuestionToken);
-                            }
-                            else
-                            {
-                                type = TypeSymbolWithAnnotations.Create(IsNullableEnabled(a.CloseBracketToken), array);
-                            }
+                            type = TypeSymbolWithAnnotations.Create(IsNullableEnabled(a.CloseBracketToken), array);
                         }
 
                         return type;

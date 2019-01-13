@@ -3030,5 +3030,125 @@ A(5, 6).Y
 A(2, 3).Y
 8");
         }
+
+        [Fact]
+        public void NullableArrayDeclarationPattern_Good_02()
+        {
+            var source =
+@"#nullable enable
+public class A
+{
+    static void M(object o, bool c)
+    {
+        if (o is A[]?[,] b3) { }
+        if (o is A[,]?[] b4 && c) { }
+        if (o is A[,]?[]?[] b5 && c) { }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableArrayDeclarationPattern_Bad_02()
+        {
+            var source =
+@"#nullable enable
+public class A
+{
+    static void M(object o, bool c)
+    {
+        if (o is A? b1) { }           // error 1 (missing :)
+        if (o is A? b2 && c) { }      // error 2 (missing :)
+        if (o is A[]? b5) { }         // error 3 (missing :)
+        if (o is A[]? b6 && c) { }    // error 4 (missing :)
+        if (o is A[][]? b7) { }       // error 5 (missing :)
+        if (o is A[][]? b8 && c) { }  // error 6 (missing :)
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+
+                // (6,21): error CS0103: The name 'b1' does not exist in the current context
+                //         if (o is A? b1) { }           // error 1 (missing :)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b1").WithArguments("b1").WithLocation(6, 21),
+                // (6,23): error CS1003: Syntax error, ':' expected
+                //         if (o is A? b1) { }           // error 1 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(6, 23),
+                // (6,23): error CS1525: Invalid expression term ')'
+                //         if (o is A? b1) { }           // error 1 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 23),
+                // (7,21): error CS0103: The name 'b2' does not exist in the current context
+                //         if (o is A? b2 && c) { }      // error 2 (missing :)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(7, 21),
+                // (7,28): error CS1003: Syntax error, ':' expected
+                //         if (o is A? b2 && c) { }      // error 2 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(7, 28),
+                // (7,28): error CS1525: Invalid expression term ')'
+                //         if (o is A? b2 && c) { }      // error 2 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 28),
+                // (8,23): error CS0103: The name 'b5' does not exist in the current context
+                //         if (o is A[]? b5) { }         // error 3 (missing :)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b5").WithArguments("b5").WithLocation(8, 23),
+                // (8,25): error CS1003: Syntax error, ':' expected
+                //         if (o is A[]? b5) { }         // error 3 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(8, 25),
+                // (8,25): error CS1525: Invalid expression term ')'
+                //         if (o is A[]? b5) { }         // error 3 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 25),
+                // (9,23): error CS0103: The name 'b6' does not exist in the current context
+                //         if (o is A[]? b6 && c) { }    // error 4 (missing :)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b6").WithArguments("b6").WithLocation(9, 23),
+                // (9,30): error CS1003: Syntax error, ':' expected
+                //         if (o is A[]? b6 && c) { }    // error 4 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(9, 30),
+                // (9,30): error CS1525: Invalid expression term ')'
+                //         if (o is A[]? b6 && c) { }    // error 4 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(9, 30),
+                // (10,25): error CS0103: The name 'b7' does not exist in the current context
+                //         if (o is A[][]? b7) { }       // error 5 (missing :)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b7").WithArguments("b7").WithLocation(10, 25),
+                // (10,27): error CS1003: Syntax error, ':' expected
+                //         if (o is A[][]? b7) { }       // error 5 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(10, 27),
+                // (10,27): error CS1525: Invalid expression term ')'
+                //         if (o is A[][]? b7) { }       // error 5 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(10, 27),
+                // (11,25): error CS0103: The name 'b8' does not exist in the current context
+                //         if (o is A[][]? b8 && c) { }  // error 6 (missing :)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b8").WithArguments("b8").WithLocation(11, 25),
+                // (11,32): error CS1003: Syntax error, ':' expected
+                //         if (o is A[][]? b8 && c) { }  // error 6 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(11, 32),
+                // (11,32): error CS1525: Invalid expression term ')'
+                //         if (o is A[][]? b8 && c) { }  // error 6 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(11, 32)
+                );
+        }
+
+        [Fact]
+        public void NullableArrayDeclarationPattern_Good_01()
+        {
+            var source =
+@"#nullable enable
+public class A
+{
+    static void M(object o, bool c)
+    {
+        if (o is A?) { }                 // ok 1 (for compat)
+        if (o is A? && c) { }            // ok 2 (for compat)
+        if (o is A[]? c && c : c) { }    // ok 3 (for compat)
+        if (o is A[][]? c : c) { }       // ok 4 (for compat)
+        _ = o is A[][]?;                 // ok 5
+        _ = o as A[][]?;                 // ok 6
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                );
+        }
     }
 }

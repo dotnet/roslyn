@@ -16,15 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var visitor = (SymbolDisplayVisitor)(visitorOpt ?? this.NotFirstVisitor);
             var typeSymbol = type.TypeSymbol;
 
-            if (typeSymbol.TypeKind == TypeKind.Array)
-            {
-                visitor.VisitArrayType((IArrayTypeSymbol)typeSymbol, typeOpt: type);
-            }
-            else
-            {
-                typeSymbol.Accept(visitor);
-                AddNullableAnnotations(type);
-            }
+            typeSymbol.Accept(visitor);
+            AddNullableAnnotations(type);
         }
 
         public override void VisitArrayType(IArrayTypeSymbol symbol)
@@ -39,16 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            //See spec section 12.1 for the order of rank specifiers
-            //e.g. int[][,][,,] is stored as 
-            //     ArrayType
-            //         Rank = 1
-            //         ElementType = ArrayType
-            //             Rank = 2
-            //             ElementType = ArrayType
-            //                 Rank = 3
-            //                 ElementType = int
-
+            // NOTE: displaying an array with reversed rank specifiers drops nullable annotations
             if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.ReverseArrayRankSpecifiers))
             {
                 // Ironically, reverse order is simpler - we just have to recurse on the element type and then add a rank specifier.
@@ -57,35 +41,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            TypeSymbolWithAnnotations underlyingNonArrayTypeWithAnnotations = (symbol as ArrayTypeSymbol)?.ElementType ?? default;
-            var underlyingNonArrayType = symbol.ElementType;
-            while (underlyingNonArrayType.Kind == SymbolKind.ArrayType)
+            TypeSymbolWithAnnotations underlyingTypeWithAnnotations;
+            ITypeSymbol underlyingType = symbol;
+            do
             {
-                underlyingNonArrayTypeWithAnnotations = (underlyingNonArrayType as ArrayTypeSymbol)?.ElementType ?? default;
-                underlyingNonArrayType = ((IArrayTypeSymbol)underlyingNonArrayType).ElementType;
+                underlyingTypeWithAnnotations = (underlyingType as ArrayTypeSymbol)?.ElementType ?? default;
+                underlyingType = ((IArrayTypeSymbol)underlyingType).ElementType;
             }
+            while (underlyingType.Kind == SymbolKind.ArrayType && !ShouldPrintNullableAnnotation(underlyingTypeWithAnnotations));
 
-            if (!underlyingNonArrayTypeWithAnnotations.IsNull)
+            if (!underlyingTypeWithAnnotations.IsNull)
             {
-                VisitTypeSymbolWithAnnotations(underlyingNonArrayTypeWithAnnotations);
+                VisitTypeSymbolWithAnnotations(underlyingTypeWithAnnotations);
             }
             else
             {
-                underlyingNonArrayType.Accept(this.NotFirstVisitor);
+                underlyingType.Accept(this.NotFirstVisitor);
             }
 
             var arrayType = symbol;
-            while (arrayType != null)
+            while (arrayType != null && arrayType != underlyingType)
             {
-                if (!this.isFirstSymbolVisited)
+                if (!(arrayType is null) && !this.isFirstSymbolVisited)
                 {
                     AddCustomModifiersIfRequired(arrayType.CustomModifiers, leadingSpace: true);
                 }
 
                 AddArrayRank(arrayType);
-                AddNullableAnnotations(typeOpt);
-
-                typeOpt = (arrayType as ArrayTypeSymbol)?.ElementType ?? default;
                 arrayType = arrayType.ElementType as IArrayTypeSymbol;
             }
         }
@@ -97,19 +79,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (ShouldPrintNullableAnnotation(typeOpt))
+            {
+                AddPunctuation(typeOpt.NullableAnnotation.IsAnyNullable() ? SyntaxKind.QuestionToken : SyntaxKind.ExclamationToken);
+            }
+        }
+
+        private bool ShouldPrintNullableAnnotation(TypeSymbolWithAnnotations typeOpt)
+        {
             if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
                 !typeOpt.IsNullableType() && !typeOpt.IsValueType &&
                 (typeOpt.NullableAnnotation == NullableAnnotation.Annotated ||
                  (typeOpt.NullableAnnotation == NullableAnnotation.Nullable && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())))
             {
-                AddPunctuation(SyntaxKind.QuestionToken);
+                return true;
             }
             else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
                 !typeOpt.IsValueType &&
                 typeOpt.NullableAnnotation.IsAnyNotNullable() && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())
             {
-                AddPunctuation(SyntaxKind.ExclamationToken);
+                return true;
             }
+
+            return false;
         }
 
         private void AddArrayRank(IArrayTypeSymbol symbol)
