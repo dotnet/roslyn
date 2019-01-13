@@ -218,6 +218,5 @@ public class C
     </Project>
 </Workspace>.ToString())
         End Function
-
     End Class
 End Namespace

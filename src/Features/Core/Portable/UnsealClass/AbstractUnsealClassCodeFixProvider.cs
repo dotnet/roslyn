@@ -25,22 +25,25 @@ namespace Microsoft.CodeAnalysis.UnsealClass
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            var document = context.Document;
+            var cancellationToken = context.CancellationToken;
+
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var node = syntaxRoot.FindNode(context.Span, getInnermostNodeForTie: true);
 
-            if (semanticModel.GetSymbolInfo(node, context.CancellationToken).Symbol is INamedTypeSymbol type &&
+            if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is INamedTypeSymbol type &&
                 type.TypeKind == TypeKind.Class && type.IsSealed && !type.IsStatic)
             {
                 var definition = await SymbolFinder.FindSourceDefinitionAsync(
-                    type, context.Document.Project.Solution, context.CancellationToken).ConfigureAwait(false);
+                    type, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                 if (definition != null && definition.DeclaringSyntaxReferences.Length > 0)
                 {
                     context.RegisterCodeFix(
                         new MyCodeAction(
-                            c => UnsealDeclarationsAsync(context.Document.Project.Solution, definition.DeclaringSyntaxReferences, c),
-                            string.Format(TitleFormat, type.Name)),
+                            string.Format(TitleFormat, type.Name),
+                            c => UnsealDeclarationsAsync(document.Project.Solution, definition.DeclaringSyntaxReferences, c)),
                         context.Diagnostics);
                 }
             }
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnsealClass
 
         private sealed class MyCodeAction : CodeAction.SolutionChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution, string title)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
                 : base(title, createChangedSolution)
             {
             }

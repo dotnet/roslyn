@@ -16,6 +16,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnsealClass
             ImmutableArray.Create(BC30299)
 
         Protected Overrides ReadOnly Property TitleFormat As String = VBFeaturesResources.Make_0_inheritable
-
     End Class
 End Namespace
