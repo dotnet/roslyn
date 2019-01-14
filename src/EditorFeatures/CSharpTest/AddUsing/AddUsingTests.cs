@@ -219,6 +219,21 @@ class Class
 }");
         }
 
+        [WorkItem(867496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867496")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestMalformedGenericParameters()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class Class
+{
+    [|List<Y|] x; }",
+                @"using System.Collections.Generic;
+
+class Class
+{
+    List<Y x; }");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGenericInLocalDeclaration()
         {
