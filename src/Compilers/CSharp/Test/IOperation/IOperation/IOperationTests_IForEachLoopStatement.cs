@@ -331,14 +331,14 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (st ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (st ... }')
   Locals: Local_1: System.String value
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.String value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'string')
       Initializer: 
         null
   Collection: 
-    ILocalReferenceOperation: sorted (OperationKind.LocalReference, Type: ?, IsInvalid) (Syntax: 'sorted')
+    ILocalReferenceOperation: sorted (OperationKind.LocalReference, Type: ?) (Syntax: 'sorted')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ine(value);')
