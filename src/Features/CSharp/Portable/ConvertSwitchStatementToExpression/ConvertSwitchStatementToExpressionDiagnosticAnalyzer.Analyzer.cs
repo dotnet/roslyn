@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
@@ -11,15 +11,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
     {
         private sealed class Analyzer : CSharpSyntaxVisitor<AnalysisResult>
         {
-            private static readonly Analyzer s_instance = new Analyzer();
+            private readonly ArrayBuilder<SyntaxNode> _originalTargets;
+            private readonly ArrayBuilder<SyntaxNode> _currentTargets;
+
+            private bool _firstSwitchSection = true;
 
             private Analyzer()
             {
+                _originalTargets = ArrayBuilder<SyntaxNode>.GetInstance();
+                _currentTargets = ArrayBuilder<SyntaxNode>.GetInstance();
             }
 
-            public static AnalysisResult Analyze(SyntaxNode node,  out bool shouldRemoveNextStatement)
+            private void Free()
             {
-                return s_instance.AnalyzeSwitchStatement((SwitchStatementSyntax)node, out shouldRemoveNextStatement);
+                _originalTargets.Free();
+                _currentTargets.Free();
+            }
+
+            public static AnalysisResult Analyze(SwitchStatementSyntax node, out bool shouldRemoveNextStatement)
+            {
+                var analyzer = new Analyzer();
+                var result = analyzer.AnalyzeSwitchStatement(node, out shouldRemoveNextStatement);
+                analyzer.Free();
+                return result;
             }
 
             private static bool IsDefaultSwitchLabel(SwitchLabelSyntax node)
@@ -40,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
                     // case var _:
                     // case var x:
-                    if (@case.Pattern.IsKind(SyntaxKind.VarPattern, out VarPatternSyntax varPattern) && 
+                    if (@case.Pattern.IsKind(SyntaxKind.VarPattern, out VarPatternSyntax varPattern) &&
                         varPattern.Designation.IsKind(SyntaxKind.DiscardDesignation, SyntaxKind.SingleVariableDesignation))
                     {
                         return true;
@@ -83,15 +97,39 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
                 // We do need to intersect the next statement analysis result to catch possible
                 // arm kind mismatch, e.g. a "return" after a non-exhaustive assignment switch.
-                return nextStatementAnalysis.Intersect(
-                    Aggregate(sections, (result, section) => result.Intersect(AnalyzeSwitchSection(section))));
+                var result = nextStatementAnalysis;
+                foreach (var section in sections)
+                {
+                    result = result.Intersect(AnalyzeSwitchSection(section));
+                    if (result.IsFailure)
+                    {
+                        break;
+                    }
+
+                    if (_firstSwitchSection)
+                    {
+                        _firstSwitchSection = false;
+                        continue;
+                    }
+
+                    // Assignments only match if they have the same set of targets
+                    if (!_currentTargets.SequenceEqual(_originalTargets,
+                            (current, source) => SyntaxFactory.AreEquivalent(current, source)))
+                    {
+                        return AnalysisResult.Failure;
+                    }
+
+                    _currentTargets.Clear();
+                }
+
+                return result;
             }
 
             private AnalysisResult AnalyzeNextStatement(StatementSyntax nextStatement)
             {
                 // Only the following "throw" and "return" can be moved into the switch expression.
-                return nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement) 
-                    ? Visit(nextStatement) 
+                return nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement)
+                    ? Visit(nextStatement)
                     : AnalysisResult.Failure;
             }
 
@@ -99,16 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             {
                 // This is a switch section body. Here we "combine" the result, since there could be
                 // compatible statements like the ending `break;` with some other assignments.
-                return Aggregate(section.Statements, (result, node) => result.Union(Visit(node)));
-            }
-
-            private static AnalysisResult Aggregate<T>(SyntaxList<T> nodes, Func<AnalysisResult, T, AnalysisResult> func)
-                where T : SyntaxNode
-            {
                 var result = AnalysisResult.Neutral;
-                foreach (var node in nodes)
+                foreach (var statement in section.Statements)
                 {
-                    result = func(result, node);
+                    result = result.Union(Visit(statement));
                     if (result.IsFailure)
                     {
                         // No point to continue if any node was not
@@ -122,7 +154,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public override AnalysisResult VisitAssignmentExpression(AssignmentExpressionSyntax node)
             {
-                return AnalysisResult.Assignment(node.Kind(), node.Left);
+                if (DependsOnPreviousAssignments(node))
+                {
+                    return AnalysisResult.Failure;
+                }
+
+                var targets = _firstSwitchSection ? _originalTargets : _currentTargets;
+                targets.Add(node.Left);
+                return AnalysisResult.Assignment(node.Kind());
+            }
+
+            private bool DependsOnPreviousAssignments(AssignmentExpressionSyntax assignment)
+            {
+                return _originalTargets.Any(
+                    (target, right) => right.DescendantNodesAndSelf().Any(n => SyntaxFactory.AreEquivalent(target, n)),
+                    assignment.Right);
             }
 
             public override AnalysisResult VisitBreakStatement(BreakStatementSyntax node)

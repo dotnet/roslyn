@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return;
             }
 
-            var analysisResult = Analyzer.Analyze(switchStatement, out var shouldRemoveNextStatement);
+            var analysisResult = Analyzer.Analyze((SwitchStatementSyntax)switchStatement, out var shouldRemoveNextStatement);
             if (!analysisResult.Success)
             {
                 return;

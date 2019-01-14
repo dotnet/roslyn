@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestMiissingOnMultiCompoundAssignment()
+        public async Task TestMissingOnMultiCompoundAssignment()
         {
             await TestMissingAsync(
 @"class Program
@@ -573,6 +573,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 break;
         }
         throw null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingOnInterdependentAssignments()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    void M(int i)
+    {
+        int j = 3, k;
+        [||]switch (i)
+        {
+            case 1:
+                j = 4;
+                k = j;
+                break;
+            default:
+                j = 5;
+                k = j;
+                break;
+        }
     }
 }");
         }
