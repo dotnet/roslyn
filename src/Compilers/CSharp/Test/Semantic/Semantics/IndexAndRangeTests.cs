@@ -2,12 +2,33 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class IndexAndRangeTests : CompilingTestBase
     {
+        [Fact]
+        [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
+        public void ArrayRangeIllegalRef()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+public class C {
+    public ref int[] M(int[] arr) {
+        ref int[] x = ref arr[0..2];
+        return ref arr[0..2];
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (4,27): error CS1510: A ref or out value must be an assignable variable
+                //         ref int[] x = ref arr[0..2];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "arr[0..2]").WithLocation(4, 27),
+                // (5,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref arr[0..2];
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "arr[0..2]").WithLocation(5, 20));
+        }
+
         [Fact]
         public void IndexExpression_TypeNotFound()
         {
