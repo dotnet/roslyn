@@ -90,6 +90,13 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 return;
             }
 
+            // We should not offer this for ref structs, because the auto-generated code does not work well with
+            // ref structs and the restrictions placed on them at all.
+            if (containingType.TypeKind == TypeKind.Struct && containingType.IsRefLikeType)
+            {
+                return;
+            }
+
             // No overrides in static classes.
             if (containingType.IsStatic)
             {

@@ -1319,6 +1319,20 @@ parameters: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
+        public async Task TestDoNotOfferOnRefStruct()
+        {
+            await TestMissingAsync(
+@"
+ref struct R
+{
+    private int i;
+    [||]
+}",
+parameters: new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_2)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestMissingReferences()
         {
             await TestWithPickMembersDialogAsync(
