@@ -2706,23 +2706,6 @@ class Program
         #endregion
 
         #region CoreCLR Signing Tests
-        // These aren't actually syntax tests, but this is in one of only two assemblies tested on linux
-        [ConditionalFact(typeof(UnixLikeOnly), typeof(ClrOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
-        public void Bug9288_keyfile()
-        {
-            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
-            var snkPath = snk.Path;
-
-            const string source = "";
-            var options = TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyFile(snkPath);
-
-            var ca = CreateCompilation(source, options: options);
-
-            ca.VerifyEmitDiagnostics(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
-                // error CS7027: Error signing output with public key from file '{temp path}' -- Assembly signing not supported.
-                Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(snkPath, "Assembly signing not supported.").WithLocation(1, 1)
-            );
-        }
 
         [ConditionalFact(typeof(UnixLikeOnly), typeof(ClrOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
         public void Bug9288_keycontainer()
