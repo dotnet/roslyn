@@ -1194,5 +1194,19 @@ class C
 ";
             CompileAndVerify(source).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(31587, "https://github.com/dotnet/roslyn/issues/31587")]
+        public void MethodGroupConversion()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void F1() {}
+    static Action A => (Action)F1;
+}
+";
+            CompileAndVerify(source).VerifyDiagnostics();
+        }
     }
 }
