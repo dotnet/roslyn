@@ -16,27 +16,30 @@ using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.LanguageServices.CodeLens;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
-namespace Microsoft.VisualStudio.LanguageServices.CodeLens
+namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
 {
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(Id)]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    [LocalizedName(typeof(ServicesVSResources), "References")]
+    [LocalizedName(typeof(CodeLensVSResources), "References")]
     [Priority(200)]
     [OptionUserModifiable(userModifiable: false)]
     [DetailsTemplateName("references")]
     internal class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvider
     {
+        // TODO: do we need to localize this?
+        private const string Id = "C# and Visual Basic References";
+
         // these string are never exposed to users but internally used to identify 
         // each provider/servicehub connections and etc
-        private const string Id = "C#/VB Reference Indicator Data Provider";
         private const string HubClientId = "ManagedLanguage.IDE.CodeLensOOP";
         private const string RoslynCodeAnalysis = "roslynCodeAnalysis";
 
@@ -87,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             return await _client.RequestServiceAsync(serviceDescriptor, cancellationToken).ConfigureAwait(false);
         }
 
-        private class DataPoint : IAsyncCodeLensDataPoint, IRemoteCodeLensDataPoint, IDisposable
+        private class DataPoint : IAsyncCodeLensDataPoint, IDisposable
         {
             private readonly JsonRpc _roslynRpc;
             private readonly JsonRpc _vsCallbackRpc;
@@ -96,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             {
                 this.Descriptor = descriptor;
 
-                _roslynRpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: this);
+                _roslynRpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: new RoslynCallbackTarget(Invalidate));
                 _roslynRpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
                 _roslynRpc.StartListening();
@@ -125,10 +128,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 return new CodeLensDataPointDescriptor()
                 {
                     Description = referenceCount.Count == 1
-                        ? string.Format(ServicesVSResources._0_reference, referenceCountString)
-                        : string.Format(ServicesVSResources._0_references, referenceCountString),
+                        ? string.Format(CodeLensVSResources._0_reference, referenceCountString)
+                        : string.Format(CodeLensVSResources._0_references, referenceCountString),
                     IntValue = referenceCount.Count,
-                    TooltipText = string.Format(ServicesVSResources.This_0_has_1_references, GetCodeElementKindsString(Descriptor.Kind), referenceCountString),
+                    TooltipText = string.Format(CodeLensVSResources.This_0_has_1_references, GetCodeElementKindsString(Descriptor.Kind), referenceCountString),
                     ImageId = null
                 };
 
@@ -137,11 +140,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     switch (kind)
                     {
                         case CodeElementKinds.Method:
-                            return ServicesVSResources.method;
+                            return CodeLensVSResources.method;
                         case CodeElementKinds.Type:
-                            return ServicesVSResources.type1;
+                            return CodeLensVSResources.type;
                         case CodeElementKinds.Property:
-                            return ServicesVSResources.property;
+                            return CodeLensVSResources.property;
                         default:
                             // code lens engine will catch and ignore exception
                             // basically not showing data point
@@ -214,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 return details;
             }
 
-            public void Invalidate()
+            private void Invalidate()
             {
                 // fire and forget
                 // this get called from roslyn remote host
@@ -256,6 +259,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
                 // vsCallbackRpc is shared and we don't own. it is owned by the code lens engine
                 // don't dispose it
+            }
+
+            private class RoslynCallbackTarget : IRemoteCodeLensDataPoint
+            {
+                private readonly Action _invalidate;
+
+                public RoslynCallbackTarget(Action invalidate)
+                {
+                    _invalidate = invalidate;
+                }
+
+                public void Invalidate()
+                {
+                    _invalidate();
+                }
             }
         }
     }
