@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async token =>
             {
-                await SemanticChangeTracker.TrackAsync(this.Rpc, SolutionService.PrimaryWorkspace, documentId, cancellationToken).ConfigureAwait(false);
+                await WorkspaceChangeTracker.TrackAsync(this.Rpc, SolutionService.PrimaryWorkspace, documentId, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// better place for this is in ICodeLensContext but CodeLens OOP doesn't provide a way to call back to codelens OOP from
         /// VS so, this for now will be in Roslyn OOP
         /// </summary>
-        private class SemanticChangeTracker
+        private class WorkspaceChangeTracker
         {
             private static readonly TimeSpan s_delay = TimeSpan.FromMilliseconds(100);
 
@@ -130,11 +130,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     return;
                 }
 
-                var dpendentVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-                var _ = new SemanticChangeTracker(rpc, workspace, documentId, dpendentVersion);
+                // if anything under the project this file belong to changes, then invalidate the code lens so that it can refresh
+                var dependentVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+                var _ = new WorkspaceChangeTracker(rpc, workspace, documentId, dependentVersion);
             }
 
-            private SemanticChangeTracker(JsonRpc rpc, Workspace workspace, DocumentId documentId, VersionStamp dpendentVersion)
+            private WorkspaceChangeTracker(JsonRpc rpc, Workspace workspace, DocumentId documentId, VersionStamp dependentVersion)
             {
                 _gate = new object();
 
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 _workspace = workspace;
                 _documentId = documentId;
 
-                _lastVersion = dpendentVersion;
+                _lastVersion = dependentVersion;
                 _resettableDelay = ResettableDelay.CompletedDelay;
 
                 ConnectEvents(subscription: true);
@@ -179,19 +180,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
             {
-                switch (e.Kind)
-                {
-                    case WorkspaceChangeKind.ProjectRemoved:
-                    case WorkspaceChangeKind.ProjectChanged:
-                    case WorkspaceChangeKind.ProjectReloaded:
-                    case WorkspaceChangeKind.DocumentAdded:
-                    case WorkspaceChangeKind.DocumentRemoved:
-                    case WorkspaceChangeKind.DocumentReloaded:
-                    case WorkspaceChangeKind.DocumentChanged:
-                    case WorkspaceChangeKind.DocumentInfoChanged:
-                        EnqueueUpdate();
-                        return;
-                }
+                EnqueueUpdate();
+                return;
 
                 void EnqueueUpdate()
                 {
