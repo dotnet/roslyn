@@ -179,7 +179,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
             public void ApplyCurrentState(ITextBuffer subjectBuffer, object propagateSpansEditTag, IEnumerable<ITrackingSpan> spans)
             {
-                ApplyReplacementText(subjectBuffer, this.UndoManagers[subjectBuffer].TextUndoHistory, propagateSpansEditTag, spans, this.currentState.ReplacementText);
+                // There are crash dumps that indicate the BufferUndoState may be being unavailable
+                // here when inline rename has been dismissed due to an external workspace change.
+                // See bug https://github.com/dotnet/roslyn/issues/31883.
+                if (!this.UndoManagers.TryGetValue(subjectBuffer, out var bufferUndoState))
+                {
+                    return;
+                }
+
+                ApplyReplacementText(subjectBuffer, bufferUndoState.TextUndoHistory, propagateSpansEditTag, spans, this.currentState.ReplacementText);
 
                 // Here we create the descriptions for the redo list dropdown.
                 var undoManager = this.UndoManagers[subjectBuffer].UndoManager;
