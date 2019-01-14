@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpScriptingResources.resx">
     <body>
@@ -37,12 +37,12 @@ Options:
   /help                          显示此用法消息(替代形式: /?)
   /version                       显示版本和退出
   /i                             执行指定脚本后拖放到 REPL。
-  /r:&lt;文件&gt;                      从某个指定程序集文件引用元数据(替代形式: /reference)
-  /r:&lt;文件列表&gt;                 从多个指定程序集文件引用元数据(替代形式: /reference)
-  /lib:&lt;路径列表&gt;               在其中查找 #r 指令所指定的库的目录列表。
+  /r:<文件>                      从某个指定程序集文件引用元数据(替代形式: /reference)
+  /r:<文件列表>                 从多个指定程序集文件引用元数据(替代形式: /reference)
+  /lib:<路径列表>               在其中查找 #r 指令所指定的库的目录列表。
                                  (替代形式: /libPath、/libPaths)
-  /u:&lt;命名空间&gt;                 定义全局命名空间 using (替代形式: /using、/usings、/import、/imports)
-  @&lt;文件&gt;                        读取响应文件以了解更多选项
+  /u:<命名空间>                 定义全局命名空间 using (替代形式: /using、/usings、/import、/imports)
+  @<文件>                        读取响应文件以了解更多选项
   --                             表示剩余参数不应作为选项。
 </target>
         <note />

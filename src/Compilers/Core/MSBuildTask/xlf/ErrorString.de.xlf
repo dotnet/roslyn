@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../ErrorString.resx">
     <body>
@@ -126,7 +126,7 @@
       </trans-unit>
       <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
         <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
-        <target state="translated">{0}-Pfade müssen mit einem Schrägstrich oder einem umgekehrten Schrägstrich enden: "{1}"</target>
+        <target state="translated">{0}-Pfade müssen mit einem Schrägstrich oder einem umgekehrten Schrägstrich enden: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CSharpScriptingResources.resx">
     <body>
@@ -37,12 +37,12 @@ Options:
   /help                          이 사용법 메시지를 표시합니다. (대체 형식: /?)
   /version                       버전을 표시하고 종료합니다.
   /i                             지정된 스크립트를 실행한 후 REPL로 이동합니다.
-  /r:&lt;file&gt;                      지정된 어셈블리 파일에서 메타데이터를 참조합니다. (대체 형식: /reference)
-  /r:&lt;file list&gt;                 지정된 어셈블리 파일에서 메타데이터를 참조합니다. (대체 형식: /reference)
-  /lib:&lt;path list&gt;               #r 지시문으로 지정된 라이브러리를 찾을 디렉터리의 목록입니다. 
+  /r:<file>                      지정된 어셈블리 파일에서 메타데이터를 참조합니다. (대체 형식: /reference)
+  /r:<file list>                 지정된 어셈블리 파일에서 메타데이터를 참조합니다. (대체 형식: /reference)
+  /lib:<path list>               #r 지시문으로 지정된 라이브러리를 찾을 디렉터리의 목록입니다. 
                                  (대체 형식: /libPath /libPaths)
-  /u:&lt;namespace&gt;                 전역 네임스페이스 using을 정의합니다. (대체 형식: /using, /usings, /import, /imports)
-  @&lt;file&gt;                        추가 옵션에 대한 응답 파일을 읽습니다.
+  /u:<namespace>                 전역 네임스페이스 using을 정의합니다. (대체 형식: /using, /usings, /import, /imports)
+  @<file>                        추가 옵션에 대한 응답 파일을 읽습니다.
   --                             나머지 인수를 옵션으로 처리하면 안 됨을 나타냅니다.
 </target>
         <note />

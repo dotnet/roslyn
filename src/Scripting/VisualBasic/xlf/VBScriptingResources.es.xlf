@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../VBScriptingResources.resx">
     <body>
@@ -34,12 +34,12 @@ Si se especifica script-file se ejecuta el script; de lo contrario, se inicia un
 Opciones:
   /help                          Muestra este mensaje de uso (Forma corta: /?)
   /version                       Muestra la versión y cierra
-  /reference:&lt;alias&gt;=&lt;file&gt;      Hace referencia a los metadatos del archivo de ensamblado especificado utilizando el alias especificado (Forma corta: /r)
-  /reference:&lt;file list&gt;         Hace referencia a los metadatos del archivo de ensamblado especificado (Forma corta: /r)
-  /referencePath:&lt;path list&gt;     Lista de rutas de acceso donde buscar las referencias de metadatos especificadas como rutas de acceso no raíz. (Forma corta: /rp)
-  /using:&lt;namespace&gt;             Define el nombre de espacios global using (Forma corta: /u)
-  /define:&lt;name&gt;=&lt;value&gt;,...     Declara los símbolos de compilación condicional globales (Forma corta: /d)
-  @&lt;file&gt;                        Lee los archivos de respuesta para más opciones
+  /reference:<alias>=<file>      Hace referencia a los metadatos del archivo de ensamblado especificado utilizando el alias especificado (Forma corta: /r)
+  /reference:<file list>         Hace referencia a los metadatos del archivo de ensamblado especificado (Forma corta: /r)
+  /referencePath:<path list>     Lista de rutas de acceso donde buscar las referencias de metadatos especificadas como rutas de acceso no raíz. (Forma corta: /rp)
+  /using:<namespace>             Define el nombre de espacios global using (Forma corta: /u)
+  /define:<name>=<value>,...     Declara los símbolos de compilación condicional globales (Forma corta: /d)
+  @<file>                        Lee los archivos de respuesta para más opciones
 </target>
         <note />
       </trans-unit>

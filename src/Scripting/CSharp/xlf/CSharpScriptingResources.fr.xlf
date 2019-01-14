@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../CSharpScriptingResources.resx">
     <body>
@@ -37,12 +37,12 @@ Options :
   /help                          Affiche ce message d'utilisation (autre forme : /?)
   /version                       Affiche la version et quitte le processus
   /i                             Passe à REPL après avoir exécuté le script spécifié.
-  /r:&lt;fichier&gt;                   Référencer les métadonnées à partir du fichier d'assembly spécifié (autre forme : /reference)
-  /r:&lt;liste_fichiers&gt;            Référencer les métadonnées à partir des fichiers d'assembly spécifiés (autre forme : /reference)
-  /lib:&lt;liste_chemins&gt;           Liste des répertoires où chercher les bibliothèques spécifiées par la directive #r. 
+  /r:<fichier>                   Référencer les métadonnées à partir du fichier d'assembly spécifié (autre forme : /reference)
+  /r:<liste_fichiers>            Référencer les métadonnées à partir des fichiers d'assembly spécifiés (autre forme : /reference)
+  /lib:<liste_chemins>           Liste des répertoires où chercher les bibliothèques spécifiées par la directive #r. 
                                  (autres formes : /libPath /libPaths)
-  /u:&lt;espace_de_noms&gt;            Définir l'espace de noms global using (autres formes : /using, /usings, /import, /imports)
-  @&lt;fichier&gt;                     Lire le fichier réponse pour plus d'options
+  /u:<espace_de_noms>            Définir l'espace de noms global using (autres formes : /using, /usings, /import, /imports)
+  @<fichier>                     Lire le fichier réponse pour plus d'options
   --                             Indique que les arguments restants ne doivent pas être traités comme des options.
 </target>
         <note />

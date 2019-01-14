@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../CSharpScriptingResources.resx">
     <body>
@@ -37,12 +37,12 @@ Optionen:
   /help                          Zeigt diese Syntaxmeldung an (alternatives Format: /?)
   /version                       Anzeige der Version und Beendigung.
   /i                             Ablegen in REPL, nachdem das angegebene Skript ausgeführt wurde.
-  /r:&lt;Datei&gt;                      Verweis auf Metadaten aus der angegebenen Assemblydatei (alternatives Format: /reference).
-  /r:&lt;Dateiliste&gt;                 Verweis auf Metadaten aus den angegebenen Assemblydateien (alternatives Format: /reference).
-  /lib:&lt;Pfadliste&gt;               Liste der Verzeichnisse, in denen nach Bibliotheken gesucht werden soll, die durch die Direktive "#r" angegeben werden. 
+  /r:<Datei>                      Verweis auf Metadaten aus der angegebenen Assemblydatei (alternatives Format: /reference).
+  /r:<Dateiliste>                 Verweis auf Metadaten aus den angegebenen Assemblydateien (alternatives Format: /reference).
+  /lib:<Pfadliste>               Liste der Verzeichnisse, in denen nach Bibliotheken gesucht werden soll, die durch die Direktive "#r" angegeben werden. 
                                  (alternatives Format: /libPath /libPaths)
-  /u:&lt;Namespace&gt;                 Definiert einen globalen Namespace mit "using" (alternative Formate: /using, /usings, /import, /imports).
-  @&lt;Datei&gt;                        Liest die Antwortdatei, um weitere Optionen abzurufen.
+  /u:<Namespace>                 Definiert einen globalen Namespace mit "using" (alternative Formate: /using, /usings, /import, /imports).
+  @<Datei>                        Liest die Antwortdatei, um weitere Optionen abzurufen.
   --                             Gibt an, dass die verbleibenden Argumente nicht als Optionen behandelt werden sollen.
 </target>
         <note />

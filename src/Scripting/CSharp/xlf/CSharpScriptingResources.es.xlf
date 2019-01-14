@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../CSharpScriptingResources.resx">
     <body>
@@ -37,12 +37,12 @@ Opciones:
   /help                          Mostrar este mensaje de uso (forma alternativa: /?)
   /version                       Mostrar la versión y salir
   /i                             Colocar en REPL después de ejecutar el script especificado.
-  /r:&lt;archivo&gt;                      Hacer referencia a los metadatos del archivo de ensamblado especificado (forma alternativa: /reference)
-  /r:&lt;lista de archivos&gt;                 Hacer referencia a los metadatos de los archivos de ensamblado especificados (forma alternativa: /reference)
-  /lib:&lt;lista rutas acceso&gt;               Lista de directorios en los que se pueden buscar las bibliotecas especificadas por la directiva #r. 
+  /r:<archivo>                      Hacer referencia a los metadatos del archivo de ensamblado especificado (forma alternativa: /reference)
+  /r:<lista de archivos>                 Hacer referencia a los metadatos de los archivos de ensamblado especificados (forma alternativa: /reference)
+  /lib:<lista rutas acceso>               Lista de directorios en los que se pueden buscar las bibliotecas especificadas por la directiva #r. 
                                  (formas alternativas: /libPath /libPaths)
-  /u:&lt;espacio de nombres&gt;                 Definir espacio de nombres global mediante (formas alternativas: /using, /usings, /import, /imports)
-  @&lt;archivo&gt;                        Leer archivo de respuesta para ver más opciones
+  /u:<espacio de nombres>                 Definir espacio de nombres global mediante (formas alternativas: /using, /usings, /import, /imports)
+  @<archivo>                        Leer archivo de respuesta para ver más opciones
   --                             Indica que los argumentos restantes no deben tratarse como opciones.
 </target>
         <note />

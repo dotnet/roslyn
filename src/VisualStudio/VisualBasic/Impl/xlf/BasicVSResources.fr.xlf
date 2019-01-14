@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../BasicVSResources.resx">
     <body>
@@ -32,14 +32,9 @@
         <target state="translated">_Insertion automatique des membres Interface et MustOverride</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="new">Never</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
-        <target state="translated">Préférer 'Is Nothing' pour les contrôles d'égalité de référence</target>
+        <target state="translated">Préférer 'Is Nothing' pour les vérifications d'égalité de référence</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -109,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
-        <target state="translated">Normale</target>
+        <target state="translated">Normal</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">
@@ -262,14 +257,9 @@
         <target state="translated">_Afficher la liste de saisie semi-automatique après la saisie d'un caractère</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unused_local">
-        <source>Unused local</source>
-        <target state="new">Unused local</target>
-        <note />
-      </trans-unit>
       <trans-unit id="VB_Coding_Conventions">
         <source>VB Coding Conventions</source>
-        <target state="new">VB Coding Conventions</target>
+        <target state="translated">Conventions de codage VB</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

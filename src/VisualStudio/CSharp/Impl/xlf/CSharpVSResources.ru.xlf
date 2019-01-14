@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../CSharpVSResources.resx">
     <body>
@@ -14,27 +14,22 @@
       </trans-unit>
       <trans-unit id="CSharp_Coding_Conventions">
         <source>C# Coding Conventions</source>
-        <target state="new">C# Coding Conventions</target>
+        <target state="translated">Рекомендации по написанию кода C#</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_Formatting_Rules">
         <source>C# Formatting Rules</source>
-        <target state="new">C# Formatting Rules</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Discard">
-        <source>Discard</source>
-        <target state="new">Discard</target>
+        <target state="translated">Правила форматирования C#</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
-        <target state="translated">Параметры форматирования документа (эксперимент)</target>
+        <target state="translated">Параметры форматирования документа (эксперимент) </target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="translated">В операторах отношения:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <target state="translated">В реляционных операторах:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note />
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
@@ -44,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">Предпочитать is null для проверок равенства ссылок</target>
+        <target state="translated">Использовать "is null" вместо проверки ссылок на равенство.</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
@@ -59,12 +54,12 @@
       </trans-unit>
       <trans-unit id="Surround_With">
         <source>Surround With</source>
-        <target state="translated">Разместить во фрагменте</target>
+        <target state="translated">Окружить</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
-        <target state="translated">Вставить фрагмент кода</target>
+        <target state="translated">Вставить фрагмент</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_block_on_close_brace">
@@ -372,11 +367,6 @@
         <target state="translated">Параметры новых строк для ключевых слов</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unused_local">
-        <source>Unused local</source>
-        <target state="new">Unused local</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
         <source>Use 'var' when generating locals</source>
         <target state="translated">Использовать ключевое слово "var" при создании локальных переменных</target>
@@ -537,11 +527,6 @@
         <target state="translated">В другом месте</target>
         <note />
       </trans-unit>
-      <trans-unit id="When_on_multiple_lines">
-        <source>When on multiple lines</source>
-        <target state="new">When on multiple lines</target>
-        <note />
-      </trans-unit>
       <trans-unit id="When_variable_type_is_apparent">
         <source>When variable type is apparent</source>
         <target state="translated">Если тип переменной очевиден</target>
@@ -599,7 +584,7 @@
       </trans-unit>
       <trans-unit id="predefined_type_preferences_colon">
         <source>predefined type preferences:</source>
-        <target state="translated">предопределенные параметры типов:</target>
+        <target state="translated">Предпочтения для предопределенных типов:</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string_literals_on_enter">
@@ -709,7 +694,7 @@
       </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
-        <target state="translated">Никогда</target>
+        <target state="translated">Никогда </target>
         <note />
       </trans-unit>
       <trans-unit id="When_on_single_line">
@@ -734,7 +719,7 @@
       </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'string.Format' calls</source>
-        <target state="translated">Сообщать о недопустимых заполнителях в вызовах string.Format</target>
+        <target state="translated">Сообщать о недопустимых заполнителях в вызовах "String.Format"</target>
         <note />
       </trans-unit>
       <trans-unit id="Separate_using_directive_groups">
@@ -747,9 +732,8 @@
         <target state="translated">Показывать в_арианты имен</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_Event_Subscription">
+      <trans-unit id="Generate Event Subscription">
         <source>Generate Event Subscription</source>
-        <target state="translated">Создать подписку на события</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">

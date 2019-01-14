@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../CSharpScriptingResources.resx">
     <body>
@@ -29,22 +29,21 @@ Options:
   @&lt;file&gt;                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 </source>
-        <target state="translated">Использование: csi [параметр] ... [файл-скрипта.csx] [аргумент-скрипта] ...
+        <target state="translated">Использование: csi [параметр] ... [файл_сценария.csx] [аргумент_сценария] ...
 
-Выполняет файл файл-скрипта.csx, если он указан, в противном случае запускает интерактивный цикл REPL (Read Eval Print Loop).
+Запускает файл_сценария.csx, если он указан, в противном случае запускает интерактивный цикл REPL (Read Eval Print Loop).
 
 Параметры:
-  /help                          Отображение этого сообщения об использовании (краткая форма: /?)
+  /help                          Отображение этого сообщения об использовании (альтернативная форма: /?)
   /version                       Отображение версии и выход
-  /i                             Переход в REPL после выполнения указанного скрипта.
-  /r:&lt;файл&gt;                      Указание метаданных из заданного файла сборки (альтернативная форма: /reference)
-  /r:&lt;список_файлов&gt;                 Указание метаданных из заданных файлов сборки (альтернативная форма: /reference)
-  /lib:&lt;список_путей&gt;               Список каталогов, в которых следует искать библиотеки, указанные директивой #r. 
+  /i                             Переход в REPL после выполнения указанного сценария.
+  /r:<file>                      Указание метаданных из заданного файла сборки (альтернативная форма: /reference)
+  /r:<file list>                 Указание метаданных из заданных файлов сборки (альтернативная форма: /reference)
+  /lib:<path list>               Список каталогов, в которых следует искать библиотеки, указанные директивой #r. 
                                  (альтернативные формы: /libPath /libPaths)
-  /u:&lt;пространство имен&gt;         Определение глобального пространства имен с помощью (альтернативные формы: /using, /usings, /import, /imports)
-  @&lt;файл&gt;                        Чтение файла ответов для получения дополнительных параметров
-  --                             Указывает, что оставшиеся аргументы не должны считаться параметрами.
-</target>
+  /u:<namespace>                 Определение глобального пространства имен с помощью (альтернативные формы: /using, /usings, /import, /imports)
+  @<file>                        Чтение файла ответов для получения дополнительных параметров
+  --                             Указывает, что оставшиеся аргументы не должны считаться параметрами.</target>
         <note />
       </trans-unit>
     </body>

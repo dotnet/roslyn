@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../VBScriptingResources.resx">
     <body>
@@ -34,12 +34,12 @@ Bei Angabe von script-file wird das Skript ausgeführt. Andernfalls wird eine in
 Optionen:
   /help                          Anzeige dieser Syntaxmeldung (Kurzform: /?)
   /version                       Anzeige der Version und Beendigung
-  /reference:&lt;alias&gt;=&lt;datei&gt;      Verweis auf Metadaten aus der angegebenen Assemblydatei über den angegebenen Alias (Kurzform: /r)
-  /reference:&lt;dateiliste&gt;         Verweis auf Metadaten aus den angegebenen Assemblydateien (Kurzform: /r)
-  /referencePath:&lt;pfadliste&gt;     Liste von Pfaden, in denen nach Metadatenverweisen gesucht wird, ohne Angabe des Stammverzeichnisses (Kurzform: /rp)
-  /using:&lt;namespace&gt;             Definition eines globalen Namespace mit "using" (Kurzform: /u)
-  /define:&lt;name&gt;=&lt;wert&gt;,...     Deklaration globaler Symbole für die bedingte Kompilierung (Kurzform: /d)
-  @&lt;datei&gt;                        Lesen der Antwortdatei mit weiteren Optionen
+  /reference:<alias>=<datei>      Verweis auf Metadaten aus der angegebenen Assemblydatei über den angegebenen Alias (Kurzform: /r)
+  /reference:<dateiliste>         Verweis auf Metadaten aus den angegebenen Assemblydateien (Kurzform: /r)
+  /referencePath:<pfadliste>     Liste von Pfaden, in denen nach Metadatenverweisen gesucht wird, ohne Angabe des Stammverzeichnisses (Kurzform: /rp)
+  /using:<namespace>             Definition eines globalen Namespace mit "using" (Kurzform: /u)
+  /define:<name>=<wert>,...     Deklaration globaler Symbole für die bedingte Kompilierung (Kurzform: /d)
+  @<datei>                        Lesen der Antwortdatei mit weiteren Optionen
 </target>
         <note />
       </trans-unit>
