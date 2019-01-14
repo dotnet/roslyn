@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             //
             // It's no longer safe to use pattern-matching because 'field is string s' would never be true.
             // 
-            // Additionally, also bail out if the assigned local is referenced (read or write) up to the point of null check.
+            // Additionally, also bail out if the assigned local is referenced (i.e. read/write/nameof) up to the point of null check.
             //      var s = field as string;
             //      MethodCall(flag: s == null);
             //      if (s != null) { ... }
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         return;
                     }
 
-                    // Check if this is a reference to the assigned local.
+                    // Check is a reference of any sort (i.e. read/write/nameof) to the local.
                     if (identifierName.Identifier.ValueText == localSymbol.Name)
                     {
                         return;
