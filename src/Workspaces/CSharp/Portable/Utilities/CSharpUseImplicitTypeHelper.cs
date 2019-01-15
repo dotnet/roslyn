@@ -181,6 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // Note: this is fairly expensive, so we try to avoid this if we can by seeing if
             // there are multiple candidates with the original call.  If not, then we don't
             // have to do anything.
+            var declarationHasTupleType = false;
             if (declarationExpression.Parent is ArgumentSyntax argument &&
                 argument.Parent is ArgumentListSyntax argumentList &&
                 argumentList.Parent is InvocationExpressionSyntax invocationExpression)
@@ -191,8 +192,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // that affects overload resolution.  And if the method is generic, then
                 // switching to 'var' may mean that inference might not work properly.
                 var memberGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken);
+                declarationHasTupleType = declarationExpression.DescendantNodes().Any(x => x.IsKind(SyntaxKind.TupleType));
                 if (memberGroup.Length == 1 &&
-                    memberGroup[0].GetTypeParameters().IsEmpty)
+                    memberGroup[0].GetTypeParameters().IsEmpty &&
+                    !declarationHasTupleType)
                 {
                     return true;
                 }
@@ -226,7 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var newDeclarationTypeNode = newTree.GetRoot(cancellationToken).GetAnnotatedNodes(annotation).Single();
             var newDeclarationType = newSemanticModel.GetTypeInfo(newDeclarationTypeNode, cancellationToken).Type;
 
-            return SymbolEquivalenceComparer.Instance.Equals(declarationType, newDeclarationType);
+            return declarationHasTupleType
+                ? declarationType.Equals(newDeclarationType)
+                : SymbolEquivalenceComparer.Instance.Equals(declarationType, newDeclarationType);
         }
 
         /// <summary>

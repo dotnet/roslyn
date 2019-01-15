@@ -2586,5 +2586,23 @@ class C
     }
 }", new TestParameters(options: ImplicitTypeEverywhere()));
         }
+
+        [Fact, WorkItem(32088, "https://github.com/dotnet/roslyn/issues/32088")]
+        public async Task NoSuggestionForTuplesWithDifferentNamesOfFields()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        F([|out (int a, int b)|] a);
+    }
+
+    static void F(out (int, int) a) {}
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
     }
 }
