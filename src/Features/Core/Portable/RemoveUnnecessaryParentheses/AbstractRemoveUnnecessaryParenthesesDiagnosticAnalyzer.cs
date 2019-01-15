@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -17,6 +19,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         where TLanguageKindEnum : struct
         where TParenthesizedExpressionSyntax : SyntaxNode
     {
+        /// <summary>
+        /// Diagnostic descriptor that will not fade anything or produce a suggestion.
+        /// Can be used to only squiggle the span.
+        /// </summary>
         private readonly DiagnosticDescriptor _unnecessaryWithoutSuggestionWithoutFadeDescriptor;
 
         protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
@@ -48,8 +54,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var syntaxTree = context.SemanticModel.SyntaxTree;
-            var cancellationTokan = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationTokan).GetAwaiter().GetResult();
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;
@@ -116,6 +122,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
             var additionalLocations = ImmutableArray.Create(parenthesizedExpression.GetLocation());
 
+            // Fades the open parentheses character and reports the suggestion.
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 UnnecessaryWithSuggestionDescriptor,
                 parenthesizedExpression.GetFirstToken().GetLocation(),
@@ -123,31 +130,34 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 additionalLocations,
                 properties: null));
 
+            // Generates diagnostic used to squiggle the parenthetical expression.
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 _unnecessaryWithoutSuggestionWithoutFadeDescriptor,
-                GetDiagnosticSquiggleLocation(parenthesizedExpression),
+                GetDiagnosticSquiggleLocation(parenthesizedExpression, cancellationToken),
                 severity,
                 additionalLocations,
                 properties: null));
 
+            // Fades the close parentheses character.
             context.ReportDiagnostic(Diagnostic.Create(
                 UnnecessaryWithoutSuggestionDescriptor,
                 parenthesizedExpression.GetLastToken().GetLocation(), additionalLocations));
         }
 
-        private Location GetDiagnosticSquiggleLocation(TParenthesizedExpressionSyntax parenthesizedExpression)
+        /// <summary>
+        /// Gets the span of text to squiggle underline.
+        /// If the expression is contained within a single line, the entire expression span is returned.
+        /// Otherwise it will return the span from the expression start to the end of the same line.
+        /// </summary>
+        private Location GetDiagnosticSquiggleLocation(TParenthesizedExpressionSyntax parenthesizedExpression, CancellationToken cancellationToken)
         {
             var parenthesizedExpressionLocation = parenthesizedExpression.GetLocation();
-            var expressionLineSpan = parenthesizedExpressionLocation.GetLineSpan();
 
-            if (expressionLineSpan.StartLinePosition.Line < expressionLineSpan.EndLinePosition.Line)
-            {
-                var lines = parenthesizedExpression.SyntaxTree.GetText().Lines;
-                var expressionFirstLine = lines.GetLineFromPosition(parenthesizedExpressionLocation.SourceSpan.Start);
-                var spanUntilEndOfLine = TextSpan.FromBounds(parenthesizedExpressionLocation.SourceSpan.Start, expressionFirstLine.Span.End);
-                return Location.Create(parenthesizedExpression.SyntaxTree, spanUntilEndOfLine);
-            }
-            return parenthesizedExpressionLocation;
+            var lines = parenthesizedExpression.SyntaxTree.GetText(cancellationToken).Lines;
+            var expressionFirstLine = lines.GetLineFromPosition(parenthesizedExpressionLocation.SourceSpan.Start);
+
+            var textSpanEndPosition = Math.Min(parenthesizedExpressionLocation.SourceSpan.End, expressionFirstLine.Span.End);
+            return Location.Create(parenthesizedExpression.SyntaxTree, TextSpan.FromBounds(parenthesizedExpressionLocation.SourceSpan.Start, textSpanEndPosition));
         }
     }
 }
