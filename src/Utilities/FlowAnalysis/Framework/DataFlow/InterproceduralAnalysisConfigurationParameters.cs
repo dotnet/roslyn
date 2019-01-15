@@ -25,16 +25,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// This is done for performance reasons for analyzing methods with extremely large call trees.
         /// https://github.com/dotnet/roslyn-analyzers/issues/1809 tracks improving this heuristic.
         /// </summary>
-        private const uint DefaultMaxInterproceduralLambdaorLocalFunctionCallChain = 10;
+        private const uint DefaultMaxInterproceduralLambdaOrLocalFunctionCallChain = 10;
 
         private InterproceduralAnalysisConfiguration(
             InterproceduralAnalysisKind interproceduralAnalysisKind,
             uint maxInterproceduralMethodCallChain,
-            uint maxInterproceduralLambdaorLocalFunctionCallChain)
+            uint maxInterproceduralLambdaOrLocalFunctionCallChain)
         {
             InterproceduralAnalysisKind = interproceduralAnalysisKind;
             MaxInterproceduralMethodCallChain = maxInterproceduralMethodCallChain;
-            MaxInterproceduralLambdaorLocalFunctionCallChain = maxInterproceduralLambdaorLocalFunctionCallChain;
+            MaxInterproceduralLambdaOrLocalFunctionCallChain = maxInterproceduralLambdaOrLocalFunctionCallChain;
         }
 
         public static InterproceduralAnalysisConfiguration Create(
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterproceduralAnalysisKind defaultInterproceduralAnalysisKind,
             CancellationToken cancellationToken,
             uint defaultMaxInterproceduralMethodCallChain = DefaultMaxInterproceduralMethodCallChain,
-            uint defaultMaxInterproceduralLambdaorLocalFunctionCallChain = DefaultMaxInterproceduralLambdaorLocalFunctionCallChain)
+            uint defaultMaxInterproceduralLambdaOrLocalFunctionCallChain = DefaultMaxInterproceduralLambdaOrLocalFunctionCallChain)
         {
             var kind = analyzerOptions.GetInterproceduralAnalysisKindOption(rule, defaultInterproceduralAnalysisKind, cancellationToken);
 
@@ -53,14 +53,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 defaultValue: defaultMaxInterproceduralMethodCallChain,
                 cancellationToken: cancellationToken);
 
-            var maxInterproceduralLambdaorLocalFunctionCallChain = analyzerOptions.GetUnsignedIntegralOptionValue(
+            var maxInterproceduralLambdaOrLocalFunctionCallChain = analyzerOptions.GetUnsignedIntegralOptionValue(
                 optionName: EditorConfigOptionNames.MaxInterproceduralLambdaOrLocalFunctionCallChain,
                 rule: rule,
-                defaultValue: defaultMaxInterproceduralLambdaorLocalFunctionCallChain,
+                defaultValue: defaultMaxInterproceduralLambdaOrLocalFunctionCallChain,
                 cancellationToken: cancellationToken);
 
             return new InterproceduralAnalysisConfiguration(
-                kind, maxInterproceduralMethodCallChain, maxInterproceduralLambdaorLocalFunctionCallChain);
+                kind, maxInterproceduralMethodCallChain, maxInterproceduralLambdaOrLocalFunctionCallChain);
         }
 
         public static InterproceduralAnalysisConfiguration Create(
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterproceduralAnalysisKind defaultInterproceduralAnalysisKind,
             CancellationToken cancellationToken,
             uint defaultMaxInterproceduralMethodCallChain = DefaultMaxInterproceduralMethodCallChain,
-            uint defaultMaxInterproceduralLambdaorLocalFunctionCallChain = DefaultMaxInterproceduralLambdaorLocalFunctionCallChain)
+            uint defaultMaxInterproceduralLambdaOrLocalFunctionCallChain = DefaultMaxInterproceduralLambdaOrLocalFunctionCallChain)
         {
             InterproceduralAnalysisKind maxKind = InterproceduralAnalysisKind.None;
             uint maxMethodCallChain = 0;
@@ -77,10 +77,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             foreach (var rule in rules)
             {
                 var interproceduralAnalysisConfig = Create(analyzerOptions, rule, defaultInterproceduralAnalysisKind,
-                    cancellationToken, defaultMaxInterproceduralMethodCallChain, defaultMaxInterproceduralLambdaorLocalFunctionCallChain);
+                    cancellationToken, defaultMaxInterproceduralMethodCallChain, defaultMaxInterproceduralLambdaOrLocalFunctionCallChain);
                 maxKind = (InterproceduralAnalysisKind)Math.Max((int)maxKind, (int)interproceduralAnalysisConfig.InterproceduralAnalysisKind);
                 maxMethodCallChain = Math.Max(maxMethodCallChain, interproceduralAnalysisConfig.MaxInterproceduralMethodCallChain);
-                maxLambdaorLocalFunctionCallChain = Math.Max(maxLambdaorLocalFunctionCallChain, interproceduralAnalysisConfig.MaxInterproceduralLambdaorLocalFunctionCallChain);
+                maxLambdaorLocalFunctionCallChain = Math.Max(maxLambdaorLocalFunctionCallChain, interproceduralAnalysisConfig.MaxInterproceduralLambdaOrLocalFunctionCallChain);
             }
 
             return new InterproceduralAnalysisConfiguration(maxKind, maxMethodCallChain, maxLambdaorLocalFunctionCallChain);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public uint MaxInterproceduralMethodCallChain { get; }
 
-        public uint MaxInterproceduralLambdaorLocalFunctionCallChain { get; }
+        public uint MaxInterproceduralLambdaOrLocalFunctionCallChain { get; }
 
         public override bool Equals(object obj)
         {
@@ -102,14 +102,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             return InterproceduralAnalysisKind == other.InterproceduralAnalysisKind &&
                 MaxInterproceduralMethodCallChain == other.MaxInterproceduralMethodCallChain &&
-                MaxInterproceduralLambdaorLocalFunctionCallChain == other.MaxInterproceduralLambdaorLocalFunctionCallChain;
+                MaxInterproceduralLambdaOrLocalFunctionCallChain == other.MaxInterproceduralLambdaOrLocalFunctionCallChain;
         }
 
         public override int GetHashCode()
         {
             return HashUtilities.Combine(InterproceduralAnalysisKind.GetHashCode(),
                 HashUtilities.Combine(MaxInterproceduralMethodCallChain.GetHashCode(),
-                                      MaxInterproceduralLambdaorLocalFunctionCallChain.GetHashCode()));
+                                      MaxInterproceduralLambdaOrLocalFunctionCallChain.GetHashCode()));
         }
     }
 }

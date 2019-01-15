@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// Defines the max length for lambda/local function method call chain (call stack size) for interprocedural analysis.
         /// This is done for performance reasons for analyzing methods with extremely large call trees.
         /// </summary>
-        private uint MaxInterproceduralLambdaorLocalFunctionCallChain
-            => DataFlowAnalysisContext.InterproceduralAnalysisConfiguration.MaxInterproceduralLambdaorLocalFunctionCallChain;
+        private uint MaxInterproceduralLambdaOrLocalFunctionCallChain
+            => DataFlowAnalysisContext.InterproceduralAnalysisConfiguration.MaxInterproceduralLambdaOrLocalFunctionCallChain;
 
         /// <summary>
         /// Stores a map from entity to set of entities that share the same instance location.
@@ -1512,10 +1512,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             // Check if we are already at the maximum allowed interprocedural call chain length.
             int currentMethodCallCount = currentMethodsBeingAnalyzed.Where(m => !((IMethodSymbol)m.OwningSymbol).IsLambdaOrLocalFunctionOrDelegate()).Count();
-            int currentLambdaOrLocallFunctionCallCount = currentMethodsBeingAnalyzed.Count - currentMethodCallCount;
+            int currentLambdaOrLocalFunctionCallCount = currentMethodsBeingAnalyzed.Count - currentMethodCallCount;
 
-            if (currentMethodCallCount == MaxInterproceduralMethodCallChain ||
-                currentLambdaOrLocallFunctionCallCount == MaxInterproceduralLambdaorLocalFunctionCallChain)
+            if (currentMethodCallCount >= MaxInterproceduralMethodCallChain ||
+                currentLambdaOrLocalFunctionCallCount >= MaxInterproceduralLambdaOrLocalFunctionCallChain)
             {
                 return ResetAnalysisDataAndReturnDefaultValue();
             }
