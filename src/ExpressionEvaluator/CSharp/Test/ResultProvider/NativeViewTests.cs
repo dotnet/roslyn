@@ -58,6 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                         Verify(children,
                             EvalFailedResult("Native View", "To inspect the native object, enable native code debugging."));
                     }
+
+                    inspectionContext = CreateDkmInspectionContext(flags: DkmEvaluationFlags.NoSideEffects, runtimeInstance: runtime);
+                    evalResult = FormatResult("o", value, inspectionContext: inspectionContext);
+                    Verify(evalResult,
+                        EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
+                    children = GetChildren(evalResult, inspectionContext);
+                    Verify(children, new DkmEvaluationResult[0]);
                 }
             }
         }
