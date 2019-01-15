@@ -371,10 +371,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static bool TryCreateServerCore(string clientDir, string pipeName)
         {
-            var serverPathWithoutExetnsion = Path.Combine(clientDir, "VBCSCompiler");
-            var serverInfo = RuntimeHostInfo.GetProcessInfo(serverPathWithoutExetnsion, $"-pipename:{pipeName}");
+            var serverPathWithoutExtension = Path.Combine(clientDir, "VBCSCompiler");
+            var serverInfo = RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, $"-pipename:{pipeName}");
 
-            if (!File.Exists(serverInfo.ToolFilePath))
+            if (!File.Exists(serverInfo.toolFilePath))
             {
                 return false;
             }
@@ -395,9 +395,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 PROCESS_INFORMATION processInfo;
 
-                Log("Attempting to create process '{0}'", serverInfo.ProcessFilePath);
+                Log("Attempting to create process '{0}'", serverInfo.processFilePath);
 
-                var builder = new StringBuilder($@"""{serverInfo.ProcessFilePath}"" {serverInfo.CommandLineArguments}");
+                var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
 
                 bool success = CreateProcess(
                     lpApplicationName: null,
@@ -429,8 +429,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 {
                     var startInfo = new ProcessStartInfo()
                     {
-                        FileName = serverInfo.ProcessFilePath,
-                        Arguments = serverInfo.CommandLineArguments,
+                        FileName = serverInfo.processFilePath,
+                        Arguments = serverInfo.commandLineArguments,
                         UseShellExecute = false,
                         WorkingDirectory = clientDir,
                         RedirectStandardInput = true,

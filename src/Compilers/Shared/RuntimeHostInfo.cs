@@ -20,15 +20,15 @@ namespace Microsoft.CodeAnalysis
         /// This gets information about invoking a tool on the current runtime. This will attempt to 
         /// execute a tool as an EXE when on desktop and using dotnet when on CoreClr.
         /// </summary>
-        internal static (string ProcessFilePath, string CommandLineArguments, string ToolFilePath) GetProcessInfo(string toolFilePathWithoutExtension, string commandLineArguments)
+        internal static (string processFilePath, string commandLineArguments, string toolFilePath) GetProcessInfo(string toolFilePathWithoutExtension, string commandLineArguments)
         {
             Debug.Assert(!toolFilePathWithoutExtension.EndsWith(".dll") && !toolFilePathWithoutExtension.EndsWith(".exe"));
 
             var toolFilePath = $"{toolFilePathWithoutExtension}.{ToolExtension}";
-            if (IsDotnetHost(out string pathToDotNet))
+            if (IsDotnetHost(out string pathToDotnet))
             {
                 commandLineArguments = $@"exec ""{toolFilePath}"" {commandLineArguments}";
-                return (pathToDotNet, commandLineArguments, toolFilePath);
+                return (pathToDotnet, commandLineArguments, toolFilePath);
             }
             else
             {
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis
 #elif NETCOREAPP2_1
         internal static bool IsDesktopRuntime => false;
 
-        internal static string DotnetHostPathEnvironmentName = "DOTNET_HOST_PATH";
+        private static string DotnetHostPathEnvironmentName = "DOTNET_HOST_PATH";
 
-        internal static bool IsDotnetHost(out string pathToDotnet)
+        private static bool IsDotnetHost(out string pathToDotnet)
         {
             pathToDotnet = GetDotnetPathOrDefault();
             return true;
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
         /// Get the path to the dotnet executable. This will throw in the case it is not properly setup 
         /// by the environment.
         /// </summary>
-        internal static string GetDotnetPath()
+        private static string GetDotnetPath()
         {
             var pathToDotnet = Environment.GetEnvironmentVariable(DotnetHostPathEnvironmentName);
             if (string.IsNullOrEmpty(pathToDotnet))
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
         /// Get the path to the dotnet executable. In the case the host did not provide this information
         /// in the environment this will return simply "dotnet".
         /// </summary>
-        internal static string GetDotnetPathOrDefault()
+        private static string GetDotnetPathOrDefault()
         {
             var pathToDotnet = Environment.GetEnvironmentVariable(DotnetHostPathEnvironmentName);
             return pathToDotnet ?? "dotnet";
