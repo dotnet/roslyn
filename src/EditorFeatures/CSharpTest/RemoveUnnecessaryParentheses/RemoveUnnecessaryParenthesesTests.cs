@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
                 await TestMissingAsync(initial, parameters: new TestParameters(options: RequireAllParenthesesForClarity));
             }
         }
+
         private DiagnosticDescription GetRemoveUnnecessaryParenthesesDiagnostic(string text, int line, int column, bool hasSuggestion)
         {
             var diagnosticId = IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId;
@@ -2291,8 +2292,8 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestUnnecessaryParenthesisDiagnosticSingleLineExpression()
         {
-            var parentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(", 4, 16, true);
-            var openParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2)", 4, 16, false);
+            var openParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(", 4, 16, true);
+            var parentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2)", 4, 16, false);
             var closeParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic(")", 4, 22, false);
             await TestDiagnosticsAsync(
 @"class C
@@ -2308,8 +2309,8 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestUnnecessaryParenthesisDiagnosticInMultiLineExpression()
         {
-            var firstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(", 4, 16, true);
-            var openParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 +", 4, 16, false);
+            var openParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(", 4, 16, true);
+            var firstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 +", 4, 16, false);
             var closeParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic(")", 5, 13, false);
             await TestDiagnosticsAsync(
 @"class C
@@ -2326,11 +2327,11 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestUnnecessaryParenthesisDiagnosticInNestedExpression()
         {
-            var outerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(", 4, 16, true);
-            var outerOpenParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + (2 + 3) + 4)", 4, 16, false);
+            var outerOpenParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(", 4, 16, true);
+            var outerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + (2 + 3) + 4)", 4, 16, false);
             var outerCloseParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic(")", 4, 32, false);
-            var innerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(", 4, 21, true);
-            var innerOpenParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(2 + 3)", 4, 21, false);
+            var innerOpenParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(", 4, 21, true);
+            var innerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(2 + 3)", 4, 21, false);
             var innerCloseParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic(")", 4, 27, false);
             var expectedDiagnostics = new DiagnosticDescription[] { outerParentheticalExpressionDiagnostic, outerOpenParenthesesDiagnostic,
                 outerCloseParenthesesDiagnostic, innerParentheticalExpressionDiagnostic, innerOpenParenthesesDiagnostic, innerCloseParenthesesDiagnostic };
@@ -2348,11 +2349,11 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestUnnecessaryParenthesisDiagnosticInNestedMultiLineExpression()
         {
-            var outerFirstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(", 4, 16, true);
-            var outerOpenParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2 +", 4, 16, false);
+            var outerOpenParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(", 4, 16, true);
+            var outerFirstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2 +", 4, 16, false);
             var outerCloseParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic(")", 6, 17, false);
-            var innerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(", 5, 12, true);
-            var innerOpenParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(3 + 4)", 5, 12, false);
+            var innerOpenParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(", 5, 12, true);
+            var innerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(3 + 4)", 5, 12, false);
             var innerCloseParenthesesDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic(")", 5, 18, false);
             var expectedDiagnostics = new DiagnosticDescription[] { outerFirstLineParentheticalExpressionDiagnostic, outerOpenParenthesesDiagnostic,
                 outerCloseParenthesesDiagnostic, innerParentheticalExpressionDiagnostic, innerOpenParenthesesDiagnostic, innerCloseParenthesesDiagnostic };
