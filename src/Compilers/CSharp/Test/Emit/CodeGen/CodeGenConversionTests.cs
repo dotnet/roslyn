@@ -1196,14 +1196,16 @@ class C
         }
 
         [Fact, WorkItem(31587, "https://github.com/dotnet/roslyn/issues/31587")]
-        public void MethodGroupConversion()
+        public void NullableMethodGroupConversion()
         {
             var source = @"
 using System;
 class C
 {
-    static void F1() {}
-    static Action A => (Action)F1;
+    static void M(decimal? d)
+    {
+        Func<string> f = d.ToString;
+    }
 }
 ";
             CompileAndVerify(source).VerifyDiagnostics();
