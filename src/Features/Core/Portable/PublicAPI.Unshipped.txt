@@ -7,6 +7,9 @@ const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Exception = "Except
 const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Text = "Text" -> string
 const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.TypeParameters = "TypeParameters" -> string
 const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Usage = "Usage" -> string
+const Microsoft.CodeAnalysis.TextTags.Constant = "Constant" -> string
+const Microsoft.CodeAnalysis.TextTags.EnumMember = "EnumMember" -> string
+const Microsoft.CodeAnalysis.TextTags.ExtensionMethod = "ExtensionMethod" -> string
 Microsoft.CodeAnalysis.Completion.CompletionItem.DisplayTextPrefix.get -> string
 Microsoft.CodeAnalysis.Completion.CompletionItem.DisplayTextSuffix.get -> string
 Microsoft.CodeAnalysis.Completion.CompletionItem.WithDisplayTextPrefix(string displayTextPrefix) -> Microsoft.CodeAnalysis.Completion.CompletionItem
@@ -23,9 +26,6 @@ Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection.Text.get -> string
 Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds
 Microsoft.CodeAnalysis.QuickInfo.QuickInfoService
 Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.QuickInfoService() -> void
-const Microsoft.CodeAnalysis.TextTags.Constant = "Constant" -> string
-const Microsoft.CodeAnalysis.TextTags.EnumMember = "EnumMember" -> string
-const Microsoft.CodeAnalysis.TextTags.ExtensionMethod = "ExtensionMethod" -> string
 static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText = null, string sortText = null, System.Collections.Immutable.ImmutableDictionary<string, string> properties = null, System.Collections.Immutable.ImmutableArray<string> tags = default(System.Collections.Immutable.ImmutableArray<string>), Microsoft.CodeAnalysis.Completion.CompletionItemRules rules = null, string displayTextPrefix = null, string displayTextSuffix = null, string inlineDescription = null) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText, string sortText, System.Collections.Immutable.ImmutableDictionary<string, string> properties, System.Collections.Immutable.ImmutableArray<string> tags, Microsoft.CodeAnalysis.Completion.CompletionItemRules rules) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText, string sortText, System.Collections.Immutable.ImmutableDictionary<string, string> properties, System.Collections.Immutable.ImmutableArray<string> tags, Microsoft.CodeAnalysis.Completion.CompletionItemRules rules, string displayTextPrefix, string displayTextSuffix) -> Microsoft.CodeAnalysis.Completion.CompletionItem
