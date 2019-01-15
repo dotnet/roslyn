@@ -15,7 +15,6 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Microsoft.VisualStudio.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
@@ -3596,13 +3595,7 @@ class C
 
                     Dim providerCalledHandler =
                         Sub()
-                            task1 = Task.Run(
-                            Sub()
-                                ' 2. Hang here as well: getting items is waiting provider to respond.
-                                Dim completionItem = state.GetSelectedItemOpt()
-                            End Sub)
-
-                            task2 = Task.Run(
+                            task2 = New Task(
                             Sub()
                                 Thread.Sleep(250)
                                 Try
@@ -3616,6 +3609,15 @@ class C
                                     tcs.SetResult(True)
                                 End Try
                             End Sub)
+
+                            task1 = Task.Run(
+                            Sub()
+                                task2.Start()
+                                ' 2. Hang here as well: getting items is waiting provider to respond.
+                                Dim completionItem = state.GetSelectedItemOpt()
+                            End Sub)
+
+
                         End Sub
 
                     AddHandler provider.ProviderCalled, providerCalledHandler
@@ -3629,7 +3631,6 @@ class C
                     Assert.NotNull(task1)
                     Assert.NotNull(task2)
                     Await Task.WhenAll(task1, task2)
-                    RemoveHandler provider.ProviderCalled, providerCalledHandler
                 End If
 
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -3686,12 +3687,7 @@ class C
 
                     Dim providerCalledHandler =
                         Sub()
-                            task1 = Task.Run(
-                            Sub()
-                                ' 2. Hang here as well: getting items is waiting provider to respond.
-                                Dim completionItem = state.GetSelectedItemOpt()
-                            End Sub)
-                            task2 = Task.Run(
+                            task2 = New Task(
                                 Sub()
                                     Thread.Sleep(250)
                                     Try
@@ -3705,6 +3701,13 @@ class C
                                         tcs.SetResult(True)
                                     End Try
                                 End Sub)
+
+                            task1 = Task.Run(
+                            Sub()
+                                task2.Start()
+                                ' 2. Hang here as well: getting items is waiting provider to respond.
+                                Dim completionItem = state.GetSelectedItemOpt()
+                            End Sub)
                         End Sub
 
                     AddHandler provider.ProviderCalled, providerCalledHandler
@@ -3727,7 +3730,6 @@ class C
                     ' The old completion adds 'a' to 'Sys' and displays 'Sysa'. CommitIfUnique is canceled because it was interrupted by typing 'a'.
                     ' The new completion completes CommitIfUnique and then adds 'a'.
                     Assert.Contains("Systema", state.GetLineTextFromCaretPosition())
-                    RemoveHandler provider.ProviderCalled, providerCalledHandler
                 End If
             End Using
         End Function
