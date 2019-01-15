@@ -84,8 +84,25 @@ jobs:
       sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
       toLowerCase: false
       usePat: false
-    displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
+    displayName: 'OPTPROF - Publish to Artifact Services - ProfilingInputs'
     condition: succeeded()
+
+  # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from
+  # a build execution.
+  - task: PublishBuildArtifacts@1
+    displayName: Publish OptProf Data Files
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
+      ArtifactName: 'OptProf Data Files'
+    condition: succeeded()
+
+  # Created a exe that will install visual studio with this version 
+  - task: PowerShell@2
+    inputs:
+      filePath: eng\setmanifestpaths.ps1
+      failOnStderr: true
+    displayName: 'OPTPROF - Set VSTS variables for vsman files'
+    condition: succeededOrFailed()
 
   # Build VS bootstrapper
   # Generates $(Build.StagingDirectory)\MicroBuild\Output\BootstrapperInfo.json
