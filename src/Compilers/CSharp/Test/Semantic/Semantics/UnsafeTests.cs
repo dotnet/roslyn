@@ -3073,8 +3073,10 @@ class C<T>
         var s1 = new S1();
         var s2 = new S2();
         var s3 = new S3();
-        var s4 = new S4<int>();
-        var s5 = new S4<int>();
+        var s4_0 = new S4<int>();
+        var s4_1 = new S4<object>();
+        var s4_2 = new S4<U>();
+        var s5 = new S5<int>();
         var i0 = 0;
         var e1 = new E1();
         var o1 = new object();
@@ -3094,13 +3096,15 @@ class C<T>
             // sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, or bool.
             // Any enum_type.
             // Any pointer_type.
-            // Any user-defined struct_type that is not a constructed type and contains fields of unmanaged_types only.
+            // Any user-defined struct_type that contains fields of unmanaged_types only.
             // A type parameter with an unmanaged constraint
             Assert.True(getLocalType("s1").IsUnmanagedType);
             Assert.True(getLocalType("s2").IsUnmanagedType);
             Assert.False(getLocalType("s3").IsUnmanagedType);
-            Assert.False(getLocalType("s4").IsUnmanagedType);
-            Assert.False(getLocalType("s5").IsUnmanagedType);
+            Assert.True(getLocalType("s4_0").IsUnmanagedType);
+            Assert.False(getLocalType("s4_1").IsUnmanagedType);
+            Assert.True(getLocalType("s4_2").IsUnmanagedType);
+            Assert.True(getLocalType("s5").IsUnmanagedType);
             Assert.True(getLocalType("i0").IsUnmanagedType);
             Assert.True(getLocalType("e1").IsUnmanagedType);
             Assert.False(getLocalType("o1").IsUnmanagedType);
@@ -3110,7 +3114,7 @@ class C<T>
             Assert.True(getLocalType("p1").IsUnmanagedType);
             Assert.False(getLocalType("a1").IsUnmanagedType);
             Assert.False(getLocalType("a2").IsUnmanagedType);
-            Assert.False(getLocalType("t2").IsUnmanagedType);
+            Assert.True(getLocalType("t2").IsUnmanagedType);
 
             ITypeSymbol getLocalType(string name)
             {

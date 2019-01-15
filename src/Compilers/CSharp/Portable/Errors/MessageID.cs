@@ -165,14 +165,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureAltInterpolatedVerbatimStrings = MessageBase + 12745,
         IDS_FeatureCoalesceAssignmentExpression = MessageBase + 12746,
         IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator = MessageBase + 12747,
-<<<<<<< HEAD
-        IDS_InjectedDeclaration = MessageBase + 12748,
-        IDS_FeatureObjectGenericTypeConstraint = MessageBase + 12749,
-        IDS_FeatureIndexOperator = MessageBase + 12750,
-        IDS_FeatureRangeOperator = MessageBase + 12751,
-        IDS_FeatureAsyncStreams = MessageBase + 12752,
-        IDS_FeatureUnmanagedConstructedTypes = MessageBase + 12753
-=======
         IDS_FeatureObjectGenericTypeConstraint = MessageBase + 12748,
         IDS_FeatureIndexOperator = MessageBase + 12749,
         IDS_FeatureRangeOperator = MessageBase + 12750,
@@ -181,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Disposable = MessageBase + 12753,
         IDS_FeatureUsingDeclarations = MessageBase + 12754,
         IDS_FeatureStaticLocalFunctions = MessageBase + 12755,
->>>>>>> upstream/dev16.1-preview1
+        IDS_FeatureUnmanagedConstructedTypes = MessageBase + 12756
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -258,13 +250,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureIndexOperator: // semantic check
                 case MessageID.IDS_FeatureRangeOperator: // semantic check
                 case MessageID.IDS_FeatureAsyncStreams:
-<<<<<<< HEAD
-                case MessageID.IDS_FeatureUnmanagedConstructedTypes: // semantic check
-=======
                 case MessageID.IDS_FeatureRecursivePatterns:
                 case MessageID.IDS_FeatureUsingDeclarations:
                 case MessageID.IDS_FeatureStaticLocalFunctions:
->>>>>>> upstream/dev16.1-preview1
+                case MessageID.IDS_FeatureUnmanagedConstructedTypes: // semantic check
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.

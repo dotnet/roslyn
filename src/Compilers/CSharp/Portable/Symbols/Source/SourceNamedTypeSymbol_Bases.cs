@@ -135,16 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var pair in interfaces)
                 {
-<<<<<<< HEAD
-                    @interface.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
-                }
-=======
                     MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>.ValueSet set = pair.Value;
->>>>>>> upstream/dev16.1-preview1
 
                     foreach (var @interface in set)
                     {
-                        @interface.CheckAllConstraints(conversions, location, diagnostics);
+                        @interface.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
                     }
 
                     if (set.Count > 1)

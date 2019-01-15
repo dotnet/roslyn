@@ -2193,181 +2193,8 @@ class C4 { }";
         [Fact]
         public void Nullable_False_InCSharp7()
         {
-<<<<<<< HEAD
-            var source = @"
-" + NonNullTypesOn() + @"
-[module: Microsoft.CodeAnalysis.Embedded]
-
-[Microsoft.CodeAnalysis.Embedded]
-public class C
-{
-    [Microsoft.CodeAnalysis.Embedded]
-    public int field = 0;
-    [Microsoft.CodeAnalysis.Embedded]
-    void M() { }
-}
-[Microsoft.CodeAnalysis.Embedded]
-interface I { }
-";
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
-
-            var type = (NamedTypeSymbol)comp.GlobalNamespace.GetMember("Microsoft.CodeAnalysis.EmbeddedAttribute");
-            Assert.NotNull(type);
-            Assert.Equal(0, type.Arity);
-            Assert.Equal("System.Attribute", type.BaseTypeNoUseSiteDiagnostics.ToTestDisplayString());
-            Assert.True(type.CanBeReferencedByName);
-            Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor()", type.Constructors.Single().ToTestDisplayString());
-            Assert.Null(type.ContainingType);
-            Assert.Empty(type.DeclaringSyntaxReferences);
-            Assert.True(type.HasCodeAnalysisEmbeddedAttribute);
-            Assert.False(type.HasDeclarativeSecurity);
-            Assert.False(type.HasSpecialName);
-            Assert.False(type.HasUnsupportedMetadata);
-            Assert.Empty(type.Indexers);
-            Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor()", type.InstanceConstructors.Single().ToTestDisplayString());
-            Assert.False(type.IsAbstract);
-            Assert.False(type.IsAnonymousType);
-            Assert.False(type.IsByRefLikeType);
-            Assert.False(type.IsComImport);
-            Assert.False(type.IsConditional);
-            Assert.True(type.IsDefinition);
-            Assert.False(type.IsExtern);
-            Assert.False(type.IsGenericType);
-            Assert.True(type.IsImplicitlyDeclared);
-            Assert.False(type.IsInterface);
-            Assert.Equal(ManagedKind.Managed, type.ManagedKind);
-            Assert.False(type.IsNamespace);
-            Assert.True(type.IsReferenceType);
-            Assert.True(type.IsSealed);
-            Assert.False(type.IsSerializable);
-            Assert.False(type.IsStatic);
-            Assert.False(type.IsTupleType);
-            Assert.True(type.IsType);
-            Assert.Equal(SymbolKind.NamedType, type.Kind);
-            Assert.Equal("C#", type.Language);
-            Assert.Empty(type.Locations);
-            Assert.Equal(new[] { ".ctor" }, type.MemberNames);
-            Assert.False(type.MightContainExtensionMethods);
-            Assert.Equal("EmbeddedAttribute", type.Name);
-            Assert.Null(type.NonNullTypes);
-            Assert.Equal(SpecialType.None, type.SpecialType);
-            Assert.Empty(type.StaticConstructors);
-            Assert.Equal(TypeKind.Class, type.TypeKind);
-
-            var codeAnalysis = type.ContainingNamespace;
-            verifyEmptyNamespace(codeAnalysis, "CodeAnalysis");
-
-            var microsoft = codeAnalysis.ContainingNamespace;
-            verifyEmptyNamespace(microsoft, "Microsoft");
-
-            Assert.True(microsoft.ContainingNamespace.IsGlobalNamespace);
-
-            var type2 = comp.GetWellKnownType(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
-            Assert.True(type.Equals(type2));
-            Assert.Equal(Accessibility.Internal, type.DeclaredAccessibility);
-
-            void verifyEmptyNamespace(INamespaceSymbol symbol, string expectedName)
-            {
-                Assert.Equal(expectedName, symbol.Name);
-                Assert.Empty(symbol.DeclaringSyntaxReferences);
-                Assert.Empty(symbol.Locations);
-                Assert.True(symbol.IsImplicitlyDeclared);
-                Assert.Equal(NamespaceKind.Module, symbol.NamespaceKind);
-            }
-        }
-
-        [Fact]
-        public void NonNullTypesAttribute_Injected_InCSharp7()
-        {
-            var comp = CreateCompilation("", options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7);
-            comp.VerifyDiagnostics(
-                // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.0. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.0", "8.0").WithLocation(1, 1)
-                );
-
-            Assert.True(comp.SourceModule.NonNullTypes);
-            Assert.Empty(comp.SourceModule.GetAttributes());
-
-            var type = (NamedTypeSymbol)comp.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute");
-            Assert.NotNull(type);
-            Assert.Equal(0, type.Arity);
-            Assert.Equal("System.Attribute", type.BaseTypeNoUseSiteDiagnostics.ToTestDisplayString());
-            Assert.True(type.CanBeReferencedByName);
-            Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute..ctor([System.Boolean flag = true])", type.Constructors.Single().ToTestDisplayString());
-            Assert.Null(type.ContainingType);
-            Assert.Empty(type.DeclaringSyntaxReferences);
-            Assert.True(type.HasCodeAnalysisEmbeddedAttribute);
-            Assert.False(type.HasDeclarativeSecurity);
-            Assert.False(type.HasSpecialName);
-            Assert.False(type.HasUnsupportedMetadata);
-            Assert.Empty(type.Indexers);
-            Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute..ctor([System.Boolean flag = true])", type.InstanceConstructors.Single().ToTestDisplayString());
-            Assert.False(type.IsAbstract);
-            Assert.False(type.IsAnonymousType);
-            Assert.False(type.IsByRefLikeType);
-            Assert.False(type.IsComImport);
-            Assert.False(type.IsConditional);
-            Assert.True(type.IsDefinition);
-            Assert.False(type.IsExtern);
-            Assert.False(type.IsGenericType);
-            Assert.True(type.IsImplicitlyDeclared);
-            Assert.False(type.IsInterface);
-            Assert.Equal(ManagedKind.Managed, type.ManagedKind);
-            Assert.False(type.IsNamespace);
-            Assert.True(type.IsReferenceType);
-            Assert.True(type.IsSealed);
-            Assert.False(type.IsSerializable);
-            Assert.False(type.IsStatic);
-            Assert.False(type.IsTupleType);
-            Assert.True(type.IsType);
-            Assert.Equal(SymbolKind.NamedType, type.Kind);
-            Assert.Equal("C#", type.Language);
-            Assert.Empty(type.Locations);
-            Assert.Equal(new[] { ".ctor" }, type.MemberNames);
-            Assert.False(type.MightContainExtensionMethods);
-            Assert.Equal("NonNullTypesAttribute", type.Name);
-            Assert.True(type.NonNullTypes);
-            Assert.Equal(SpecialType.None, type.SpecialType);
-            Assert.Empty(type.StaticConstructors);
-            Assert.Equal(TypeKind.Class, type.TypeKind);
-
-            var compilerServices = type.ContainingNamespace;
-            verifyEmptyNamespace(compilerServices, "CompilerServices");
-
-            var runtime = compilerServices.ContainingNamespace;
-            verifyEmptyNamespace(runtime, "Runtime");
-
-            var system = runtime.ContainingNamespace;
-            verifyEmptyNamespace(system, "System");
-
-            Assert.True(system.ContainingNamespace.IsGlobalNamespace);
-
-            var type2 = comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute);
-            Assert.True(type.Equals(type2));
-            Assert.Equal(Accessibility.Internal, type.DeclaredAccessibility);
-
-            // https://github.com/dotnet/roslyn/issues/29683 CSharpCompilation.AbstractSymbolSearcher needs to inject namespaces and types too
-            //Assert.True(comp.ContainsSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type));
-            //Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute", comp.GetSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
-            //Assert.Equal("System.Runtime.CompilerServices.NonNullTypesAttribute", comp.GetSymbolsWithName(n => n == "NonNullTypesAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
-
-            //Assert.True(comp.ContainsSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type));
-            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
-            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName(n => n == "EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
-
-            void verifyEmptyNamespace(INamespaceSymbol symbol, string expectedName)
-            {
-                Assert.Equal(expectedName, symbol.Name);
-                Assert.Empty(symbol.DeclaringSyntaxReferences);
-                Assert.Empty(symbol.Locations);
-                Assert.True(symbol.IsImplicitlyDeclared);
-                Assert.Equal(NamespaceKind.Module, symbol.NamespaceKind);
-            }
-=======
             var comp = CreateCompilation("", options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
->>>>>>> upstream/dev16.1-preview1
         }
 
         [Fact]
@@ -53311,27 +53138,27 @@ class D
 }";
             var comp = CreateCompilation(new[] { source }, references: new[] { ref0 });
             comp.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_UninitializedNonNullableField).Verify(
-                // (4,24): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                // class B1<T> where T : A? { }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 24),
                 // (15,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     B1<A?> F3; // 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 9),
+                // (4,24): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // class B1<T> where T : A? { }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 24),
                 // (17,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     B2<A?> F5; // 3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(17, 9),
                 // (19,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     B3<A?> F7; // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 9),
+                // (35,12): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
+                //     B4<A?> G9; // 7
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "G9").WithArguments("B4<T>", "A", "T", "A?").WithLocation(35, 12),
                 // (21,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     B4<A?> F9; // 5 and 6
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(21, 9),
                 // (13,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     B0<A?> F1; // 1
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 9),
-                // (35,8): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
-                //     B4<A?> G9; // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A?").WithArguments("B4<T>", "A", "T", "A?").WithLocation(35, 8)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 9)
                 );
         }
 
@@ -53403,15 +53230,15 @@ class D
                 // (13,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     B0<A<object?>> F1; // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 16),
-                // (30,8): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B1<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
+                // (30,19): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B1<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
                 //     B1<A<object>> G4; // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object>").WithArguments("B1<T>", "A<object?>", "T", "A<object>").WithLocation(30, 8),
-                // (34,8): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B3<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "G4").WithArguments("B1<T>", "A<object?>", "T", "A<object>").WithLocation(30, 19),
+                // (34,19): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B3<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
                 //     B3<A<object>> G8; // 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object>").WithArguments("B3<T>", "A<object?>", "T", "A<object>").WithLocation(34, 8),
-                // (35,8): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "G8").WithArguments("B3<T>", "A<object?>", "T", "A<object>").WithLocation(34, 19),
+                // (35,20): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
                 //     B4<A<object?>> G9; // 9
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(35, 8)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "G9").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(35, 20)
                 );
         }
 
@@ -64430,48 +64257,6 @@ class Outer<T, U> where T : class, U
         y0.ToString();
     }
 }
-<<<<<<< HEAD
-" + NonNullTypesOn() + @"
-class D
-{
-    B0<A?> G1;
-    B0<A> G2;
-    B1<A?> G3;
-    B1<A> G4;
-    B2<A?> G5;
-    B2<A> G6;
-    B3<A?> G7;
-    B3<A> G8;
-    B4<A?> G9; // 7
-    B4<A> G10;
-}";
-            var comp = CreateCompilation(new[] { source }, references: new[] { ref0 });
-            comp.VerifyDiagnostics(
-                // (4,24): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                // class B1<T> where T : A? { }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 24),
-                // (15,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     B1<A?> F3; // 2
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 9),
-                // (17,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     B2<A?> F5; // 3
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(17, 9),
-                // (19,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     B3<A?> F7; // 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 9),
-                // (21,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     B4<A?> F9; // 5 and 6
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(21, 9),
-                // (13,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     B0<A?> F1; // 1
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 9),
-                // (21,12): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
-                //     B4<A?> F9; // 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "F9").WithArguments("B4<T>", "A", "T", "A?").WithLocation(21, 12),
-                // (35,12): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
-                //     B4<A?> G9; // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "G9").WithArguments("B4<T>", "A", "T", "A?").WithLocation(35, 12)
-=======
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
@@ -64481,7 +64266,6 @@ class D
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         y0.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(8, 9)
->>>>>>> upstream/dev16.1-preview1
                 );
         }
 
@@ -64499,54 +64283,6 @@ class Outer<T, U> where T : class, U
         y0.ToString();
     }
 }
-<<<<<<< HEAD
-" + NonNullTypesOn() + @"
-class D
-{
-    B0<A<object?>> G1;
-    B0<A<object>> G2;
-    B1<A<object?>> G3;
-    B1<A<object>> G4; // 7
-    B2<A<object?>> G5;
-    B2<A<object>> G6;
-    B3<A<object?>> G7;
-    B3<A<object>> G8; // 8
-    B4<A<object?>> G9; // 9
-    B4<A<object>> G10;
-}";
-            var comp = CreateCompilation(new[] { source }, references: new[] { ref0 });
-            comp.VerifyDiagnostics(
-                // (4,31): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                // class B1<T> where T : A<object?> { }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 31),
-                // (15,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     B1<A<object?>> F3; // 2
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 16),
-                // (17,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     B2<A<object?>> F5; // 3
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(17, 16),
-                // (19,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     B3<A<object?>> F7; // 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 16),
-                // (21,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     B4<A<object?>> F9; // 5 and 6
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(21, 16),
-                // (13,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     B0<A<object?>> F1; // 1
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 16),
-                // (21,20): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
-                //     B4<A<object?>> F9; // 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "F9").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(21, 20),
-                // (30,19): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B1<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
-                //     B1<A<object>> G4; // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "G4").WithArguments("B1<T>", "A<object?>", "T", "A<object>").WithLocation(30, 19),
-                // (34,19): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B3<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
-                //     B3<A<object>> G8; // 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "G8").WithArguments("B3<T>", "A<object?>", "T", "A<object>").WithLocation(34, 19),
-                // (35,20): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
-                //     B4<A<object?>> G9; // 9
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "G9").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(35, 20)
-=======
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
@@ -64556,7 +64292,6 @@ class D
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         y0.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(9, 9)
->>>>>>> upstream/dev16.1-preview1
                 );
         }
 
