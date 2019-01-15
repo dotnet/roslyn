@@ -176,6 +176,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Sql:
                 case SinkKind.Dll:
                 case SinkKind.FilePathInjection:
+                case SinkKind.ProcessCommand:
                     return WebInputSources.SourceInfos;
 
                 case SinkKind.InformationDisclosure:
@@ -201,6 +202,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.InformationDisclosure:
                 case SinkKind.XSS:  // TODO: Implement as part of CA3002
                 case SinkKind.FilePathInjection:
+                case SinkKind.ProcessCommand:
                     return ImmutableHashSet<SanitizerInfo>.Empty;
 
                 default:
@@ -225,6 +227,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 case SinkKind.FilePathInjection:
                     return FilePathInjectionSinks.SinkInfos;
+
+                case SinkKind.ProcessCommand:
+                    return ProcessCommandSinks.SinkInfos;
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
