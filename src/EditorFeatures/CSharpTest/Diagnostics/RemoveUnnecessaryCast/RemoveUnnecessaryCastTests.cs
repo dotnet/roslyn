@@ -4607,5 +4607,30 @@ class Tester
     }
 }");
         }
+
+        [WorkItem(31963, "https://github.com/dotnet/roslyn/issues/31963")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontOfferToRemoveCastInConstructorWhenItNeeded()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+class IntegerWrapper
+{
+    public IntegerWrapper(int value)
+    {
+    }
+}
+enum Goo
+{
+    First,
+    Second
+}
+class Tester
+{
+    public void Test()
+    {
+        var a = new IntegerWrapper([|(int)Goo.First|]);
+    }
+}");
+        }
     }
 }
