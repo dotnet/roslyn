@@ -145,8 +145,9 @@ namespace Analyzer.Utilities
         public const string SystemIODirectory = "System.IO.Directory";
         public const string SystemIOFile = "System.IO.File";
         public const string SystemIOFileInfo = "System.IO.FileInfo";
-
         public const string SystemSecurityCryptographyCipherMode = "System.Security.Cryptography.CipherMode";
+        public const string SystemDiagnosticsProcess = "System.Diagnostics.Process";
+        public const string SystemDiagnosticsProcessStartInfo = "System.Diagnostics.ProcessStartInfo";
 
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {

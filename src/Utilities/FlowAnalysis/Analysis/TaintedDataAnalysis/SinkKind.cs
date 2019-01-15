@@ -9,5 +9,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         InformationDisclosure,
         XSS,
         FilePathInjection,
+        ProcessCommand,
     }
 }
