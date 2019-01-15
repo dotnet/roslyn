@@ -22,7 +22,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         private sealed class PropertySetDataFlowOperationVisitor :
             AbstractLocationDataFlowOperationVisitor<PropertySetAnalysisData, PropertySetAnalysisContext, PropertySetAnalysisResult, PropertySetAbstractValue>
         {
-            private const int MaxInterproceduralMethodCallChain = 1;
             private readonly ImmutableDictionary<(Location Location, IMethodSymbol Method), PropertySetAbstractValue>.Builder _hazardousUsageBuilder;
             private INamedTypeSymbol DeserializerTypeSymbol;
 
@@ -48,9 +47,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     return _hazardousUsageBuilder.ToImmutable();
                 }
             }
-
-            // We only want to track method calls one level down.
-            protected override int GetAllowedInterproceduralMethodCallChain() => MaxInterproceduralMethodCallChain;
 
             protected override PropertySetAbstractValue GetAbstractDefaultValue(ITypeSymbol type) => ValueDomain.Bottom;
 

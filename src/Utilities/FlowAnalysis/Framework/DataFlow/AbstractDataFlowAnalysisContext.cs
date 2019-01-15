@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
-            InterproceduralAnalysisKind interproceduralAnalysisKind,
+            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             bool predicateAnalysis,
             CopyAnalysisResult copyAnalysisResultOpt,
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ControlFlowGraph = controlFlowGraph;
             ParentControlFlowGraphOpt = parentControlFlowGraphOpt;
             OwningSymbol = owningSymbol;
-            InterproceduralAnalysisKind = interproceduralAnalysisKind;
+            InterproceduralAnalysisConfiguration = interproceduralAnalysisConfig;
             PessimisticAnalysis = pessimisticAnalysis;
             PredicateAnalysis = predicateAnalysis;
             CopyAnalysisResultOpt = copyAnalysisResultOpt;
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public WellKnownTypeProvider WellKnownTypeProvider { get; }
         public ControlFlowGraph ControlFlowGraph { get; }
         public ISymbol OwningSymbol { get; }
-        public InterproceduralAnalysisKind InterproceduralAnalysisKind { get; }
+        public InterproceduralAnalysisConfiguration InterproceduralAnalysisConfiguration { get; }
         public bool PessimisticAnalysis { get; }
         public bool PredicateAnalysis { get; }
         public CopyAnalysisResult CopyAnalysisResultOpt { get; }
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             builder.Add(ValueDomain.GetHashCode());
             builder.Add(OwningSymbol.GetHashCode());
             builder.Add(ControlFlowGraph.OriginalOperation.GetHashCode());
-            builder.Add(InterproceduralAnalysisKind.GetHashCode());
+            builder.Add(InterproceduralAnalysisConfiguration.GetHashCode());
             builder.Add(PessimisticAnalysis.GetHashCode());
             builder.Add(PredicateAnalysis.GetHashCode());
             builder.Add(CopyAnalysisResultOpt.GetHashCodeOrDefault());

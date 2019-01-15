@@ -2,7 +2,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalysis
@@ -27,7 +29,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             IBlockOperation topmostBlock,
             Compilation compilation,
             ISymbol owningSymbol,
+            AnalyzerOptions analyzerOptions,
+            DiagnosticDescriptor rule,
+            CancellationToken cancellationToken,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
+            uint defaultMaxInterproceduralMethodCallChain = 1, // By default, we only want to track method calls one level down.
+            bool pessimisticAnalysis = true)
+        {
+            var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
+                   analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);
+            return GetOrComputeHazardousParameterUsages(topmostBlock, compilation, owningSymbol,
+                interproceduralAnalysisConfig, pessimisticAnalysis);
+        }
+
+        private static ImmutableDictionary<IParameterSymbol, SyntaxNode> GetOrComputeHazardousParameterUsages(
+            IBlockOperation topmostBlock,
+            Compilation compilation,
+            ISymbol owningSymbol,
+            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis = true)
         {
             Debug.Assert(topmostBlock != null);
@@ -35,23 +54,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             var cfg = topmostBlock.GetEnclosingControlFlowGraph();
             var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             var pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(
-                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisKind, pessimisticAnalysis);
-            var result = GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisKind, pessimisticAnalysis, pointsToAnalysisResult);
+                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig, pessimisticAnalysis);
+            var result = GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
+                interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult);
             return result.HazardousParameterUsages;
         }
 
-        public static ParameterValidationAnalysisResult GetOrComputeResult(
+        private static ParameterValidationAnalysisResult GetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
-            InterproceduralAnalysisKind interproceduralAnalysisKind,
+            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResult)
         {
             Debug.Assert(pointsToAnalysisResult != null);
 
             var analysisContext = ParameterValidationAnalysisContext.Create(ParameterValidationAbstractValueDomain.Default,
-                wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisKind, pessimisticAnalysis, pointsToAnalysisResult, GetOrComputeResultForAnalysisContext);
+                wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult, GetOrComputeResultForAnalysisContext);
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }
 

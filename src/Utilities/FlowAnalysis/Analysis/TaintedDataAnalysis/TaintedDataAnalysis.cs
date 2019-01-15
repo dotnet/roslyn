@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -23,16 +25,34 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol containingMethod,
+            AnalyzerOptions analyzerOptions,
+            DiagnosticDescriptor rule,
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
-            TaintedDataSymbolMap<SinkInfo> taintedSinkInfos)
+            TaintedDataSymbolMap<SinkInfo> taintedSinkInfos,
+            CancellationToken cancellationToken)
+        {
+            var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
+                analyzerOptions, rule, InterproceduralAnalysisKind.ContextSensitive, cancellationToken);
+            return GetOrComputeResult(cfg, compilation, containingMethod, taintedSourceInfos,
+                taintedSanitizerInfos, taintedSinkInfos, interproceduralAnalysisConfig);
+        }
+
+        private static TaintedDataAnalysisResult GetOrComputeResult(
+            ControlFlowGraph cfg,
+            Compilation compilation,
+            ISymbol containingMethod,
+            TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
+            TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
+            TaintedDataSymbolMap<SinkInfo> taintedSinkInfos,
+            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig)
         {
             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             PointsToAnalysisResult pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(
                 cfg,
                 containingMethod,
                 wellKnownTypeProvider,
-                InterproceduralAnalysisKind.ContextSensitive,
+                interproceduralAnalysisConfig,
                 pessimisticAnalysis: true,
                 performCopyAnalysis: true);
 
@@ -41,7 +61,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 wellKnownTypeProvider,
                 cfg,
                 containingMethod,
-                InterproceduralAnalysisKind.ContextSensitive,
+                interproceduralAnalysisConfig,
                 pessimisticAnalysis: false,
                 pointsToAnalysisResult: pointsToAnalysisResult,
                 getOrComputeAnalysisResult: GetOrComputeResultForAnalysisContext,
