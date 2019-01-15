@@ -6426,24 +6426,21 @@ class B2 : IB
                  // (34,40): error CS1519: Invalid token ';' in class, struct, or interface member declaration
                  //     event System.Action<string?>? IB.E3; // 2
                  Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(34, 40),
-                 // (34,40): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                 // (34,38): error CS0065: 'B2.IB.E3': event property must have both add and remove accessors
                  //     event System.Action<string?>? IB.E3; // 2
-                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(34, 40),
-                 // (34,38): error CS0539: 'B2.' in explicit interface declaration is not a member of interface
-                 //     event System.Action<string?>? IB.E3; // 2
-                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("B2.").WithLocation(34, 38),
-                 // (34,38): error CS0065: 'B2.': event property must have both add and remove accessors
-                 //     event System.Action<string?>? IB.E3; // 2
-                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("B2.").WithLocation(34, 38),
-                 // (30,12): error CS0535: 'B2' does not implement interface member 'IB.E3'
+                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E3").WithArguments("B2.IB.E3").WithLocation(34, 38),
+                 // (30,12): error CS0535: 'B2' does not implement interface member 'IB.E3.remove'
                  // class B2 : IB
-                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IB").WithArguments("B2", "IB.E3").WithLocation(30, 12),
-                 // (18,37): warning CS8615: Nullability of reference types in type doesn't match implemented member 'event Action<string> IA.E1'.
-                 //     event System.Action<string?> IA.E1 {add {} remove{}}
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "E1").WithArguments("event Action<string> IA.E1").WithLocation(18, 37),
+                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IB").WithArguments("B2", "IB.E3.remove").WithLocation(30, 12),
+                 // (30,12): error CS0535: 'B2' does not implement interface member 'IB.E3.add'
+                 // class B2 : IB
+                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IB").WithArguments("B2", "IB.E3.add").WithLocation(30, 12),
                  // (19,36): warning CS8615: Nullability of reference types in type doesn't match implemented member 'event Action<string>? IA.E2'.
                  //     event System.Action<string> IA.E2 {add {} remove{}}
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "E2").WithArguments("event Action<string>? IA.E2").WithLocation(19, 36)
+                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "E2").WithArguments("event Action<string>? IA.E2").WithLocation(19, 36),
+                 // (18,37): warning CS8615: Nullability of reference types in type doesn't match implemented member 'event Action<string> IA.E1'.
+                 //     event System.Action<string?> IA.E1 {add {} remove{}}
+                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "E1").WithArguments("event Action<string> IA.E1").WithLocation(18, 37)
                 );
 
             var ia = compilation.GetTypeByMetadataName("IA");

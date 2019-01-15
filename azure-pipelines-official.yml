@@ -14,13 +14,30 @@ jobs:
 
   variables:
     BuildPlatform: 'Any CPU'
-    InsertTargetBranchFullName: 'lab/d16.0stg'
-    InsertTargetBranchShortName: 'd16.0stg'
+    VisualStudio.MajorVersion: 16
+    VisualStudio.BranchName: 'lab/d16.0stg'
+    VisualStudio.ChannelName: 'int.d16.0stg'
+    VisualStudio.DropName: Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)
+
   steps:
+  - task: NuGetToolInstaller@0
+    inputs:
+      versionSpec: '4.9.2' 
+
   - task: NuGetCommand@2
+    displayName: 'Clear NuGet caches'
     inputs:
       command: custom
       arguments: 'locals all -clear'
+
+  - task: NuGetCommand@2
+    displayName: Restore internal tools
+    inputs:
+      command: restore
+      feedsToUse: config
+      restoreSolution: 'eng\internal\Toolset.csproj'
+      nugetConfigPath: 'NuGet.config'
+      restoreDirectory: '$(UserProfile)\.nuget\packages'
 
   - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
     inputs:
@@ -32,17 +49,20 @@ jobs:
       skipRunOptimize: true
     displayName: 'Install OptProf Plugin'
 
+  # Required by MicroBuildBuildVSBootstrapper
   - task: ms-vseng.MicroBuildTasks.32f78468-e895-4f47-962c-58a699361df8.MicroBuildSwixPlugin@1
     inputs:
+      dropName: $(VisualStudio.DropName) 
       feedSource: 'https://devdiv-test.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json'
 
-  - task: NuGetRestore@1
-    inputs:
-      solution: 'eng\internal\Toolset.csproj'
-      feed: '8f470c7e-ac49-4afe-a6ee-cf784e438b93'
-
   - script: eng\cibuild.cmd
-              -configuration $(BuildConfiguration) -official -testDesktop -procdump
+              -configuration $(BuildConfiguration)
+              -officialBuildId $(Build.BuildNumber)
+              -vsDropName $(VisualStudio.DropName) 
+              -vsBranch $(VisualStudio.BranchName)
+              -vsDropAccessToken $(System.AccessToken)
+              -testDesktop 
+              -procdump
               /p:DotNetSignType=$(PB_SignType)
               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
               /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
@@ -52,13 +72,11 @@ jobs:
   - task: PowerShell@2
     displayName: Publish Assets
     inputs:
-      arguments: '-configuration $(BuildConfiguration) -branchName "$(Build.SourceBranch)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
       filePath: 'eng\publish-assets.ps1'
+      arguments: '-configuration $(BuildConfiguration) -branchName "$(Build.SourceBranch)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
     condition: succeeded()
 
-  ### BEGIN OPTPROF TASKS ###
-
-  # Publish optprof configuration files
+  # Publish OptProf configuration files
   - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
     inputs:
       dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
@@ -66,34 +84,30 @@ jobs:
       sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
       toLowerCase: false
       usePat: false
-    displayName: 'OPTPROF - Publish to Artifact Services - ProfilingInputs'
-    condition: succeededOrFailed()
+    displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
+    condition: succeeded()
 
-  # Created a exe that will install visual studio with this version 
-  - task: PowerShell@2
-    inputs:
-      filePath: eng\setmanifestpaths.ps1
-      failOnStderr: true
-    displayName: 'OPTPROF - Set VSTS variables for vsman files'
-    condition: succeededOrFailed()
-
+  # Build VS bootstrapper
+  # Generates $(Build.StagingDirectory)\MicroBuild\Output\BootstrapperInfo.json
   - task: ms-vseng.MicroBuildTasks.0e9d0d4d-71ec-4e4e-ae40-db9896f1ae74.MicroBuildBuildVSBootstrapper@2
     inputs:
-      vsMajorVersion: 16
-      channelName: int.$(InsertTargetBranchShortName)
-      manifests: $(SetupManifests)
+      vsMajorVersion: $(VisualStudio.MajorVersion)
+      channelName: $(VisualStudio.ChannelName)
+      manifests: $(VisualStudio.SetupManifestList)
       outputFolder: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\Insertion'
-    displayName: 'OPTPROF - Build VS bootstrapper'
-    condition: succeededOrFailed()
+    displayName: 'OptProf - Build VS bootstrapper'
+    condition: succeeded()
 
   # Publish run settings
   - task: PowerShell@2
     inputs:
-      filePath: eng\createrunsettings.ps1
+      filePath: eng\generate-optprof-run-settings.ps1
       arguments: -configuration $(BuildConfiguration)
+                 -vsDropName $(VisualStudio.DropName)
+                 -bootstrapperInfo $(Build.StagingDirectory)\MicroBuild\Output\BootstrapperInfo.json
       failOnStderr: true
-    displayName: 'OPTPROF - generate runsettings file'
-    condition: succeededOrFailed()
+    displayName: 'OptProf - Generate runsettings file'
+    condition: succeeded()
 
   # Publish bootstrapper info
   - task: PublishBuildArtifacts@1
@@ -101,8 +115,8 @@ jobs:
       PathtoPublish: $(Build.StagingDirectory)\MicroBuild\Output
       ArtifactName: MicroBuildOutputs
       ArtifactType: Container
-    displayName: 'OPTPROF - Publish Artifact: MicroBuildOutputs'
-    condition: succeededOrFailed()
+    displayName: 'OptProf - Publish Artifact: MicroBuildOutputs'
+    condition: succeeded()
 
   # Publish scripts to get the branch of VS that this inserts into
   - task: PublishBuildArtifacts@1
@@ -110,10 +124,8 @@ jobs:
       PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\BranchInfo'
       ArtifactName: BranchInfo
       ArtifactType: Container
-    displayName: 'OPTPROF - Publish Artifact: BranchInfo'
-    condition: succeededOrFailed()
-
-  ### END OPTPROF TASKS ###
+    displayName: 'OptProf - Publish Artifact: BranchInfo'
+    condition: succeeded()
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Logs
@@ -133,11 +145,12 @@ jobs:
       testRunTitle: 'Unit Tests'
     condition: succeededOrFailed()
 
-  # Publishes setup VSIXes to a drop with id defined by MicroBuildSwixPlugin.
+  # Publishes setup VSIXes to a drop.
   # Note: The insertion tool looks for the display name of this task in the logs.
   - task: ms-vseng.MicroBuildTasks.4305a8de-ba66-4d8b-b2d1-0dc4ecbbf5e8.MicroBuildUploadVstsDropFolder@1
     displayName: Upload VSTS Drop
     inputs:
+      DropName: $(VisualStudio.DropName)
       DropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
     condition: succeeded()
 
