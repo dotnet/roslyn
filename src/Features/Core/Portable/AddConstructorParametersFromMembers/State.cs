@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
@@ -13,22 +10,17 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
     {
         private class State
         {
-            public TextSpan TextSpan { get; private set; }
-            public IMethodSymbol MatchingConstructor { get; private set; }
             public IMethodSymbol DelegatedConstructor { get; private set; }
             public INamedTypeSymbol ContainingType { get; private set; }
-            public ImmutableArray<ISymbol> SelectedMembers { get; private set; }
-            public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
+            public ImmutableArray<ISymbol> MissingMembers { get; private set; }
+            public ImmutableArray<IParameterSymbol> MissingParameters { get; private set; }
 
             public static State Generate(
                 AddConstructorParametersFromMembersCodeRefactoringProvider service,
-                Document document,
-                TextSpan textSpan,
-                ImmutableArray<ISymbol> selectedMembers,
-                CancellationToken cancellationToken)
+                ImmutableArray<ISymbol> selectedMembers)
             {
                 var state = new State();
-                if (!state.TryInitialize(service, document, textSpan, selectedMembers, cancellationToken))
+                if (!state.TryInitialize(service, selectedMembers))
                 {
                     return null;
                 }
@@ -38,29 +30,49 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
             private bool TryInitialize(
                 AddConstructorParametersFromMembersCodeRefactoringProvider service,
-                Document document,
-                TextSpan textSpan,
-                ImmutableArray<ISymbol> selectedMembers,
-                CancellationToken cancellationToken)
+                ImmutableArray<ISymbol> selectedMembers)
             {
                 if (!selectedMembers.All(IsWritableInstanceFieldOrProperty))
                 {
                     return false;
                 }
 
-                this.TextSpan = textSpan;
-                this.SelectedMembers = selectedMembers;
-                this.ContainingType = this.SelectedMembers[0].ContainingType;
-                if (this.ContainingType == null || this.ContainingType.TypeKind == TypeKind.Interface)
+                ContainingType = selectedMembers[0].ContainingType;
+                if (ContainingType == null || ContainingType.TypeKind == TypeKind.Interface)
                 {
                     return false;
                 }
 
-                this.Parameters = service.DetermineParameters(selectedMembers);
+                var parameters = service.DetermineParameters(selectedMembers);
+                DelegatedConstructor = service.GetDelegatedConstructor(ContainingType, parameters);
 
-                this.MatchingConstructor = service.GetMatchingConstructor(this.ContainingType, this.Parameters);
-                this.DelegatedConstructor = service.GetDelegatedConstructor(this.ContainingType, this.Parameters);
-                return this.DelegatedConstructor != null;
+                if (DelegatedConstructor != null)
+                {
+                    var zippedParametersAndSelectedMember = parameters.Zip(selectedMembers, (parameter, selectedMember) => (parameter, selectedMember));
+                    var missingParamtersBuilder = ImmutableArray.CreateBuilder<IParameterSymbol>();
+                    var missingMembersBuilder = ImmutableArray.CreateBuilder<ISymbol>();
+                    foreach ((var parameter, var selectedMember) in zippedParametersAndSelectedMember)
+                    {
+                        if (IsParameterMissingFromConstructor(DelegatedConstructor, parameter))
+                        {
+                            missingParamtersBuilder.Add(parameter);
+                            missingMembersBuilder.Add(selectedMember);
+                        }
+                    }
+
+                    MissingParameters = missingParamtersBuilder.ToImmutableArray();
+                    MissingMembers = missingMembersBuilder.ToImmutableArray();
+                }
+
+                return DelegatedConstructor != null;
+            }
+
+            /// <summary>
+            /// Find whether <paramref name="parameter"/> is contained in <paramref name="constructor"/>'s parameter list by comparing name.
+            /// </summary>
+            private bool IsParameterMissingFromConstructor(IMethodSymbol constructor, IParameterSymbol parameter)
+            {
+                return !constructor.Parameters.Select(p => p.Name).Contains(parameter.Name);
             }
         }
     }

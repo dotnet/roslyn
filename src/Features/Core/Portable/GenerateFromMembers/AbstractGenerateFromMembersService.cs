@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 
         private static readonly char[] s_underscore = { '_' };
 
-        protected IMethodSymbol GetDelegatedConstructor(
+        protected virtual IMethodSymbol GetDelegatedConstructor(
             INamedTypeSymbol containingType,
             ImmutableArray<IParameterSymbol> parameters)
         {
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             return q.FirstOrDefault();
         }
 
-        protected IMethodSymbol GetMatchingConstructor(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
+        protected virtual IMethodSymbol GetMatchingConstructor(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
             => containingType.InstanceConstructors.FirstOrDefault(c => MatchesConstructor(c, parameters));
 
         private bool MatchesConstructor(IMethodSymbol constructor, ImmutableArray<IParameterSymbol> parameters)

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,18 +22,18 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             private readonly AddConstructorParametersFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly State _state;
-            private readonly IList<IParameterSymbol> _parameters;
+            private readonly ImmutableArray<IParameterSymbol> _missingParameters;
 
             public AddConstructorParametersCodeAction(
                 AddConstructorParametersFromMembersCodeRefactoringProvider service,
                 Document document,
                 State state,
-                IList<IParameterSymbol> parameters)
+                ImmutableArray<IParameterSymbol> missingParameters)
             {
                 _service = service;
                 _document = document;
                 _state = state;
-                _parameters = parameters;
+                _missingParameters = missingParameters;
             }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 var constructor = declarationService.GetDeclarations(_state.DelegatedConstructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
                 var newConstructor = constructor;
-                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _parameters.Skip(_state.DelegatedConstructor.Parameters.Length), workspace);
+                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _missingParameters, workspace);
                 newConstructor = CodeGenerator.AddStatements(newConstructor, CreateAssignStatements(_state), workspace)
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -52,19 +53,17 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 return Task.FromResult(_document.WithSyntaxRoot(newRoot));
             }
 
-            private IEnumerable<SyntaxNode> CreateAssignStatements(
-                State state)
+            private IEnumerable<SyntaxNode> CreateAssignStatements(State state)
             {
                 var factory = _document.GetLanguageService<SyntaxGenerator>();
-                for (int i = state.DelegatedConstructor.Parameters.Length; i < state.Parameters.Length; i++)
+                for (var i = 0; i < _missingParameters.Length; ++i)
                 {
-                    var symbolName = state.SelectedMembers[i].Name;
-                    var parameterName = state.Parameters[i].Name;
-
+                    var memberName = _state.MissingMembers[i].Name;
+                    var paramterName = _missingParameters[i].Name;
                     yield return factory.ExpressionStatement(
                         factory.AssignmentStatement(
-                            factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(symbolName)),
-                            factory.IdentifierName(parameterName)));
+                            factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(memberName)),
+                            factory.IdentifierName(paramterName)));
                 }
             }
 
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 {
                     var parameters = _state.DelegatedConstructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
-                    var optional = _parameters.First().IsOptional;
+                    var optional = _missingParameters.First().IsOptional;
                     var signature = $"{_state.ContainingType.Name}({parameterString})";
 
                     return optional
