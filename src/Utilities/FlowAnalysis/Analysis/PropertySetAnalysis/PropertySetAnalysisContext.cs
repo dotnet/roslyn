@@ -27,7 +27,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
-            InterproceduralAnalysisKind interproceduralAnalysisKind,
+            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             Func<PropertySetAnalysisContext, PropertySetAnalysisResult> getOrComputeAnalysisResult,
@@ -38,7 +38,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             string propertyToSetFlag,
             bool isNullPropertyFlagged,
             ImmutableHashSet<string> methodNamesToCheckForFlaggedUsage)
-            : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisKind, pessimisticAnalysis,
+            : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis,
                   predicateAnalysis: false, copyAnalysisResultOpt: null, pointsToAnalysisResultOpt: pointsToAnalysisResultOpt,
                   getOrComputeAnalysisResult: getOrComputeAnalysisResult,
                   parentControlFlowGraphOpt: parentControlFlowGraphOpt,
@@ -56,7 +56,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
-            InterproceduralAnalysisKind interproceduralAnalysisKind,
+            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             Func<PropertySetAnalysisContext, PropertySetAnalysisResult> getOrComputeAnalysisResult,
@@ -72,7 +72,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 wellKnownTypeProvider, 
                 controlFlowGraph,
                 owningSymbol,
-                interproceduralAnalysisKind,
+                interproceduralAnalysisConfig,
                 pessimisticAnalysis,
                 pointsToAnalysisResultOpt, 
                 getOrComputeAnalysisResult, 
@@ -97,7 +97,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             Debug.Assert(copyAnalysisResultOpt == null);
 
             return new PropertySetAnalysisContext(
-                ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod, InterproceduralAnalysisKind,
+                ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod, InterproceduralAnalysisConfiguration,
                 PessimisticAnalysis, pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, ControlFlowGraph,
                 interproceduralAnalysisData,
                 this.TypeToTrackMetadataName,

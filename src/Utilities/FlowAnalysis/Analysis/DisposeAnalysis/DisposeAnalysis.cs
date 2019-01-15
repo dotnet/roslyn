@@ -2,6 +2,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 {
@@ -32,19 +34,38 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
+            AnalyzerOptions analyzerOptions,
+            DiagnosticDescriptor rule,
             ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
             bool trackInstanceFields,
+            CancellationToken cancellationToken,
             out PointsToAnalysisResult pointsToAnalysisResult,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None)
+        {
+            var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
+                analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken);
+            return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
+                interproceduralAnalysisConfig, disposeOwnershipTransferLikelyTypes,
+                trackInstanceFields, out pointsToAnalysisResult);
+        }
+
+        private static DisposeAnalysisResult GetOrComputeResult(
+            ControlFlowGraph cfg,
+            ISymbol owningSymbol,
+            WellKnownTypeProvider wellKnownTypeProvider,
+            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
+            ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
+            bool trackInstanceFields,
+            out PointsToAnalysisResult pointsToAnalysisResult)
         {
             Debug.Assert(cfg != null);
             Debug.Assert(wellKnownTypeProvider.IDisposable != null);
             Debug.Assert(owningSymbol != null);
 
             pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(
-                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisKind, PessimisticAnalysis);
+                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig, PessimisticAnalysis);
             var analysisContext = DisposeAnalysisContext.Create(
-                DisposeAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisKind, PessimisticAnalysis,
+                DisposeAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisConfig, PessimisticAnalysis,
                 pointsToAnalysisResult, GetOrComputeResultForAnalysisContext, disposeOwnershipTransferLikelyTypes, trackInstanceFields);
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }

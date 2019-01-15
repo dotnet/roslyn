@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using System.Threading;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
@@ -24,12 +26,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
+            AnalyzerOptions analyzerOptions,
+            DiagnosticDescriptor rule,
+            CancellationToken cancellationToken,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
             bool pessimisticAnalysis = true,
             bool performCopyAnalysis = true)
         {
+            var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
+                analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken);
             return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
-                out var _, interproceduralAnalysisKind, pessimisticAnalysis, performCopyAnalysis);
+                out var _, interproceduralAnalysisConfig, pessimisticAnalysis, performCopyAnalysis);
+        }
+
+        public static PointsToAnalysisResult GetOrComputeResult(
+            ControlFlowGraph cfg,
+            ISymbol owningSymbol,
+            WellKnownTypeProvider wellKnownTypeProvider,
+            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
+            bool pessimisticAnalysis = true,
+            bool performCopyAnalysis = true)
+        {
+            return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
+                out var _, interproceduralAnalysisConfig, pessimisticAnalysis, performCopyAnalysis);
         }
 
         public static PointsToAnalysisResult GetOrComputeResult(
@@ -37,16 +56,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
             out CopyAnalysisResult copyAnalysisResultOpt,
-            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
+            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis = true,
             bool performCopyAnalysis = true)
         {
             copyAnalysisResultOpt = performCopyAnalysis ?
                 CopyAnalysis.CopyAnalysis.GetOrComputeResult(
-                    cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisKind, pessimisticAnalysis) :
+                    cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig, pessimisticAnalysis) :
                 null;
             var analysisContext = PointsToAnalysisContext.Create(PointsToAbstractValueDomain.Default, wellKnownTypeProvider, cfg,
-                owningSymbol, interproceduralAnalysisKind, pessimisticAnalysis, copyAnalysisResultOpt, GetOrComputeResultForAnalysisContext);
+                owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, copyAnalysisResultOpt, GetOrComputeResultForAnalysisContext);
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }
 

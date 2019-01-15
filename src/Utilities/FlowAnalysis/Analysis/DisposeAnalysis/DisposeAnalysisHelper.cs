@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Analyzer.Utilities
 {
@@ -92,25 +93,23 @@ namespace Analyzer.Utilities
         public bool TryGetOrComputeResult(
             ImmutableArray<IOperation> operationBlocks,
             IMethodSymbol containingMethod,
-            out DisposeAnalysisResult disposeAnalysisResult)
-        {
-            return TryGetOrComputeResult(operationBlocks, containingMethod, out disposeAnalysisResult, out var _);
-        }
-
-        public bool TryGetOrComputeResult(
-            ImmutableArray<IOperation> operationBlocks,
-            IMethodSymbol containingMethod,
+            AnalyzerOptions analyzerOptions,
+            DiagnosticDescriptor rule,
+            CancellationToken cancellationToken,
             out DisposeAnalysisResult disposeAnalysisResult,
             out PointsToAnalysisResult pointsToAnalysisResult)
         {
-            return TryGetOrComputeResult(operationBlocks, containingMethod, trackInstanceFields: false,
-                disposeAnalysisResult: out disposeAnalysisResult, pointsToAnalysisResult: out pointsToAnalysisResult);
+            return TryGetOrComputeResult(operationBlocks, containingMethod, analyzerOptions, rule, trackInstanceFields: false,
+                cancellationToken: cancellationToken, disposeAnalysisResult: out disposeAnalysisResult, pointsToAnalysisResult: out pointsToAnalysisResult);
         }
 
         public bool TryGetOrComputeResult(
             ImmutableArray<IOperation> operationBlocks,
             IMethodSymbol containingMethod,
+            AnalyzerOptions analyzerOptions,
+            DiagnosticDescriptor rule,
             bool trackInstanceFields,
+            CancellationToken cancellationToken,
             out DisposeAnalysisResult disposeAnalysisResult,
             out PointsToAnalysisResult pointsToAnalysisResult)
         {
@@ -122,7 +121,7 @@ namespace Analyzer.Utilities
                     var cfg = topmostBlock.GetEnclosingControlFlowGraph();
 
                     disposeAnalysisResult = DisposeAnalysis.GetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
-                        _disposeOwnershipTransferLikelyTypes, trackInstanceFields, out pointsToAnalysisResult);
+                        analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields, cancellationToken, out pointsToAnalysisResult);
                     return true;
                 }
             }

@@ -34,19 +34,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private int _recursionDepth;
 
         #region Fields specific to Interprocedural analysis
+
+        private InterproceduralAnalysisKind InterproceduralAnalysisKind
+            => DataFlowAnalysisContext.InterproceduralAnalysisConfiguration.InterproceduralAnalysisKind;
+
         /// <summary>
         /// Defines the max length for method call chain (call stack size) for interprocedural analysis.
         /// This is done for performance reasons for analyzing methods with extremely large call trees.
-        /// https://github.com/dotnet/roslyn-analyzers/issues/1809 tracks improving this heuristic.
         /// </summary>
-        private const int MaxInterproceduralMethodCallChain = 3;
+        private uint MaxInterproceduralMethodCallChain
+            => DataFlowAnalysisContext.InterproceduralAnalysisConfiguration.MaxInterproceduralMethodCallChain;
 
         /// <summary>
         /// Defines the max length for lambda/local function method call chain (call stack size) for interprocedural analysis.
         /// This is done for performance reasons for analyzing methods with extremely large call trees.
-        /// https://github.com/dotnet/roslyn-analyzers/issues/1809 tracks improving this heuristic.
         /// </summary>
-        private const int MaxInterproceduralLambdaorLocalFunctionCallChain = 10;
+        private uint MaxInterproceduralLambdaorLocalFunctionCallChain
+            => DataFlowAnalysisContext.InterproceduralAnalysisConfiguration.MaxInterproceduralLambdaorLocalFunctionCallChain;
 
         /// <summary>
         /// Stores a map from entity to set of entities that share the same instance location.
@@ -133,9 +137,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected bool IsInsideAnonymousObjectInitializer { get; private set; }
 
         protected bool IsLValueFlowCapture(CaptureId captureId) => _lValueFlowCaptures.Contains(captureId);
-
-        protected virtual int GetAllowedInterproceduralMethodCallChain() => MaxInterproceduralMethodCallChain;
-        protected virtual int GetAllowedInterproceduralLambdaorLocalFunctionCallChain() => MaxInterproceduralLambdaorLocalFunctionCallChain;
 
         protected DataFlowOperationVisitor(TAnalysisContext analysisContext)
         {
@@ -1488,7 +1489,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             invokedMethod = invokedMethod.OriginalDefinition;
 
             // Bail out if configured not to execute interprocedural analysis.
-            var configuredToSkipInterproceduralAnalysis = !isLambdaOrLocalFunction && DataFlowAnalysisContext.InterproceduralAnalysisKind == InterproceduralAnalysisKind.None;
+            var configuredToSkipInterproceduralAnalysis = !isLambdaOrLocalFunction && InterproceduralAnalysisKind == InterproceduralAnalysisKind.None;
 
             // Also bail out for non-source methods and methods where we are not sure about the actual runtime target method.
             if (configuredToSkipInterproceduralAnalysis ||
@@ -1510,17 +1511,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Check if we are already at the maximum allowed interprocedural call chain length.
-            var methodCallStackThreshold = GetAllowedInterproceduralMethodCallChain();
-            Debug.Assert(methodCallStackThreshold <= MaxInterproceduralMethodCallChain);
-
-            var lambdaOrLocalFunctionCallStackThreshold = GetAllowedInterproceduralLambdaorLocalFunctionCallChain();
-            Debug.Assert(lambdaOrLocalFunctionCallStackThreshold <= MaxInterproceduralLambdaorLocalFunctionCallChain);
-
             int currentMethodCallCount = currentMethodsBeingAnalyzed.Where(m => !((IMethodSymbol)m.OwningSymbol).IsLambdaOrLocalFunctionOrDelegate()).Count();
             int currentLambdaOrLocallFunctionCallCount = currentMethodsBeingAnalyzed.Count - currentMethodCallCount;
 
-            if (currentMethodCallCount == methodCallStackThreshold ||
-                currentLambdaOrLocallFunctionCallCount == lambdaOrLocalFunctionCallStackThreshold)
+            if (currentMethodCallCount == MaxInterproceduralMethodCallChain ||
+                currentLambdaOrLocallFunctionCallCount == MaxInterproceduralLambdaorLocalFunctionCallChain)
             {
                 return ResetAnalysisDataAndReturnDefaultValue();
             }
@@ -1546,7 +1541,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _interproceduralCallStack.Push(originalOperation);
 
             // Compute optional interprocedural analysis data for context-sensitive analysis.
-            bool isContextSensitive = isLambdaOrLocalFunction || DataFlowAnalysisContext.InterproceduralAnalysisKind == InterproceduralAnalysisKind.ContextSensitive;
+            bool isContextSensitive = isLambdaOrLocalFunction || InterproceduralAnalysisKind == InterproceduralAnalysisKind.ContextSensitive;
             var interproceduralAnalysisData = isContextSensitive ? ComputeInterproceduralAnalysisData() : null;
 
             // Create analysis context for interprocedural analysis.
