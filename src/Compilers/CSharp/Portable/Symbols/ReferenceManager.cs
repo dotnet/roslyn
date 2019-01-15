@@ -1012,7 +1012,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    if (!ReferenceEquals(peAssembly.Assembly, Assembly))
+                    // The constructor of PEAssembly ensures that Identity may not be null.
+                    if (!Assembly.Identity.Equals(peAssembly.Assembly.Identity))
                     {
                         return false;
                     }
