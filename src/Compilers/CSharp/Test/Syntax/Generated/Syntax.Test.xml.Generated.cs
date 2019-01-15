@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax GeneratePragmaWarningDirectiveTrivia()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PragmaWarningDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.HashToken), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.PragmaKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.WarningKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.DisableKeyword), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PragmaWarningDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.HashToken), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.PragmaKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.WarningKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.DisableKeyword), null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax GeneratePragmaChecksumDirectiveTrivia()
@@ -3736,6 +3736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.PragmaKeyword, node.PragmaKeyword.Kind);
             Assert.Equal(SyntaxKind.WarningKeyword, node.WarningKeyword.Kind);
             Assert.Equal(SyntaxKind.DisableKeyword, node.DisableOrRestoreKeyword.Kind);
+            Assert.Null(node.NullableKeyword);
             Assert.NotNull(node.ErrorCodes);
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind);
             Assert.Equal(new bool(), node.IsActive);
@@ -10459,7 +10460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static PragmaWarningDirectiveTriviaSyntax GeneratePragmaWarningDirectiveTrivia()
         {
-            return SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), SyntaxFactory.Token(SyntaxKind.DisableKeyword), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+            return SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), SyntaxFactory.Token(SyntaxKind.DisableKeyword), default(SyntaxToken), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         }
         
         private static PragmaChecksumDirectiveTriviaSyntax GeneratePragmaChecksumDirectiveTrivia()
@@ -13139,10 +13140,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.PragmaKeyword, node.PragmaKeyword.Kind());
             Assert.Equal(SyntaxKind.WarningKeyword, node.WarningKeyword.Kind());
             Assert.Equal(SyntaxKind.DisableKeyword, node.DisableOrRestoreKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.NullableKeyword.Kind());
             Assert.NotNull(node.ErrorCodes);
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind());
             Assert.Equal(new bool(), node.IsActive);
-            var newNode = node.WithHashToken(node.HashToken).WithPragmaKeyword(node.PragmaKeyword).WithWarningKeyword(node.WarningKeyword).WithDisableOrRestoreKeyword(node.DisableOrRestoreKeyword).WithErrorCodes(node.ErrorCodes).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
+            var newNode = node.WithHashToken(node.HashToken).WithPragmaKeyword(node.PragmaKeyword).WithWarningKeyword(node.WarningKeyword).WithDisableOrRestoreKeyword(node.DisableOrRestoreKeyword).WithNullableKeyword(node.NullableKeyword).WithErrorCodes(node.ErrorCodes).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
         }
         
