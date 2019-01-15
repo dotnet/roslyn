@@ -49,19 +49,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 ' If tests are written that require multiple projects, additional support will need to be added.
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
+                Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+
                 Dim state = New CodeModelState(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
+                    threadingContext,
                     mockServiceProvider,
                     project.LanguageServices,
                     mockVisualStudioWorkspace,
-                    Nothing)
+                    New ProjectCodeModelFactory(mockVisualStudioWorkspace, mockServiceProvider, threadingContext))
 
                 Dim mockTextManagerAdapter = New MockTextManagerAdapter()
 
-                For Each documentId In project.DocumentIds
+                Dim projectCodeModel = DirectCast(state.ProjectCodeModelFactory.CreateProjectCodeModel(project.Id, Nothing), ProjectCodeModel)
+
+                For Each document In project.Documents
                     ' Note that a parent is not specified below. In Visual Studio, this would normally be an EnvDTE.Project instance.
-                    Dim fcm = FileCodeModel.Create(state, parent:=Nothing, documentId:=documentId, textManagerAdapter:=mockTextManagerAdapter)
-                    mockVisualStudioWorkspace.SetFileCodeModel(documentId, fcm)
+                    Dim fcm = projectCodeModel.GetOrCreateFileCodeModel(document.FilePath, parent:=Nothing)
+                    mockVisualStudioWorkspace.SetFileCodeModel(document.Id, fcm)
                 Next
 
                 Dim root = New ComHandle(Of EnvDTE.CodeModel, RootCodeModel)(RootCodeModel.Create(state, Nothing, project.Id))
