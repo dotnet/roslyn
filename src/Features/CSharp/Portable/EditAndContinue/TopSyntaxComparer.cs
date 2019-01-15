@@ -207,11 +207,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.VariableDeclaration:
                     isLeaf = false;
-                    return  Label.FieldVariableDeclaration;
+                    return Label.FieldVariableDeclaration;
 
                 case SyntaxKind.VariableDeclarator:
                     isLeaf = true;
-                    return  Label.FieldVariableDeclarator;
+                    return Label.FieldVariableDeclarator;
 
                 case SyntaxKind.MethodDeclaration:
                     isLeaf = false;
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     var leftBody = GetBody(left);
                     var rightBody = GetBody(right);
-                    
+
                     if (!SyntaxFactory.AreEquivalent(leftBody, rightBody, null))
                     {
                         return false;

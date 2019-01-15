@@ -222,7 +222,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
     IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (num>3) ... }')
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'num>3')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'num>3')
             Left: 
               ILocalReferenceOperation: num (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'num')
             Right: 
@@ -285,7 +285,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
     IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (num>3) ... }')
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'num>3')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'num>3')
             Left: 
               ILocalReferenceOperation: num (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'num')
             Right: 
@@ -420,9 +420,9 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'fi.Name + "" ... (employee))')
-                  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'fi.Name + "" ... (employee))')
+                  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: 'fi.Name + "" ... (employee))')
                     Left: 
-                      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'fi.Name + "" = ""')
+                      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: 'fi.Name + "" = ""')
                         Left: 
                           IPropertyReferenceOperation: System.String System.Reflection.MemberInfo.Name { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'fi.Name')
                             Instance Receiver: 
@@ -613,7 +613,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: '!x.Equals(null)')
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
-                        IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.UnaryOperator, Type: ?) (Syntax: '!x.Equals(null)')
+                        IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.Unary, Type: ?) (Syntax: '!x.Equals(null)')
                           Operand: 
                             IInvalidOperation (OperationKind.Invalid, Type: ?) (Syntax: 'x.Equals(null)')
                               Children(2):
@@ -1042,7 +1042,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
     IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (num > 3 ... }')
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'num > 3')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'num > 3')
             Left: 
               ILocalReferenceOperation: num (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'num')
             Right: 
@@ -1439,10 +1439,10 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
   Locals: Local_1: System.Int32 x
   LoopControlVariable: 
     IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is int x')
-      Expression: 
+      Value: 
         IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
       Pattern: 
-        IDeclarationPatternOperation (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, DeclaredSymbol: System.Int32 x, MatchesNull: False)
   Collection: 
     ILocalReferenceOperation: arr (OperationKind.LocalReference, Type: System.Int32[]) (Syntax: 'arr')
   Body: 
@@ -2940,7 +2940,7 @@ Block[B0] - Entry
                           Left: 
                             IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
                           Right: 
-                            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+                            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
                               Left: 
                                 ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                               Right: 
@@ -3081,7 +3081,7 @@ Block[B0] - Entry
                       Left: 
                         IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
                       Right: 
-                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
                           Left: 
                             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                           Right: 
@@ -3870,7 +3870,7 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'pets')
               Value: 
-                IInvocationOperation (virtual System.Collections.Generic.IAsyncEnumerator<System.String> System.Collections.Generic.IAsyncEnumerable<System.String>.GetAsyncEnumerator()) (OperationKind.Invocation, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
+                IInvocationOperation (virtual System.Collections.Generic.IAsyncEnumerator<System.String> System.Collections.Generic.IAsyncEnumerable<System.String>.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])) (OperationKind.Invocation, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
                   Instance Receiver: 
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IAsyncEnumerable<System.String>, IsImplicit) (Syntax: 'pets')
                       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

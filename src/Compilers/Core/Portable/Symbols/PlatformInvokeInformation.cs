@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                switch (_flags & MethodImportAttributes.BestFitMappingMask )
+                switch (_flags & MethodImportAttributes.BestFitMappingMask)
                 {
                     case MethodImportAttributes.BestFitMappingEnable:
                         return true;

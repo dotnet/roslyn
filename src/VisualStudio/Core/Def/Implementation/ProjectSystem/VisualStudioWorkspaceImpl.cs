@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ImmutableDictionary<ProjectId, IVsHierarchy> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
-        private ImmutableDictionary<string, VisualStudioProject> _projectUniqueNameToProjectMap = ImmutableDictionary<string, VisualStudioProject>.Empty;
+        private Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new Dictionary<string, List<VisualStudioProject>>();
 
         /// <summary>
         /// A set of documents that were added by <see cref="VisualStudioProject.AddSourceTextContainer"/>, and aren't otherwise
@@ -129,13 +129,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _openFileTrackerOpt?.CheckForFilesBeingOpen(newFileNames);
         }
 
-        internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy hierarchy, Guid guid, string projectUniqueName)
+        internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy hierarchy, Guid guid, string projectSystemName)
         {
             lock (_gate)
             {
                 _projectToHierarchyMap = _projectToHierarchyMap.Add(project.Id, hierarchy);
                 _projectToGuidMap = _projectToGuidMap.Add(project.Id, guid);
-                _projectUniqueNameToProjectMap = _projectUniqueNameToProjectMap.Add(projectUniqueName, project);
+                _projectSystemNameToProjectsMap.MultiAdd(projectSystemName, project);
             }
         }
 
@@ -181,10 +181,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return ContainedDocument.TryGetContainedDocument(documentId);
         }
 
-        internal VisualStudioProject GetProjectForUniqueName(string projectName)
+        internal VisualStudioProject GetProjectWithHierarchyAndName(IVsHierarchy hierarchy, string projectName)
         {
-            // This doesn't take a lock since _projectNameToProjectMap is immutable
-            return _projectUniqueNameToProjectMap.GetValueOrDefault(projectName, defaultValue: null);
+            lock (_gate)
+            {
+                if (_projectSystemNameToProjectsMap.TryGetValue(projectName, out var projects))
+                {
+                    foreach (var project in projects)
+                    {
+                        if (_projectToHierarchyMap.TryGetValue(project.Id, out var projectHierarchy))
+                        {
+                            if (projectHierarchy == hierarchy)
+                            {
+                                return project;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
 
         [Obsolete("This is a compatibility shim for Live Unit Testing; please do not use it.")]
@@ -233,7 +249,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new InvalidOperationException(ServicesVSResources.VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread);
             }
 
-            var projectChanges = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().ToList();
+            var currentSolution = this.CurrentSolution;
+            var projectChanges = newSolution.GetChanges(currentSolution).GetProjectChanges().ToList();
+
             var projectsToLoad = new HashSet<Guid>();
             foreach (var pc in projectChanges)
             {
@@ -267,13 +285,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // first make sure we can edit the document we will be updating (check them out from source control, etc)
-            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true).Concat(pd.GetChangedAdditionalDocuments())).ToList();
+            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true).Concat(pd.GetChangedAdditionalDocuments())).Where(CanApplyChange).ToList();
             if (changedDocs.Count > 0)
             {
                 this.EnsureEditableDocuments(changedDocs);
             }
 
             return base.TryApplyChanges(newSolution, progressTracker);
+
+            bool CanApplyChange(DocumentId documentId)
+            {
+                var document = newSolution.GetDocument(documentId) ?? currentSolution.GetDocument(documentId);
+                if (document == null)
+                {
+                    // we can have null if documentId is for additional files
+                    return true;
+                }
+
+                return document.CanApplyChange();
+            }
         }
 
         public override bool CanOpenDocuments
@@ -588,7 +618,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var documentTrackingService = this.Services.GetService<IDocumentTrackingService>();
             if (documentTrackingService != null)
             {
-                var documentId = documentTrackingService.GetActiveDocument() ?? documentTrackingService.GetVisibleDocuments().FirstOrDefault();
+                var documentId = documentTrackingService.TryGetActiveDocument() ?? documentTrackingService.GetVisibleDocuments().FirstOrDefault();
                 if (documentId != null)
                 {
                     var composition = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
@@ -1053,34 +1083,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
-                var filePath = CurrentSolution.GetDocument(documentId)?.FilePath;
+                // The hierarchy might be supporting multitargeting; in that case, let's update the context. Unfortunately the IVsHierarchies that support this
+                // don't necessarily let us read it first, so we have to fire-and-forget here.
+                foreach (var (projectSystemName, projects) in _projectSystemNameToProjectsMap)
+                {
+                    if (projects.Any(p => p.Id == documentId.ProjectId))
+                    {
+                        hierarchy.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, projectSystemName);
+
+                        // We've updated that property, but we still need to continue the rest of this process to ensure the Running Document Table is updated
+                        // and any shared asset projects are also updated.
+                        break;
+                    }
+                }
+
+                var filePath = GetFilePath(documentId);
                 if (filePath == null)
                 {
                     return;
                 }
 
                 var itemId = hierarchy.TryGetItemId(filePath);
-                if (itemId == VSConstants.VSITEMID_NIL)
+                if (itemId != VSConstants.VSITEMID_NIL)
                 {
-                    return;
-                }
-
-                // Is this owned by a shared project? If so, go recursively. We can put this in a loop because in the case of mixed
-                // scenarios where you have shared assets projects and multitargeting projects, this same code works in both cases.
-                // Some shared hierarchies, when queried about items also give themselves back, so we'll only loop if we're actually
-                // going somewhere else.
-                while (SharedProjectUtilities.TryGetItemInSharedAssetsProject(hierarchy, itemId, out IVsHierarchy sharedHierarchy, out uint sharedItemId) &&
-                       hierarchy != sharedHierarchy)
-                {
-                    // Ensure the shared context is set correctly
-                    if (sharedHierarchy.GetActiveProjectContext() != hierarchy)
+                    // Is this owned by a shared asset project? If so, we need to put the shared asset project into the running document table, and need to set the
+                    // current hierarchy as the active context of that shared hierarchy. This is kept as a loop that we do multiple times in the case that you
+                    // have multiple pointers. This used to be the case for multitargeting projects, but that was now handled by setting the active context property
+                    // above. Some project systems out there might still be supporting it, so we'll support it too.
+                    while (SharedProjectUtilities.TryGetItemInSharedAssetsProject(hierarchy, itemId, out var sharedHierarchy, out uint sharedItemId) &&
+                           hierarchy != sharedHierarchy)
                     {
-                        ErrorHandler.ThrowOnFailure(sharedHierarchy.SetActiveProjectContext(hierarchy));
-                    }
+                        // Ensure the shared context is set correctly
+                        if (sharedHierarchy.GetActiveProjectContext() != hierarchy)
+                        {
+                            ErrorHandler.ThrowOnFailure(sharedHierarchy.SetActiveProjectContext(hierarchy));
+                        }
 
-                    // We now need to ensure the outer project is also set up
-                    hierarchy = sharedHierarchy;
-                    itemId = sharedItemId;
+                        // We now need to ensure the outer project is also set up
+                        hierarchy = sharedHierarchy;
+                        itemId = sharedItemId;
+                    }
                 }
 
                 // Update the ownership of the file in the Running Document Table
@@ -1149,6 +1191,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             var queryEdit = (IVsQueryEditQuerySave2)ServiceProvider.GlobalProvider.GetService(typeof(SVsQueryEditQuerySave));
 
+            // make sure given document id actually exist in current solution and the file is marked as supporting modifications
+            // and actually has non null file path
             var fileNames = documents.Select(GetFilePath).ToArray();
 
             // TODO: meditate about the flags we can pass to this and decide what is most appropriate for Roslyn
@@ -1314,11 +1358,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _projectToGuidMap = _projectToGuidMap.Remove(projectId);
                 _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
 
-                foreach (var pair in _projectUniqueNameToProjectMap)
+                foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
                 {
-                    if (pair.Value.Id == projectId)
+                    if (projects.RemoveAll(p => p.Id == projectId) > 0)
                     {
-                        _projectUniqueNameToProjectMap = _projectUniqueNameToProjectMap.Remove(pair.Key);
+                        if (projects.Count == 0)
+                        {
+                            _projectSystemNameToProjectsMap.Remove(projectName);
+                        }
+
                         break;
                     }
                 }
@@ -1377,6 +1425,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         /// <param name="projectId">The <see cref="ProjectId"/> of the project that could be referenced in place of the output path.</param>
         /// <param name="outputPath">The output path to replace.</param>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/31306",
+            Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
         private void ConvertMetadataReferencesToProjectReferences_NoLock(ProjectId projectId, string outputPath)
         {
             var modifiedSolution = this.CurrentSolution;
@@ -1386,11 +1436,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (CanConvertMetadataReferenceToProjectReference(projectIdToRetarget, referencedProjectId: projectId))
                 {
-                    foreach (PortableExecutableReference reference in modifiedSolution.GetProject(projectIdToRetarget).MetadataReferences)
+                    // PERF: call GetProjectState instead of GetProject, otherwise creating a new project might force all
+                    // Project instances to get created.
+                    foreach (PortableExecutableReference reference in modifiedSolution.GetProjectState(projectIdToRetarget).MetadataReferences)
                     {
                         if (string.Equals(reference.FilePath, outputPath, StringComparison.OrdinalIgnoreCase))
                         {
-
                             var projectReference = new ProjectReference(projectId, reference.Properties.Aliases, reference.Properties.EmbedInteropTypes);
                             modifiedSolution = modifiedSolution.RemoveMetadataReference(projectIdToRetarget, reference)
                                                                .AddProjectReference(projectIdToRetarget, projectReference);
@@ -1410,10 +1461,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SetSolutionAndRaiseWorkspaceChanged_NoLock(modifiedSolution, projectIdsChanged);
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/31306",
+            Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
         private bool CanConvertMetadataReferenceToProjectReference(ProjectId projectIdWithMetadataReference, ProjectId referencedProjectId)
         {
-            var projectWithMetadataReference = CurrentSolution.GetProject(projectIdWithMetadataReference);
-            var referencedProject = CurrentSolution.GetProject(referencedProjectId);
+            // PERF: call GetProjectState instead of GetProject, otherwise creating a new project might force all
+            // Project instances to get created.
+            var projectWithMetadataReference = CurrentSolution.GetProjectState(projectIdWithMetadataReference);
+            var referencedProject = CurrentSolution.GetProjectState(referencedProjectId);
 
             // We don't want to convert a metadata reference to a project reference if the project being referenced isn't something
             // we can create a Compilation for. For example, if we have a C# project, and it's referencing a F# project via a metadata reference
@@ -1453,7 +1508,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         convertedReference.projectReference.ProjectId == projectId)
                     {
                         var metadataReference =
-                            CreateMetadataReference(
+                            CreatePortableExecutableReference(
                                 convertedReference.path,
                                 new MetadataReferenceProperties(
                                     aliases: convertedReference.projectReference.Aliases,
@@ -1524,11 +1579,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             return null;
-        }
-
-        public MetadataReference CreateMetadataReference(string path, MetadataReferenceProperties properties)
-        {
-            return Services.GetRequiredService<IMetadataService>().GetReference(path, properties);
         }
 
         private void SetSolutionAndRaiseWorkspaceChanged_NoLock(CodeAnalysis.Solution modifiedSolution, ICollection<ProjectId> projectIdsChanged)

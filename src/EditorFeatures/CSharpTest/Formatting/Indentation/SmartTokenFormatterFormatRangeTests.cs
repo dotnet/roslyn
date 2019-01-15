@@ -3508,7 +3508,7 @@ class Program{
                     return;
                 }
 
-                var changes = await formatter.FormatRangeAsync(workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None).ConfigureAwait(false);
+                var changes = formatter.FormatRange(workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
                 var actual = GetFormattedText(buffer, changes);
                 Assert.Equal(expected, actual);
             }

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindTokenOnLeftOfPosition(textSpan.Start);
 
-            var model = await document.GetSemanticModelAsync(cancellationToken);
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var awaitable = GetAwaitableExpression(textSpan, token, model, syntaxFacts, cancellationToken);
             if (awaitable == null)
@@ -73,6 +73,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             if (invocation is null)
             {
                 return null;
+            }
+
+            if (syntaxFacts.IsExpressionOfInvocationExpression(invocation.Parent))
+            {
+                // Do not offer fix on `MethodAsync()$$.ConfigureAwait()`
+                // Do offer fix on `MethodAsync()$$.Invalid()`
+                if (!model.GetTypeInfo(invocation.Parent.Parent).Type.IsErrorType())
+                {
+                    return null;
+                }
             }
 
             if (syntaxFacts.IsExpressionOfAwaitExpression(invocation))
@@ -108,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 .AddParentheses(syntaxGenerator.AwaitExpression(withoutTrivia))
                 .WithTriviaFrom(invocation);
 
-            return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken);
+            return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken).ConfigureAwait(false); ;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

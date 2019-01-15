@@ -72,13 +72,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             return GetDataTipTextImpl(subjectBuffer, pSpan, debugInfo, out pbstrText);
         }
-        
+
         protected int GetDataTipTextImpl(ITextBuffer subjectBuffer, TextSpan[] pSpan, AbstractLanguageService<TPackage, TLanguageService>.VsLanguageDebugInfo debugInfo, out string pbstrText)
         {
             pbstrText = null;
 
             var vsBuffer = EditorAdaptersFactory.GetBufferAdapter(subjectBuffer);
-            
+
             // TODO: broken in REPL
             if (vsBuffer == null)
             {

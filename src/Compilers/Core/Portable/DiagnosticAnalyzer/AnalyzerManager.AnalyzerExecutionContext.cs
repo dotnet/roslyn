@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _analyzer = analyzer;
                 _gate = new object();
             }
-                        
+
             /// <summary>
             /// Task to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
             /// These are run only once per every analyzer. 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _lazySymbolScopeTasks = _lazySymbolScopeTasks ?? new Dictionary<ISymbol, Task<HostSymbolStartAnalysisScope>>();
                     if (!_lazySymbolScopeTasks.TryGetValue(symbol, out var symbolScopeTask))
                     {
-                        symbolScopeTask = Task.Run(getSymbolAnalysisScopeCore, analyzerExecutor.CancellationToken);
+                        symbolScopeTask = Task.Run(() => getSymbolAnalysisScopeCore(), analyzerExecutor.CancellationToken);
                         _lazySymbolScopeTasks.Add(symbol, symbolScopeTask);
                     }
 

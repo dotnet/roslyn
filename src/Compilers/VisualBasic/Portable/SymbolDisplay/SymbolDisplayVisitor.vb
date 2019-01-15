@@ -250,7 +250,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' testing purposes we occasionally may print them out.  In this case, give them 
             ' a reasonable name so that tests can clearly describe what these are.
             Dim name = If(symbol.Name, "<anonymous local>")
-            builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, name, noEscaping:=False))
+
+            If symbol.IsConst Then
+                builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, name, noEscaping:=False))
+            Else
+                builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, name, noEscaping:=False))
+            End If
 
             If format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType) Then
                 AddSpace()

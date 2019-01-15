@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {
                     oldSolutionAndNewSolution = await TestOperationsAsync(
                         testState.Workspace, expected, operations,
-                        conflictSpans: ImmutableArray<TextSpan>.Empty, 
+                        conflictSpans: ImmutableArray<TextSpan>.Empty,
                         renameSpans: ImmutableArray<TextSpan>.Empty,
                         warningSpans: ImmutableArray<TextSpan>.Empty,
                         navigationSpans: ImmutableArray<TextSpan>.Empty,
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     await TestOperationsAsync(testState.Workspace, expectedTextWithUsings, operations,
                         conflictSpans: ImmutableArray<TextSpan>.Empty,
                         renameSpans: ImmutableArray<TextSpan>.Empty,
-                        warningSpans: ImmutableArray<TextSpan>.Empty, 
+                        warningSpans: ImmutableArray<TextSpan>.Empty,
                         navigationSpans: ImmutableArray<TextSpan>.Empty,
                         expectedChangedDocumentId: testState.InvocationDocument.Id);
                 }

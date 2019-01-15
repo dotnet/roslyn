@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal string GetDebuggerDisplay()
         {
-            return string.Join("; ", 
+            return string.Join("; ",
                 UsingAliases.OrderBy(x => x.Value.UsingDirective.Location.SourceSpan.Start).Select(ua => $"{ua.Key} = {ua.Value.Alias.Target}").Concat(
                 Usings.Select(u => u.NamespaceOrType.ToString())).Concat(
                 ExternAliases.Select(ea => $"extern alias {ea.Alias.Name}")));
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static Imports FromSyntax(
             CSharpSyntaxNode declarationSyntax,
             InContainerBinder binder,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             bool inUsing)
         {
             SyntaxList<UsingDirectiveSyntax> usingDirectives;
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult result,
             string name,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult result,
             string name,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult result,
             string name,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)

@@ -3056,6 +3056,71 @@ public unsafe struct S
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
+        [Fact]
+        public void IsUnmanagedTypeSemanticModel()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+struct S1 { }
+struct S2 { public S1 F1; }
+struct S3 { public object F1; }
+struct S4<T> { public T F1; }
+struct S5<T> where T : unmanaged { public T F1; }
+enum E1 { }
+class C<T>
+{
+    unsafe void M<U>() where U : unmanaged
+    {
+        var s1 = new S1();
+        var s2 = new S2();
+        var s3 = new S3();
+        var s4 = new S4<int>();
+        var s5 = new S4<int>();
+        var i0 = 0;
+        var e1 = new E1();
+        var o1 = new object();
+        var c1 = new C<int>;
+        var t1 = default(T);
+        var u1 = default(U);
+        void* p1 = null;
+        var a1 = new { X = 0 };
+        var a2 = new int[1];
+        var t2 = (0, 0);
+    }
+}");
+            var comp = CreateCompilation(tree);
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+            // The spec states the following are unmanaged types:
+            // sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, or bool.
+            // Any enum_type.
+            // Any pointer_type.
+            // Any user-defined struct_type that is not a constructed type and contains fields of unmanaged_types only.
+            // A type parameter with an unmanaged constraint
+            Assert.True(getLocalType("s1").IsUnmanagedType);
+            Assert.True(getLocalType("s2").IsUnmanagedType);
+            Assert.False(getLocalType("s3").IsUnmanagedType);
+            Assert.False(getLocalType("s4").IsUnmanagedType);
+            Assert.False(getLocalType("s5").IsUnmanagedType);
+            Assert.True(getLocalType("i0").IsUnmanagedType);
+            Assert.True(getLocalType("e1").IsUnmanagedType);
+            Assert.False(getLocalType("o1").IsUnmanagedType);
+            Assert.False(getLocalType("c1").IsUnmanagedType);
+            Assert.False(getLocalType("t1").IsUnmanagedType);
+            Assert.True(getLocalType("u1").IsUnmanagedType);
+            Assert.True(getLocalType("p1").IsUnmanagedType);
+            Assert.False(getLocalType("a1").IsUnmanagedType);
+            Assert.False(getLocalType("a2").IsUnmanagedType);
+            Assert.False(getLocalType("t2").IsUnmanagedType);
+
+            ITypeSymbol getLocalType(string name)
+            {
+                var decl = root.DescendantNodes()
+                    .OfType<VariableDeclaratorSyntax>()
+                    .Single(n => n.Identifier.ValueText == name);
+                return ((ILocalSymbol)model.GetDeclaredSymbol(decl)).Type;
+            }
+        }
+
         #endregion IsManagedType
 
         #region AddressOf operand kinds
@@ -8686,7 +8751,7 @@ namespace ConsoleApplication30
             var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
 
             var comp2 = CompileAndVerify(s2,
-                options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, 
+                options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails,
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
                 expectedOutput: "TrueFalse").Compilation;
 

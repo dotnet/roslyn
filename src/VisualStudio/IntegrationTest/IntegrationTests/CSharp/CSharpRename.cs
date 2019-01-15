@@ -133,7 +133,7 @@ using System;
 class Custom$$Attribute : Attribute
 {
 }
-",true);
+", true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]

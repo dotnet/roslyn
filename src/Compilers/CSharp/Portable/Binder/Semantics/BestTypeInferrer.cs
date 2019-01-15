@@ -10,65 +10,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class BestTypeInferrer
     {
-        public static NullableAnnotation GetNullableAnnotation(TypeSymbol bestType, ArrayBuilder<TypeSymbolWithAnnotations> types)
+        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeSymbolWithAnnotations> types)
         {
-            bool bestTypeIsPossiblyNullableReferenceTypeTypeParameter = bestType.IsPossiblyNullableReferenceTypeTypeParameter();
-            NullableAnnotation? result = null;
+            NullableAnnotation result = NullableAnnotation.NotAnnotated;
             foreach (var type in types)
             {
-                if (type.IsNull)
-                {
-                    // https://github.com/dotnet/roslyn/issues/27961 Should ignore untyped
-                    // expressions such as unbound lambdas and typeless tuples.
-                    result = NullableAnnotation.NullableBasedOnAnalysis;
-                    continue;
-                }
-
-                if (!type.IsReferenceType && !type.TypeSymbol.IsPossiblyNullableReferenceTypeTypeParameter())
-                {
-                    return NullableAnnotation.Unknown;
-                }
-
-                NullableAnnotation nullableAnnotation;
-
-                if (type.IsPossiblyNullableReferenceTypeTypeParameter() && !bestTypeIsPossiblyNullableReferenceTypeTypeParameter)
-                {
-                    nullableAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
-                }
-                else
-                {
-                    nullableAnnotation = type.NullableAnnotation;
-                }
-
-                if (nullableAnnotation == NullableAnnotation.Unknown)
-                {
-                    if (result?.IsAnyNotNullable() != false)
-                    {
-                        result = NullableAnnotation.Unknown;
-                    }
-                }
-                else if (nullableAnnotation.IsAnyNullable())
-                {
-                    if (result?.IsAnyNullable() != true)
-                    {
-                        result = nullableAnnotation;
-                    }
-                    else if (result != nullableAnnotation)
-                    {
-                        result = NullableAnnotation.Nullable;
-                    }
-                }
-                else if (result == null)
-                {
-                    result = nullableAnnotation;
-                }
-                else if (result.GetValueOrDefault() == NullableAnnotation.NotNullableBasedOnAnalysis && nullableAnnotation == NullableAnnotation.NotNullable)
-                {
-                    result = NullableAnnotation.NotNullable;
-                }
+                Debug.Assert(!type.IsNull);
+                Debug.Assert(type.Equals(types[0], TypeCompareKind.AllIgnoreOptions));
+                // This uses the covariant merging rules.
+                result = result.JoinForFixingLowerBounds(type.AsSpeakable().NullableAnnotation);
             }
 
-            return result ?? NullableAnnotation.NotNullable;
+            return result;
         }
 
         /// <remarks>
@@ -106,6 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return type;
                     }
 
+                    if (conversions.IncludeNullability)
+                    {
+                        type = type.SetSpeakableNullabilityForReferenceTypes();
+                    }
                     candidateTypes.Add(type);
                 }
             }
@@ -211,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol best = null;
             int bestIndex = -1;
-            for(int i = 0; i < types.Count; i++)
+            for (int i = 0; i < types.Count; i++)
             {
                 TypeSymbol type = types[i];
                 if ((object)best == null)

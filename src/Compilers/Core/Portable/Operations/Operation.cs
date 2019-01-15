@@ -16,7 +16,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class Operation : IOperation
     {
-        private static readonly IOperation s_unset = new EmptyStatement(null, null, null, default, isImplicit: true);
+        protected static readonly IOperation s_unset = new EmptyOperation(null, null, null, default, isImplicit: true);
+        protected static readonly IBlockOperation s_unsetBlock = new BlockOperation(ImmutableArray<IOperation>.Empty, default, null, null, null, default, isImplicit: true);
+        protected static readonly IArrayInitializerOperation s_unsetArrayInitializer = new ArrayInitializerOperation(ImmutableArray<IOperation>.Empty, null, null, default, isImplicit: true);
+        protected static readonly IEventReferenceOperation s_unsetEventReference = new EventReferenceOperation(null, null, null, null, null, default, isImplicit: true);
+        protected static readonly IObjectOrCollectionInitializerOperation s_unsetObjectOrCollectionInitializer = new ObjectOrCollectionInitializerOperation(ImmutableArray<IOperation>.Empty, null, null, null, default, isImplicit: true);
+        protected static readonly IPatternOperation s_unsetPattern = new ConstantPatternOperation(null, null, null, null, isImplicit: true);
+        protected static readonly IVariableDeclarationGroupOperation s_unsetVariableDeclarationGroup = new VariableDeclarationGroupOperation(ImmutableArray<IVariableDeclarationOperation>.Empty, null, null, null, default, isImplicit: true);
+        protected static readonly IVariableInitializerOperation s_unsetVariableInitializer = new VariableInitializerOperation(null, null, null, null, default, isImplicit: true);
         private readonly SemanticModel _owningSemanticModelOpt;
 
         // this will be lazily initialized. this will be initialized only once
@@ -137,7 +144,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Create <see cref="IOperation"/> of <see cref="OperationKind.None"/> with explicit children
-        /// 
+        ///
         /// Use this to create IOperation when we don't have proper specific IOperation yet for given language construct
         /// </summary>
         public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren, bool isImplicit)
@@ -166,7 +173,7 @@ namespace Microsoft.CodeAnalysis
                 return operations;
             }
 
-            // race is okay. penalty is going through a loop one more time or 
+            // race is okay. penalty is going through a loop one more time or
             // .Parent going through slower path of SearchParentOperation()
             // explicit cast is not allowed, so using "as" instead
             // invalid expression can have null element in the array
@@ -184,6 +191,25 @@ namespace Microsoft.CodeAnalysis
             }
 
             return operations;
+        }
+
+        [Conditional("DEBUG")]
+        internal static void VerifyParentOperation(IOperation parent, IOperation child)
+        {
+            if (!(child is null))
+            {
+                Debug.Assert((object)child.Parent == parent);
+            }
+        }
+
+        [Conditional("DEBUG")]
+        internal static void VerifyParentOperation<T>(IOperation parent, ImmutableArray<T> children) where T : IOperation
+        {
+            Debug.Assert(!children.IsDefault);
+            foreach (var child in children)
+            {
+                VerifyParentOperation(parent, child);
+            }
         }
 
         private abstract class BaseNoneOperation : Operation

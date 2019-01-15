@@ -2370,6 +2370,20 @@ End Class",
             MainDescription("Function C2.ViewData() As C1"))
         End Function
 
+        <WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function BuiltInOperatorWithUserDefinedEquivalent() As Task
+            Await TestAsync(
+"
+class X
+    sub N(a as string, b as string)
+        dim v = a $$= b
+    end sub
+end class",
+                MainDescription("Operator String.=(a As String, b As String) As Boolean"),
+                SymbolGlyph(Glyph.Operator))
+        End Function
+
         <WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestGetAccessorDocumentation() As Task

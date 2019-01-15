@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             _trailingTriviaCache.Clear();
             this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
-            return new SyntaxTriviaList(default(Microsoft.CodeAnalysis.SyntaxToken), 
+            return new SyntaxTriviaList(default(Microsoft.CodeAnalysis.SyntaxToken),
                 _trailingTriviaCache.ToListNode(), position: 0, index: 0);
         }
 
@@ -972,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 TextWindow.AdvanceChar();
             }
 
-            return start < TextWindow.Position; 
+            return start < TextWindow.Position;
         }
 
         // Allows underscores in integers, except at beginning for decimal and end
@@ -1687,7 +1687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 char surrogateCharacter = SlidingTextWindow.InvalidCharacter;
                 bool isEscaped = false;
                 char ch = TextWindow.PeekChar();
-                top:
+top:
                 switch (ch)
                 {
                     case '\\':
@@ -1886,7 +1886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            LoopExit:
+LoopExit:
             var width = TextWindow.Width; // exact size of input characters
             if (_identLen > 0)
             {
@@ -1920,7 +1920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
             }
 
-            Fail:
+Fail:
             info.Text = null;
             info.StringValue = null;
             TextWindow.Reset(start);
@@ -1992,7 +1992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // pairs aren't separately valid).
 
                 bool isEscaped = false;
-                top:
+top:
                 switch (consumedChar)
                 {
                     case '\\':
@@ -2153,7 +2153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            LoopExit:
+LoopExit:
             if (_identLen > 0)
             {
                 // NOTE: If we don't intern the string value, then we won't get a hit
@@ -2610,7 +2610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int hashCode = Hash.FnvOffsetBias;  // FNV base
             bool onlySpaces = true;
 
-            top:
+top:
             char ch = TextWindow.PeekChar();
 
             switch (ch)
@@ -3126,10 +3126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '\r':
                 case '\n':
-                    this.ScanEndOfLine();
-                    info.StringValue = info.Text = TextWindow.GetText(false);
-                    info.Kind = SyntaxKind.XmlTextLiteralNewLineToken;
-                    this.MutateLocation(XmlDocCommentLocation.Exterior);
+                    ScanXmlTextLiteralNewLineToken(ref info);
                     break;
 
                 case SlidingTextWindow.InvalidCharacter:
@@ -3154,6 +3151,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             Debug.Assert(info.Kind != SyntaxKind.None || info.Text != null);
             return info.Kind != SyntaxKind.None;
+        }
+
+        private void ScanXmlTextLiteralNewLineToken(ref TokenInfo info)
+        {
+            this.ScanEndOfLine();
+            info.StringValue = info.Text = TextWindow.GetText(intern: false);
+            info.Kind = SyntaxKind.XmlTextLiteralNewLineToken;
+            this.MutateLocation(XmlDocCommentLocation.Exterior);
         }
 
         private void ScanXmlTagStart(ref TokenInfo info)
@@ -3682,10 +3687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '\r':
                 case '\n':
-                    this.ScanEndOfLine();
-                    info.StringValue = info.Text = TextWindow.GetText(false);
-                    info.Kind = SyntaxKind.XmlTextLiteralNewLineToken;
-                    this.MutateLocation(XmlDocCommentLocation.Exterior);
+                    ScanXmlTextLiteralNewLineToken(ref info);
                     break;
 
                 case SlidingTextWindow.InvalidCharacter:
@@ -3911,10 +3913,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case '\r':
                 case '\n':
                     TextWindow.Reset(beforeConsumed);
-                    this.ScanEndOfLine();
-                    info.StringValue = info.Text = TextWindow.GetText(intern: false);
-                    info.Kind = SyntaxKind.XmlTextLiteralNewLineToken;
-                    this.MutateLocation(XmlDocCommentLocation.Exterior);
+                    ScanXmlTextLiteralNewLineToken(ref info);
                     break;
 
                 case '&':
@@ -4291,10 +4290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '\r':
                 case '\n':
-                    this.ScanEndOfLine();
-                    info.StringValue = info.Text = TextWindow.GetText(false);
-                    info.Kind = SyntaxKind.XmlTextLiteralNewLineToken;
-                    this.MutateLocation(XmlDocCommentLocation.Exterior);
+                    ScanXmlTextLiteralNewLineToken(ref info);
                     break;
 
                 case SlidingTextWindow.InvalidCharacter:
@@ -4425,10 +4421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '\r':
                 case '\n':
-                    this.ScanEndOfLine();
-                    info.StringValue = info.Text = TextWindow.GetText(false);
-                    info.Kind = SyntaxKind.XmlTextLiteralNewLineToken;
-                    this.MutateLocation(XmlDocCommentLocation.Exterior);
+                    ScanXmlTextLiteralNewLineToken(ref info);
                     break;
 
                 case SlidingTextWindow.InvalidCharacter:
@@ -4550,10 +4543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '\r':
                 case '\n':
-                    this.ScanEndOfLine();
-                    info.StringValue = info.Text = TextWindow.GetText(false);
-                    info.Kind = SyntaxKind.XmlTextLiteralNewLineToken;
-                    this.MutateLocation(XmlDocCommentLocation.Exterior);
+                    ScanXmlTextLiteralNewLineToken(ref info);
                     break;
 
                 case SlidingTextWindow.InvalidCharacter:

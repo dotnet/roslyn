@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     ProjectId activeProjectId = null;
                     if (_documentTracker != null)
                     {
-                        var activeDocument = _documentTracker.GetActiveDocument();
+                        var activeDocument = _documentTracker.TryGetActiveDocument();
                         if (activeDocument != null)
                         {
                             activeProjectId = activeDocument.ProjectId;
