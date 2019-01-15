@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 if (columnName == StandardTableColumnDefinitions2.LineText)
                 {
                     var inlines = CreateLineTextInlines();
-                    var textBlock = inlines.ToTextBlock(Presenter.ClassificationFormatMap, Presenter.TypeMap, wrap: false);
+                    var textBlock = inlines.ToTextBlock(Presenter.ClassificationFormatMap, wrap: false);
 
                     content = textBlock;
                     return true;
