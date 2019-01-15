@@ -34,12 +34,12 @@ Pokud se zadá script-file, provede skript, jinak spustí interaktivní REPL (Re
 Možnosti:
   /help                          Zobrazí tuto zprávu o použití (krátký tvar: /?).
   /version                       Zobrazí verzi a ukončí se.
-  /reference:<alias>=<soubor>      Odkazuje na metadata ze zadaného souboru sestavení pomocí zadaného aliasu (krátký tvar: /r).
-  /reference:<seznam souborů>         Odkazuje na metadata ze zadaných souborů sestavení (krátký tvar: /r).
-  /referencePath:<seznam cest>     Seznam cest, kde se mají hledat odkazy na metadata zadané jako cesty bez kořene (krátký tvar: /rp).
-  /using:<obor názvů>             Definuje globální using oboru názvů (krátký tvar: /u).
-  /define:<název>=<hodnota>,...     Deklaruje globální symboly podmíněné kompilace (krátký tvar: /d).
-  @<soubor>                        Přečte další možnosti ze souboru odpovědi.
+  /reference:&lt;alias&gt;=&lt;soubor&gt;      Odkazuje na metadata ze zadaného souboru sestavení pomocí zadaného aliasu (krátký tvar: /r).
+  /reference:&lt;seznam souborů&gt;         Odkazuje na metadata ze zadaných souborů sestavení (krátký tvar: /r).
+  /referencePath:&lt;seznam cest&gt;     Seznam cest, kde se mají hledat odkazy na metadata zadané jako cesty bez kořene (krátký tvar: /rp).
+  /using:&lt;obor názvů&gt;             Definuje globální using oboru názvů (krátký tvar: /u).
+  /define:&lt;název&gt;=&lt;hodnota&gt;,...     Deklaruje globální symboly podmíněné kompilace (krátký tvar: /d).
+  @&lt;soubor&gt;                        Přečte další možnosti ze souboru odpovědi.
 </target>
         <note />
       </trans-unit>

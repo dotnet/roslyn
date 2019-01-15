@@ -37,12 +37,12 @@ Options:
   /help                          顯示這則使用訊息 (替代形式: /?)
   /version                       顯示版本並結束
   /i                             在執行指定指令碼後，置放到 REPL。
-  /r:<檔案>                      從指定的組件檔參考中繼資料 (替代形式: /reference)
-  /r:<檔案清單>                 從指定的組件檔參考中繼資料 (替代形式: /reference)
-  /lib:<路徑清單>               目錄清單，用以從中尋找 #r 指示詞所指定的程式庫。 
+  /r:&lt;檔案&gt;                      從指定的組件檔參考中繼資料 (替代形式: /reference)
+  /r:&lt;檔案清單&gt;                 從指定的組件檔參考中繼資料 (替代形式: /reference)
+  /lib:&lt;路徑清單&gt;               目錄清單，用以從中尋找 #r 指示詞所指定的程式庫。 
                                  (替代形式: /libPath /libPaths)
-  /u:<命名空間>                 定義全域命名空間的方式 (替代形式: /using、/usings、/import、/imports)
-  @<檔案>                        讀取回應檔以取得更多選項
+  /u:&lt;命名空間&gt;                 定義全域命名空間的方式 (替代形式: /using、/usings、/import、/imports)
+  @&lt;檔案&gt;                        讀取回應檔以取得更多選項
   --                             表示不應將剩餘引數視為選項。
 </target>
         <note />

@@ -37,12 +37,12 @@ Options:
   /help                          使用法に関するこのメッセージを表示します (代替形式: /?)
   /version                       バージョンを表示して、終了します
   /i                             指定のスクリプトを実行した後、REPL にドロップします。
-  /r:<file>                      指定したアセンブリ ファイルのメタデータを参照します (代替形式: /reference)
-  /r:<file list>                 指定のアセンブリ ファイルのメタデータを参照します (代替形式: /reference)
-  /lib:<path list>               #r ディレクティブによって指定したライブラリを検索するディレクトリの一覧。
+  /r:&lt;file&gt;                      指定したアセンブリ ファイルのメタデータを参照します (代替形式: /reference)
+  /r:&lt;file list&gt;                 指定のアセンブリ ファイルのメタデータを参照します (代替形式: /reference)
+  /lib:&lt;path list&gt;               #r ディレクティブによって指定したライブラリを検索するディレクトリの一覧。
                                  (代替形式: /libPath /libPaths)
-  /u:<namespace>                 グローバル名前空間の使用を定義します (代替形式: /using, /usings, /import, /imports)
-  @<file>                        応答ファイルからさらにオプションを読み取ります
+  /u:&lt;namespace&gt;                 グローバル名前空間の使用を定義します (代替形式: /using, /usings, /import, /imports)
+  @&lt;file&gt;                        応答ファイルからさらにオプションを読み取ります
   --                             残りの引数はオプションとして扱わないことを示します。
 </target>
         <note />

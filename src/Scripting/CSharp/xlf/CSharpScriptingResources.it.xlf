@@ -37,12 +37,12 @@ Opzioni:
   /help                          Visualizza questo messaggio relativo alla sintassi. Forma alternativa: -?
   /version                       Visualizza la versione ed esce
   /i                             Rilascia in REPL dopo l'esecuzione dello script specificato.
-  /r:<file>                      Crea un riferimento ai metadati dal file di assembly specificato. Forma alternativa: /reference
-  /r:<elenco file>                 Crea un riferimento ai metadati dai file di assembly specificati. Forma alternativa: /reference
-  /lib:<elenco percorsi>               Elenco di directory in cui cercare le librerie specificate dalla direttiva #r. 
+  /r:&lt;file&gt;                      Crea un riferimento ai metadati dal file di assembly specificato. Forma alternativa: /reference
+  /r:&lt;elenco file&gt;                 Crea un riferimento ai metadati dai file di assembly specificati. Forma alternativa: /reference
+  /lib:&lt;elenco percorsi&gt;               Elenco di directory in cui cercare le librerie specificate dalla direttiva #r. 
                                  Forme alternative: /libPath /libPaths
-  /u:<spazio dei nomi>                 Definisce l'istruzione using per lo spazio dei nomi globale. Forme alternative: /using, /usings, /import, /imports
-  @<file>                        Legge il file di risposta per altre opzioni
+  /u:&lt;spazio dei nomi&gt;                 Definisce l'istruzione using per lo spazio dei nomi globale. Forme alternative: /using, /usings, /import, /imports
+  @&lt;file&gt;                        Legge il file di risposta per altre opzioni
   --                             Indica che gli argomenti rimanenti non devono essere considerati come opzioni.
 </target>
         <note />

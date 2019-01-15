@@ -34,12 +34,12 @@ Jeśli określony jest plik skryptu, wykonuje go, w przeciwnym razie uruchamia i
 Opcje:
   /help                          Wyświetl ten komunikat o użyciu (Krótka forma: /?)
   /version                       Wyświetl wersję i zamknij program
-  /reference:<alias>=<plik>      Przywołaj metadane z określonego pliku zestawu, używając podanego aliasu (Krótka forma: /r)
-  /reference:<lista plików>         Przywołaj metadane z określonych plików zestawów (Krótka forma: /r)
-  /referencePath:<lista ścieżek>     Lista ścieżek, w których mają być szukane odwołania do metadanych, określonych jako ścieżki bez katalogu głównego. (Krótka forma: /rp)
-  /using:<przestrzeń nazw>             Zdefiniuj globalne użycie metadanych (Krótka forma: /u)
-  /define:<nazwa>=<wartość>,...     Zdefiniuj globalne symbole kompilacji warunkowej (Krótka forma: /d)
-  @<plik>                        Odczytaj plik odpowiedzi w celu uzyskania większej liczby opcji
+  /reference:&lt;alias&gt;=&lt;plik&gt;      Przywołaj metadane z określonego pliku zestawu, używając podanego aliasu (Krótka forma: /r)
+  /reference:&lt;lista plików&gt;         Przywołaj metadane z określonych plików zestawów (Krótka forma: /r)
+  /referencePath:&lt;lista ścieżek&gt;     Lista ścieżek, w których mają być szukane odwołania do metadanych, określonych jako ścieżki bez katalogu głównego. (Krótka forma: /rp)
+  /using:&lt;przestrzeń nazw&gt;             Zdefiniuj globalne użycie metadanych (Krótka forma: /u)
+  /define:&lt;nazwa&gt;=&lt;wartość&gt;,...     Zdefiniuj globalne symbole kompilacji warunkowej (Krótka forma: /d)
+  @&lt;plik&gt;                        Odczytaj plik odpowiedzi w celu uzyskania większej liczby opcji
 </target>
         <note />
       </trans-unit>

@@ -37,12 +37,12 @@ Opcje:
   /help                          Wyświetla ten komunikat o użyciu (postać alternatywna: /?)
   /version                             Wyświetla wersję i wychodzi
    /i Powoduje przejście do pętli REPL po wykonaniu określonego skryptu.
-  /r:<plik>                      Przywołuje metadane z określonego pliku zestawu (postać alternatywna: /reference)
-  /r:<lista plików>              Przywołuje metadane z określonych plików zestawu (postać alternatywna: /reference)
-  /lib:<lista ścieżek>           Lista katalogów, w których mają być wyszukiwane biblioteki określone przez dyrektywę #r. 
+  /r:&lt;plik&gt;                      Przywołuje metadane z określonego pliku zestawu (postać alternatywna: /reference)
+  /r:&lt;lista plików&gt;              Przywołuje metadane z określonych plików zestawu (postać alternatywna: /reference)
+  /lib:&lt;lista ścieżek&gt;           Lista katalogów, w których mają być wyszukiwane biblioteki określone przez dyrektywę #r. 
                                  (postacie alternatywne: /libPath /libPaths)
-  /u:<przestrzeń nazw>           Definiuje globalną przestrzeń nazw (postacie alternatywne: /using, /usings, /import, /imports)
-  @<plik>                        Odczytuje plik odpowiedzi, aby uzyskać więcej opcji
+  /u:&lt;przestrzeń nazw&gt;           Definiuje globalną przestrzeń nazw (postacie alternatywne: /using, /usings, /import, /imports)
+  @&lt;plik&gt;                        Odczytuje plik odpowiedzi, aby uzyskać więcej opcji
   --                             Wskazuje, że pozostałe argumenty nie mają być traktowane jako opcje.
 </target>
         <note />

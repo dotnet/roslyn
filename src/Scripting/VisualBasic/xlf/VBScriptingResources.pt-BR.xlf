@@ -33,12 +33,12 @@ Se script-file.csx for especificado, executará o script. Caso contrário, inici
 
 Opções:
   /help                          Exibir essa mensagem de uso (Forma abreviada: /?)
-  /version                       Exibir a versão e sair /reference:<alias>=<file>            Metadados de referência do arquivo do assembly especificado usando o alias fornecido (Forma abreviada: /r)
-  /reference:<file list>         Metadados de referência dos arquivos do assembly especificado (Forma abreviada: /r)
-  /referencePath:<path list>     Lista de caminhos nos quais procurar referências de metadados especificadas como caminhos sem raiz. (Forma abreviada: /rp)
-  /using:<namespace>             Definir namespace global usando (Forma abreviada: /u)
-  /define:<name>=<value>,...       Declarar símbolos de compilação condicional global (Forma abreviada: /d)
-  @<file>                        Ler arquivo de resposta para obter mais opções
+  /version                       Exibir a versão e sair /reference:&lt;alias&gt;=&lt;file&gt;            Metadados de referência do arquivo do assembly especificado usando o alias fornecido (Forma abreviada: /r)
+  /reference:&lt;file list&gt;         Metadados de referência dos arquivos do assembly especificado (Forma abreviada: /r)
+  /referencePath:&lt;path list&gt;     Lista de caminhos nos quais procurar referências de metadados especificadas como caminhos sem raiz. (Forma abreviada: /rp)
+  /using:&lt;namespace&gt;             Definir namespace global usando (Forma abreviada: /u)
+  /define:&lt;name&gt;=&lt;value&gt;,...       Declarar símbolos de compilação condicional global (Forma abreviada: /d)
+  @&lt;file&gt;                        Ler arquivo de resposta para obter mais opções
 
 </target>
         <note />
