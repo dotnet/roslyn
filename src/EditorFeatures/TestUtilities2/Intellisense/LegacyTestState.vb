@@ -137,12 +137,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             CurrentCompletionPresenterSession.SetSelectedItem(item)
         End Sub
 
-        Public Overrides Async Function AssertNoCompletionSession(Optional block As Boolean = True) As Task
-            If block Then
-                Await WaitForAsynchronousOperationsAsync()
-            End If
+        Public Overrides Async Function AssertNoCompletionSession() As Task
+            Await WaitForAsynchronousOperationsAsync()
             Assert.Null(Me.CurrentCompletionPresenterSession)
         End Function
+
+        Public Overrides Sub AssertNoCompletionSessionWithNoBlock()
+            Assert.Null(Me.CurrentCompletionPresenterSession)
+        End Sub
 
         Public Overrides Async Function AssertCompletionSessionAfterTypingHash() As Task
             ' The legacy completion implementation was not updated to treat # as an IntelliSense trigger

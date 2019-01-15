@@ -438,7 +438,7 @@ End Class
 
                 ' We should not have a session now.  Note: do not block as this will just hang things
                 ' since the provider will not return.
-                Await state.AssertNoCompletionSession(block:=False)
+                state.AssertNoCompletionSessionWithNoBlock()
 
                 ' Now, navigate back.
                 state.SendBackspace()
@@ -476,7 +476,7 @@ End Class
 
                 ' We should not have a session now.  Note: do not block as this will just hang things
                 ' since the provider will not return.
-                Await state.AssertNoCompletionSession(block:=False)
+                state.AssertNoCompletionSessionWithNoBlock()
 
                 ' Now, navigate using the caret.
                 state.SendMoveToPreviousCharacter()
@@ -2176,7 +2176,7 @@ End Class]]></Document>)
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("Sub")
                 state.SendSave()
-                Await state.AssertNoCompletionSession(block:=True)
+                Await state.AssertNoCompletionSession()
                 state.AssertMatchesTextStartingAtLine(2, "    Su")
             End Using
         End Function
