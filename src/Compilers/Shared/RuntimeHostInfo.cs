@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(!toolFilePathWithoutExtension.EndsWith(".dll") && !toolFilePathWithoutExtension.EndsWith(".exe"));
 
             var toolFilePath = $"{toolFilePathWithoutExtension}.{ToolExtension}";
-            if (IsDotnetHost(out string pathToDotnet))
+            if (IsDotNetHost(out string pathToDotNet))
             {
                 commandLineArguments = $@"exec ""{toolFilePath}"" {commandLineArguments}";
-                return (pathToDotnet, commandLineArguments, toolFilePath);
+                return (pathToDotNet, commandLineArguments, toolFilePath);
             }
             else
             {
@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis
 #if NET472
         internal static bool IsDesktopRuntime => true;
 
-        internal static bool IsDotnetHost(out string pathToDotnet)
+        internal static bool IsDotNetHost(out string pathToDotNet)
         {
-            pathToDotnet = null;
+            pathToDotNet = null;
             return false;
         }
 
@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis
 #elif NETCOREAPP2_1
         internal static bool IsDesktopRuntime => false;
 
-        private static string DotnetHostPathEnvironmentName = "DOTNET_HOST_PATH";
+        private static string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
 
-        private static bool IsDotnetHost(out string pathToDotnet)
+        private static bool IsDotNetHost(out string pathToDotNet)
         {
-            pathToDotnet = GetDotnetPathOrDefault();
+            pathToDotNet = GetDotNetPathOrDefault();
             return true;
         }
 
@@ -63,24 +63,24 @@ namespace Microsoft.CodeAnalysis
         /// Get the path to the dotnet executable. This will throw in the case it is not properly setup 
         /// by the environment.
         /// </summary>
-        private static string GetDotnetPath()
+        private static string GetDotNetPath()
         {
-            var pathToDotnet = Environment.GetEnvironmentVariable(DotnetHostPathEnvironmentName);
-            if (string.IsNullOrEmpty(pathToDotnet))
+            var pathToDotNet = Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName);
+            if (string.IsNullOrEmpty(pathToDotNet))
             {
-                throw new InvalidOperationException($"{DotnetHostPathEnvironmentName} is not set");
+                throw new InvalidOperationException($"{DotNetHostPathEnvironmentName} is not set");
             }
-            return pathToDotnet;
+            return pathToDotNet;
         }
 
         /// <summary>
         /// Get the path to the dotnet executable. In the case the host did not provide this information
         /// in the environment this will return simply "dotnet".
         /// </summary>
-        private static string GetDotnetPathOrDefault()
+        private static string GetDotNetPathOrDefault()
         {
-            var pathToDotnet = Environment.GetEnvironmentVariable(DotnetHostPathEnvironmentName);
-            return pathToDotnet ?? "dotnet";
+            var pathToDotNet = Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName);
+            return pathToDotNet ?? "dotnet";
         }
 #else
 #error Unsupported configuration
