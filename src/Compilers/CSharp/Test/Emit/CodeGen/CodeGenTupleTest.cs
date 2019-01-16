@@ -21738,8 +21738,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "92872377-08d1-4723-8906-a43b03e56ed3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        // https://github.com/dotnet/roslyn/issues/25141
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
+        [Fact]
         public void ValueTupleBase_AssemblyUnification()
         {
             var source0v1 =
@@ -21747,9 +21746,8 @@ namespace System
 public class A
 {
 }";
-            var signedDllOptions = TestOptions.ReleaseDll.
-                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(SigningTestHelpers.s_defaultDesktopProvider);
+            var signedDllOptions = TestOptions.SigningReleaseDll.
+                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile);
             var comp0v1 = CreateCompilationWithMscorlib40(source0v1, assemblyName: "A", options: signedDllOptions);
             comp0v1.VerifyDiagnostics();
             var ref0v1 = comp0v1.EmitToImageReference();
@@ -23395,6 +23393,36 @@ class Derived2 : Base, I<(int a, int b)>
                 // (2,24): error CS0535: 'Derived1' does not implement interface member 'I<(int notA, int notB)>.M()'
                 // class Derived1 : Base, I<(int notA, int notB)>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<(int notA, int notB)>").WithArguments("Derived1", "I<(int notA, int notB)>.M()").WithLocation(2, 24)
+                );
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_05()
+        {
+            var source = @"
+interface I<T>
+{
+    T M();
+}
+class Base : I<(int a, int b)>
+{
+    public (int a, int b) M() { return (1, 2); }
+}
+class Derived1 : Base, I<(int notA, int notB)>
+{
+    // error
+}
+class Derived2 : Base, I<(int a, int b)>
+{
+    // ok
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,24): error CS8141: The tuple element names in the signature of method 'Base.M()' must match the tuple element names of interface method 'I<(int notA, int notB)>.M()' (including on the return type).
+                // class Derived1 : Base, I<(int notA, int notB)>
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "I<(int notA, int notB)>").WithArguments("Base.M()", "I<(int notA, int notB)>.M()").WithLocation(10, 24)
                 );
         }
 

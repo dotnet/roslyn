@@ -2129,6 +2129,7 @@ class C
     IL_00bd:  stloc.0
     IL_00be:  stfld      ""int C.<M>d__0.<>1__state""
     IL_00c3:  leave.s    IL_0113
+    // sequence point: <hidden>
     IL_00c5:  ldarg.0
     IL_00c6:  ldc.i4.m1
     IL_00c7:  dup
@@ -2268,6 +2269,7 @@ class C
     IL_00b6:  stloc.0
     IL_00b7:  stfld      ""int C.<M>d__0.<>1__state""
     IL_00bc:  leave.s    IL_0109
+    // sequence point: <hidden>
     IL_00be:  ldarg.0
     IL_00bf:  ldc.i4.m1
     IL_00c0:  dup

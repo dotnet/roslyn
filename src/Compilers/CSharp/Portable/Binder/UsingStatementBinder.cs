@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If this is a ref struct, try binding via pattern.
                 // We won't need to try and bind a second time if it fails, as async dispose can't be pattern based (ref structs are not allowed in async methods)
-                if (!(type is null) && type.IsValueType && type.IsByRefLikeType)
+                if (!(type is null) && type.IsValueType && type.IsRefLikeType)
                 {
                     BoundExpression receiver = fromExpression
                                                ? expressionOpt
