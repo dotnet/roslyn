@@ -56,10 +56,12 @@
       <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Threading.Tasks.Extensions.dll"/>
       <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Buffers.dll"/>
       <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Memory.dll"/>
-      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Numerics.Vectors.dll"/>
+      
+      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Numerics.Vectors.dll" DisableNgen="true"/>
       
       <CompilerArtifact Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.*.dll" Exclude="@(_NoOptimizationData)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="true"/>
-      <CompilerArtifact Include="@(_NoOptimizationData)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="false"/>
+      <CompilerArtifact Include="@(_NoOptimizationData)" Condition="'%(_NoOptimizationData.DisableNgen)' != 'true'"  NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="false"/>
+      <CompilerArtifact Include="@(_NoOptimizationData)" Condition="'%(_NoOptimizationData.DisableNgen)' == 'true'" />
     </ItemGroup>
   </Target>
 </Project>
