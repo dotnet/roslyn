@@ -4632,5 +4632,43 @@ class Tester
     }
 }");
         }
+
+        [WorkItem(31963, "https://github.com/dotnet/roslyn/issues/31963")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontOfferToRemoveCastInBaseConstructorInitializerWhenItNeeded()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class B
+{
+    B(int a)
+    {
+    }
+}
+class C : B
+{
+    C(double a) : base([|(int)a|])
+    {
+    }
+}");
+        }
+
+        [WorkItem(31963, "https://github.com/dotnet/roslyn/issues/31963")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontOfferToRemoveCastInConstructorInitializerWhenItNeeded()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class B
+{
+    B(int a)
+    {
+    }
+
+    B(double a) : this([|(int)a|])
+    {
+    }
+}");
+        }
     }
 }
