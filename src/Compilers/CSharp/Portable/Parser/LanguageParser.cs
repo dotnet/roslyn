@@ -8790,27 +8790,6 @@ tryAgain:
         }
 
         /// <summary>
-        /// Can the token after the current token be one that could start an expression?
-        /// </summary>
-        /// <returns></returns>
-        private bool CanNextTokenStartExpression()
-        {
-            var resetPoint = this.GetResetPoint();
-            try
-            {
-                // skip one token
-                this.EatToken();
-                return CanStartExpression();
-            }
-            finally
-            {
-                // Restore current token index
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-            }
-        }
-
-        /// <summary>
         /// Is the current token one that could be in an expression?
         /// </summary>
         private bool IsPossibleExpression()

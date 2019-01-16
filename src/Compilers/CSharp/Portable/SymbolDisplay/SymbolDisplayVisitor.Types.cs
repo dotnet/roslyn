@@ -32,7 +32,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // NOTE: displaying an array with reversed rank specifiers drops nullable annotations
+            //See spec section 12.1 for the order of rank specifiers
+            //e.g. int[][,][,,] is stored as
+            //     ArrayType
+            //         Rank = 1
+            //         ElementType = ArrayType
+            //             Rank = 2
+            //             ElementType = ArrayType
+            //                 Rank = 3
+            //                 ElementType = int
+
             if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.ReverseArrayRankSpecifiers))
             {
                 // Ironically, reverse order is simpler - we just have to recurse on the element type and then add a rank specifier.
@@ -48,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 underlyingTypeWithAnnotations = (underlyingType as ArrayTypeSymbol)?.ElementType ?? default;
                 underlyingType = ((IArrayTypeSymbol)underlyingType).ElementType;
             }
-            while (underlyingType.Kind == SymbolKind.ArrayType && !ShouldPrintNullableAnnotation(underlyingTypeWithAnnotations));
+            while (underlyingType.Kind == SymbolKind.ArrayType && !ShouldAddNullableAnnotation(underlyingTypeWithAnnotations));
 
             if (!underlyingTypeWithAnnotations.IsNull)
             {
@@ -74,19 +83,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddNullableAnnotations(TypeSymbolWithAnnotations typeOpt)
         {
-            if (typeOpt.IsNull)
-            {
-                return;
-            }
-
-            if (ShouldPrintNullableAnnotation(typeOpt))
+            if (ShouldAddNullableAnnotation(typeOpt))
             {
                 AddPunctuation(typeOpt.NullableAnnotation.IsAnyNullable() ? SyntaxKind.QuestionToken : SyntaxKind.ExclamationToken);
             }
         }
 
-        private bool ShouldPrintNullableAnnotation(TypeSymbolWithAnnotations typeOpt)
+        private bool ShouldAddNullableAnnotation(TypeSymbolWithAnnotations typeOpt)
         {
+            if (typeOpt.IsNull)
+            {
+                return false;
+            }
+            else
             if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
                 !typeOpt.IsNullableType() && !typeOpt.IsValueType &&
                 (typeOpt.NullableAnnotation == NullableAnnotation.Annotated ||
@@ -94,7 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return true;
             }
-            else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
+            else
+            if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
                 !typeOpt.IsValueType &&
                 typeOpt.NullableAnnotation.IsAnyNotNullable() && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())
             {
