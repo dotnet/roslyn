@@ -206,10 +206,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             hasErrors |= builder.IsIncomplete;
 
             AwaitableInfo awaitInfo = null;
+            MethodSymbol getEnumeratorMethod = builder.GetEnumeratorMethod;
             if (IsAsync)
             {
                 BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType.TypeSymbol ?? CreateErrorType());
                 awaitInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+
+                if (!hasErrors && awaitInfo.GetResult?.ReturnType.SpecialType != SpecialType.System_Boolean)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadGetAsyncEnumerator, _syntax.Expression.Location, getEnumeratorMethod.ReturnType, getEnumeratorMethod);
+                    hasErrors = true;
+                }
             }
 
             TypeSymbol iterationVariableType;
@@ -388,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             hasErrors |= hasNameConflicts;
 
             var foreachKeyword = _syntax.ForEachKeyword;
-            ReportDiagnosticsIfObsolete(diagnostics, builder.GetEnumeratorMethod, foreachKeyword, hasBaseReceiver: false);
+            ReportDiagnosticsIfObsolete(diagnostics, getEnumeratorMethod, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, builder.MoveNextMethod, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter.AssociatedSymbol, foreachKeyword, hasBaseReceiver: false);
@@ -424,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.CollectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteDiagnostics);
             builder.CurrentConversion = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType.TypeSymbol, builder.ElementType.TypeSymbol, ref useSiteDiagnostics);
 
-            TypeSymbol getEnumeratorType = builder.GetEnumeratorMethod.ReturnType.TypeSymbol;
+            TypeSymbol getEnumeratorType = getEnumeratorMethod.ReturnType.TypeSymbol;
             // we never convert struct enumerators to object - it is done only for null-checks.
             builder.EnumeratorConversion = getEnumeratorType.IsValueType ?
                 Conversion.Identity :
@@ -1162,9 +1169,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (isAsync)
             {
-                TypeSymbol returnType = moveNextMethodCandidate.ReturnType.TypeSymbol;
-                return !returnType.IsGenericTaskType(Compilation) ||
-                    ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0].SpecialType != SpecialType.System_Boolean;
+                // We'll verify the return type from `MoveNextAsync` when we try to bind the `await` for it
+                return false;
             }
 
             // SPEC VIOLATION: Dev10 checks the return type of the original definition, rather than the return type of the actual method.
