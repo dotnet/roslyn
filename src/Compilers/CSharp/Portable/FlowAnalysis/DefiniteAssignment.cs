@@ -253,22 +253,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool HasAwait(PendingBranch pending)
         {
-            if (pending.Branch is null)
+            var pendingBranch = pending.Branch;
+            if (pendingBranch is null)
             {
                 return false;
             }
 
-            BoundKind kind = pending.Branch.Kind;
+            BoundKind kind = pendingBranch.Kind;
             switch (kind)
             {
                 case BoundKind.AwaitExpression:
                     return true;
                 case BoundKind.UsingStatement:
-                    var usingStatement = (BoundUsingStatement)pending.Branch;
+                    var usingStatement = (BoundUsingStatement)pendingBranch;
                     return usingStatement.AwaitOpt != null;
                 case BoundKind.ForEachStatement:
-                    var foreachStatement = (BoundForEachStatement)pending.Branch;
+                    var foreachStatement = (BoundForEachStatement)pendingBranch;
                     return foreachStatement.AwaitOpt != null;
+                case BoundKind.UsingLocalDeclarations:
+                    var localDeclaration = (BoundUsingLocalDeclarations)pendingBranch;
+                    return localDeclaration.AwaitOpt != null;
                 default:
                     return false;
             }
@@ -1474,6 +1478,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             DeclareVariables(node.Locals);
 
             VisitStatementsWithLocalFunctions(node);
+
+            // any local using symbols are implicitly read at the end of the block when they get disposed
+            foreach (var local in node.Locals)
+            {
+                if (local.IsUsing)
+                {
+                    NoteRead(local);
+                }
+            }
 
             ReportUnusedVariables(node.Locals);
             ReportUnusedVariables(node.LocalFunctions);

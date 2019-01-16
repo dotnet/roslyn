@@ -1583,6 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion8 = 8400,
         ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
         WRN_DefaultLiteralConvertedToNullIsNotIntended = 8402,
+        ERR_IteratorMustBeAsync = 8403,
 
         ERR_NoConvToIAsyncDisp = 8410,
         ERR_AwaitForEachMissingMember = 8411,
@@ -1595,6 +1596,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoConvToIDispWrongAsync = 8418,
         ERR_PossibleAsyncIteratorWithoutYield = 8419,
         ERR_PossibleAsyncIteratorWithoutYieldOrAwait = 8420,
+        ERR_StaticLocalFunctionCannotCaptureVariable = 8421,
+        ERR_StaticLocalFunctionCannotCaptureThis = 8422,
 
         #region diagnostics introduced for recursive patterns
         // 8501, // available
@@ -1622,6 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DiscardPatternInSwitchStatement = 8523,
         #endregion diagnostics introduced for recursive patterns
 
+        WRN_IllegalPPWarningSafeOnly = 8599,
         WRN_ConvertingNullableToNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,
         WRN_NullReferenceReceiver = 8602,
@@ -1669,7 +1673,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInInterfaceImplementedByBase = 8644,
         WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList = 8645,
         ERR_DuplicateExplicitImpl = 8646,
-
+        ERR_UsingVarInSwitchCase = 8647,
+        ERR_GoToForwardJumpOverUsingVar = 8648,
+        ERR_GoToBackwardJumpOverUsingVar = 8649,
         #endregion diagnostics introduced for C# 8.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

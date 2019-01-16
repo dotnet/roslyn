@@ -1,5 +1,7 @@
 *REMOVED*Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
 Microsoft.CodeAnalysis.IFieldSymbol.IsFixedSizeBuffer.get -> bool
+Microsoft.CodeAnalysis.ITypeSymbol.IsRefLikeType.get -> bool
+Microsoft.CodeAnalysis.ITypeSymbol.IsUnmanagedType.get -> bool
 Microsoft.CodeAnalysis.OperationKind.Binary = 32 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ConstructorBody = 89 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DiscardPattern = 104 -> Microsoft.CodeAnalysis.OperationKind
@@ -190,6 +192,8 @@ Microsoft.CodeAnalysis.Operations.ISwitchOperation.Locals.get -> System.Collecti
 Microsoft.CodeAnalysis.Operations.ITryOperation.ExitLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.IUsingOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier = 64 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
+const Microsoft.CodeAnalysis.WellKnownMemberNames.DisposeAsyncMethodName = "DisposeAsync" -> string
+const Microsoft.CodeAnalysis.WellKnownMemberNames.DisposeMethodName = "Dispose" -> string
 const Microsoft.CodeAnalysis.WellKnownMemberNames.GetAsyncEnumeratorMethodName = "GetAsyncEnumerator" -> string
 const Microsoft.CodeAnalysis.WellKnownMemberNames.MoveNextAsyncMethodName = "MoveNextAsync" -> string
 override Microsoft.CodeAnalysis.FlowAnalysis.CaptureId.Equals(object obj) -> bool

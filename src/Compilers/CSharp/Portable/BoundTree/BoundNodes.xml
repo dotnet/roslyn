@@ -781,7 +781,13 @@
   <Node Name="BoundMultipleLocalDeclarations" Base="BoundStatement">
     <Field Name="LocalDeclarations" Type="ImmutableArray&lt;BoundLocalDeclaration&gt;"/>
   </Node>
- 
+
+  <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarations">
+    <Field Name="DisposeMethodOpt" Type="MethodSymbol" Null="Allow"/>
+    <Field Name="IDisposableConversion" Type="Conversion"/>
+    <Field Name="AwaitOpt" Type="AwaitableInfo" Null="allow"/>
+  </Node>
+
   <!-- 
   Bound node that represents a local function declaration:
     void Foo() { }
@@ -947,6 +953,7 @@
     <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
     <Field Name="AwaitOpt" Type="AwaitableInfo" Null="allow"/>
+    <Field Name="DisposeMethodOpt" Type="MethodSymbol" Null="allow"/>
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">

@@ -3311,10 +3311,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
     {
+      var awaitKeyword = this.VisitToken(node.AwaitKeyword);
+      var usingKeyword = this.VisitToken(node.UsingKeyword);
       var modifiers = this.VisitList(node.Modifiers);
       var declaration = (VariableDeclarationSyntax)this.Visit(node.Declaration);
       var semicolonToken = this.VisitToken(node.SemicolonToken);
-      return node.Update(modifiers, declaration, semicolonToken);
+      return node.Update(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
     }
 
     public override SyntaxNode VisitVariableDeclaration(VariableDeclarationSyntax node)
@@ -4394,9 +4396,10 @@ namespace Microsoft.CodeAnalysis.CSharp
       var pragmaKeyword = this.VisitToken(node.PragmaKeyword);
       var warningKeyword = this.VisitToken(node.WarningKeyword);
       var disableOrRestoreKeyword = this.VisitToken(node.DisableOrRestoreKeyword);
+      var nullableKeyword = this.VisitToken(node.NullableKeyword);
       var errorCodes = this.VisitList(node.ErrorCodes);
       var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-      return node.Update(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes, endOfDirectiveToken, node.IsActive);
+      return node.Update(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword, errorCodes, endOfDirectiveToken, node.IsActive);
     }
 
     public override SyntaxNode VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node)
@@ -7152,8 +7155,24 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new LocalDeclarationStatementSyntax instance.</summary>
-    public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+    public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
+      switch (awaitKeyword.Kind())
+      {
+        case SyntaxKind.AwaitKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(awaitKeyword));
+      }
+      switch (usingKeyword.Kind())
+      {
+        case SyntaxKind.UsingKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(usingKeyword));
+      }
       if (declaration == null)
         throw new ArgumentNullException(nameof(declaration));
       switch (semicolonToken.Kind())
@@ -7163,20 +7182,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException(nameof(semicolonToken));
       }
-      return (LocalDeclarationStatementSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.LocalDeclarationStatement(modifiers.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), declaration == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node).CreateRed();
+      return (LocalDeclarationStatementSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.LocalDeclarationStatement((Syntax.InternalSyntax.SyntaxToken)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)usingKeyword.Node, modifiers.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), declaration == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node).CreateRed();
     }
 
 
     /// <summary>Creates a new LocalDeclarationStatementSyntax instance.</summary>
     public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration)
     {
-      return SyntaxFactory.LocalDeclarationStatement(modifiers, declaration, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+      return SyntaxFactory.LocalDeclarationStatement(default(SyntaxToken), default(SyntaxToken), modifiers, declaration, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 
     /// <summary>Creates a new LocalDeclarationStatementSyntax instance.</summary>
     public static LocalDeclarationStatementSyntax LocalDeclarationStatement(VariableDeclarationSyntax declaration)
     {
-      return SyntaxFactory.LocalDeclarationStatement(default(SyntaxTokenList), declaration, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+      return SyntaxFactory.LocalDeclarationStatement(default(SyntaxToken), default(SyntaxToken), default(SyntaxTokenList), declaration, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 
     /// <summary>Creates a new VariableDeclarationSyntax instance.</summary>
@@ -11185,7 +11204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
-    public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+    public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
     {
       switch (hashToken.Kind())
       {
@@ -11212,9 +11231,19 @@ namespace Microsoft.CodeAnalysis.CSharp
       {
         case SyntaxKind.DisableKeyword:
         case SyntaxKind.RestoreKeyword:
+        case SyntaxKind.EnableKeyword:
+        case SyntaxKind.SafeOnlyKeyword:
           break;
         default:
           throw new ArgumentException(nameof(disableOrRestoreKeyword));
+      }
+      switch (nullableKeyword.Kind())
+      {
+        case SyntaxKind.NullableKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(nullableKeyword));
       }
       switch (endOfDirectiveToken.Kind())
       {
@@ -11223,20 +11252,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException(nameof(endOfDirectiveToken));
       }
-      return (PragmaWarningDirectiveTriviaSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PragmaWarningDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node, (Syntax.InternalSyntax.SyntaxToken)pragmaKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)warningKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)disableOrRestoreKeyword.Node, errorCodes.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node, isActive).CreateRed();
+      return (PragmaWarningDirectiveTriviaSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PragmaWarningDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node, (Syntax.InternalSyntax.SyntaxToken)pragmaKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)warningKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)disableOrRestoreKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)nullableKeyword.Node, errorCodes.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node, isActive).CreateRed();
     }
 
 
     /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
     public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, bool isActive)
     {
-      return SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), disableOrRestoreKeyword, errorCodes, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+      return SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), disableOrRestoreKeyword, default(SyntaxToken), errorCodes, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
     }
 
     /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
     public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken disableOrRestoreKeyword, bool isActive)
     {
-      return SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), disableOrRestoreKeyword, default(SeparatedSyntaxList<ExpressionSyntax>), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+      return SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), disableOrRestoreKeyword, default(SyntaxToken), default(SeparatedSyntaxList<ExpressionSyntax>), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
     }
 
     /// <summary>Creates a new PragmaChecksumDirectiveTriviaSyntax instance.</summary>

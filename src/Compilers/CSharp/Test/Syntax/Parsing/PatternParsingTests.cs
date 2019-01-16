@@ -6122,5 +6122,136 @@ case KeyValuePair<String, DateTime>[] pairs2:
             }
             EOF();
         }
+
+        [Fact, WorkItem(32161, "https://github.com/dotnet/roslyn/issues/32161")]
+        public void ParenthesizedSwitchCase()
+        {
+            var text = @"
+switch (e)
+{
+    case (0): break;
+    case (-1): break;
+    case (+2): break;
+    case (~3): break;
+}
+";
+            foreach (var langVersion in new[] { LanguageVersion.CSharp6, LanguageVersion.CSharp7, LanguageVersion.CSharp8 })
+            {
+                UsingStatement(text, options: CSharpParseOptions.Default.WithLanguageVersion(langVersion));
+                N(SyntaxKind.SwitchStatement);
+                {
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SwitchSection);
+                    {
+                        N(SyntaxKind.CaseSwitchLabel);
+                        {
+                            N(SyntaxKind.CaseKeyword);
+                            N(SyntaxKind.ParenthesizedExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.BreakStatement);
+                        {
+                            N(SyntaxKind.BreakKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                    N(SyntaxKind.SwitchSection);
+                    {
+                        N(SyntaxKind.CaseSwitchLabel);
+                        {
+                            N(SyntaxKind.CaseKeyword);
+                            N(SyntaxKind.ParenthesizedExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.UnaryMinusExpression);
+                                {
+                                    N(SyntaxKind.MinusToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.BreakStatement);
+                        {
+                            N(SyntaxKind.BreakKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                    N(SyntaxKind.SwitchSection);
+                    {
+                        N(SyntaxKind.CaseSwitchLabel);
+                        {
+                            N(SyntaxKind.CaseKeyword);
+                            N(SyntaxKind.ParenthesizedExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.UnaryPlusExpression);
+                                {
+                                    N(SyntaxKind.PlusToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "2");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.BreakStatement);
+                        {
+                            N(SyntaxKind.BreakKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                    N(SyntaxKind.SwitchSection);
+                    {
+                        N(SyntaxKind.CaseSwitchLabel);
+                        {
+                            N(SyntaxKind.CaseKeyword);
+                            N(SyntaxKind.ParenthesizedExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.BitwiseNotExpression);
+                                {
+                                    N(SyntaxKind.TildeToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "3");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.BreakStatement);
+                        {
+                            N(SyntaxKind.BreakKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
     }
 }

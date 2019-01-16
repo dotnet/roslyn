@@ -1,4 +1,7 @@
 Microsoft.CodeAnalysis.Solution.WithProjectDocumentsOrder(Microsoft.CodeAnalysis.ProjectId projectId, System.Collections.Immutable.ImmutableList<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Workspace.ClearOpenDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> void
+Microsoft.CodeAnalysis.Workspace.ClearOpenDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool isSolutionClosing) -> void
+*REMOVED*Microsoft.CodeAnalysis.Workspace.ClearOpenDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool isSolutionClosing = false) -> void
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameExpression(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol namespaceOrTypeSymbol) -> Microsoft.CodeAnalysis.SyntaxNode
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ControlKeyword = "keyword - control" -> string

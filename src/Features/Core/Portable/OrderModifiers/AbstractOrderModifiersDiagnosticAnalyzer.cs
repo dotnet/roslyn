@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             _helpers = helpers;
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         public override bool OpenFileOnly(Workspace workspace)

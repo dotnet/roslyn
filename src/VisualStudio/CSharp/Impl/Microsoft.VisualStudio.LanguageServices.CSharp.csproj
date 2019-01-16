@@ -55,9 +55,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Design" Version="$(MicrosoftVisualStudioShellDesignVersion)" />
     <PackageReference Include="VSLangProj80" Version="$(VSLangProj80Version)" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" />
-
-    <!-- Need VSSDK to generate pkgdef -->
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="$(MicrosoftVSSDKBuildToolsVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="CSharpVSResources.Designer.cs">

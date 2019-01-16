@@ -1,2 +1,2 @@
 @echo off
-powershell -noprofile -executionPolicy RemoteSigned -file "%~dp0\build.ps1" -ci -restore -build -bootstrap -pack -sign -publish -binaryLog %*
+powershell -ExecutionPolicy ByPass -NoProfile -command "& """%~dp0build.ps1""" -ci -restore -build -bootstrap -pack -sign -publish -binaryLog %*"

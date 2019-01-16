@@ -137,6 +137,16 @@
         <target state="new">foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
+        <source>A goto cannot jump to a location before a using declaration within the same block.</source>
+        <target state="new">A goto cannot jump to a location before a using declaration within the same block.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GoToForwardJumpOverUsingVar">
+        <source>A goto cannot jump to a location after a using declaration.</source>
+        <target state="new">A goto cannot jump to a location after a using declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</target>
@@ -165,6 +175,11 @@
       <trans-unit id="ERR_IsPatternImpossible">
         <source>An expression of type '{0}' can never match the provided pattern.</source>
         <target state="new">An expression of type '{0}' can never match the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IteratorMustBeAsync">
+        <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
+        <target state="new">Method '{0}' with an iterator block must be 'async' to return '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">
@@ -242,6 +257,16 @@
         <target state="new">A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
+        <source>A static local function cannot contain a reference to 'this' or 'base'.</source>
+        <target state="new">A static local function cannot contain a reference to 'this' or 'base'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticLocalFunctionCannotCaptureVariable">
+        <source>A static local function cannot contain a reference to '{0}'.</source>
+        <target state="new">A static local function cannot contain a reference to '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
         <source>The pattern has already been handled by a previous arm of the switch expression.</source>
         <target state="new">The pattern has already been handled by a previous arm of the switch expression.</target>
@@ -292,6 +317,11 @@
         <target state="new">The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UsingVarInSwitchCase">
+        <source>A using variable cannot be used directly within a switch section (consider using braces). </source>
+        <target state="new">A using variable cannot be used directly within a switch section (consider using braces). </target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_VarMayNotBindToType">
         <source>The syntax 'var' for a pattern is not permitted to refer to a type, but '{0}' is in scope here.</source>
         <target state="new">The syntax 'var' for a pattern is not permitted to refer to a type, but '{0}' is in scope here.</target>
@@ -335,6 +365,11 @@
       <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue_Title">
         <source>Result of the comparison is possibly always true.</source>
         <target state="new">Result of the comparison is possibly always true.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_Disposable">
+        <source>disposable</source>
+        <target state="new">disposable</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAltInterpolatedVerbatimStrings">
@@ -387,6 +422,11 @@
         <target state="new">object generic type constraint</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">
+        <source>warning action enable or safeonly</source>
+        <target state="new">warning action enable or safeonly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
         <source>range operator</source>
         <target state="new">range operator</target>
@@ -422,6 +462,11 @@
         <target state="new">stackalloc initializer</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStaticLocalFunctions">
+        <source>static local functions</source>
+        <target state="new">static local functions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
         <target state="new">tuple equality</target>
@@ -435,6 +480,11 @@
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
         <source>unmanaged generic type constraints</source>
         <target state="new">unmanaged generic type constraints</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUsingDeclarations">
+        <source>using declarations</source>
+        <target state="new">using declarations</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
@@ -885,6 +935,16 @@
       <trans-unit id="WRN_GivenExpressionNeverMatchesPattern_Title">
         <source>The given expression never matches the provided pattern.</source>
         <target state="new">The given expression never matches the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IllegalPPWarningSafeOnly">
+        <source>Expected nullable</source>
+        <target state="new">Expected nullable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IllegalPPWarningSafeOnly_Title">
+        <source>Expected nullable after #pragma warning safeonly</source>
+        <target state="new">Expected nullable after #pragma warning safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
@@ -5261,13 +5321,13 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
-        <source>Expected disable or restore</source>
-        <target state="translated">Disable veya restore bekleniyor</target>
+        <source>Expected disable, restore, enable or safeonly</source>
+        <target state="needs-review-translation">Disable veya restore bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
-        <source>Expected disable or restore after #pragma warning</source>
-        <target state="translated">#pragma uyarısından sonra beklenen devre dışı bırakma veya geri yükleme</target>
+        <source>Expected disable, restore, enable or safeonly after #pragma warning</source>
+        <target state="needs-review-translation">#pragma uyarısından sonra beklenen devre dışı bırakma veya geri yükleme</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -5511,8 +5571,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'</source>
-        <target state="translated">'{0}': bir using deyiminde kullanılan tür açıkça 'System.IDisposable' öğesine dönüştürülebilir olmalıdır</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
+        <target state="needs-review-translation">'{0}': bir using deyiminde kullanılan tür açıkça 'System.IDisposable' öğesine dönüştürülebilir olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">

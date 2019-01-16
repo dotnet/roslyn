@@ -8352,14 +8352,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
+    public SyntaxToken AwaitKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).awaitKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.Position, 0);
+
+            return default(SyntaxToken);
+        }
+    }
+
+    public SyntaxToken UsingKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).usingKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.GetChildPosition(1), this.GetChildIndex(1));
+
+            return default(SyntaxToken);
+        }
+    }
+
     /// <summary>Gets the modifier list.</summary>
     public SyntaxTokenList Modifiers 
     {
         get
         {
-            var slot = this.Green.GetSlot(0);
+            var slot = this.Green.GetSlot(2);
             if (slot != null)
-                return new SyntaxTokenList(this, slot, this.Position, 0);
+                return new SyntaxTokenList(this, slot, this.GetChildPosition(2), this.GetChildIndex(2));
 
             return default(SyntaxTokenList);
         }
@@ -8369,20 +8393,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.declaration, 1);
+            return this.GetRed(ref this.declaration, 3);
         }
     }
 
     public SyntaxToken SemicolonToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.declaration, 1);
+            case 3: return this.GetRed(ref this.declaration, 3);
             default: return null;
         }
     }
@@ -8390,7 +8414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.declaration;
+            case 3: return this.declaration;
             default: return null;
         }
     }
@@ -8405,11 +8429,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitLocalDeclarationStatement(this);
     }
 
-    public LocalDeclarationStatementSyntax Update(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+    public LocalDeclarationStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
-        if (modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
+        if (awaitKeyword != this.AwaitKeyword || usingKeyword != this.UsingKeyword || modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.LocalDeclarationStatement(modifiers, declaration, semicolonToken);
+            var newNode = SyntaxFactory.LocalDeclarationStatement(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -8419,19 +8443,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
+    public LocalDeclarationStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
+    {
+        return this.Update(awaitKeyword, this.UsingKeyword, this.Modifiers, this.Declaration, this.SemicolonToken);
+    }
+
+    public LocalDeclarationStatementSyntax WithUsingKeyword(SyntaxToken usingKeyword)
+    {
+        return this.Update(this.AwaitKeyword, usingKeyword, this.Modifiers, this.Declaration, this.SemicolonToken);
+    }
+
     public LocalDeclarationStatementSyntax WithModifiers(SyntaxTokenList modifiers)
     {
-        return this.Update(modifiers, this.Declaration, this.SemicolonToken);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, modifiers, this.Declaration, this.SemicolonToken);
     }
 
     public LocalDeclarationStatementSyntax WithDeclaration(VariableDeclarationSyntax declaration)
     {
-        return this.Update(this.Modifiers, declaration, this.SemicolonToken);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, this.Modifiers, declaration, this.SemicolonToken);
     }
 
     public LocalDeclarationStatementSyntax WithSemicolonToken(SyntaxToken semicolonToken)
     {
-        return this.Update(this.Modifiers, this.Declaration, semicolonToken);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, this.Modifiers, this.Declaration, semicolonToken);
     }
 
     public LocalDeclarationStatementSyntax AddModifiers(params SyntaxToken[] items)
@@ -22253,13 +22287,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).disableOrRestoreKeyword, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
+    public SyntaxToken NullableKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).nullableKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.GetChildPosition(4), this.GetChildIndex(4));
+
+            return default(SyntaxToken);
+        }
+    }
+
     public SeparatedSyntaxList<ExpressionSyntax> ErrorCodes 
     {
         get
         {
-            var red = this.GetRed(ref this.errorCodes, 4);
+            var red = this.GetRed(ref this.errorCodes, 5);
             if (red != null)
-                return new SeparatedSyntaxList<ExpressionSyntax>(red, this.GetChildIndex(4));
+                return new SeparatedSyntaxList<ExpressionSyntax>(red, this.GetChildIndex(5));
 
             return default(SeparatedSyntaxList<ExpressionSyntax>);
         }
@@ -22267,7 +22313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override SyntaxToken EndOfDirectiveToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, this.GetChildPosition(5), this.GetChildIndex(5)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, this.GetChildPosition(6), this.GetChildIndex(6)); }
     }
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).IsActive; } }
@@ -22276,7 +22322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 4: return this.GetRed(ref this.errorCodes, 4);
+            case 5: return this.GetRed(ref this.errorCodes, 5);
             default: return null;
         }
     }
@@ -22284,7 +22330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 4: return this.errorCodes;
+            case 5: return this.errorCodes;
             default: return null;
         }
     }
@@ -22299,11 +22345,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitPragmaWarningDirectiveTrivia(this);
     }
 
-    public PragmaWarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+    public PragmaWarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
     {
-        if (hashToken != this.HashToken || pragmaKeyword != this.PragmaKeyword || warningKeyword != this.WarningKeyword || disableOrRestoreKeyword != this.DisableOrRestoreKeyword || errorCodes != this.ErrorCodes || endOfDirectiveToken != this.EndOfDirectiveToken)
+        if (hashToken != this.HashToken || pragmaKeyword != this.PragmaKeyword || warningKeyword != this.WarningKeyword || disableOrRestoreKeyword != this.DisableOrRestoreKeyword || nullableKeyword != this.NullableKeyword || errorCodes != this.ErrorCodes || endOfDirectiveToken != this.EndOfDirectiveToken)
         {
-            var newNode = SyntaxFactory.PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes, endOfDirectiveToken, isActive);
+            var newNode = SyntaxFactory.PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword, errorCodes, endOfDirectiveToken, isActive);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -22316,38 +22362,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
     public new PragmaWarningDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
-        return this.Update(hashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
+        return this.Update(hashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.NullableKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
     }
 
     public PragmaWarningDirectiveTriviaSyntax WithPragmaKeyword(SyntaxToken pragmaKeyword)
     {
-        return this.Update(this.HashToken, pragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
+        return this.Update(this.HashToken, pragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.NullableKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
     }
 
     public PragmaWarningDirectiveTriviaSyntax WithWarningKeyword(SyntaxToken warningKeyword)
     {
-        return this.Update(this.HashToken, this.PragmaKeyword, warningKeyword, this.DisableOrRestoreKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
+        return this.Update(this.HashToken, this.PragmaKeyword, warningKeyword, this.DisableOrRestoreKeyword, this.NullableKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
     }
 
     public PragmaWarningDirectiveTriviaSyntax WithDisableOrRestoreKeyword(SyntaxToken disableOrRestoreKeyword)
     {
-        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, disableOrRestoreKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
+        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, disableOrRestoreKeyword, this.NullableKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
+    }
+
+    public PragmaWarningDirectiveTriviaSyntax WithNullableKeyword(SyntaxToken nullableKeyword)
+    {
+        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, nullableKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
     }
 
     public PragmaWarningDirectiveTriviaSyntax WithErrorCodes(SeparatedSyntaxList<ExpressionSyntax> errorCodes)
     {
-        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, errorCodes, this.EndOfDirectiveToken, this.IsActive);
+        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.NullableKeyword, errorCodes, this.EndOfDirectiveToken, this.IsActive);
     }
 
     internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
     public new PragmaWarningDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
-        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.ErrorCodes, endOfDirectiveToken, this.IsActive);
+        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.NullableKeyword, this.ErrorCodes, endOfDirectiveToken, this.IsActive);
     }
 
     public PragmaWarningDirectiveTriviaSyntax WithIsActive(bool isActive)
     {
-        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.ErrorCodes, this.EndOfDirectiveToken, isActive);
+        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.NullableKeyword, this.ErrorCodes, this.EndOfDirectiveToken, isActive);
     }
 
     public PragmaWarningDirectiveTriviaSyntax AddErrorCodes(params ExpressionSyntax[] items)

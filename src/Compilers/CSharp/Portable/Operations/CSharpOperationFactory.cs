@@ -284,6 +284,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundSwitchExpressionOperation((BoundSwitchExpression)boundNode);
                 case BoundKind.SwitchExpressionArm:
                     return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);
+                case BoundKind.UsingLocalDeclarations:
+                    return CreateUsingLocalDeclarationsOperation((BoundUsingLocalDeclarations)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
@@ -368,6 +370,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         return ImmutableArray.Create(CreateVariableDeclaratorInternal((BoundLocalDeclaration)declaration, (declarationSyntax as VariableDeclarationSyntax)?.Variables[0] ?? declarationSyntax));
                     }
                 case BoundKind.MultipleLocalDeclarations:
+                case BoundKind.UsingLocalDeclarations:
                     {
                         var multipleDeclaration = (BoundMultipleLocalDeclarations)declaration;
                         var builder = ArrayBuilder<IVariableDeclaratorOperation>.GetInstance(multipleDeclaration.LocalDeclarations.Length);
@@ -1716,7 +1719,9 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = default(Optional<object>);
             // If the syntax was the same, we're in a fixed statement or using statement. We make the Group operation implicit in this scenario, as the
             // syntax itself is a VariableDeclaration
-            bool isImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated;
+            // We do the same if the declarationSyntax was a using declaration, as it's bound as if it were a using statement
+            bool isUsing = declarationGroupSyntax.IsKind(SyntaxKind.LocalDeclarationStatement) && ((LocalDeclarationStatementSyntax)declarationGroupSyntax).UsingKeyword != default;
+            bool isImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated || isUsing;
             return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), _semanticModel, declarationGroupSyntax, type, constantValue, isImplicit);
         }
 
@@ -2003,6 +2008,17 @@ namespace Microsoft.CodeAnalysis.Operations
                 _semanticModel,
                 boundNode.Syntax,
                 isImplicit: boundNode.WasCompilerGenerated);
+        }
+        private IOperation CreateUsingLocalDeclarationsOperation(BoundUsingLocalDeclarations boundNode)
+        {
+            //TODO: Implement UsingLocalDeclaration operations correctly.
+            //      For now we return an implicit operationNone, with a single child consisting of the using declaration parsed as if it were a standard variable declaration
+            //      See: https://github.com/dotnet/roslyn/issues/32100
+            return Operation.CreateOperationNone(_semanticModel,
+                                                 boundNode.Syntax,
+                                                 constantValue: default,
+                                                 getChildren: () => ImmutableArray.Create<IOperation>(CreateBoundMultipleLocalDeclarationsOperation((BoundMultipleLocalDeclarations)boundNode)),
+                                                 isImplicit: false);
         }
     }
 }
