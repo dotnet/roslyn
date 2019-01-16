@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         /// 1. Constructor with empty parameter list.
         /// 2. Constructor's parameter list contains 'ref' or 'params'
         /// </summary>
-        protected IMethodSymbol GetDelegatedConstructorBasedOnParameterNames(
+        private IMethodSymbol GetDelegatedConstructorBasedOnParameterNames(
             INamedTypeSymbol containingType,
             ImmutableArray<IParameterSymbol> parameters)
         {
