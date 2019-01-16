@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly int _topLevelMethodOrdinal;
             private readonly VariableSlotAllocator _slotAllocatorOpt;
             private readonly TypeCompilationState _compilationState;
-            private Dictionary<Scope, HashSet<Closure>> _closuresCapturingScopeVariables;
 
             private Analysis(
                 Scope scopeTree,
@@ -278,7 +277,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void MakeAndAssignEnvironments()
             {
-                var closuresCapturingScopeVariables = new Dictionary<Scope, HashSet<Closure>>();
                 VisitScopeTree(ScopeTree, scope =>
                 {
                     // Currently all variables declared in the same scope are added
@@ -332,22 +330,79 @@ namespace Microsoft.CodeAnalysis.CSharp
                     scope.DeclaredEnvironments.Add(env);
 
                     _topLevelMethod.TryGetThisParameter(out var thisParam);
-                    var capturingClosures = new HashSet<Closure>();
                     foreach (var closure in closures)
                     {
-                        capturingClosures.Add(closure);
-
                         closure.CapturedEnvironments.Add(env);
                         if (thisParam != null && env.CapturedVariables.Contains(thisParam))
                         {
                             closure.CapturesThis = true;
                         }
                     }
+                });
+            }
 
-                    closuresCapturingScopeVariables.Add(scope, capturingClosures);
+            /// <summary>
+            /// Calculates all closures which directly or indirectly capture a scopes variables.
+            /// </summary>
+            /// <returns></returns>
+            private PooledDictionary<Scope, PooledHashSet<Closure>> CalculateClosuresCapturingScopeVariables()
+            {
+                var closuresCapturingScopeVariables = PooledDictionary<Scope, PooledHashSet<Closure>>.GetInstance();
+
+                // calculate closures which directly capture a scope
+
+                var environmentsToScopes = PooledDictionary<ClosureEnvironment, Scope>.GetInstance();
+
+                VisitScopeTree(ScopeTree, scope =>
+                {
+                    if (scope.DeclaredEnvironments.Count > 0)
+                    {
+                        // Right now we only create one environment per scope
+                        Debug.Assert(scope.DeclaredEnvironments.Count == 1);
+                        var capturingClosures = PooledHashSet<Closure>.GetInstance();
+                        closuresCapturingScopeVariables[scope] = capturingClosures;
+                        environmentsToScopes[scope.DeclaredEnvironments[0]] = scope;
+                    }
                 });
 
-                _closuresCapturingScopeVariables = closuresCapturingScopeVariables;
+                VisitClosures(ScopeTree, (_, closure) =>
+                {
+                    foreach (var env in closure.CapturedEnvironments)
+                    {
+                        closuresCapturingScopeVariables[environmentsToScopes[env]].Add(closure);
+                    }
+                });
+
+                environmentsToScopes.Free();
+
+                // if a closure captures a scope, which captures its parent, then the closure also captures the parents scope.
+                // we update closuresCapturingScopeVariables to reflect this.
+                foreach (var (scope, capturingClosures) in closuresCapturingScopeVariables)
+                {
+                    if (scope.DeclaredEnvironments.Count == 0)
+                        continue;
+
+                    var currentScope = scope;
+                    while (currentScope.DeclaredEnvironments.Count == 0 || currentScope.DeclaredEnvironments[0].CapturesParent)
+                    {
+                        currentScope = currentScope.Parent;
+
+                        if (currentScope == null)
+                        {
+                            throw ExceptionUtilities.Unreachable;
+                        }
+
+                        if (currentScope.DeclaredEnvironments.Count == 0 ||
+                            currentScope.DeclaredEnvironments[0].IsStruct)
+                        {
+                            continue;
+                        }
+
+                        closuresCapturingScopeVariables[currentScope].AddAll(capturingClosures);
+                    }
+                }
+
+                return closuresCapturingScopeVariables;
             }
 
             /// <summary>
@@ -365,50 +420,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (containsJumps(ScopeTree.BoundNode.Syntax))
                     return;
 
-                // if a closure captures a scope, which captures its parent, then the closure also captures the parents scope.
-                // we update _closuresCapturingScopeVariables to reflect this.
-                foreach (var (scope, capturingClosures) in _closuresCapturingScopeVariables)
-                {
-                    if (scope.DeclaredEnvironments.Count == 0)
-                        continue;
-                    // Right now we only create one environment per scope
-                    Debug.Assert(scope.DeclaredEnvironments.Count == 1);
-                    var env = scope.DeclaredEnvironments[0];
-
-                    if (env.CapturesParent)
-                    {
-                        var currentScope = scope.Parent;
-                        while (true)
-                        {
-                            if (currentScope == null)
-                            {
-                                throw ExceptionUtilities.Unreachable;
-                            }
-
-                            if (currentScope.DeclaredEnvironments.Count == 0 || currentScope.DeclaredEnvironments[0].IsStruct)
-                            {
-                                currentScope = currentScope.Parent;
-                                continue;
-                            }
-
-                            _closuresCapturingScopeVariables[currentScope].AddAll(capturingClosures);
-
-                            // Right now we only create one environment per scope
-                            Debug.Assert(scope.DeclaredEnvironments.Count == 1);
-                            if (currentScope.DeclaredEnvironments[0].CapturesParent)
-                            {
-                                currentScope = currentScope.Parent;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
+                var closuresCapturingScopeVariables = CalculateClosuresCapturingScopeVariables();
 
                 // now we merge environments into their parent environments if it is safe to do so
-                foreach (var (scope, capturingClosures) in _closuresCapturingScopeVariables)
+                foreach (var (scope, capturingClosures) in closuresCapturingScopeVariables)
                 {
                     if (capturingClosures.Count == 0)
                         continue;
@@ -427,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var parentScope = currentScope.Parent;
 
-                        if (!_closuresCapturingScopeVariables.TryGetValue(parentScope, out var parentCapturingClosures)
+                        if (!closuresCapturingScopeVariables.TryGetValue(parentScope, out var parentCapturingClosures)
                             || parentScope.DeclaredEnvironments.Count == 0)
                         {
                             currentScope = parentScope;
@@ -477,6 +492,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     capturingClosures.Clear();
                 }
+
+                foreach (var set in closuresCapturingScopeVariables.Values)
+                {
+                    set.Free();
+                }
+
+                closuresCapturingScopeVariables.Free();
 
                 // Recursively checks if a syntax tree contains GOTO statements
                 bool containsJumps(SyntaxNode node)

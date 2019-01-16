@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenDisplayClassOptimisationTests : CSharpTestBase
+    public class CodeGenDisplayClassOptimizationTests : CSharpTestBase
     {
         [Fact]
         public void ForWithBlockCorrectDisplayClassesAreCreated()
