@@ -617,14 +617,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (collectionExprType.IsErrorType())
+            {
+                return false;
+            }
+
             // Retry with a different assumption about whether the foreach is async
             var ignoredBuilder = new ForEachEnumeratorInfo.Builder();
             var ignoredDiagnostics = DiagnosticBag.GetInstance();
             bool wrongAsync = GetEnumeratorInfo(ref ignoredBuilder, collectionExpr, !isAsync, ignoredDiagnostics) == EnumeratorResult.Succeeded;
             ignoredDiagnostics.Free();
-
-            if (collectionExprType.IsErrorType())
-                return false;
 
             var errorCode = wrongAsync
                 ? (isAsync ? ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync : ErrorCode.ERR_ForEachMissingMemberWrongAsync)

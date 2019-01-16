@@ -3402,7 +3402,7 @@ class C
 
         [WorkItem(32334, "https://github.com/dotnet/roslyn/issues/32334")]
         [Fact]
-        public void SupressForEachMissingMemberErrorOnErrorType()
+        public void SuppressForEachMissingMemberErrorOnErrorType()
         {
             CreateCompilation(@"
 using System;
