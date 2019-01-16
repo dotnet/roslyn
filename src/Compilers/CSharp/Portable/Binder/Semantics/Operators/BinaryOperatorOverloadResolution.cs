@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // In order to preserve backward compatibility, at first we ignore interface sources.
 
-            if (!leftSourceIsInterface)
+            if ((object)leftOperatorSourceOpt != null && !leftSourceIsInterface)
             {
                 hadApplicableCandidates = GetUserDefinedOperators(kind, leftOperatorSourceOpt, left, right, result.Results, ref useSiteDiagnostics);
                 if (!hadApplicableCandidates)
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (!rightSourceIsInterface && rightOperatorSourceOpt != leftOperatorSourceOpt)
+            if ((object)rightOperatorSourceOpt != null && !rightSourceIsInterface && !rightOperatorSourceOpt.Equals(leftOperatorSourceOpt))
             {
                 var rightOperators = ArrayBuilder<BinaryOperatorAnalysisResult>.GetInstance();
                 if (GetUserDefinedOperators(kind, rightOperatorSourceOpt, left, right, rightOperators, ref useSiteDiagnostics))
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result.Results.Clear();
                 }
 
-                if (leftOperatorSourceOpt != rightOperatorSourceOpt)
+                if ((object)rightOperatorSourceOpt != null && !rightOperatorSourceOpt.Equals(leftOperatorSourceOpt))
                 {
                     var rightOperators = ArrayBuilder<BinaryOperatorAnalysisResult>.GetInstance();
                     if (GetUserDefinedBinaryOperatorsFromInterfaces(kind, name,

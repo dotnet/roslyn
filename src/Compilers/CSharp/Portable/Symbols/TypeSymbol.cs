@@ -423,11 +423,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ImmutableHashSet<NamedTypeSymbol> InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var result = InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics;
 
-            foreach (var iface in result)
+            foreach (var iface in result.Keys)
             {
                 iface.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
             }
@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!seenTypeDeclaringInterface || 
                     (!canBeImplementedImplicitly && (object)implementingBaseOpt == null))
                 {
-                    if (currType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics).Contains(interfaceType))
+                    if (currType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics).ContainsKey(interfaceType))
                     {
                         seenTypeDeclaringInterface = true;
 
@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(interfaceType.IsInterface);
 
-            if (interfaceMember.ContainingType == interfaceType)
+            if (interfaceMember.ContainingType.Equals(interfaceType, TypeCompareKind.ConsiderEverything))
             {
                 if (!interfaceMember.IsAbstract)
                 {
@@ -1512,7 +1512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Determine  a better location for diagnostic squiggles.  Squiggle the interface rather than the class.
+        /// Determine a better location for diagnostic squiggles.  Squiggle the interface rather than the class.
         /// </summary>
         private static Location GetInterfaceLocation(Symbol interfaceMember, TypeSymbol implementingType)
         {
@@ -1520,7 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var @interface = interfaceMember.ContainingType;
 
             SourceMemberContainerTypeSymbol snt = null;
-            if (implementingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(@interface))
+            if (implementingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics[@interface].Contains(@interface))
             {
                 snt = implementingType as SourceMemberContainerTypeSymbol;
             }

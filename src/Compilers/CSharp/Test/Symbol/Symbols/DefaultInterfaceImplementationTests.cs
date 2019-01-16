@@ -1036,7 +1036,7 @@ class Test1 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
             var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
@@ -1187,7 +1187,7 @@ class Test1 : I1
 ";
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), skipUsesIsNullable: true);
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
             var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
@@ -2525,7 +2525,7 @@ class Test1 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
             compilation1.VerifyDiagnostics(
                 // (4,15): error CS8501: Target runtime doesn't support default interface implementation.
@@ -2765,7 +2765,7 @@ class Test1 : I1
 ";
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), skipUsesIsNullable: true);
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
             compilation1.VerifyDiagnostics(
@@ -3918,7 +3918,7 @@ class Test1 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS8501: Target runtime doesn't support default interface implementation.
@@ -4178,7 +4178,7 @@ class Test1 : I1
 ";
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), skipUsesIsNullable: true);
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
             compilation1.VerifyDiagnostics(
@@ -5212,7 +5212,7 @@ class Test1 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
             compilation1.VerifyDiagnostics(
                 // (6,9): error CS8501: Target runtime doesn't support default interface implementation.
@@ -5394,7 +5394,7 @@ class Test1 : I1
 ";
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), skipUsesIsNullable: true);
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
             compilation1.VerifyDiagnostics(
@@ -8044,7 +8044,7 @@ class Test2 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
             compilation3.VerifyDiagnostics(
@@ -12232,7 +12232,7 @@ class Test2 : I1, I2, I3, I4, I5
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
             compilation3.VerifyDiagnostics(expected2);
@@ -22407,7 +22407,7 @@ class Test2 : I1, I2, I3, I4, I5
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
             compilation3.VerifyDiagnostics(
@@ -23885,7 +23885,7 @@ class Test1 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
             compilation1.VerifyDiagnostics(
@@ -24252,7 +24252,7 @@ class Test1 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
             compilation3.VerifyDiagnostics(
@@ -25526,7 +25526,7 @@ class Test1 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
             compilation1.VerifyDiagnostics(expected1);
@@ -25937,7 +25937,7 @@ class Test1 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
             compilation3.VerifyDiagnostics(expected3);
@@ -27193,7 +27193,7 @@ class Test1 : I1
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
             var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
             var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll, targetFramework: TargetFramework.Empty,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
             compilation1.VerifyDiagnostics(

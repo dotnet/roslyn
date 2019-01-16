@@ -205,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if (!wasImplementingMemberFound ||
                                 (!implementingMember.ContainingType.Equals(this, TypeCompareKind.ConsiderEverything) &&
+                                !implementingMember.ContainingType.IsInterface && // PROTOTYPE(DefaultInterfaceImplementation): Deal with implementations from interfaces
                                 implementingMember.GetExplicitInterfaceImplementations().Contains(interfaceMember, ExplicitInterfaceImplementationTargetMemberEqualityComparer.Instance)))
                             {
                                 // NOTE: An alternative approach would be to keep track of this while searching for the implementing member.
