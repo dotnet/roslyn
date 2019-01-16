@@ -1271,9 +1271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void CreateNullableArray_01()
         {
             UsingExpression("new object[,][]?",
-                // (1,11): error CS1586: Array creation must have array size or array initializer
-                // new object[,][]?
-                Diagnostic(ErrorCode.ERR_MissingArraySize, "[,]").WithLocation(1, 11),
                 // (1,17): error CS1733: Expected expression
                 // new object[,][]?
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 17),
@@ -1337,28 +1334,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void CreateNullableArray_02()
         {
-            UsingExpression("new object[,][]? { 1, 2 }",
-                // (1,1): error CS1073: Unexpected token '{'
-                // new object[,][]? { 1, 2 }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "new object[,][]? ").WithArguments("{").WithLocation(1, 1),
-                // (1,11): error CS1586: Array creation must have array size or array initializer
-                // new object[,][]? { 1, 2 }
-                Diagnostic(ErrorCode.ERR_MissingArraySize, "[,]").WithLocation(1, 11),
-                // (1,18): error CS1525: Invalid expression term '{'
-                // new object[,][]? { 1, 2 }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 18),
-                // (1,18): error CS1003: Syntax error, ':' expected
-                // new object[,][]? { 1, 2 }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(":", "{").WithLocation(1, 18),
-                // (1,18): error CS1525: Invalid expression term '{'
-                // new object[,][]? { 1, 2 }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 18)
-                );
-            N(SyntaxKind.ConditionalExpression);
+            UsingExpression("new object[,][]? { 1, 2 }");
+            N(SyntaxKind.ObjectCreationExpression);
             {
-                N(SyntaxKind.ArrayCreationExpression);
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.NullableType);
                 {
-                    N(SyntaxKind.NewKeyword);
                     N(SyntaxKind.ArrayType);
                     {
                         N(SyntaxKind.PredefinedType);
@@ -1389,16 +1370,240 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.CloseBracketToken);
                         }
                     }
+                    N(SyntaxKind.QuestionToken);
                 }
-                N(SyntaxKind.QuestionToken);
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.CollectionInitializerExpression);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                M(SyntaxKind.ColonToken);
-                M(SyntaxKind.IdentifierName);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CreateNullableArray_03()
+        {
+            UsingExpression("new object[1,2]?[3]?[4]");
+            N(SyntaxKind.ArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.ArrayType);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.ArrayType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "2");
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "4");
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CreateNullableArray_04()
+        {
+            UsingExpression("new object[,]?[]?[]");
+            N(SyntaxKind.ArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.ArrayType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                        {
+                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                        {
+                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.OmittedArraySizeExpression);
+                        {
+                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CreateNullableArray_05()
+        {
+            UsingExpression("new object[1,2]?[3]?[]");
+            N(SyntaxKind.ArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.ArrayType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "2");
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.OmittedArraySizeExpression);
+                        {
+                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CreateNullableArray_06()
+        {
+            UsingExpression("new object[]");
+            N(SyntaxKind.ArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.ObjectKeyword);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.OmittedArraySizeExpression);
+                        {
+                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
                 }
             }
             EOF();

@@ -4524,7 +4524,7 @@ tryAgain:
                 case SyntaxKind.OpenBracketToken:
                     bool sawNonOmittedSize;
                     _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
-                    var specifier = this.ParseArrayRankSpecifier(isArrayCreation: false, expectSizes: flags == VariableFlags.Fixed, sawNonOmittedSize: out sawNonOmittedSize);
+                    var specifier = this.ParseArrayRankSpecifier(sawNonOmittedSize: out sawNonOmittedSize);
                     _termState = saveTerm;
                     var open = specifier.OpenBracketToken;
                     var sizes = specifier.Sizes;
@@ -4543,6 +4543,11 @@ tryAgain:
                             var expression = item as ExpressionSyntax;
                             if (expression != null)
                             {
+                                bool isOmitted = expression is OmittedArraySizeExpressionSyntax;
+                                if (!isFixed && !isOmitted)
+                                {
+                                    expression = this.AddError(expression, ErrorCode.ERR_ArraySizeInDeclaration);
+                                }
                                 args.Add(_syntaxFactory.Argument(null, default(SyntaxToken), expression));
                             }
                             else
@@ -5885,18 +5890,39 @@ tryAgain:
             return ScanType(out _, forPattern);
         }
 
-        private ScanTypeFlags ScanNonArrayType()
-        {
-            return ScanType(ParseTypeMode.ArrayCreation, out _, permitArray: false);
-        }
-
         private ScanTypeFlags ScanType(out SyntaxToken lastTokenOfType, bool forPattern = false)
         {
             return ScanType(forPattern ? ParseTypeMode.DefinitePattern : ParseTypeMode.Normal, out lastTokenOfType);
         }
 
-        private ScanTypeFlags ScanType(ParseTypeMode mode, out SyntaxToken lastTokenOfType, bool permitArray = true)
+        private void ScanNamedTypePart()
         {
+            SyntaxToken lastTokenOfType;
+            ScanNamedTypePart(out lastTokenOfType);
+        }
+
+        private ScanTypeFlags ScanNamedTypePart(out SyntaxToken lastTokenOfType)
+        {
+            if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken || !this.IsTrueIdentifier())
+            {
+                lastTokenOfType = null;
+                return ScanTypeFlags.NotType;
+            }
+
+            lastTokenOfType = this.EatToken();
+            if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
+            {
+                return this.ScanPossibleTypeArgumentList(ref lastTokenOfType, out _);
+            }
+            else
+            {
+                return ScanTypeFlags.NonGenericTypeOrExpression;
+            }
+        }
+
+        private ScanTypeFlags ScanType(ParseTypeMode mode, out SyntaxToken lastTokenOfType)
+        {
+            Debug.Assert(mode != ParseTypeMode.NewExpression);
             ScanTypeFlags result;
 
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
@@ -5973,13 +5999,12 @@ tryAgain:
                 {
                     case SyntaxKind.QuestionToken
                             when lastTokenOfType.Kind != SyntaxKind.QuestionToken && // don't allow `Type??`
-                                 lastTokenOfType.Kind != SyntaxKind.AsteriskToken && // don't allow `Type*?`
-                                 (mode != ParseTypeMode.ArrayCreation || this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken): // don't allow `new Type[0]?`
+                                 lastTokenOfType.Kind != SyntaxKind.AsteriskToken: // don't allow `Type*?`
                         lastTokenOfType = this.EatToken();
                         result = ScanTypeFlags.NullableType;
                         break;
                     case SyntaxKind.AsteriskToken
-                            when lastTokenOfType.Kind != SyntaxKind.CloseBracketToken:
+                            when lastTokenOfType.Kind != SyntaxKind.CloseBracketToken: // don't allow `Type[]*`
                         // Check for pointer type(s)
                         switch (mode)
                         {
@@ -6009,7 +6034,7 @@ tryAgain:
                                 break;
                         }
                         break;
-                    case SyntaxKind.OpenBracketToken when permitArray:
+                    case SyntaxKind.OpenBracketToken:
                         // Check for array types.
                         this.EatToken();
                         while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -6033,31 +6058,6 @@ tryAgain:
 
 done:;
             return result;
-        }
-
-        private void ScanNamedTypePart()
-        {
-            SyntaxToken lastTokenOfType;
-            ScanNamedTypePart(out lastTokenOfType);
-        }
-
-        private ScanTypeFlags ScanNamedTypePart(out SyntaxToken lastTokenOfType)
-        {
-            if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken || !this.IsTrueIdentifier())
-            {
-                lastTokenOfType = null;
-                return ScanTypeFlags.NotType;
-            }
-
-            lastTokenOfType = this.EatToken();
-            if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
-            {
-                return this.ScanPossibleTypeArgumentList(ref lastTokenOfType, out _);
-            }
-            else
-            {
-                return ScanTypeFlags.NonGenericTypeOrExpression;
-            }
         }
 
         /// <summary>
@@ -6138,18 +6138,19 @@ done:;
             AfterOut,
             AfterTupleComma,
             AsExpression,
-            ArrayCreation,
+            NewExpression,
             FirstElementOfPossibleTupleLiteral
         }
 
-        private TypeSyntax ParseType(
-            ParseTypeMode mode = ParseTypeMode.Normal,
-            bool expectSizes = false)
+        private TypeSyntax ParseType(ParseTypeMode mode = ParseTypeMode.Normal)
         {
-            if (mode == ParseTypeMode.Normal && !expectSizes && this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
                 var refKeyword = this.EatToken();
                 refKeyword = this.CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
+
+                if (mode != ParseTypeMode.Normal)
+                    refKeyword = this.AddError(refKeyword, ErrorCode.ERR_TypeExpected);
 
                 SyntaxToken readonlyKeyword = null;
                 if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
@@ -6158,16 +6159,14 @@ done:;
                     readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadOnlyReferences);
                 }
 
-                var type = ParseTypeCore(mode, expectSizes);
+                var type = ParseTypeCore(mode);
                 return _syntaxFactory.RefType(refKeyword, readonlyKeyword, type);
             }
 
-            return ParseTypeCore(mode, expectSizes);
+            return ParseTypeCore(mode);
         }
 
-        private TypeSyntax ParseTypeCore(
-            ParseTypeMode mode,
-            bool expectSizes)
+        private TypeSyntax ParseTypeCore(ParseTypeMode mode)
         {
             NameOptions nameOptions;
             switch (mode)
@@ -6187,7 +6186,7 @@ done:;
                 case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
                     nameOptions = NameOptions.InExpression | NameOptions.FirstElementOfPossibleTupleLiteral;
                     break;
-                case ParseTypeMode.ArrayCreation:
+                case ParseTypeMode.NewExpression:
                 case ParseTypeMode.AsExpression:
                 case ParseTypeMode.Normal:
                 case ParseTypeMode.Parameter:
@@ -6205,14 +6204,7 @@ done:;
             {
                 switch (this.CurrentToken.Kind)
                 {
-                    case SyntaxKind.QuestionToken when
-                            type.Kind != SyntaxKind.NullableType &&
-                            type.Kind != SyntaxKind.PointerType &&
-                            // We permit a nullable type in an is-type expression, but not an is-pattern expression
-                            (mode != ParseTypeMode.AfterIs || !CanNextTokenStartExpression()) &&
-                            // we do not permit nullable types in a declaration pattern
-                            (mode != ParseTypeMode.DefinitePattern || this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken) &&
-                            (mode != ParseTypeMode.ArrayCreation || this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken):
+                    case SyntaxKind.QuestionToken when canBeNullableType():
                         {
                             var question = EatNullableQualifierIfApplicable(mode);
                             if (question != null)
@@ -6221,6 +6213,21 @@ done:;
                                 continue;
                             }
                             goto done; // token not consumed
+                        }
+                        bool canBeNullableType()
+                        {
+                            // These are the fast tests for (in)applicability.
+                            // More expensive tests are in `EatNullableQualifierIfApplicable`
+                            if (type.Kind == SyntaxKind.NullableType || type.Kind == SyntaxKind.PointerType)
+                                return false;
+                            if (this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken)
+                                return true;
+                            if (mode == ParseTypeMode.DefinitePattern)
+                                return false;
+                            if (mode == ParseTypeMode.NewExpression && type.Kind == SyntaxKind.TupleType &&
+                                this.PeekToken(1).Kind != SyntaxKind.OpenParenToken && this.PeekToken(1).Kind != SyntaxKind.OpenBraceToken)
+                                return false; // Permit `new (int, int)?(t)` (creation) and `new (int, int) ? x : y` (ternary)
+                            return true;
                         }
                     case SyntaxKind.AsteriskToken when type.Kind != SyntaxKind.ArrayType:
                         switch (mode)
@@ -6239,24 +6246,22 @@ done:;
                             case ParseTypeMode.Normal:
                             case ParseTypeMode.Parameter:
                             case ParseTypeMode.AfterOut:
-                            case ParseTypeMode.ArrayCreation:
                             case ParseTypeMode.AsExpression:
+                            case ParseTypeMode.NewExpression:
                                 type = this.ParsePointerTypeMods(type);
                                 continue;
                         }
                         goto done; // token not consumed
                     case SyntaxKind.OpenBracketToken:
                         // Now check for arrays.
-                        if (this.IsPossibleRankAndDimensionSpecifier())
                         {
                             var ranks = _pool.Allocate<ArrayRankSpecifierSyntax>();
                             try
                             {
-                                while (this.IsPossibleRankAndDimensionSpecifier())
+                                while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
                                 {
-                                    var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, out _);
+                                    var rank = this.ParseArrayRankSpecifier(out _);
                                     ranks.Add(rank);
-                                    expectSizes = false;
                                 }
 
                                 type = _syntaxFactory.ArrayType(type, ranks);
@@ -6267,7 +6272,6 @@ done:;
                             }
                             continue;
                         }
-                        goto done; // token not consumed
                     default:
                         goto done; // token not consumed
                 }
@@ -6285,28 +6289,40 @@ done:;
             try
             {
                 var questionToken = this.EatToken();
-                switch (mode)
+                if (!canFollowNullableType())
                 {
-                    case ParseTypeMode.AfterIs:
-                    case ParseTypeMode.DefinitePattern:
-                    case ParseTypeMode.AsExpression:
-                    case ParseTypeMode.ArrayCreation:
-                        // These contexts might be a type that is at the end of an expression.
-                        // In these contexts we only permit the nullable qualifier if it is followed
-                        // by a token that could not start an expression, because for backward
-                        // compatibility we want to consider a `?` token as part of the `?:`
-                        // operator if possible.
-                        if (CanStartExpression())
-                        {
-                            // Restore current token index
-                            this.Reset(ref resetPoint);
-                            return null;
-                        }
-
-                        break;
+                    // Restore current token index
+                    this.Reset(ref resetPoint);
+                    return null;
                 }
 
                 return CheckFeatureAvailability(questionToken, MessageID.IDS_FeatureNullable);
+
+                bool canFollowNullableType()
+                {
+                    switch (mode)
+                    {
+                        case ParseTypeMode.AfterIs:
+                        case ParseTypeMode.DefinitePattern:
+                        case ParseTypeMode.AsExpression:
+                            // These contexts might be a type that is at the end of an expression.
+                            // In these contexts we only permit the nullable qualifier if it is followed
+                            // by a token that could not start an expression, because for backward
+                            // compatibility we want to consider a `?` token as part of the `?:`
+                            // operator if possible.
+                            return !CanStartExpression();
+                        case ParseTypeMode.NewExpression:
+                            // A nullable qualifier is permitted as part of the type in a `new` expression.
+                            // e.g. `new int?()` is allowed.  It creates a null value of type `Nullable<int>`.
+                            // But the object initializer syntax `new int? {}` is not permitted.
+                            return
+                                this.CurrentToken.Kind == SyntaxKind.OpenParenToken ||   // ctor parameters
+                                this.CurrentToken.Kind == SyntaxKind.OpenBracketToken ||   // array type
+                                this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;   // object initializer
+                        default:
+                            return true;
+                    }
+                }
             }
             finally
             {
@@ -6331,12 +6347,7 @@ done:;
             }
         }
 
-        private bool IsPossibleRankAndDimensionSpecifier()
-        {
-            return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
-        }
-
-        private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, out bool sawNonOmittedSize)
+        private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(out bool sawNonOmittedSize)
         {
             sawNonOmittedSize = false;
             bool sawOmittedSize = false;
@@ -6358,11 +6369,6 @@ done:;
                     {
                         var size = this.ParseExpressionCore();
                         sawNonOmittedSize = true;
-                        if (!expectSizes)
-                        {
-                            size = this.AddError(size, isArrayCreation ? ErrorCode.ERR_InvalidArray : ErrorCode.ERR_ArraySizeInDeclaration);
-                        }
-
                         list.Add(size);
 
                         if (this.CurrentToken.Kind != SyntaxKind.CloseBracketToken)
@@ -10578,8 +10584,7 @@ tryAgain:
         private ExpressionSyntax ParseArrayOrObjectCreationExpression()
         {
             SyntaxToken @new = this.EatToken(SyntaxKind.NewKeyword);
-            bool isPossibleArrayCreation = this.IsPossibleArrayCreationExpression();
-            var type = this.ParseType(isPossibleArrayCreation ? ParseTypeMode.ArrayCreation : ParseTypeMode.Normal, expectSizes: isPossibleArrayCreation);
+            var type = this.ParseType(ParseTypeMode.NewExpression);
 
             if (type.Kind == SyntaxKind.ArrayType)
             {
@@ -10588,14 +10593,6 @@ tryAgain:
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
                 {
                     initializer = this.ParseArrayInitializer();
-                }
-                else
-                {
-                    var rankSpec = ((ArrayTypeSyntax)type).RankSpecifiers[0];
-                    if (GetNumberOfNonOmittedArraySizes(rankSpec) == 0)
-                    {
-                        type = this.AddError(type, rankSpec, ErrorCode.ERR_MissingArraySize);
-                    }
                 }
 
                 return _syntaxFactory.ArrayCreationExpression(@new, (ArrayTypeSyntax)type, initializer);
@@ -10624,37 +10621,6 @@ tryAgain:
                 }
 
                 return _syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
-            }
-        }
-
-        private static int GetNumberOfNonOmittedArraySizes(ArrayRankSpecifierSyntax rankSpec)
-        {
-            int count = rankSpec.Sizes.Count;
-            int result = 0;
-            for (int i = 0; i < count; i++)
-            {
-                if (rankSpec.Sizes[i].Kind != SyntaxKind.OmittedArraySizeExpression)
-                {
-                    result++;
-                }
-            }
-            return result;
-        }
-
-        private bool IsPossibleArrayCreationExpression()
-        {
-            // previous token should be NewKeyword
-
-            var resetPoint = this.GetResetPoint();
-            try
-            {
-                ScanTypeFlags isType = this.ScanNonArrayType();
-                return isType != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
-            }
-            finally
-            {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
             }
         }
 
@@ -11030,20 +10996,12 @@ tryAgain:
         private ExpressionSyntax ParseRegularStackAllocExpression()
         {
             var @stackalloc = this.EatToken(SyntaxKind.StackAllocKeyword);
-            var elementType = this.ParseType(expectSizes: true);
+            var elementType = this.ParseType();
             InitializerExpressionSyntax initializer = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
                 @stackalloc = CheckFeatureAvailability(@stackalloc, MessageID.IDS_FeatureStackAllocInitializer);
                 initializer = this.ParseArrayInitializer();
-            }
-            else if (elementType.Kind == SyntaxKind.ArrayType)
-            {
-                var rankSpec = ((ArrayTypeSyntax)elementType).RankSpecifiers[0];
-                if (GetNumberOfNonOmittedArraySizes(rankSpec) == 0)
-                {
-                    elementType = this.AddError(elementType, rankSpec, ErrorCode.ERR_MissingArraySize);
-                }
             }
 
             return _syntaxFactory.StackAllocArrayCreationExpression(@stackalloc, elementType, initializer);

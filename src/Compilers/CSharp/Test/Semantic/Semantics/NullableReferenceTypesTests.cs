@@ -1251,18 +1251,18 @@ class C { }
     static void F1(object x)
     {
         _ = x is string? 1 : 2;
-        _ = x is string? ? 1 : 2;
-        _ = x is string ? ? 1 : 2;
+        _ = x is string? ? 1 : 2;  // error 1: is a nullable reference type
+        _ = x is string ? ? 1 : 2; // error 2: is a nullable reference type
         _ = x as string?? x;
-        _ = x as string ? ?? x;
+        _ = x as string ? ?? x;    // error 3: as a nullable reference type
     }
     static void F2(object y)
     {
         _ = y is object[]? 1 : 2;
-        _ = y is object[]? ? 1 : 2;
-        _ = y is object[] ? ? 1 : 2;
+        _ = y is object[]? ? 1 : 2;   // error 4
+        _ = y is object[] ? ? 1 : 2;  // error 5
         _ = y as object[]?? y;
-        _ = y as object[] ? ?? y;
+        _ = y as object[] ? ?? y;     // error 6
     }
     static void F3<T>(object z)
     {
@@ -1276,23 +1276,41 @@ class C { }
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
+                // (6,18): error CS8650: It is not legal to use nullable type 'string?' in an is-type expression; use the underlying type 'string' instead.
+                //         _ = x is string? ? 1 : 2;  // error 1: is a nullable reference type
+                Diagnostic(ErrorCode.ERR_IsNullableType, "string?").WithArguments("string").WithLocation(6, 18),
                 // (6,24): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
-                //         _ = x is string? ? 1 : 2;
+                //         _ = x is string? ? 1 : 2;  // error 1: is a nullable reference type
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(6, 24),
+                // (7,18): error CS8650: It is not legal to use nullable type 'string?' in an is-type expression; use the underlying type 'string' instead.
+                //         _ = x is string ? ? 1 : 2; // error 2: is a nullable reference type
+                Diagnostic(ErrorCode.ERR_IsNullableType, "string ?").WithArguments("string").WithLocation(7, 18),
                 // (7,25): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
-                //         _ = x is string ? ? 1 : 2;
+                //         _ = x is string ? ? 1 : 2; // error 2: is a nullable reference type
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(7, 25),
+                // (9,18): error CS8651: It is not legal to use nullable type 'string?' in an as expression; use the underlying type 'string' instead.
+                //         _ = x as string ? ?? x;    // error 3: as a nullable reference type
+                Diagnostic(ErrorCode.ERR_AsNullableType, "string ?").WithArguments("string").WithLocation(9, 18),
                 // (9,25): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
-                //         _ = x as string ? ?? x;
+                //         _ = x as string ? ?? x;    // error 3: as a nullable reference type
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(9, 25),
+                // (14,18): error CS8650: It is not legal to use nullable type 'object[]?' in an is-type expression; use the underlying type 'object[]' instead.
+                //         _ = y is object[]? ? 1 : 2;   // error 4
+                Diagnostic(ErrorCode.ERR_IsNullableType, "object[]?").WithArguments("object[]").WithLocation(14, 18),
                 // (14,26): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
-                //         _ = y is object[]? ? 1 : 2;
+                //         _ = y is object[]? ? 1 : 2;   // error 4
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(14, 26),
+                // (15,18): error CS8650: It is not legal to use nullable type 'object[]?' in an is-type expression; use the underlying type 'object[]' instead.
+                //         _ = y is object[] ? ? 1 : 2;  // error 5
+                Diagnostic(ErrorCode.ERR_IsNullableType, "object[] ?").WithArguments("object[]").WithLocation(15, 18),
                 // (15,27): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
-                //         _ = y is object[] ? ? 1 : 2;
+                //         _ = y is object[] ? ? 1 : 2;  // error 5
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(15, 27),
+                // (17,18): error CS8651: It is not legal to use nullable type 'object[]?' in an as expression; use the underlying type 'object[]' instead.
+                //         _ = y as object[] ? ?? y;     // error 6
+                Diagnostic(ErrorCode.ERR_AsNullableType, "object[] ?").WithArguments("object[]").WithLocation(17, 18),
                 // (17,27): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
-                //         _ = y as object[] ? ?? y;
+                //         _ = y as object[] ? ?? y;     // error 6
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(17, 27),
                 // (22,21): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         _ = z is T[]?[] ? 1 : 2;
@@ -1302,10 +1320,30 @@ class C { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(23, 22),
                 // (25,22): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         _ = z as T[] ? [] ?? z;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(25, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(25, 22)
+                );
 
             comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,18): error CS8650: It is not legal to use nullable type 'string?' in an is-type expression; use the underlying type 'string' instead.
+                //         _ = x is string? ? 1 : 2;  // error 1: is a nullable reference type
+                Diagnostic(ErrorCode.ERR_IsNullableType, "string?").WithArguments("string").WithLocation(6, 18),
+                // (7,18): error CS8650: It is not legal to use nullable type 'string?' in an is-type expression; use the underlying type 'string' instead.
+                //         _ = x is string ? ? 1 : 2; // error 2: is a nullable reference type
+                Diagnostic(ErrorCode.ERR_IsNullableType, "string ?").WithArguments("string").WithLocation(7, 18),
+                // (9,18): error CS8651: It is not legal to use nullable type 'string?' in an as expression; use the underlying type 'string' instead.
+                //         _ = x as string ? ?? x;    // error 3: as a nullable reference type
+                Diagnostic(ErrorCode.ERR_AsNullableType, "string ?").WithArguments("string").WithLocation(9, 18),
+                // (14,18): error CS8650: It is not legal to use nullable type 'object[]?' in an is-type expression; use the underlying type 'object[]' instead.
+                //         _ = y is object[]? ? 1 : 2;   // error 4
+                Diagnostic(ErrorCode.ERR_IsNullableType, "object[]?").WithArguments("object[]").WithLocation(14, 18),
+                // (15,18): error CS8650: It is not legal to use nullable type 'object[]?' in an is-type expression; use the underlying type 'object[]' instead.
+                //         _ = y is object[] ? ? 1 : 2;  // error 5
+                Diagnostic(ErrorCode.ERR_IsNullableType, "object[] ?").WithArguments("object[]").WithLocation(15, 18),
+                // (17,18): error CS8651: It is not legal to use nullable type 'object[]?' in an as expression; use the underlying type 'object[]' instead.
+                //         _ = y as object[] ? ?? y;     // error 6
+                Diagnostic(ErrorCode.ERR_AsNullableType, "object[] ?").WithArguments("object[]").WithLocation(17, 18)
+                );
         }
 
         [Fact, WorkItem(29318, "https://github.com/dotnet/roslyn/issues/29318")]
@@ -24150,102 +24188,109 @@ class C
         x1 = new object?(); // error 1
         x1 = new object? { }; // error 2
         x1 = (new object?[1])[0];
+        x1 = new object[]? {};   // error 3
     }
     static void F2<T2>()
     {
         object? x2;
-        x2 = new T2?(); // error 3 and 4
-        x2 = new T2? { }; // error 5 and 6
+        x2 = new T2?(); // error 4
+        x2 = new T2? { }; // error 5
         x2 = (new T2?[1])[0];
     }
     static void F3<T3>() where T3 : class, new()
     {
         object? x3;
-        x3 = new T3?(); // error 7
-        x3 = new T3? { }; // error 8
+        x3 = new T3?(); // error 6
+        x3 = new T3? { }; // error 7
         x3 = (new T3?[1])[0];
     }
     static void F4<T4>() where T4 : new()
     {
         object? x4;
-        x4 = new T4?(); // error 9
-        x4 = new T4? { }; // error 10
+        x4 = new T4?(); // error 8
+        x4 = new T4? { }; // error 9
         x4 = (new T4?[1])[0];
         x4 = new System.Nullable<int>? { }; // error 11
     }
     static void F5<T5>() where T5 : class
     {
         object? x5;
-        x5 = new T5?(); // error 12 and 13
-        x5 = new T5? { }; // error 14 and 15
-        x5 = (new T5?[1])[0]; // error 16
+        x5 = new T5?(); // error 10
+        x5 = new T5? { }; // error 11
+        x5 = (new T5?[1])[0];
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (6,14): error CS8630: Cannot use a nullable reference type in object creation.
+                // (6,14): error CS8628: Cannot use a nullable reference type in object creation.
                 //         x1 = new object?(); // error 1
                 Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new object?()").WithArguments("object").WithLocation(6, 14),
-                // (7,14): error CS8630: Cannot use a nullable reference type in object creation.
+                // (7,14): error CS8628: Cannot use a nullable reference type in object creation.
                 //         x1 = new object? { }; // error 2
                 Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new object? { }").WithArguments("object").WithLocation(7, 14),
-                // (13,14): error CS8630: Cannot use a nullable reference type in object creation.
-                //         x2 = new T2?(); // error 3 and 4
-                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T2?()").WithArguments("T2").WithLocation(13, 14),
-                // (13,14): error CS0304: Cannot create an instance of the variable type 'T2' because it does not have the new() constraint
-                //         x2 = new T2?(); // error 3 and 4
-                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T2?()").WithArguments("T2").WithLocation(13, 14),
-                // (13,18): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //         x2 = new T2?(); // error 3 and 4
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T2?").WithLocation(13, 18),
-                // (14,14): error CS8630: Cannot use a nullable reference type in object creation.
-                //         x2 = new T2? { }; // error 5 and 6
-                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T2? { }").WithArguments("T2").WithLocation(14, 14),
-                // (14,14): error CS0304: Cannot create an instance of the variable type 'T2' because it does not have the new() constraint
-                //         x2 = new T2? { }; // error 5 and 6
-                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T2? { }").WithArguments("T2").WithLocation(14, 14),
+                // (9,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x1 = new object[]? {};   // error 3
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new object[]? {}").WithArguments("object[]").WithLocation(9, 14),
+                // (9,18): error CS8386: Invalid object creation
+                //         x1 = new object[]? {};   // error 3
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "object[]?").WithArguments("object[]").WithLocation(9, 18),
                 // (14,18): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //         x2 = new T2? { }; // error 5 and 6
+                //         x2 = new T2?(); // error 4
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T2?").WithLocation(14, 18),
-                // (15,19): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (14,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x2 = new T2?(); // error 4
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T2?()").WithArguments("T2").WithLocation(14, 14),
+                // (14,14): error CS0304: Cannot create an instance of the variable type 'T2' because it does not have the new() constraint
+                //         x2 = new T2?(); // error 4
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T2?()").WithArguments("T2").WithLocation(14, 14),
+                // (15,18): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //         x2 = new T2? { }; // error 5
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T2?").WithLocation(15, 18),
+                // (15,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x2 = new T2? { }; // error 5
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T2? { }").WithArguments("T2").WithLocation(15, 14),
+                // (15,14): error CS0304: Cannot create an instance of the variable type 'T2' because it does not have the new() constraint
+                //         x2 = new T2? { }; // error 5
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T2? { }").WithArguments("T2").WithLocation(15, 14),
+                // (16,19): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         x2 = (new T2?[1])[0];
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T2?").WithLocation(15, 19),
-                // (20,14): error CS8630: Cannot use a nullable reference type in object creation.
-                //         x3 = new T3?(); // error 7
-                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T3?()").WithArguments("T3").WithLocation(20, 14),
-                // (21,14): error CS8630: Cannot use a nullable reference type in object creation.
-                //         x3 = new T3? { }; // error 8
-                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T3? { }").WithArguments("T3").WithLocation(21, 14),
-                // (27,14): error CS8630: Cannot use a nullable reference type in object creation.
-                //         x4 = new T4?(); // error 9
-                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T4?()").WithArguments("T4").WithLocation(27, 14),
-                // (27,18): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //         x4 = new T4?(); // error 9
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T4?").WithLocation(27, 18),
-                // (28,14): error CS8630: Cannot use a nullable reference type in object creation.
-                //         x4 = new T4? { }; // error 10
-                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T4? { }").WithArguments("T4").WithLocation(28, 14),
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T2?").WithLocation(16, 19),
+                // (21,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x3 = new T3?(); // error 6
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T3?()").WithArguments("T3").WithLocation(21, 14),
+                // (22,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x3 = new T3? { }; // error 7
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T3? { }").WithArguments("T3").WithLocation(22, 14),
                 // (28,18): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //         x4 = new T4? { }; // error 10
+                //         x4 = new T4?(); // error 8
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T4?").WithLocation(28, 18),
-                // (30,18): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //         x4 = new System.Nullable<int>? { }; // error 11
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "System.Nullable<int>?").WithArguments("System.Nullable<T>", "T", "int?").WithLocation(30, 18),
-                // (29,19): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (28,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x4 = new T4?(); // error 8
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T4?()").WithArguments("T4").WithLocation(28, 14),
+                // (29,18): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //         x4 = new T4? { }; // error 9
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T4?").WithLocation(29, 18),
+                // (29,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x4 = new T4? { }; // error 9
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T4? { }").WithArguments("T4").WithLocation(29, 14),
+                // (30,19): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         x4 = (new T4?[1])[0];
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T4?").WithLocation(29, 19),
-                // (35,14): error CS8630: Cannot use a nullable reference type in object creation.
-                //         x5 = new T5?(); // error 12 and 13
-                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T5?()").WithArguments("T5").WithLocation(35, 14),
-                // (35,14): error CS0304: Cannot create an instance of the variable type 'T5' because it does not have the new() constraint
-                //         x5 = new T5?(); // error 12 and 13
-                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T5?()").WithArguments("T5").WithLocation(35, 14),
-                // (36,14): error CS8630: Cannot use a nullable reference type in object creation.
-                //         x5 = new T5? { }; // error 14 and 15
-                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T5? { }").WithArguments("T5").WithLocation(36, 14),
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T4?").WithLocation(30, 19),
+                // (31,18): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         x4 = new System.Nullable<int>? { }; // error 11
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "System.Nullable<int>?").WithArguments("System.Nullable<T>", "T", "int?").WithLocation(31, 18),
+                // (36,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x5 = new T5?(); // error 10
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T5?()").WithArguments("T5").WithLocation(36, 14),
                 // (36,14): error CS0304: Cannot create an instance of the variable type 'T5' because it does not have the new() constraint
-                //         x5 = new T5? { }; // error 14 and 15
-                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T5? { }").WithArguments("T5").WithLocation(36, 14)
+                //         x5 = new T5?(); // error 10
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T5?()").WithArguments("T5").WithLocation(36, 14),
+                // (37,14): error CS8628: Cannot use a nullable reference type in object creation.
+                //         x5 = new T5? { }; // error 11
+                Diagnostic(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, "new T5? { }").WithArguments("T5").WithLocation(37, 14),
+                // (37,14): error CS0304: Cannot create an instance of the variable type 'T5' because it does not have the new() constraint
+                //         x5 = new T5? { }; // error 11
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T5? { }").WithArguments("T5").WithLocation(37, 14)
                 );
         }
 
@@ -33688,6 +33733,9 @@ class Program
                 // (16,22): warning CS8601: Possible null reference assignment.
                 //         p.LastName = null as string?;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null as string?").WithLocation(16, 22),
+                // (16,30): error CS8651: It is not legal to use nullable type 'string?' in an as expression; use the underlying type 'string' instead.
+                //         p.LastName = null as string?;
+                Diagnostic(ErrorCode.ERR_AsNullableType, "string?").WithArguments("string").WithLocation(16, 30),
                 // (17,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         p.LastName = default(string);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(17, 22),
@@ -33699,7 +33747,8 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p.MiddleName").WithLocation(19, 23),
                 // (20,22): warning CS8601: Possible null reference assignment.
                 //         p.LastName = p.MiddleName ?? null;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p.MiddleName ?? null").WithLocation(20, 22));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p.MiddleName ?? null").WithLocation(20, 22)
+                );
         }
 
         [Fact]
@@ -33737,6 +33786,9 @@ static class Extensions
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (15,18): error CS8651: It is not legal to use nullable type 'string?' in an as expression; use the underlying type 'string' instead.
+                //         (null as string?).F();
+                Diagnostic(ErrorCode.ERR_AsNullableType, "string?").WithArguments("string").WithLocation(15, 18),
                 // (12,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         ((string)null).F();
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(12, 10),
@@ -33749,9 +33801,6 @@ static class Extensions
                 // (14,10): warning CS8604: Possible null reference argument for parameter 's' in 'void Extensions.F(string s)'.
                 //         (null as string).F();
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string").WithArguments("s", "void Extensions.F(string s)").WithLocation(14, 10),
-                // (15,10): warning CS8604: Possible null reference argument for parameter 's' in 'void Extensions.F(string s)'.
-                //         (null as string?).F();
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string?").WithArguments("s", "void Extensions.F(string s)").WithLocation(15, 10),
                 // (16,9): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         default(string).F();
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(16, 9),
@@ -33763,7 +33812,8 @@ static class Extensions
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(p != null) ? p.MiddleName : null").WithArguments("s", "void Extensions.F(string s)").WithLocation(17, 10),
                 // (18,10): warning CS8604: Possible null reference argument for parameter 's' in 'void Extensions.F(string s)'.
                 //         (p.MiddleName ?? null).F();
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "p.MiddleName ?? null").WithArguments("s", "void Extensions.F(string s)").WithLocation(18, 10));
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "p.MiddleName ?? null").WithArguments("s", "void Extensions.F(string s)").WithLocation(18, 10)
+                );
         }
 
         [Fact]
@@ -33800,6 +33850,9 @@ class Program
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (16,19): error CS8651: It is not legal to use nullable type 'string?' in an as expression; use the underlying type 'string' instead.
+                //         G(null as string?);
+                Diagnostic(ErrorCode.ERR_AsNullableType, "string?").WithArguments("string").WithLocation(16, 19),
                 // (12,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         G(null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 11),
@@ -33815,9 +33868,6 @@ class Program
                 // (15,11): warning CS8604: Possible null reference argument for parameter 'name' in 'void Program.G(string name)'.
                 //         G(null as string);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string").WithArguments("name", "void Program.G(string name)").WithLocation(15, 11),
-                // (16,11): warning CS8604: Possible null reference argument for parameter 'name' in 'void Program.G(string name)'.
-                //         G(null as string?);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string?").WithArguments("name", "void Program.G(string name)").WithLocation(16, 11),
                 // (17,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         G(default(string));
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(17, 11),
@@ -33832,7 +33882,8 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(p != null) ? p.MiddleName : null").WithArguments("name", "void Program.G(string name)").WithLocation(19, 11),
                 // (20,11): warning CS8604: Possible null reference argument for parameter 'name' in 'void Program.G(string name)'.
                 //         G(p.MiddleName ?? null);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "p.MiddleName ?? null").WithArguments("name", "void Program.G(string name)").WithLocation(20, 11));
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "p.MiddleName ?? null").WithArguments("name", "void Program.G(string name)").WithLocation(20, 11)
+                );
         }
 
         [Fact]
@@ -33878,6 +33929,9 @@ class Program
                 // (13,27): warning CS8603: Possible null reference return.
                 //     static string F4() => null as string;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null as string").WithLocation(13, 27),
+                // (14,35): error CS8651: It is not legal to use nullable type 'string?' in an as expression; use the underlying type 'string' instead.
+                //     static string F5() => null as string?;
+                Diagnostic(ErrorCode.ERR_AsNullableType, "string?").WithArguments("string").WithLocation(14, 35),
                 // (14,27): warning CS8603: Possible null reference return.
                 //     static string F5() => null as string?;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null as string?").WithLocation(14, 27),
@@ -33895,7 +33949,8 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "(p != null) ? p.MiddleName : null").WithLocation(17, 35),
                 // (18,35): warning CS8603: Possible null reference return.
                 //     static string F9(Person p) => p.MiddleName ?? null;
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "p.MiddleName ?? null").WithLocation(18, 35));
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "p.MiddleName ?? null").WithLocation(18, 35)
+                );
         }
 
         [Fact]

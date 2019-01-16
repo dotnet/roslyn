@@ -20538,15 +20538,9 @@ public class Cls
                 // (6,13): error CS1003: Syntax error, ',' expected
                 //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(6, 13),
-                // (6,17): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "var").WithLocation(6, 17),
                 // (6,21): error CS1003: Syntax error, ',' expected
                 //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(6, 21),
-                // (6,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "x1").WithLocation(6, 21),
                 // (7,27): error CS1002: ; expected
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(7, 27),
@@ -20577,7 +20571,10 @@ public class Cls
                 // (10,28): error CS1003: Syntax error, ']' expected
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(10, 28),
-                // (7,13): error CS08112: 'b(out var)' is a local function and must therefore always have a body.
+                // (6,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[out var x1]").WithLocation(6, 12),
+                // (7,13): error CS8112: 'b(out var)' is a local function and must therefore always have a body.
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
                 Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
                 // (7,19): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
