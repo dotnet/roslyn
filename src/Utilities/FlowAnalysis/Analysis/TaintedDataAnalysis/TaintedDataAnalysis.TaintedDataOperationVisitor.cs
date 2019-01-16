@@ -211,7 +211,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 IEnumerable<IArgumentOperation> taintedArguments = GetTaintedArguments(visitedArguments);
                 if (taintedArguments.Any())
                 {
-                    ProcessTaintedDataEnteringInvocationOrCreation(method, visitedArguments, originalOperation);
+                    ProcessTaintedDataEnteringInvocationOrCreation(method, taintedArguments, originalOperation);
                 }
 
                 if (this.IsSanitizingMethod(method))
@@ -234,7 +234,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 IEnumerable<IArgumentOperation> taintedArguments = GetTaintedArguments(visitedArguments);
                 if (taintedArguments.Any())
                 {
-                    ProcessTaintedDataEnteringInvocationOrCreation(localFunction, visitedArguments, originalOperation);
+                    ProcessTaintedDataEnteringInvocationOrCreation(localFunction, taintedArguments, originalOperation);
                 }
 
                 return baseValue;

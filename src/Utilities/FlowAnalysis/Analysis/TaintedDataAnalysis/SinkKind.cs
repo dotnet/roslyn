@@ -10,5 +10,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         XSS,
         FilePathInjection,
         ProcessCommand,
+        Regex,
     }
 }
