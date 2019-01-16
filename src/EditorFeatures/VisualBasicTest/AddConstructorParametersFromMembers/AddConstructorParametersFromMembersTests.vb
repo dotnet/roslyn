@@ -167,5 +167,40 @@ End Class",
     End Sub
 End Class")
         End Function
+
+        <WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNormalProperty() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Class Program
+    [|Private i As Integer
+    Property Hello As Integer = 1|]
+    Public Sub New(i As Integer)
+    End Sub
+End Class",
+"
+Class Program
+    Private i As Integer
+    Property Hello As Integer = 1
+    Public Sub New(i As Integer, hello As Integer)
+        Me.Hello = hello
+    End Sub
+End Class"
+            )
+        End Function
+
+        <WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestMissingIfFieldsAndPropertyAlreadyExists() As Task
+            Await TestMissingAsync(
+"
+Class Program
+    [|Private i As Integer
+    Property Hello As Integer = 1|]
+    Public Sub New(i As Integer, hello As Integer)
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

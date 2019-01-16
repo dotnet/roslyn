@@ -54,40 +54,6 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
         }
 
-        /// <summary>
-        /// Try to find a constructor in <paramref name="containingType"/> whose parameters is the subset of <paramref name="parameters"/> by comparing name.
-        /// If multiple constructors meet the condition, the one with more parameters will be returned.
-        /// It will not consider those constructors as potential candidates
-        /// 1. Constructor with empty parameter list.
-        /// 2. Constructor's parameter list contains 'ref' or 'params'
-        /// </summary>
-        protected override IMethodSymbol GetDelegatedConstructor(
-            INamedTypeSymbol containingType,
-            ImmutableArray<IParameterSymbol> parameters)
-        {
-            return containingType.InstanceConstructors
-                .WhereAsArray(constructor => IsParamtersContainedInConstructor(constructor, parameters.SelectAsArray(p => p.Name)))
-                .OrderByDescending(constructor => constructor.Parameters.Length)
-                .FirstOrDefault();
-        }
-
-        private bool IsParamtersContainedInConstructor(
-            IMethodSymbol constructor,
-            ImmutableArray<string> parametersName)
-        {
-            var constructorParams = constructor.Parameters;
-            if (constructorParams.Length > 0
-                && constructorParams.All(parameter => parameter.RefKind == RefKind.None)
-                && !constructorParams.Any(p => p.IsParams))
-            {
-                return parametersName.Except(constructorParams.Select(p => p.Name)).Any();
-            }
-            else
-            {
-                return false;
-            }
-        }
-
         private IEnumerable<CodeAction> CreateCodeActions(Document document, State state)
         {
             var lastParameter = state.DelegatedConstructor.Parameters.Last();
@@ -96,7 +62,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 yield return new AddConstructorParametersCodeAction(this, document, state, state.MissingParameters);
             }
 
-            var missingOptionalParameters = state.MissingParameters.SelectAsArray(p => CodeGenerationSymbolFactory.CreateParameterSymbol(
+            var missingParameters = state.MissingParameters.SelectAsArray(p => CodeGenerationSymbolFactory.CreateParameterSymbol(
                 attributes: default,
                 refKind: p.RefKind,
                 isParams: p.IsParams,
@@ -105,7 +71,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 isOptional: true,
                 hasDefaultValue: true));
 
-            yield return new AddConstructorParametersCodeAction(this, document, state, missingOptionalParameters);
+            yield return new AddConstructorParametersCodeAction(this, document, state, missingParameters);
         }
     }
 }

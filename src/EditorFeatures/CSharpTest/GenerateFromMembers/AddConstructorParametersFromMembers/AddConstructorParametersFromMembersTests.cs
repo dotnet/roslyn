@@ -580,5 +580,67 @@ class C
     }
 }");
         }
+
+        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMissingIfFieldsAlreadyExistingInConstructor()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    [|string _barBar;
+    int fooFoo;|]
+    public C(string barBar, int fooFoo)
+    {
+    }
+}"
+            );
+        }
+
+        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMissingIfPropertyAlreadyExistingInConstructor()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    [|string bar;
+    int HelloWorld { get; set; }|]
+    public C(string bar, int helloWorld)
+    {
+    }
+}"
+            );
+
+        }
+
+        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNormalProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    [|int i;
+    int Hello { get; set; }|]
+    public C(int i)
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int Hello { get; set; }
+    public C(int i, int hello)
+    {
+        Hello = hello;
+    }
+}"
+            );
+        }
     }
 }

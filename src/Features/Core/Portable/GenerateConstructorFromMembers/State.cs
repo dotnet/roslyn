@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 this.Parameters = service.DetermineParameters(selectedMembers);
                 this.MatchingConstructor = service.GetMatchingConstructor(this.ContainingType, this.Parameters);
-                this.DelegatedConstructor = service.GetDelegatedConstructor(this.ContainingType, this.Parameters);
+                this.DelegatedConstructor = service.GetDelegatedConstructorBasedOnParameterTypes(this.ContainingType, this.Parameters);
                 return true;
             }
         }

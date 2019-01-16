@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
@@ -37,34 +38,34 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     return false;
                 }
 
-                ContainingType = selectedMembers[0].ContainingType;
-                if (ContainingType == null || ContainingType.TypeKind == TypeKind.Interface)
+                this.ContainingType = selectedMembers[0].ContainingType;
+                if (this.ContainingType == null || this.ContainingType.TypeKind == TypeKind.Interface)
                 {
                     return false;
                 }
 
                 var parameters = service.DetermineParameters(selectedMembers);
-                DelegatedConstructor = service.GetDelegatedConstructor(ContainingType, parameters);
+                this.DelegatedConstructor = service.GetDelegatedConstructorBasedOnParameterNames(this.ContainingType, parameters);
 
-                if (DelegatedConstructor != null)
+                if (this.DelegatedConstructor != null)
                 {
-                    var zippedParametersAndSelectedMember = parameters.Zip(selectedMembers, (parameter, selectedMember) => (parameter, selectedMember));
-                    var missingParamtersBuilder = ImmutableArray.CreateBuilder<IParameterSymbol>();
-                    var missingMembersBuilder = ImmutableArray.CreateBuilder<ISymbol>();
-                    foreach ((var parameter, var selectedMember) in zippedParametersAndSelectedMember)
+                    var zippedParametersAndSelectedMembers = parameters.Zip(selectedMembers, (parameter, selectedMember) => (parameter, selectedMember));
+                    var missingParamtersBuilder = new ArrayBuilder<IParameterSymbol>();
+                    var missingMembersBuilder = new ArrayBuilder<ISymbol>();
+                    foreach ((var parameter, var selectedMember) in zippedParametersAndSelectedMembers)
                     {
-                        if (IsParameterMissingFromConstructor(DelegatedConstructor, parameter))
+                        if (IsParameterMissingFromConstructor(this.DelegatedConstructor, parameter))
                         {
                             missingParamtersBuilder.Add(parameter);
                             missingMembersBuilder.Add(selectedMember);
                         }
                     }
 
-                    MissingParameters = missingParamtersBuilder.ToImmutableArray();
-                    MissingMembers = missingMembersBuilder.ToImmutableArray();
+                    this.MissingParameters = missingParamtersBuilder.ToImmutableAndFree();
+                    this.MissingMembers = missingMembersBuilder.ToImmutableAndFree();
                 }
 
-                return DelegatedConstructor != null;
+                return this.DelegatedConstructor != null;
             }
 
             /// <summary>

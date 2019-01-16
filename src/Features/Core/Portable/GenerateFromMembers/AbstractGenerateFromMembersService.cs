@@ -129,7 +129,36 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 
         private static readonly char[] s_underscore = { '_' };
 
-        protected virtual IMethodSymbol GetDelegatedConstructor(
+        /// <summary>
+        /// Try to find a constructor in <paramref name="containingType"/> whose parameters is the subset of <paramref name="parameters"/> by comparing name.
+        /// If multiple constructors meet the condition, the one with more parameters will be returned.
+        /// It will not consider those constructors as potential candidates if:
+        /// 1. Constructor with empty parameter list.
+        /// 2. Constructor's parameter list contains 'ref' or 'params'
+        /// </summary>
+        protected IMethodSymbol GetDelegatedConstructorBasedOnParameterNames(
+            INamedTypeSymbol containingType,
+            ImmutableArray<IParameterSymbol> parameters)
+        {
+            var parameterNames = parameters.SelectAsArray(p => p.Name);
+            return containingType.InstanceConstructors
+                .Where(constructor => IsParamtersContainedInConstructor(constructor, parameterNames))
+                .OrderByDescending(constructor => constructor.Parameters.Length)
+                .FirstOrDefault();
+        }
+
+        private bool IsParamtersContainedInConstructor(
+            IMethodSymbol constructor,
+            ImmutableArray<string> parametersName)
+        {
+            var constructorParams = constructor.Parameters;
+            return constructorParams.Length > 0
+                && constructorParams.All(parameter => parameter.RefKind == RefKind.None)
+                && !constructorParams.Any(p => p.IsParams)
+                && parametersName.Except(constructorParams.Select(p => p.Name)).Any();
+        }
+
+        protected IMethodSymbol GetDelegatedConstructorBasedOnParameterTypes(
             INamedTypeSymbol containingType,
             ImmutableArray<IParameterSymbol> parameters)
         {
