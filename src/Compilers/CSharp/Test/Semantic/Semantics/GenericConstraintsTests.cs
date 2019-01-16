@@ -3283,8 +3283,13 @@ public struct X<T>
 public struct Z
 {
     public X<Z> field;
-}";
-            CreateCompilation(code).VerifyDiagnostics();
+}
+";
+            CreateCompilation(code).VerifyDiagnostics(
+                // (9,17): error CS8377: The type 'Z' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'X<T>'
+                //     public X<Z> field;
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("X<T>", "T", "Z").WithLocation(9, 17)
+            );
         }
     }
 }
