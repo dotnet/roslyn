@@ -670,7 +670,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source,  parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (7,9): error CS8370: Feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         using IDisposable x = null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "using").WithArguments("using declarations", "8.0").WithLocation(7, 9)

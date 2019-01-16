@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             private void OnReferenceFound(ISymbol symbol, IOperation operation)
             {
+                Debug.Assert(symbol != null);
+
                 var valueUsageInfo = operation.GetValueUsageInfo();
                 var isReadFrom = valueUsageInfo.IsReadFrom();
                 var isWrittenTo = valueUsageInfo.IsWrittenTo();
@@ -247,7 +249,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
             {
-                OnReferenceFound(operation.DeclaredSymbol, operation);
+                if (operation.DeclaredSymbol != null)
+                {
+                    OnReferenceFound(operation.DeclaredSymbol, operation);
+                }
             }
 
             public override void VisitInvocation(IInvocationOperation operation)

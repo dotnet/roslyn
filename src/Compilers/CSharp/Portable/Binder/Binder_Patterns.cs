@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static uint GetValEscape(TypeSymbol type, uint possibleValEscape)
         {
-            return type.IsByRefLikeType ? possibleValEscape : Binder.ExternalScope;
+            return type.IsRefLikeType ? possibleValEscape : Binder.ExternalScope;
         }
 
         TypeSymbol BindRecursivePatternType(

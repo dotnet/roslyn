@@ -54,5 +54,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override bool IsType => true;
 
         public bool IsSerializable => false;
+
+        bool ITypeSymbol.IsRefLikeType => throw new System.NotImplementedException();
+
+        bool ITypeSymbol.IsUnmanagedType => throw new System.NotImplementedException();
     }
 }
