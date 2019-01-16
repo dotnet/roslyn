@@ -137,11 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         //
         // Parse an expression where a declaration expression would be permitted. This is suitable for use after
         // the `out` keyword in an argument list, or in the elements of a tuple literal (because they may
-        // be on the left-hand-side of a positional). The first element of a tuple is handled slightly
+        // be on the left-hand-side of a positional subpattern). The first element of a tuple is handled slightly
         // differently, as we check for the comma before concluding that the identifier should cause a
         // disambiguation. For example, for the input `(A < B , C > D)`, we treat this as a tuple with
         // two elements, because if we considered the `A<B,C>` to be a type, it wouldn't be a tuple at
-        // all. Since we don't have such a thing as a one-element tuple (even for positional), the
+        // all. Since we don't have such a thing as a one-element tuple (even for positional subpattern), the
         // absence of the comma after the `D` means we don't treat the `D` as contributing to the
         // disambiguation of the expression/type. More formally, ...
         //

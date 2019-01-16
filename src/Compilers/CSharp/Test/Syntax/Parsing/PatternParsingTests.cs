@@ -6515,5 +6515,121 @@ switch (e)
             }
             EOF();
         }
+
+        [Fact]
+        public void ExtraCommaInSwitchExpression()
+        {
+            UsingExpression("e switch { 1 => 2,, }",
+                // (1,19): error CS8504: Pattern missing
+                // e switch { 1 => 2,, }
+                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 19),
+                // (1,19): error CS1003: Syntax error, '=>' expected
+                // e switch { 1 => 2,, }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>", ",").WithLocation(1, 19),
+                // (1,19): error CS1525: Invalid expression term ','
+                // e switch { 1 => 2,, }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 19)
+                );
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                M(SyntaxKind.SwitchExpressionArm);
+                {
+                    M(SyntaxKind.ConstantPattern);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.EqualsGreaterThanToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ExtraCommaInPropertyPattern()
+        {
+            UsingExpression("e is { A: 1,, }",
+                // (1,13): error CS8504: Pattern missing
+                // e is { A: 1,, }
+                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 13)
+                );
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.NameColon);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.Subpattern);
+                        {
+                            M(SyntaxKind.ConstantPattern);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
     }
 }
