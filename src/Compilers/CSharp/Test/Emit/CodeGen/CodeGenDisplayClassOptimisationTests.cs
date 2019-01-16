@@ -572,7 +572,7 @@ using System.Linq;
 
 public class C
 {
-    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token)
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default)
     {
         throw null;
     }
@@ -1999,10 +1999,9 @@ public static class Program
             compilation.VerifyIL(
                 "Program.Main",
                 @"{
-  // Code size       58 (0x3a)
+  // Code size       56 (0x38)
   .maxstack  3
-  .locals init (Program.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
-                int V_1)
+  .locals init (Program.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
   IL_0000:  newobj     ""Program.<>c__DisplayClass0_0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -2020,10 +2019,8 @@ public static class Program
   IL_002b:  callvirt   ""void System.Action.Invoke()""
   IL_0030:  ldloc.0
   IL_0031:  ldfld      ""int Program.<>c__DisplayClass0_0.a""
-  IL_0036:  stloc.1
-  IL_0037:  ldloc.1
-  IL_0038:  pop
-  IL_0039:  ret
+  IL_0036:  pop
+  IL_0037:  ret
 }");
         }
 
@@ -2058,9 +2055,8 @@ public static class Program
             compilation.VerifyIL(
                 "Program.Main",
                 @"{
-// Code size       45 (0x2d)
+  // Code size       43 (0x2b)
   .maxstack  3
-  .locals init (int V_0)
   IL_0000:  newobj     ""Program.<>c__DisplayClass0_0..ctor()""
   IL_0005:  dup
   IL_0006:  ldc.i4.0
@@ -2073,10 +2069,8 @@ public static class Program
   IL_001a:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_001f:  callvirt   ""void System.Action.Invoke()""
   IL_0024:  ldfld      ""int Program.<>c__DisplayClass0_0.a""
-  IL_0029:  stloc.0
-  IL_002a:  ldloc.0
-  IL_002b:  pop
-  IL_002c:  ret
+  IL_0029:  pop
+  IL_002a:  ret
 }");
         }
 
