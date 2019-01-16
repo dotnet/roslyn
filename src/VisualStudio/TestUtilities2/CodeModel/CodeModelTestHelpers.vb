@@ -95,7 +95,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     Return Me._componentModel
                 End If
 
-                Throw New NotImplementedException()
+                Throw New NotImplementedException("No service exists for " + serviceType.FullName)
             End Function
         End Class
 
