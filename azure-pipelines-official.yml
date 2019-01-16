@@ -87,13 +87,13 @@ jobs:
     displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
     condition: succeeded()
 
-  # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from	
-  # a build execution.	
-  - task: PublishBuildArtifacts@1	
-    displayName: Publish OptProf Data Files	
-    inputs:	
-      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'	
-      ArtifactName: 'OptProf Data Files'	
+  # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from
+  # a build execution.
+  - task: PublishBuildArtifacts@1
+    displayName: Publish OptProf Data Files
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
+      ArtifactName: 'OptProf Data Files'
     condition: succeeded()
 
   # Build VS bootstrapper
