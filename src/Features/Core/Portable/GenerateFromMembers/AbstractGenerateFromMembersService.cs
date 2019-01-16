@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             return q.FirstOrDefault();
         }
 
-        protected virtual IMethodSymbol GetMatchingConstructor(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
+        protected IMethodSymbol GetMatchingConstructor(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
             => containingType.InstanceConstructors.FirstOrDefault(c => MatchesConstructor(c, parameters));
 
         private bool MatchesConstructor(IMethodSymbol constructor, ImmutableArray<IParameterSymbol> parameters)
