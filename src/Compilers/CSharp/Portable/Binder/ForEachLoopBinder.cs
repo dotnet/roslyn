@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool wrongAsync = GetEnumeratorInfo(ref ignoredBuilder, collectionExpr, !isAsync, ignoredDiagnostics) == EnumeratorResult.Succeeded;
             ignoredDiagnostics.Free();
 
-            if (collectionExpr.Type.IsErrorType())
+            if (collectionExprType.IsErrorType())
                 return false;
 
             var errorCode = wrongAsync
