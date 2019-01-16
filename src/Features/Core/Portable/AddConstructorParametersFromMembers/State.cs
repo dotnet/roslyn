@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 }
 
                 var parameters = service.DetermineParameters(selectedMembers);
+                // We are trying to add these parameters into an existing constructor's parameter list.
+                // Comparing parameters based on names to make sure parameter list won't contains duplicate parameters after we
+                // append the new parameters
                 this.ConstructorToAddTo = service.GetDelegatedConstructorBasedOnParameterNames(this.ContainingType, parameters);
 
                 if (this.ConstructorToAddTo == null)

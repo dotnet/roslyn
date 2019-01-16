@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 this.Parameters = service.DetermineParameters(selectedMembers);
                 this.MatchingConstructor = service.GetMatchingConstructor(this.ContainingType, this.Parameters);
+                // We are going to create a new contructor and pass part of the parameters into DelegatedConstructor,
+                // so parameters should be compared based on types since we don't want get a type mismatch error after the new constructor is genreated.
                 this.DelegatedConstructor = service.GetDelegatedConstructorBasedOnParameterTypes(this.ContainingType, this.Parameters);
                 return true;
             }
