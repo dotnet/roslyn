@@ -1755,7 +1755,7 @@ one");
         }
 
         [Fact]
-        public void ScopeContainsGoToDoNotMergeDisplayClasses()
+        public void ScopeContainsBackwardsGoToDoNotMergeDisplayClasses()
         {
             var source =
                @"using System;
@@ -1770,10 +1770,10 @@ public static class Program
 			Action action = () => Console.WriteLine(a + b);
 			action();
 		}
+        return;
 
-
-		goto target;
 		target: ;
+		goto target;
 	}
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
@@ -1804,7 +1804,7 @@ public static class Program
         }
 
         [Fact]
-        public void ScopeContainsScopeContainingGoToDoNotMergeDisplayClasses()
+        public void ScopeContainsForwardsGoToMergeDisplayClasses()
         {
             var source =
                 @"using System;
@@ -1820,10 +1820,288 @@ public static class Program
 			action();
 		}
 
+		goto target;
+		target: ;
+	}
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+
+            compilation.VerifyIL(
+                "Program.Main",
+                @"{
+  // Code size       36 (0x24)
+  .maxstack  3
+  IL_0000:  newobj     ""Program.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldc.i4.0
+  IL_0007:  stfld      ""int Program.<>c__DisplayClass0_0.a""
+  IL_000c:  dup
+  IL_000d:  ldc.i4.1
+  IL_000e:  stfld      ""int Program.<>c__DisplayClass0_0.b""
+  IL_0013:  ldftn      ""void Program.<>c__DisplayClass0_0.<Main>b__0()""
+  IL_0019:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001e:  callvirt   ""void System.Action.Invoke()""
+  IL_0023:  ret
+}");
+        }
+
+        [Fact]
+        public void ScopeContainsBackwardsGoToCaseDoNotMergeDisplayClasses()
+        {
+            var source =
+                @"using System;
+
+public static class Program
+{
+	public static void Main()
+	{
+		int a = 0;
+		{
+			int b = 1;
+			Action action = () => Console.WriteLine(a + b);
+			action();
+		}
+
+        switch(a)
+        {
+            case 1:
+            default:
+                break;
+            case 0:
+                goto case 1;
+
+        }
+	}
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+
+            compilation.VerifyIL(
+                "Program.Main",
+                @"{
+  // Code size       63 (0x3f)
+  .maxstack  3
+  .locals init (Program.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                int V_1)
+  IL_0000:  newobj     ""Program.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stfld      ""int Program.<>c__DisplayClass0_0.a""
+  IL_000d:  newobj     ""Program.<>c__DisplayClass0_1..ctor()""
+  IL_0012:  dup
+  IL_0013:  ldloc.0
+  IL_0014:  stfld      ""Program.<>c__DisplayClass0_0 Program.<>c__DisplayClass0_1.CS$<>8__locals1""
+  IL_0019:  dup
+  IL_001a:  ldc.i4.1
+  IL_001b:  stfld      ""int Program.<>c__DisplayClass0_1.b""
+  IL_0020:  ldftn      ""void Program.<>c__DisplayClass0_1.<Main>b__0()""
+  IL_0026:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_002b:  callvirt   ""void System.Action.Invoke()""
+  IL_0030:  ldloc.0
+  IL_0031:  ldfld      ""int Program.<>c__DisplayClass0_0.a""
+  IL_0036:  stloc.1
+  IL_0037:  ldloc.1
+  IL_0038:  brfalse.s  IL_003e
+  IL_003a:  ldloc.1
+  IL_003b:  ldc.i4.1
+  IL_003c:  pop
+  IL_003d:  pop
+  IL_003e:  ret
+}");
+        }
+
+        [Fact]
+        public void ScopeContainsForwardsGoToCaseMergeDisplayClasses()
+        {
+            var source =
+                @"using System;
+
+public static class Program
+{
+	public static void Main()
+	{
+		int a = 0;
+		{
+			int b = 1;
+			Action action = () => Console.WriteLine(a + b);
+			action();
+		}
+
+        switch(a)
+        {
+            case 0:
+                goto case 1;
+            case 1:
+            default:
+                break;
+        }
+	}
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+
+            compilation.VerifyIL(
+                "Program.Main",
+                @"{
+  // Code size       50 (0x32)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  newobj     ""Program.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldc.i4.0
+  IL_0007:  stfld      ""int Program.<>c__DisplayClass0_0.a""
+  IL_000c:  dup
+  IL_000d:  ldc.i4.1
+  IL_000e:  stfld      ""int Program.<>c__DisplayClass0_0.b""
+  IL_0013:  dup
+  IL_0014:  ldftn      ""void Program.<>c__DisplayClass0_0.<Main>b__0()""
+  IL_001a:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001f:  callvirt   ""void System.Action.Invoke()""
+  IL_0024:  ldfld      ""int Program.<>c__DisplayClass0_0.a""
+  IL_0029:  stloc.0
+  IL_002a:  ldloc.0
+  IL_002b:  brfalse.s  IL_0031
+  IL_002d:  ldloc.0
+  IL_002e:  ldc.i4.1
+  IL_002f:  pop
+  IL_0030:  pop
+  IL_0031:  ret
+}");
+        }
+
+        [Fact]
+        public void ScopeContainsBackwardsGoToDefaultDoNotMergeDisplayClasses()
+        {
+            var source =
+                @"using System;
+
+public static class Program
+{
+	public static void Main()
+	{
+		int a = 0;
+		{
+			int b = 1;
+			Action action = () => Console.WriteLine(a + b);
+			action();
+		}
+
+        switch(a)
+        {
+            default:
+                break;
+            case 0:
+                goto default;
+        }
+	}
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+
+            compilation.VerifyIL(
+                "Program.Main",
+                @"{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  .locals init (Program.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                int V_1)
+  IL_0000:  newobj     ""Program.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stfld      ""int Program.<>c__DisplayClass0_0.a""
+  IL_000d:  newobj     ""Program.<>c__DisplayClass0_1..ctor()""
+  IL_0012:  dup
+  IL_0013:  ldloc.0
+  IL_0014:  stfld      ""Program.<>c__DisplayClass0_0 Program.<>c__DisplayClass0_1.CS$<>8__locals1""
+  IL_0019:  dup
+  IL_001a:  ldc.i4.1
+  IL_001b:  stfld      ""int Program.<>c__DisplayClass0_1.b""
+  IL_0020:  ldftn      ""void Program.<>c__DisplayClass0_1.<Main>b__0()""
+  IL_0026:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_002b:  callvirt   ""void System.Action.Invoke()""
+  IL_0030:  ldloc.0
+  IL_0031:  ldfld      ""int Program.<>c__DisplayClass0_0.a""
+  IL_0036:  stloc.1
+  IL_0037:  ldloc.1
+  IL_0038:  pop
+  IL_0039:  ret
+}");
+        }
+
+        [Fact]
+        public void ScopeContainsForwardsGoToDefaultMergeDisplayClasses()
+        {
+            var source =
+                @"using System;
+
+public static class Program
+{
+	public static void Main()
+	{
+		int a = 0;
+		{
+			int b = 1;
+			Action action = () => Console.WriteLine(a + b);
+			action();
+		}
+
+        switch(a)
+        {
+            case 0:
+                goto default;
+            default:
+                break;
+        }
+	}
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"1");
+
+            compilation.VerifyIL(
+                "Program.Main",
+                @"{
+// Code size       45 (0x2d)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  newobj     ""Program.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldc.i4.0
+  IL_0007:  stfld      ""int Program.<>c__DisplayClass0_0.a""
+  IL_000c:  dup
+  IL_000d:  ldc.i4.1
+  IL_000e:  stfld      ""int Program.<>c__DisplayClass0_0.b""
+  IL_0013:  dup
+  IL_0014:  ldftn      ""void Program.<>c__DisplayClass0_0.<Main>b__0()""
+  IL_001a:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001f:  callvirt   ""void System.Action.Invoke()""
+  IL_0024:  ldfld      ""int Program.<>c__DisplayClass0_0.a""
+  IL_0029:  stloc.0
+  IL_002a:  ldloc.0
+  IL_002b:  pop
+  IL_002c:  ret
+}");
+        }
+
+        [Fact]
+        public void ScopeContainsScopeContainingBackwardsGoToDoNotMergeDisplayClasses()
+        {
+            var source =
+                @"using System;
+
+public static class Program
+{
+	public static void Main()
+	{
+		int a = 0;
+		{
+			int b = 1;
+			Action action = () => Console.WriteLine(a + b);
+			action();
+		}
+
+        return;
 
         {
-		    goto target;
 		    target: ;
+		    goto target;
         }
 	}
 }";

@@ -283,6 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// </summary>
                 private readonly HashSet<MethodSymbol> _methodsConvertedToDelegates;
                 private readonly DiagnosticBag _diagnostics;
+                private bool _containsGoTos;
 
                 private ScopeTreeBuilder(
                     Scope rootScope,
@@ -301,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _diagnostics = diagnostics;
                 }
 
-                public static Scope Build(
+                public static (Scope scopeTree, bool containsGoTos) Build(
                     BoundNode node,
                     MethodSymbol topLevelMethod,
                     HashSet<MethodSymbol> methodsConvertedToDelegates,
@@ -318,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         methodsConvertedToDelegates,
                         diagnostics);
                     builder.Build();
-                    return rootScope;
+                    return (rootScope, builder._containsGoTos);
                 }
 
                 private void Build()
@@ -449,6 +450,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return base.VisitThisReference(node);
+                }
+
+                public override BoundNode VisitGotoStatement(BoundGotoStatement node)
+                {
+                    // Any jumping construct (for, break, if etc.) generates a BoundGotoStatement, so check this is actually a real goto statement
+                    var label = node.Label;
+                    if (label is GeneratedLabelSymbol)
+                    {
+                        return base.VisitGotoStatement(node);
+                    }
+
+                    // Currently, these are the only two label types
+                    Debug.Assert(label is SourceLabelSymbol);
+
+                    if (label.Locations.Length == 0)
+                    {
+                        _containsGoTos = true;
+                        return base.VisitGotoStatement(node);
+                    }
+
+                    // A label cannot have more than one location
+                    Debug.Assert(label.Locations.Length == 1);
+
+                    // Only backwards-jumping gotos cause issues
+                    if (label.Locations[0].SourceSpan.Start < node.Syntax.Span.Start)
+                    {
+                        _containsGoTos = true;
+                    }
+
+                    return base.VisitGotoStatement(node);
                 }
 
                 private BoundNode VisitClosure(MethodSymbol closureSymbol, BoundBlock body)

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DiagnosticBag diagnostics)
             {
                 var methodsConvertedToDelegates = PooledHashSet<MethodSymbol>.GetInstance();
-                var scopeTree = ScopeTreeBuilder.Build(
+                var (scopeTree, containsGoTos) = ScopeTreeBuilder.Build(
                     node,
                     method,
                     methodsConvertedToDelegates,
@@ -87,7 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 analysis.MakeAndAssignEnvironments();
                 analysis.ComputeLambdaScopesAndFrameCaptures();
-                analysis.MergeEnvironments();
+                // for now we don't analyze jumps to check if they are safe to optimize.
+                if (!containsGoTos)
+                {
+                    analysis.MergeEnvironments();
+                }
                 analysis.InlineThisOnlyEnvironments();
                 return analysis;
             }
@@ -416,10 +420,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void MergeEnvironments()
             {
-                // for now we don't analyze jumps to check if it is safe to optimize, and instead return.
-                if (containsJumps(ScopeTree.BoundNode.Syntax))
-                    return;
-
                 var closuresCapturingScopeVariables = CalculateClosuresCapturingScopeVariables();
 
                 // now we merge environments into their parent environments if it is safe to do so
@@ -493,25 +493,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     capturingClosures.Clear();
                 }
 
+                // cleanup
                 foreach (var set in closuresCapturingScopeVariables.Values)
                 {
                     set.Free();
                 }
 
                 closuresCapturingScopeVariables.Free();
-
-                // Recursively checks if a syntax tree contains GOTO statements
-                bool containsJumps(SyntaxNode node)
-                {
-                    if (node.Kind() == SyntaxKind.GotoStatement)
-                        return true;
-
-                    foreach (var childNode in node.ChildNodes())
-                        if (containsJumps(childNode))
-                            return true;
-
-                    return false;
-                }
 
                 // Checks if (aside from GOTOs) it is semantically safe to merge a capture environment into it's parent's scope's capture environments.
                 // So long as the scopes are passed through in a linear fashion it is always safe to do so. Only looping construct (for, foreach, while, do-while) require special rules.
