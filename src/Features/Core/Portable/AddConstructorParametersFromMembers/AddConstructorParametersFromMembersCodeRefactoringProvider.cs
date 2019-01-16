@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 if (info != null)
                 {
                     var state = State.Generate(this, info.SelectedMembers);
-                    if (state != null && state.DelegatedConstructor != null)
+                    if (state != null && state.ConstructorToAddTo != null)
                     {
                         return CreateCodeActions(document, state).AsImmutableOrNull();
                     }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
         private IEnumerable<CodeAction> CreateCodeActions(Document document, State state)
         {
-            var lastParameter = state.DelegatedConstructor.Parameters.Last();
+            var lastParameter = state.ConstructorToAddTo.Parameters.Last();
             if (!lastParameter.IsOptional)
             {
                 yield return new AddConstructorParametersCodeAction(this, document, state, state.MissingParameters);

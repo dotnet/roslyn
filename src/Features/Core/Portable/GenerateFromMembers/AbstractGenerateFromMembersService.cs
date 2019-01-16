@@ -142,12 +142,12 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         {
             var parameterNames = parameters.SelectAsArray(p => p.Name);
             return containingType.InstanceConstructors
-                .Where(constructor => IsParamtersContainedInConstructor(constructor, parameterNames))
+                .Where(constructor => IsParametersContainedInConstructor(constructor, parameterNames))
                 .OrderByDescending(constructor => constructor.Parameters.Length)
                 .FirstOrDefault();
         }
 
-        private bool IsParamtersContainedInConstructor(
+        private bool IsParametersContainedInConstructor(
             IMethodSymbol constructor,
             ImmutableArray<string> parametersName)
         {

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
     {
         private class State
         {
-            public IMethodSymbol DelegatedConstructor { get; private set; }
+            public IMethodSymbol ConstructorToAddTo { get; private set; }
             public INamedTypeSymbol ContainingType { get; private set; }
             public ImmutableArray<ISymbol> MissingMembers { get; private set; }
             public ImmutableArray<IParameterSymbol> MissingParameters { get; private set; }
@@ -45,35 +45,29 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 }
 
                 var parameters = service.DetermineParameters(selectedMembers);
-                this.DelegatedConstructor = service.GetDelegatedConstructorBasedOnParameterNames(this.ContainingType, parameters);
+                this.ConstructorToAddTo = service.GetDelegatedConstructorBasedOnParameterNames(this.ContainingType, parameters);
 
-                if (this.DelegatedConstructor != null)
+                if (this.ConstructorToAddTo == null)
                 {
-                    var zippedParametersAndSelectedMembers = parameters.Zip(selectedMembers, (parameter, selectedMember) => (parameter, selectedMember));
-                    var missingParamtersBuilder = new ArrayBuilder<IParameterSymbol>();
-                    var missingMembersBuilder = new ArrayBuilder<ISymbol>();
-                    foreach ((var parameter, var selectedMember) in zippedParametersAndSelectedMembers)
-                    {
-                        if (IsParameterMissingFromConstructor(this.DelegatedConstructor, parameter))
-                        {
-                            missingParamtersBuilder.Add(parameter);
-                            missingMembersBuilder.Add(selectedMember);
-                        }
-                    }
-
-                    this.MissingParameters = missingParamtersBuilder.ToImmutableAndFree();
-                    this.MissingMembers = missingMembersBuilder.ToImmutableAndFree();
+                    return false;
                 }
 
-                return this.DelegatedConstructor != null;
-            }
+                var zippedParametersAndSelectedMembers = parameters.Zip(selectedMembers, (parameter, selectedMember) => (parameter, selectedMember));
+                var missingParametersBuilder = ArrayBuilder<IParameterSymbol>.GetInstance();
+                var missingMembersBuilder = ArrayBuilder<ISymbol>.GetInstance();
+                var constructorParamNames = this.ConstructorToAddTo.Parameters.SelectAsArray(p => p.Name);
+                foreach ((var parameter, var selectedMember) in zippedParametersAndSelectedMembers)
+                {
+                    if (!constructorParamNames.Contains(parameter.Name))
+                    {
+                        missingParametersBuilder.Add(parameter);
+                        missingMembersBuilder.Add(selectedMember);
+                    }
+                }
 
-            /// <summary>
-            /// Find whether <paramref name="parameter"/> is contained in <paramref name="constructor"/>'s parameter list by comparing name.
-            /// </summary>
-            private bool IsParameterMissingFromConstructor(IMethodSymbol constructor, IParameterSymbol parameter)
-            {
-                return !constructor.Parameters.Select(p => p.Name).Contains(parameter.Name);
+                this.MissingParameters = missingParametersBuilder.ToImmutableAndFree();
+                this.MissingMembers = missingMembersBuilder.ToImmutableAndFree();
+                return true;
             }
         }
     }

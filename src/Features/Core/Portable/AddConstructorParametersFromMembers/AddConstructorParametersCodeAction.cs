@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             {
                 var workspace = _document.Project.Solution.Workspace;
                 var declarationService = _document.GetLanguageService<ISymbolDeclarationService>();
-                var constructor = declarationService.GetDeclarations(_state.DelegatedConstructor).Select(r => r.GetSyntax(cancellationToken)).First();
+                var constructor = declarationService.GetDeclarations(_state.ConstructorToAddTo).Select(r => r.GetSyntax(cancellationToken)).First();
 
                 var newConstructor = constructor;
                 newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _missingParameters, workspace);
@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             {
                 get
                 {
-                    var parameters = _state.DelegatedConstructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
+                    var parameters = _state.ConstructorToAddTo.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
-                    var optional = _missingParameters.First().IsOptional;
+                    var optional = _missingParameters[0].IsOptional;
                     var signature = $"{_state.ContainingType.Name}({parameterString})";
 
                     return optional
