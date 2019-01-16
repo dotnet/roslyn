@@ -5301,6 +5301,10 @@ class C
 
             public bool IsSerializable => throw new NotImplementedException();
 
+            public bool IsRefLikeType => throw new NotImplementedException();
+
+            public bool IsUnmanagedType => throw new NotImplementedException();
+
             #endregion
         }
 

@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return ignoreSpanLikeTypes ?
                         false :
-                        type.IsByRefLikeType;
+                        type.IsRefLikeType;
         }
 
         public static bool IsIntrinsicType(this TypeSymbol type)
