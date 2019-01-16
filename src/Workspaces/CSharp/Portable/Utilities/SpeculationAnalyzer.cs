@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             var originalExpressionType = this.OriginalSemanticModel.GetTypeInfo(originalAnonymousObjectMemberDeclarator.Expression, this.CancellationToken).Type;
             var newExpressionType = this.SpeculativeSemanticModel.GetTypeInfo(replacedAnonymousObjectMemberDeclarator.Expression, this.CancellationToken).Type;
-            return originalExpressionType != newExpressionType;
+            return !object.Equals(originalExpressionType, newExpressionType);
         }
 
         private bool ReplacementBreaksConstructorInitializer(ConstructorInitializerSyntax ctorInitializer, ConstructorInitializerSyntax newCtorInitializer)

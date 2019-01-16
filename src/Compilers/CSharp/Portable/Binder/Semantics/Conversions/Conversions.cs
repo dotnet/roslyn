@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var spanType = _binder.GetWellKnownType(WellKnownType.System_Span_T, ref useSiteDiagnostics);
-                    if (spanType.TypeKind == TypeKind.Struct && spanType.IsByRefLikeType)
+                    if (spanType.TypeKind == TypeKind.Struct && spanType.IsRefLikeType)
                     {
                         var spanType_T = spanType.Construct(sourceExpression.ElementType);
                         var spanConversion = ClassifyImplicitConversionFromType(spanType_T, destination, ref useSiteDiagnostics);
