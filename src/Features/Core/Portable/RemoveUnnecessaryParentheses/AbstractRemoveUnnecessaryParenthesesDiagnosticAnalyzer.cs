@@ -19,20 +19,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         where TLanguageKindEnum : struct
         where TParenthesizedExpressionSyntax : SyntaxNode
     {
-        /// <summary>
-        /// Diagnostic descriptor that will not fade anything or produce a suggestion.
-        /// Can be used to only squiggle the span.
-        /// </summary>
-        private readonly DiagnosticDescriptor _unnecessaryWithoutSuggestionWithoutFadeDescriptor;
 
         protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_unnecessary_parentheses), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Parentheses_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
-            _unnecessaryWithoutSuggestionWithoutFadeDescriptor = CreateDescriptorWithId(
-                DescriptorId + "WithoutSuggestion", _localizableTitle, _localizableMessageFormat,
-                isUnneccessary: false);
         }
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
@@ -132,7 +124,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
             // Generates diagnostic used to squiggle the parenthetical expression.
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                _unnecessaryWithoutSuggestionWithoutFadeDescriptor,
+                UnnecessaryWithoutSuggestionWithoutFadeDescriptor,
                 GetDiagnosticSquiggleLocation(parenthesizedExpression, cancellationToken),
                 severity,
                 additionalLocations,
