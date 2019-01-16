@@ -552,7 +552,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case FixedStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
                 case LockStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
                 case IfStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                case SwitchStatementSyntax n: return (n.OpenParenToken, n.CloseParenToken);
+                case SwitchStatementSyntax n when n.OpenParenToken != default: return (n.OpenParenToken, n.CloseParenToken);
+                case TupleExpressionSyntax n: return (n.OpenParenToken, n.CloseParenToken);
                 case CatchDeclarationSyntax n: return (n.OpenParenToken, n.CloseParenToken);
                 case AttributeArgumentListSyntax n: return (n.OpenParenToken, n.CloseParenToken);
                 case ConstructorConstraintSyntax n: return (n.OpenParenToken, n.CloseParenToken);

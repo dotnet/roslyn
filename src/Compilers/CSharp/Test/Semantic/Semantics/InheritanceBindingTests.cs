@@ -694,6 +694,486 @@ class Derived : Base, Interface
         }
 
         [Fact]
+        public void TestSupressOverrideNotExpectedErrorWhenMethodParameterTypeNotFound()
+        {
+            var text = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    public override void Method0(String x) { }
+    public override void Method1(string x, String y) { }
+    public override void Method2(String[] x) { }
+    public override void Method3(System.Func<String> x) { }
+    public override void Method4((string a, String b) x) { }
+    public override void Method5(System.Func<(string a, String[] b)> x) { }
+    public override void Method6(Outer<String>.Inner<string> x) { }
+    public override void Method7(Outer<string>.Inner<String> x) { }
+    public override void Method8(Int? x) { }
+}
+
+class Outer<T>
+{
+    public class Inner<U>{}
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,34): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method0(String x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(8, 34),
+                // (9,44): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method1(string x, String y) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(9, 44),
+                // (10,34): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method2(String[] x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(10, 34),
+                // (11,46): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method3(System.Func<String> x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(11, 46),
+                // (12,45): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method4((string a, String b) x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(12, 45),
+                // (13,57): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method5(System.Func<(string a, String[] b)> x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(13, 57),
+                // (14,40): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method6(Outer<String>.Inner<string> x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(14, 40),
+                // (15,54): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method7(Outer<string>.Inner<String> x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(15, 54),
+                // (16,34): error CS0246: The type or namespace name 'Int' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override void Method8(Int? x) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int").WithArguments("Int").WithLocation(16, 34));
+        }
+
+        [Fact]
+        public void TestSupressOverrideNotExpectedErrorWhenIndexerParameterTypeNotFound()
+        {
+            var text = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    public override int this[String x] => 0;
+    public override int this[string x, String y] => 0;
+    public override int this[String[] x] => 0;
+    public override int this[System.Func<String> x] => 0;
+    public override int this[(string a, String b) x] => 0;
+    public override int this[System.Func<(string a, String[] b)> x] => 0;
+    public override int this[Outer<String>.Inner<string> x] => 0;
+    public override int this[Outer<string>.Inner<String> x] => 0;
+    public override int this[Int? x] => 0;
+}
+
+class Outer<T>
+{
+    public class Inner<U>{}
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,30): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[String x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(8, 30),
+                // (9,40): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[string x, String y] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(9, 40),
+                // (10,30): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[String[] x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(10, 30),
+                // (11,42): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[System.Func<String> x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(11, 42),
+                // (12,41): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[(string a, String b) x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(12, 41),
+                // (13,53): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[System.Func<(string a, String[] b)> x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(13, 53),
+                // (14,36): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[Outer<String>.Inner<string> x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(14, 36),
+                // (15,50): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[Outer<string>.Inner<String> x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(15, 50),
+                // (16,30): error CS0246: The type or namespace name 'Int' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override int this[Int? x] => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int").WithArguments("Int").WithLocation(16, 30));
+        }
+
+        [Fact]
+        public void TestSupressCantChangeReturnTypeErrorWhenMethodReturnTypeNotFound()
+        {
+            var text = @"
+abstract class Base
+{
+    public abstract void Method0();
+    public abstract void Method1();
+    public abstract void Method2();
+    public abstract void Method3();
+    public abstract void Method4();
+    public abstract void Method5();
+    public abstract void Method6();
+    public abstract void Method7();
+}
+
+class Derived : Base
+{
+    public override String Method0() => null;
+    public override String[] Method1() => null;
+    public override System.Func<String> Method2() => null;
+    public override (string a, String b) Method3() => (null, null);
+    public override System.Func<(string a, String[] b)> Method4() => null;
+    public override Outer<String>.Inner<string> Method5() => null;
+    public override Outer<string>.Inner<String> Method6() => null;
+    public override Int? Method7() => null;
+}
+
+class Outer<T>
+{
+    public class Inner<U> { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (16,21): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override String Method0() => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(16, 21),
+                // (17,21): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override String[] Method1() => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(17, 21),
+                // (18,33): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override System.Func<String> Method2() => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(18, 33),
+                // (19,32): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override (string a, String b) Method3() => (null, null);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(19, 32),
+                // (20,44): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override System.Func<(string a, String[] b)> Method4() => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(20, 44),
+                // (21,27): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Outer<String>.Inner<string> Method5() => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(21, 27),
+                // (22,41): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Outer<string>.Inner<String> Method6() => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(22, 41),
+                // (23,21): error CS0246: The type or namespace name 'Int' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Int? Method7() => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int").WithArguments("Int").WithLocation(23, 21));
+        }
+
+        [Fact]
+        public void TestSupressCantChangeTypeErrorWhenPropertyTypeNotFound()
+        {
+            var text = @"
+abstract class Base
+{
+    public abstract int Property0 { get; }
+    public abstract int Property1 { get; }
+    public abstract int Property2 { get; }
+    public abstract int Property3 { get; }
+    public abstract int Property4 { get; }
+    public abstract int Property5 { get; }
+    public abstract int Property6 { get; }
+    public abstract int Property7 { get; }
+}
+
+class Derived : Base
+{
+    public override String Property0 => null;
+    public override String[] Property1 => null;
+    public override System.Func<String> Property2 => null;
+    public override (string a, String b) Property3 => (null, null);
+    public override System.Func<(string a, String[] b)> Property4 => null;
+    public override Outer<String>.Inner<string> Property5 => null;
+    public override Outer<string>.Inner<String> Property6 => null;
+    public override Int? Property7 => null;
+}
+
+class Outer<T>
+{
+    public class Inner<U> { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (16,21): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override String Property0 => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(16, 21),
+                // (17,21): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override String[] Property1 => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(17, 21),
+                // (18,33): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override System.Func<String> Property2 => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(18, 33),
+                // (19,32): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override (string a, String b) Property3 => (null, null);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(19, 32),
+                // (20,44): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override System.Func<(string a, String[] b)> Property4 => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(20, 44),
+                // (21,27): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Outer<String>.Inner<string> Property5 => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(21, 27),
+                // (22,41): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Outer<string>.Inner<String> Property6 => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(22, 41),
+                // (23,21): error CS0246: The type or namespace name 'Int' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Int? Property7 => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int").WithArguments("Int").WithLocation(23, 21),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property4.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property4.get").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property2.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property2.get").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property7.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property7.get").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property3.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property3.get").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property1.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property1.get").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property5.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property5.get").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property6.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property6.get").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Property0.get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property0.get").WithLocation(14, 7));
+        }
+
+        [Fact]
+        public void TestSupressCantChangeTypeErrorWhenIndexerTypeNotFound()
+        {
+            var text = @"
+abstract class Base
+{
+    public abstract int this[int index] { get; }
+}
+
+class Derived : Base
+{
+    public override String this[int index] => null;
+    public override String[] this[int index] => null;
+    public override System.Func<String> this[int index] => null;
+    public override (string a, String b) this[int index] => (null, null);
+    public override System.Func<(string a, String[] b)> this[int index] => null;
+    public override Outer<String>.Inner<string> this[int index] => null;
+    public override Outer<string>.Inner<String> this[int index] => null;
+    public override Int? this[int index] => null;
+}
+
+class Outer<T>
+{
+    public class Inner<U> { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (9,21): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override String this[int index] => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(9, 21),
+                // (10,21): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override String[] this[int index] => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(10, 21),
+                // (11,33): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override System.Func<String> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(11, 33),
+                // (12,32): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override (string a, String b) this[int index] => (null, null);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(12, 32),
+                // (13,44): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override System.Func<(string a, String[] b)> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(13, 44),
+                // (14,27): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Outer<String>.Inner<string> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(14, 27),
+                // (15,41): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Outer<string>.Inner<String> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(15, 41),
+                // (16,21): error CS0246: The type or namespace name 'Int' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override Int? this[int index] => null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int").WithArguments("Int").WithLocation(16, 21),
+                // (7,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.this[int].get'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.this[int].get").WithLocation(7, 7),
+                // (10,30): error CS0111: Type 'Derived' already defines a member called 'this' with the same parameter types
+                //     public override String[] this[int index] => null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Derived").WithLocation(10, 30),
+                // (11,41): error CS0111: Type 'Derived' already defines a member called 'this' with the same parameter types
+                //     public override System.Func<String> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Derived").WithLocation(11, 41),
+                // (12,42): error CS0111: Type 'Derived' already defines a member called 'this' with the same parameter types
+                //     public override (string a, String b) this[int index] => (null, null);
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Derived").WithLocation(12, 42),
+                // (13,57): error CS0111: Type 'Derived' already defines a member called 'this' with the same parameter types
+                //     public override System.Func<(string a, String[] b)> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Derived").WithLocation(13, 57),
+                // (14,49): error CS0111: Type 'Derived' already defines a member called 'this' with the same parameter types
+                //     public override Outer<String>.Inner<string> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Derived").WithLocation(14, 49),
+                // (15,49): error CS0111: Type 'Derived' already defines a member called 'this' with the same parameter types
+                //     public override Outer<string>.Inner<String> this[int index] => null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Derived").WithLocation(15, 49),
+                // (16,26): error CS0111: Type 'Derived' already defines a member called 'this' with the same parameter types
+                //     public override Int? this[int index] => null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Derived").WithLocation(16, 26));
+        }
+
+        [Fact]
+        public void TestSupressCantChangeTypeErrorWhenEventTypeNotFound()
+        {
+            var text = @"
+abstract class Base
+{
+    public abstract event System.Action Event0;
+    public abstract event System.Action Event1;
+    public abstract event System.Action Event2;
+    public abstract event System.Action Event3;
+    public abstract event System.Action Event4;
+    public abstract event System.Action Event5;
+    public abstract event System.Action Event6;
+    public abstract event System.Action Event7;
+}
+
+class Derived : Base
+{
+    public override event String Event0;
+    public override event String[] Event1;
+    public override event System.Func<String> Event2;
+    public override event (string a, String b) Event3;
+    public override event System.Func<(string a, String[] b)> Event4;
+    public override event Outer<String>.Inner<string> Event5;
+    public override event Outer<string>.Inner<String> Event6;
+    public override event Int? Event7;
+}
+
+class Outer<T>
+{
+	public class Inner<U> { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (16,27): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event String Event0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(16, 27),
+                // (17,27): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event String[] Event1;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(17, 27),
+                // (18,39): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event System.Func<String> Event2;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(18, 39),
+                // (19,38): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event (string a, String b) Event3;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(19, 38),
+                // (20,50): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event System.Func<(string a, String[] b)> Event4;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(20, 50),
+                // (21,33): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event Outer<String>.Inner<string> Event5;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(21, 33),
+                // (22,47): error CS0246: The type or namespace name 'String' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event Outer<string>.Inner<String> Event6;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "String").WithArguments("String").WithLocation(22, 47),
+                // (23,27): error CS0246: The type or namespace name 'Int' could not be found (are you missing a using directive or an assembly reference?)
+                //     public override event Int? Event7;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int").WithArguments("Int").WithLocation(23, 27),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event6.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event6.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event1.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event1.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event1.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event1.remove").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event5.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event5.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event3.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event3.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event2.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event2.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event4.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event4.remove").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event4.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event4.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event3.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event3.remove").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event7.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event7.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event0.add'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event0.add").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event6.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event6.remove").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event2.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event2.remove").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event7.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event7.remove").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event0.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event0.remove").WithLocation(14, 7),
+                // (14,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.Event5.remove'
+                // class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Event5.remove").WithLocation(14, 7),
+                // (17,36): error CS0066: 'Derived.Event1': event must be of a delegate type
+                //     public override event String[] Event1;
+                Diagnostic(ErrorCode.ERR_EventNotDelegate, "Event1").WithArguments("Derived.Event1").WithLocation(17, 36),
+                // (19,48): error CS0066: 'Derived.Event3': event must be of a delegate type
+                //     public override event (string a, String b) Event3;
+                Diagnostic(ErrorCode.ERR_EventNotDelegate, "Event3").WithArguments("Derived.Event3").WithLocation(19, 48),
+                // (21,55): error CS0066: 'Derived.Event5': event must be of a delegate type
+                //     public override event Outer<String>.Inner<string> Event5;
+                Diagnostic(ErrorCode.ERR_EventNotDelegate, "Event5").WithArguments("Derived.Event5").WithLocation(21, 55),
+                // (22,55): error CS0066: 'Derived.Event6': event must be of a delegate type
+                //     public override event Outer<string>.Inner<String> Event6;
+                Diagnostic(ErrorCode.ERR_EventNotDelegate, "Event6").WithArguments("Derived.Event6").WithLocation(22, 55),
+                // (23,32): error CS0066: 'Derived.Event7': event must be of a delegate type
+                //     public override event Int? Event7;
+                Diagnostic(ErrorCode.ERR_EventNotDelegate, "Event7").WithArguments("Derived.Event7").WithLocation(23, 32),
+                // (19,48): warning CS0067: The event 'Derived.Event3' is never used
+                //     public override event (string a, String b) Event3;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event3").WithArguments("Derived.Event3").WithLocation(19, 48),
+                // (23,32): warning CS0067: The event 'Derived.Event7' is never used
+                //     public override event Int? Event7;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event7").WithArguments("Derived.Event7").WithLocation(23, 32),
+                // (17,36): warning CS0067: The event 'Derived.Event1' is never used
+                //     public override event String[] Event1;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event1").WithArguments("Derived.Event1").WithLocation(17, 36),
+                // (22,55): warning CS0067: The event 'Derived.Event6' is never used
+                //     public override event Outer<string>.Inner<String> Event6;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event6").WithArguments("Derived.Event6").WithLocation(22, 55),
+                // (18,47): warning CS0067: The event 'Derived.Event2' is never used
+                //     public override event System.Func<String> Event2;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event2").WithArguments("Derived.Event2").WithLocation(18, 47),
+                // (21,55): warning CS0067: The event 'Derived.Event5' is never used
+                //     public override event Outer<String>.Inner<string> Event5;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event5").WithArguments("Derived.Event5").WithLocation(21, 55),
+                // (20,63): warning CS0067: The event 'Derived.Event4' is never used
+                //     public override event System.Func<(string a, String[] b)> Event4;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event4").WithArguments("Derived.Event4").WithLocation(20, 63),
+                // (16,34): warning CS0067: The event 'Derived.Event0' is never used
+                //     public override event String Event0;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event0").WithArguments("Derived.Event0").WithLocation(16, 34));
+        }
+
+        [Fact]
         public void TestOverrideSealedMethod()
         {
             var text = @"
@@ -2681,15 +3161,14 @@ class Derived2 : Base, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-
-                //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-            });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.Method2(int)'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.Method2(int)").WithLocation(8, 14),
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.Method1()'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.Method1()").WithLocation(8, 14)
+                );
         }
 
         [Fact]
@@ -2737,15 +3216,17 @@ class Derived2 : Base, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 14 },
-
-                //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 24 },
-            });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,14): error CS0738: 'Base' does not implement interface member 'Interface.Property2'. 'Base.Property2' cannot implement 'Interface.Property2' because it does not have the matching return type of 'object'.
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Base", "Interface.Property2", "Base.Property2", "object").WithLocation(8, 14),
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.Property1'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.Property1").WithLocation(8, 14),
+                // (18,24): error CS0738: 'Derived2' does not implement interface member 'Interface.Property2'. 'Base.Property2' cannot implement 'Interface.Property2' because it does not have the matching return type of 'object'.
+                // class Derived2 : Base, Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Derived2", "Interface.Property2", "Base.Property2", "object").WithLocation(18, 24)
+                );
         }
 
         [Fact]
@@ -2772,15 +3253,17 @@ class Derived2 : Base, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 14 },
-
-                //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 24 },
-            });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,14): error CS0738: 'Base' does not implement interface member 'Interface.this[string]'. 'Base.this[string]' cannot implement 'Interface.this[string]' because it does not have the matching return type of 'object'.
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Base", "Interface.this[string]", "Base.this[string]", "object").WithLocation(8, 14),
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.this[int]'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.this[int]").WithLocation(8, 14),
+                // (18,24): error CS0738: 'Derived2' does not implement interface member 'Interface.this[string]'. 'Base.this[string]' cannot implement 'Interface.this[string]' because it does not have the matching return type of 'object'.
+                // class Derived2 : Base, Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Derived2", "Interface.this[string]", "Base.this[string]", "object").WithLocation(18, 24)
+                );
         }
 
         [Fact]
@@ -2807,15 +3290,17 @@ class Derived2 : Base, Interface
 {
 }
 ";
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                //Base
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 8, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 8, Column = 14 },
-
-                //Derived2
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 18, Column = 24 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 18, Column = 24 },
-            });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,14): error CS0738: 'Base' does not implement interface member 'Interface.Event2'. 'Base.Event2' cannot implement 'Interface.Event2' because it does not have the matching return type of 'Action'.
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Base", "Interface.Event2", "Base.Event2", "System.Action").WithLocation(8, 14),
+                // (8,14): error CS0535: 'Base' does not implement interface member 'Interface.Event1'
+                // class Base : Interface
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base", "Interface.Event1").WithLocation(8, 14),
+                // (18,24): error CS0738: 'Derived2' does not implement interface member 'Interface.Event2'. 'Base.Event2' cannot implement 'Interface.Event2' because it does not have the matching return type of 'Action'.
+                // class Derived2 : Base, Interface
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "Interface").WithArguments("Derived2", "Interface.Event2", "Base.Event2", "System.Action").WithLocation(18, 24)
+                );
         }
 
         [Fact]
@@ -3084,16 +3569,10 @@ public class C : I<object>
     void I<dynamic>.F() { } // Dev10 Error: we don't implement I<dynamic>
 }
 ";
-            // We're diverging from Dev10 a little.  Dev10 reports that we didn't declare I<dynamic>, but it accepts
-            // I<dynamic>.F as a match for I<object>.F (because of signature matching rules for dynamic and object).
-            // We don't consider the methods a match because we don't want to return it from 
-            // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
-            // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,10): error CS0540: 'C.I<dynamic>.F()': containing type does not implement interface 'I<dynamic>'
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.F()", "I<dynamic>"),
-                 // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.F()'
-                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.F()"));
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.F()", "I<dynamic>")
+                );
         }
 
         [Fact]
@@ -3110,16 +3589,10 @@ public class C : I<object>
     int I<dynamic>.P { set { } } // Dev10 Error: we don't implement I<dynamic>
 }
 ";
-            // We're diverging from Dev10 a little.  Dev10 reports that we didn't declare I<dynamic>, but it accepts
-            // I<dynamic>.F as a match for I<object>.F (because of signature matching rules for dynamic and object).
-            // We don't consider the methods a match because we don't want to return it from 
-            // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
-            // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,9): error CS0540: 'C.I<dynamic>.P': containing type does not implement interface 'I<dynamic>'
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.P", "I<dynamic>"),
-               // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.P'
-               Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.P"));
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.P", "I<dynamic>")
+                );
         }
 
         [Fact]
@@ -3136,16 +3609,9 @@ public class C : I<object>
     int I<dynamic>.this[int x] { set { } } // Dev10 Error: we don't implement I<dynamic>
 }
 ";
-            // We're diverging from Dev10 a little.  Dev10 reports that we didn't declare I<dynamic>, but it accepts
-            // I<dynamic>.F as a match for I<object>.F (because of signature matching rules for dynamic and object).
-            // We don't consider the methods a match because we don't want to return it from 
-            // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
-            // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,9): error CS0540: 'C.I<dynamic>.this[int]': containing type does not implement interface 'I<dynamic>'
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.this[int]", "I<dynamic>"),
-                // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.this[int]'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.this[int]"));
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.this[int]", "I<dynamic>"));
         }
 
         [Fact]
@@ -3162,16 +3628,10 @@ public class C : I<object>
     event System.Action I<dynamic>.E { add { } remove { } } // Dev10 Error: we don't implement I<dynamic>
 }
 ";
-            // We're diverging from Dev10 a little.  Dev10 reports that we didn't declare I<dynamic>, but it accepts
-            // I<dynamic>.F as a match for I<object>.F (because of signature matching rules for dynamic and object).
-            // We don't consider the methods a match because we don't want to return it from 
-            // TypeSymbol.FindImplementationForInterfaceMember.  As a result, we see an extra error.
-            // (This only happens for dynamic and object.  If you use string and object, Dev10 and Roslyn behave the same.)
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,25): error CS0540: 'C.I<dynamic>.E': containing type does not implement interface 'I<dynamic>'
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.E", "I<dynamic>"),
-                // (7,14): error CS0535: 'C' does not implement interface member 'I<object>.E'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<object>").WithArguments("C", "I<object>.E"));
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I<dynamic>").WithArguments("C.I<dynamic>.E", "I<dynamic>")
+                );
         }
 
         [Fact]
@@ -6525,6 +6985,12 @@ abstract partial class Class : I3
 }";
 
             CreateCompilation(text).VerifyDiagnostics(
+                // (8,24): error CS8646: 'I2.Method<T>(int, ref T[], out List<T>)' is explicitly implemented more than once.
+                // abstract partial class Class : I2, I1
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "Class").WithArguments("I2.Method<T>(int, ref T[], out System.Collections.Generic.List<T>)").WithLocation(8, 24),
+                // (8,24): error CS8646: 'I1.Property' is explicitly implemented more than once.
+                // abstract partial class Class : I2, I1
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "Class").WithArguments("I1.Property").WithLocation(8, 24),
                 // (25,24): warning CS1066: The default value specified for parameter 'a' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //     void I3.Method(int a = 3, params System.Exception[] b) { }
                 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "a").WithArguments("a"),
@@ -7652,6 +8118,150 @@ public class A
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(31974, "https://github.com/dotnet/roslyn/issues/31974")]
+        public void Issue31974()
+        {
+            const string source = @"
+namespace Ns1
+{
+    public interface I1<I1T1>
+    {
+        void M();
+        int P {get; set;}
+        event System.Action E;
+    }
+
+    public class C0<ST1, ST2>
+    { }
+
+    public interface I2<I2T1, I2T2> : I1<C0<I2T1, I2T2>>
+    {
+    }
+
+    class C1<C1T1, C1T2> : I2<C1T1, C1T2>
+    {
+        void I1<C0<C1T1, C1T2>>.M()
+        {
+        }
+
+        void global::Ns1.I1<C0<C1T1, C1T2>>.M()
+        {
+        }
+
+        int I1<C0<C1T1, C1T2>>.P
+        {
+            get => throw null;
+            set => throw null;
+        }
+
+        int global::Ns1.I1<C0<C1T1, C1T2>>.P
+        {
+            get => throw null;
+            set => throw null;
+        }
+
+        event System.Action I1<C0<C1T1, C1T2>>.E
+        {
+            add => throw null;
+            remove => throw null;
+        }
+
+        event System.Action global::Ns1.I1<C0<C1T1, C1T2>>.E
+        {
+            add => throw null;
+            remove => throw null;
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (18,11): error CS8646: 'I1<C0<C1T1, C1T2>>.P' is explicitly implemented more than once.
+                //     class C1<C1T1, C1T2> : I2<C1T1, C1T2>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("Ns1.I1<Ns1.C0<C1T1, C1T2>>.P").WithLocation(18, 11),
+                // (18,11): error CS8646: 'I1<C0<C1T1, C1T2>>.E' is explicitly implemented more than once.
+                //     class C1<C1T1, C1T2> : I2<C1T1, C1T2>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("Ns1.I1<Ns1.C0<C1T1, C1T2>>.E").WithLocation(18, 11),
+                // (18,11): error CS8646: 'I1<C0<C1T1, C1T2>>.M()' is explicitly implemented more than once.
+                //     class C1<C1T1, C1T2> : I2<C1T1, C1T2>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C1").WithArguments("Ns1.I1<Ns1.C0<C1T1, C1T2>>.M()").WithLocation(18, 11)
+                );
+        }
+
+        [Fact]
+        public void DynamicMismatch_01()
+        {
+            var source = @"
+public interface I0<T> { }
+public interface I1 : I0<object> { }
+public interface I2 : I0<dynamic> { }
+public interface I3 : I0<object> { }
+
+public class C : I1, I2 { }
+public class D : I1, I3 { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,23): error CS1966: 'I2': cannot implement a dynamic interface 'I0<dynamic>'
+                // public interface I2 : I0<dynamic> { }
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I0<dynamic>").WithArguments("I2", "I0<dynamic>").WithLocation(4, 23)
+                );
+        }
+
+        [Fact]
+        public void DynamicMismatch_02()
+        {
+            var source = @"
+public interface I0<T> 
+{
+    void M();
+}
+
+public class C : I0<object>
+{
+    void I0<object>.M(){}
+}
+public class D : C, I0<dynamic>
+{ }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,21): error CS1966: 'D': cannot implement a dynamic interface 'I0<dynamic>'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I0<dynamic>").WithArguments("D", "I0<dynamic>").WithLocation(11, 21),
+                // (11,21): error CS0535: 'D' does not implement interface member 'I0<dynamic>.M()'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0<dynamic>").WithArguments("D", "I0<dynamic>.M()").WithLocation(11, 21)
+                );
+        }
+
+        [Fact]
+        public void DynamicMismatch_03()
+        {
+            var source = @"
+public interface I0<T> 
+{
+    void M();
+}
+
+public class C : I0<object>
+{
+    void I0<object>.M(){}
+    public void M(){}
+}
+public class D : C, I0<dynamic>
+{ }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,21): error CS1966: 'D': cannot implement a dynamic interface 'I0<dynamic>'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I0<dynamic>").WithArguments("D", "I0<dynamic>").WithLocation(12, 21),
+                // (12,21): error CS0535: 'D' does not implement interface member 'I0<dynamic>.M()'
+                // public class D : C, I0<dynamic>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0<dynamic>").WithArguments("D", "I0<dynamic>.M()").WithLocation(12, 21)
+                );
         }
     }
 }

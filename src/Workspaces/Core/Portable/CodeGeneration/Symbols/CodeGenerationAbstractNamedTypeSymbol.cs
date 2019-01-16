@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             if (ordinal < 0 || ordinal >= Arity)
             {
-                throw new System.IndexOutOfRangeException();
+                throw new IndexOutOfRangeException();
             }
 
             return ImmutableArray.Create<CustomModifier>();
@@ -97,5 +98,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool MightContainExtensionMethods => false;
 
         public bool IsComImport => false;
+
+        public bool IsUnmanagedType => throw new NotImplementedException();
+
+        public bool IsRefLikeType => throw new NotImplementedException();
     }
 }

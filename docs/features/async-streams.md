@@ -67,14 +67,16 @@ An asynchronous `using` is lowered just like a regular `using`, except that `Dis
 ### Detailed design for `await foreach` statement
 
 An `await foreach` is lowered just like a regular `foreach`, except that:
-- `GetEnumerator()` is replaced with `await GetAsyncEnumerator(default)`
+- `GetEnumerator()` is replaced with `await GetAsyncEnumerator()`
 - `MoveNext()` is replaced with `await MoveNextAsync()`
 - `Dispose()` is replaced with `await DisposeAsync()`
+
+Note that pattern-based lookup for `GetAsyncEnumerator` and `MoveNextAsync` do not place particular requirements on those methods,
+as long as they could be invoked without arguments.
 
 Asynchronous foreach loops are disallowed on collections of type dynamic,
 as there is no asynchronous equivalent of the non-generic `IEnumerable` interface.
 
-The `CancellationToken` is always passed as `default` by the `await foreach` statement.
 But wrapper types can pass non-default values (see `.WithCancellation(CancellationToken)` extension method),
 thereby allowing consumers of async-streams to control cancellation.
 A producer of async-streams can make use of the cancellation token by writing an
@@ -125,7 +127,7 @@ See more details about those types at https://blogs.msdn.microsoft.com/dotnet/20
 
 Compared to the state machine for a regular async method, the `MoveNext()` for an async-iterator method adds logic:
 - to support handling a `yield return` statement, which saves the current value and fulfills the promise with result `true`,
-- to support handling a `yield break` statement, which sets the dispose mode on and jumps to the closest `finally` or exit,
+- to support handling a `yield break` statement, which sets the dispose mode on and jumps to the enclosing `finally` or exit,
 - to dispatch execution to `finally` blocks (when disposing),
 - to exit the method, which fulfills the promise with result `false`,
 - to catch exceptions, which set the exception into the promise.
@@ -168,12 +170,13 @@ IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken token)
     {StateMachineType} result;
     if (initialThreadId == /*managedThreadId*/ && state == StateMachineStates.FinishedStateMachine)
     {
-        state = StateMachineStates.NotStartedStateMachine;
+        state = InitialState; // -3
+        disposeMode = false;
         result = this;
     }
     else
     {
-        result = new {StateMachineType}(StateMachineStates.NotStartedStateMachine);
+        result = new {StateMachineType}(InitialState);
     }
     /* copy all of the parameter proxies */
 }
@@ -197,26 +200,26 @@ In contrast, async methods continue running autonomously until they are done. Th
 
 In summary, disposal of an async-iterator works based on four design elements:
 - `yield return` (jumps to finally when resuming in dispose mode)
-- `yield break` (enters dispose mode and jumps to finally)
-- `finally` (after a `finally` we jump to the next one)
+- `yield break` (enters dispose mode and jumps to enclosing finally)
+- `finally` (after a `finally` we jump to the next enclosing one)
 - `DisposeAsync` (enters dispose mode and resumes execution)
 
 The caller of an async-iterator method should only call `DisposeAsync()` when the method completed or was suspended by a `yield return`.
 `DisposeAsync` sets a flag on the state machine ("dispose mode") and (if the method wasn't completed) resumes the execution from the current state.
 The state machine can resume execution from a given state (even those located within a `try`).
-When the execution is resumed in dispose mode, it jumps straight to the relevant `finally`.
+When the execution is resumed in dispose mode, it jumps straight to the enclosing `finally`.
 `finally` blocks may involve pauses and resumes, but only for `await` expressions. As a result of the restrictions imposed on `yield return` (described above), dispose mode never runs into a `yield return`.
-Once a `finally` block completes, the execution in dispose mode jumps to the next relevant `finally`, or the end of the method once we reach the top-level.
+Once a `finally` block completes, the execution in dispose mode jumps to the next enclosing `finally`, or the end of the method once we reach the top-level.
 
-Reaching a `yield break` also sets the dispose mode flag and jumps to the next relevant `finally` (or end of the method).
+Reaching a `yield break` also sets the dispose mode flag and jumps to the enclosing `finally` (or end of the method).
 By the time we return control to the caller (completing the promise as `false` by reaching the end of the method) all disposal was completed,
 and the state machine is left in finished state. So `DisposeAsync()` has no work left to do.
 
 Looking at disposal from the perspective of a given `finally` block, the code in that block can get executed:
 - by normal execution (ie. after the code in the `try` block),
 - by raising an exception inside the `try` block (which will execute the necessary `finally` blocks and terminate the method in Finished state),
-- by calling `DisposeAsync()` (which resumes execution in dispose mode and jumps to the relevant finally),
-- following a `yield break` (which enters dispose mode and jumps to the relevant finally),
+- by calling `DisposeAsync()` (which resumes execution in dispose mode and jumps to the enclosing finally),
+- following a `yield break` (which enters dispose mode and jumps to the enclosing finally),
 - in dispose mode, following a nested `finally`.
 
 A `yield return` is lowered as:
@@ -240,16 +243,19 @@ disposeMode = true;
 ```C#
 ValueTask IAsyncDisposable.DisposeAsync()
 {
-    disposeMode = true;
-    if (state == StateMachineStates.FinishedStateMachine ||
-        state == StateMachineStates.NotStartedStateMachine)
+    if (state >= StateMachineStates.NotStartedStateMachine /* -1 */)
+    {
+        throw new NotSupportedException();
+    }
+    if (state == StateMachineStates.FinishedStateMachine /* -2 */)
     {
         return default;
     }
+    disposeMode = true;
     _valueOrEndPromise.Reset();
     var inst = this;
     _builder.Start(ref inst);
-    return new ValueTask(this, _valueOrEndPromise.Version); // note this leverages the state machine's implementation of IValueTaskSource
+    return new ValueTask(this, _valueOrEndPromise.Version);  // note this leverages the state machine's implementation of IValueTaskSource
 }
 ```
 
@@ -286,39 +292,46 @@ finallyEntryLabel:
 }
 ```
 
-In both cases, we will add a `if (disposeMode) /* jump to next finally or exit */` after the block for `finally` logic.
+In both cases, we will add a `if (disposeMode) /* jump to enclosing finally or exit */` after the block for `finally` logic.
 
 #### State values and transitions
 
 The enumerable starts with state -2.
-Calling GetAsyncEnumerator sets the state to -1, or returns a fresh enumerator (also with state -1).
+Calling GetAsyncEnumerator sets the state to -3, or returns a fresh enumerator (also with state -3).
 
 From there, MoveNext will either:
-- reach the end of the method (-2)
-- reach a `yield break` (-1, dispose mode = true)
-- reach a `yield return` or `await` (N)
+- reach the end of the method (-2, we're done and disposed)
+- reach a `yield break` (state unchanged, dispose mode = true)
+- reach a `yield return` (-N, decreasing from -4)
+- reach an `await` (N, increasing from 0)
 
-From suspended state N, MoveNext will resume execution (-1).
-But if the suspension was a `yield return`, you could also call DisposeAsync, which resumes execution (-1) in dispose mode.
+From suspended state N or -N, MoveNext will resume execution (-1).
+But if the suspension was a `yield return` (-N), you could also call DisposeAsync, which resumes execution (-1) in dispose mode.
 
 When in dispose mode, MoveNext continues to suspend (N) and resume (-1) until the end of the method is reached (-2).
 
+The result of invoking `DisposeAsync` from states -1 or N is unspecified. This compiler generates `throw new NotSupportException()` for those cases.
+
 ```
-   GetAsyncEnumerator    suspension (yield return, await)
--2 -----------------> -1 -------------------------------> N
- ^                   |  ^                                 |   Dispose mode = false
- | done and disposed |  |          resuming               |
- +-------------------+  +---------------------------------+
- |                   |                                    |
- |                   |                                    |
- |             yield |                                    |
- |             break |           DisposeAsync             |
- |                   |  +---------------------------------+
- |                   |  |
- |                   |  |
- | done and disposed v  v     suspension (await)
- +------------------- -1 -------------------------------> N
-                        ^                                 |   Dispose mode = true
-                        |          resuming               |
-                        +---------------------------------+
+        DisposeAsync                              await
+ +------------------------+             +------------------------> N
+ |                        |             |                          |
+ v   GetAsyncEnumerator   |             |        resuming          |
+-2 --------------------> -3 --------> -1 <-------------------------+    Dispose mode = false
+ ^                                   |  |                          |
+ |         done and disposed         |  |      yield return        |
+ +-----------------------------------+  +-----------------------> -N
+ |                                   |                             |
+ |                                   |                             |
+ |                             yield |                             |
+ |                             break |           DisposeAsync      |
+ |                                   |  +--------------------------+
+ |                                   |  |
+ |                                   |  |
+ |         done and disposed         v  v    suspension (await)
+ +----------------------------------- -1 ------------------------> N
+                                        ^                          |    Dispose mode = true
+                                        |         resuming         |
+                                        +--------------------------+
 ```
+

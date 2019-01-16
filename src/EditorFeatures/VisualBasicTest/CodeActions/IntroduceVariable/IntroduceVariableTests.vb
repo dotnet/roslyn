@@ -432,11 +432,13 @@ End Class"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestSharedModifierAbsentInGeneratedModuleFields() As Task
             Dim source = "Module Program
+    Private ReadOnly y As Integer = 1
     Dim x = Goo([|2 + y|])
 End Module"
             Dim expected = "Module Program
-    Private ReadOnly {|Rename:p|} As Object = 2 + y
-    Dim x = Goo(p)
+    Private ReadOnly y As Integer = 1
+    Private ReadOnly {|Rename:v|} As Integer = 2 + y
+    Dim x = Goo(v)
 End Module"
             Await TestInRegularAndScriptAsync(source, expected)
         End Function
@@ -3142,6 +3144,64 @@ Class C
     End Function
 End Class
 ")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(30207, "https://github.com/dotnet/roslyn/issues/30207")>
+        Public Async Function TestExplicitRecursiveInstanceMemberAccess_ForAllOccurrences() As Task
+            Dim source = "
+Class C
+    Dim c As C
+    Sub Foo()
+        Dim y = [|c|].c.c
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Dim c As C
+    Sub Foo()
+        Dim {|Rename:c1|} As C = c
+        Dim y = c1.c.c
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(30207, "https://github.com/dotnet/roslyn/issues/30207")>
+        Public Async Function TestImplicitRecursiveInstanceMemberAccess_ForAllOccurrences() As Task
+            Dim source = "
+Class C
+    Dim c As C
+    Sub Foo()
+        Dim y = [|Me.c|].c.c
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Dim c As C
+    Sub Foo()
+        Dim {|Rename:c1|} As C = Me.c
+        Dim y = c1.c.c
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(30207, "https://github.com/dotnet/roslyn/issues/30207")>
+        Public Async Function TestExpressionOfUndeclaredType() As Task
+            Dim source = "
+Class C
+    Sub Test        
+        Dim array As A() = [|A|].Bar()
+    End Sub
+End Class"
+            Await TestMissingAsync(source)
         End Function
     End Class
 End Namespace

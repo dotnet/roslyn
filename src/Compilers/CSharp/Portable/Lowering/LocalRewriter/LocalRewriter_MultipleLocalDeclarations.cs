@@ -38,5 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null; // TODO: but what if hasErrors?  Have we lost that?
             }
         }
+
+        public override BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
+        {
+            return VisitMultipleLocalDeclarations(node);
+        }
     }
 }

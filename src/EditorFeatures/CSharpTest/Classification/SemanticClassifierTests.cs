@@ -526,7 +526,7 @@ class C
 class C
 {
 }",
-                Namespace("System"), 
+                Namespace("System"),
                 Class("Obsolete"));
         }
 
@@ -540,7 +540,7 @@ class A
 {
     [Obsolete]
 }",
-                Namespace("System"), 
+                Namespace("System"),
                 Class("Obsolete"));
         }
 
@@ -555,7 +555,7 @@ class A
 class MyAttribute : Attribute
 {
 }",
-                Namespace("System"), 
+                Namespace("System"),
                 Class("My"),
                 Class("Attribute"));
         }
@@ -578,7 +578,7 @@ class Base
 class Derived : Base
 {
 }",
-                Namespace("System"), 
+                Namespace("System"),
                 Class("Base"),
                 Class("My"),
                 Method("My"),
@@ -1118,7 +1118,7 @@ class C
     global::System.String f;
 }",
                 Namespace("System"),
-                Namespace("System"), 
+                Namespace("System"),
                 Class("String"));
         }
 
@@ -1142,9 +1142,9 @@ class C
             await TestAsync(code,
                 code,
                 Options.Regular,
-                Namespace("System"), 
+                Namespace("System"),
                 Class("Str"),
-                Namespace("System"), 
+                Namespace("System"),
                 Class("String"),
                 Class("Str"),
                 Class("Nested"),
@@ -1765,7 +1765,7 @@ class Obsolete : Attribute
 class ObsoleteAttribute : Attribute
 {
 }",
-                Namespace("System"), 
+                Namespace("System"),
                 Class("Serializable"),
                 Class("SerializableAttribute"),
                 Class("Obsolete"),
@@ -2462,7 +2462,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30855"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVarInPattern1()
         {
             await TestAsync(
@@ -2479,7 +2479,7 @@ class Program
         }
 
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30855"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVarInPattern2()
         {
             await TestAsync(

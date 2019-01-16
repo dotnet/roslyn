@@ -1030,11 +1030,9 @@ End Class
         End Function
 
         <WorkItem(544299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544299")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestExclusiveNamedParameterCompletion() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
-                      <Workspace>
-                          <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="VisualBasic15">
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/29840"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestExclusiveNamedParameterCompletion(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <Document>
 Class Class1
     Private Sub Test()
@@ -1047,9 +1045,7 @@ Class Class1
     Private Sub Goo(str As String, bool As Boolean)
     End Sub
 End Class
-                              </Document>
-                          </Project>
-                      </Workspace>)
+                              </Document>)
 
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
@@ -1059,11 +1055,9 @@ End Class
         End Function
 
         <WorkItem(544299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544299")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestExclusiveNamedParameterCompletion2() As Task
-            Using state = TestState.CreateTestStateFromWorkspace(
-                      <Workspace>
-                          <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="VisualBasic15">
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/29840"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestExclusiveNamedParameterCompletion2(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <Document>
 Class Goo
     Private Sub Test()
@@ -1080,9 +1074,7 @@ Class Goo
     Private Sub Method(obj As Object, b As Boolean, str As String)
     End Sub
 End Class
-                              </Document>
-                          </Project>
-                      </Workspace>)
+                              </Document>)
 
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()

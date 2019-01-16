@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Set up the current method locals
                     DeclareLocals(_currentScope, _topLevelMethod.Parameters);
                     // Treat 'this' as a formal parameter of the top-level method
-                    if (_topLevelMethod.TryGetThisParameter(out var thisParam))
+                    if (_topLevelMethod.TryGetThisParameter(out var thisParam) && (object)thisParam != null)
                     {
                         DeclareLocals(_currentScope, ImmutableArray.Create<Symbol>(thisParam));
                     }
@@ -361,15 +361,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var oldScope = _currentScope;
                     _currentScope = CreateOrReuseScope(node, node.Locals);
                     var result = base.VisitSequence(node);
-                    _currentScope = oldScope;
-                    return result;
-                }
-
-                public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-                {
-                    var oldScope = _currentScope;
-                    _currentScope = CreateOrReuseScope(node, node.InnerLocals);
-                    var result = base.VisitSwitchStatement(node);
                     _currentScope = oldScope;
                     return result;
                 }
@@ -537,6 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
+                    Debug.Assert(symbol.ContainingSymbol != null);
                     if (symbol.ContainingSymbol != _currentClosure.OriginalMethodSymbol)
                     {
                         // Restricted types can't be hoisted, so they are not permitted to be captured

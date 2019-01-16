@@ -315,5 +315,48 @@ End Namespace
 
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
+
+        <WorkItem(31768, "https://github.com/dotnet/roslyn/issues/31768")>
+        <WpfFact>
+        Public Async Function AddMissingImports_AddMultipleImports_NoPreviousImports() As Task
+            Dim code = "
+Class C
+    [|Dim foo As D
+    Dim bar As E|]
+End Class
+
+Namespace A
+    Public Class D
+    End Class
+End Namespace
+
+Namespace B
+    Public Class E
+    End Class
+End Namespace
+"
+
+            Dim expected = "
+Imports A
+Imports B
+
+Class C
+    Dim foo As D
+    Dim bar As E
+End Class
+
+Namespace A
+    Public Class D
+    End Class
+End Namespace
+
+Namespace B
+    Public Class E
+    End Class
+End Namespace
+"
+
+            Await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst:=False, separateImportDirectiveGroups:=False)
+        End Function
     End Class
 End Namespace
