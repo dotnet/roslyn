@@ -190,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
                 ApplyReplacementText(subjectBuffer, bufferUndoState.TextUndoHistory, propagateSpansEditTag, spans, this.currentState.ReplacementText);
 
                 // Here we create the descriptions for the redo list dropdown.
-                var undoManager = this.UndoManagers[subjectBuffer].UndoManager;
+                var undoManager = bufferUndoState.UndoManager;
                 foreach (var state in this.RedoStack.Reverse())
                 {
                     undoManager.Add(new RedoPrimitive(undoManager, GetUndoTransactionDescription(state.ReplacementText)));
