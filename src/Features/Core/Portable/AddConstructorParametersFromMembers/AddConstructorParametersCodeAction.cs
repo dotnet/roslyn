@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 for (var i = 0; i < _missingParameters.Length; ++i)
                 {
                     var memberName = _state.MissingMembers[i].Name;
-                    var paramterName = _missingParameters[i].Name;
+                    var parameterName = _missingParameters[i].Name;
                     yield return factory.ExpressionStatement(
                         factory.AssignmentStatement(
                             factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(memberName)),
-                            factory.IdentifierName(paramterName)));
+                            factory.IdentifierName(parameterName)));
                 }
             }
 
