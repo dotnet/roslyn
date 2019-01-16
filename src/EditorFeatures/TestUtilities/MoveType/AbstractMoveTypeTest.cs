@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     // Verify the newly added document and its text
                     var oldSolutionAndNewSolution = await TestAddDocumentAsync(
-                        testOptions, workspace, destinationDocumentText, 
+                        testOptions, workspace, destinationDocumentText,
                         expectedDocumentName, destinationDocumentContainers);
 
                     // Verify source document's text after moving type.

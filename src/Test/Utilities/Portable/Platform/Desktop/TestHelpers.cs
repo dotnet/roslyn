@@ -48,7 +48,7 @@ namespace Roslyn.Test.Utilities
                     where type.IsAssignableFrom(t)
                     select t).ToList();
         }
- 
+
         public static TempFile CreateCSharpAnalyzerAssemblyWithTestAnalyzer(TempDirectory dir, string assemblyName)
         {
             var analyzerSource = @"
@@ -84,7 +84,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
             return dir.CreateFile(assemblyName + ".dll").WriteAllBytes(analyzerCompilation.EmitToArray());
         }
-        
+
         public static ImmutableArray<byte> CreateCSharpAnalyzerNetStandard13(string analyzerAssemblyName)
         {
             var minSystemCollectionsImmutableSource = @"

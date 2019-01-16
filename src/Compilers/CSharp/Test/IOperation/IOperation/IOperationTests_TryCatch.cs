@@ -54,7 +54,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
             Initializer: 
               null
         Filter: 
-          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i > 0')
             Left: 
               IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -124,7 +124,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
               Initializer: 
                 null
           Filter: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0')
+            IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i > 0')
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
               Right: 
@@ -223,7 +223,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
             Initializer: 
               null
         Filter: 
-          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message != null')
+          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'e.Message != null')
             Left: 
               IPropertyReferenceOperation: System.String System.Exception.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
                 Instance Receiver: 
@@ -286,7 +286,7 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
             Initializer: 
               null
         Filter: 
-          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message != null')
+          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'e.Message != null')
             Left: 
               IPropertyReferenceOperation: System.String System.Exception.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
                 Instance Receiver: 
@@ -353,7 +353,7 @@ ITryOperation (OperationKind.Try, Type: null, IsInvalid) (Syntax: 'try ... }')
             Initializer: 
               null
         Filter: 
-          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message != null')
+          IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'e.Message != null')
             Left: 
               IPropertyReferenceOperation: System.String System.Exception.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
                 Instance Receiver: 
@@ -643,10 +643,10 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
           null
         Filter: 
           IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is string s')
-            Expression: 
+            Value: 
               IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
             Pattern: 
-              IDeclarationPatternOperation (Declared Symbol: System.String s) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string s')
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string s') (InputType: System.Object, DeclaredSymbol: System.String s, MatchesNull: False)
         Handler: 
           IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 
@@ -691,10 +691,10 @@ ITryOperation (OperationKind.Try, Type: null) (Syntax: 'try ... }')
               null
         Filter: 
           IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is string s')
-            Expression: 
+            Value: 
               IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
             Pattern: 
-              IDeclarationPatternOperation (Declared Symbol: System.String s) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string s')
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'string s') (InputType: System.Object, DeclaredSymbol: System.String s, MatchesNull: False)
         Handler: 
           IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Finally: 
@@ -823,7 +823,7 @@ ICatchClauseOperation (Exception type: System.IO.IOException) (OperationKind.Cat
       Initializer: 
         null
   Filter: 
-    IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'e.Message != null')
+    IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'e.Message != null')
       Left: 
         IPropertyReferenceOperation: System.String System.Exception.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
           Instance Receiver: 
@@ -914,7 +914,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's != null')
+IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's != null')
   Left: 
     IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.String) (Syntax: 's')
   Right: 
@@ -1107,7 +1107,7 @@ Block[B0] - Entry
                       Left: 
                         IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
                       Right: 
-                        IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.UnaryOperator, Type: System.Int32, Constant: -2) (Syntax: '-2')
+                        IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.Unary, Type: System.Int32, Constant: -2) (Syntax: '-2')
                           Operand: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
@@ -1288,7 +1288,7 @@ Block[B0] - Entry
                   Left: 
                     IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
                   Right: 
-                    IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.UnaryOperator, Type: System.Int32, Constant: -1) (Syntax: '-1')
+                    IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.Unary, Type: System.Int32, Constant: -1) (Syntax: '-1')
                       Operand: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 

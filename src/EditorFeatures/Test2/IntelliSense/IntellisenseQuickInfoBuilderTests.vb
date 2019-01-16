@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.QuickInfo
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Adornments
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Async Sub BuildQuickInfoItem()
 
             Dim codeAnalysisQuickInfoItem _
-                    = QuickInfoItem.Create(New Text.TextSpan(0, 0), ImmutableArray.Create({"Method", "Public"}),
+                    = QuickInfoItem.Create(New TextSpan(0, 0), ImmutableArray.Create({"Method", "Public"}),
                         ImmutableArray.Create _
                             ({QuickInfoSection.Create("Description",
                                 ImmutableArray.Create({

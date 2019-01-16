@@ -44,7 +44,16 @@ class Test : Itest
             ParseAndValidate(test,
                 // (9,17): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 //    event D ITest.E()   // CS0071
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(9, 17),
+                // (9,20): error CS8124: Tuple must contain at least two elements.
+                //    event D ITest.E()   // CS0071
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 20),
+                // (10,4): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                //    {
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(10, 4),
+                // (16,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(16, 1)
                 );
         }
 
@@ -4795,7 +4804,7 @@ unsafe public class Test
                 Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15)
             );
         }
-        
+
         [Fact]
         public void CS1674ERR_StackAllocInUsing1()
         {
@@ -4812,7 +4821,7 @@ public class Test
 }
 ";
             CreateCompilation(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var v = stackalloc int[1])
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("int*").WithLocation(6, 16));
         }
@@ -5937,8 +5946,12 @@ class Test
     }
 }
 ";
-
-            ParseAndValidate(test, Diagnostic(ErrorCode.WRN_EmptySwitch, "{"));
+            ParseAndValidate(test);
+            CreateCompilation(test).VerifyDiagnostics(
+                // (8,9): warning CS1522: Empty switch block
+                //         {}
+                Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(8, 9)
+                );
         }
 
         [Fact]

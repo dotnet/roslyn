@@ -30,23 +30,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
             switch (node)
             {
                 case MethodDeclarationSyntax methodDeclaration:
-                {
-                    var asyncModifier = methodDeclaration.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
-                    if (asyncModifier.Kind() != SyntaxKind.None)
                     {
-                        spans.Add(asyncModifier.Span);
+                        var asyncModifier = methodDeclaration.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
+                        if (asyncModifier.Kind() != SyntaxKind.None)
+                        {
+                            spans.Add(asyncModifier.Span);
+                        }
+                        break;
                     }
-                    break;
-                }
                 case LocalFunctionStatementSyntax localFunction:
-                {
-                    var asyncModifier = localFunction.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
-                    if (asyncModifier.Kind() != SyntaxKind.None)
                     {
-                        spans.Add(asyncModifier.Span);
+                        var asyncModifier = localFunction.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
+                        if (asyncModifier.Kind() != SyntaxKind.None)
+                        {
+                            spans.Add(asyncModifier.Span);
+                        }
+                        break;
                     }
-                    break;
-                }
                 case AnonymousFunctionExpressionSyntax anonymousFunction:
                     if (anonymousFunction.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
                     {
@@ -81,6 +81,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                     if (usingStatement.AwaitKeyword.Kind() == SyntaxKind.AwaitKeyword)
                     {
                         spans.Add(usingStatement.AwaitKeyword.Span);
+                    }
+                    break;
+
+                case LocalDeclarationStatementSyntax localDeclaration:
+                    if (localDeclaration.AwaitKeyword.Kind() == SyntaxKind.AwaitKeyword && localDeclaration.UsingKeyword.Kind() == SyntaxKind.UsingKeyword)
+                    {
+                        spans.Add(localDeclaration.AwaitKeyword.Span);
                     }
                     break;
 

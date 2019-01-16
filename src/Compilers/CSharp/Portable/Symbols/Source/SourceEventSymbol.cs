@@ -300,11 +300,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                // NonNullTypesAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNonNullTypesAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
@@ -325,9 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
-            AddSynthesizedNonNullTypesAttributeForMember(ref attributes);
-
-            if (type.ContainsNullableReferenceTypes())
+            if (type.NeedsNullableAttribute())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
@@ -342,14 +335,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
-            }
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                return GetNonNullTypesFromSyntax() ?? ContainingModule?.NonNullTypes;
             }
         }
 
@@ -558,10 +543,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
         }
 
-        protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeSymbolWithAnnotations type, AssemblySymbol containingAssembly, Symbol nonNullTypesContext)
+        protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeSymbolWithAnnotations type, AssemblySymbol containingAssembly)
         {
             Debug.Assert((object)eventWithCustomModifiers != null);
-            Debug.Assert(nonNullTypesContext != null);
 
             TypeSymbol overriddenEventType = eventWithCustomModifiers.Type.TypeSymbol;
 
@@ -570,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we want to retain the original (incorrect) type to avoid hiding the type given in source.
             if (type.TypeSymbol.Equals(overriddenEventType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamic))
             {
-                type = type.WithTypeAndModifiers(CustomModifierUtils.CopyTypeCustomModifiers(overriddenEventType, type.TypeSymbol, containingAssembly, nonNullTypesContext),
+                type = type.WithTypeAndModifiers(CustomModifierUtils.CopyTypeCustomModifiers(overriddenEventType, type.TypeSymbol, containingAssembly),
                                    eventWithCustomModifiers.Type.CustomModifiers);
             }
         }
@@ -637,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // both WinRT and non-WinRT), but we'll do that when we're checking interface implementations
             // (see SourceMemberContainerTypeSymbol.ComputeInterfaceImplementations).
             bool sawImplicitImplementation = false;
-            foreach (NamedTypeSymbol @interface in this.containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics)
+            foreach (NamedTypeSymbol @interface in this.containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys)
             {
                 foreach (Symbol interfaceMember in @interface.GetMembers(this.Name))
                 {
@@ -688,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CheckModifiersAndType(diagnostics);
             this.Type.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
 
-            if (this.Type.ContainsNullableReferenceTypes())
+            if (this.Type.NeedsNullableAttribute())
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }

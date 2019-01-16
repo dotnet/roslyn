@@ -141,8 +141,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var arguments = _state.Arguments.Take(argumentCount).ToList();
                 var remainingArguments = _state.Arguments.Skip(argumentCount).ToImmutableArray();
-                var remainingAttributeArguments = _state.AttributeArguments != null 
-                    ? _state.AttributeArguments.Skip(argumentCount).ToImmutableArray() 
+                var remainingAttributeArguments = _state.AttributeArguments != null
+                    ? _state.AttributeArguments.Skip(argumentCount).ToImmutableArray()
                     : (ImmutableArray<TAttributeArgumentSyntax>?)null;
                 var remainingParameterTypes = _state.ParameterTypes.Skip(argumentCount).ToImmutableArray();
 
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     ? syntaxFactory.CreateFieldsForParameters(remainingParameters, parameterToNewFieldMap)
                     : ImmutableArray<IFieldSymbol>.Empty;
                 var assignStatements = syntaxFactory.CreateAssignmentStatements(
-                    _document.SemanticModel.Compilation, remainingParameters, 
+                    _document.SemanticModel.Compilation, remainingParameters,
                     parameterToExistingFieldMap, parameterToNewFieldMap,
                     addNullChecks: false, preferThrowExpression: false);
 
@@ -241,11 +241,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var syntaxTree = _document.SyntaxTree;
                 var (fields, constructor) = syntaxFactory.CreateFieldDelegatingConstructor(
-                    _document.SemanticModel.Compilation, 
-                    _state.TypeToGenerateIn.Name, 
+                    _document.SemanticModel.Compilation,
+                    _state.TypeToGenerateIn.Name,
                     _state.TypeToGenerateIn, parameters,
-                    parameterToExistingFieldMap, parameterToNewFieldMap, 
-                    addNullChecks: false, preferThrowExpression: false, 
+                    parameterToExistingFieldMap, parameterToNewFieldMap,
+                    addNullChecks: false, preferThrowExpression: false,
                     cancellationToken: _cancellationToken);
 
                 var result = await codeGenerationService.AddMembersAsync(

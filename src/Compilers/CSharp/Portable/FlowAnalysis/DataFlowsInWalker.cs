@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private LocalState ResetState(LocalState state)
         {
             bool unreachable = !state.Reachable;
-            state = ReachableState();
+            state = TopState();
             if (unreachable)
             {
                 state.Assign(0);

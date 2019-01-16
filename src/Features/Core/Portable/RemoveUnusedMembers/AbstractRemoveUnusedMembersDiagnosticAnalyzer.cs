@@ -11,12 +11,13 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
     internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax>
         : AbstractCodeQualityDiagnosticAnalyzer
-        where TDocumentationCommentTriviaSyntax: SyntaxNode
+        where TDocumentationCommentTriviaSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
         // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
@@ -64,7 +65,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private readonly object _gate;
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
-            private readonly INamedTypeSymbol _eventArgsType, _iSerializableType, _serializationInfoType, _streamingContextType;
+            private readonly INamedTypeSymbol _eventArgsType;
+            private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
             private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> _analyzer;
 
@@ -83,9 +85,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _debuggerDisplayAttributeType = compilation.DebuggerDisplayAttributeType();
                 _structLayoutAttributeType = compilation.StructLayoutAttributeType();
                 _eventArgsType = compilation.EventArgsType();
-                _iSerializableType = compilation.ISerializableType();
-                _serializationInfoType = compilation.SerializationInfoType();
-                _streamingContextType = compilation.StreamingContextType();
+                _deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
                 _attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(compilation));
             }
 
@@ -165,6 +165,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
                     symbolStartContext.RegisterOperationAction(AnalyzeFieldInitializer, OperationKind.FieldInitializer);
                     symbolStartContext.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
+                    symbolStartContext.RegisterOperationAction(AnalyzeNameOfOperation, OperationKind.NameOf);
                     symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
                     symbolStartContext.RegisterOperationAction(_ => hasInvalidOperation = true, OperationKind.Invalid);
                     symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasInvalidOperation));
@@ -258,7 +259,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     {
                         Debug.Assert(memberReference.Parent is ICompoundAssignmentOperation compoundAssignment &&
                             compoundAssignment.Target == memberReference ||
-                            memberReference.Parent is IIncrementOrDecrementOperation);
+                            memberReference.Parent is IIncrementOrDecrementOperation ||
+                            memberReference.Parent is IReDimClauseOperation reDimClause && reDimClause.Operand == memberReference);
 
                         // Compound assignment or increment whose value is being dropped (parent is an expression statement)
                         // is treated as a Write as the value was never actually 'read' in a way that is observable.
@@ -288,16 +290,44 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private void AnalyzeInvocationOperation(OperationAnalysisContext operationContext)
             {
                 var targetMethod = ((IInvocationOperation)operationContext.Operation).TargetMethod.OriginalDefinition;
-                
+
                 // A method invocation is considered as a read reference to the symbol
                 // to ensure that we consider the method as "used".
                 OnSymbolUsage(targetMethod, ValueUsageInfo.Read);
             }
 
+            private void AnalyzeNameOfOperation(OperationAnalysisContext operationContext)
+            {
+                // Workaround for https://github.com/dotnet/roslyn/issues/19965
+                // IOperation API does not expose potential references to methods/properties within
+                // a bound method group/property group.
+                var nameofArgument = ((INameOfOperation)operationContext.Operation).Argument;
+
+                if (nameofArgument is IMemberReferenceOperation)
+                {
+                    // Already analyzed in AnalyzeMemberReferenceOperation.
+                    return;
+                }
+
+                var symbolInfo = nameofArgument.SemanticModel.GetSymbolInfo(nameofArgument.Syntax, operationContext.CancellationToken);
+                foreach (var symbol in symbolInfo.GetAllSymbols())
+                {
+                    switch (symbol.Kind)
+                    {
+                        // Handle potential references to methods/properties from missing IOperation
+                        // for method group/property group.
+                        case SymbolKind.Method:
+                        case SymbolKind.Property:
+                            OnSymbolUsage(symbol, ValueUsageInfo.NameOnly);
+                            break;
+                    }
+                }
+            }
+
             private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
             {
                 var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor.OriginalDefinition;
-                
+
                 // An object creation is considered as a read reference to the constructor
                 // to ensure that we consider the constructor as "used".
                 OnSymbolUsage(constructor, ValueUsageInfo.Read);
@@ -377,12 +407,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                             // Most of the members should have a single location, except for partial methods.
                             // We report the diagnostic on the first location of the member.
-                            var diagnostic = Diagnostic.Create(
+                            var diagnostic = DiagnosticHelper.CreateWithMessage(
                                 rule,
                                 member.Locations[0],
+                                rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options),
                                 additionalLocations: null,
                                 properties: null,
-                                $"{member.ContainingType.Name}.{member.Name}");
+                                GetMessage(rule, member));
                             symbolEndContext.ReportDiagnostic(diagnostic);
                         }
                     }
@@ -394,6 +425,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 }
 
                 return;
+            }
+
+            private static LocalizableString GetMessage(
+               DiagnosticDescriptor rule,
+               ISymbol member)
+            {
+                var messageFormat = rule.MessageFormat;
+                if (rule == s_removeUnreadMembersRule &&
+                    member is IMethodSymbol)
+                {
+                    // IDE0052 has a different message for method symbols.
+                    messageFormat = FeaturesResources.Private_method_0_can_be_removed_as_it_is_never_invoked;
+                }
+
+                var memberName = $"{member.ContainingType.Name}.{member.Name}";
+                return new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, memberName);
             }
 
             private static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
@@ -516,7 +563,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                     // ISerializable constructor is invoked by the runtime for deserialization
                                     // and it is a common pattern to have a private serialization constructor
                                     // that is not explicitly referenced in code.
-                                    if (IsISerializableConstructor(methodSymbol))
+                                    if (_deserializationConstructorCheck.IsDeserializationConstructor(methodSymbol))
                                     {
                                         return false;
                                     }
@@ -601,8 +648,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 => methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName &&
                    methodSymbol.IsStatic &&
                    (methodSymbol.ReturnsVoid ||
-                    methodSymbol.ReturnType.OriginalDefinition == _taskType ||
-                    methodSymbol.ReturnType.OriginalDefinition == _genericTaskType);
+                    methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
+                    methodSymbol.ReturnType.OriginalDefinition.Equals(_taskType) ||
+                    methodSymbol.ReturnType.OriginalDefinition.Equals(_genericTaskType));
 
             private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
                 => methodSymbol.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass));
@@ -614,7 +662,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 // Note that we do a case sensitive compare for compatibility with legacy FxCop
                 // implementation of this rule.
 
-                return methodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean  &&
+                return methodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean &&
                     methodSymbol.Parameters.IsEmpty &&
                     (IsSpecialMethodWithMatchingProperty("ShouldSerialize") ||
                      IsSpecialMethodWithMatchingProperty("Reset"));
@@ -632,13 +680,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     return false;
                 }
             }
-
-            private bool IsISerializableConstructor(IMethodSymbol methodSymbol)
-                => _iSerializableType != null &&
-                   methodSymbol.Parameters.Length == 2 &&
-                   methodSymbol.Parameters[0].Type.Equals(_serializationInfoType) &&
-                   methodSymbol.Parameters[1].Type.Equals(_streamingContextType) &&
-                   methodSymbol.ContainingType.AllInterfaces.Contains(_iSerializableType);
         }
     }
 }

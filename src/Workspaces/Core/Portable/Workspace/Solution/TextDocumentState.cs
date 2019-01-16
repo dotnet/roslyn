@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis
     internal partial class TextDocumentState
     {
         protected readonly SolutionServices solutionServices;
-        private readonly DocumentInfo.DocumentAttributes attributes;
 
         /// <summary>
         /// A direct reference to our source text.  This is only kept around in specialized scenarios.
@@ -40,44 +39,49 @@ namespace Microsoft.CodeAnalysis
 
         protected TextDocumentState(
             SolutionServices solutionServices,
+            IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             SourceText sourceTextOpt,
             ValueSource<TextAndVersion> textAndVersionSource,
             ValueSource<DocumentStateChecksums> lazyChecksums)
         {
             this.solutionServices = solutionServices;
-            this.attributes = attributes;
             this.sourceTextOpt = sourceTextOpt;
             this.textAndVersionSource = textAndVersionSource;
+
+            Attributes = attributes;
+            Services = documentServiceProvider ?? DefaultTextDocumentServiceProvider.Instance;
 
             // for now, let it re-calculate if anything changed.
             // TODO: optimize this so that we only re-calcuate checksums that are actually changed
             _lazyChecksums = new AsyncLazy<DocumentStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
+        public DocumentInfo.DocumentAttributes Attributes { get; }
+
+        /// <summary>
+        /// A <see cref="IDocumentServiceProvider"/> associated with this document
+        /// </summary>
+        public IDocumentServiceProvider Services { get; }
+
         public DocumentId Id
         {
-            get { return this.attributes.Id; }
+            get { return Attributes.Id; }
         }
 
         public string FilePath
         {
-            get { return this.attributes.FilePath; }
-        }
-
-        public DocumentInfo.DocumentAttributes Attributes
-        {
-            get { return this.attributes; }
+            get { return Attributes.FilePath; }
         }
 
         public IReadOnlyList<string> Folders
         {
-            get { return this.attributes.Folders; }
+            get { return Attributes.Folders; }
         }
 
         public string Name
         {
-            get { return this.attributes.Name; }
+            get { return this.Attributes.Name; }
         }
 
         public static TextDocumentState Create(DocumentInfo info, SolutionServices services)
@@ -88,6 +92,7 @@ namespace Microsoft.CodeAnalysis
 
             return new TextDocumentState(
                 solutionServices: services,
+                documentServiceProvider: info.DocumentServiceProvider,
                 attributes: info.Attributes,
                 sourceTextOpt: null,
                 textAndVersionSource: textSource,
@@ -323,7 +328,8 @@ namespace Microsoft.CodeAnalysis
 
             return new TextDocumentState(
                 this.solutionServices,
-                this.attributes,
+                this.Services,
+                this.Attributes,
                 sourceTextOpt: null,
                 textAndVersionSource: newTextSource,
                 lazyChecksums: null);
@@ -357,7 +363,8 @@ namespace Microsoft.CodeAnalysis
 
             return new TextDocumentState(
                 this.solutionServices,
-                this.attributes,
+                this.Services,
+                this.Attributes,
                 sourceTextOpt: null,
                 textAndVersionSource: newTextSource,
                 lazyChecksums: null);

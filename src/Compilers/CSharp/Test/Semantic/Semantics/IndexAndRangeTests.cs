@@ -205,7 +205,7 @@ class Test
                 //         var x = ^1;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "^1").WithArguments("index operator", "8.0").WithLocation(6, 17));
         }
-        
+
         [Fact]
         public void RangeExpression_RangeNotFound()
         {

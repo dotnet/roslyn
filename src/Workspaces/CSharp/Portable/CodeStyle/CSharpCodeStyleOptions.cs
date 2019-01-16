@@ -15,11 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         internal static ImmutableArray<IOption> AllOptions { get; }
 
         private static Option<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
-        {
-            var option = new Option<T>(nameof(CSharpCodeStyleOptions), group, name, defaultValue, storageLocations);
-            s_allOptionsBuilder.Add(option);
-            return option;
-        }
+            => CodeStyleHelpers.CreateOption(group, nameof(CSharpCodeStyleOptions), name, defaultValue, s_allOptionsBuilder, storageLocations);
 
         public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeForIntrinsicTypes = CreateOption(
             CSharpCodeStyleOptionGroups.VarPreferences, nameof(UseImplicitTypeForIntrinsicTypes),
@@ -89,6 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static readonly CodeStyleOption<ExpressionBodyPreference> WhenOnSingleLineWithSilentEnforcement =
             new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption.Silent);
+
+        public static readonly CodeStyleOption<PreferBracesPreference> UseBracesWithSilentEnforcement =
+            new CodeStyleOption<PreferBracesPreference>(PreferBracesPreference.Always, NotificationOption.Silent);
 
         public static readonly Option<CodeStyleOption<ExpressionBodyPreference>> PreferExpressionBodiedConstructors = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionBodiedMembers, nameof(PreferExpressionBodiedConstructors),
@@ -160,11 +159,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                     GetExpressionBodyPreferenceEditorConfigString),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferExpressionBodiedLambdas)}")});
 
-        public static readonly Option<CodeStyleOption<bool>> PreferBraces = CreateOption(
-            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferBraces),
-            defaultValue: CodeStyleOptions.TrueWithSilentEnforcement,
+        public static readonly Option<CodeStyleOption<ExpressionBodyPreference>> PreferExpressionBodiedLocalFunctions = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionBodiedMembers, nameof(PreferExpressionBodiedLocalFunctions),
+            defaultValue: NeverWithSilentEnforcement,
             storageLocations: new OptionStorageLocation[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_braces"),
+                new EditorConfigStorageLocation<CodeStyleOption<ExpressionBodyPreference>>(
+                    "csharp_style_expression_bodied_local_functions",
+                    s => ParseExpressionBodyPreference(s, NeverWithSilentEnforcement),
+                    GetExpressionBodyPreferenceEditorConfigString),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferExpressionBodiedLocalFunctions)}")});
+
+        public static readonly Option<CodeStyleOption<PreferBracesPreference>> PreferBraces = CreateOption(
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferBraces),
+            defaultValue: UseBracesWithSilentEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                new EditorConfigStorageLocation<CodeStyleOption<PreferBracesPreference>>(
+                    "csharp_prefer_braces",
+                    s => ParsePreferBracesPreference(s, UseBracesWithSilentEnforcement),
+                    GetPreferBracesPreferenceEditorConfigString),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferBraces)}")});
 
         public static readonly Option<CodeStyleOption<bool>> PreferSimpleDefaultExpression = CreateOption(
@@ -201,6 +213,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_local_over_anonymous_function"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferLocalOverAnonymousFunction)}")});
 
+        internal static readonly Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatement =
+            CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
+                CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
+                feature: nameof(CSharpCodeStyleOptions),
+                name: nameof(UnusedValueExpressionStatement),
+                editorConfigName: "csharp_style_unused_value_expression_statement_preference",
+                defaultValue: new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.Silent),
+                s_allOptionsBuilder);
+
+        internal static readonly Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignment =
+            CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
+                CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
+                feature: nameof(CSharpCodeStyleOptions),
+                name: nameof(UnusedValueAssignment),
+                editorConfigName: "csharp_style_unused_value_assignment_preference",
+                defaultValue: new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.Suggestion),
+                s_allOptionsBuilder);
+
         static CSharpCodeStyleOptions()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,
@@ -216,7 +246,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferConditionalDelegateCall;
             yield return PreferPatternMatchingOverAsWithNullCheck;
             yield return PreferPatternMatchingOverIsWithCastCheck;
-            yield return PreferBraces;
             yield return PreferSimpleDefaultExpression;
             yield return PreferLocalOverAnonymousFunction;
             yield return PreferIndexOperator;

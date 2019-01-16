@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (eventType.IsNil)
                 {
-                    _eventType = TypeSymbolWithAnnotations.Create(containingType, new UnsupportedMetadataTypeSymbol(mrEx));
+                    _eventType = TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol(mrEx));
                 }
             }
 
@@ -98,11 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var typeSymbol = DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol);
 
                 // We start without annotation (they will be decoded below)
-                var type = TypeSymbolWithAnnotations.Create(nonNullTypesContext: containingType, typeSymbol);
+                var type = TypeSymbolWithAnnotations.Create(typeSymbol);
 
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-                type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol, nonNullTypesContext: this);
+                type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
                 _eventType = type;
             }
@@ -163,15 +163,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (isWindowsRuntimeEvent)
                 {
                     NamedTypeSymbol eventRegistrationTokenTable_T = ((PEModuleSymbol)(this.ContainingModule)).EventRegistrationTokenTable_T;
-                    if (eventRegistrationTokenTable_T == candidateAssociatedFieldType.OriginalDefinition &&
-                        _eventType.TypeSymbol == ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol)
+                    if (TypeSymbol.Equals(eventRegistrationTokenTable_T, candidateAssociatedFieldType.OriginalDefinition, TypeCompareKind.ConsiderEverything2) &&
+                        TypeSymbol.Equals(_eventType.TypeSymbol, ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol, TypeCompareKind.ConsiderEverything2))
                     {
                         return candidateAssociatedField;
                     }
                 }
                 else
                 {
-                    if (candidateAssociatedFieldType == _eventType.TypeSymbol)
+                    if (TypeSymbol.Equals(candidateAssociatedFieldType, _eventType.TypeSymbol, TypeCompareKind.ConsiderEverything2))
                     {
                         return candidateAssociatedField;
                     }
@@ -196,10 +196,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // does not check whether the containing type is a WinRT type -
                 // it was a design goal to accept any events of this form.
                 return
-                    _addMethod.ReturnType.TypeSymbol == token &&
+                    TypeSymbol.Equals(_addMethod.ReturnType.TypeSymbol, token, TypeCompareKind.ConsiderEverything2) &&
                     _addMethod.ParameterCount == 1 &&
                     _removeMethod.ParameterCount == 1 &&
-                    _removeMethod.Parameters[0].Type.TypeSymbol == token;
+                    TypeSymbol.Equals(_removeMethod.Parameters[0].Type.TypeSymbol, token, TypeCompareKind.ConsiderEverything2);
             }
         }
 
@@ -472,17 +472,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                var moduleSymbol = _containingType.ContainingPEModule;
-                bool optOut;
-
-                return moduleSymbol.Module.HasNonNullTypesAttribute(_handle, out optOut) ? optOut : base.NonNullTypes;
-            }
         }
     }
 }

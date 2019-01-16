@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -167,11 +168,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             originalPropertyType = originalPropertyType.AsDynamicIfNoPia(_containingType);
 
             // We start without annotation (they will be decoded below)
-            var propertyType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, originalPropertyType, isAnnotated: false, typeCustomModifiers);
+            var propertyType = TypeSymbolWithAnnotations.Create(originalPropertyType, customModifiers: typeCustomModifiers);
 
             // Decode nullable before tuple types to avoid converting between
             // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-            propertyType = NullableTypeDecoder.TransformType(propertyType, handle, moduleSymbol, nonNullTypesContext: this);
+            propertyType = NullableTypeDecoder.TransformType(propertyType, handle, moduleSymbol);
             propertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(propertyType, handle, moduleSymbol);
 
             _propertyType = propertyType;
@@ -732,16 +733,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                var moduleSymbol = _containingType.ContainingPEModule;
-                bool nonNullTypes;
-                return moduleSymbol.Module.HasNonNullTypesAttribute(_handle, out nonNullTypes) ? nonNullTypes : base.NonNullTypes;
-            }
         }
 
         private sealed class PEPropertySymbolWithCustomModifiers : PEPropertySymbol

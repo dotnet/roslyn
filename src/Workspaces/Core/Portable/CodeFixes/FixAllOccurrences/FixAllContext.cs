@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
-            : this(new FixAllState(null, document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider), 
+            : this(new FixAllState(null, document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider),
                   new ProgressTracker(), cancellationToken)
         {
             if (document == null)

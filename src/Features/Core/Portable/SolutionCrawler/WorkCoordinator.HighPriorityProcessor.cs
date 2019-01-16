@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         // check whether given item is for active document, otherwise, nothing to do here
                         if (_processor._documentTracker == null ||
-                            _processor._documentTracker.GetActiveDocument() != item.DocumentId)
+                            _processor._documentTracker.TryGetActiveDocument() != item.DocumentId)
                         {
                             return;
                         }
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private bool GetNextWorkItem(out WorkItem workItem, out CancellationTokenSource documentCancellation)
                     {
                         // GetNextWorkItem since it can't fail. we still return bool to confirm that this never fail.
-                        var documentId = _processor._documentTracker.GetActiveDocument();
+                        var documentId = _processor._documentTracker.TryGetActiveDocument();
                         if (documentId != null)
                         {
                             if (_workItemQueue.TryTake(documentId, out workItem, out documentCancellation))
@@ -179,7 +179,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             // we got cancelled in the middle of processing the document.
                             // let's make sure newly enqueued work item has all the flag needed.
-                            if (!processedEverything)
+                            // Avoid retry attempts after cancellation is requested, since work will not be processed
+                            // after that point.
+                            if (!processedEverything && !CancellationToken.IsCancellationRequested)
                             {
                                 _workItemQueue.AddOrReplace(workItem.Retry(this.Listener.BeginAsyncOperation("ReenqueueWorkItem")));
                             }

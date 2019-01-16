@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.MoveNextMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext, diagnostics, _syntax);
 
             Debug.Assert((object)builder.GetEnumeratorMethod == null ||
-                builder.GetEnumeratorMethod.ReturnType.TypeSymbol == this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator));
+                TypeSymbol.Equals(builder.GetEnumeratorMethod.ReturnType.TypeSymbol, this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator), TypeCompareKind.ConsiderEverything2));
 
             // We don't know the runtime type, so we will have to insert a runtime check for IDisposable (with a conditional call to IDisposable.Dispose).
             builder.NeedsDisposeMethod = true;
@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private bool SatisfiesGetEnumeratorPattern(ref ForEachEnumeratorInfo.Builder builder, TypeSymbol collectionExprType, bool isAsync, DiagnosticBag diagnostics)
         {
-            LookupResult lookupResult = LookupResult.GetInstance();
+            var lookupResult = LookupResult.GetInstance();
             string methodName = isAsync ? GetAsyncEnumeratorMethodName : GetEnumeratorMethodName;
             MethodSymbol getEnumeratorMethod = FindForEachPatternMethod(collectionExprType, methodName, lookupResult, warningsOnly: true, diagnostics: diagnostics, isAsync: isAsync);
             lookupResult.Free();
@@ -964,7 +964,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // some custom logic in ExpressionBinder.BindGrpToParams.  The biggest difference
                 // we've found (so far) is that it only considers methods with expected number of parameters
                 // (i.e. doesn't work with "params" or optional parameters).
-                if (method.ParameterCount == 0)
+
+                // Note: for pattern-based lookup for `await foreach` we accept `GetAsyncEnumerator` and
+                // `MoveNextAsync` methods with optional/params parameters.
+                if (method.ParameterCount == 0 || isAsync)
                 {
                     candidateMethods.Add((MethodSymbol)member);
                 }
@@ -983,9 +986,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol PerformForEachPatternOverloadResolution(TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync)
         {
-            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
-            AnalyzedArguments arguments = AnalyzedArguments.GetInstance();
-            OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+            var typeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             // We create a dummy receiver of the invocation so MethodInvocationOverloadResolution knows it was invoked from an instance, not a type
@@ -994,7 +997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methods: candidateMethods,
                 typeArguments: typeArguments,
                 receiver: dummyReceiver,
-                arguments: arguments,
+                arguments: analyzedArguments,
                 result: overloadResolutionResult,
                 useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(_syntax.Expression, useSiteDiagnostics);
@@ -1031,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             overloadResolutionResult.Free();
-            arguments.Free();
+            analyzedArguments.Free();
             typeArguments.Free();
 
             return result;
@@ -1135,7 +1138,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lookupResult.Clear(); // Reuse the same LookupResult
 
                 MethodSymbol moveNextMethodCandidate = FindForEachPatternMethod(enumeratorType,
-                    isAsync ? MoveNextAsyncMethodName : MoveNextMethodName, lookupResult, warningsOnly: false, diagnostics: diagnostics, isAsync: isAsync);
+                    isAsync ? MoveNextAsyncMethodName : MoveNextMethodName,
+                    lookupResult, warningsOnly: false, diagnostics: diagnostics, isAsync: isAsync);
 
                 if ((object)moveNextMethodCandidate == null ||
                     moveNextMethodCandidate.IsStatic || moveNextMethodCandidate.DeclaredAccessibility != Accessibility.Public ||
@@ -1263,11 +1267,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (IsIEnumerableT(@interface.OriginalDefinition, isAsync))
                 {
-                    if ((object)result == null)
+                    if ((object)result == null ||
+                        TypeSymbol.Equals(@interface, result, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                     {
                         result = @interface;
                     }
-                    else if (@interface != result)
+                    else
                     {
                         foundMultiple = true;
                         return;
