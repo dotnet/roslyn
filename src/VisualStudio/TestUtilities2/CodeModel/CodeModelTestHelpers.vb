@@ -58,13 +58,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     mockVisualStudioWorkspace,
                     New ProjectCodeModelFactory(mockVisualStudioWorkspace, mockServiceProvider, threadingContext))
 
-                Dim mockTextManagerAdapter = New MockTextManagerAdapter()
-
                 Dim projectCodeModel = DirectCast(state.ProjectCodeModelFactory.CreateProjectCodeModel(project.Id, Nothing), ProjectCodeModel)
 
                 For Each document In project.Documents
                     ' Note that a parent is not specified below. In Visual Studio, this would normally be an EnvDTE.Project instance.
                     Dim fcm = projectCodeModel.GetOrCreateFileCodeModel(document.FilePath, parent:=Nothing)
+                    fcm.Object.TextManagerAdapter = New MockTextManagerAdapter()
                     mockVisualStudioWorkspace.SetFileCodeModel(document.Id, fcm)
                 Next
 
@@ -95,7 +94,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     Return Me._componentModel
                 End If
 
-                Throw New NotImplementedException("No service exists for " + serviceType.FullName)
+                Throw New NotImplementedException($"No service exists for {serviceType.FullName}")
             End Function
         End Class
 

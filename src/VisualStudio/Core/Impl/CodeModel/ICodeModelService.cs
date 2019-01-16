@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// </summary>
         string GetFullyQualifiedName(string name, int position, SemanticModel semanticModel);
 
-        void Rename(ISymbol symbol, string newName, Solution solution);
+        void Rename(ISymbol symbol, string newName, Workspace workspace, ProjectCodeModelFactory projectCodeModelFactory);
 
         /// <summary>
         /// Returns true if the given <paramref name="symbol"/> can be used to create an external code element; otherwise, false.
