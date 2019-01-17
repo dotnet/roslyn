@@ -2,6 +2,11 @@ resources:
 - repo: self
   clean: true
 
+variables:
+  SignType: real
+  SkipTests: false
+  SkipApplyOptimizationData: false
+
 jobs:
 - job: OfficialBuild
   displayName: Official Build
@@ -18,9 +23,6 @@ jobs:
     VisualStudio.BranchName: 'lab/d16.0stg'
     VisualStudio.ChannelName: 'int.d16.0stg'
     VisualStudio.DropName: Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)
-    SignType: real
-    SkipTests: false
-    SkipApplyOptimizationData: false
 
   steps:
   - task: NuGetToolInstaller@0
@@ -150,7 +152,7 @@ jobs:
       testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
       mergeTestResults: true
       testRunTitle: 'Unit Tests'
-    condition: and(succeededOrFailed(), not(variables['SkipTests']))
+    condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
 
   # Publishes setup VSIXes to a drop.
   # Note: The insertion tool looks for the display name of this task in the logs.
