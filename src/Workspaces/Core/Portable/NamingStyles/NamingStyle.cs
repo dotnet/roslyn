@@ -143,7 +143,14 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 return true;
             }
 
-            var spanToCheck = TextSpan.FromBounds(Prefix.Length, name.Length - Suffix.Length);
+            name = StripCommonPrefixes(name, out var prefix);
+            if (prefix != string.Empty)
+            {
+                failureReason = string.Format(WorkspacesResources.Incorrect_prefix);
+                return false;
+            }
+
+            var spanToCheck = TextSpan.FromBounds(0, name.Length - Suffix.Length);
             Debug.Assert(spanToCheck.Length > 0);
 
             switch (CapitalizationScheme)
@@ -318,14 +325,14 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private string CreateCompliantNameReusingPartialPrefixesAndSuffixes(string name)
         {
-            name = StripCommonPrefixes(name);
+            name = StripCommonPrefixes(name, out _);
             name = EnsurePrefix(name);
             name = EnsureSuffix(name);
 
             return FinishFixingName(name);
         }
 
-        private static string StripCommonPrefixes(string name)
+        private static string StripCommonPrefixes(string name, out string prefix)
         {
             var index = 0;
             while (index + 1 < name.Length)
@@ -355,6 +362,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 break;
             }
 
+            prefix = name.Substring(0, index);
             return name.Substring(index);
         }
 
