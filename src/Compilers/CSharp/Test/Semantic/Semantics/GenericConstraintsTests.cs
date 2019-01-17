@@ -3905,7 +3905,7 @@ public unsafe struct OtherStruct
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(32103, "https://github.com/dotnet/roslyn/issues/32103")]
         public void StructContainingTuple_Unmanaged_RequiresCSharp8()
         {
             var code = @"
@@ -3934,11 +3934,11 @@ public class C
                     //         M<(int, int)>();
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<(int, int)>").WithArguments("unmanaged constructed types", "8.0").WithLocation(14, 9)
                 );
-            
+
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem(32103, "https://github.com/dotnet/roslyn/issues/32103")]
         public void StructContainingGenericTuple_Unmanaged()
         {
             var code = @"
