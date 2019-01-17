@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// Diagnostic descriptor that will not fade anything or produce a suggestion.
         /// Can be used to only squiggle the span.
         /// </summary>
-        protected readonly DiagnosticDescriptor UnnecessaryWithoutSuggestionWithoutFadeDescriptor;
+        protected readonly DiagnosticDescriptor NecessaryWithoutSuggestionWithoutFadeDescriptor;
 
         protected readonly LocalizableString _localizableTitle;
         protected readonly LocalizableString _localizableMessageFormat;
@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             UnnecessaryWithSuggestionDescriptor = CreateUnnecessaryDescriptor();
             var withoutSuggestionDescriptorId = descriptorId + "WithoutSuggestion";
             UnnecessaryWithoutSuggestionDescriptor = CreateUnnecessaryDescriptor(withoutSuggestionDescriptorId);
-            UnnecessaryWithoutSuggestionWithoutFadeDescriptor = CreateDescriptorWithId(
+            NecessaryWithoutSuggestionWithoutFadeDescriptor = CreateDescriptorWithId(
                 withoutSuggestionDescriptorId, _localizableTitle, _localizableMessageFormat,
                 isUnneccessary: false);
 
             SupportedDiagnostics = ImmutableArray.Create(
-                Descriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor, UnnecessaryWithoutSuggestionWithoutFadeDescriptor);
+                Descriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor, NecessaryWithoutSuggestionWithoutFadeDescriptor);
         }
 
         protected AbstractCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> supportedDiagnostics)

@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
             // Generates diagnostic used to squiggle the parenthetical expression.
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                UnnecessaryWithoutSuggestionWithoutFadeDescriptor,
+                NecessaryWithoutSuggestionWithoutFadeDescriptor,
                 GetDiagnosticSquiggleLocation(parenthesizedExpression, cancellationToken),
                 severity,
                 additionalLocations,
