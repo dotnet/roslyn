@@ -4543,11 +4543,12 @@ tryAgain:
                             var expression = item as ExpressionSyntax;
                             if (expression != null)
                             {
-                                bool isOmitted = expression is OmittedArraySizeExpressionSyntax;
+                                bool isOmitted = expression.Kind == SyntaxKind.OmittedArraySizeExpression;
                                 if (!isFixed && !isOmitted)
                                 {
                                     expression = this.AddError(expression, ErrorCode.ERR_ArraySizeInDeclaration);
                                 }
+
                                 args.Add(_syntaxFactory.Argument(null, default(SyntaxToken), expression));
                             }
                             else
