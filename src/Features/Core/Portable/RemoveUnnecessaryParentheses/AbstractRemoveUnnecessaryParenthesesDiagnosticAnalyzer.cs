@@ -20,10 +20,26 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         where TParenthesizedExpressionSyntax : SyntaxNode
     {
 
+        /// <summary>
+        /// A diagnostic descriptor that will fade the span (but not put a message or squiggle).
+        /// </summary>
+        private static readonly DiagnosticDescriptor s_diagnosticWithFade = CreateDescriptorWithId(
+                IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
+                new LocalizableResourceString(nameof(FeaturesResources.Remove_unnecessary_parentheses), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                string.Empty,
+                isUnneccessary: true);
+
+        /// <summary>
+        /// A diagnostic descriptor used to squiggle and message the span, but will not fade.
+        /// </summary>
+        private static readonly DiagnosticDescriptor s_diagnosticWithoutFade = CreateDescriptorWithId(
+                IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
+                new LocalizableResourceString(nameof(FeaturesResources.Remove_unnecessary_parentheses), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                new LocalizableResourceString(nameof(FeaturesResources.Parentheses_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                isUnneccessary: false);
+
         protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Remove_unnecessary_parentheses), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Parentheses_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+            : base(ImmutableArray.Create(s_diagnosticWithFade, s_diagnosticWithoutFade))
         {
         }
 
@@ -115,25 +131,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             var additionalLocations = ImmutableArray.Create(parenthesizedExpression.GetLocation());
 
             // Fades the open parentheses character and reports the suggestion.
-            context.ReportDiagnostic(DiagnosticHelper.Create(
-                UnnecessaryWithSuggestionDescriptor,
-                parenthesizedExpression.GetFirstToken().GetLocation(),
-                severity,
-                additionalLocations,
-                properties: null));
+            context.ReportDiagnostic(Diagnostic.Create(s_diagnosticWithFade, parenthesizedExpression.GetFirstToken().GetLocation(), additionalLocations));
 
             // Generates diagnostic used to squiggle the parenthetical expression.
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                NecessaryWithoutSuggestionWithoutFadeDescriptor,
+                s_diagnosticWithoutFade,
                 GetDiagnosticSquiggleLocation(parenthesizedExpression, cancellationToken),
                 severity,
                 additionalLocations,
                 properties: null));
 
             // Fades the close parentheses character.
-            context.ReportDiagnostic(Diagnostic.Create(
-                UnnecessaryWithoutSuggestionDescriptor,
-                parenthesizedExpression.GetLastToken().GetLocation(), additionalLocations));
+            context.ReportDiagnostic(Diagnostic.Create(s_diagnosticWithFade, parenthesizedExpression.GetLastToken().GetLocation(), additionalLocations));
         }
 
         /// <summary>

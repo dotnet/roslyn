@@ -38,6 +38,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 : CreateDiagnosticProviderAndFixer(workspace, parameters);
         }
 
+        internal virtual bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
+        {
+            if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+            {
+                if (!descriptor.IsEnabledByDefault || descriptor.DefaultSeverity == DiagnosticSeverity.Hidden)
+                {
+                    // The message only displayed if either enabled and not hidden, or configurable
+                    return true;
+                }
+            }
+            return false;
+        }
+
         [Fact]
         public void TestSupportedDiagnosticsMessageTitle()
         {
@@ -75,13 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
                 {
-                    if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                    if (ShouldSkipMessageDescriptionVerification(descriptor))
                     {
-                        if (!descriptor.IsEnabledByDefault || descriptor.DefaultSeverity == DiagnosticSeverity.Hidden)
-                        {
-                            // The message only displayed if either enabled and not hidden, or configurable
-                            continue;
-                        }
+                        continue;
                     }
 
                     Assert.NotEqual("", descriptor.MessageFormat?.ToString() ?? "");
@@ -132,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider);
-            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(provider, document, span)).ToImmutableArray();
+            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(provider, document, span, parameters.shouldVerifyEntireSpan)).ToImmutableArray();
             AssertNoAnalyzerExceptionDiagnostics(diagnostics);
 
             var fixer = providerAndFixer.Item2;
