@@ -210,7 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 var switchArms = node.Sections
                     // The default label must come last in the switch expression.
                     .OrderBy(section => section.Labels[0].IsKind(SyntaxKind.DefaultSwitchLabel))
-                    .SelectAsArray(GetSwitchExpressionArm);
+                    .Select(GetSwitchExpressionArm)
+                    .ToList();
 
                 // This is possibly false only on the top-level switch statement. 
                 // On nested nodes, if there's a subsequent statement, it is most definitely a
@@ -221,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     if (nextStatement != null)
                     {
                         Debug.Assert(nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement));
-                        switchArms = switchArms.Add(SwitchExpressionArm(DiscardPattern(), Visit(nextStatement)));
+                        switchArms.Add(SwitchExpressionArm(DiscardPattern(), Visit(nextStatement)));
                     }
                 }
 
