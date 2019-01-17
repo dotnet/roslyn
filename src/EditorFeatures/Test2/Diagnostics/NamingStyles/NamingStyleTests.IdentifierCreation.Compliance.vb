@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestManyEmptyWords()
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.PascalCase)
-            TestNameCompliance(namingStyle, "_____")
+            TestNameNoncomplianceAndFixedNames(namingStyle, "_____", "_", "_____")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>

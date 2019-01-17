@@ -139,17 +139,25 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
             if (name.Length <= Prefix.Length + Suffix.Length)
             {
+                // name consists of Prefix and Suffix and no base name
+                // Prefix and Suffix can overlap
+                // Example: Prefix = "s_", Suffix = "_t", name "s_t"
                 failureReason = null;
                 return true;
             }
 
-            name = StripCommonPrefixes(name, out var prefix);
-            if (prefix != string.Empty)
+            // remove specified Prefix, then look for any other common prefixes
+            name = StripCommonPrefixes(name.Substring(Prefix.Length), out var prefix);
+
+            if (prefix.Length != default)
             {
+                // name started with specified prefix, but has at least one additional common prefix 
+                // Example: specified prefix "test_", actual prefix "test_m_"
                 failureReason = string.Format(WorkspacesResources.Incorrect_prefix);
                 return false;
             }
 
+            // specified and common prefixes have been removed. Now see that the base name has correct capitalization
             var spanToCheck = TextSpan.FromBounds(0, name.Length - Suffix.Length);
             Debug.Assert(spanToCheck.Length > 0);
 
@@ -302,6 +310,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private string CreateCompliantNameDirectly(string name)
         {
+            //name = StripCommonPrefixes(name, out _);
             var addPrefix = !name.StartsWith(Prefix);
             var addSuffix = !name.EndsWith(Suffix);
 
@@ -376,9 +385,16 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
             name = name.Substring(Prefix.Length, name.Length - Suffix.Length - Prefix.Length);
             IEnumerable<string> words = new[] { name };
+
             if (!string.IsNullOrEmpty(WordSeparator))
             {
                 words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Edge case: the only character(s) in the name is(are) the WordSpearator
+                if (words.Count() == 0)
+                {
+                    return name;
+                }
 
                 if (words.Count() == 1) // Only Split if words have not been split before 
                 {
