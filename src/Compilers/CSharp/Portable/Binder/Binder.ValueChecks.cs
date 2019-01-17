@@ -394,7 +394,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var boundAccess = (BoundArrayAccess)expr;
                         if (boundAccess.Indices.Length == 1 &&
-                            boundAccess.Indices[0].Type.Equals(Compilation.GetWellKnownType(WellKnownType.System_Range)))
+                            TypeSymbol.Equals(
+                                boundAccess.Indices[0].Type,
+                                Compilation.GetWellKnownType(WellKnownType.System_Range),
+                                TypeCompareKind.ConsiderEverything))
                         {
                             // Range indexer is an rvalue
                             Error(diagnostics, GetStandardLvalueError(valueKind), node);

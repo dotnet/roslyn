@@ -406,7 +406,7 @@ class C
 11");
             verifier.VerifyIL("C.M", @"
 {
-  // Code size       99 (0x63)
+  // Code size       95 (0x5f)
   .maxstack  3
   .locals init (System.Index V_0,
                 int[] V_1)
@@ -416,47 +416,43 @@ class C
   IL_0004:  call       ""System.Index..ctor(int, bool)""
   IL_0009:  ldarg.0
   IL_000a:  stloc.1
-  IL_000b:  ldloca.s   V_0
-  IL_000d:  call       ""bool System.Index.FromEnd.get""
-  IL_0012:  brtrue.s   IL_001f
-  IL_0014:  ldloc.1
+  IL_000b:  ldloc.1
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       ""bool System.Index.FromEnd.get""
+  IL_0013:  brtrue.s   IL_001e
   IL_0015:  ldloca.s   V_0
   IL_0017:  call       ""int System.Index.Value.get""
-  IL_001c:  ldelem.i4
-  IL_001d:  br.s       IL_002c
-  IL_001f:  ldloc.1
-  IL_0020:  ldloc.1
-  IL_0021:  ldlen
-  IL_0022:  conv.i4
-  IL_0023:  ldloca.s   V_0
-  IL_0025:  call       ""int System.Index.Value.get""
-  IL_002a:  sub
-  IL_002b:  ldelem.i4
-  IL_002c:  call       ""void System.Console.WriteLine(int)""
-  IL_0031:  ldloca.s   V_0
-  IL_0033:  ldc.i4.1
-  IL_0034:  ldc.i4.1
-  IL_0035:  call       ""System.Index..ctor(int, bool)""
-  IL_003a:  ldarg.0
-  IL_003b:  stloc.1
-  IL_003c:  ldloca.s   V_0
-  IL_003e:  call       ""bool System.Index.FromEnd.get""
-  IL_0043:  brtrue.s   IL_0050
-  IL_0045:  ldloc.1
-  IL_0046:  ldloca.s   V_0
-  IL_0048:  call       ""int System.Index.Value.get""
-  IL_004d:  ldelem.i4
-  IL_004e:  br.s       IL_005d
-  IL_0050:  ldloc.1
-  IL_0051:  ldloc.1
-  IL_0052:  ldlen
-  IL_0053:  conv.i4
-  IL_0054:  ldloca.s   V_0
-  IL_0056:  call       ""int System.Index.Value.get""
-  IL_005b:  sub
-  IL_005c:  ldelem.i4
-  IL_005d:  call       ""void System.Console.WriteLine(int)""
-  IL_0062:  ret
+  IL_001c:  br.s       IL_0029
+  IL_001e:  ldloc.1
+  IL_001f:  ldlen
+  IL_0020:  conv.i4
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  call       ""int System.Index.Value.get""
+  IL_0028:  sub
+  IL_0029:  ldelem.i4
+  IL_002a:  call       ""void System.Console.WriteLine(int)""
+  IL_002f:  ldloca.s   V_0
+  IL_0031:  ldc.i4.1
+  IL_0032:  ldc.i4.1
+  IL_0033:  call       ""System.Index..ctor(int, bool)""
+  IL_0038:  ldarg.0
+  IL_0039:  stloc.1
+  IL_003a:  ldloc.1
+  IL_003b:  ldloca.s   V_0
+  IL_003d:  call       ""bool System.Index.FromEnd.get""
+  IL_0042:  brtrue.s   IL_004d
+  IL_0044:  ldloca.s   V_0
+  IL_0046:  call       ""int System.Index.Value.get""
+  IL_004b:  br.s       IL_0058
+  IL_004d:  ldloc.1
+  IL_004e:  ldlen
+  IL_004f:  conv.i4
+  IL_0050:  ldloca.s   V_0
+  IL_0052:  call       ""int System.Index.Value.get""
+  IL_0057:  sub
+  IL_0058:  ldelem.i4
+  IL_0059:  call       ""void System.Console.WriteLine(int)""
+  IL_005e:  ret
 }");
         }
 
