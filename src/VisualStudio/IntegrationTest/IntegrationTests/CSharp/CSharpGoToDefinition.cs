@@ -3,73 +3,71 @@
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpGoToDefinition : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpGoToDefinition(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpGoToDefinition))
+        public CSharpGoToDefinition()
+            : base(nameof(CSharpGoToDefinition))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.GoToDefinition)]
         public void GoToClassDeclaration()
         {
             var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "FileDef.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileDef.cs");
-            VisualStudio.Editor.SetText(
+            VisualStudioInstance.SolutionExplorer.AddFile(project, "FileDef.cs");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "FileDef.cs");
+            VisualStudioInstance.Editor.SetText(
 @"class SomeClass
 {
 }");
-            VisualStudio.SolutionExplorer.AddFile(project, "FileConsumer.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileConsumer.cs");
-            VisualStudio.Editor.SetText(
+            VisualStudioInstance.SolutionExplorer.AddFile(project, "FileConsumer.cs");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "FileConsumer.cs");
+            VisualStudioInstance.Editor.SetText(
 @"class SomeOtherClass
 {
     SomeClass sc;
 }");
-            VisualStudio.Editor.PlaceCaret("SomeClass");
-            VisualStudio.Editor.GoToDefinition();
-            VisualStudio.Editor.Verify.TextContains(@"class SomeClass$$", assertCaretPosition: true);
-            Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
+            VisualStudioInstance.Editor.PlaceCaret("SomeClass");
+            VisualStudioInstance.Editor.GoToDefinition();
+            VisualStudioInstance.Editor.Verify.TextContains(@"class SomeClass$$", assertCaretPosition: true);
+            Assert.IsFalse(VisualStudioInstance.Shell.IsActiveTabProvisional());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.GoToDefinition)]
         public void GoToDefinitionOpensProvisionalTabIfDocumentNotAlreadyOpen()
         {
             var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "FileDef.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileDef.cs");
-            VisualStudio.Editor.SetText(
+            VisualStudioInstance.SolutionExplorer.AddFile(project, "FileDef.cs");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "FileDef.cs");
+            VisualStudioInstance.Editor.SetText(
 @"class SomeClass
 {
 }
 ");
-            VisualStudio.SolutionExplorer.CloseFile(project, "FileDef.cs", saveFile: true);
-            VisualStudio.SolutionExplorer.AddFile(project, "FileConsumer.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileConsumer.cs");
-            VisualStudio.Editor.SetText(
+            VisualStudioInstance.SolutionExplorer.CloseFile(project, "FileDef.cs", saveFile: true);
+            VisualStudioInstance.SolutionExplorer.AddFile(project, "FileConsumer.cs");
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, "FileConsumer.cs");
+            VisualStudioInstance.Editor.SetText(
 @"class SomeOtherClass
 {
     SomeClass sc;
 }");
-            VisualStudio.Editor.PlaceCaret("SomeClass");
-            VisualStudio.Editor.GoToDefinition();
-            VisualStudio.Editor.Verify.TextContains(@"class SomeClass$$", assertCaretPosition: true);
-            Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
+            VisualStudioInstance.Editor.PlaceCaret("SomeClass");
+            VisualStudioInstance.Editor.GoToDefinition();
+            VisualStudioInstance.Editor.Verify.TextContains(@"class SomeClass$$", assertCaretPosition: true);
+            Assert.IsTrue(VisualStudioInstance.Shell.IsActiveTabProvisional());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.GoToDefinition)]
         public void GoToDefinitionWithMultipleResults()
         {
             SetUpEditor(
@@ -77,29 +75,29 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
 partial class PartialClass { int i = 0; }");
 
-            VisualStudio.Editor.GoToDefinition();
+            VisualStudioInstance.Editor.GoToDefinition();
 
             const string programReferencesCaption = "'PartialClass' declarations";
-            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
+            var results = VisualStudioInstance.FindReferencesWindow.GetContents(programReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: programReferencesCaption, actual: activeWindowCaption);
+            var activeWindowCaption = VisualStudioInstance.Shell.GetActiveWindowCaption();
+            Assert.AreEqual(expected: programReferencesCaption, actual: activeWindowCaption);
 
-            Assert.Collection(
+            ExtendedAssert.Collection(
                 results,
                 new Action<Reference>[]
                 {
                     reference =>
                     {
-                        Assert.Equal(expected: "partial class /*Marker*/ PartialClass { }", actual: reference.Code);
-                        Assert.Equal(expected: 0, actual: reference.Line);
-                        Assert.Equal(expected: 25, actual: reference.Column);
+                        Assert.AreEqual(expected: "partial class /*Marker*/ PartialClass { }", actual: reference.Code);
+                        Assert.AreEqual(expected: 0, actual: reference.Line);
+                        Assert.AreEqual(expected: 25, actual: reference.Column);
                     },
                     reference =>
                     {
-                        Assert.Equal(expected: "partial class PartialClass { int i = 0; }", actual: reference.Code);
-                        Assert.Equal(expected: 2, actual: reference.Line);
-                        Assert.Equal(expected: 14, actual: reference.Column);
+                        Assert.AreEqual(expected: "partial class PartialClass { int i = 0; }", actual: reference.Code);
+                        Assert.AreEqual(expected: 2, actual: reference.Line);
+                        Assert.AreEqual(expected: 14, actual: reference.Column);
                     }
                 });
         }

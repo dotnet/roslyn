@@ -19,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         public CSharpOutlining() : base(nameof(CSharpOutlining)) { }
 
-        [TestMethod, TestCategory(Traits.Features.Outlining)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Outlining)]
         public void Outlining()
         {
             var input = @"
@@ -42,7 +42,7 @@ namespace ConsoleApplication1[|
             Assert.AreEqual(spans.OrderBy(s => s.Start), VisualStudioInstance.Editor.GetOutliningSpans());
         }
 
-        [TestMethod, TestCategory(Traits.Features.Outlining)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Outlining)]
         public void OutliningConfigChange()
         {
             var input = @"

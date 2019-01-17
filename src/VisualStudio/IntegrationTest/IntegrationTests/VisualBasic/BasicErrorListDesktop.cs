@@ -9,18 +9,18 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     [TestClass]
     public class BasicErrorListDesktop : BasicErrorListCommon
     {
-        public BasicErrorListDesktop( )
-            : base( WellKnownProjectTemplates.ClassLibrary)
+        public BasicErrorListDesktop()
+            : base(WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.ErrorList)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ErrorList)]
         public override void ErrorList()
         {
             base.ErrorList();
         }
 
-        [TestMethod, TestCategory(Traits.Features.ErrorList)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ErrorList)]
         public override void ErrorsDuringMethodBodyEditing()
         {
             base.ErrorsDuringMethodBodyEditing();

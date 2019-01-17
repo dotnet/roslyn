@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -15,12 +14,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicGoToDefinition( )
-            : base( nameof(BasicGoToDefinition))
+        public BasicGoToDefinition()
+            : base(nameof(BasicGoToDefinition))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.GoToDefinition)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.GoToDefinition)]
         public void GoToClassDeclaration()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -41,7 +40,7 @@ End Class");
             Assert.IsFalse(VisualStudioInstance.Shell.IsActiveTabProvisional());
         }
 
-        [TestMethod, TestCategory(Traits.Features.GoToDefinition)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.GoToDefinition)]
         public void ObjectBrowserNavigation()
         {
             SetUpEditor(

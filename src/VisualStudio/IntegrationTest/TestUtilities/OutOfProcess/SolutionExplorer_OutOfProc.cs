@@ -2,6 +2,7 @@
 
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Components;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -13,12 +14,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         private readonly SolutionExplorer_InProc _inProc;
         private readonly VisualStudioInstance _instance;
+        private readonly SolutionExplorer _solutionExplorer;
 
         public SolutionExplorer_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
             _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<SolutionExplorer_InProc>(visualStudioInstance);
+            _solutionExplorer = new SolutionExplorer(_inProc, _instance.VisualStudioHost);
             Verify = new Verifier(this);
         }
 
@@ -37,14 +40,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.CreateSolution(solutionName, saveExistingSolutionIfExists);
 
         public void CreateSolution(string solutionName, XElement solutionElement)
-            => _inProc.CreateSolution(solutionName, solutionElement.ToString());
+            => _solutionExplorer.CreateSolution(solutionName, solutionElement);
 
         public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
-            => _inProc.OpenSolution(path, saveExistingSolutionIfExists);
+            => _solutionExplorer.OpenSolution(path, saveExistingSolutionIfExists);
 
         public void AddProject(ProjectUtils.Project projectName, string projectTemplate, string languageName)
         {
-            _inProc.AddProject(projectName.Name, projectTemplate, languageName);
+            _solutionExplorer.AddProject(projectName.Name, projectTemplate, languageName);
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 
@@ -76,7 +79,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.CleanUpOpenSolution();
 
         public void AddFile(ProjectUtils.Project project, string fileName, string contents = null, bool open = false)
-            => _inProc.AddFile(project.Name, fileName, contents, open);
+            => _solutionExplorer.AddFile(project.Name, fileName, contents, open);
 
         public void SetFileContents(ProjectUtils.Project project, string fileName, string contents)
             => _inProc.SetFileContents(project.Name, fileName, contents);
@@ -98,7 +101,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         }
 
         public void UpdateFile(string projectName, string fileName, string contents, bool open = false)
-            => _inProc.UpdateFile(projectName, fileName, contents, open);
+            => _solutionExplorer.UpdateFile(projectName, fileName, contents, open);
 
         public void RenameFile(ProjectUtils.Project project, string oldFileName, string newFileName)
         {

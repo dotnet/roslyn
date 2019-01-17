@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -15,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         public CSharpOrganizing() : base(nameof(CSharpOrganizing)) { }
 
-        [TestMethod, TestCategory(Traits.Features.Organizing)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Organizing)]
         public void RemoveAndSort()
         {
             SetUpEditor(@"$$

@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
         public static void Collection<T>(T[] actual, Action<T>[] actions)
         {
             Assert.AreEqual(actions.Length, actual.Length, $"Collections counts: expected - {actions.Length}, actual - {actual.Length}");
-            for(int i = 0; i<actions.Length; i++)
+            for (int i = 0; i < actions.Length; i++)
             {
                 actions[i](actual[i]);
             }

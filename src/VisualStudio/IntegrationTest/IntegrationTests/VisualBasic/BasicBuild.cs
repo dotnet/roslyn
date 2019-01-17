@@ -13,8 +13,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     [TestClass]
     public class BasicBuild : AbstractIntegrationTest
     {
-        public BasicBuild() : base() { }
-
         [TestInitialize]
         public override async Task InitializeAsync()
         {
@@ -24,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             VisualStudioInstance.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Build)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Build)]
         public void BuildProject()
         {
             var editorText = @"Module Program

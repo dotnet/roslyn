@@ -37,12 +37,11 @@ End Module";
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicExtractMethod( )
-            : base( nameof(BasicExtractMethod))
+        public BasicExtractMethod() : base(nameof(BasicExtractMethod))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.ExtractMethod)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ExtractMethod)]
         public void SimpleExtractMethod()
         {
             VisualStudioInstance.Editor.SetText(TestSource);
@@ -85,7 +84,7 @@ End Module";
     End Sub");
         }
 
-        [TestMethod, TestCategory(Traits.Features.ExtractMethod)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractViaCodeAction()
         {
             VisualStudioInstance.Editor.SetText(TestSource);
@@ -123,7 +122,7 @@ End Module";
             AssertEx.SetEqual(spans, VisualStudioInstance.Editor.GetTagSpans(VisualStudioInstance.InlineRenameDialog.ValidRenameTag));
         }
 
-        [TestMethod, TestCategory(Traits.Features.ExtractMethod)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractViaCodeActionWithMoveLocal()
         {
             VisualStudioInstance.Editor.SetText(TestSource);

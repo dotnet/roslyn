@@ -42,8 +42,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             reference.Remove();
         }
 
-        public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
-
         public string SolutionFileFullPath
         {
             get
@@ -56,7 +54,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-<<<<<<< HEAD
         public void CloseSolution(bool saveFirst = false)
             => GetDTE().Solution.Close(saveFirst);
 
@@ -85,8 +82,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             _fileName = Path.Combine(solutionPath, solutionFileName);
         }
 
-=======
->>>>>>> iteration 2
         public string[] GetAssemblyReferences(string projectName)
         {
             var project = GetProject(projectName);

@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
+    [TestClass]
     public class BasicErrorListCommon : AbstractEditorTest
     {
         public BasicErrorListCommon(string templateName) : base(nameof(BasicErrorListCommon), templateName) { }

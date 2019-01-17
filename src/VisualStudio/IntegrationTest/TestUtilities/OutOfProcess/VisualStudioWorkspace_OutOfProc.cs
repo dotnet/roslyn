@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.SetOption(optionName, feature, value);
 
         public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
-             {}// _inProc.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
+        { } // _inProc.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
 
         public void WaitForAllAsyncOperations(params string[] featureNames)
         { } // .ResourceManager.WaitForProcessCpuIdle( _inProc.WaitForAllAsyncOperations(featureNames);
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.CleanUpWorkspace();
 
         public void CleanUpWaitingService()
-        { }// _inProc.CleanUpWaitingService();
+        { } // _inProc.CleanUpWaitingService();
 
         public void SetQuickInfo(bool value)
             => _inProc.EnableQuickInfo(value);

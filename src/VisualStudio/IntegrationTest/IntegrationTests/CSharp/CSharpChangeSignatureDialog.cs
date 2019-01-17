@@ -19,12 +19,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private ChangeSignatureDialog_OutOfProc ChangeSignatureDialog => VisualStudioInstance.ChangeSignatureDialog;
 
-        public CSharpChangeSignatureDialog( )
-            : base( nameof(CSharpChangeSignatureDialog))
+        public CSharpChangeSignatureDialog()
+            : base(nameof(CSharpChangeSignatureDialog))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.ChangeSignature)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCodeRefactoringOffered()
         {
             SetUpEditor(@"
@@ -37,7 +37,7 @@ class C
             VisualStudioInstance.Editor.Verify.CodeAction("Change signature...", applyFix: false);
         }
 
-        [TestMethod, TestCategory(Traits.Features.ChangeSignature)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyRefactoringCancelled()
         {
             SetUpEditor(@"
@@ -58,7 +58,7 @@ class C
 }", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.ChangeSignature)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyReorderParameters()
         {
             SetUpEditor(@"
@@ -81,7 +81,7 @@ class C
 }", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.ChangeSignature)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyRemoveParameter()
         {
             SetUpEditor(@"
@@ -125,7 +125,7 @@ class C
 }", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.ChangeSignature)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCrossLanguageGlobalUndo()
         {
             SetUpEditor(@"using VBProject;

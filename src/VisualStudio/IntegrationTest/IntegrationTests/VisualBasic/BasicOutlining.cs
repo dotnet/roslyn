@@ -18,7 +18,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
 
         public BasicOutlining() : base(nameof(BasicOutlining)) { }
 
-        [TestMethod, TestCategory(Traits.Features.Outlining)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Outlining)]
         public void Outlining()
         {
             var input = @"

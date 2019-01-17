@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -15,12 +14,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpGoToImplementation( )
-                    : base( nameof(CSharpGoToImplementation))
+        public CSharpGoToImplementation()
+            : base(nameof(CSharpGoToImplementation))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.GoToImplementation)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.GoToImplementation)]
         public void SimpleGoToImplementation()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -42,7 +41,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.IsFalse(VisualStudioInstance.Shell.IsActiveTabProvisional());
         }
 
-        [TestMethod, TestCategory(Traits.Features.GoToImplementation)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.GoToImplementation)]
         public void GoToImplementationOpensProvisionalTabIfDocumentNotOpen()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -68,7 +67,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
 
         // TODO: Enable this once the GoToDefinition tests are merged
-        [TestMethod, TestCategory(Traits.Features.GoToImplementation)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.GoToImplementation)]
         public void GoToImplementationFromMetadataAsSource()
         {
             var project = new ProjectUtils.Project(ProjectName);

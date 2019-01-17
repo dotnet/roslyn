@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Components
             document.Editor.Edit.InsertText(contents ?? string.Empty);
 
             document.Save();
-            
+
             if (!open)
             {
                 document.Close();
@@ -224,7 +224,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Components
 
         private static ProjectTemplate GetTemplate(string projectTemplate)
         {
-            switch(projectTemplate)
+            switch (projectTemplate)
             {
                 case WellKnownProjectTemplates.ClassLibrary: return ProjectTemplate.ClassLibrary;
                 case WellKnownProjectTemplates.ConsoleApplication: return ProjectTemplate.ConsoleApplication;
@@ -276,7 +276,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Components
                 _solution.BuildManager.BuildAsync();
             }
         }
-             
+
         private static ProjectLanguage ConvertLanguageName(string languageName)
         {
             const string CSharp = nameof(CSharp);

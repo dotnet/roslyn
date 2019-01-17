@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -17,12 +16,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicGenerateConstructorDialog( )
-            : base(nameof(BasicGenerateConstructorDialog))
+        public BasicGenerateConstructorDialog() : base(nameof(BasicGenerateConstructorDialog))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public void VerifyCodeRefactoringOfferedAndCanceled()
         {
             SetUpEditor(@"
@@ -50,7 +48,7 @@ Class C
 End Class", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public void VerifyCodeRefactoringOfferedAndAccepted()
         {
             SetUpEditor(
@@ -84,7 +82,7 @@ Class C
 End Class", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public void VerifyReordering()
         {
             SetUpEditor(
@@ -120,7 +118,7 @@ Class C
 End Class", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public void VerifyDeselect()
         {
             SetUpEditor(

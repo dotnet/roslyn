@@ -12,12 +12,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicClassification( )
-            : base( nameof(BasicClassification))
+        public BasicClassification() : base(nameof(BasicClassification))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.Classification)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Classification)]
         public void Verify_Color_Of_Some_Tokens()
         {
             VisualStudioInstance.Editor.SetText(@"Imports System
@@ -63,7 +62,7 @@ End Namespace");
             VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "comment");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Classification)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Classification)]
         public void Semantic_Classification()
         {
             VisualStudioInstance.Editor.SetText(@"

@@ -14,12 +14,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicGoToImplementation( )
-                    : base( nameof(BasicGoToImplementation))
+        public BasicGoToImplementation()
+            : base(nameof(BasicGoToImplementation))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.GoToImplementation)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.GoToImplementation)]
         public void SimpleGoToImplementation()
         {
             var project = new ProjectUtils.Project(ProjectName);

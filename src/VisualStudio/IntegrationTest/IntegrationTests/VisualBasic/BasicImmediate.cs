@@ -17,7 +17,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicImmediate() : base() { }
+        public BasicImmediate() : base(nameof(BasicImmediate)) { }
 
         [TestInitialize]
         public override async Task InitializeAsync()

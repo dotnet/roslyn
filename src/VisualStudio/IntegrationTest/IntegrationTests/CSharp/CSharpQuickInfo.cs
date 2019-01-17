@@ -3,22 +3,21 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpQuickInfo : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
         public CSharpQuickInfo(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpQuickInfo))
+            : base(nameof(CSharpQuickInfo))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.QuickInfo)]
         public void QuickInfo_MetadataDocumentation()
         {
             SetUpEditor(@"
@@ -29,13 +28,13 @@ class Program
     {
     }
 }");
-            VisualStudio.Editor.InvokeQuickInfo();
-            Assert.Equal(
+            VisualStudioInstance.Editor.InvokeQuickInfo();
+            Assert.AreEqual(
                 "class System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.",
-                VisualStudio.Editor.GetQuickInfo());
+                VisualStudioInstance.Editor.GetQuickInfo());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.QuickInfo)]
         public void QuickInfo_Documentation()
         {
             SetUpEditor(@"
@@ -46,11 +45,11 @@ class Program$$
     {
     }
 }");
-            VisualStudio.Editor.InvokeQuickInfo();
-            Assert.Equal("class Program\r\nHello!", VisualStudio.Editor.GetQuickInfo());
+            VisualStudioInstance.Editor.InvokeQuickInfo();
+            Assert.AreEqual("class Program\r\nHello!", VisualStudioInstance.Editor.GetQuickInfo());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.QuickInfo)]
         public void International()
         {
             SetUpEditor(@"
@@ -64,12 +63,12 @@ class العربية123
          العربية123$$ goo;
     }
 }");
-            VisualStudio.Editor.InvokeQuickInfo();
-            Assert.Equal(@"class العربية123
-This is an XML doc comment defined in code.", VisualStudio.Editor.GetQuickInfo());
+            VisualStudioInstance.Editor.InvokeQuickInfo();
+            Assert.AreEqual(@"class العربية123
+This is an XML doc comment defined in code.", VisualStudioInstance.Editor.GetQuickInfo());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.QuickInfo)]
         public void SectionOrdering()
         {
             SetUpEditor(@"
@@ -85,9 +84,9 @@ class C
             }
         }");
 
-            VisualStudio.Editor.InvokeQuickInfo();
+            VisualStudioInstance.Editor.InvokeQuickInfo();
             var expected = "(awaitable) Task<int> C.M()\r\n\r\nUsage:\r\n  int x = await M();\r\n\r\nExceptions:\r\n  Exception";
-            Assert.Equal(expected, VisualStudio.Editor.GetQuickInfo());
+            Assert.AreEqual(expected, VisualStudioInstance.Editor.GetQuickInfo());
         }
     }
 }

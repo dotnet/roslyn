@@ -18,12 +18,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         private GenerateTypeDialog_OutOfProc GenerateTypeDialog => VisualStudioInstance.GenerateTypeDialog;
 
-        public BasicGenerateTypeDialog( )
-            : base( nameof(BasicGenerateTypeDialog))
+        public BasicGenerateTypeDialog() : base(nameof(BasicGenerateTypeDialog))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateType)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void BasicToCSharp()
         {
             var csProj = new ProjectUtils.Project("CSProj");
@@ -70,7 +69,7 @@ End Class
 }", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateType)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void SameProject()
         {
             SetUpEditor(@"
@@ -109,7 +108,7 @@ End Class
 ", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateType)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void CheckFoldersPopulateComboBox()
         {
             var project = new ProjectUtils.Project(ProjectName);

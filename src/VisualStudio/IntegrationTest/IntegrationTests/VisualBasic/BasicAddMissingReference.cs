@@ -5,13 +5,13 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicAddMissingReference : AbstractEditorTest
     {
         private const string FileInLibraryProject1 = @"Public Class Class1
@@ -110,15 +110,15 @@ End Module
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicAddMissingReference(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public BasicAddMissingReference()
+            : base(nameof(BasicAddMissingReference))
         {
         }
 
         public override async Task InitializeAsync()
         {
             await base.InitializeAsync().ConfigureAwait(true);
-            VisualStudio.SolutionExplorer.CreateSolution("ReferenceErrors", solutionElement: XElement.Parse(
+            VisualStudioInstance.SolutionExplorer.CreateSolution("ReferenceErrors", solutionElement: XElement.Parse(
                 "<Solution>" +
                $"   <Project ProjectName=\"{ClassLibrary1Name}\" ProjectTemplate=\"{WellKnownProjectTemplates.WinFormsApplication}\" Language=\"{LanguageNames.VisualBasic}\">" +
                 "       <Document FileName=\"Class1.vb\"><![CDATA[" +
@@ -147,42 +147,42 @@ End Module
                 "</Solution>"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.AddMissingReference)]
         public void VerifyAvailableCodeActions()
         {
             var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(consoleProject, "Module1.vb");
-            VisualStudio.Editor.PlaceCaret("y.goo", charsOffset: 1);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
-            VisualStudio.Editor.PlaceCaret("x.goo", charsOffset: 1);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
-            VisualStudio.Editor.PlaceCaret("z.DialogResult", charsOffset: 1);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
-            VisualStudio.Editor.PlaceCaret("a.bar", charsOffset: 1);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Add project reference to 'ClassLibrary3'.", applyFix: false);
+            VisualStudioInstance.SolutionExplorer.OpenFile(consoleProject, "Module1.vb");
+            VisualStudioInstance.Editor.PlaceCaret("y.goo", charsOffset: 1);
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
+            VisualStudioInstance.Editor.PlaceCaret("x.goo", charsOffset: 1);
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
+            VisualStudioInstance.Editor.PlaceCaret("z.DialogResult", charsOffset: 1);
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
+            VisualStudioInstance.Editor.PlaceCaret("a.bar", charsOffset: 1);
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Add project reference to 'ClassLibrary3'.", applyFix: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.AddMissingReference)]
         public void InvokeSomeFixesInVisualBasicThenVerifyReferences()
         {
             var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(consoleProject, "Module1.vb");
-            VisualStudio.Editor.PlaceCaret("y.goo", charsOffset: 1);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true);
-            VisualStudio.SolutionExplorer.Verify.AssemblyReferencePresent(
+            VisualStudioInstance.SolutionExplorer.OpenFile(consoleProject, "Module1.vb");
+            VisualStudioInstance.Editor.PlaceCaret("y.goo", charsOffset: 1);
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true);
+            VisualStudioInstance.SolutionExplorer.Verify.AssemblyReferencePresent(
                project: consoleProject,
                assemblyName: "System.Windows.Forms",
                assemblyVersion: "4.0.0.0",
                assemblyPublicKeyToken: "b77a5c561934e089");
-            VisualStudio.Editor.PlaceCaret("a.bar", charsOffset: 1);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Add project reference to 'ClassLibrary3'.", applyFix: true);
-            VisualStudio.SolutionExplorer.Verify.ProjectReferencePresent(
+            VisualStudioInstance.Editor.PlaceCaret("a.bar", charsOffset: 1);
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Add project reference to 'ClassLibrary3'.", applyFix: true);
+            VisualStudioInstance.SolutionExplorer.Verify.ProjectReferencePresent(
                project: consoleProject,
                referencedProjectName: ClassLibrary3Name);
         }

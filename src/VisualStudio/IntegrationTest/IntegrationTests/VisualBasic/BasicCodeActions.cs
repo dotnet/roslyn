@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         public BasicCodeActions() : base(nameof(BasicCodeActions)) { }
 
-        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/20371"), TestCategory(Traits.Features.CodeActionsGenerateMethod)]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/20371"), TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public void GenerateMethodInClosedFile()
         {
             var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);

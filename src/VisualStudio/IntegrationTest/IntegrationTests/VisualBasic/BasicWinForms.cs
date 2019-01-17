@@ -18,7 +18,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         public BasicWinForms() : base(nameof(BasicWinForms), WellKnownProjectTemplates.WinFormsApplication) { }
 
-        [TestMethod, TestCategory(Traits.Features.WinForms)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.WinForms)]
         public void TestMyIntelliSense()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -47,7 +47,7 @@ End Class");
             VisualStudioInstance.Editor.Verify.CompletionItemDoNotExist("ToString");
         }
 
-        [TestMethod, TestCategory(Traits.Features.WinForms)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.WinForms)]
         public void AddControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -60,7 +60,7 @@ End Class");
             ExtendedAssert.Contains(@"Friend WithEvents SomeButton As Button", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.WinForms)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeControlProperty()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -73,7 +73,7 @@ End Class");
             ExtendedAssert.Contains(@"Me.SomeButton.Text = ""NewButtonText""", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.WinForms)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeControlPropertyInCode()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -100,7 +100,7 @@ End Class");
             Assert.AreEqual(expectedPropertyValue, actualPropertyValue);
         }
 
-        [TestMethod, TestCategory(Traits.Features.WinForms)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.WinForms)]
         public void AddClickHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -113,7 +113,7 @@ End Class");
             VisualStudioInstance.SolutionExplorer.SaveFile(project, "Form1.vb");
         }
 
-        [TestMethod, TestCategory(Traits.Features.WinForms)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.WinForms)]
         public void RenameControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -145,7 +145,7 @@ End Class");
             ExtendedAssert.Contains(@"Private Sub SomeButtonHandler(sender As Object, e As EventArgs) Handles AnotherNewButton.Click", formActualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.WinForms)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.WinForms)]
         public void RemoveEventHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -161,7 +161,7 @@ End Class");
             ExtendedAssert.DoesNotContain(@"Private Sub GooHandler(sender As Object, e As EventArgs) Handles SomeButton.Click", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.WinForms)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeAccessibility()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -178,7 +178,7 @@ End Class");
             ExtendedAssert.Contains(@"Public WithEvents SomeButton As Button", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.WinForms)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.WinForms)]
         public void DeleteControl()
         {
             var project = new ProjectUtils.Project(ProjectName);

@@ -14,12 +14,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpIntelliSense( )
-            : base( nameof(CSharpIntelliSense))
+        public CSharpIntelliSense()
+            : base(nameof(CSharpIntelliSense))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void AtNamespaceLevel()
         {
             SetUpEditor(@"$$");
@@ -31,7 +31,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudioInstance.Editor.Verify.CurrentLineText("using$$", assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void SpeculativeTInList()
         {
             SetUpEditor(@"
@@ -59,7 +59,7 @@ class C
 assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void VerifyCompletionListMembersOnStaticTypesAndCompleteThem()
         {
             SetUpEditor(@"
@@ -84,7 +84,7 @@ public static class NavigateTo
             VisualStudioInstance.Editor.Verify.CurrentLineText("NavigateTo.Search$$", assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpace()
         {
             VisualStudioInstance.Workspace.SetUseSuggestionMode(false);
@@ -105,7 +105,7 @@ public static class NavigateTo
             VisualStudioInstance.Editor.Verify.CurrentLineText("System.Console.writeline();$$", assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpaceOption()
         {
             VisualStudioInstance.Workspace.SetUseSuggestionMode(false);
@@ -120,7 +120,7 @@ public static class NavigateTo
             VisualStudioInstance.Editor.Verify.CurrentLineText("nam Goo$$", assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void CtrlSpace()
         {
             SetUpEditor("class c { void M() {$$ } }");
@@ -128,7 +128,7 @@ public static class NavigateTo
             VisualStudioInstance.Editor.Verify.CompletionItemsExist("System");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void NavigatingWithDownKey()
         {
             SetUpEditor("class c { void M() {$$ } }");
@@ -141,7 +141,7 @@ public static class NavigateTo
             VisualStudioInstance.Editor.Verify.CompletionItemsExist("char");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void XmlDocCommentIntelliSense()
         {
             SetUpEditor(@"
@@ -161,7 +161,7 @@ class Class1
             VisualStudioInstance.Editor.Verify.CurrentLineText("///<see cref=\"$$\"/>", assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void XmlTagCompletion()
         {
             SetUpEditor(@"
@@ -181,7 +181,7 @@ class C { }
             VisualStudioInstance.Editor.Verify.CurrentLineText("/// <summary></summary>$$", assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void SignatureHelpShowsUp()
         {
             SetUpEditor(@"
@@ -201,7 +201,7 @@ class Class1
             VisualStudioInstance.Editor.Verify.CurrentParameter("args", "");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void CompletionUsesTrackingPointsInTheFaceOfAutomaticBraceCompletion()
         {
             SetUpEditor(@"
@@ -232,7 +232,7 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void CommitOnShiftEnter()
         {
             SetUpEditor(@"
@@ -261,7 +261,7 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void CommitOnLeftCurly()
         {
             SetUpEditor(@"
@@ -282,7 +282,7 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void EnsureTheCaretIsVisibleAfterALongEdit()
         {
             SetUpEditor(@"
@@ -304,7 +304,7 @@ public class Program
             Assert.IsTrue(VisualStudioInstance.Editor.IsCaretOnScreen());
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void DismissOnSelect()
         {
             SetUpEditor(@"$$");

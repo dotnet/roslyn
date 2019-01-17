@@ -3,15 +3,13 @@
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [TestClass]
     public class CSharpReplClassification : AbstractInteractiveWindowTest
     {
-        public CSharpReplClassification( )
-            : base()
+        public CSharpReplClassification() : base()
         {
         }
 

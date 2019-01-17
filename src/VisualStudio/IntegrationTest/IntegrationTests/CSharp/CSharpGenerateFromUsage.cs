@@ -13,12 +13,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpGenerateFromUsage( )
-            : base( nameof(CSharpGenerateFromUsage))
+        public CSharpGenerateFromUsage()
+            : base(nameof(CSharpGenerateFromUsage))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateLocal)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateLocal)]
         public void GenerateLocal()
         {
             SetUpEditor(

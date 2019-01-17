@@ -21,7 +21,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         public BasicChangeSignatureDialog() : base(nameof(BasicChangeSignatureDialog)) { }
 
-        [TestMethod, TestCategory(Traits.Features.ChangeSignature)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCodeRefactoringOffered()
         {
             SetUpEditor(@"
@@ -34,7 +34,7 @@ End Class");
             VisualStudioInstance.Editor.Verify.CodeAction("Change signature...", applyFix: false);
         }
 
-        [TestMethod, TestCategory(Traits.Features.ChangeSignature)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyRefactoringCancelled()
         {
             SetUpEditor(@"
@@ -55,7 +55,7 @@ Class C
 End Class", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.ChangeSignature)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyReorderParameters()
         {
             SetUpEditor(@"
@@ -78,7 +78,7 @@ Class C
 End Class", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.ChangeSignature)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyReorderAndRemoveParametersAcrossLanguages()
         {
             SetUpEditor(@"

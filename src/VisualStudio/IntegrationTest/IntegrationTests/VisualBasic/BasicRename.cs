@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         public BasicRename() : base(nameof(BasicRename)) { }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRename()
         {
             var markup = @"
@@ -66,7 +66,7 @@ Module Program
 End Module");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithCommentsUpdated()
         {
             // "variable" is intentionally misspelled as "varixable" and "this" is misspelled as
@@ -115,7 +115,7 @@ Module Program
 End Module");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithStringsUpdated()
         {
             var markup = @"
@@ -154,7 +154,7 @@ Module Program
 End Module");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         public void VerifyOverloadsUpdated()
         {
             var markup = @"
@@ -191,7 +191,7 @@ Public MustInherit Class A
 End Class");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRename()
         {
@@ -217,7 +217,7 @@ Public Class CustomAttribute
 End Class");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameClasss()
         {
@@ -244,7 +244,7 @@ Public Class Custom$$Attribute
 End Class", true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttribute()
         {
@@ -277,7 +277,7 @@ Public Class CustomAttribute
 End Class", true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttributeClass()
         {
@@ -310,7 +310,7 @@ Public Class Custom$$Attribute
 End Class", true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeCapitalizedRename()
         {
@@ -336,7 +336,7 @@ Public Class CustomAttribute
 End Class");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeNotCapitalizedRename()
         {

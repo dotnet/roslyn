@@ -3,22 +3,21 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicQuickInfo : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicQuickInfo(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicQuickInfo))
+        public BasicQuickInfo()
+            : base(nameof(BasicQuickInfo))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.QuickInfo)]
         public void QuickInfo1()
         {
             SetUpEditor(@"
@@ -27,11 +26,11 @@ Class Program
     Sub Main(ByVal args As String$$())
     End Sub
 End Class");
-            VisualStudio.Editor.InvokeQuickInfo();
-            Assert.Equal("Class System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", VisualStudio.Editor.GetQuickInfo());
+            VisualStudioInstance.Editor.InvokeQuickInfo();
+            Assert.AreEqual("Class System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", VisualStudioInstance.Editor.GetQuickInfo());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.QuickInfo)]
         public void International()
         {
             SetUpEditor(@"
@@ -43,9 +42,9 @@ Class العربية123
          Dim goo as العربية123$$
     End Sub
 End Class");
-            VisualStudio.Editor.InvokeQuickInfo();
-            Assert.Equal(@"Class TestProj.العربية123
-This is an XML doc comment defined in code.", VisualStudio.Editor.GetQuickInfo());
+            VisualStudioInstance.Editor.InvokeQuickInfo();
+            Assert.AreEqual(@"Class TestProj.العربية123
+This is an XML doc comment defined in code.", VisualStudioInstance.Editor.GetQuickInfo());
         }
     }
 }

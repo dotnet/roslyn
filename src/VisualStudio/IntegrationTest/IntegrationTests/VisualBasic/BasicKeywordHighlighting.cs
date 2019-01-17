@@ -18,7 +18,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.Classification)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Classification)]
         public void NavigationBetweenKeywords()
         {
             VisualStudioInstance.Editor.SetText(@"
@@ -45,7 +45,7 @@ End Class");
                 FeatureAttribute.Classification,
                 FeatureAttribute.KeywordHighlighting);
 
-            // Assert.AreEqual(expectedCount, VisualStudio.Editor.GetKeywordHighlightTagCount());
+            // Assert.AreEqual(expectedCount, VisualStudioInstance.Editor.GetKeywordHighlightTagCount());
             // TODO
         }
     }

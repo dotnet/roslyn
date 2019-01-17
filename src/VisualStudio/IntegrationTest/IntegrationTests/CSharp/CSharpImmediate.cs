@@ -17,7 +17,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpImmediate() : base() { }
+        public CSharpImmediate() : base(nameof(CSharpImmediate)) { }
 
         [TestInitialize]
         public override async Task InitializeAsync()

@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -13,12 +12,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpClassification( )
-            : base( nameof(CSharpClassification))
+        public CSharpClassification()
+            : base(nameof(CSharpClassification))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.Classification)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Classification)]
         public void VerifyColorOfSomeTokens()
         {
             VisualStudioInstance.Editor.SetText(@"using System;
@@ -66,7 +65,7 @@ namespace ConsoleApplication1
             VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "identifier");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Classification)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Classification)]
         public void SemanticClassification()
         {
             VisualStudioInstance.Editor.SetText(@"
@@ -101,7 +100,7 @@ class Program : Attribute
             VisualStudioInstance.Editor.Verify.CurrentTokenType(tokenType: "class name");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Classification)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Classification)]
         public void VerifyProjectConfigChange()
         {
             VisualStudioInstance.Editor.SetText(@"

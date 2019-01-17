@@ -17,7 +17,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.F1Help)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.F1Help)]
         void F1Help()
         {
             var text = @"

@@ -15,12 +15,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicLineCommit( )
-            : base( nameof(BasicLineCommit))
+        public BasicLineCommit() : base(nameof(BasicLineCommit))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.LineCommit)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.LineCommit)]
         public void CaseCorrection()
         {
             VisualStudioInstance.Editor.SetText(@"Module Goo
@@ -34,7 +33,7 @@ End Module");
             VisualStudioInstance.Editor.Verify.CaretPosition(48);
         }
 
-        [TestMethod, TestCategory(Traits.Features.LineCommit)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.LineCommit)]
         public void UndoWithEndConstruct()
         {
             VisualStudioInstance.Editor.SetText(@"Module Module1
@@ -52,7 +51,7 @@ End Module");
             VisualStudioInstance.Editor.Verify.CaretPosition(54);
         }
 
-        [TestMethod, TestCategory(Traits.Features.LineCommit)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.LineCommit)]
         void UndoWithoutEndConstruct()
         {
             VisualStudioInstance.Editor.SetText(@"Module Module1
@@ -76,7 +75,7 @@ End Module");
             VisualStudioInstance.Editor.Verify.CaretPosition(16);
         }
 
-        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/20991"), TestCategory(Traits.Features.LineCommit)]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/20991"), TestProperty(Traits.Feature, Traits.Features.LineCommit)]
         public void CommitOnSave()
         {
             VisualStudioInstance.Editor.SetText(@"Module Module1
@@ -94,7 +93,7 @@ End Module
             VisualStudioInstance.Editor.Verify.CaretPosition(45);
         }
 
-        [TestMethod, TestCategory(Traits.Features.LineCommit)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.LineCommit)]
         public void CommitOnFocusLost()
         {
             VisualStudioInstance.Editor.SetText(@"Module M
@@ -114,7 +113,7 @@ End Module");
 ");
         }
 
-        [TestMethod, TestCategory(Traits.Features.LineCommit)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.LineCommit)]
         public void CommitOnFocusLostDoesNotFormatWithPrettyListingOff()
         {
             try

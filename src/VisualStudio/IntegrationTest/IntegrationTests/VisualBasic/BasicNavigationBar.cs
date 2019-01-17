@@ -2,13 +2,12 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Roslyn.VisualStudio.IntegrationTests;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicNavigationBar : AbstractEditorTest
     {
         private const string TestSource = @"
@@ -25,22 +24,22 @@ End Structure";
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicNavigationBar(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicNavigationBar))
+        public BasicNavigationBar()
+            : base(nameof(BasicNavigationBar))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar()
         {
             SetUpEditor(TestSource);
 
-            VisualStudio.Editor.PlaceCaret("Goo", charsOffset: 1);
+            VisualStudioInstance.Editor.PlaceCaret("Goo", charsOffset: 1);
 
             VerifyLeftSelected("C");
             VerifyRightSelected("Goo");
 
-            VisualStudio.Editor.ExpandTypeNavBar();
+            VisualStudioInstance.Editor.ExpandTypeNavBar();
             var expectedItems = new[]
             {
                 "C",
@@ -48,65 +47,65 @@ End Structure";
                 "S"
             };
 
-            Assert.Equal(expectedItems, VisualStudio.Editor.GetTypeNavBarItems());
+            Assert.AreEqual(expectedItems, VisualStudioInstance.Editor.GetTypeNavBarItems());
 
-            VisualStudio.Editor.SelectTypeNavBarItem("S");
+            VisualStudioInstance.Editor.SelectTypeNavBarItem("S");
 
-            VisualStudio.Editor.Verify.CaretPosition(112);
-            VisualStudio.Editor.Verify.CurrentLineText("Structure S$$", assertCaretPosition: true);
+            VisualStudioInstance.Editor.Verify.CaretPosition(112);
+            VisualStudioInstance.Editor.Verify.CurrentLineText("Structure S$$", assertCaretPosition: true);
 
-            VisualStudio.ExecuteCommand("Edit.LineDown");
+            VisualStudioInstance.ExecuteCommand("Edit.LineDown");
             VerifyRightSelected("A");
 
-            VisualStudio.Editor.ExpandMemberNavBar();
+            VisualStudioInstance.Editor.ExpandMemberNavBar();
             expectedItems = new[]
             {
                 "A",
                 "B",
             };
 
-            Assert.Equal(expectedItems, VisualStudio.Editor.GetMemberNavBarItems());
-            VisualStudio.Editor.SelectMemberNavBarItem("B");
-            VisualStudio.Editor.Verify.CaretPosition(169);
-            VisualStudio.Editor.Verify.CurrentLineText("Public Property $$B As Integer", assertCaretPosition: true, trimWhitespace: true);
+            Assert.AreEqual(expectedItems, VisualStudioInstance.Editor.GetMemberNavBarItems());
+            VisualStudioInstance.Editor.SelectMemberNavBarItem("B");
+            VisualStudioInstance.Editor.Verify.CaretPosition(169);
+            VisualStudioInstance.Editor.Verify.CurrentLineText("Public Property $$B As Integer", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.NavigationBar)]
         public void CodeSpit()
         {
             SetUpEditor(TestSource);
 
-            VisualStudio.Editor.PlaceCaret("C", charsOffset: 1);
+            VisualStudioInstance.Editor.PlaceCaret("C", charsOffset: 1);
             VerifyLeftSelected("C");
-            VisualStudio.Editor.ExpandMemberNavBar();
-            Assert.Equal(new[] { "New", "Finalize", "Goo" }, VisualStudio.Editor.GetMemberNavBarItems());
-            VisualStudio.Editor.SelectMemberNavBarItem("New");
-            VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudioInstance.Editor.ExpandMemberNavBar();
+            Assert.AreEqual(new[] { "New", "Finalize", "Goo" }, VisualStudioInstance.Editor.GetMemberNavBarItems());
+            VisualStudioInstance.Editor.SelectMemberNavBarItem("New");
+            VisualStudioInstance.Editor.Verify.TextContains(@"
     Public Sub New()
 
     End Sub");
-            VisualStudio.Editor.Verify.CaretPosition(78); // Caret is between New() and End Sub() in virtual whitespace
-            VisualStudio.Editor.Verify.CurrentLineText("$$", assertCaretPosition: true);
+            VisualStudioInstance.Editor.Verify.CaretPosition(78); // Caret is between New() and End Sub() in virtual whitespace
+            VisualStudioInstance.Editor.Verify.CurrentLineText("$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyOption()
         {
-            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "Visual Basic", "False");
-            Assert.False(VisualStudio.Editor.IsNavBarEnabled());
+            VisualStudioInstance.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "Visual Basic", "False");
+            Assert.IsFalse(VisualStudioInstance.Editor.IsNavBarEnabled());
 
-            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "Visual Basic", "True");
-            Assert.True(VisualStudio.Editor.IsNavBarEnabled());
+            VisualStudioInstance.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "Visual Basic", "True");
+            Assert.IsTrue(VisualStudioInstance.Editor.IsNavBarEnabled());
         }
 
         private void VerifyLeftSelected(string expected)
         {
-            Assert.Equal(expected, VisualStudio.Editor.GetTypeNavBarSelection());
+            Assert.AreEqual(expected, VisualStudioInstance.Editor.GetTypeNavBarSelection());
         }
 
         private void VerifyRightSelected(string expected)
         {
-            Assert.Equal(expected, VisualStudio.Editor.GetMemberNavBarSelection());
+            Assert.AreEqual(expected, VisualStudioInstance.Editor.GetMemberNavBarSelection());
         }
     }
 }

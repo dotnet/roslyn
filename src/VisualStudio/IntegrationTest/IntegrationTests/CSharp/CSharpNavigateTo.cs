@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -15,12 +14,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpNavigateTo( )
-            : base( nameof(CSharpNavigateTo))
+        public CSharpNavigateTo()
+            : base(nameof(CSharpNavigateTo))
         {
         }
 
-        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/19530"), TestCategory(Traits.Features.NavigateTo)]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/19530"), TestProperty(Traits.Feature, Traits.Features.NavigateTo)]
         public void NavigateTo()
         {
             using (var telemetry = VisualStudioInstance.EnableTestTelemetryChannel())

@@ -13,12 +13,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicOrganizing( )
-            : base( nameof(BasicOrganizing))
+        public BasicOrganizing()
+            : base(nameof(BasicOrganizing))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.Organizing)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Organizing)]
         public void RemoveAndSort()
         {
             SetUpEditor(@"Imports System.Linq$$

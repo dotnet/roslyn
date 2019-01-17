@@ -10,8 +10,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [TestClass]
     public class CSharpInteractiveBoxSelection : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveBoxSelection() : base() { }
-
         [TestInitialize]
         public override async Task InitializeAsync()
         {

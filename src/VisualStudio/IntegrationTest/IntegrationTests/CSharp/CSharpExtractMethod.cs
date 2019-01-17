@@ -35,7 +35,7 @@ public class Program
 
         public CSharpExtractMethod() : base(nameof(CSharpExtractMethod)) { }
 
-        [TestMethod, TestCategory(Traits.Features.ExtractMethod)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ExtractMethod)]
         public void SimpleExtractMethod()
         {
             VisualStudioInstance.Editor.SetText(TestSource);
@@ -76,7 +76,7 @@ public class Program
     }");
         }
 
-        [TestMethod, TestCategory(Traits.Features.ExtractMethod)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractViaCodeAction()
         {
             VisualStudioInstance.Editor.SetText(TestSource);
@@ -111,7 +111,7 @@ public class Program
             AssertEx.SetEqual(spans, VisualStudioInstance.Editor.GetTagSpans(VisualStudioInstance.InlineRenameDialog.ValidRenameTag));
         }
 
-        [TestMethod, TestCategory(Traits.Features.ExtractMethod)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractViaCodeActionWithMoveLocal()
         {
             VisualStudioInstance.Editor.SetText(TestSource);

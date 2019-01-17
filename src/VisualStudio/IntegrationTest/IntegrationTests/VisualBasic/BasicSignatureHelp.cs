@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
@@ -65,12 +64,12 @@ Class C
 End Class
 ";
 
-        public BasicSignatureHelp( )
-            : base( nameof(BasicSignatureHelp))
+        public BasicSignatureHelp()
+            : base(nameof(BasicSignatureHelp))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.SignatureHelp)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.SignatureHelp)]
         public void MethodSignatureHelp()
         {
             SetUpEditor(Baseline);
@@ -84,7 +83,7 @@ End Class
                 ("i2", "an integer, anything you like."));
         }
 
-        [TestMethod, TestCategory(Traits.Features.SignatureHelp)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.SignatureHelp)]
         public void GenericMethodSignatureHelp1()
         {
             SetUpEditor(Baseline);
@@ -98,7 +97,7 @@ End Class
                 ("i", "Param 1 of type T1"));
         }
 
-        [TestMethod, TestCategory(Traits.Features.SignatureHelp)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.SignatureHelp)]
         public void GenericMethodSignatureHelp2()
         {
             SetUpEditor(@"
@@ -139,7 +138,7 @@ End Class");
                 ("T1", "Type Parameter"));
         }
 
-        [TestMethod, TestCategory(Traits.Features.SignatureHelp)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.SignatureHelp)]
         public void GenericMethodSignatureHelp_InvokeSighelp()
         {
             SetUpEditor(@"
@@ -166,7 +165,7 @@ End Class");
                 ("T2", ""));
         }
 
-        [TestMethod, TestCategory(Traits.Features.SignatureHelp)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.SignatureHelp)]
         public void VerifyActiveParameterChanges()
         {
             SetUpEditor(@"
@@ -184,7 +183,7 @@ End Module");
         }
 
         [WorkItem(741415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?id=741415&fullScreen=true&_a=edit")]
-        [TestMethod, TestCategory(Traits.Features.SignatureHelp)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.SignatureHelp)]
         public void HandleBufferTextChangesDuringComputation()
         {
             SetUpEditor(@"
@@ -206,7 +205,7 @@ Class C
             Assert.IsFalse(VisualStudioInstance.Editor.IsSignatureHelpActive());
         }
 
-        [TestMethod, TestCategory(Traits.Features.SignatureHelp)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.SignatureHelp)]
         public void JaggedMultidimensionalArray()
         {
             SetUpEditor(Baseline);

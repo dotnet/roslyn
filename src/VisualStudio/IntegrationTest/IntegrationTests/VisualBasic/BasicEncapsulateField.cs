@@ -24,7 +24,7 @@ Module Module1
 End Module";
 
         [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/19816")]
-        [TestCategory(Traits.Features.EncapsulateField)]
+        [TestProperty(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughCommand()
         {
             SetUpEditor(TestSource);
@@ -50,7 +50,7 @@ End Module";
     End Property");
         }
 
-        [TestMethod, TestCategory(Traits.Features.EncapsulateField)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbIncludingReferences()
         {
             SetUpEditor(TestSource);
@@ -75,7 +75,7 @@ Module Module1
 End Module");
         }
 
-        [TestMethod, TestCategory(Traits.Features.EncapsulateField)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbDefinitionsOnly()
         {
             SetUpEditor(TestSource);

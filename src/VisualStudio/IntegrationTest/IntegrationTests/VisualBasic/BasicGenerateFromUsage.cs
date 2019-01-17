@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -15,12 +14,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicGenerateFromUsage( )
-            : base( nameof(BasicGenerateFromUsage))
+        public BasicGenerateFromUsage() : base(nameof(BasicGenerateFromUsage))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateLocal)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateLocal)]
         public void GenerateLocal()
         {
             SetUpEditor(
@@ -39,7 +37,7 @@ End Module");
 End Module");
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateType)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateTypeInNewFile()
         {
             SetUpEditor(

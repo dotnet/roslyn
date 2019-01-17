@@ -11,11 +11,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [TestClass]
     public class CSharpInteractive : AbstractInteractiveWindowTest
     {
-        public CSharpInteractive( )
-            : base()
-        {
-        }
-
         [TestMethod]
         public void BclMathCall()
         {
@@ -100,7 +95,7 @@ w.Content = g;");
             VisualStudioInstance.Workspace.SetUseSuggestionMode(true);
             VisualStudioInstance.InteractiveWindow.ShowWindow(waitForPrompt: true);
 
-            // Directly type #help, rather than sending it through VisualStudio.InteractiveWindow.SubmitText. We want to actually test
+            // Directly type #help, rather than sending it through VisualStudioInstance.InteractiveWindow.SubmitText. We want to actually test
             // that completion doesn't interfere and there aren't problems with the content-type switching.
             VisualStudioInstance.SendKeys.Send("#help");
 

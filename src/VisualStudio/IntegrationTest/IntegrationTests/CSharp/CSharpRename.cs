@@ -23,12 +23,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private InlineRenameDialog_OutOfProc InlineRenameDialog => VisualStudioInstance.InlineRenameDialog;
 
-        public CSharpRename( )
-            : base( nameof(CSharpRename))
+        public CSharpRename() : base(nameof(CSharpRename))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRename()
         {
             var markup = @"
@@ -83,7 +82,7 @@ class Program
             }
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRename()
         {
@@ -110,7 +109,7 @@ class CustomAttribute : Attribute
 }");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameClasss()
         {
@@ -138,7 +137,7 @@ class Custom$$Attribute : Attribute
 ", true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttribute()
         {
@@ -175,7 +174,7 @@ class CustomAttribute : Attribute
 ", true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         [WorkItem(21657, "https://github.com/dotnet/roslyn/issues/21657")]
         public void VerifyAttributeRenameWhileRenameAttributeClass()
         {
@@ -212,7 +211,7 @@ class Custom$$Attribute : Attribute
 ", true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithCommentsUpdated()
         {
             // "variable" is intentionally misspelled as "varixable" and "this" is misspelled as
@@ -283,7 +282,7 @@ class Program
 }");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithStringsUpdated()
         {
             var markup = @"
@@ -334,7 +333,7 @@ class Program
 }");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         public void VerifyOverloadsUpdated()
         {
             var markup = @"
@@ -379,7 +378,7 @@ class B : I
 }");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         public void VerifyMultiFileRename()
         {
             SetUpEditor(@"
@@ -425,7 +424,7 @@ class y
 }");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         public void VerifyRenameCancellation()
         {
             SetUpEditor(@"
@@ -482,7 +481,7 @@ class SomeOtherClass
 }");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         public void VerifyCrossProjectRename()
         {
             SetUpEditor(@"
@@ -528,7 +527,7 @@ class RenameRocks
 public class y { static void Main(string [] args) { } }");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         public void VerifyRenameUndo()
         {
             VerifyCrossProjectRename();
@@ -550,7 +549,7 @@ class RenameRocks
 }");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Rename)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Rename)]
         public void VerifyRenameInStandaloneFiles()
         {
             VisualStudioInstance.SolutionExplorer.CloseSolution();

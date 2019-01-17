@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -28,12 +27,12 @@ struct S
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpNavigationBar( )
-            : base( nameof(CSharpNavigationBar))
+        public CSharpNavigationBar()
+            : base(nameof(CSharpNavigationBar))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.NavigationBar)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar()
         {
             SetUpEditor(TestSource);
@@ -53,7 +52,7 @@ struct S
             VisualStudioInstance.Editor.Verify.CurrentLineText("public static bool operator $$!=(C c1, C c2) { return false; }", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.NavigationBar)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar2()
         {
             SetUpEditor(TestSource);
@@ -75,7 +74,7 @@ struct S
             VisualStudioInstance.Editor.Verify.CurrentLineText("$$struct S", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.NavigationBar)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar3()
         {
             SetUpEditor(@"
@@ -98,7 +97,7 @@ struct S$$
             VerifyRightSelected("Goo()");
         }
 
-        [TestMethod, TestCategory(Traits.Features.NavigationBar)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.NavigationBar)]
         public void TestSplitWindow()
         {
             VisualStudioInstance.Editor.SetText(@"
@@ -123,7 +122,7 @@ struct S
             VerifyRightSelected("Goo()");
         }
 
-        [TestMethod, TestCategory(Traits.Features.NavigationBar)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyOption()
         {
             VisualStudioInstance.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "False");

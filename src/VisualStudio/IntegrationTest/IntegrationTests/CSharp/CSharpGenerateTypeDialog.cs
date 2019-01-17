@@ -19,12 +19,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private GenerateTypeDialog_OutOfProc GenerateTypeDialog => VisualStudioInstance.GenerateTypeDialog;
 
-        public CSharpGenerateTypeDialog( )
-                    : base( nameof(CSharpGenerateTypeDialog))
+        public CSharpGenerateTypeDialog()
+            : base(nameof(CSharpGenerateTypeDialog))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateType)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void OpenAndCloseDialog()
         {
             SetUpEditor(@"class C
@@ -45,7 +45,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             GenerateTypeDialog.VerifyClosed();
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateType)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void CSharpToBasic()
         {
             var vbProj = new ProjectUtils.Project("VBProj");

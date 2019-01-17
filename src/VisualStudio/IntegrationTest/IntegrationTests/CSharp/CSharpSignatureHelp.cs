@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -14,13 +13,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpSignatureHelp( )
-            : base( nameof(CSharpSignatureHelp))
+        public CSharpSignatureHelp() : base(nameof(CSharpSignatureHelp))
         {
 
         }
 
-        [TestMethod, TestCategory(Traits.Features.SignatureHelp)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.SignatureHelp)]
         public void MethodSignatureHelp()
         {
             SetUpEditor(@"
@@ -80,7 +78,7 @@ class C
                 ("d", "Dynamic and Params param"));
         }
 
-        [TestMethod, TestCategory(Traits.Features.SignatureHelp)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.SignatureHelp)]
         public void GenericMethodSignatureHelp1()
         {
             SetUpEditor(@"
@@ -128,7 +126,7 @@ class C
                 ("T2", ""));
         }
 
-        [TestMethod, TestCategory(Traits.Features.SignatureHelp)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.SignatureHelp)]
         public void GenericMethodSignatureHelp2()
         {
             SetUpEditor(@"

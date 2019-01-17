@@ -3,15 +3,15 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Test.Apex;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
-    [CaptureTestName]
-    public abstract class AbstractIntegrationTest : IAsyncLifetime, IDisposable
+    public abstract class AbstractIntegrationTest : ApexTest, IDisposable
     {
         protected readonly string ProjectName = "TestProj";
         protected readonly string SolutionName = "TestSolution";
@@ -20,13 +20,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
         private readonly VisualStudioInstanceFactory _instanceFactory;
         private VisualStudioInstanceContext _visualStudioContext;
 
-        protected AbstractIntegrationTest(VisualStudioInstanceFactory instanceFactory)
+        protected AbstractIntegrationTest()
         {
-            Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
+            Assert.AreEqual(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
 
             // Install a COM message filter to handle retry operations when the first attempt fails
             _messageFilter = RegisterMessageFilter();
-            _instanceFactory = instanceFactory;
+            _instanceFactory = new VisualStudioInstanceFactory();
 
             try
             {
@@ -40,13 +40,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
-        public VisualStudioInstance VisualStudio => _visualStudioContext?.Instance;
+        public VisualStudioInstance VisualStudioInstance { get; private set; }
 
+        [TestInitialize]
         public virtual async Task InitializeAsync()
         {
             try
             {
-                _visualStudioContext = await _instanceFactory.GetNewOrUsedInstanceAsync(SharedIntegrationHostFixture.RequiredPackageIds).ConfigureAwait(false);
+                _visualStudioContext = await _instanceFactory.GetNewOrUsedInstanceAsync(this.Operations, SharedIntegrationHostFixture.RequiredPackageIds).ConfigureAwait(false);
                 _visualStudioContext.Instance.ActivateMainWindow();
             }
             catch
@@ -56,11 +57,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
-        /// <summary>
-        /// This method implements <see cref="IAsyncLifetime.DisposeAsync"/>, and is used for releasing resources
-        /// created by <see cref="IAsyncLifetime.InitializeAsync"/>. This method is only called if
-        /// <see cref="InitializeAsync"/> completes successfully.
-        /// </summary>
+        [TestCleanup]
         public virtual Task DisposeAsync()
         {
             _visualStudioContext.Dispose();

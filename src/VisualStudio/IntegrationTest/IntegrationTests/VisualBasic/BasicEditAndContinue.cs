@@ -4,30 +4,30 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class BasicEditAndContinue : AbstractEditorTest
     {
         private const string module1FileName = "Module1.vb";
 
-        public BasicEditAndContinue(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
+        public BasicEditAndContinue() : base(nameof(BasicEditAndContinue))
         {
-            VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
+            VisualStudioInstance.SolutionExplorer.CreateSolution(nameof(BasicBuild));
             var testProj = new ProjectUtils.Project("TestProj");
-            VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
+            VisualStudioInstance.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [Ignore("https://github.com/dotnet/roslyn/issues/21925")]
         public void UpdateActiveStatementLeafNode()
         {
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.Editor.SetText(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -45,20 +45,20 @@ Module Module1
 End Module
 ");
 
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Debugger.SetBreakPoint(module1FileName, "names(0)");
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.Editor.ReplaceText("names(0)", "names(1)");
-            VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
-            VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"goo\"");
-            VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
-            VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"bar\"");
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Debugger.SetBreakPoint(module1FileName, "names(0)");
+            VisualStudioInstance.Debugger.Go(waitForBreakMode: true);
+            VisualStudioInstance.Editor.ReplaceText("names(0)", "names(1)");
+            VisualStudioInstance.Debugger.StepOver(waitForBreakOrEnd: true);
+            VisualStudioInstance.Debugger.CheckExpression("names(1)", "String", "\"goo\"");
+            VisualStudioInstance.Debugger.StepOver(waitForBreakOrEnd: true);
+            VisualStudioInstance.Debugger.CheckExpression("names(1)", "String", "\"bar\"");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [Ignore("https://github.com/dotnet/roslyn/issues/21925")]
         public void AddTryCatchAroundActiveStatement()
         {
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.Editor.SetText(@"
 Imports System
 Module Module1
     Sub Main()
@@ -70,23 +70,23 @@ Module Module1
     End Sub
 End Module");
 
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Debugger.SetBreakPoint(module1FileName, "Console.WriteLine(1)");
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.Editor.ReplaceText("Console.WriteLine(1)",
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Debugger.SetBreakPoint(module1FileName, "Console.WriteLine(1)");
+            VisualStudioInstance.Debugger.Go(waitForBreakMode: true);
+            VisualStudioInstance.Editor.ReplaceText("Console.WriteLine(1)",
                 @"Try
 Console.WriteLine(1)
 Catch ex As Exception
 End Try");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
-            VisualStudio.Editor.Verify.CurrentLineText("End Try");
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Debugger.StepOver(waitForBreakOrEnd: true);
+            VisualStudioInstance.Editor.Verify.CurrentLineText("End Try");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [Ignore("https://github.com/dotnet/roslyn/issues/21925")]
         public void EditLambdaExpression()
         {
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.Editor.SetText(@"
 Imports System
 Module Module1
     Private Delegate Function del(i As Integer) As Integer
@@ -97,27 +97,27 @@ Module Module1
     End Sub
 End Module");
 
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Debugger.SetBreakPoint(module1FileName, "x * x", charsOffset: -1);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Debugger.SetBreakPoint(module1FileName, "x * x", charsOffset: -1);
 
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.Editor.ReplaceText("x * x", "x * 2");
+            VisualStudioInstance.Debugger.Go(waitForBreakMode: true);
+            VisualStudioInstance.Editor.ReplaceText("x * x", "x * 2");
 
-            VisualStudio.Debugger.StepOver(waitForBreakOrEnd: false);
-            VisualStudio.Debugger.Stop(waitForDesignMode: true);
-            VisualStudio.ErrorList.Verify.NoBuildErrors();
+            VisualStudioInstance.Debugger.StepOver(waitForBreakOrEnd: false);
+            VisualStudioInstance.Debugger.Stop(waitForDesignMode: true);
+            VisualStudioInstance.ErrorList.Verify.NoBuildErrors();
 
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.Editor.ReplaceText("x * 2", "x * x");
-            VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
-            VisualStudio.Debugger.Stop(waitForDesignMode: true);
-            VisualStudio.ErrorList.Verify.NoBuildErrors();
+            VisualStudioInstance.Debugger.Go(waitForBreakMode: true);
+            VisualStudioInstance.Editor.ReplaceText("x * 2", "x * x");
+            VisualStudioInstance.Debugger.StepOver(waitForBreakOrEnd: true);
+            VisualStudioInstance.Debugger.Stop(waitForDesignMode: true);
+            VisualStudioInstance.ErrorList.Verify.NoBuildErrors();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [Ignore("https://github.com/dotnet/roslyn/issues/21925")]
         public void EnCWhileDebuggingFromImmediateWindow()
         {
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.Editor.SetText(@"
 Imports System
 
 Module Module1
@@ -127,28 +127,28 @@ Module Module1
     End Sub
 End Module");
 
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.Debugger.SetBreakPoint(module1FileName, "Dim x", charsOffset: 1);
-            VisualStudio.Debugger.ExecuteStatement("Module1.Main()");
-            VisualStudio.Editor.ReplaceText("x = 4", "x = 42");
-            VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
-            VisualStudio.Debugger.CheckExpression("x", "Integer", "42");
-            VisualStudio.Debugger.ExecuteStatement("Module1.Main()");
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Debugger.Go(waitForBreakMode: true);
+            VisualStudioInstance.Debugger.SetBreakPoint(module1FileName, "Dim x", charsOffset: 1);
+            VisualStudioInstance.Debugger.ExecuteStatement("Module1.Main()");
+            VisualStudioInstance.Editor.ReplaceText("x = 4", "x = 42");
+            VisualStudioInstance.Debugger.StepOver(waitForBreakOrEnd: true);
+            VisualStudioInstance.Debugger.CheckExpression("x", "Integer", "42");
+            VisualStudioInstance.Debugger.ExecuteStatement("Module1.Main()");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [Ignore("https://github.com/dotnet/roslyn/issues/21925")]
         private void SetupMultiProjectSolution()
         {
             var basicLibrary = new ProjectUtils.Project("BasicLibrary1");
-            VisualStudio.SolutionExplorer.AddProject(basicLibrary, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
+            VisualStudioInstance.SolutionExplorer.AddProject(basicLibrary, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
 
             var cSharpLibrary = new ProjectUtils.Project("CSharpLibrary1");
-            VisualStudio.SolutionExplorer.AddProject(cSharpLibrary, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
-            VisualStudio.SolutionExplorer.AddFile(cSharpLibrary, "File1.cs");
+            VisualStudioInstance.SolutionExplorer.AddProject(cSharpLibrary, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
+            VisualStudioInstance.SolutionExplorer.AddFile(cSharpLibrary, "File1.cs");
 
-            VisualStudio.SolutionExplorer.OpenFile(basicLibrary, "Class1.vb");
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.SolutionExplorer.OpenFile(basicLibrary, "Class1.vb");
+            VisualStudioInstance.Editor.SetText(@"
 Imports System
 Public Class Class1
     Public Sub New()
@@ -161,10 +161,10 @@ End Class
 ");
 
             var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddProjectReference(project, new ProjectUtils.ProjectReference("BasicLibrary1"));
-            VisualStudio.SolutionExplorer.OpenFile(project, module1FileName);
+            VisualStudioInstance.SolutionExplorer.AddProjectReference(project, new ProjectUtils.ProjectReference("BasicLibrary1"));
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, module1FileName);
 
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.Editor.SetText(@"
 Imports System
 Imports BasicLibrary1
 
@@ -176,21 +176,21 @@ Module Module1
 End Module
 ");
 
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [Ignore("https://github.com/dotnet/roslyn/issues/21925")]
         public void MultiProjectDebuggingWhereNotAllModulesAreLoaded()
         {
             SetupMultiProjectSolution();
-            VisualStudio.Debugger.SetBreakPoint(module1FileName, "PrintX", charsOffset: 1);
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.Editor.ReplaceText("5", "42");
-            VisualStudio.Debugger.StepOver(waitForBreakOrEnd: false);
-            VisualStudio.ErrorList.Verify.NoErrors();
+            VisualStudioInstance.Debugger.SetBreakPoint(module1FileName, "PrintX", charsOffset: 1);
+            VisualStudioInstance.Debugger.Go(waitForBreakMode: true);
+            VisualStudioInstance.Editor.ReplaceText("5", "42");
+            VisualStudioInstance.Debugger.StepOver(waitForBreakOrEnd: false);
+            VisualStudioInstance.ErrorList.Verify.NoErrors();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [Ignore("https://github.com/dotnet/roslyn/issues/21925")]
         public void DocumentStateTrackingReadonlyInRunMode()
         {
             SetupMultiProjectSolution();
@@ -198,7 +198,7 @@ End Module
             var basicLibrary = new ProjectUtils.Project("BasicLibrary1");
             var cSharpLibrary = new ProjectUtils.Project("CSharpLibrary1");
 
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.Editor.SetText(@"
 Imports System
 Imports BasicLibrary1
 Module Module1
@@ -207,43 +207,43 @@ Module Module1
     End Sub
 End Module
 ");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Debugger.Go(waitForBreakMode: false);
-            VisualStudio.ActivateMainWindow();
-            VisualStudio.SolutionExplorer.OpenFile(project, module1FileName);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Debugger.Go(waitForBreakMode: false);
+            VisualStudioInstance.ActivateMainWindow();
+            VisualStudioInstance.SolutionExplorer.OpenFile(project, module1FileName);
 
-            VisualStudio.SendKeys.Send(VirtualKey.T);
+            VisualStudioInstance.SendKeys.Send(VirtualKey.T);
             string editAndContinueDialogName = "Edit and Continue";
-            VisualStudio.Dialog.VerifyOpen(editAndContinueDialogName);
-            VisualStudio.Dialog.Click(editAndContinueDialogName, "OK");
-            VisualStudio.Dialog.VerifyClosed(editAndContinueDialogName);
-            VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
+            VisualStudioInstance.Dialog.VerifyOpen(editAndContinueDialogName);
+            VisualStudioInstance.Dialog.Click(editAndContinueDialogName, "OK");
+            VisualStudioInstance.Dialog.VerifyClosed(editAndContinueDialogName);
+            VisualStudioInstance.Editor.Verify.IsProjectItemDirty(expectedValue: false);
 
             // This module is referred by the loaded module, but not used. So this will not be loaded
-            VisualStudio.SolutionExplorer.OpenFile(basicLibrary, "Class1.vb");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.SendKeys.Send(VirtualKey.T);
-            VisualStudio.Dialog.VerifyOpen(editAndContinueDialogName);
-            VisualStudio.Dialog.Click(editAndContinueDialogName, "OK");
-            VisualStudio.Dialog.VerifyClosed(editAndContinueDialogName);
-            VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
+            VisualStudioInstance.SolutionExplorer.OpenFile(basicLibrary, "Class1.vb");
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.SendKeys.Send(VirtualKey.T);
+            VisualStudioInstance.Dialog.VerifyOpen(editAndContinueDialogName);
+            VisualStudioInstance.Dialog.Click(editAndContinueDialogName, "OK");
+            VisualStudioInstance.Dialog.VerifyClosed(editAndContinueDialogName);
+            VisualStudioInstance.Editor.Verify.IsProjectItemDirty(expectedValue: false);
 
             //  This module is not referred by the loaded module. this will not be loaded
-            VisualStudio.SolutionExplorer.OpenFile(cSharpLibrary, "File1.cs");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.SendKeys.Send(VirtualKey.T);
+            VisualStudioInstance.SolutionExplorer.OpenFile(cSharpLibrary, "File1.cs");
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.SendKeys.Send(VirtualKey.T);
 
-            string microsoftVisualStudioDialogName = "Microsoft Visual Studio";
-            VisualStudio.Dialog.VerifyOpen(microsoftVisualStudioDialogName);
-            VisualStudio.Dialog.Click(microsoftVisualStudioDialogName, "OK");
-            VisualStudio.Dialog.VerifyClosed(microsoftVisualStudioDialogName);
-            VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
+            string microsoftVisualStudioInstanceDialogName = "Microsoft Visual Studio";
+            VisualStudioInstance.Dialog.VerifyOpen(microsoftVisualStudioInstanceDialogName);
+            VisualStudioInstance.Dialog.Click(microsoftVisualStudioInstanceDialogName, "OK");
+            VisualStudioInstance.Dialog.VerifyClosed(microsoftVisualStudioInstanceDialogName);
+            VisualStudioInstance.Editor.Verify.IsProjectItemDirty(expectedValue: false);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [Ignore("https://github.com/dotnet/roslyn/issues/21925")]
         public void LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC()
         {
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.Editor.SetText(@"
 Imports System
 Module Module1
     Sub Main()
@@ -252,21 +252,21 @@ Module Module1
     End Sub
 End Module
 ");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Debugger.SetBreakPoint(module1FileName, "End Sub");
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.Editor.ReplaceText("Dim goo As String = \"abc\"", "Dim goo As Single = 10");
-            VisualStudio.Editor.SelectTextInCurrentDocument("Sub Main()");
-            VisualStudio.Debugger.SetNextStatement();
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Debugger.SetBreakPoint(module1FileName, "End Sub");
+            VisualStudioInstance.Debugger.Go(waitForBreakMode: true);
+            VisualStudioInstance.Editor.ReplaceText("Dim goo As String = \"abc\"", "Dim goo As Single = 10");
+            VisualStudioInstance.Editor.SelectTextInCurrentDocument("Sub Main()");
+            VisualStudioInstance.Debugger.SetNextStatement();
+            VisualStudioInstance.Debugger.Go(waitForBreakMode: true);
 
-            VisualStudio.LocalsWindow.Verify.CheckEntry("goo", "Single", "10");
+            VisualStudioInstance.LocalsWindow.Verify.CheckEntry("goo", "Single", "10");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [Ignore("https://github.com/dotnet/roslyn/issues/21925")]
         public void LocalsWindowUpdatesCorrectlyDuringEnC()
         {
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.Editor.SetText(@"
 Imports System
 
 Module Module1
@@ -283,23 +283,23 @@ Module Module1
     End Function
 End Module
 ");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Debugger.SetBreakPoint(module1FileName, "Function bar(ByVal moo As Long) As Decimal");
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.Editor.ReplaceText("Dim lLng As Long = 5", "Dim lLng As Long = 444");
-            VisualStudio.Debugger.SetBreakPoint(module1FileName, "Return 4");
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Debugger.SetBreakPoint(module1FileName, "Function bar(ByVal moo As Long) As Decimal");
+            VisualStudioInstance.Debugger.Go(waitForBreakMode: true);
+            VisualStudioInstance.Editor.ReplaceText("Dim lLng As Long = 5", "Dim lLng As Long = 444");
+            VisualStudioInstance.Debugger.SetBreakPoint(module1FileName, "Return 4");
+            VisualStudioInstance.Debugger.Go(waitForBreakMode: true);
 
-            VisualStudio.LocalsWindow.Verify.CheckEntry("bar", "Decimal", "0");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("moo", "Long", "5");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("iInt", "Integer", "30");
-            VisualStudio.LocalsWindow.Verify.CheckEntry("lLng", "Long", "444");
+            VisualStudioInstance.LocalsWindow.Verify.CheckEntry("bar", "Decimal", "0");
+            VisualStudioInstance.LocalsWindow.Verify.CheckEntry("moo", "Long", "5");
+            VisualStudioInstance.LocalsWindow.Verify.CheckEntry("iInt", "Integer", "30");
+            VisualStudioInstance.LocalsWindow.Verify.CheckEntry("lLng", "Long", "444");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [Ignore("https://github.com/dotnet/roslyn/issues/21925")]
         public void WatchWindowUpdatesCorrectlyDuringEnC()
         {
-            VisualStudio.Editor.SetText(@"
+            VisualStudioInstance.Editor.SetText(@"
 Imports System
 
 Module Module1
@@ -310,19 +310,19 @@ Module Module1
 End Module
 ");
 
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudioInstance.Debugger.Go(waitForBreakMode: true);
 
-            VisualStudio.Debugger.CheckExpression("iInt", "Integer", "0");
+            VisualStudioInstance.Debugger.CheckExpression("iInt", "Integer", "0");
 
-            VisualStudio.Editor.ReplaceText("System.Diagnostics.Debugger.Break()", @"iInt = 5
+            VisualStudioInstance.Editor.ReplaceText("System.Diagnostics.Debugger.Break()", @"iInt = 5
 System.Diagnostics.Debugger.Break()");
 
-            VisualStudio.Editor.SelectTextInCurrentDocument("iInt = 5");
-            VisualStudio.Debugger.SetNextStatement();
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
+            VisualStudioInstance.Editor.SelectTextInCurrentDocument("iInt = 5");
+            VisualStudioInstance.Debugger.SetNextStatement();
+            VisualStudioInstance.Debugger.Go(waitForBreakMode: true);
 
-            VisualStudio.Debugger.CheckExpression("iInt", "Integer", "5");
+            VisualStudioInstance.Debugger.CheckExpression("iInt", "Integer", "5");
         }
     }
 }

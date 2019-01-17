@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -18,12 +17,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpFindReferences( )
+        public CSharpFindReferences()
             : base(nameof(CSharpFindReferences))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.FindReferences)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToCtor()
         {
             SetUpEditor(@"
@@ -72,7 +71,7 @@ class SomeOtherClass
                 });
         }
 
-        [TestMethod, TestCategory(Traits.Features.FindReferences)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToLocals()
         {
             using (var telemetry = VisualStudioInstance.EnableTestTelemetryChannel())
@@ -118,7 +117,7 @@ class Program
             }
         }
 
-        [TestMethod, TestCategory(Traits.Features.FindReferences)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToString()
         {
             SetUpEditor(@"
@@ -152,18 +151,18 @@ class Program
                 });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.FindReferences)]
         public void VerifyWorkingFolder()
         {
             SetUpEditor(@"class EmptyContent {$$}");
 
             // verify working folder has set
-            Assert.NotNull(VisualStudio.Workspace.GetWorkingFolder());
+            Assert.IsNotNull(VisualStudioInstance.Workspace.GetWorkingFolder());
 
-            VisualStudio.SolutionExplorer.CloseSolution();
+            VisualStudioInstance.SolutionExplorer.CloseSolution();
 
             // verify working folder has not set
-            Assert.Null(VisualStudio.Workspace.GetWorkingFolder());
+            Assert.IsNull(VisualStudioInstance.Workspace.GetWorkingFolder());
         }
     }
 }

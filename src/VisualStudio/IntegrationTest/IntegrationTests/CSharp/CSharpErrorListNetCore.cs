@@ -2,35 +2,34 @@
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [TestClass]
     public class CSharpErrorListNetCore : CSharpErrorListCommon
     {
         public CSharpErrorListNetCore(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
+            : base(WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
-        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ErrorList)]
+        [TestProperty(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorList()
         {
             base.ErrorList();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
-        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ErrorList)]
+        [TestProperty(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorLevelWarning()
         {
             base.ErrorLevelWarning();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
-        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.ErrorList)]
+        [TestProperty(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorsDuringMethodBodyEditing()
         {
             base.ErrorsDuringMethodBodyEditing();

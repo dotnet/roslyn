@@ -9,11 +9,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [TestClass]
     public class CSharpInteractiveFormsAndWpf : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveFormsAndWpf( )
-            : base()
-        {
-        }
-
         [TestInitialize]
         public override async Task InitializeAsync()
         {

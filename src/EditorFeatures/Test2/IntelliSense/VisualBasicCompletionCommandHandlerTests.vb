@@ -1081,7 +1081,7 @@ End Class
                               </Document>
                           </Project>
                       </Workspace>)
-                      
+
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
                 Assert.Equal(1, state.GetCompletionItems().Count)

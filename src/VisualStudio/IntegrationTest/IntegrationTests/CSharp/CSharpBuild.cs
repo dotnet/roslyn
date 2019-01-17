@@ -16,7 +16,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [TestClass]
     public class CSharpBuild : AbstractIntegrationTest
     {
-        public CSharpBuild( )
+        public CSharpBuild()
             : base()
         {
         }
@@ -29,7 +29,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudioInstance.SolutionExplorer.AddProject(new ProjectUtils.Project("TestProj"), WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Build)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Build)]
         public void BuildProject()
         {
             var editorText = @"using System;
@@ -47,7 +47,7 @@ class Program
             // TODO: Validate build works as expected
         }
 
-        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/18204"), TestCategory(Traits.Features.Build)]
+        [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/18204"), TestProperty(Traits.Feature, Traits.Features.Build)]
         public void BuildWithCommandLine()
         {
             VisualStudioInstance.SolutionExplorer.SaveAll();

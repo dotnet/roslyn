@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -17,12 +16,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicGenerateEqualsAndGetHashCodeDialog( )
-            : base( nameof(BasicGenerateEqualsAndGetHashCodeDialog))
+        public BasicGenerateEqualsAndGetHashCodeDialog() : base(nameof(BasicGenerateEqualsAndGetHashCodeDialog))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public void VerifyCodeRefactoringOfferedAndCanceled()
         {
             SetUpEditor(@"
@@ -50,7 +48,7 @@ End Class";
             ExtendedAssert.Contains(expectedText, actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public void VerifyCodeRefactoringOfferedAndAccepted()
         {
             SetUpEditor(@"

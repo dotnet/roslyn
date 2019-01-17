@@ -3,18 +3,12 @@
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [TestClass]
     public class CSharpInteractiveDirectives : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveDirectives( )
-            : base()
-        {
-        }
-
         [TestMethod]
         public void VerifyHostCommandsCompletionList()
         {

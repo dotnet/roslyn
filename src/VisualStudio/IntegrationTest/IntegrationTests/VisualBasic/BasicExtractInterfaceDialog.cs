@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Roslyn.Test.Utilities;
 
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -18,12 +17,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         private ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog => VisualStudioInstance.ExtractInterfaceDialog;
 
-        public BasicExtractInterfaceDialog( )
-            : base( nameof(BasicExtractInterfaceDialog))
+        public BasicExtractInterfaceDialog()
+            : base(nameof(BasicExtractInterfaceDialog))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsExtractInterface)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void CoreScenario()
         {
             SetUpEditor(@"Class C$$
@@ -57,7 +56,7 @@ End Class");
 End Interface");
         }
 
-        [TestMethod, TestCategory(Traits.Features.CodeActionsExtractInterface)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void CheckFileName()
         {
             SetUpEditor(@"Class C2$$
@@ -79,15 +78,15 @@ End Class");
             ExtractInterfaceDialog.ClickCancel();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void CheckSameFile()
         {
             SetUpEditor(@"Class C$$
     Public Sub M()
     End Sub
 End Class");
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Extract Interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -99,7 +98,7 @@ End Class");
             ExtractInterfaceDialog.VerifyClosed();
 
             var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.Editor.Verify.TextContains(@"Interface IC
+            VisualStudioInstance.Editor.Verify.TextContains(@"Interface IC
     Sub M()
 End Interface
 
@@ -112,7 +111,7 @@ End Class");
 
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void CheckSameFileOnlySelectedItems()
         {
             SetUpEditor(@"Class C$$
@@ -121,8 +120,8 @@ End Class");
     End Sub
 End Class");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Extract Interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -133,7 +132,7 @@ End Class");
             ExtractInterfaceDialog.ClickOK();
             ExtractInterfaceDialog.VerifyClosed();
 
-            VisualStudio.Editor.Verify.TextContains(@"Interface IC
+            VisualStudioInstance.Editor.Verify.TextContains(@"Interface IC
     Sub M2()
 End Interface
 
@@ -146,7 +145,7 @@ Class C
 End Class");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void CheckSameFileNamespace()
         {
             SetUpEditor(@"Namespace A
@@ -156,8 +155,8 @@ End Class");
     End Class
 End Namespace");
 
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+            VisualStudioInstance.Editor.InvokeCodeActionList();
+            VisualStudioInstance.Editor.Verify.CodeAction("Extract Interface...",
                 applyFix: true,
                 blockUntilComplete: false);
 
@@ -169,7 +168,7 @@ End Namespace");
             ExtractInterfaceDialog.VerifyClosed();
 
             var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.Editor.Verify.TextContains(@"Namespace A
+            VisualStudioInstance.Editor.Verify.TextContains(@"Namespace A
     Interface IC
         Sub M()
     End Interface

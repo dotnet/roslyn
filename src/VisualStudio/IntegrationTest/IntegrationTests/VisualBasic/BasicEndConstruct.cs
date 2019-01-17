@@ -13,12 +13,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicEndConstruct( )
-            : base( nameof(BasicEndConstruct))
+        public BasicEndConstruct()
+            : base(nameof(BasicEndConstruct))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.EndConstructGeneration)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.EndConstructGeneration)]
         public void EndConstruct()
         {
             SetUpEditor(@"
@@ -39,7 +39,7 @@ Class Program
 End Class", assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.EndConstructGeneration)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.EndConstructGeneration)]
         public void IntelliSenseCompletedWhile()
         {
             SetUpEditor(@"
@@ -60,7 +60,7 @@ Class Program
 End Class", assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.EndConstructGeneration)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.EndConstructGeneration)]
         public void InterfaceToClassFixup()
         {
             SetUpEditor(@"
@@ -74,7 +74,7 @@ Class C
 End Class");
         }
 
-        [TestMethod, TestCategory(Traits.Features.EndConstructGeneration)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.EndConstructGeneration)]
         public void CaseInsensitveSubToFunction()
         {
             SetUpEditor(@"

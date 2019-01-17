@@ -14,12 +14,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicIntelliSense( )
-            : base( nameof(BasicIntelliSense))
+        public BasicIntelliSense() : base(nameof(BasicIntelliSense))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void IntelliSenseTriggersOnParenWithBraceCompletionAndCorrectUndoMerging()
         {
             SetUpEditor(@"
@@ -118,7 +117,7 @@ End Module",
 assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void TypeAVariableDeclaration()
         {
             SetUpEditor(@"
@@ -173,7 +172,7 @@ End Module");
             Assert.AreEqual(true, VisualStudioInstance.Editor.IsCompletionActive());
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void DismissIntelliSenseOnApostrophe()
         {
             SetUpEditor(@"
@@ -198,7 +197,7 @@ End Module");
 End Module", actualText);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void TypeLeftAngleAfterImports()
         {
             SetUpEditor(@"
@@ -213,7 +212,7 @@ Imports$$");
             Assert.AreEqual(false, VisualStudioInstance.Editor.IsCompletionActive());
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void DismissAndRetriggerIntelliSenseOnEquals()
         {
             SetUpEditor(@"
@@ -241,7 +240,7 @@ End Module",
 assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpaceOption()
         {
             VisualStudioInstance.Workspace.SetUseSuggestionMode(false);
@@ -257,7 +256,7 @@ assertCaretPosition: true);
             VisualStudioInstance.Editor.Verify.CurrentLineText("Nam Foo$$", assertCaretPosition: true);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Completion)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Completion)]
         public void EnterTriggerCompletionListAndImplementInterface()
         {
             SetUpEditor(@"

@@ -17,12 +17,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpKeywordHighlighting( )
-            : base( nameof(CSharpKeywordHighlighting))
+        public CSharpKeywordHighlighting() : base(nameof(CSharpKeywordHighlighting))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.Classification)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Classification)]
         public void Foreach()
         {
             var input = @"class C
@@ -43,7 +42,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VerifyKeywordHighlightTags("in", ImmutableArray.Create<TextSpan>());
         }
 
-        [TestMethod, TestCategory(Traits.Features.Classification)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Classification)]
         public void PreprocessorConditionals()
         {
             var input = @"
@@ -76,7 +75,7 @@ class PurchaseTransaction
             VerifyKeywordHighlightTags("#endif", spans["else"]);
         }
 
-        [TestMethod, TestCategory(Traits.Features.Classification)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Classification)]
         public void PreprocessorRegions()
         {
             var input = @"

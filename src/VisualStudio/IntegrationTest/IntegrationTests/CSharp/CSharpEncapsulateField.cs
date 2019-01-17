@@ -12,8 +12,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [TestClass]
     public class CSharpEncapsulateField : AbstractEditorTest
     {
-        public CSharpEncapsulateField( )
-            : base( nameof(CSharpEncapsulateField))
+        public CSharpEncapsulateField() : base(nameof(CSharpEncapsulateField))
         {
         }
 
@@ -33,7 +32,7 @@ namespace myNamespace
 }";
 
         [TestMethod, Ignore("https://github.com/dotnet/roslyn/issues/19816")]
-        [TestCategory(Traits.Features.EncapsulateField)]
+        [TestProperty(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughCommand()
         {
             SetUpEditor(TestSource);
@@ -49,7 +48,7 @@ namespace myNamespace
             VisualStudioInstance.Editor.Verify.TextContains("public static int? Param { get => param; set => param = value; }");
         }
 
-        [TestMethod, TestCategory(Traits.Features.EncapsulateField)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbIncludingReferences()
         {
             SetUpEditor(TestSource);
@@ -72,7 +71,7 @@ namespace myNamespace
 }");
         }
 
-        [TestMethod, TestCategory(Traits.Features.EncapsulateField)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbDefinitionsOnly()
         {
             SetUpEditor(TestSource);

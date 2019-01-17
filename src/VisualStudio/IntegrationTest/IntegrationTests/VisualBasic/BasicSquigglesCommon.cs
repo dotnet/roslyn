@@ -7,8 +7,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     public abstract class BasicSquigglesCommon : AbstractEditorTest
     {
-        public BasicSquigglesCommon(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
-            : base(instanceFactory, nameof(BasicSquigglesCommon), projectTemplate)
+        public BasicSquigglesCommon(string projectTemplate)
+            : base(nameof(BasicSquigglesCommon), projectTemplate)
         {
         }
 
@@ -16,22 +16,22 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         public virtual void VerifySyntaxErrorSquiggles()
         {
-            VisualStudio.Editor.SetText(@"Class A
+            VisualStudioInstance.Editor.SetText(@"Class A
       Sub S()
         Dim x = 1 +
       End Sub
 End Class");
-            VisualStudio.Editor.Verify.ErrorTags("Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\r'[43-44]");
+            VisualStudioInstance.Editor.Verify.ErrorTags("Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\r'[43-44]");
         }
 
         public virtual void VerifySemanticErrorSquiggles()
         {
-            VisualStudio.Editor.SetText(@"Class A
+            VisualStudioInstance.Editor.SetText(@"Class A
       Sub S(b as Bar)
         Console.WriteLine(b)
       End Sub
 End Class");
-            VisualStudio.Editor.Verify.ErrorTags("Microsoft.VisualStudio.Text.Tagging.ErrorTag:'Bar'[26-29]");
+            VisualStudioInstance.Editor.Verify.ErrorTags("Microsoft.VisualStudio.Text.Tagging.ErrorTag:'Bar'[26-29]");
         }
     }
 }

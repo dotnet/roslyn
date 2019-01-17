@@ -8,8 +8,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractInteractiveWindowTest : AbstractIntegrationTest
     {
-        protected AbstractInteractiveWindowTest() : base() { }
-
         [TestInitialize]
         public override async Task InitializeAsync()
         {

@@ -19,12 +19,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpReferenceHighlighting( )
-            : base( nameof(CSharpReferenceHighlighting))
+        public CSharpReferenceHighlighting() : base(nameof(CSharpReferenceHighlighting))
         {
         }
 
-        [TestMethod, TestCategory(Traits.Features.Classification)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Classification)]
         public void Highlighting()
         {
             var markup = @"
@@ -43,7 +42,7 @@ class {|definition:C|}
             VerifyNone("void");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Classification)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Classification)]
         public void WrittenReference()
         {
             var markup = @"
@@ -63,7 +62,7 @@ class C
             VerifyNone("void");
         }
 
-        [TestMethod, TestCategory(Traits.Features.Classification)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.Classification)]
         public void Navigation()
         {
             var text = @"

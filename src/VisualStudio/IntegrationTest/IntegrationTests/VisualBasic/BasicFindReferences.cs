@@ -19,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         public BasicFindReferences() : base(nameof(BasicFindReferences)) { }
 
-        [TestMethod, TestCategory(Traits.Features.FindReferences)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToLocals()
         {
             SetUpEditor(@"
@@ -58,7 +58,7 @@ End Class
                 });
         }
 
-        [TestMethod, TestCategory(Traits.Features.FindReferences)]
+        [TestMethod, TestProperty(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToSharedField()
         {
             SetUpEditor(@"
