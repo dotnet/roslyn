@@ -295,6 +295,21 @@ namespace Analyzer.Utilities
             return compilation.GetSpecialType(SpecialType.System_Object);
         }
 
+        public static INamedTypeSymbol X509Certificate(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Security.Cryptography.X509Certificates.X509Certificate");
+        }
+
+        public static INamedTypeSymbol X509Chain(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Security.Cryptography.X509Certificates.X509Chain");
+        }
+
+        public static INamedTypeSymbol SslPolicyErrors(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Net.Security.SslPolicyErrors");
+        }
+
         public static INamedTypeSymbol Exception(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Exception");
@@ -488,21 +503,6 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol IImmutableStack(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Collections.Immutable.IImmutableStack`1");
-        }
-
-        public static INamedTypeSymbol X509Certificate(Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Security.Cryptography.X509Certificates.X509Certificate");
-        }
-
-        public static INamedTypeSymbol X509Chain(Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Security.Cryptography.X509Certificates.X509Chain");
-        }
-
-        public static INamedTypeSymbol SslPolicyErrors(Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Net.Security.SslPolicyErrors");
         }
 
         public static ImmutableHashSet<INamedTypeSymbol> IImmutableInterfaces(Compilation compilation)
