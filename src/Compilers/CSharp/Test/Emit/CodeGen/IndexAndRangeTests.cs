@@ -8,6 +8,104 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class IndexAndRangeTests : CSharpTestBase
     {
+        private CompilationVerifier CompileAndVerifyWithIndexAndRange(string s, string expectedOutput = null)
+        {
+            var comp = CreateCompilationWithIndexAndRange(s, TestOptions.ReleaseExe);
+            return CompileAndVerify(comp, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void RefToArrayIndexIndexer()
+        {
+            var verifier = CompileAndVerifyWithIndexAndRange(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        int[] x = { 0, 1, 2, 3 };
+        ref int r1 = ref x[2];
+        Console.WriteLine(r1);
+        ref int r2 = ref x[^2];
+        Console.WriteLine(r2);
+        r2 = 7;
+        Console.WriteLine(r1);
+        Console.WriteLine(r2);
+        r1 = 5;
+        Console.WriteLine(r1);
+        Console.WriteLine(r2);
+    }
+}", expectedOutput: @"2
+2
+7
+7
+5
+5");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size      120 (0x78)
+  .maxstack  4
+  .locals init (int& V_0, //r1
+                int& V_1, //r2
+                System.Index V_2,
+                int[] V_3)
+  IL_0000:  ldc.i4.4
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.02E4414E7DFA0F3AA2387EE8EA7AB31431CB406A""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  dup
+  IL_0012:  ldc.i4.2
+  IL_0013:  ldelema    ""int""
+  IL_0018:  stloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  ldind.i4
+  IL_001b:  call       ""void System.Console.WriteLine(int)""
+  IL_0020:  ldloca.s   V_2
+  IL_0022:  ldc.i4.2
+  IL_0023:  ldc.i4.1
+  IL_0024:  call       ""System.Index..ctor(int, bool)""
+  IL_0029:  stloc.3
+  IL_002a:  ldloc.3
+  IL_002b:  ldloca.s   V_2
+  IL_002d:  call       ""bool System.Index.FromEnd.get""
+  IL_0032:  brtrue.s   IL_003d
+  IL_0034:  ldloca.s   V_2
+  IL_0036:  call       ""int System.Index.Value.get""
+  IL_003b:  br.s       IL_0048
+  IL_003d:  ldloc.3
+  IL_003e:  ldlen
+  IL_003f:  conv.i4
+  IL_0040:  ldloca.s   V_2
+  IL_0042:  call       ""int System.Index.Value.get""
+  IL_0047:  sub
+  IL_0048:  ldelema    ""int""
+  IL_004d:  stloc.1
+  IL_004e:  ldloc.1
+  IL_004f:  ldind.i4
+  IL_0050:  call       ""void System.Console.WriteLine(int)""
+  IL_0055:  ldloc.1
+  IL_0056:  ldc.i4.7
+  IL_0057:  stind.i4
+  IL_0058:  ldloc.0
+  IL_0059:  ldind.i4
+  IL_005a:  call       ""void System.Console.WriteLine(int)""
+  IL_005f:  ldloc.1
+  IL_0060:  ldind.i4
+  IL_0061:  call       ""void System.Console.WriteLine(int)""
+  IL_0066:  ldloc.0
+  IL_0067:  ldc.i4.5
+  IL_0068:  stind.i4
+  IL_0069:  ldloc.0
+  IL_006a:  ldind.i4
+  IL_006b:  call       ""void System.Console.WriteLine(int)""
+  IL_0070:  ldloc.1
+  IL_0071:  ldind.i4
+  IL_0072:  call       ""void System.Console.WriteLine(int)""
+  IL_0077:  ret
+}");
+        }
+
         [Fact]
         public void RangeIndexerStringFromEndStart()
         {

@@ -98,6 +98,32 @@ public class C {
         }
 
         [Fact]
+        [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
+        public void StringIndexIllegalRef()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+public class C {
+    public ref char M(string s) {
+        ref readonly char x = ref s[^2];
+        M(in s[^2]);
+        M(s[^2]);
+        return ref s[^2];
+    }
+    void M(in char c) { }
+}");
+            comp.VerifyDiagnostics(
+                // (4,35): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         ref readonly char x = ref s[^2];
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s[^2]").WithArguments("string.this[int]").WithLocation(4, 35),
+                // (5,14): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         M(in s[^2]);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s[^2]").WithArguments("string.this[int]").WithLocation(5, 14),
+                // (7,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref s[^2];
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s[^2]").WithArguments("string.this[int]").WithLocation(7, 20));
+        }
+
+        [Fact]
         public void IndexExpression_TypeNotFound()
         {
             var compilation = CreateCompilation(@"
