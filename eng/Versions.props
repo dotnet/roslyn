@@ -289,7 +289,9 @@
       Use compilers in Microsoft.NET.Compilers package unless we are building with bootstrapped compilers.
       Allows to dogfood the latest compiler features.
     -->
+    <!-- PROTOTYPE(DefaultInterfaceImplementation): Commented out the following line
     <UsingToolMicrosoftNetCompilers Condition="'$(BootstrapBuildPath)' == ''">true</UsingToolMicrosoftNetCompilers>
+     -->
   </PropertyGroup>
 
   <PropertyGroup>
