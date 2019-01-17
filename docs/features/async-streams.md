@@ -101,7 +101,7 @@ finally
 ### Detailed design for async-iterator methods
 
 An async-iterator method is replaced by a kick-off method, which initializes a state machine. It does not start running the state machine (unlike kick-off methods for regular async method).
-The kick-off method method is marked with both `AsyncStateMachineAttribute` and `IteratorStateMachineAttribute`.
+The kick-off method method is marked with `AsyncIteratorStateMachineAttribute`.
 
 The state machine for an enumerable async-iterator method primarily implements `IAsyncEnumerable<T>` and `IAsyncEnumerator<T>`.
 For an enumerator async-iterator, it only implements `IAsyncEnumerator<T>`.

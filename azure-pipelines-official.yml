@@ -3,7 +3,8 @@ resources:
   clean: true
 
 jobs:
-- job:
+- job: OfficialBuild
+  displayName: Official Build
   pool:
     name: VSEng-MicroBuildVS2017
     demands: 
@@ -64,6 +65,10 @@ jobs:
               -testDesktop 
               -procdump
               /p:DotNetSignType=$(PB_SignType)
+              /p:DotNetPublishToBlobFeed=true
+              /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
+              /p:DotNetPublishBlobFeedUrl=https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json
+              /p:PublishToSymbolServer=true
               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
               /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
     displayName: Build
@@ -190,6 +195,22 @@ jobs:
       ArtifactName: 'Packages'
     condition: succeeded()
 
+  # Publish Asset Manifests for Build Asset Registry job
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Asset Manifests
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(BuildConfiguration)/AssetManifest'
+      ArtifactName: AssetManifests
+    condition: succeeded()
+
   - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1
     displayName: Perform Cleanup Tasks
     condition: succeededOrFailed()
+
+# Publish to Build Asset Registry
+- template: /eng/common/templates/job/publish-build-assets.yml
+  parameters:
+    dependsOn:
+      - OfficialBuild
+    queue:
+      name: Hosted VS2017
