@@ -6598,8 +6598,6 @@ oneMoreTime:
 
         public override IOperation VisitSwitchExpression(ISwitchExpressionOperation operation, int? captureIdForResult)
         {
-            // https://github.com/dotnet/roslyn/issues/32315 This is known not to be correct or working.
-
             // expression switch { pat1 when g1 => e1, pat2 when g2 => e2 }
             //
             // becomes
