@@ -7,8 +7,8 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-// The ShadowCopyAnalyzerAssemblyLoader derives from DesktopAnalyzerAssemblyLoader (NET472) OR CoreClrAnalyzerAssemblyLoader (NETCOREAPP1_1 || NETCOREAPP2_1)
-#if NET472 || NETCOREAPP1_1 || NETCOREAPP2_1 
+// The ShadowCopyAnalyzerAssemblyLoader derives from DesktopAnalyzerAssemblyLoader (NET472) OR CoreClrAnalyzerAssemblyLoader (NETCOREAPP2_1)
+#if NET472 || NETCOREAPP2_1
 
 namespace Microsoft.CodeAnalysis
 {
@@ -199,4 +199,6 @@ namespace Microsoft.CodeAnalysis
     }
 }
 
+#elif !NETSTANDARD2_0
+#error unsupported configuration
 #endif

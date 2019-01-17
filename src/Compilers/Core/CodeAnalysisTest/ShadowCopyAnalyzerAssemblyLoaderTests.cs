@@ -1,18 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 // The ShadowCopyAnalyzerAssemblyLoader type is only defined for the below platforms
-#if NET472 || NETCOREAPP1_1 || NETCOREAPP2_1 
+#if NET472 || NETCOREAPP2_1
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -102,4 +98,6 @@ public sealed class TestAnalyzer : AbstractTestAnalyzer
     }
 }
 
+#else
+#error unsupported configuration
 #endif

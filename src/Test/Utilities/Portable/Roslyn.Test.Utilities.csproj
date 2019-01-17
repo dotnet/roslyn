@@ -74,12 +74,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Shared\CoreClrAnalyzerAssemblyLoader.cs" Link="CoreClrAnalyzerAssemblyLoader.cs" />
-    <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
-      <Link>DesktopAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
-      <Link>ShadowCopyAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
+    <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs" Link="DesktopAnalyzerAssemblyLoader.cs" />
+    <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs" Link="ShadowCopyAnalyzerAssemblyLoader.cs" />
     <Compile Update="TestResource.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
