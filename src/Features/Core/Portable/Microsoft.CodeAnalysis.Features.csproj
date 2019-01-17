@@ -53,6 +53,9 @@
     <InternalsVisibleTo Include="MonoDevelop.Refactoring.Tests" Key="$(MonoDevelopKey)" />
     <InternalsVisibleTo Include="MonoDevelop.CSharpBinding.Tests" Key="$(MonoDevelopKey)" />
     <InternalsVisibleTo Include="MonoDevelop.VBNetBinding.Tests" Key="$(MonoDevelopKey)" />
+    <!-- this is currently built externally, as part of the MonoDevelop build -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Cocoa" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Cocoa.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.DebuggerVisualizers" />
     <InternalsVisibleTo Include="InteractiveHost.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.InteractiveWindow.UnitTests" />
