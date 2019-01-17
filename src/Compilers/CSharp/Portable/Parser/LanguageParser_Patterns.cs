@@ -442,7 +442,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     propertyPatternClause0 == null &&
                     designation0 == null &&
                     subPatterns.Count == 1 &&
-                    subPatterns[0].NameColon == null)
+                    subPatterns[0].NameColon == null &&
+                    subPatterns.SeparatorCount == 0)
                 {
                     if (subPatterns[0].Pattern is ConstantPatternSyntax cp)
                     {
