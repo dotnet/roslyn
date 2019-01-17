@@ -5,7 +5,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -17,18 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
     {
         private sealed class Rewriter : CSharpSyntaxVisitor<ExpressionSyntax>
         {
-            private readonly ArrayBuilder<ExpressionSyntax> _assignmentTargets;
+            private ExpressionSyntax _assignmentTargetOpt;
             private readonly bool _isAllThrowStatements;
 
             private Rewriter(bool isAllThrowStatements)
             {
-                _assignmentTargets = ArrayBuilder<ExpressionSyntax>.GetInstance();
                 _isAllThrowStatements = isAllThrowStatements;
-            }
-
-            private void Free()
-            {
-                _assignmentTargets.Free();
             }
 
             public static StatementSyntax Rewrite(
@@ -46,86 +39,77 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 var generateDeclaration = isSimpleAssignment && rewriter.TryRemoveVariableDeclarators(switchStatement, semanticModel, editor);
 
                 // Generate the final statement to wrap the switch expression, e.g. a "return" or an assignment.
-                var finalStatement = rewriter.GetFinalStatement(switchExpression, nodeToGenerate, generateDeclaration);
-                rewriter.Free();
-                return finalStatement;
+                return rewriter.GetFinalStatement(switchExpression, nodeToGenerate, generateDeclaration);
             }
 
             private bool TryRemoveVariableDeclarators(SwitchStatementSyntax switchStatement, SemanticModel semanticModel, SyntaxEditor editor)
             {
-                Debug.Assert(_assignmentTargets.Count > 0);
+                Debug.Assert(_assignmentTargetOpt != null);
 
-                // Try to remove variable declarator only if these are simple identifiers.
-                if (!_assignmentTargets.All(target => target.IsKind(SyntaxKind.IdentifierName)))
+                // Try to remove variable declarator only if it's a simple identifiers.
+                if (!_assignmentTargetOpt.IsKind(SyntaxKind.IdentifierName))
                 {
                     return false;
                 }
 
-                var symbols = _assignmentTargets.SelectAsArray((target, model) => model.GetSymbolInfo(target).Symbol, semanticModel);
-                foreach (var symbol in symbols)
+                var symbol = semanticModel.GetSymbolInfo(_assignmentTargetOpt).Symbol;
+                if (symbol == null)
                 {
-                    if (symbol == null)
+                    return false;
+                }
+
+                if (symbol.Kind != SymbolKind.Local)
+                {
+                    return false;
+                }
+
+                var syntaxReferences = symbol.DeclaringSyntaxReferences;
+                if (syntaxReferences.Length != 1)
+                {
+                    return false;
+                }
+
+                if (!(syntaxReferences[0].GetSyntax() is VariableDeclaratorSyntax declarator))
+                {
+                    return false;
+                }
+
+                if (declarator.Initializer != null)
+                {
+                    return false;
+                }
+
+                var symbolName = symbol.Name;
+                var declaratorSpanStart = declarator.SpanStart;
+                var switchStatementSpanStart = switchStatement.SpanStart;
+
+                // Check for uses before the switch expression.
+                foreach (var descendentNode in declarator.GetAncestor<BlockSyntax>().DescendantNodes())
+                {
+                    var nodeSpanStart = descendentNode.SpanStart;
+                    if (nodeSpanStart <= declaratorSpanStart)
                     {
-                        return false;
+                        // We haven't yet reached the declarator node.
+                        continue;
                     }
 
-                    if (symbol.Kind != SymbolKind.Local)
+                    if (nodeSpanStart >= switchStatementSpanStart)
                     {
-                        return false;
+                        // We've reached the switch statement.
+                        break;
                     }
 
-                    var syntaxReferences = symbol.DeclaringSyntaxReferences;
-                    if (syntaxReferences.Length != 1)
+                    if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName) &&
+                        identifierName.Identifier.ValueText == symbolName &&
+                        symbol.Equals(semanticModel.GetSymbolInfo(identifierName).Symbol))
                     {
+                        // The variable is being used outside the switch statement.
                         return false;
-                    }
-
-                    if (!(syntaxReferences[0].GetSyntax() is VariableDeclaratorSyntax declarator))
-                    {
-                        return false;
-                    }
-
-                    if (declarator.Initializer != null)
-                    {
-                        return false;
-                    }
-
-                    var symbolName = symbol.Name;
-                    var declaratorSpanStart = declarator.SpanStart;
-                    var switchStatementSpanStart = switchStatement.SpanStart;
-
-                    // Check for uses before the switch expression.
-                    foreach (var descendentNode in declarator.GetAncestor<BlockSyntax>().DescendantNodes())
-                    {
-                        var nodeSpanStart = descendentNode.SpanStart;
-                        if (nodeSpanStart <= declaratorSpanStart)
-                        {
-                            // We haven't yet reached the declarator node.
-                            continue;
-                        }
-
-                        if (nodeSpanStart >= switchStatementSpanStart)
-                        {
-                            // We've reached the switch statement.
-                            break;
-                        }
-
-                        if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName) &&
-                            identifierName.Identifier.ValueText == symbolName &&
-                            symbol.Equals(semanticModel.GetSymbolInfo(identifierName).Symbol))
-                        {
-                            // The variable is being used outside the switch statement.
-                            return false;
-                        }
                     }
                 }
 
-                foreach (var symbol in symbols)
-                {
-                    // Safe to remove all declarator nodes.
-                    editor.RemoveNode(symbol.DeclaringSyntaxReferences[0].GetSyntax());
-                }
-
+                // Safe to remove declarator node.
+                editor.RemoveNode(symbol.DeclaringSyntaxReferences[0].GetSyntax());
                 return true;
             }
 
@@ -140,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 }
 
                 Debug.Assert(SyntaxFacts.IsAssignmentExpression(nodeToGenerate));
-                Debug.Assert(_assignmentTargets.Count > 0);
+                Debug.Assert(_assignmentTargetOpt != null);
 
                 return generateDeclaration
                     ? GenerateVariableDeclaration(switchExpression)
@@ -149,35 +133,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             private ExpressionStatementSyntax GenerateAssignment(ExpressionSyntax switchExpression, SyntaxKind assignmentKind)
             {
-                var assignmentLeft = _assignmentTargets.Count == 1
-                    ? _assignmentTargets[0]
-                    : TupleExpression(SeparatedList(_assignmentTargets.Select(Argument)));
+                Debug.Assert(_assignmentTargetOpt != null);
 
                 return ExpressionStatement(
                     AssignmentExpression(assignmentKind,
-                        left: assignmentLeft,
+                        left: _assignmentTargetOpt,
                         right: switchExpression));
             }
 
             private ExpressionStatementSyntax GenerateVariableDeclaration(ExpressionSyntax switchExpression)
             {
-                var designations = _assignmentTargets
-                    .Select(id => (VariableDesignationSyntax)SingleVariableDesignation(((IdentifierNameSyntax)id).Identifier))
-                    .ToArray();
-
-                var designation = designations.Length == 1
-                    ? designations[0]
-                    : ParenthesizedVariableDesignation(SeparatedList(designations));
-
+                Debug.Assert(_assignmentTargetOpt is IdentifierNameSyntax);
                 return ExpressionStatement(
                     AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
-                        left: DeclarationExpression(IdentifierName("var"), designation),
+                        left: DeclarationExpression(IdentifierName("var"),
+                            SingleVariableDesignation(((IdentifierNameSyntax)_assignmentTargetOpt).Identifier)),
                         right: switchExpression));
             }
 
             private SwitchExpressionArmSyntax GetSwitchExpressionArm(SwitchSectionSyntax node)
             {
                 Debug.Assert(node.Labels.Count == 1);
+
                 return SwitchExpressionArm(
                     pattern: GetPattern(node.Labels[0], out var whenClauseOpt),
                     whenClause: whenClauseOpt,
@@ -208,12 +185,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public override ExpressionSyntax VisitAssignmentExpression(AssignmentExpressionSyntax node)
             {
-                // Make sure assignments are under the same switch section
-                // to avoid adding duplicated nodes.
-                if (_assignmentTargets.Count == 0 || 
-                    _assignmentTargets[0].Parent.Parent.Parent == node.Parent.Parent)
+                if (_assignmentTargetOpt == null)
                 {
-                    _assignmentTargets.Add(node.Left);
+                    _assignmentTargetOpt = node.Left;
                 }
 
                 return node.Right;
@@ -221,35 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             private ExpressionSyntax RewriteStatements(SyntaxList<StatementSyntax> statements)
             {
-                Debug.Assert(statements.Count > 0);
+                Debug.Assert(statements.Count == 1 || statements.Count == 2);
                 Debug.Assert(!statements[0].IsKind(SyntaxKind.BreakStatement));
-
-                var expressions = ArrayBuilder<ExpressionSyntax>.GetInstance();
-                foreach (var statement in statements)
-                {
-                    if (statement.IsKind(SyntaxKind.BreakStatement))
-                    {
-                        break;
-                    }
-
-                    var expression = Visit(statement);
-                    expressions.Add(expression);
-
-                    // In case we had a nested switch expression,
-                    // the possible next node is already morphed
-                    // into the default case. See below.
-                    if (expression.IsKind(SyntaxKind.SwitchExpression))
-                    {
-                        break;
-                    }
-                }
-
-                Debug.Assert(expressions.Count > 0);
-                var result = expressions.Count == 1
-                    ? expressions[0]
-                    : TupleExpression(SeparatedList(expressions.Select(Argument)));
-                expressions.Free();
-                return result;
+                return Visit(statements[0]);
             }
 
             public override ExpressionSyntax VisitSwitchStatement(SwitchStatementSyntax node)

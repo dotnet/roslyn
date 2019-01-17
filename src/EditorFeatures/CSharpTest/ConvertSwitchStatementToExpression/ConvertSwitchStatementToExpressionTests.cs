@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestSingleAssignment()
+        public async Task TestAssignment()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -374,7 +374,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestSingleAssignment_Compound()
+        public async Task TestMissingOnAssignmentMismatch()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    int M(int i)
+    {
+        int j = 0;
+        [||]switch (i)
+        {
+            case 1:
+                j = 4;
+                break;
+            case 2:
+                j += 5;
+                break;
+        }
+        return j;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestAssignment_Compound()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -456,49 +479,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestMultiAssignment()
-        {
-            await TestInRegularAndScriptAsync(
-@"class Program
-{
-    void M(int i)
-    {
-        int j, k;
-        [||]switch (i)
-        {
-            case 1:
-                j = 4;
-                k = 5;
-                break;
-            case 2:
-                j = 6;
-                k = 7;
-                break;
-            case 3:
-                j = 8;
-                k = 9;
-                break;
-        }
-        throw null;
-    }
-}",
-@"class Program
-{
-    void M(int i)
-    {
-        var (j, k) = i switch
-        {
-            1 => (4, 5),
-            2 => (6, 7),
-            3 => (8, 9),
-            _ => throw null
-        };
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestMissingOnUnorderedMultiAssignmnet()
+        public async Task TestMissingOnMultiAssignment()
         {
             await TestMissingAsync(
 @"class Program
@@ -513,8 +494,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 k = 5;
                 break;
             case 2:
-                k = 7;
                 j = 6;
+                k = 7;
                 break;
             case 3:
                 j = 8;
@@ -534,13 +515,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
 {
     void M(int i)
     {
-        int j, k;
+        int j;
         [||]switch (i)
         {
             case 1:
             case 2:
                 j = 4;
-                k = 5;
                 break;
         }
         throw null;
@@ -573,30 +553,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 break;
         }
         throw null;
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestMissingOnInterdependentAssignments()
-        {
-            await TestMissingAsync(
-@"class Program
-{
-    void M(int i)
-    {
-        int j = 3, k;
-        [||]switch (i)
-        {
-            case 1:
-                j = 4;
-                k = j;
-                break;
-            default:
-                j = 5;
-                k = j;
-                break;
-        }
     }
 }");
         }

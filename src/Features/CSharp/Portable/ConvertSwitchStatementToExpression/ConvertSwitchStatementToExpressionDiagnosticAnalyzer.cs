@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return;
             }
 
-            var analysisResult = Analyzer.Analyze((SwitchStatementSyntax)switchStatement, out var shouldRemoveNextStatement);
-            if (!analysisResult.Success)
+            var nodeToGenerate = Analyzer.Analyze((SwitchStatementSyntax)switchStatement, out var shouldRemoveNextStatement);
+            if (nodeToGenerate == default)
             {
                 return;
             }
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 location: switchStatement.GetFirstToken().GetLocation(),
                 additionalLocations: new[] { switchStatement.GetLocation() },
                 properties: ImmutableDictionary<string, string>.Empty
-                    .Add(Constants.NodeToGenerateKey, ((int)analysisResult.GetSyntaxKind()).ToString())
+                    .Add(Constants.NodeToGenerateKey, ((int)nodeToGenerate).ToString())
                     .Add(Constants.ShouldRemoveNextStatementKey, shouldRemoveNextStatement.ToString())));
         }
 
