@@ -670,6 +670,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 GetStatementList(statements))
         End Function
 
+        Friend Overrides Function ScopeBlock(statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Throw New NotSupportedException()
+        End Function
+
         Friend Overrides Function RefExpression(expression As SyntaxNode) As SyntaxNode
             Return expression
         End Function

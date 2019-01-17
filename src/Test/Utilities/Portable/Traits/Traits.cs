@@ -103,6 +103,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsMakeFieldReadonly = "CodeActions.MakeFieldReadonly";
             public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";
             public const string CodeActionsMakeMethodSynchronous = "CodeActions.MakeMethodSynchronous";
+            public const string CodeActionsMergeConsecutiveIfStatements = "CodeActions.MergeConsecutiveIfStatements";
+            public const string CodeActionsMergeNestedIfStatements = "CodeActions.MergeNestedIfStatements";
             public const string CodeActionsMoveDeclarationNearReference = "CodeActions.MoveDeclarationNearReference";
             public const string CodeActionsMoveToTopOfFile = "CodeActions.MoveToTopOfFile";
             public const string CodeActionsMoveType = "CodeActions.MoveType";
@@ -129,6 +131,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsSimplifyThisOrMe = "CodeActions.SimplifyThisOrMe";
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
+            public const string CodeActionsSplitIntoConsecutiveIfStatements = "CodeActions.SplitIntoConsecutiveIfStatements";
+            public const string CodeActionsSplitIntoNestedIfStatements = "CodeActions.SplitIntoNestedIfStatements";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
             public const string CodeActionsSyncNamespace = "CodeActions.SyncNamespace";
             public const string CodeActionsUseInterpolatedVerbatimString = "CodeActions.UseInterpolatedVerbatimString";
