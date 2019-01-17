@@ -1083,34 +1083,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
-                var filePath = CurrentSolution.GetDocument(documentId)?.FilePath;
+                // The hierarchy might be supporting multitargeting; in that case, let's update the context. Unfortunately the IVsHierarchies that support this
+                // don't necessarily let us read it first, so we have to fire-and-forget here.
+                foreach (var (projectSystemName, projects) in _projectSystemNameToProjectsMap)
+                {
+                    if (projects.Any(p => p.Id == documentId.ProjectId))
+                    {
+                        hierarchy.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, projectSystemName);
+
+                        // We've updated that property, but we still need to continue the rest of this process to ensure the Running Document Table is updated
+                        // and any shared asset projects are also updated.
+                        break;
+                    }
+                }
+
+                var filePath = GetFilePath(documentId);
                 if (filePath == null)
                 {
                     return;
                 }
 
                 var itemId = hierarchy.TryGetItemId(filePath);
-                if (itemId == VSConstants.VSITEMID_NIL)
+                if (itemId != VSConstants.VSITEMID_NIL)
                 {
-                    return;
-                }
-
-                // Is this owned by a shared project? If so, go recursively. We can put this in a loop because in the case of mixed
-                // scenarios where you have shared assets projects and multitargeting projects, this same code works in both cases.
-                // Some shared hierarchies, when queried about items also give themselves back, so we'll only loop if we're actually
-                // going somewhere else.
-                while (SharedProjectUtilities.TryGetItemInSharedAssetsProject(hierarchy, itemId, out IVsHierarchy sharedHierarchy, out uint sharedItemId) &&
-                       hierarchy != sharedHierarchy)
-                {
-                    // Ensure the shared context is set correctly
-                    if (sharedHierarchy.GetActiveProjectContext() != hierarchy)
+                    // Is this owned by a shared asset project? If so, we need to put the shared asset project into the running document table, and need to set the
+                    // current hierarchy as the active context of that shared hierarchy. This is kept as a loop that we do multiple times in the case that you
+                    // have multiple pointers. This used to be the case for multitargeting projects, but that was now handled by setting the active context property
+                    // above. Some project systems out there might still be supporting it, so we'll support it too.
+                    while (SharedProjectUtilities.TryGetItemInSharedAssetsProject(hierarchy, itemId, out var sharedHierarchy, out uint sharedItemId) &&
+                           hierarchy != sharedHierarchy)
                     {
-                        ErrorHandler.ThrowOnFailure(sharedHierarchy.SetActiveProjectContext(hierarchy));
-                    }
+                        // Ensure the shared context is set correctly
+                        if (sharedHierarchy.GetActiveProjectContext() != hierarchy)
+                        {
+                            ErrorHandler.ThrowOnFailure(sharedHierarchy.SetActiveProjectContext(hierarchy));
+                        }
 
-                    // We now need to ensure the outer project is also set up
-                    hierarchy = sharedHierarchy;
-                    itemId = sharedItemId;
+                        // We now need to ensure the outer project is also set up
+                        hierarchy = sharedHierarchy;
+                        itemId = sharedItemId;
+                    }
                 }
 
                 // Update the ownership of the file in the Running Document Table
@@ -1355,7 +1367,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             _projectSystemNameToProjectsMap.Remove(projectName);
                         }
 
-                        return;
+                        break;
                     }
                 }
 

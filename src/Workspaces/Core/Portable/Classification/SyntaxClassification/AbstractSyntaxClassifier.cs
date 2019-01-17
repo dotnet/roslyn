@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification.Classifiers
 {

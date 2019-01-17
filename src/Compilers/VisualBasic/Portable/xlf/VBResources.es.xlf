@@ -9079,12 +9079,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
-        <target state="translated">Nombre de algoritmo hash no válido: "{0}"</target>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_InterpolatedStrings">
         <source>interpolated strings</source>
-        <target state="translated">cadenas interpoladas</target>
+        <target state="new">interpolated strings</target>
         <note />
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">

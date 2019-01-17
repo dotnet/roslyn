@@ -630,6 +630,76 @@ class Customer
 }}
 ";
 
+        private static readonly string s_doNotPreferBraces = $@"
+using System;
+
+class Customer
+{{
+    private int Age;
+
+    void M1()
+    {{
+//[
+        // {ServicesVSResources.Allow_colon}
+        if (test) Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+            Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+            Console.WriteLine(
+                ""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+        {{
+            Console.WriteLine(
+                ""Text"");
+        }}
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferBracesWhenMultiline = $@"
+using System;
+
+class Customer
+{{
+    private int Age;
+
+    void M1()
+    {{
+//[
+        // {ServicesVSResources.Allow_colon}
+        if (test) Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+            Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Prefer_colon}
+        if (test)
+        {{
+            Console.WriteLine(
+                ""Text"");
+        }}
+//]
+    }}
+    void M2()
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        if (test)
+            Console.WriteLine(
+                ""Text"");
+//]
+    }}
+}}
+";
+
         private static readonly string s_preferBraces = $@"
 using System;
 
@@ -643,7 +713,7 @@ class Customer
         // {ServicesVSResources.Prefer_colon}
         if (test)
         {{
-            this.Display();
+            Console.WriteLine(""Text"");
         }}
 //]
     }}
@@ -652,7 +722,7 @@ class Customer
 //[
         // {ServicesVSResources.Over_colon}
         if (test)
-            this.Display();
+            Console.WriteLine(""Text"");
 //]
     }}
 }}
@@ -1006,6 +1076,45 @@ class Customer
 //]
     }
 }
+";
+
+        private const string s_preferExpressionBodyForLocalFunctions = @"
+using System;
+
+//[
+class Customer
+{
+    private int Age;
+
+    public int GetAge() 
+    {
+        return GetAgeLocal();
+        
+        int GetAgeLocal() => this.Age;
+    }
+}
+//]
+";
+
+        private const string s_preferBlockBodyForLocalFunctions = @"
+using System;
+
+//[
+class Customer
+{
+    private int Age;
+
+    public int GetAge()
+    {
+        return GetAgeLocal();
+        
+        int GetAgeLocal()
+        {
+            return this.Age;
+        }
+    }
+}
+//]
 ";
 
         private static readonly string s_preferReadonly = $@"
@@ -1382,7 +1491,7 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
 
             // Code block
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferBraces, ServicesVSResources.Prefer_braces, s_preferBraces, s_preferBraces, this, optionSet, codeBlockPreferencesGroupTitle));
+            AddBracesOptions(optionSet, codeBlockPreferencesGroupTitle);
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionSet, codeBlockPreferencesGroupTitle));
 
             AddParenthesesOptions(Options);
@@ -1452,6 +1561,25 @@ class C2
                 defaultAddForClarity: false);
         }
 
+        private void AddBracesOptions(OptionSet optionSet, string bracesPreferenceGroupTitle)
+        {
+            var bracesPreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(ServicesVSResources.Yes, isChecked: false),
+                new CodeStylePreference(ServicesVSResources.No, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.When_on_multiple_lines, isChecked: false),
+            };
+
+            var enumValues = new[] { PreferBracesPreference.Always, PreferBracesPreference.None, PreferBracesPreference.WhenMultiline };
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<PreferBracesPreference>(
+                CSharpCodeStyleOptions.PreferBraces,
+                ServicesVSResources.Prefer_braces,
+                enumValues,
+                new[] { s_preferBraces, s_doNotPreferBraces, s_preferBracesWhenMultiline },
+                this, optionSet, bracesPreferenceGroupTitle, bracesPreferences));
+        }
+
         private void AddExpressionBodyOptions(OptionSet optionSet, string expressionPreferencesGroupTitle)
         {
             var expressionBodyPreferences = new List<CodeStylePreference>
@@ -1510,6 +1638,13 @@ class C2
                 ServicesVSResources.Use_expression_body_for_lambdas,
                 enumValues,
                 new[] { s_preferBlockBodyForLambdas, s_preferExpressionBodyForLambdas, s_preferExpressionBodyForLambdas },
+                this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
+                CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions,
+                ServicesVSResources.Use_expression_body_for_local_functions,
+                enumValues,
+                new[] { s_preferBlockBodyForLocalFunctions, s_preferExpressionBodyForLocalFunctions, s_preferExpressionBodyForLocalFunctions },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
         }
 

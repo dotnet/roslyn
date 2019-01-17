@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         /// relationship: if interface type A extends interface type B, then A precedes B in the
         /// list. This is not quite the same as "all interfaces of which this type is a proper
         /// subtype" because it does not take into account variance: AllInterfaces for
-        /// <c><![CDATA[IEnumerable<string>]]></c> will not include <c><![CDATA[IEnumerable<object>]]></c>;
+        /// IEnumerable&lt;string&gt; will not include IEnumerable&lt;object&gt;.
         /// </summary>
         ImmutableArray<INamedTypeSymbol> AllInterfaces { get; }
 

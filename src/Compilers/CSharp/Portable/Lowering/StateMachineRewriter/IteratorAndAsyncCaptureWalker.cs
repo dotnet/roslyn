@@ -75,10 +75,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var variable = kvp.Key;
                     var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type.TypeSymbol : ((ParameterSymbol)variable).Type.TypeSymbol;
 
-                    foreach (CSharpSyntaxNode syntax in kvp.Value)
+                    if (variable is SynthesizedLocal local && local.SynthesizedKind == SynthesizedLocalKind.Spill)
                     {
-                        // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
-                        diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, type);
+                        Debug.Assert(local.Type.IsRestrictedType());
+                        diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type);
+                    }
+                    else
+                    {
+                        foreach (CSharpSyntaxNode syntax in kvp.Value)
+                        {
+                            // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
+                            diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, type);
+                        }
                     }
                 }
             }
@@ -195,8 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type.TypeSymbol : ((ParameterSymbol)variable).Type.TypeSymbol;
             if (type.IsRestrictedType())
             {
-                // error has already been reported:
-                if (variable is SynthesizedLocal)
+                // error has already been reported.
+                if (variable is SynthesizedLocal local && local.SynthesizedKind != SynthesizedLocalKind.Spill)
                 {
                     return;
                 }

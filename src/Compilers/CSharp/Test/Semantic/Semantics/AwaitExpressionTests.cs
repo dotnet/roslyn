@@ -54,6 +54,18 @@ public class C {
             Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
         }
 
+        [Fact]
+        [WorkItem(744146, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")]
+        public void DefaultAwaitExpressionInfo()
+        {
+            AwaitExpressionInfo info = default;
+            Assert.Null(info.GetAwaiterMethod);
+            Assert.Null(info.GetResultMethod);
+            Assert.Null(info.IsCompletedProperty);
+            Assert.False(info.IsDynamic);
+            Assert.Equal(0, info.GetHashCode());
+        }
+
         private AwaitExpressionInfo GetAwaitExpressionInfo(string text, out CSharpCompilation compilation, params DiagnosticDescription[] diagnostics)
         {
             var tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));

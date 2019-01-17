@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _F = factory;
             _F.CurrentFunction = containingMethod;
-            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
+            Debug.Assert(TypeSymbol.Equals(factory.CurrentType, (containingType ?? containingMethod.ContainingType), TypeCompareKind.ConsiderEverything2));
             _diagnostics = diagnostics;
             _analysis = analysis;
         }
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             Debug.Assert(containingSymbol != null);
-            Debug.Assert(containingType != null);
+            Debug.Assert((object)containingType != null);
             Debug.Assert(statement != null);
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
@@ -138,7 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tryStatementSyntax.IsKind(SyntaxKind.TryStatement) ||
                 tryStatementSyntax.IsKind(SyntaxKind.UsingStatement) ||
                 tryStatementSyntax.IsKind(SyntaxKind.ForEachStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.ForEachVariableStatement));
+                tryStatementSyntax.IsKind(SyntaxKind.ForEachVariableStatement) ||
+                tryStatementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement));
 
             BoundStatement finalizedRegion;
             BoundBlock rewrittenFinally;
@@ -296,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // skip 0 - it means we took no explicit branches
             int i = 1;
-            var cases = ArrayBuilder<BoundSwitchSection>.GetInstance();
+            var cases = ArrayBuilder<SyntheticBoundNodeFactory.SyntheticSwitchSection>.GetInstance();
 
             if (proxiedLabels != null)
             {
@@ -471,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var handledLabel = _F.GenerateLabel("handled");
                 var handlersList = currentAwaitCatchFrame.handlers;
-                var handlers = ArrayBuilder<BoundSwitchSection>.GetInstance(handlersList.Count);
+                var handlers = ArrayBuilder<SyntheticBoundNodeFactory.SyntheticSwitchSection>.GetInstance(handlersList.Count);
                 for (int i = 0, l = handlersList.Count; i < l; i++)
                 {
                     handlers.Add(_F.SwitchSection(
@@ -903,7 +904,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(statementSyntax.Kind() == SyntaxKind.TryStatement ||
                     (statementSyntax.Kind() == SyntaxKind.UsingStatement && ((UsingStatementSyntax)statementSyntax).AwaitKeyword != default) ||
                     (statementSyntax.Kind() == SyntaxKind.ForEachStatement && ((CommonForEachStatementSyntax)statementSyntax).AwaitKeyword != default) ||
-                    (statementSyntax.Kind() == SyntaxKind.ForEachVariableStatement && ((CommonForEachStatementSyntax)statementSyntax).AwaitKeyword != default));
+                    (statementSyntax.Kind() == SyntaxKind.ForEachVariableStatement && ((CommonForEachStatementSyntax)statementSyntax).AwaitKeyword != default) ||
+                    (statementSyntax.Kind() == SyntaxKind.LocalDeclarationStatement && ((LocalDeclarationStatementSyntax)statementSyntax).AwaitKeyword != default));
 
                 this.ParentOpt = parent;
                 this.LabelsOpt = labelsOpt;
@@ -1013,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public void HoistLocal(LocalSymbol local, SyntheticBoundNodeFactory F)
             {
-                if (!_hoistedLocals.Keys.Any(l => l.Name == local.Name && l.Type.TypeSymbol == local.Type.TypeSymbol))
+                if (!_hoistedLocals.Keys.Any(l => l.Name == local.Name && TypeSymbol.Equals(l.Type.TypeSymbol, local.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2)))
                 {
                     _hoistedLocals.Add(local, local);
                     _orderedHoistedLocals.Add(local);

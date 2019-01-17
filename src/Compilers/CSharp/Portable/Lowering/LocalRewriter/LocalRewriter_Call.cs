@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Calling a static method defined on an outer class via its simple name.
                         NamedTypeSymbol firstContainer = node.ApplicableMethods.First().ContainingType;
-                        Debug.Assert(node.ApplicableMethods.All(m => m.IsStatic && m.ContainingType == firstContainer));
+                        Debug.Assert(node.ApplicableMethods.All(m => m.IsStatic && TypeSymbol.Equals(m.ContainingType, firstContainer, TypeCompareKind.ConsiderEverything2)));
 
                         loweredReceiver = new BoundTypeExpression(node.Syntax, null, firstContainer);
                     }
@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arrayArgs.Length == 0 && !_inExpressionLambda)
             {
                 ArrayTypeSymbol ats = paramArrayType as ArrayTypeSymbol;
-                if (ats != null) // could be null if there's a semantic error, e.g. the params parameter type isn't an array
+                if ((object)ats != null) // could be null if there's a semantic error, e.g. the params parameter type isn't an array
                 {
                     MethodSymbol arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
                     if (arrayEmpty != null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
@@ -1106,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(parameter.IsOptional);
 
                     arguments[p] = GetDefaultParameterValue(syntax, parameter, enableCallerInfo);
-                    Debug.Assert(arguments[p].Type == parameter.Type.TypeSymbol);
+                    Debug.Assert(TypeSymbol.Equals(arguments[p].Type, parameter.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2));
 
                     if (parameters[p].RefKind == RefKind.In)
                     {

@@ -6,10 +6,10 @@ Reference types may be nullable, non-nullable, or null-oblivious (abbreviated he
 
 Project level nullable context can be set by using "nullable" command line switch:
 -nullable[+|-]                        Specify nullable context option enable|disable.
--nullable:{enable|disable|safeonly}   Specify nullable context option enable|disable|safeonly.
+-nullable:{enable|disable|safeonly|warnings|safeonlywarnings}   Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
 
 Through msbuild the context could be set by supplying an argument for a "NullableContextOptions" parameter of Csc build task.
-Accepted values are "enable", "disable", "safeonly", or null (for the default nullable context according to the compiler).
+Accepted values are "enable", "disable", "safeonly", "warnings", "safeonlywarnings", or null (for the default nullable context according to the compiler).
 The Microsoft.CSharp.Core.targets passes value of msbuild property named "NullableContextOptions" for that parameter.
 
 ## Annotations
@@ -136,18 +136,15 @@ var t = maybeNull; // t is !
 ```
 
 ### Suppression operator (`!`)
-The postfix `!` operator sets the top-level nullability to non-nullable.
+The postfix `!` operator sets the top-level nullability to non-nullable. Conversions on a suppressed expression produce no nullability warnings.
 ```c#
 var x = optionalString!; // x is string!
 var y = obliviousString!; // y is string!
 var z = new [] { optionalString, obliviousString }!; // no change, z is string?[]!
 ```
-An error is reported whenever the `!` operator is applied to a value type.
 A warning is reported when using the `!` operator absent a `NonNullTypes` context.
 
-_Should `!` suppress warnings for nested nullability?_
-_Should `nonNull!` result in a warning for unnecessary `!`?_
-_Should `!!` be an error?_
+Unnecessary usages of `!` do not produce any diagnostics, including `!!`.
 
 ### Explicit cast
 Explicit cast to `?` changes top-level nullability.
@@ -186,6 +183,7 @@ Merging equivalent but not identical types is done as follows:
  - if either `n` or `m` are nullable, nullable.
  - otherwise oblivious.
 - Merging constructed generic types is performed as follows: Merging the types `K<A1, A2, ...>` and `K<B1, B2, ...>` results in the type `K<C1, C2, ...>` where `Ci` is the result of merging `Ai` and `Bi` by the invariant rule.
+- Merging tuple types `(A1, A2, ...)` and `(B1, B2, ...)` results in the type `(C1, C2, ...)` where `Ci` is the result of merging `Ai` and `Bi` by the invariant rule.
 - Merging the array types `T[]` and `U[]` results in the type `V[]` where `V` is the result of merging `T` and `U` by the invariant rule.
 
 #### Covariant merging rules
@@ -200,6 +198,7 @@ Merging equivalent but not identical types is done as follows:
   - the invariant rule if `K`'s type parameter in the `i` position is invariant.
   - the covariant rule if `K`'s type parameter in the `i` position is declared `out`.
   - the contravariant rule if the `K`'s type parameter in the `i` position is declared `in`.
+- Merging tuple types `(A1, A2, ...)` and `(B1, B2, ...)` results in the type `(C1, C2, ...)` where `Ci` is the result of merging `Ai` and `Bi` by the covariant rule.
 - Merging the array types `T[]` and `U[]` results in the type `V[]` where `V` is the result of merging `T` and `U` by the invariant rule.
 
 #### Contravariant merging rules
@@ -214,6 +213,7 @@ Merging equivalent but not identical types is done as follows:
   - the invariant rule if `K`'s type parameter in the `i` position is invariant.
   - the covariant rule if `K`'s type parameter in the `i` position is declared `in`.
   - the contravariant rule if `K`'s type parameter in the `i` position is declared `out`.
+- Merging tuple types `(A1, A2, ...)` and `(B1, B2, ...)` results in the type `(C1, C2, ...)` where `Ci` is the result of merging `Ai` and `Bi` by the contravariant rule.
 - Merging the array types `T[]` and `U[]` results in the type `V[]` where `V` is the result of merging `T` and `U` by the invariant rule.
 
 It is intended that these merging rules are associative and commutative, so that a compiler may merge a set of equivalent types pairwise in any order to compute the final result.

@@ -1104,22 +1104,98 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.Equal(children, operation.Children);
         }
 
+        private void VisitPatternCommon(IPatternOperation pattern)
+        {
+            Assert.NotNull(pattern.InputType);
+            Assert.Null(pattern.Type);
+            Assert.False(pattern.ConstantValue.HasValue);
+        }
+
         public override void VisitConstantPattern(IConstantPatternOperation operation)
         {
             Assert.Equal(OperationKind.ConstantPattern, operation.Kind);
+            VisitPatternCommon(operation);
             Assert.Same(operation.Value, operation.Children.Single());
         }
 
         public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
         {
             Assert.Equal(OperationKind.DeclarationPattern, operation.Kind);
+            VisitPatternCommon(operation);
+            if (operation.Syntax.IsKind(CSharp.SyntaxKind.VarPattern) ||
+                // in `var (x, y)`, the syntax here is the designation `x`.
+                operation.Syntax.IsKind(CSharp.SyntaxKind.SingleVariableDesignation))
+            {
+                Assert.True(operation.MatchesNull);
+                Assert.Null(operation.MatchedType);
+            }
+            else
+            {
+                Assert.False(operation.MatchesNull);
+                Assert.NotNull(operation.MatchedType);
+            }
 
-            if (!((operation.Syntax as CSharp.Syntax.DeclarationPatternSyntax)?.Designation).IsKind(CSharp.SyntaxKind.DiscardDesignation))
+            var designation =
+                (operation.Syntax as CSharp.Syntax.DeclarationPatternSyntax)?.Designation ??
+                (operation.Syntax as CSharp.Syntax.VarPatternSyntax)?.Designation ??
+                (operation.Syntax as CSharp.Syntax.VariableDesignationSyntax);
+            if (designation.IsKind(CSharp.SyntaxKind.SingleVariableDesignation))
             {
                 Assert.NotNull(operation.DeclaredSymbol);
             }
+            else
+            {
+                Assert.Null(operation.DeclaredSymbol);
+            }
 
             Assert.Empty(operation.Children);
+        }
+
+        public override void VisitRecursivePattern(IRecursivePatternOperation operation)
+        {
+            Assert.Equal(OperationKind.RecursivePattern, operation.Kind);
+            VisitPatternCommon(operation);
+            Assert.NotNull(operation.MatchedType);
+            _ = operation.DeconstructSymbol;
+
+            var designation = (operation.Syntax as CSharp.Syntax.RecursivePatternSyntax)?.Designation;
+            if (designation.IsKind(CSharp.SyntaxKind.SingleVariableDesignation))
+            {
+                Assert.NotNull(operation.DeclaredSymbol);
+            }
+            else
+            {
+                Assert.Null(operation.DeclaredSymbol);
+            }
+
+            IEnumerable<IOperation> children = operation.DeconstructionSubpatterns.Cast<IOperation>();
+            children = children.Concat(operation.PropertySubpatterns.Select(x => x.Item2));
+
+            AssertEx.Equal(children, operation.Children);
+        }
+
+        public override void VisitSwitchExpression(ISwitchExpressionOperation operation)
+        {
+            Assert.NotNull(operation.Type);
+            Assert.False(operation.ConstantValue.HasValue);
+            Assert.Equal(OperationKind.SwitchExpression, operation.Kind);
+            Assert.NotNull(operation.Value);
+            var children = operation.Arms.Cast<IOperation>().Prepend(operation.Value);
+            AssertEx.Equal(children, operation.Children);
+        }
+
+        public override void VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation)
+        {
+            Assert.Null(operation.Type);
+            Assert.False(operation.ConstantValue.HasValue);
+            Assert.NotNull(operation.Pattern);
+            _ = operation.Guard;
+            Assert.NotNull(operation.Value);
+            VisitLocals(operation.Locals);
+            var children = operation.Guard == null
+                ? new[] { operation.Pattern, operation.Value }
+                : new[] { operation.Pattern, operation.Guard, operation.Value };
+            AssertEx.Equal(children, operation.Children);
         }
 
         public override void VisitIsPattern(IIsPatternOperation operation)
@@ -1243,6 +1319,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(operation.Type, discardSymbol.Type);
         }
 
+        public override void VisitDiscardPattern(IDiscardPatternOperation operation)
+        {
+            Assert.Equal(OperationKind.DiscardPattern, operation.Kind);
+            VisitPatternCommon(operation);
+            Assert.Empty(operation.Children);
+        }
+
         public override void VisitFlowCapture(IFlowCaptureOperation operation)
         {
             Assert.Equal(OperationKind.FlowCapture, operation.Kind);
@@ -1330,6 +1413,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             Assert.Equal(index, children.Length);
+        }
+
+        public override void VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation)
+        {
+            Assert.Equal(OperationKind.SuppressNullableWarning, operation.Kind);
+            Assert.NotNull(operation.Expression);
+            Assert.Same(operation.Expression, operation.Children.Single());
         }
 
         public override void VisitReDim(IReDimOperation operation)

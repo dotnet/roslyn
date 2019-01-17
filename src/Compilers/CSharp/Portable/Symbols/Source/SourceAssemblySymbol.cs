@@ -1212,7 +1212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Duplicate attributes with same attribute type are not allowed.
                 // Check if there is an existing assembly attribute with same attribute type.
-                if (uniqueAttributes == null || !uniqueAttributes.Contains((a) => a.AttributeClass == attributeClass))
+                if (uniqueAttributes == null || !uniqueAttributes.Contains((a) => TypeSymbol.Equals(a.AttributeClass, attributeClass, TypeCompareKind.ConsiderEverything2)))
                 {
                     // Attribute with unique attribute type, not a duplicate.
                     bool success = AddUniqueAssemblyAttribute(attribute, ref uniqueAttributes);

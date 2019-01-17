@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.LabelStatement:
                 case BoundKind.LabeledStatement:
                 case BoundKind.SwitchSection:
-                case BoundKind.PatternSwitchSection:
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);
@@ -43,16 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var boundSwitchLabel in ((BoundSwitchSection)node).SwitchLabels)
                     {
                         if (boundSwitchLabel.Label == label)
-                        {
-                            return;
-                        }
-                    }
-                    throw ExceptionUtilities.Unreachable;
-
-                case BoundKind.PatternSwitchSection:
-                    foreach (var boundPatternSwitchLabel in ((BoundPatternSwitchSection)node).SwitchLabels)
-                    {
-                        if (boundPatternSwitchLabel.Label == label)
                         {
                             return;
                         }

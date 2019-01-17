@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             });
 
         private static Optional<string> ParseEditorConfigEndOfLine(string endOfLineValue)
-            => s_parenthesesPreferenceMap.TryGetValue(endOfLineValue, out var parsedOption) ? parsedOption : NewLine.DefaultValue;
+            => s_parenthesesPreferenceMap.TryGetValue(endOfLineValue.Trim(), out var parsedOption) ? parsedOption : NewLine.DefaultValue;
 
         private static string GetEndOfLineEditorConfigString(string option)
             => s_parenthesesPreferenceMap.TryGetKey(option, out var editorConfigString) ? editorConfigString : null;

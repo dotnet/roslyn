@@ -230,6 +230,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.ReducedExtension;
         }
 
+        public static bool IsEnumMember(this ISymbol symbol)
+        {
+            return symbol?.Kind == SymbolKind.Field && symbol.ContainingType.IsEnumType();
+        }
+
         public static bool IsExtensionMethod(this ISymbol symbol)
         {
             return symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).IsExtensionMethod;

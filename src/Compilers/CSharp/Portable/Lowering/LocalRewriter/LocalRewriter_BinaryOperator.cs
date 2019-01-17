@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Otherwise, nothing special here.
             Debug.Assert((object)method != null);
-            Debug.Assert(method.ReturnType.TypeSymbol == type);
+            Debug.Assert(TypeSymbol.Equals(method.ReturnType.TypeSymbol, type, TypeCompareKind.ConsiderEverything2));
             return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
         }
 
@@ -1449,9 +1449,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (seq.Value.Kind == BoundKind.ConditionalOperator)
                 {
                     BoundConditionalOperator conditional = (BoundConditionalOperator)seq.Value;
-                    Debug.Assert(seq.Type == conditional.Type);
-                    Debug.Assert(conditional.Type == conditional.Consequence.Type);
-                    Debug.Assert(conditional.Type == conditional.Alternative.Type);
+                    Debug.Assert(TypeSymbol.Equals(seq.Type, conditional.Type, TypeCompareKind.ConsiderEverything2));
+                    Debug.Assert(TypeSymbol.Equals(conditional.Type, conditional.Consequence.Type, TypeCompareKind.ConsiderEverything2));
+                    Debug.Assert(TypeSymbol.Equals(conditional.Type, conditional.Alternative.Type, TypeCompareKind.ConsiderEverything2));
 
                     if (NullableAlwaysHasValue(conditional.Consequence) != null && NullableNeverHasValue(conditional.Alternative))
                     {
@@ -1909,7 +1909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol exprType = rewrittenExpr.Type;
 
-            // Don't even call this method if the expression isn't nullable.
+            // Don't even call this method if the expression cannot be nullable.
             Debug.Assert(
                 (object)exprType == null ||
                 exprType.IsNullableType() ||
@@ -2204,7 +2204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 multiplicationKind |= BinaryOperatorKind.Checked;
             }
             var multiplication = _factory.Binary(multiplicationKind, multiplicationResultType, numericOperand, sizeOfExpression);
-            return convertedMultiplicationResultType == multiplicationResultType
+            return TypeSymbol.Equals(convertedMultiplicationResultType, multiplicationResultType, TypeCompareKind.ConsiderEverything2)
                 ? multiplication
                 : _factory.Convert(convertedMultiplicationResultType, multiplication, Conversion.IntegerToPointer); // NOTE: for some reason, dev10 doesn't check this conversion.
         }

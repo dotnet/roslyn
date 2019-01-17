@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Classification
             foreach (var span in classifiedSpans)
             {
                 // If there is space between this span and the last one, then add a space.
-                if (startPosition != span.TextSpan.Start)
+                if (startPosition < span.TextSpan.Start)
                 {
                     parts.AddRange(Space());
                 }
@@ -151,15 +151,27 @@ namespace Microsoft.CodeAnalysis.Classification
                 case ClassificationTypeNames.VerbatimStringLiteral:
                     return SymbolDisplayPartKind.StringLiteral;
                 case ClassificationTypeNames.FieldName:
+                    return SymbolDisplayPartKind.FieldName;
                 case ClassificationTypeNames.EnumMemberName:
+                    return SymbolDisplayPartKind.EnumMemberName;
                 case ClassificationTypeNames.ConstantName:
+                    return SymbolDisplayPartKind.ConstantName;
                 case ClassificationTypeNames.LocalName:
+                    return SymbolDisplayPartKind.LocalName;
                 case ClassificationTypeNames.ParameterName:
+                    return SymbolDisplayPartKind.ParameterName;
                 case ClassificationTypeNames.ExtensionMethodName:
+                    return SymbolDisplayPartKind.ExtensionMethodName;
                 case ClassificationTypeNames.MethodName:
+                    return SymbolDisplayPartKind.MethodName;
                 case ClassificationTypeNames.PropertyName:
+                    return SymbolDisplayPartKind.PropertyName;
+                case ClassificationTypeNames.LabelName:
+                    return SymbolDisplayPartKind.LabelName;
+                case ClassificationTypeNames.NamespaceName:
+                    return SymbolDisplayPartKind.NamespaceName;
                 case ClassificationTypeNames.EventName:
-                    return SymbolDisplayPartKind.Text;      // TODO: Add more SymbolDisplayPartKinds 
+                    return SymbolDisplayPartKind.EventName;
             }
         }
     }

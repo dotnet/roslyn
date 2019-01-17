@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DiagnosticBag diagnostics)
                 : base(body, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
             {
-                Debug.Assert(method.IteratorElementType != null);
+                Debug.Assert(!TypeSymbol.Equals(method.IteratorElementType, null, TypeCompareKind.ConsiderEverything2));
 
                 _isEnumerable = method.IsIAsyncEnumerableReturningAsync(method.DeclaringCompilation);
                 Debug.Assert(_isEnumerable != method.IsIAsyncEnumeratorReturningAsync(method.DeclaringCompilation));
@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current, bag);
 
                 EnsureWellKnownMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync, bag);
-                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken, bag);
+                EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask__ctor, bag);
 
                 EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetResult, bag);
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override void InitializeStateMachine(ArrayBuilder<BoundStatement> bodyBuilder, NamedTypeSymbol frameType, LocalSymbol stateMachineLocal)
             {
                 // var stateMachineLocal = new {StateMachineType}({initialState})
-                int initialState = _isEnumerable ? StateMachineStates.FinishedStateMachine : StateMachineStates.NotStartedStateMachine;
+                int initialState = _isEnumerable ? StateMachineStates.FinishedStateMachine : StateMachineStates.InitialAsyncIteratorStateMachine;
                 bodyBuilder.Add(
                     F.Assignment(
                         F.Local(stateMachineLocal),
@@ -194,7 +195,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  _valueOrEndPromise.Reset();
                 //  var inst = this;
                 //  _builder.Start(ref inst);
-                //  return new ValueTask<bool>(this, _valueOrEndPromise.Version);
+                //  var version = _valueOrEndPromise.Version;
+                //  if (_valueOrEndPromise.GetStatus(version) == ValueTaskSourceStatus.Succeeded)
+                //  {
+                //      return new ValueTask<bool>(_valueOrEndPromise.GetResult(version));
+                //  }
+                //  return new ValueTask<bool>(this, version);
 
                 NamedTypeSymbol IAsyncEnumeratorOfElementType =
                     F.WellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T)
@@ -203,13 +209,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol IAsyncEnumerableOfElementType_MoveNextAsync = F.WellKnownMethod(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync)
                     .AsMember(IAsyncEnumeratorOfElementType);
 
+                var promiseType = (NamedTypeSymbol)_promiseOfValueOrEndField.Type.TypeSymbol;
+
+                MethodSymbol promise_GetStatus = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetStatus)
+                    .AsMember(promiseType);
+
+                MethodSymbol promise_GetResult = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetResult)
+                    .AsMember(promiseType);
+
+                var moveNextAsyncReturnType = (NamedTypeSymbol)IAsyncEnumerableOfElementType_MoveNextAsync.ReturnType.TypeSymbol;
+
+                MethodSymbol valueTaskT_ctorValue = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue)
+                    .AsMember(moveNextAsyncReturnType);
+
+                MethodSymbol valueTaskT_ctor = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken)
+                    .AsMember(moveNextAsyncReturnType);
+
                 // The implementation doesn't depend on the method body of the iterator method.
                 OpenMethodImplementation(IAsyncEnumerableOfElementType_MoveNextAsync, hasMethodBodyDependency: false);
 
-                TypeSymbol returnType = IAsyncEnumerableOfElementType_MoveNextAsync.ReturnType.TypeSymbol;
-
-                GetPartsForStartingMachine(returnType,
-                    out BoundExpressionStatement callReset,
+                GetPartsForStartingMachine(out BoundExpressionStatement callReset,
                     out LocalSymbol instSymbol,
                     out BoundStatement instAssignment,
                     out BoundExpressionStatement startCall,
@@ -219,29 +238,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if (state == StateMachineStates.FinishedStateMachine)
                     F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
                     // return default;
-                    thenClause: F.Return(F.Default(returnType)));
+                    thenClause: F.Return(F.Default(moveNextAsyncReturnType)));
 
-                MethodSymbol valueTaskT_ctor =
-                    F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor)
-                    .AsMember((NamedTypeSymbol)returnType);
+                // var version = _valueOrEndPromise.Version;
+                var versionSymbol = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int16));
+                var versionLocal = F.Local(versionSymbol);
+                var versionInit = F.Assignment(versionLocal, F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_get_Version));
 
-                // return new ValueTask<bool>(this, _valueOrEndPromise.Version);
-                var returnStatement = F.Return(F.New(valueTaskT_ctor, F.This(), F.Call(F.InstanceField(_promiseOfValueOrEndField), promise_get_Version)));
+                var ifPromiseReady = F.If(
+                    // if (_valueOrEndPromise.GetStatus(version) == ValueTaskSourceStatus.Succeeded)
+                    F.IntEqual(
+                        F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_GetStatus, versionLocal),
+                        F.Literal(1)),
+                    // return new ValueTask<bool>(_valueOrEndPromise.GetResult(version));
+                    thenClause: F.Return(F.New(valueTaskT_ctorValue, F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_GetResult, versionLocal))));
+
+                // return new ValueTask<bool>(this, version);
+                // Note: we fall back to this slower method of returning when the promise doesn't yet have a value.
+                // This method of returning relies on two interface calls (`IValueTaskSource<bool>.GetStatus(version)` and `IValueTaskSource<bool>.GetResult(version)`).
+                var returnStatement = F.Return(F.New(valueTaskT_ctor, F.This(), versionLocal));
 
                 F.CloseMethod(F.Block(
-                    ImmutableArray.Create(instSymbol),
+                    ImmutableArray.Create(instSymbol, versionSymbol),
                     ifFinished,
                     callReset, // _promiseOfValueOrEnd.Reset();
                     instAssignment, // var inst = this;
                     startCall, // _builder.Start(ref inst);
+                    versionInit,
+                    ifPromiseReady,
                     returnStatement));
             }
 
             /// <summary>
             /// Prepares most of the parts for MoveNextAsync() and DisposeAsync() methods.
             /// </summary>
-            private void GetPartsForStartingMachine(TypeSymbol returnType, out BoundExpressionStatement callReset, out LocalSymbol instSymbol,
-                out BoundStatement instAssignment, out BoundExpressionStatement startCall, out MethodSymbol promise_get_Version)
+            private void GetPartsForStartingMachine(out BoundExpressionStatement callReset, out LocalSymbol instSymbol, out BoundStatement instAssignment,
+                out BoundExpressionStatement startCall, out MethodSymbol promise_get_Version)
             {
                 // Produce the following parts:
                 // - _promiseOfValueOrEnd.Reset();
@@ -279,16 +311,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// Generates the `ValueTask IAsyncDisposable.DisposeAsync()` method.
+            /// The DisposeAsync method should not be called from states -1 (running) or 0-and-up (awaits).
             /// </summary>
             private void GenerateIAsyncDisposable_DisposeAsync()
             {
                 // Produce:
-                //  disposeMode = true;
-                //  if (state == StateMachineStates.FinishedStateMachine ||
-                //      state == StateMachineStates.NotStartedStateMachine)
+                //  if (state >= StateMachineStates.NotStartedStateMachine /* -3 */)
+                //  {
+                //      throw new NotSupportedException();
+                //  }
+                //  if (state == StateMachineStates.FinishedStateMachine /* -2 */)
                 //  {
                 //      return default;
                 //  }
+                //  disposeMode = true;
                 //  _valueOrEndPromise.Reset();
                 //  var inst = this;
                 //  _builder.Start(ref inst);
@@ -301,19 +337,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbol returnType = IAsyncDisposable_DisposeAsync.ReturnType.TypeSymbol;
 
-                GetPartsForStartingMachine(returnType,
-                    out BoundExpressionStatement callReset,
+                GetPartsForStartingMachine(out BoundExpressionStatement callReset,
                     out LocalSymbol instSymbol,
                     out BoundStatement instAssignment,
                     out BoundExpressionStatement startCall,
                     out MethodSymbol promise_get_Version);
 
+                BoundStatement ifInvalidState = F.If(
+                    // if (state >= StateMachineStates.NotStartedStateMachine /* -1 */)
+                    F.IntGreaterThanOrEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.NotStartedStateMachine)),
+                    // throw new NotSupportedException();
+                    thenClause: F.Throw(F.New(F.WellKnownType(WellKnownType.System_NotSupportedException))));
+
                 BoundStatement ifFinished = F.If(
-                    //  if (state == StateMachineStates.FinishedStateMachine ||
-                    //      state == StateMachineStates.NotStartedStateMachine)
-                    F.LogicalOr(
-                        F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
-                        F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.NotStartedStateMachine))),
+                    // if (state == StateMachineStates.FinishedStateMachine)
+                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
                     // return default;
                     thenClause: F.Return(F.Default(returnType)));
 
@@ -326,8 +364,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 F.CloseMethod(F.Block(
                     ImmutableArray.Create(instSymbol),
-                    F.Assignment(F.InstanceField(_disposeModeField), F.Literal(true)), // disposeMode = true;
+                    ifInvalidState,
                     ifFinished,
+                    F.Assignment(F.InstanceField(_disposeModeField), F.Literal(true)), // disposeMode = true;
                     callReset, // _promiseOfValueOrEnd.Reset();
                     instAssignment, // var inst = this;
                     startCall, // _builder.Start(ref inst);
@@ -524,7 +563,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .AsMember(IAsyncEnumerableOfElementType);
 
                 BoundExpression managedThreadId = null;
-                GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, ref managedThreadId, StateMachineStates.NotStartedStateMachine);
+                GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, ref managedThreadId, initialState: StateMachineStates.InitialAsyncIteratorStateMachine);
+            }
+
+            protected override BoundStatement GetExtraResetForIteratorGetEnumerator()
+            {
+                // disposeMode = false;
+                return F.Assignment(F.InstanceField(_disposeModeField), F.Literal(false));
             }
 
             protected override void GenerateMoveNext(SynthesizedImplementationMethod moveNextMethod)

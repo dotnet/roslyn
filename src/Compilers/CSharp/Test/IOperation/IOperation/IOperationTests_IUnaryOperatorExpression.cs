@@ -3510,6 +3510,73 @@ Block[B5] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
+        public void LogicalNotFlow_02()
+        {
+            var source = @"
+class C
+{
+    bool F(bool f)
+    /*<bind>*/{
+        return !f;
+    }/*</bind>*/
+}";
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Next (Return) Block[B2]
+        IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.Unary, Type: System.Boolean) (Syntax: '!f')
+          Operand: 
+            IParameterReferenceOperation: f (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'f')
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LogicalNotFlow_03()
+        {
+            var source = @"
+class C
+{
+    bool F(bool f)
+    /*<bind>*/{
+        return !!f;
+    }/*</bind>*/
+}";
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Next (Return) Block[B2]
+        IParameterReferenceOperation: f (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'f')
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
         public void DynamicNotFlow_01()
         {
             string source = @"

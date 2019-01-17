@@ -149,6 +149,7 @@
     <NerdbankFullDuplexStreamVersion>1.0.1</NerdbankFullDuplexStreamVersion>
     <NewtonsoftJsonVersion>9.0.1</NewtonsoftJsonVersion>
     <NuGetVisualStudioVersion>4.0.0-rc-2048</NuGetVisualStudioVersion>
+    <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
     <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
     <RoslynDependenciesOptimizationDataVersion>2.11.0-beta3.20181005.1</RoslynDependenciesOptimizationDataVersion>

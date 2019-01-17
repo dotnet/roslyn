@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters);
-                Assert.Equal(0, diagnostics.Length);
+                Assert.True(0 == diagnostics.Length, $"Expected no diagnostics, but got {diagnostics.Length}");
             }
         }
 
