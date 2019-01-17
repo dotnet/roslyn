@@ -3981,7 +3981,7 @@ public class C
         }
 
         [Fact]
-        public void GenericRefStructAddressOf()
+        public void GenericRefStructAddressOf_01()
         {
             var code = @"
 public ref struct MyStruct<T>
@@ -4004,6 +4004,32 @@ public class MyClass
                 options: TestOptions.UnsafeReleaseExe,
                 verify: Verification.Skipped,
                 expectedOutput: "42");
+        }
+
+        [Fact]
+        public void GenericRefStructAddressOf_02()
+        {
+            var code = @"
+public ref struct MyStruct<T>
+{
+    public T field;
+}
+
+public class MyClass
+{
+    public unsafe void M()
+    {
+        var ms = new MyStruct<object>();
+        var ptr = &ms;
+    }
+}
+";
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (12,19): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<object>')
+                //         var ptr = &ms;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&ms").WithArguments("MyStruct<object>").WithLocation(12, 19)
+            );
         }
 
         [Fact]
