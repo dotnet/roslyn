@@ -640,7 +640,10 @@ namespace Microsoft.CodeAnalysis
                                 if (metadataReference != null)
                                 {
                                     newReferences.Add(metadataReference);
-                                    metadataReferenceToProjectId.Add(metadataReference, projectReference.ProjectId);
+                                    if (!metadataReferenceToProjectId.ContainsKey(metadataReference))
+                                    {
+                                        metadataReferenceToProjectId.Add(metadataReference, projectReference.ProjectId);
+                                    }
                                 }
                                 else
                                 {
