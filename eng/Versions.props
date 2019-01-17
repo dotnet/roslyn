@@ -72,11 +72,13 @@
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-63011-01</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
-    <MicrosoftNetCompilersVersion>2.9.0-beta7-63018-03</MicrosoftNetCompilersVersion>
+    <!-- PROTOTYPE(DefaultInterfaceImplementation): The MicrosoftNetCompilersVersion was 2.9.0-beta7-63018-03 -->
+    <MicrosoftNetCompilersVersion>3.0.0-beta2-19066-10</MicrosoftNetCompilersVersion>
     <MicrosoftNetCoreAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftNetCoreAnalyzersVersion>
     <!-- PROTOTYPE(DefaultInterfaceImplementation): The MicrosoftNetCoreILAsmVersion was 2.0.0 -->
     <MicrosoftNetCoreILAsmVersion>3.0.0-preview-27312-01</MicrosoftNetCoreILAsmVersion>
-    <MicrosoftNETCoreCompilersVersion>2.9.0-beta7-63018-03</MicrosoftNETCoreCompilersVersion>
+    <!-- PROTOTYPE(DefaultInterfaceImplementation): The MicrosoftNETCoreCompilersVersion was 2.9.0-beta7-63018-03 -->
+    <MicrosoftNETCoreCompilersVersion>3.0.0-beta2-19066-10</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCorePlatformsVersion>2.1.0</MicrosoftNETCorePlatformsVersion>
     <!-- PROTOTYPE(DefaultInterfaceImplementation): The MicrosoftNETCoreRuntimeCoreCLRVersion was 2.0.0 -->
     <MicrosoftNETCoreRuntimeCoreCLRVersion>3.0.0-preview-27313-3</MicrosoftNETCoreRuntimeCoreCLRVersion>
