@@ -8826,7 +8826,7 @@ struct S6<T>
 }
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7);
-            
+
             comp.VerifyDiagnostics(
                 // (5,19): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 //         interface IBar { }

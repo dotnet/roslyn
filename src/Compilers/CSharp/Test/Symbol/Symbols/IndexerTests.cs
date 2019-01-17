@@ -1770,7 +1770,7 @@ interface B
 }
 ";
             // CONSIDER: this cascading is a bit verbose.
-            CreateCompilation(source, parseOptions:TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (18,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Constant2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Constant2").WithLocation(18, 18),

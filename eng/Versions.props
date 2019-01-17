@@ -74,10 +74,12 @@
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
     <MicrosoftNetCompilersVersion>2.9.0-beta7-63018-03</MicrosoftNetCompilersVersion>
     <MicrosoftNetCoreAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftNetCoreAnalyzersVersion>
-    <MicrosoftNetCoreILAsmVersion>2.0.0</MicrosoftNetCoreILAsmVersion>
+    <!-- PROTOTYPE(DefaultInterfaceImplementation): The MicrosoftNetCoreILAsmVersion was 2.0.0 -->
+    <MicrosoftNetCoreILAsmVersion>3.0.0-preview-27312-01</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNETCoreCompilersVersion>2.9.0-beta7-63018-03</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCorePlatformsVersion>2.1.0</MicrosoftNETCorePlatformsVersion>
-    <MicrosoftNETCoreRuntimeCoreCLRVersion>2.0.0</MicrosoftNETCoreRuntimeCoreCLRVersion>
+    <!-- PROTOTYPE(DefaultInterfaceImplementation): The MicrosoftNETCoreRuntimeCoreCLRVersion was 2.0.0 -->
+    <MicrosoftNETCoreRuntimeCoreCLRVersion>3.0.0-preview-27313-3</MicrosoftNETCoreRuntimeCoreCLRVersion>
      <!-- Using a private build of Microsoft.Net.Test.SDK to work around issue https://github.com/Microsoft/vstest/issues/1764 -->	
     <MicrosoftNETTestSdkVersion>15.9.0-dev2</MicrosoftNETTestSdkVersion>
     <MicrosoftServiceHubClientVersion>1.3.23</MicrosoftServiceHubClientVersion>
