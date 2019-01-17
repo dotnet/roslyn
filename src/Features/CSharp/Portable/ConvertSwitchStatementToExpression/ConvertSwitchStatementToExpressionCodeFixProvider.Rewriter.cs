@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             {
                 Debug.Assert(_assignmentTargetOpt != null);
 
-                // Try to remove variable declarator only if it's a simple identifiers.
+                // Try to remove variable declarator only if it's a simple identifier.
                 if (!_assignmentTargetOpt.IsKind(SyntaxKind.IdentifierName))
                 {
                     return false;
