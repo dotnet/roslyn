@@ -507,6 +507,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             TypeSymbol targetTypeSymbol = GetMemberRefTypeSymbol(memberRef);
 
+            if (targetTypeSymbol is null)
+            {
+                return null;
+            }
+
+            Debug.Assert(!targetTypeSymbol.IsTupleType);
+
             if ((object)scope != null)
             {
                 Debug.Assert(scope.Kind == SymbolKind.NamedType || scope.Kind == SymbolKind.ErrorType);
@@ -520,6 +527,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     return null;
                 }
+            }
+
+            if (!targetTypeSymbol.IsTupleCompatible())
+            {
+                targetTypeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(targetTypeSymbol, elementNames: default);
             }
 
             // We're going to use a special decoder that can generate usable symbols for type parameters without full context.

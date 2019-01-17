@@ -2136,16 +2136,19 @@ class A
             CreateCompilation("event System.Action System.IFormattable.").VerifyDiagnostics(
                 // (1,40): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "."),
-                // (1,21): error CS0540: '<invalid-global-code>.': containing type does not implement interface 'System.IFormattable'
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(1, 40),
+                // (1,41): error CS1001: Identifier expected
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "System.IFormattable").WithArguments("<invalid-global-code>.", "System.IFormattable"),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 41),
+                // (1,21): error CS0540: '<invalid-global-code>.': containing type does not implement interface 'IFormattable'
+                // event System.Action System.IFormattable.
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "System.IFormattable").WithArguments("<invalid-global-code>.", "System.IFormattable").WithLocation(1, 21),
                 // (1,41): error CS0539: '<invalid-global-code>.' in explicit interface declaration is not a member of interface
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("<invalid-global-code>."),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("<invalid-global-code>.").WithLocation(1, 41),
                 // (1,41): error CS0065: '<invalid-global-code>.': event property must have both add and remove accessors
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("<invalid-global-code>."));
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("<invalid-global-code>.").WithLocation(1, 41));
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]

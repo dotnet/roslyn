@@ -1503,7 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (s_isNullableOnly(source) && s_isNullableOnly(target))
+            if (isNullableOnly(source) && isNullableOnly(target))
             {
                 ExactOrBoundsInference(kind, source.AsNotNullableReferenceType(), target.AsNotNullableReferenceType(), ref useSiteDiagnostics);
                 return true;
@@ -1512,7 +1512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
 
             // True if the type is nullable but not an unconstrained type parameter.
-            bool s_isNullableOnly(TypeSymbolWithAnnotations type)
+            bool isNullableOnly(TypeSymbolWithAnnotations type)
                 => type.NullableAnnotation.IsAnyNullable() && !type.TypeSymbol.IsTypeParameterDisallowingAnnotation();
         }
 

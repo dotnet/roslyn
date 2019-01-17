@@ -177,6 +177,11 @@
         <target state="new">An expression of type '{0}' can never match the provided pattern.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IteratorMustBeAsync">
+        <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
+        <target state="new">Method '{0}' with an iterator block must be 'async' to return '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="new">Pattern missing</target>
@@ -415,6 +420,11 @@
       <trans-unit id="IDS_FeatureObjectGenericTypeConstraint">
         <source>object generic type constraint</source>
         <target state="new">object generic type constraint</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">
+        <source>warning action enable or safeonly</source>
+        <target state="new">warning action enable or safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -925,6 +935,16 @@
       <trans-unit id="WRN_GivenExpressionNeverMatchesPattern_Title">
         <source>The given expression never matches the provided pattern.</source>
         <target state="new">The given expression never matches the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IllegalPPWarningSafeOnly">
+        <source>Expected nullable</source>
+        <target state="new">Expected nullable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IllegalPPWarningSafeOnly_Title">
+        <source>Expected nullable after #pragma warning safeonly</source>
+        <target state="new">Expected nullable after #pragma warning safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
@@ -5301,13 +5321,13 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
-        <source>Expected disable or restore</source>
-        <target state="translated">È previsto disable o restore</target>
+        <source>Expected disable, restore, enable or safeonly</source>
+        <target state="needs-review-translation">È previsto disable o restore</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
-        <source>Expected disable or restore after #pragma warning</source>
-        <target state="translated">Dopo l'avviso della direttiva #pragma è previsto disable o restore</target>
+        <source>Expected disable, restore, enable or safeonly after #pragma warning</source>
+        <target state="needs-review-translation">Dopo l'avviso della direttiva #pragma è previsto disable o restore</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
