@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             1 => 1,
             2 => 2,
             3 => 3,
-            _ => 4
+            _ => 4,
         };
         int x, y;
         switch (i)
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                     10 => 10,
                     20 => 20,
                     30 => 30,
-                    _ => 0
+                    _ => 0,
                 };
             case 2:
                 return j switch
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                     10 => 10,
                     20 => 20,
                     30 => 30,
-                    var _ => 0
+                    var _ => 0,
                 };
             case 3:
                 return j switch
@@ -151,12 +151,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                     10 => 10,
                     20 => 20,
                     30 => 30,
-                    var v => 0
+                    var v => 0,
                 };
         }
     }
-}
-");
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
@@ -188,13 +187,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         return i switch
         {
             _ => () =>
-                {
-                    switch (j)
-                    {
-                        default:
-                            return 3;
-                    }
-                }
+                 {
+                     switch (j)
+                     {
+                         default:
+                             return 3;
+                     }
+                 }
+            ,
         };
     }
 }");

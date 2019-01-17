@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             1 => 4,
             2 => 5,
             3 => 6,
-            _ => 7
+            _ => 7,
         };
     }
 }");
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             1 => 4,
             2 => 5,
             3 => 6,
-            _ => throw null
+            _ => throw null,
         };
     }
 }");
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             1 => 4,
             2 => 5,
             3 => 6,
-            _ => 7
+            _ => 7,
         };
     }
 }");
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         throw i switch
         {
             1 => null,
-            _ => new Exception()
+            _ => new Exception(),
         };
     }
 }");
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             1 => 4,
             2 => 5,
             3 => 6,
-            _ => throw null
+            _ => throw null,
         };
     }
 }");
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             1 => 4,
             2 => 5,
             3 => 6,
-            _ => throw null
+            _ => throw null,
         };
     }
 }");
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             1 => 4,
             2 => 5,
             3 => 6,
-            _ => throw null
+            _ => throw null,
         };
     }
 }");
@@ -553,6 +553,49 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
                 break;
         }
         throw null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    int M(int i)
+    {
+        // leading switch
+        [||]switch (i) // trailing switch
+        {
+            // leading label
+            case 1:
+                return 4; // trailing body
+            case 2:
+                return 5;
+            case 3:
+                return 6;
+        }
+        
+        // leading next statement
+        throw null; // leading next statement
+    }
+}",
+@"class Program
+{
+    int M(int i)
+    {
+        // leading switch
+        return i switch // trailing switch
+        {
+            // leading label
+            1 => 4, // trailing body
+            2 => 5,
+            3 => 6,
+
+            // leading next statement
+            _ => throw null, // leading next statement
+        };
     }
 }");
         }
