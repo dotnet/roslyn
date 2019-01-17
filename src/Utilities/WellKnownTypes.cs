@@ -464,6 +464,21 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Web.Mvc.HttpVerbs");
         }
 
+        public static INamedTypeSymbol X509Certificate(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Security.Cryptography.X509Certificates.X509Certificate");
+        }
+
+        public static INamedTypeSymbol X509Chain(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Security.Cryptography.X509Certificates.X509Chain");
+        }
+
+        public static INamedTypeSymbol SslPolicyErrors(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Net.Security.SslPolicyErrors");
+        }
+
         #region Test Framework Types
         public static INamedTypeSymbol TestCleanupAttribute(Compilation compilation)
         {
