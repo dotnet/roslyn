@@ -15,7 +15,6 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Microsoft.VisualStudio.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
@@ -3556,27 +3555,83 @@ class C
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29112")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoBlockOnCompletionItems4(completionImplementation As CompletionImplementation) As Task
+            ' This test verifies a scenario with the following conditions:
+            ' a. A slow completion provider
+            ' b. The block option set to false.
+            ' Scenario:
+            ' 1. Type 'Sys'
+            ' 2. Send CommitIfUnique (Ctrl + space)
+            ' 3. Wait for 250ms.
+            ' 4. Verify that there is no completion window shown. In the new completion, we can just start the verification and check that the verification is still running.
+            ' 5. Check that the commit is not yet provided: there is 'Sys' but no 'System'
+            ' 6. Simulate unblocking the provider.
+            ' 7. Verify that the completion completes CommitIfUnique.
             Dim tcs = New TaskCompletionSource(Of Boolean)
+            Dim provider = New TaskControlledCompletionProvider(tcs.Task)
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
                                   using $$
-                              </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
+                              </Document>, {provider})
 
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(
                     CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
-                state.SendCommitUniqueCompletionListItem()
-                Await Task.Delay(250)
-                Await state.AssertNoCompletionSession(block:=False)
-                Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
-                Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
 
-                tcs.SetResult(True)
+                If completionImplementation = CompletionImplementation.Legacy Then
+                    state.SendCommitUniqueCompletionListItem()
+                    Await Task.Delay(250)
+
+                    state.AssertNoCompletionSessionWithNoBlock()
+                    Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
+                    Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
+                    tcs.SetResult(True)
+                Else
+                    Dim task1 As Task = Nothing
+                    Dim task2 As Task = Nothing
+
+                    Dim providerCalledHandler =
+                        Sub()
+                            task2 = New Task(
+                            Sub()
+                                Thread.Sleep(250)
+                                Try
+                                    ' 3. Check that the other task is running/hanging.
+                                    Assert.Equal(TaskStatus.Running, task1.Status)
+                                    Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
+                                    Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
+                                    ' Need the Finally to avoid hangs if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
+                                Finally
+                                    ' 4. Unblock the first task and the main thread.
+                                    tcs.SetResult(True)
+                                End Try
+                            End Sub)
+
+                            task1 = Task.Run(
+                            Sub()
+                                task2.Start()
+                                ' 2. Hang here as well: getting items is waiting provider to respond.
+                                Dim completionItem = state.GetSelectedItemOpt()
+                            End Sub)
+
+
+                        End Sub
+
+                    AddHandler provider.ProviderCalled, providerCalledHandler
+
+                    ' SendCommitUniqueCompletionListItem is a synchronous operation. 
+                    ' It guarantees that ProviderCalled will be triggered and after that the completion will hang waiting for a task to be resolved.
+                    ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
+                    ' 1. Hang here.
+                    state.SendCommitUniqueCompletionListItem()
+
+                    Assert.NotNull(task1)
+                    Assert.NotNull(task2)
+                    Await Task.WhenAll(task1, task2)
+                End If
 
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertNoCompletionSession()
@@ -3584,33 +3639,98 @@ class C
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29112")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoBlockOnCompletionItems3(completionImplementation As CompletionImplementation) As Task
+            ' This test verifies a scenario with the following conditions:
+            ' a. A slow completion provider
+            ' b. The block option set to false.
+            ' Scenario:
+            ' 1. Type 'Sys'
+            ' 2. Send CommitIfUnique (Ctrl + space)
+            ' 3. Wait for 250ms.
+            ' 4. Verify that there is no completion window shown. In the new completion, we can just start the verification and check that the verification is still running.
+            ' 5. Check that the commit is not yet provided: there is 'Sys' but no 'System'
+            ' 6. The next statement in the UI thread after CommitIfUnique is typing 'a'.
+            ' 7. Simulate unblocking the provider.
+            ' 8. Verify that 
+            ' 8.a. The old completion adds 'a' to 'Sys' and displays 'Sysa'. CommitIfUnique is canceled because it was interrupted by typing 'a'.
+            ' 8.b. The new completion completes CommitIfUnique and then adds 'a'.
             Dim tcs = New TaskCompletionSource(Of Boolean)
+            Dim provider = New TaskControlledCompletionProvider(tcs.Task)
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
                                   using $$
-                              </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
+                              </Document>, {provider})
 
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(
                     CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
-                state.SendCommitUniqueCompletionListItem()
-                Await Task.Delay(250)
-                Await state.AssertNoCompletionSession(block:=False)
-                Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
-                Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
+                If completionImplementation = CompletionImplementation.Legacy Then
+                    state.SendCommitUniqueCompletionListItem()
+                    Await Task.Delay(250)
+                    state.AssertNoCompletionSessionWithNoBlock()
+                    Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
+                    Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
 
-                state.SendTypeChars("a")
+                    state.SendTypeChars("a")
 
-                tcs.SetResult(True)
+                    tcs.SetResult(True)
 
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionSession()
-                Assert.Contains("Sysa", state.GetLineTextFromCaretPosition())
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertCompletionSession()
+                    Assert.Contains("Sysa", state.GetLineTextFromCaretPosition())
+                Else
+                    Dim task1 As Task = Nothing
+                    Dim task2 As Task = Nothing
+
+                    Dim providerCalledHandler =
+                        Sub()
+                            task2 = New Task(
+                                Sub()
+                                    Thread.Sleep(250)
+                                    Try
+                                        ' 3. Check that the other task is running/hanging.
+                                        Assert.Equal(TaskStatus.Running, task1.Status)
+                                        Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
+                                        Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
+                                        ' Need the Finally to avoid hangs if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
+                                    Finally
+                                        ' 4. Unblock the first task and the main thread.
+                                        tcs.SetResult(True)
+                                    End Try
+                                End Sub)
+
+                            task1 = Task.Run(
+                            Sub()
+                                task2.Start()
+                                ' 2. Hang here as well: getting items is waiting provider to respond.
+                                Dim completionItem = state.GetSelectedItemOpt()
+                            End Sub)
+                        End Sub
+
+                    AddHandler provider.ProviderCalled, providerCalledHandler
+
+                    ' SendCommitUniqueCompletionListItem is a synchronous operation. 
+                    ' It guarantees that ProviderCalled will be triggered and after that the completion will hang waiting for a task to be resolved.
+                    ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
+                    ' 1. Hang here.
+                    state.SendCommitUniqueCompletionListItem()
+                    ' 5. Put insertion of 'a' into the edtior queue. It can be executed in the foreground thread only
+                    state.SendTypeChars("a")
+
+                    Assert.NotNull(task1)
+                    Assert.NotNull(task2)
+                    Await Task.WhenAll(task1, task2)
+
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertNoCompletionSession()
+                    ' Here is a difference between the old and the new completions:
+                    ' The old completion adds 'a' to 'Sys' and displays 'Sysa'. CommitIfUnique is canceled because it was interrupted by typing 'a'.
+                    ' The new completion completes CommitIfUnique and then adds 'a'.
+                    Assert.Contains("Systema", state.GetLineTextFromCaretPosition())
+                End If
             End Using
         End Function
 
@@ -3619,11 +3739,14 @@ class C
 
             Private ReadOnly _task As Task
 
+            Public Event ProviderCalled()
+
             Public Sub New(task As Task)
                 _task = task
             End Sub
 
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                RaiseEvent ProviderCalled()
                 Return _task
             End Function
         End Class

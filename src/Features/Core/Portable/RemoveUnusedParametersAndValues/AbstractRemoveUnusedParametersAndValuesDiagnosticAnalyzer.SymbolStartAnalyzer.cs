@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             private readonly INamedTypeSymbol _eventArgsTypeOpt;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
+            private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates;
 
             /// <summary>
@@ -34,12 +36,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             public SymbolStartAnalyzer(
                 AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,
                 INamedTypeSymbol eventArgsTypeOpt,
-                ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore)
+                ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
+                DeserializationConstructorCheck deserializationConstructorCheck)
             {
                 _compilationAnalyzer = compilationAnalyzer;
 
                 _eventArgsTypeOpt = eventArgsTypeOpt;
                 _attributeSetForMethodsToIgnore = attributeSetForMethodsToIgnore;
+                _deserializationConstructorCheck = deserializationConstructorCheck;
                 _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
                 _methodsUsedAsDelegates = new ConcurrentDictionary<IMethodSymbol, bool>();
             }
@@ -50,13 +54,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 var attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(context.Compilation).WhereNotNull());
                 var eventsArgType = context.Compilation.EventArgsType();
+                var deserializationConstructorCheck = new DeserializationConstructorCheck(context.Compilation);
                 context.RegisterSymbolStartAction(symbolStartContext =>
                 {
                     // Create a new SymbolStartAnalyzer instance for every named type symbol
                     // to ensure there is no shared state (such as identified unused parameters within the type),
                     // as that would lead to duplicate diagnostics being reported from symbol end action callbacks
                     // for unrelated named types.
-                    var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore);
+                    var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore, deserializationConstructorCheck);
                     symbolAnalyzer.OnSymbolStart(symbolStartContext);
                 }, SymbolKind.NamedType);
             }
@@ -81,11 +86,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             private void OnSymbolEnd(SymbolAnalysisContext context)
             {
-                foreach (var parameterAndUsageKvp in _unusedParameters)
+                foreach (var (parameter, hasReference) in _unusedParameters)
                 {
-                    var parameter = parameterAndUsageKvp.Key;
-                    bool hasReference = parameterAndUsageKvp.Value;
-
                     ReportUnusedParameterDiagnostic(parameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
                 }
             }
@@ -191,7 +193,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     !method.ExplicitOrImplicitInterfaceImplementations().IsEmpty ||
                     method.IsAccessor() ||
                     method.IsAnonymousFunction() ||
-                    _compilationAnalyzer.MethodHasHandlesClause(method))
+                    _compilationAnalyzer.MethodHasHandlesClause(method) ||
+                    _deserializationConstructorCheck.IsDeserializationConstructor(method))
                 {
                     return false;
                 }

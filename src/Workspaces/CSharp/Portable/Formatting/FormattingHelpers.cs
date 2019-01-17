@@ -562,5 +562,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 currentToken.Parent is ParenthesizedVariableDesignationSyntax &&
                 currentToken.Parent.Parent is DeclarationExpressionSyntax;
         }
+
+        /// <summary>
+        /// Check whether the currentToken is a comma and is a delimiter between arguments inside a tuple expression.
+        /// </summary>
+        public static bool IsCommaInTupleExpression(this SyntaxToken currentToken)
+        {
+            return currentToken.IsKind(SyntaxKind.CommaToken) &&
+                currentToken.Parent.IsKind(SyntaxKind.TupleExpression);
+        }
     }
 }

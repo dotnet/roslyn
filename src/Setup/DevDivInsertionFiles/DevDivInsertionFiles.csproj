@@ -130,15 +130,14 @@
       <_DependencyWithExpectedMetadata>
         <_UnpackDir>$(_OptimizedDependenciesDir)%(_DependencyWithExpectedMetadata.Identity)\</_UnpackDir>
         <_OptimizeAssembly>$(_OptimizedDependenciesDir)%(_DependencyWithExpectedMetadata.Identity)\%(_DependencyWithExpectedMetadata.DevEnvLib)</_OptimizeAssembly>
-        <_PreviousOptimizedFile>$([System.IO.Path]::Combine($(IbcOptimizationDataDir), '$([System.IO.Path]::GetFileNameWithoutExtension(%(_DependencyWithExpectedMetadata.DevEnvLib))).pgo'))</_PreviousOptimizedFile>
       </_DependencyWithExpectedMetadata>
 
       <_DependencyWithOptimizationData Include="@(_DependencyWithExpectedMetadata)" 
                                        Condition="'%(_DependencyWithExpectedMetadata.OverwriteNgenOptimizationData)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'" />
-      
+
       <_DependencyWithoutOptimizationData Include="@(_DependencyWithExpectedMetadata)" Exclude="@(_DependencyWithOptimizationData)"/>
 
-      <OptimizeAssembly Include="%(_DependencyWithOptimizationData._OptimizeAssembly)" PreviousOptimizedFile="%(_DependencyWithOptimizationData._PreviousOptimizedFile)" />
+      <OptimizeAssembly Include="%(_DependencyWithOptimizationData._OptimizeAssembly)" />
     </ItemGroup>
   </Target>
 

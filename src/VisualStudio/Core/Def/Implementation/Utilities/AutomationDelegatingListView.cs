@@ -69,6 +69,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
             return results;
         }
+
+        protected override AutomationControlType GetAutomationControlTypeCore()
+        {
+            return AutomationControlType.List;
+        }
     }
 
     internal class AutomationDelegatingListViewItem : ListViewItem
