@@ -12,7 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(LiteralExpressionSyntax node, ArrayBuilder<BlockSpan> spans, OptionSet options, CancellationToken cancellationToken)
         {
-            if (node.IsKind(SyntaxKind.StringLiteralExpression))
+            if (node.IsKind(SyntaxKind.StringLiteralExpression) &&
+                !node.ContainsDiagnostics)
             {
                 spans.Add(new BlockSpan(
                     isCollapsible: true,
