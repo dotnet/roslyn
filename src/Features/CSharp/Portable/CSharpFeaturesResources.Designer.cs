@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make ref struct.
+        ///   Looks up a localized string similar to Make &apos;ref struct&apos;.
         /// </summary>
         internal static string Make_ref_struct {
             get {

@@ -34,27 +34,27 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
             var structDeclaration = FindContainingStruct(root, span);
 
             // CS8345 could be triggered when struct is already marked with `ref` but a property is static
-            if (structDeclaration != null && !structDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.RefKeyword)))
+            if (structDeclaration != null && !structDeclaration.Modifiers.Any(SyntaxKind.RefKeyword))
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(
-                        CSharpFeaturesResources.Make_ref_struct,
-                        c => FixCodeAsync(context.Document, context.Span, c)),
+                    new MyCodeAction(c => FixCodeAsync(document, span, c)),
                     context.Diagnostics);
             }
         }
 
         public override FixAllProvider GetFixAllProvider()
         {
-            return WellKnownFixAllProviders.BatchFixer;
+            // The chance of needing fix-all in these cases is super low
+            return null;
         }
 
-        private async Task<Document> FixCodeAsync(Document document, TextSpan span, CancellationToken c)
+        private async Task<Document> FixCodeAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(c).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var gen = SyntaxGenerator.GetGenerator(document);
 
             var structDeclaration = FindContainingStruct(root, span);
-            var newStruct = UpdateStructDeclaration(document, structDeclaration);
+            var newStruct = gen.WithModifiers(structDeclaration, gen.GetModifiers(structDeclaration).WithIsRef(true));
             var newRoot = root.ReplaceNode(structDeclaration, newStruct);
 
             return document.WithSyntaxRoot(newRoot);
@@ -68,16 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
             return member.GetAncestor<TypeDeclarationSyntax>() as StructDeclarationSyntax;
         }
 
-        private SyntaxNode UpdateStructDeclaration(Document document, StructDeclarationSyntax decl)
-        {
-            var gen = SyntaxGenerator.GetGenerator(document);
-            return gen.WithModifiers(decl, gen.GetModifiers(decl).WithIsRef(true));
-        }
-
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Make_ref_struct,
+                    createChangedDocument,
+                    CSharpFeaturesResources.Make_ref_struct)
             {
             }
         }
