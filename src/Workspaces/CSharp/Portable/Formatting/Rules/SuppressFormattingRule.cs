@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 AddSuppressWrappingIfOnSingleLineOperation(list,
                     node.GetFirstToken(includeZeroWidth: true),
                     node.GetLastToken(includeZeroWidth: true),
-                    SuppressOption.IgnoreElastic);
+                    SuppressOption.IgnoreElasticWrapping);
                 return;
             }
 
