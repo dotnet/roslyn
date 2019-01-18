@@ -2,7 +2,6 @@
 
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -24,18 +23,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public VenusCommandFilter(
             TLanguageService languageService,
             IWpfTextView wpfTextView,
-            ICommandHandlerServiceFactory commandHandlerServiceFactory,
             ITextBuffer subjectBuffer,
             IOleCommandTarget nextCommandTarget,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(languageService, wpfTextView, editorAdaptersFactoryService, commandHandlerServiceFactory)
+            : base(languageService, wpfTextView, editorAdaptersFactoryService)
         {
             Contract.ThrowIfNull(wpfTextView);
             Contract.ThrowIfNull(subjectBuffer);
             Contract.ThrowIfNull(nextCommandTarget);
 
             _subjectBuffer = subjectBuffer;
-            CurrentHandlers = commandHandlerServiceFactory.GetService(subjectBuffer);
+
             // Chain in editor command handler service. It will execute all our command handlers migrated to the modern editor commanding.
             var componentModel = (IComponentModel)languageService.SystemServiceProvider.GetService(typeof(SComponentModel));
             var vsCommandHandlerServiceAdapterFactory = componentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
