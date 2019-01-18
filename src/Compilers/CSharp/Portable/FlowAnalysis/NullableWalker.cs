@@ -1284,7 +1284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((object)tupleType != null && !isDefaultValueTypeConstructor)
                         {
                             // new System.ValueTuple<T1, ..., TN>(e1, ..., eN)
-                            TrackNullableStateOfTupleElements(slot, tupleType, arguments, argumentTypes);
+                            TrackNullableStateOfTupleElements(slot, tupleType, arguments, argumentTypes, useRestField: true);
                         }
                         else
                         {
@@ -3456,28 +3456,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0)
                 {
                     this.State[slot] = NullableAnnotation.NotNullable;
-                    TrackNullableStateOfTupleElements(slot, tupleOpt, arguments, elementTypes);
+                    TrackNullableStateOfTupleElements(slot, tupleOpt, arguments, elementTypes, useRestField: false);
                 }
                 _resultType = TypeSymbolWithAnnotations.Create(tupleOpt.WithElementTypes(elementTypes), NullableAnnotation.NotNullable);
             }
         }
 
-        private void TrackNullableStateOfTupleElements(int slot, TupleTypeSymbol tupleType, ImmutableArray<BoundExpression> values, ImmutableArray<TypeSymbolWithAnnotations> types)
+        private void TrackNullableStateOfTupleElements(
+            int slot,
+            TupleTypeSymbol tupleType,
+            ImmutableArray<BoundExpression> values,
+            ImmutableArray<TypeSymbolWithAnnotations> types,
+            bool useRestField)
         {
-            Debug.Assert(tupleType.TupleElements.Length == values.Length);
-            Debug.Assert(tupleType.TupleElements.Length == types.Length);
+            Debug.Assert(values.Length == types.Length);
+            Debug.Assert(values.Length == (useRestField ? Math.Min(tupleType.TupleElements.Length, TupleTypeSymbol.RestPosition) : tupleType.TupleElements.Length));
 
             if (slot > 0)
             {
                 var tupleElements = tupleType.TupleElements;
-                int n = tupleElements.Length;
+                int n = values.Length;
+                if (useRestField)
+                {
+                    n = Math.Min(n, TupleTypeSymbol.RestPosition - 1);
+                }
                 for (int i = 0; i < n; i++)
                 {
-                    var value = values[i];
-                    var tupleElement = tupleElements[i];
-                    TrackNullableStateForAssignment(value, tupleElement.Type, GetOrCreateSlot(tupleElement, slot), types[i], MakeSlot(value));
+                    trackState(values[i], tupleElements[i], types[i]);
+                }
+                if (useRestField && values.Length == TupleTypeSymbol.RestPosition)
+                {
+                    var restField = tupleType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
+                    if ((object)restField != null)
+                    {
+                        trackState(values.Last(), restField, types.Last());
+                    }
                 }
             }
+
+            void trackState(BoundExpression value, FieldSymbol field, TypeSymbolWithAnnotations valueType) =>
+                TrackNullableStateForAssignment(value, field.Type, GetOrCreateSlot(field, slot), valueType, MakeSlot(value));
         }
 
         public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
