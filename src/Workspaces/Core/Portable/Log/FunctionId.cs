@@ -445,5 +445,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SyntaxTreeIndex_Precalculate_Create,
         SymbolTreeInfo_Create,
         SymbolTreeInfo_TryLoadOrCreate,
+        CommandHandler_GoToImplementation,
+        GraphQuery_ImplementedBy,
+        GraphQuery_Implements,
+        GraphQuery_IsCalledBy,
+        GraphQuery_IsUsedBy,
+        GraphQuery_Overrides,
     }
 }
