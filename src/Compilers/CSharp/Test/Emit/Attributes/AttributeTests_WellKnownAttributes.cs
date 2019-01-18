@@ -6883,10 +6883,7 @@ class D
                 Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter").WithLocation(9, 17),
                 // (7,33): warning CS0612: 'A' is obsolete
                 //     object P { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(7, 33),
-                // (9,82): warning CS0612: 'C' is obsolete
-                //     object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C").WithArguments("C").WithLocation(9, 82));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(7, 33));
         }
 
         [Fact]
@@ -6937,13 +6934,10 @@ class D
             comp.VerifyDiagnostics(
                 // (21,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
                 //         [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter"),
+                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter").WithLocation(21, 10),
                 // (11,24): warning CS0612: 'A' is obsolete
                 //         remove { M(new A()); }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A"),
-                // (21,73): warning CS0612: 'C' is obsolete
-                //         [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C").WithArguments("C").WithLocation(21, 73));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(11, 24));
         }
 
         [Fact]
