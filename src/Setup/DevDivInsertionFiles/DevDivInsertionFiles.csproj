@@ -122,13 +122,13 @@
 
     <!-- 
       We need to calculate a full path of the corresponding optimized assembly for each relative path listed in ExpectedDependency.OptimizeAssemblies.
-      First we split the lists in _DevEnvLibItems, then prepend the directory path, group them back to _AssembliesFullPathsGrouped and finally join back to ExpectedDependency item group.
+      First we split the list in OptimizeAssemblies, then prepend the directory path, group them back to _AssembliesFullPathsGrouped and finally join back to ExpectedDependency item group.
     -->
     <ItemGroup>
       <_AssembliesSplit Include="%(ExpectedDependency.OptimizeAssemblies)" DependencyName="%(ExpectedDependency.Identity)" />
       <_AssembliesFullPaths Include="%(_AssembliesSplit.DependencyName)" OptimizeAssembliesFullPaths="$(_OptimizedDependenciesDir)%(_AssembliesSplit.DependencyName)\%(_AssembliesSplit.Identity)" />
     </ItemGroup>
-    
+
     <Microsoft.DotNet.Arcade.Sdk.GroupItemsBy Items="@(_AssembliesFullPaths)" GroupMetadata="OptimizeAssembliesFullPaths">
       <Output TaskParameter="GroupedItems" ItemName="_AssembliesFullPathsGrouped" />
     </Microsoft.DotNet.Arcade.Sdk.GroupItemsBy>
