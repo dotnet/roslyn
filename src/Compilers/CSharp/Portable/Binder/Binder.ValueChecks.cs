@@ -383,8 +383,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                // array elements and pointer dereferencing are readwrite variables
+                // array access is readwrite variable if the indexing expression is not System.Range
                 case BoundKind.ArrayAccess:
+                    {
+                        if (RequiresRefAssignableVariable(valueKind))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                            return false;
+                        }
+
+                        var boundAccess = (BoundArrayAccess)expr;
+                        if (boundAccess.Indices.Length == 1 &&
+                            TypeSymbol.Equals(
+                                boundAccess.Indices[0].Type,
+                                Compilation.GetWellKnownType(WellKnownType.System_Range),
+                                TypeCompareKind.ConsiderEverything))
+                        {
+                            // Range indexer is an rvalue
+                            Error(diagnostics, GetStandardLvalueError(valueKind), node);
+                            return false;
+                        }
+                        return true;
+                    }
+
+                // pointer dereferencing is a readwrite variable
                 case BoundKind.PointerIndirectionOperator:
                 // The undocumented __refvalue(tr, T) expression results in a variable of type T.
                 case BoundKind.RefValueOperator:
@@ -1145,7 +1167,7 @@ moreArguments:
             }
 
             // check receiver if ref-like
-            if (receiverOpt?.Type?.IsByRefLikeType == true)
+            if (receiverOpt?.Type?.IsRefLikeType == true)
             {
                 escapeScope = Math.Max(escapeScope, GetValEscape(receiverOpt, scopeOfTheContainingExpression));
             }
@@ -1261,7 +1283,7 @@ moreArguments:
             }
 
             // check receiver if ref-like
-            if (receiverOpt?.Type?.IsByRefLikeType == true)
+            if (receiverOpt?.Type?.IsRefLikeType == true)
             {
                 return CheckValEscape(receiverOpt.Syntax, receiverOpt, escapeFrom, escapeTo, false, diagnostics);
             }
@@ -1294,7 +1316,7 @@ moreArguments:
 
             // collect all writeable ref-like arguments, including receiver
             var receiverType = receiverOpt?.Type;
-            if (receiverType?.IsByRefLikeType == true && receiverType?.IsReadOnly == false)
+            if (receiverType?.IsRefLikeType == true && receiverType?.IsReadOnly == false)
             {
                 escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
             }
@@ -1313,7 +1335,7 @@ moreArguments:
                     }
 
                     var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
-                    if (parameters[paramIndex].RefKind.IsWritableReference() && argument.Type?.IsByRefLikeType == true)
+                    if (parameters[paramIndex].RefKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
                     {
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                     }
@@ -1328,7 +1350,7 @@ moreArguments:
                     {
                         var argument = argListArgs[argIndex];
                         var refKind = argListRefKindsOpt.IsDefault ? RefKind.None : argListRefKindsOpt[argIndex];
-                        if (refKind.IsWritableReference() && argument.Type?.IsByRefLikeType == true)
+                        if (refKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
                         {
                             escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                         }
@@ -1387,7 +1409,7 @@ moreArguments:
             //    They have "outer" val escape, so cannot be worse than escapeTo.
 
             // check val escape of receiver if ref-like
-            if (receiverOpt?.Type?.IsByRefLikeType == true)
+            if (receiverOpt?.Type?.IsRefLikeType == true)
             {
                 return CheckValEscape(receiverOpt.Syntax, receiverOpt, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
             }
@@ -1448,7 +1470,7 @@ moreArguments:
 
                         if (parameter.RefKind == RefKind.In &&
                             inParametersMatchedWithArgs?[i] != true &&
-                            parameter.Type.TypeSymbol.IsByRefLikeType == false)
+                            parameter.Type.TypeSymbol.IsRefLikeType == false)
                         {
                             return parameter;
                         }
@@ -2157,7 +2179,7 @@ moreArguments:
             }
 
             // to have local-referring values an expression must have a ref-like type
-            if (expr.Type?.IsByRefLikeType != true)
+            if (expr.Type?.IsRefLikeType != true)
             {
                 return Binder.ExternalScope;
             }
@@ -2227,7 +2249,7 @@ moreArguments:
                     var fieldAccess = (BoundFieldAccess)expr;
                     var fieldSymbol = fieldAccess.FieldSymbol;
 
-                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsByRefLikeType)
+                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsRefLikeType)
                     {
                         // Already an error state.
                         return Binder.ExternalScope;
@@ -2454,7 +2476,7 @@ moreArguments:
             }
 
             // to have local-referring values an expression must have a ref-like type
-            if (expr.Type?.IsByRefLikeType != true)
+            if (expr.Type?.IsRefLikeType != true)
             {
                 return true;
             }
@@ -2534,7 +2556,7 @@ moreArguments:
                     var fieldAccess = (BoundFieldAccess)expr;
                     var fieldSymbol = fieldAccess.FieldSymbol;
 
-                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsByRefLikeType)
+                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsRefLikeType)
                     {
                         // Already an error state.
                         return true;

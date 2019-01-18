@@ -5792,6 +5792,267 @@ unsafe struct s
         }
 
         [Fact]
+        public void CS0071_01()
+        {
+            UsingTree(@"
+public interface I2 { }
+public interface I1
+{
+    event System.Action I2.P10;
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I2");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I1");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EventDeclaration);
+                    {
+                        N(SyntaxKind.EventKeyword);
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I2");
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P10");
+                        M(SyntaxKind.AccessorList);
+                        {
+                            M(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CS0071_02()
+        {
+            UsingTree(@"
+public interface I2 { }
+public interface I1
+{
+    event System.Action I2.
+P10;
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I2");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I1");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EventDeclaration);
+                    {
+                        N(SyntaxKind.EventKeyword);
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I2");
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P10");
+                        M(SyntaxKind.AccessorList);
+                        {
+                            M(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CS0071_03()
+        {
+            UsingTree(@"
+public interface I2 { }
+public interface I1
+{
+    event System.Action I2.
+P10
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I2");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I1");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EventDeclaration);
+                    {
+                        N(SyntaxKind.EventKeyword);
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I2");
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        M(SyntaxKind.AccessorList);
+                        {
+                            M(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "P10");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CS0071_04()
+        {
+            UsingTree(@"
+public interface I2 { }
+public interface I1
+{
+    event System.Action I2.P10
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I2");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I1");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EventDeclaration);
+                    {
+                        N(SyntaxKind.EventKeyword);
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I2");
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P10");
+                        M(SyntaxKind.AccessorList);
+                        {
+                            M(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         [WorkItem(4826, "https://github.com/dotnet/roslyn/pull/4826")]
         public void NonAccessorAfterIncompleteProperty()
         {

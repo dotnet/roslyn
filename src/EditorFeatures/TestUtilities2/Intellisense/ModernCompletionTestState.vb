@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.New(
                 workspaceElement,
                 extraCompletionProviders,
-                excludedTypes:=Nothing,
+                excludedTypes:=excludedTypes,
                 extraExportedTypes,
                 includeFormatCommandHandler,
                 workspaceKind:=workspaceKind)
@@ -123,10 +123,24 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendCommitUniqueCompletionListItem(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
-        Public Overrides Async Function AssertNoCompletionSession(Optional block As Boolean = True) As Task
-            If block Then
-                Await WaitForAsynchronousOperationsAsync()
+        Public Overrides Async Function AssertNoCompletionSession() As Task
+            Await WaitForAsynchronousOperationsAsync()
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            If session Is Nothing Then
+                Return
             End If
+
+            If session.IsDismissed Then
+                Return
+            End If
+
+            Dim completionItems = session.GetComputedItems(CancellationToken.None)
+            ' During the computation we can explicitly dismiss the session or we can return no items.
+            ' Each of these conditions mean that there is no active completion.
+            Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0)
+        End Function
+
+        Public Overrides Sub AssertNoCompletionSessionWithNoBlock()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             If session Is Nothing Then
                 Return
@@ -137,24 +151,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             ' If completionItems cannot be calculated in 5 seconds, no session exists.
-            If Not block Then
-                Dim task1 = Task.Delay(5000)
+            Dim task1 = Task.Delay(5000)
+            Dim task2 = Task.Run(
+                Sub()
+                    Dim completionItems = session.GetComputedItems(CancellationToken.None)
 
-                Dim task2 = New Task(Sub()
-                                         Dim completionItems = session.GetComputedItems(CancellationToken.None)
-                                         ' In the non blocking mode, we are not interested for a session appeared later than in 5 seconds.
-                                         If task1.Status = TaskStatus.Running Then
-                                             Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0)
-                                         End If
-                                     End Sub)
-                task2.Start()
+                    ' In the non blocking mode, we are not interested for a session appeared later than in 5 seconds.
+                    If task1.Status = TaskStatus.Running Then
+                        ' During the computation we can explicitly dismiss the session or we can return no items.
+                        ' Each of these conditions mean that there is no active completion.
+                        Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0)
+                    End If
+                End Sub)
 
-                Task.WaitAny(task1, task2)
-            Else
-                Dim completionItems = session.GetComputedItems(CancellationToken.None)
-                Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0)
-            End If
-        End Function
+            Task.WaitAny(task1, task2)
+        End Sub
 
         Public Overrides Async Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
             Dim view = If(projectionsView, TextView)
@@ -260,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             If Not session Is Nothing Then
-                Assert.False(CompletionItemsContainsAny({"ClassLibrary1"}))
+                Assert.False(CompletionItemsContainsAny({text}))
             End If
         End Function
 
