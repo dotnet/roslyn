@@ -2052,7 +2052,7 @@ namespace System.Runtime.CompilerServices
                 //             _ = (1, 2) switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(8, 24)
                 );
-            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()");
+            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException((1, 2))");
         }
 
         [Fact]
@@ -2958,7 +2958,7 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(17, 23)
                 );
             CompileAndVerify(compilation, expectedOutput: @"3
-SwitchExpressionException()");
+SwitchExpressionException((1, 3))");
         }
 
         [Fact]
