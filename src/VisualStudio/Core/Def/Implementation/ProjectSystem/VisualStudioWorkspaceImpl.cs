@@ -1169,12 +1169,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // workspace is going away. unregister this workspace from work coordinator
             StopSolutionCrawler();
 
-            // We should consider calling this here. It is commented out because Solution event tracking was
-            // moved from VisualStudioProjectTracker, which is never Dispose()'d.  Rather than risk the
-            // UnadviseSolutionEvents causing another issue (calling into dead COM objects, etc), we'll just
-            // continue to skip it for now.
-            // UnadviseSolutionEvents();
-
             base.Dispose(finalize);
         }
 
