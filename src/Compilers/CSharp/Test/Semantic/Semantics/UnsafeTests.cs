@@ -86,6 +86,91 @@ class C
         }
 
         [Fact]
+        public void FixedSizeBuffer_GenericStruct_01()
+        {
+            var code = @"
+unsafe struct MyStruct<T>
+{
+    public fixed char buf[16];
+    public static void M()
+    {
+        var ms = new MyStruct<int>();
+        var ptr = &ms;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FixedSizeBuffer_GenericStruct_02()
+        {
+            var code = @"
+unsafe struct MyStruct<T>
+{
+    public fixed T buf[16];
+    public static void M()
+    {
+        var ms = new MyStruct<int>();
+        var ptr = &ms;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     public fixed T buf[16];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "T").WithLocation(4, 18)
+            );
+        }
+
+        [Fact]
+        public void FixedSizeBuffer_GenericStruct_03()
+        {
+            var code = @"
+unsafe struct MyStruct<T> where T : unmanaged
+{
+    public fixed T buf[16];
+    public static void M()
+    {
+        var ms = new MyStruct<int>();
+        var ptr = &ms;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     public fixed T buf[16];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "T").WithLocation(4, 18)
+            );
+        }
+
+        [Fact]
+        public void FixedSizeBuffer_GenericStruct_04()
+        {
+            var code = @"
+public unsafe struct MyStruct<T>
+{
+    public T field;
+}
+
+unsafe struct OuterStruct
+{
+    public fixed MyStruct<int> buf[16];
+    public static void M()
+    {
+        var os = new OuterStruct();
+        var ptr = &os;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     public fixed MyStruct<int> buf[16];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "MyStruct<int>").WithLocation(9, 18)
+            );
+        }
+
+        [Fact]
         public void CompilationNotUnsafe1()
         {
             var text = @"
