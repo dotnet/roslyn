@@ -854,7 +854,7 @@ class C1
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
-            var dpcss = tree.GetRoot().DescendantNodes().OfType<DeconstructionPatternClauseSyntax>().ToArray();
+            var dpcss = tree.GetRoot().DescendantNodes().OfType<PositionalPatternClauseSyntax>().ToArray();
             for (int i = 0; i < dpcss.Length; i++)
             {
                 var dpcs = dpcss[i];
@@ -1641,7 +1641,7 @@ class _
             (false, false) => 1,
             (false, true) => 2,
             // (true, false) => 3,
-            (true, true) => 4
+            (true, true) => 4,
             };
     }
 }
@@ -1667,7 +1667,7 @@ class _
             (false, false) => 1,
             (false, true) => 2,
             (true, false) => 3,
-            (true, true) => 4
+            (true, true) => 4,
             };
     }
 }
@@ -1718,7 +1718,7 @@ class _
             (true, false) => 3,
             (true, true) => 4,
             _ => 5,
-            (null, true) => 6
+            (null, true) => 6,
             };
     }
 }
@@ -1726,7 +1726,7 @@ class _
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 // (13,13): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
-                //             (null, true) => 6
+                //             (null, true) => 6,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "(null, true)").WithLocation(13, 13)
                 );
         }
