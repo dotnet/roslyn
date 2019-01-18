@@ -9,6 +9,8 @@
     <NoStdLib>true</NoStdLib>
     <!-- PROTOTYPE(DefaultInterfaceImplementation): TargetFrameworks simply used to inherit $(RoslynPortableTargetFrameworks) -->
     <TargetFrameworks>net472;netcoreapp3.0</TargetFrameworks>
+    <!-- PROTOTYPE(DefaultInterfaceImplementation): Added RuntimeFrameworkVersion property below -->
+    <RuntimeFrameworkVersion Condition="'$(TargetFramework)' == 'netcoreapp3.0'">$(MicrosoftNETCoreRuntimeCoreCLRVersion)</RuntimeFrameworkVersion>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -27,8 +29,6 @@
     <ProjectReference Include="..\..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
-    <!-- PROTOTYPE(DefaultInterfaceImplementation): Added explicit reference below -->
-    <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreRuntimeCoreCLRVersion)" Condition="'$(TargetFramework)' == 'netcoreapp3.0'" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
