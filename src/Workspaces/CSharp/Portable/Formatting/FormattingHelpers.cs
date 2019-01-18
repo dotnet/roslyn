@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Positional patterns
-            if (token.Parent.IsKind(SyntaxKindEx.DeconstructionPatternClause) && token.Parent.Parent.IsKind(SyntaxKindEx.RecursivePattern))
+            if (token.Parent.IsKind(SyntaxKindEx.PositionalPatternClause) && token.Parent.Parent.IsKind(SyntaxKindEx.RecursivePattern))
             {
                 // Avoid treating tuple expressions as positional patterns for formatting
                 return token.Parent.Parent.GetFirstToken() != token;
@@ -579,6 +579,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return currentToken.Kind() == SyntaxKind.OpenParenToken &&
                 currentToken.Parent is ParenthesizedVariableDesignationSyntax &&
                 currentToken.Parent.Parent is DeclarationExpressionSyntax;
+        }
+
+        /// <summary>
+        /// Check whether the currentToken is a comma and is a delimiter between arguments inside a tuple expression.
+        /// </summary>
+        public static bool IsCommaInTupleExpression(this SyntaxToken currentToken)
+        {
+            return currentToken.IsKind(SyntaxKind.CommaToken) &&
+                currentToken.Parent.IsKind(SyntaxKind.TupleExpression);
         }
     }
 }

@@ -1168,6 +1168,7 @@ class C
         [ConditionalFact(typeof(WindowsDesktopOnly))]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         [WorkItem(31113, "https://github.com/dotnet/roslyn/issues/31113")]
+        [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         public void AsyncIteratorReturningEnumerator_WithoutAsync()
         {
             string source = @"
@@ -1181,6 +1182,9 @@ class C
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
+                // (4,61): error CS8403: Method 'C.M(int)' with an iterator block must be 'async' to return 'IAsyncEnumerator<int>'
+                //     static System.Collections.Generic.IAsyncEnumerator<int> M(int value)
+                Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "M").WithArguments("C.M(int)", "System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 61),
                 // (7,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<IAsyncEnumerator<int>>'.
                 //         await System.Threading.Tasks.Task.CompletedTask;
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await System.Threading.Tasks.Task.CompletedTask").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(7, 9)
@@ -1340,6 +1344,94 @@ class C
                 // (4,74): error CS0161: 'C.M()': not all code paths return a value
                 //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 74)
+                );
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
+        public void AsyncIterator_WithoutAwait()
+        {
+            string source = @"
+public class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 1;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(new[] { Run(iterations: 2), source }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (4,74): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 74)
+                );
+            CompileAndVerify(comp, expectedOutput: "1 END DISPOSAL DONE");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
+        public void AsyncIterator_WithoutAwait_WithoutAsync()
+        {
+            string source = @"
+class C
+{
+    static System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 1;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,61): error CS8403: Method 'C.M()' with an iterator block must be 'async' to return 'IAsyncEnumerable<int>'
+                //     static System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "M").WithArguments("C.M()", "System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(4, 61)
+                );
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
+        public void AsyncIterator_WithoutAwait_WithoutAsync_LocalFunction()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        _ = local();
+        static System.Collections.Generic.IAsyncEnumerator<int> local()
+        {
+            yield break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (7,65): error CS8403: Method 'local()' with an iterator block must be 'async' to return 'IAsyncEnumerator<int>'
+                //         static System.Collections.Generic.IAsyncEnumerator<int> local()
+                Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "local").WithArguments("local()", "System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(7, 65)
+                );
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
+        public void Iterator_WithAsync()
+        {
+            string source = @"
+class C
+{
+    static async System.Collections.Generic.IEnumerable<int> M()
+    {
+        yield return 1;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyDiagnostics(
+                // (4,62): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     static async System.Collections.Generic.IEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(4, 62),
+                // (4,62): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async System.Collections.Generic.IEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 62)
                 );
         }
 
@@ -2037,6 +2129,7 @@ class C
     IL_00bd:  stloc.0
     IL_00be:  stfld      ""int C.<M>d__0.<>1__state""
     IL_00c3:  leave.s    IL_0113
+    // sequence point: <hidden>
     IL_00c5:  ldarg.0
     IL_00c6:  ldc.i4.m1
     IL_00c7:  dup
@@ -2176,6 +2269,7 @@ class C
     IL_00b6:  stloc.0
     IL_00b7:  stfld      ""int C.<M>d__0.<>1__state""
     IL_00bc:  leave.s    IL_0109
+    // sequence point: <hidden>
     IL_00be:  ldarg.0
     IL_00bf:  ldc.i4.m1
     IL_00c0:  dup

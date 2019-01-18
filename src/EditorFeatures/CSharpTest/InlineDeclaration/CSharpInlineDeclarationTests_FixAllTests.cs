@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
@@ -93,6 +94,293 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M()
     {
         GetExeAndArguments(useCmdShell, executable, arguments, out string finalExecutable, out string finalArguments);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [WorkItem(28323, "https://github.com/dotnet/roslyn/issues/28323")]
+        public async Task FixAllInDocument4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int {|FixAllInDocument:i1|}; int i2;
+        int.TryParse(v, out i1);
+        int.TryParse(v, out i2);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int.TryParse(v, out int i1);
+        int.TryParse(v, out int i2);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [WorkItem(28323, "https://github.com/dotnet/roslyn/issues/28323")]
+        public async Task FixAllInDocument5()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int dummy; int {|FixAllInDocument:i1|}; int i2;
+        int.TryParse(v, out i1);
+        int.TryParse(v, out i2);
+        dummy = 42;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int dummy;  
+        int.TryParse(v, out int i1);
+        int.TryParse(v, out int i2);
+        dummy = 42;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [WorkItem(28323, "https://github.com/dotnet/roslyn/issues/28323")]
+        public async Task FixAllInDocument6()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int {|FixAllInDocument:i1|}; int dummy; int i2;
+        int.TryParse(v, out i1);
+        int.TryParse(v, out i2);
+        dummy = 42;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int dummy;
+        int.TryParse(v, out int i1);
+        int.TryParse(v, out int i2);
+        dummy = 42;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [WorkItem(28323, "https://github.com/dotnet/roslyn/issues/28323")]
+        public async Task FixAllInDocument7()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int {|FixAllInDocument:i1|}; int i2; int dummy;
+        int.TryParse(v, out i1);
+        int.TryParse(v, out i2);
+        dummy = 42;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int dummy;
+        int.TryParse(v, out int i1);
+        int.TryParse(v, out int i2);
+        dummy = 42;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task FixAllInDocument8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int dummy, {|FixAllInDocument:i1|}, i2;
+        int.TryParse(v, out i1);
+        int.TryParse(v, out i2);
+        dummy = 42;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int dummy;
+        int.TryParse(v, out int i1);
+        int.TryParse(v, out int i2);
+        dummy = 42;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task FixAllInDocument9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int {|FixAllInDocument:i1|}, dummy, i2;
+        int.TryParse(v, out i1);
+        int.TryParse(v, out i2);
+        dummy = 42;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int dummy;
+        int.TryParse(v, out int i1);
+        int.TryParse(v, out int i2);
+        dummy = 42;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task FixAllInDocument10()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int {|FixAllInDocument:i1|}, i2, dummy;
+        int.TryParse(v, out i1);
+        int.TryParse(v, out i2);
+        dummy = 42;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int dummy;
+        int.TryParse(v, out int i1);
+        int.TryParse(v, out int i2);
+        dummy = 42;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task FixAllInDocument11()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int {|FixAllInDocument:i1|}, i2;
+        int.TryParse(v, out i1);
+        int.TryParse(v, out i2);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int.TryParse(v, out int i1);
+        int.TryParse(v, out int i2);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [WorkItem(28323, "https://github.com/dotnet/roslyn/issues/28323")]
+        public async Task FixAllInDocumentComments1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        /* leading */ int {|FixAllInDocument:i1|}; int i2; // trailing
+        int.TryParse(v, out i1);
+        int.TryParse(v, out i2);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        // trailing
+        /* leading */
+        int.TryParse(v, out int i1);
+        int.TryParse(v, out int i2);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [WorkItem(28323, "https://github.com/dotnet/roslyn/issues/28323")]
+        public async Task FixAllInDocumentComments2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        /* leading */ int dummy; /* inbetween */ int {|FixAllInDocument:i1|}; int i2; // trailing
+        int.TryParse(v, out i1);
+        int.TryParse(v, out i2);
+        dummy = 42;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        /* leading */ int dummy; /* inbetween */   // trailing
+        int.TryParse(v, out int i1);
+        int.TryParse(v, out int i2);
+        dummy = 42;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [WorkItem(28323, "https://github.com/dotnet/roslyn/issues/28323")]
+        public async Task FixAllInDocumentComments3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int {|FixAllInDocument:i1|}; /* 0 */int /* 1 */ dummy /* 2 */; /* 3*/ int i2;
+        int.TryParse(v, out i1);
+        int.TryParse(v, out i2);
+        dummy = 42;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        /* 0 */
+        int /* 1 */ dummy /* 2 */; /* 3*/
+        int.TryParse(v, out int i1);
+        int.TryParse(v, out int i2);
+        dummy = 42;
     }
 }");
         }

@@ -9079,10 +9079,7 @@ End Module
             Dim vbc = New MockVisualBasicCompiler(Nothing, New BuildPaths("", workingDir.Path, Nothing, tempDir.Path),
                               {"/features:UseLegacyStrongNameProvider", "/nostdlib", "a.vb"})
             Dim comp = vbc.CreateCompilation(New StringWriter(), New TouchedFileLogger(), errorLogger:=Nothing)
-            Dim desktopProvider = Assert.IsType(Of DesktopStrongNameProvider)(comp.Options.StrongNameProvider)
-            Using inputStream = Assert.IsType(Of DesktopStrongNameProvider.TempFileStream)(desktopProvider.CreateInputStream())
-                Assert.Equal(tempDir.Path, Path.GetDirectoryName(inputStream.Path))
-            End Using
+            Assert.False(comp.SignUsingBuilder)
         End Sub
 
         Private Function MakeTrivialExe(Optional directory As String = Nothing) As String

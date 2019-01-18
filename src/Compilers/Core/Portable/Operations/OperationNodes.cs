@@ -7959,7 +7959,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal abstract partial class BaseRecursivePatternOperation: Operation, IRecursivePatternOperation
+    internal abstract partial class BaseRecursivePatternOperation : Operation, IRecursivePatternOperation
     {
         public BaseRecursivePatternOperation(
             ITypeSymbol inputType,

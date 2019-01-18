@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!(expr is null));
             Debug.Assert(!(expr.Type is null));
-            Debug.Assert(expr.Type.IsValueType && expr.Type.IsByRefLikeType); // pattern dispose lookup is only valid on ref structs
+            Debug.Assert(expr.Type.IsValueType && expr.Type.IsRefLikeType); // pattern dispose lookup is only valid on ref structs
 
             // Don't try and lookup if we're not enabled
             if (MessageID.IDS_FeatureUsingDeclarations.RequiredVersion() > Compilation.LanguageVersion)
@@ -691,8 +691,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     diagnostics,
                                                     out var disposeMethod);
 
-            if ((!hasAwait && disposeMethod?.ReturnsVoid == false) 
-                || (hasAwait && disposeMethod?.ReturnType.TypeSymbol.IsNonGenericTaskType(Compilation) == false) 
+            if ((!hasAwait && disposeMethod?.ReturnsVoid == false)
+                || (hasAwait && disposeMethod?.ReturnType.TypeSymbol.IsNonGenericTaskType(Compilation) == false)
                 || result == PatternLookupResult.NotAMethod)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -1397,7 +1397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (op1.Type.IsByRefLikeType)
+                if (op1.Type.IsRefLikeType)
                 {
                     var leftEscape = GetValEscape(op1, LocalScopeDepth);
                     op2 = ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
