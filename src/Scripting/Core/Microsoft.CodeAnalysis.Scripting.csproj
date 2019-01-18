@@ -34,6 +34,7 @@
     <PackageReference Include="RoslynTools.LightUp.System.Runtime.Loader" Version="$(RoslynToolsLightUpSystemRuntimeLoaderFixedVersion)" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Compilers\Shared\CoreClrShim.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
       <Link>Hosting\Resolvers\RelativePathResolver.cs</Link>
     </Compile>

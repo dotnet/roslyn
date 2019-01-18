@@ -2,18 +2,21 @@
 trigger:
 - master
 - master-vs-deps
+- dev16.0-preview2
+- dev16.0-preview2-vs-deps
+- dev16.1-preview1
+- dev16.1-preview1-vs-deps
 
 # Branches that trigger builds on PR   
 pr:
 - master
 - master-vs-deps
-- features/NullableReferenceTypes
-- features/recursive-patterns
-- features/enhanced-using
-- features/nullabledogfood
-- features/unmanaged-constructed-types
-- features/editorconfig-in-compiler
-- features/NegatedConditionStatements
+- features/*
+- demos/*
+- dev16.0-preview2
+- dev16.0-preview2-vs-deps
+- dev16.1-preview1
+- dev16.1-preview1-vs-deps
 
 jobs:
 - job: Windows_Desktop_Unit_Tests
@@ -149,6 +152,14 @@ jobs:
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
         ArtifactName: 'Packages - PreRelease'
+        publishLocation: Container
+      condition: succeeded()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish VSIX Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
+        ArtifactName: 'VSIX - PreRelease'
         publishLocation: Container
       condition: succeeded()
 

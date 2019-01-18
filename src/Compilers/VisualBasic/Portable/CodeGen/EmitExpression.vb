@@ -1437,7 +1437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Return (toType.IsDelegateType() AndAlso toType <> fromType) OrElse
                    (toType.IsInterfaceType() AndAlso fromType.IsInterfaceType() AndAlso
-                    Not fromType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(DirectCast(toType, NamedTypeSymbol)))
+                    Not fromType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey(DirectCast(toType, NamedTypeSymbol)))
 
         End Function
 

@@ -14,6 +14,7 @@ using System.Runtime.Loader;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -48,14 +49,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         public static string GetSystemSdkDirectory()
         {
-            if (CoreClrShim.IsRunningOnCoreClr)
-            {
-                return null;
-            }
-            else
-            {
-                return RuntimeEnvironment.GetRuntimeDirectory();
-            }
+            return RuntimeHostInfo.IsCoreClrRuntime
+                ? null
+                : RuntimeEnvironment.GetRuntimeDirectory();
         }
 
         /// <summary>
@@ -236,12 +232,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
 
-            if (Type.GetType("Mono.Runtime") != null)
+            if (PlatformInformation.IsRunningOnMono)
             {
                 return false;
             }
 
-            if (CoreClrShim.IsRunningOnCoreClr)
+            if (RuntimeHostInfo.IsCoreClrRuntime)
             {
                 // The native invoke ends up giving us both CoreRun and the exe file.
                 // We've decided to ignore backcompat for CoreCLR,

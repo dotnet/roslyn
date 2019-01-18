@@ -3334,7 +3334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return (to.IsDelegateType() && !TypeSymbol.Equals(to, from, TypeCompareKind.ConsiderEverything2)) ||
-                   (to.IsInterfaceType() && from.IsInterfaceType() && !from.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains((NamedTypeSymbol)to));
+                   (to.IsInterfaceType() && from.IsInterfaceType() && !from.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey((NamedTypeSymbol)to));
         }
 
         private void EmitStaticCast(TypeSymbol to, SyntaxNode syntax)

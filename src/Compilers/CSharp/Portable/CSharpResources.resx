@@ -198,6 +198,9 @@
   <data name="IDS_Collection" xml:space="preserve">
     <value>collection</value>
   </data>
+  <data name="IDS_Disposable" xml:space="preserve">
+    <value>disposable</value>
+  </data>
   <data name="IDS_FeaturePropertyAccessorMods" xml:space="preserve">
     <value>access modifiers on properties</value>
   </data>
@@ -2647,6 +2650,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_PossibleAsyncIteratorWithoutYieldOrAwait" xml:space="preserve">
     <value>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</value>
   </data>
+  <data name="ERR_StaticLocalFunctionCannotCaptureVariable" xml:space="preserve">
+    <value>A static local function cannot contain a reference to '{0}'.</value>
+  </data>
+  <data name="ERR_StaticLocalFunctionCannotCaptureThis" xml:space="preserve">
+    <value>A static local function cannot contain a reference to 'this' or 'base'.</value>
+  </data>
   <data name="WRN_BadXMLRefParamType" xml:space="preserve">
     <value>Invalid type for parameter {0} in XML comment cref attribute: '{1}'</value>
   </data>
@@ -2785,6 +2794,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadYieldInFinally" xml:space="preserve">
     <value>Cannot yield in the body of a finally clause</value>
   </data>
+  <data name="ERR_IteratorMustBeAsync" xml:space="preserve">
+    <value>Method '{0}' with an iterator block must be 'async' to return '{1}'</value>
+  </data>
   <data name="ERR_BadYieldInTryOfCatch" xml:space="preserve">
     <value>Cannot yield a value in the body of a try block with a catch clause</value>
   </data>
@@ -2810,10 +2822,16 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Unrecognized #pragma directive</value>
   </data>
   <data name="WRN_IllegalPPWarning" xml:space="preserve">
-    <value>Expected disable or restore</value>
+    <value>Expected disable, restore, enable or safeonly</value>
   </data>
   <data name="WRN_IllegalPPWarning_Title" xml:space="preserve">
-    <value>Expected disable or restore after #pragma warning</value>
+    <value>Expected disable, restore, enable or safeonly after #pragma warning</value>
+  </data>
+  <data name="WRN_IllegalPPWarningSafeOnly" xml:space="preserve">
+    <value>Expected nullable</value>
+  </data>
+  <data name="WRN_IllegalPPWarningSafeOnly_Title" xml:space="preserve">
+    <value>Expected nullable after #pragma warning safeonly</value>
   </data>
   <data name="WRN_BadRestoreNumber" xml:space="preserve">
     <value>Cannot restore warning 'CS{0}' because it was disabled globally</value>
@@ -2963,7 +2981,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</value>
   </data>
   <data name="ERR_NoConvToIDisp" xml:space="preserve">
-    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'</value>
+    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</value>
   </data>
   <data name="ERR_NoConvToIDispWrongAsync" xml:space="preserve">
     <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</value>
@@ -5256,6 +5274,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNullableReferenceTypes" xml:space="preserve">
     <value>nullable reference types</value>
   </data>
+  <data name="IDS_FeaturePragmaWarningEnableOrSafeOnly" xml:space="preserve">
+    <value>warning action enable or safeonly</value>
+  </data>
   <data name="WRN_ConvertingNullableToNonNullable" xml:space="preserve">
     <value>Converting null literal or possible null value to non-nullable type.</value>
   </data>
@@ -5432,12 +5453,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NullableUnconstrainedTypeParameter" xml:space="preserve">
     <value>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</value>
-  </data>
-  <data name="WRN_SuppressionOperatorNotReferenceType" xml:space="preserve">
-    <value>The suppression operator (!) can only be applied to reference types and nullable value types.</value>
-  </data>
-  <data name="WRN_SuppressionOperatorNotReferenceType_Title" xml:space="preserve">
-    <value>The suppression operator (!) can only be applied to reference types and nullable value types.</value>
   </data>
   <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</value>
@@ -5673,6 +5688,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRangeOperator" xml:space="preserve">
     <value>range operator</value>
   </data>
+  <data name="IDS_FeatureStaticLocalFunctions" xml:space="preserve">
+    <value>static local functions</value>
+  </data>
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
@@ -5726,5 +5744,38 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DiscardPatternInSwitchStatement" xml:space="preserve">
     <value>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInExplicitlyImplementedInterface" xml:space="preserve">
+    <value>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInExplicitlyImplementedInterface_Title" xml:space="preserve">
+    <value>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInInterfaceImplementedByBase" xml:space="preserve">
+    <value>'{0}' does not implement interface member '{1}'. Nullability of reference types in interface implemented by the base type doesn't match.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInInterfaceImplementedByBase_Title" xml:space="preserve">
+    <value>Type does not implement interface member. Nullability of reference types in interface implemented by the base type doesn't match.</value>
+  </data>
+  <data name="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</value>
+  </data>
+  <data name="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title" xml:space="preserve">
+    <value>Interface is already listed in the interface list with different nullability of reference types.</value>
+  </data>
+  <data name="ERR_DuplicateExplicitImpl" xml:space="preserve">
+    <value>'{0}' is explicitly implemented more than once.</value>
+  </data>
+  <data name="ERR_UsingVarInSwitchCase" xml:space="preserve">
+    <value>A using variable cannot be used directly within a switch section (consider using braces). </value>
+  </data>
+  <data name="ERR_GoToForwardJumpOverUsingVar" xml:space="preserve">
+    <value>A goto cannot jump to a location after a using declaration.</value>
+  </data>
+  <data name="ERR_GoToBackwardJumpOverUsingVar" xml:space="preserve">
+    <value>A goto cannot jump to a location before a using declaration within the same block.</value>
+  </data>
+  <data name="IDS_FeatureUsingDeclarations" xml:space="preserve">
+    <value>using declarations</value>
   </data>
 </root>

@@ -201,9 +201,6 @@
     <PackageReference Include="NuGet.VisualStudio" Version="$(NuGetVisualStudioVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" />
-
-    <!-- Need VSSDK to generate pkgdef -->
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="$(MicrosoftVSSDKBuildToolsVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Implementation\ChangeSignature\ChangeSignatureDialog.xaml.cs">
@@ -238,6 +235,12 @@
     </Page>
     <Page Include="Implementation\GenerateType\GenerateTypeDialog.xaml">
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Implementation\PullMemberUp\MainDialog\PullMemberUpDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Implementation\PullMemberUp\WarningDialog\PullMemberUpWarningDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Implementation\Workspace\DetailedErrorInfoDialog.xaml">

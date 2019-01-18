@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var thisAnnotation = NullableAnnotation;
                 var otherAnnotation = other.NullableAnnotation;
-                if (otherAnnotation != thisAnnotation)
+                if (otherAnnotation != thisAnnotation && (!TypeSymbol.IsValueType || TypeSymbol.IsNullableType()))
                 {
                     if (thisAnnotation == NullableAnnotation.Unknown || otherAnnotation == NullableAnnotation.Unknown)
                     {

@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax GenerateLocalDeclarationStatement()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.LocalDeclarationStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), GenerateVariableDeclaration(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.LocalDeclarationStatement(null, null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), GenerateVariableDeclaration(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDeclarationSyntax GenerateVariableDeclaration()
@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax GeneratePragmaWarningDirectiveTrivia()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PragmaWarningDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.HashToken), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.PragmaKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.WarningKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.DisableKeyword), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PragmaWarningDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.HashToken), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.PragmaKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.WarningKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.DisableKeyword), null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaChecksumDirectiveTriviaSyntax GeneratePragmaChecksumDirectiveTrivia()
@@ -2158,6 +2158,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateLocalDeclarationStatement();
             
+            Assert.Null(node.AwaitKeyword);
+            Assert.Null(node.UsingKeyword);
             Assert.NotNull(node.Modifiers);
             Assert.NotNull(node.Declaration);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
@@ -3734,6 +3736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.PragmaKeyword, node.PragmaKeyword.Kind);
             Assert.Equal(SyntaxKind.WarningKeyword, node.WarningKeyword.Kind);
             Assert.Equal(SyntaxKind.DisableKeyword, node.DisableOrRestoreKeyword.Kind);
+            Assert.Null(node.NullableKeyword);
             Assert.NotNull(node.ErrorCodes);
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind);
             Assert.Equal(new bool(), node.IsActive);
@@ -9862,7 +9865,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static LocalDeclarationStatementSyntax GenerateLocalDeclarationStatement()
         {
-            return SyntaxFactory.LocalDeclarationStatement(new SyntaxTokenList(), GenerateVariableDeclaration(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            return SyntaxFactory.LocalDeclarationStatement(default(SyntaxToken), default(SyntaxToken), new SyntaxTokenList(), GenerateVariableDeclaration(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         }
         
         private static VariableDeclarationSyntax GenerateVariableDeclaration()
@@ -10457,7 +10460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static PragmaWarningDirectiveTriviaSyntax GeneratePragmaWarningDirectiveTrivia()
         {
-            return SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), SyntaxFactory.Token(SyntaxKind.DisableKeyword), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+            return SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), SyntaxFactory.Token(SyntaxKind.DisableKeyword), default(SyntaxToken), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         }
         
         private static PragmaChecksumDirectiveTriviaSyntax GeneratePragmaChecksumDirectiveTrivia()
@@ -11559,10 +11562,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateLocalDeclarationStatement();
             
+            Assert.Equal(SyntaxKind.None, node.AwaitKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.UsingKeyword.Kind());
             Assert.NotNull(node.Modifiers);
             Assert.NotNull(node.Declaration);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
-            var newNode = node.WithModifiers(node.Modifiers).WithDeclaration(node.Declaration).WithSemicolonToken(node.SemicolonToken);
+            var newNode = node.WithAwaitKeyword(node.AwaitKeyword).WithUsingKeyword(node.UsingKeyword).WithModifiers(node.Modifiers).WithDeclaration(node.Declaration).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
         }
         
@@ -13135,10 +13140,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.PragmaKeyword, node.PragmaKeyword.Kind());
             Assert.Equal(SyntaxKind.WarningKeyword, node.WarningKeyword.Kind());
             Assert.Equal(SyntaxKind.DisableKeyword, node.DisableOrRestoreKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.NullableKeyword.Kind());
             Assert.NotNull(node.ErrorCodes);
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind());
             Assert.Equal(new bool(), node.IsActive);
-            var newNode = node.WithHashToken(node.HashToken).WithPragmaKeyword(node.PragmaKeyword).WithWarningKeyword(node.WarningKeyword).WithDisableOrRestoreKeyword(node.DisableOrRestoreKeyword).WithErrorCodes(node.ErrorCodes).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
+            var newNode = node.WithHashToken(node.HashToken).WithPragmaKeyword(node.PragmaKeyword).WithWarningKeyword(node.WarningKeyword).WithDisableOrRestoreKeyword(node.DisableOrRestoreKeyword).WithNullableKeyword(node.NullableKeyword).WithErrorCodes(node.ErrorCodes).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
         }
         

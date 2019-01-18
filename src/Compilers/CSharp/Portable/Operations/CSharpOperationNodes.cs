@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundDeconstructionAssignmentOperator _deconstructionAssignment;
 
-        internal CSharpLazyDeconstructionAssignmentOperation(CSharpOperationFactory operationFactory, BoundDeconstructionAssignmentOperator deconstructionAssignment,SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        internal CSharpLazyDeconstructionAssignmentOperation(CSharpOperationFactory operationFactory, BoundDeconstructionAssignmentOperator deconstructionAssignment, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
@@ -1512,7 +1512,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public override ImmutableArray<(ISymbol, IPatternOperation)> CreatePropertySubpatterns()
         {
-            return _boundRecursivePattern.Properties.IsDefault ? ImmutableArray<(ISymbol, IPatternOperation)>.Empty : 
+            return _boundRecursivePattern.Properties.IsDefault ? ImmutableArray<(ISymbol, IPatternOperation)>.Empty :
                 _boundRecursivePattern.Properties.SelectAsArray((p, fac) => ((ISymbol)p.Symbol, (IPatternOperation)fac.Create(p.Pattern)), _operationFactory);
         }
     }

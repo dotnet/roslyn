@@ -1859,6 +1859,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
+        {
+            if (AwaitUsingAndForeachAddsPendingBranch && node.AwaitOpt != null)
+            {
+                PendingBranches.Add(new PendingBranch(node, this.State, null));
+            }
+            return VisitMultipleLocalDeclarations(node);
+        }
+
         public override BoundNode VisitWhileStatement(BoundWhileStatement node)
         {
             // while (node.Condition) { node.Body; node.ContinueLabel: } node.BreakLabel:
