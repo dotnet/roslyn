@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NullableWalker(
             CSharpCompilation compilation,
-            MethodSymbol method,
+            MethodSymbol? method,
             bool useMethodSignatureReturnType,
             bool useMethodSignatureParameterTypes,
             MethodSymbol? methodSignatureOpt,
@@ -231,9 +231,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useMethodSignatureReturnType,
             bool useMethodSignatureParameterTypes,
             MethodSymbol? methodSignatureOpt,
-            ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypes,
-            VariableState initialState,
-            Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
+            ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)>? returnTypes,
+            VariableState? initialState,
+            Action<BoundExpression, TypeSymbolWithAnnotations>? callbackOpt)
         {
             Debug.Assert(diagnostics != null);
             var walker = new NullableWalker(compilation, method, useMethodSignatureReturnType, useMethodSignatureParameterTypes, methodSignatureOpt, node, returnTypes, initialState, callbackOpt);
