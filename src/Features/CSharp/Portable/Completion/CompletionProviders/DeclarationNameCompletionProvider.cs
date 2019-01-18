@@ -219,6 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var rules = await document.GetNamingRulesAsync(FallbackNamingRules.CompletionOfferingRules, cancellationToken).ConfigureAwait(false);
             var result = new Dictionary<string, SymbolKind>();
+            var possibleConflictingSymbolNames = GetPossibleConflictingSymbolNames(context);
+
             foreach (var kind in declarationInfo.PossibleSymbolKinds)
             {
                 // There's no special glyph for local functions.
@@ -238,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
                             if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
                             {
-                                if (!IsNameConflictingInScope(name, context, cancellationToken))
+                                if (!possibleConflictingSymbolNames.Contains(name))
                                 {
                                     result.Add(name, symbolKind);
                                 }
@@ -251,12 +253,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return result.Select(kvp => (kvp.Key, kvp.Value)).ToImmutableArray();
         }
 
-        private bool IsNameConflictingInScope(string possibleName, CSharpSyntaxContext context, CancellationToken cancellationToken) 
+        /// <summary>
+        /// Get symbol names that are visible and could hide or cause a conflict with potential names.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        private ImmutableArray<string> GetPossibleConflictingSymbolNames(CSharpSyntaxContext context)
         {
             var visibleSymbols = context.SemanticModel.LookupSymbols(context.Position);
-            var relevantSymbolNames = visibleSymbols.Where(symbol => IsRelevantSymbolKind(symbol)).Select(symbol => symbol.MetadataName).ToImmutableArray();
-
-            return relevantSymbolNames.Contains(possibleName);
+            return visibleSymbols.Where(symbol => IsRelevantSymbolKind(symbol)).Select(symbol => symbol.MetadataName).ToImmutableArray();
         }
 
         /// <summary>
