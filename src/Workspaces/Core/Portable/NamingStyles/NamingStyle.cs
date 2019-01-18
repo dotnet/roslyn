@@ -310,7 +310,6 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private string CreateCompliantNameDirectly(string name)
         {
-            //name = StripCommonPrefixes(name, out _);
             var addPrefix = !name.StartsWith(Prefix);
             var addSuffix = !name.EndsWith(Suffix);
 
