@@ -112,12 +112,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         do
                         {
                             var typeToProcess = typesToProcess.Dequeue();
-                            Debug.Assert(typeToProcess.ContainingAssembly == declaredType.ContainingAssembly);
+                            Debug.Assert(typeToProcess.ContainingAssembly.Equals(declaredType.ContainingAssembly));
                             Debug.Assert(namedTypesToAccessedTypesMap.ContainsKey(typeToProcess));
 
                             foreach (INamedTypeSymbol usedType in namedTypesToAccessedTypesMap[typeToProcess])
                             {
-                                if (s_WorkspaceAssemblyNames.Contains(usedType.ContainingAssembly.Name))
+                                if (usedType.ContainingAssembly != null &&
+                                    s_WorkspaceAssemblyNames.Contains(usedType.ContainingAssembly.Name))
                                 {
                                     violatingTypeNamesBuilder.Add(usedType.ToDisplayString());
                                     violatingUsedTypeNamesBuilder.Add(typeToProcess.ToDisplayString());
@@ -241,6 +242,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 builder.Add(usedType);
 
                 if (!hasAccessToTypeFromWorkspaceAssemblies &&
+                    usedType.ContainingAssembly != null &&
                     s_WorkspaceAssemblyNames.Contains(usedType.ContainingAssembly.Name))
                 {
                     hasAccessToTypeFromWorkspaceAssemblies = true;
