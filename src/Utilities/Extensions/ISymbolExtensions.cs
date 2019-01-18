@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -20,10 +21,47 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsAccessorMethod(this ISymbol symbol)
         {
-            var accessorSymbol = symbol as IMethodSymbol;
-            return accessorSymbol != null &&
-                (accessorSymbol.MethodKind == MethodKind.PropertySet || accessorSymbol.MethodKind == MethodKind.PropertyGet ||
-                accessorSymbol.MethodKind == MethodKind.EventRemove || accessorSymbol.MethodKind == MethodKind.EventAdd);
+            return symbol is IMethodSymbol accessorSymbol &&
+                (accessorSymbol.IsPropertyAccessor() || accessorSymbol.IsEventAccessor());
+        }
+
+        public static IEnumerable<IMethodSymbol> GetAccessors(this ISymbol symbol)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Property:
+                    var property = (IPropertySymbol)symbol;
+                    if (property.GetMethod != null)
+                    {
+                        yield return property.GetMethod;
+                    }
+
+                    if (property.SetMethod != null)
+                    {
+                        yield return property.SetMethod;
+                    }
+
+                    break;
+
+                case SymbolKind.Event:
+                    var eventSymbol = (IEventSymbol)symbol;
+                    if (eventSymbol.AddMethod != null)
+                    {
+                        yield return eventSymbol.AddMethod;
+                    }
+
+                    if (eventSymbol.RemoveMethod != null)
+                    {
+                        yield return eventSymbol.RemoveMethod;
+                    }
+
+                    if (eventSymbol.RaiseMethod != null)
+                    {
+                        yield return eventSymbol.RaiseMethod;
+                    }
+
+                    break;
+            }
         }
 
         public static bool IsDefaultConstructor(this ISymbol symbol)
@@ -90,6 +128,24 @@ namespace Analyzer.Utilities.Extensions
                 (IMethodSymbol m) => m.Parameters,
                 (IPropertySymbol p) => p.Parameters,
                 _ => ImmutableArray.Create<IParameterSymbol>());
+        }
+
+        /// <summary>
+        /// Returns true if the given symbol has required visibility based on options:
+        ///   1. If user has explicitly configured candidate <see cref="SymbolVisibilityGroup"/> in editor config options and
+        ///      given symbol's visibility is one of the candidate visibilites.
+        ///   2. Otherwise, if user has not configured visibility, and given symbol's visibility
+        ///      matches the given default symbol visibility.
+        /// </summary>
+        public static bool MatchesConfiguredVisibility(
+            this ISymbol symbol,
+            AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            CancellationToken cancellationToken,
+            SymbolVisibilityGroup defaultRequiredVisibility = SymbolVisibilityGroup.Public)
+        {
+            var allowedVisibilities = options.GetSymbolVisibilityGroupOption(rule, defaultRequiredVisibility, cancellationToken);
+            return allowedVisibilities.Contains(symbol.GetResultantVisibility());
         }
 
         /// <summary>
@@ -495,6 +551,14 @@ namespace Analyzer.Utilities.Extensions
         public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol attribute)
         {
             return symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute));
+        }
+
+        /// <summary>
+        /// Indicates if a symbol has at least one location in source.
+        /// </summary>
+        public static bool IsInSource(this ISymbol symbol)
+        {
+            return symbol.Locations.Any(l => l.IsInSource);
         }
     }
 }

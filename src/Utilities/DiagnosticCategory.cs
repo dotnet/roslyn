@@ -4,18 +4,18 @@ namespace Analyzer.Utilities
 {
     internal static class DiagnosticCategory
     {
-        public static readonly string Design = AnalyzerUtilitiesResources.CategoryDesign;
-        public static readonly string Globalization = AnalyzerUtilitiesResources.CategoryGlobalization;
-        public static readonly string Interoperability = AnalyzerUtilitiesResources.CategoryInteroperability;
-        public static readonly string Mobility = AnalyzerUtilitiesResources.CategoryMobility;
-        public static readonly string Performance = AnalyzerUtilitiesResources.CategoryPerformance;
-        public static readonly string Reliability = AnalyzerUtilitiesResources.CategoryReliability;
-        public static readonly string Security = AnalyzerUtilitiesResources.CategorySecurity;
-        public static readonly string Usage = AnalyzerUtilitiesResources.CategoryUsage;
-        public static readonly string Naming = AnalyzerUtilitiesResources.CategoryNaming;
-        public static readonly string Library = AnalyzerUtilitiesResources.CategoryLibrary;
-        public static readonly string Documentation = AnalyzerUtilitiesResources.CategoryDocumentation;
-        public static readonly string Maintainability = AnalyzerUtilitiesResources.CategoryMaintainability;
+        public const string Design = nameof(Design);
+        public const string Globalization = nameof(Globalization);
+        public const string Interoperability = nameof(Interoperability);
+        public const string Mobility = nameof(Mobility);
+        public const string Performance = nameof(Performance);
+        public const string Reliability = nameof(Reliability);
+        public const string Security = nameof(Security);
+        public const string Usage = nameof(Usage);
+        public const string Naming = nameof(Naming);
+        public const string Library = nameof(Library);
+        public const string Documentation = nameof(Documentation);
+        public const string Maintainability = nameof(Maintainability);
 
         public const string RoslyDiagnosticsDesign = nameof(RoslyDiagnosticsDesign);
         public const string RoslyDiagnosticsMaintainability = nameof(RoslyDiagnosticsMaintainability);

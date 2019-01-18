@@ -85,9 +85,19 @@ namespace Analyzer.Utilities.Extensions
                 return false;
             }
 
-            if (!baseTypesOnly && symbol.AllInterfaces.OfType<ITypeSymbol>().Contains(candidateBaseType))
+            if (!baseTypesOnly)
             {
-                return true;
+                var allInterfaces = symbol.AllInterfaces.OfType<ITypeSymbol>();
+                if (candidateBaseType.OriginalDefinition.Equals(candidateBaseType))
+                {
+                    // Candidate base type is not a constructed generic type, so use original definition for interfaces.
+                    allInterfaces = allInterfaces.Select(i => i.OriginalDefinition);
+                }
+
+                if (allInterfaces.Contains(candidateBaseType))
+                {
+                    return true;
+                }
             }
 
             if (checkTypeParameterConstraints && symbol.TypeKind == TypeKind.TypeParameter)

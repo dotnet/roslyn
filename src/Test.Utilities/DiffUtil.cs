@@ -99,7 +99,9 @@ namespace Test.Utilities
         /// </summary>
         private abstract class LongestCommonSubsequence<TSequence>
         {
+#pragma warning disable CA1815 // Override equals and operator equals on value types
             protected struct Edit
+#pragma warning restore CA1815 // Override equals and operator equals on value types
             {
                 public EditKind Kind { get; private set; }
                 public int IndexA { get; private set; }
