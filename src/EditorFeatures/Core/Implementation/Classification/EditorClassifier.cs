@@ -147,7 +147,11 @@ namespace Microsoft.CodeAnalysis.Editor
 
                 if (i > 0 && intersection != null)
                 {
-                    if (spans[i - 1].TextSpan.End > intersection.Value.Start)
+                    var isAdditiveClassification = spans[i - 1].TextSpan == span.TextSpan &&
+                        ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType);
+
+                    // Additive classifications are intended to overlap so do not ignore it.
+                    if (!isAdditiveClassification && spans[i - 1].TextSpan.End > intersection.Value.Start)
                     {
                         // This span isn't strictly after the previous span.  Ignore it.
                         intersection = null;
@@ -172,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 }
 
                 // If there is space between this span and the last one, then add a space.
-                if (startPosition != span.TextSpan.Start)
+                if (startPosition < span.TextSpan.Start)
                 {
                     result.Add(new ClassifiedSpan(ClassificationTypeNames.Text,
                         TextSpan.FromBounds(

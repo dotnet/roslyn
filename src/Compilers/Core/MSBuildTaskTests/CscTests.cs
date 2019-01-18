@@ -338,8 +338,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             var csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            csc.NullableContextOptions = "enabled";
-            Assert.Equal("/nullable:enabled /out:test.exe test.cs", csc.GenerateResponseFileContents());
+            csc.NullableContextOptions = "enable";
+            Assert.Equal("/nullable:enable /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -347,8 +347,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             var csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            csc.NullableContextOptions = "disabled";
-            Assert.Equal("/nullable:disabled /out:test.exe test.cs", csc.GenerateResponseFileContents());
+            csc.NullableContextOptions = "disable";
+            Assert.Equal("/nullable:disable /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -358,6 +358,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.NullableContextOptions = "safeonly";
             Assert.Equal("/nullable:safeonly /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_Warnings()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.NullableContextOptions = "warnings";
+            Assert.Equal("/nullable:warnings /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void NullableReferenceTypes_Safeonlywarnings()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.NullableContextOptions = "safeonlywarnings";
+            Assert.Equal("/nullable:safeonlywarnings /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
 
         [Fact]

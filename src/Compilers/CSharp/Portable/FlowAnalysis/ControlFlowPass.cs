@@ -11,15 +11,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class ControlFlowPass : AbstractFlowPass<ControlFlowPass.LocalState>
     {
-        private readonly PooledHashSet<LabelSymbol> _labelsDefined = PooledHashSet<LabelSymbol>.GetInstance();
+        private readonly PooledDictionary<LabelSymbol, BoundBlock> _labelsDefined = PooledDictionary<LabelSymbol, BoundBlock>.GetInstance();
         private readonly PooledHashSet<LabelSymbol> _labelsUsed = PooledHashSet<LabelSymbol>.GetInstance();
         protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
+
+        private readonly ArrayBuilder<(LocalSymbol symbol, BoundBlock block)> _usingDeclarations = ArrayBuilder<(LocalSymbol, BoundBlock)>.GetInstance();
+        private BoundBlock _currentBlock = null;
 
         protected override void Free()
         {
             _labelsDefined.Free();
             _labelsUsed.Free();
-
+            _usingDeclarations.Free();
             base.Free();
         }
 
@@ -115,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Diagnostics.Clear();  // clear reported diagnostics
             var result = base.Scan(ref badRegion);
-            foreach (var label in _labelsDefined)
+            foreach (var label in _labelsDefined.Keys)
             {
                 if (!_labelsUsed.Contains(label))
                 {
@@ -295,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitLabel(BoundLabeledStatement node)
         {
-            _labelsDefined.Add(node.Label);
+            _labelsDefined[node.Label] = _currentBlock;
             base.VisitLabel(node);
         }
 
@@ -310,34 +313,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitGotoStatement(BoundGotoStatement node)
         {
             _labelsUsed.Add(node.Label);
+
+            // check for illegal jumps across using declarations
+            var sourceLocation = node.Syntax.Location;
+            var sourceStart = sourceLocation.SourceSpan.Start;
+            var targetStart = node.Label.Locations[0].SourceSpan.Start;
+
+            foreach (var usingDecl in _usingDeclarations)
+            {
+                var usingStart = usingDecl.symbol.Locations[0].SourceSpan.Start;
+                if (sourceStart < usingStart && targetStart > usingStart)
+                {
+                    // No forward jumps
+                    Diagnostics.Add(ErrorCode.ERR_GoToForwardJumpOverUsingVar, sourceLocation);
+                    break;
+                }
+                else if (sourceStart > usingStart && targetStart < usingStart)
+                {
+                    // Backwards jump, so we must have already seen the label
+                    Debug.Assert(_labelsDefined.ContainsKey(node.Label));
+
+                    // Error if label and using are part of the same block
+                    if (_labelsDefined[node.Label] == usingDecl.block)
+                    {
+                        Diagnostics.Add(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, sourceLocation);
+                        break;
+                    }
+                }
+            }
+
             return base.VisitGotoStatement(node);
         }
 
-        public override BoundNode VisitSwitchSection(BoundSwitchSection node, bool lastSection)
+        protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
         {
-            base.VisitSwitchSection(node);
-
-            // Check for switch section fall through error
-            if (this.State.Alive)
-            {
-                Debug.Assert(node.SwitchLabels.Any());
-
-                var boundLabel = node.SwitchLabels.Last();
-                Diagnostics.Add(lastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
-                                new SourceLocation(boundLabel.Syntax), boundLabel.Label.Name);
-            }
-
-            return null;
-        }
-
-        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
-        {
-            return base.VisitPatternSwitchStatement(node);
-        }
-
-        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
-        {
-            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+            base.VisitSwitchSection(node, isLastSection);
 
             // Check for switch section fall through error
             if (this.State.Alive)
@@ -346,6 +356,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Diagnostics.Add(isLastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(syntax), syntax.ToString());
             }
+        }
+
+        public override BoundNode VisitBlock(BoundBlock node)
+        {
+            var parentBlock = _currentBlock;
+            _currentBlock = node;
+            var initialUsingCount = _usingDeclarations.Count;
+            foreach (var local in node.Locals)
+            {
+                if (local.IsUsing)
+                {
+                    _usingDeclarations.Add((local, node));
+                }
+            }
+
+            var result = base.VisitBlock(node);
+
+            _usingDeclarations.Clip(initialUsingCount);
+            _currentBlock = parentBlock;
+            return result;
         }
     }
 }

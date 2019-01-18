@@ -111,13 +111,13 @@ namespace N4
         }
 
         [Fact, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
-        public async Task GlobalSuppressionOnNamespaces_NamespaceAndChildren()
+        public async Task GlobalSuppressionOnNamespaces_NamespaceAndDescendants()
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""NamespaceAndChildren"", Target=""N.N1"")]
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""namespaceandchildren"", Target=""N4"")]
+[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""NamespaceAndDescendants"", Target=""N.N1"")]
+[module: SuppressMessage(""Test"", ""Declaration"", Scope=""namespaceanddescendants"", Target=""N4"")]
 
 namespace N
 {
@@ -145,13 +145,13 @@ namespace N.N1.N6.N7
         }
 
         [Fact, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
-        public async Task GlobalSuppressionOnTypesAndNamespaces_NamespaceAndChildren()
+        public async Task GlobalSuppressionOnTypesAndNamespaces_NamespaceAndDescendants()
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""NamespaceAndChildren"", Target=""N.N1.N2"")]
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""NamespaceAndChildren"", Target=""N4"")]
+[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""NamespaceAndDescendants"", Target=""N.N1.N2"")]
+[module: SuppressMessage(""Test"", ""Declaration"", Scope=""NamespaceAndDescendants"", Target=""N4"")]
 [module: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""C2"")]
 
 namespace N
@@ -449,7 +449,7 @@ namespace A
         public async Task SuppressSyntaxDiagnosticsOnNamespaceAndChildDeclarationCSharp()
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"", Scope=""NamespaceAndChildren"", Target=""A.B"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"", Scope=""NamespaceAndDescendants"", Target=""A.B"")]
 namespace A
 [|{
     namespace B
@@ -483,10 +483,10 @@ End|] Namespace
         }
 
         [Fact, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
-        public async Task SuppressSyntaxDiagnosticsOnNamespaceAndChildrenDeclarationBasic()
+        public async Task SuppressSyntaxDiagnosticsOnNamespaceAndDescendantsDeclarationBasic()
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
-<assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"", Scope:=""NamespaceAndChildren"", Target:=""A.B"")>
+<assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"", Scope:=""NamespaceAndDescendants"", Target:=""A.B"")>
 Namespace [|A
     Namespace B 
         Class C
@@ -500,7 +500,7 @@ End|] Namespace
 
         [Theory, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
         [InlineData("Namespace")]
-        [InlineData("NamespaceAndChildren")]
+        [InlineData("NamespaceAndDescendants")]
         public async Task DontSuppressSyntaxDiagnosticsInRootNamespaceBasic(string scope)
         {
             await VerifyBasicAsync($@"

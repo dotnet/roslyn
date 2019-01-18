@@ -12,16 +12,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Nullable annotation and warning contexts are disabled.
         /// </summary>
-        Disabled,
+        Disable,
 
         /// <summary>
         /// Nullable annotation and warning contexts are enabled.
         /// </summary>
-        Enabled,
+        Enable,
 
         /// <summary>
         /// Nullable annotation context is enabled and the nullable warning context is safeonly.
         /// </summary>
         SafeOnly,
+
+        /// <summary>
+        /// Nullable annotation context is disabled and the nullable warning context is enabled.
+        /// </summary>
+        Warnings,
+
+        /// <summary>
+        /// Nullable annotation context is disabled and the nullable warning context is safeonly.
+        /// </summary>
+        SafeOnlyWarnings,
     }
 }

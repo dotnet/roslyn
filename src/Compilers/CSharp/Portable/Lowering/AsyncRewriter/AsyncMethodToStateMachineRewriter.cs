@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Awaiters of the same type always share the same slot, regardless of what await expressions they belong to.
             // Even in case of nested await expressions only one awaiter is active.
-            // So we don't need to tie the awaiter variable to a particular await expression and only use its type 
+            // So we don't need to tie the awaiter variable to a particular await expression and only use its type
             // to find the previous awaiter field.
             if (!_awaiterFields.TryGetValue(awaiterType, out result))
             {
@@ -250,9 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region Visitors
 
         protected virtual BoundStatement VisitBody(BoundStatement body)
-        {
-            return (BoundStatement)Visit(body);
-        }
+            => (BoundStatement)Visit(body);
 
         public sealed override BoundNode VisitExpressionStatement(BoundExpressionStatement node)
         {
@@ -400,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // this.<>t__awaiter = $awaiterTemp
                     F.Assignment(
                     F.Field(F.This(), awaiterField),
-                    (awaiterField.Type.TypeSymbol == awaiterTemp.Type.TypeSymbol)
+                    (TypeSymbol.Equals(awaiterField.Type.TypeSymbol, awaiterTemp.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
                         ? F.Local(awaiterTemp)
                         : F.Convert(awaiterFieldType, F.Local(awaiterTemp))));
 
@@ -423,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // $this.<>t__awaiter = null;
                     F.Assignment(
                     F.Local(awaiterTemp),
-                    awaiterTemp.Type.TypeSymbol == awaiterField.Type.TypeSymbol
+                    TypeSymbol.Equals(awaiterTemp.Type.TypeSymbol, awaiterField.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2)
                         ? F.Field(F.This(), awaiterField)
                         : F.Convert(awaiterTemp.Type.TypeSymbol, F.Field(F.This(), awaiterField))));
 
@@ -440,13 +438,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement GenerateAwaitOnCompletedDynamic(LocalSymbol awaiterTemp)
         {
             //  temp $criticalNotifyCompletedTemp = $awaiterTemp as ICriticalNotifyCompletion
-            //  if ($criticalNotifyCompletedTemp != null) 
+            //  if ($criticalNotifyCompletedTemp != null)
             //  {
             //    this.builder.AwaitUnsafeOnCompleted<ICriticalNotifyCompletion,TSM>(
-            //      ref $criticalNotifyCompletedTemp, 
+            //      ref $criticalNotifyCompletedTemp,
             //      ref this)
-            //  } 
-            //  else 
+            //  }
+            //  else
             //  {
             //    temp $notifyCompletionTemp = (INotifyCompletion)$awaiterTemp
             //    this.builder.AwaitOnCompleted<INotifyCompletion,TSM>(ref $notifyCompletionTemp, ref this)

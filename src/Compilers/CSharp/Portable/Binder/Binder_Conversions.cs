@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             if (conversion.BestUserDefinedConversionAnalysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm &&
-                conversion.BestUserDefinedConversionAnalysis.FromType != conversionParameterType)
+                !TypeSymbol.Equals(conversion.BestUserDefinedConversionAnalysis.FromType, conversionParameterType, TypeCompareKind.ConsiderEverything2))
             {
                 // Conversion's "from" type --> conversion method's parameter type.
                 convertedOperand = CreateConversion(
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion toConversion = conversion.UserDefinedToConversion;
 
             if (conversion.BestUserDefinedConversionAnalysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm &&
-                conversionToType != conversionReturnType)
+                !TypeSymbol.Equals(conversionToType, conversionReturnType, TypeCompareKind.ConsiderEverything2))
             {
                 // Conversion method's parameter type --> conversion method's return type
                 // NB: not calling CreateConversion here because this is the recursive base case.
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: conversionReturnType)
                 { WasCompilerGenerated = true };
 
-                if (conversionToType.IsNullableType() && conversionToType.GetNullableUnderlyingType() == conversionReturnType)
+                if (conversionToType.IsNullableType() && TypeSymbol.Equals(conversionToType.GetNullableUnderlyingType(), conversionReturnType, TypeCompareKind.ConsiderEverything2))
                 {
                     // Skip introducing the conversion from C to C?.  The "to" conversion is now wrong though,
                     // because it will still assume converting C? to D?. 
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 convertedArguments.ToImmutableAndFree(),
                 targetType);
 
-            if (sourceTuple.Type != destination)
+            if (!TypeSymbol.Equals(sourceTuple.Type, destination, TypeCompareKind.ConsiderEverything2))
             {
                 // literal cast is applied to the literal 
                 result = new BoundConversion(

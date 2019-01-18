@@ -30,7 +30,7 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (6,16): error CS1674: 'C.S2': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'C.S2': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var x = GetRefStruct())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var x = GetRefStruct()").WithArguments("C.S2").WithLocation(6, 16));
         }
@@ -2601,9 +2601,6 @@ public static class Extensions
                 // (8,28): error CS8350: This combination of arguments to 'Extensions.Deconstruct(ref Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         (global, global) = global;
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "global").WithArguments("Extensions.Deconstruct(ref System.Span<int>, out System.Span<int>, out System.Span<int>)", "x").WithLocation(8, 28),
-                // (8,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Span<int>', with 2 out parameters and a void return type.
-                //         (global, global) = global;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "global").WithArguments("System.Span<int>", "2").WithLocation(8, 28),
                 // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
             );
@@ -3393,7 +3390,7 @@ public struct Thing
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_Class()
+        public void RefThisAssignment_Class()
         {
             CreateCompilation(@"
 class Test
@@ -3420,7 +3417,7 @@ class Test
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_Struct()
+        public void RefThisAssignment_Struct()
         {
             CreateCompilation(@"
 struct Test
@@ -3444,7 +3441,7 @@ struct Test
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_ReadOnlyStruct()
+        public void RefThisAssignment_ReadOnlyStruct()
         {
             CreateCompilation(@"
 readonly struct Test
@@ -3468,7 +3465,7 @@ readonly struct Test
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_RefStruct()
+        public void RefThisAssignment_RefStruct()
         {
             CreateCompilation(@"
 ref struct Test
@@ -3492,7 +3489,7 @@ ref struct Test
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_ReadOnlyRefStruct()
+        public void RefThisAssignment_ReadOnlyRefStruct()
         {
             CreateCompilation(@"
 readonly ref struct Test

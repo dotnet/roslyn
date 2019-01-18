@@ -145,6 +145,22 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 return true;
             }
 
+            if (expression.IsParentKind(SyntaxKind.IsPatternExpression))
+            {
+                return true;
+            }
+
+            if (expression.IsParentKind(SyntaxKind.NameColon) &&
+                expression.Parent.IsParentKind(SyntaxKind.Subpattern))
+            {
+                return true;
+            }
+
+            if (expression.IsParentKind(SyntaxKind.ConstantPattern))
+            {
+                return true;
+            }
+
             return expression.CanReplaceWithLValue(document.SemanticModel, cancellationToken);
         }
 

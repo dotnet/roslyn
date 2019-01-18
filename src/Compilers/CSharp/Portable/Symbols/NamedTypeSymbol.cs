@@ -617,9 +617,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal abstract NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved);
+        internal abstract NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved);
 
-        internal abstract ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved);
+        internal abstract ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved);
 
         public override int GetHashCode()
         {
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // symbols.  Therefore this code may not behave correctly if 'this' is List<int>
             // where List`1 is a missing metadata type symbol, and other is similarly List<int>
             // but for a reference-distinct List`1.
-            if (thisOriginalDefinition != otherOriginalDefinition)
+            if (!TypeSymbol.Equals(thisOriginalDefinition, otherOriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 return false;
             }
@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
+        internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> transform)
         {
             if (!IsGenericType)
             {
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < allTypeArguments.Count; i++)
             {
                 TypeSymbolWithAnnotations oldTypeArgument = allTypeArguments[i];
-                TypeSymbolWithAnnotations newTypeArgument = oldTypeArgument.SetUnknownNullabilityForReferenceTypes();
+                TypeSymbolWithAnnotations newTypeArgument = transform(oldTypeArgument);
                 if (!oldTypeArgument.IsSameAs(newTypeArgument))
                 {
                     allTypeArguments[i] = newTypeArgument;
@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var typeArgumentsA = typeA.TypeArgumentsNoUseSiteDiagnostics;
                     var typeArgumentsB = typeB.TypeArgumentsNoUseSiteDiagnostics;
-                    allTypeParameters.AddRange(definition.TypeParameters);
+                    allTypeParameters.AddRange(typeParameters);
                     for (int i = 0; i < typeArgumentsA.Length; i++)
                     {
                         TypeSymbolWithAnnotations typeArgumentA = typeArgumentsA[i];
@@ -1500,12 +1500,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         levelsOfNesting++;
                         typeToCheck = ((NamedTypeSymbol)typeToCheck).TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].TypeSymbol;
                     }
-                    while (typeToCheck.OriginalDefinition == this.OriginalDefinition && !typeToCheck.IsDefinition);
+                    while (TypeSymbol.Equals(typeToCheck.OriginalDefinition, this.OriginalDefinition, TypeCompareKind.ConsiderEverything2) && !typeToCheck.IsDefinition);
 
                     if (typeToCheck.IsTupleType)
                     {
                         var underlying = typeToCheck.TupleUnderlyingType;
-                        if (underlying.Arity == TupleTypeSymbol.RestPosition && underlying.OriginalDefinition != this.OriginalDefinition)
+                        if (underlying.Arity == TupleTypeSymbol.RestPosition && !TypeSymbol.Equals(underlying.OriginalDefinition, this.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
                         {
                             tupleCardinality = 0;
                             return false;
