@@ -16,12 +16,12 @@
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleBadWithin">
         <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
-        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <target state="translated">Параметр "{0}" должен представлять собой "INamedTypeSymbol" или "IAssemblySymbol".</target>
         <note />
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
-        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
+        <target state="translated">Параметр "{0}" должен быть символом из этой компиляции или из другой сборки, на которую она ссылается.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -36,7 +36,7 @@
       </trans-unit>
       <trans-unit id="OperationMustNotBeControlFlowGraphPart">
         <source>The provided operation must not be part of a Control Flow Graph.</source>
-        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
+        <target state="translated">Указанная операция не может быть частью графа потока управления.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -61,7 +61,7 @@
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
-        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
+        <target state="translated">Анализатор "{0}" содержит дескриптор null в разделе "SupportedDiagnostics".</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -101,7 +101,7 @@
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
-        <target state="translated">поле</target>
+        <target state="translated">Поле</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeParameter">
@@ -341,12 +341,12 @@
       </trans-unit>
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
-        <target state="translated">начальное значение не должно быть отрицательным</target>
+        <target state="translated">'начальное значение не должно быть отрицательным</target>
         <note />
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'</source>
-        <target state="translated">конечное значение не должно быть меньше начального</target>
+        <target state="translated">'конечное значение не должно быть меньше начального</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">
@@ -533,7 +533,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="translated">Изменения не должны перекрываться.</target>
+        <target state="translated">Изменения должны идти в строгом порядке и не накладываться.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -678,7 +678,7 @@
       </trans-unit>
       <trans-unit id="KeepAliveWithoutShared">
         <source>'/keepalive' option is only valid with '/shared' option.</source>
-        <target state="translated">Параметр "/keepalive" является допустимым только при использовании с параметром "/shared".</target>
+        <target state="translated">'Параметр "/keepalive" является допустимым только при использовании с параметром "/shared".</target>
         <note />
       </trans-unit>
       <trans-unit id="MismatchedVersion">

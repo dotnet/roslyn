@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Invalid_characters_in_assembly_name">
         <source>Invalid characters in assembly name</source>
-        <target state="translated">Assemblyname enthält ungültige Zeichen</target>
+        <target state="translated">Assemblyname enthält ungültige Zeichen.</target>
         <note />
       </trans-unit>
     </body>

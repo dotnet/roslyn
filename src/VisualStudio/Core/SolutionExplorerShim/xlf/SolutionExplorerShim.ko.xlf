@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Path">
         <source>Path</source>
-        <target state="translated">경로</target>
+        <target state="translated">PATH</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">

@@ -4,22 +4,22 @@
     <body>
       <trans-unit id="Add_to_current_file">
         <source>Add to _current file</source>
-        <target state="new">Add to _current file</target>
+	<target state="new">Add to _current file</target>
         <note />
       </trans-unit>
       <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
         <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
-        <target state="new">Additional changes are needed to complete the refactoring. Review changes below.</target>
+	<target state="new">Additional changes are needed to complete the refactoring. Review changes below.</target>
         <note />
       </trans-unit>
       <trans-unit id="All_methods">
         <source>All methods</source>
-        <target state="new">All methods</target>
+        <target state="translated">모든 메서드</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_colon">
         <source>Allow:</source>
-        <target state="new">Allow:</target>
+	<target state="new">Allow:</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
@@ -34,32 +34,32 @@
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
-        <target state="new">Avoid expression statements that implicitly ignore value</target>
+        <target state="translated">값을 암시적으로 무시하는 식 문을 사용하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unused_parameters">
         <source>Avoid unused parameters</source>
-        <target state="new">Avoid unused parameters</target>
+        <target state="translated">사용하지 않는 매개 변수 방지</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unused_value_assignments">
         <source>Avoid unused value assignments</source>
-        <target state="new">Avoid unused value assignments</target>
+        <target state="translated">사용하지 않는 값 할당 방지</target>
         <note />
       </trans-unit>
       <trans-unit id="Back">
         <source>Back</source>
-        <target state="new">Back</target>
+	<target state="new">Back</target>
         <note />
       </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
-        <target state="new">Calculating dependents...</target>
+	<target state="new">Calculating dependents...</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
-        <target state="new">Colorize regular expressions</target>
+        <target state="translated">정규식 색 지정</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -69,17 +69,17 @@
       </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
-        <target state="new">Finish</target>
+	<target state="new">Finish</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
-        <target state="new">Generate .editorconfig file from settings</target>
+        <target state="translated">설정에서 .editorconfig 파일 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
-        <target state="new">Highlight related components under cursor</target>
+        <target state="translated">커서 아래의 관련 구성 요소 강조</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
         <source>Interface cannot have field.</source>
-        <target state="new">Interface cannot have field.</target>
+	<target state="new">Interface cannot have field.</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
@@ -99,27 +99,27 @@
       </trans-unit>
       <trans-unit id="Kind">
         <source>Kind</source>
-        <target state="new">Kind</target>
+        <target state="translated">종류</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
         <source>Make '{0}' abstract</source>
-        <target state="new">Make '{0}' abstract</target>
+	<target state="new">Make '{0}' abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_abstract">
         <source>Make abstract</source>
-        <target state="new">Make abstract</target>
+	<target state="new">Make abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="Members">
         <source>Members</source>
-        <target state="new">Members</target>
+	<target state="new">Members</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
         <source>Namespace: '{0}'</source>
-        <target state="new">Namespace: '{0}'</target>
+	<target state="new">Namespace: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -129,12 +129,12 @@
       </trans-unit>
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
-        <target state="new">Non-public methods</target>
+        <target state="translated">public이 아닌 메서드</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
         <source>Parameter preferences:</source>
-        <target state="new">Parameter preferences:</target>
+        <target state="translated">매개 변수 기본 설정:</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
@@ -144,32 +144,32 @@
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
-        <target state="new">Prefer compound assignments</target>
+        <target state="translated">복합 할당 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_index_operator">
         <source>Prefer index operator</source>
-        <target state="new">Prefer index operator</target>
+        <target state="translated">인덱스 연산자 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
-        <target state="new">Prefer range operator</target>
+        <target state="translated">범위 연산자 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
-        <target state="new">Pull Members Up</target>
+	<target state="new">Pull Members Up</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
-        <target state="new">Regular Expressions</target>
+        <target state="translated">정규식</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
-        <target state="new">Report invalid regular expressions</target>
+        <target state="translated">잘못된 정규식 보고</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
@@ -179,77 +179,77 @@
       </trans-unit>
       <trans-unit id="Review_Changes">
         <source>Review Changes</source>
-        <target state="new">Review Changes</target>
+	<target state="new">Review Changes</target>
         <note />
       </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
         <source>Save .editorconfig file</source>
-        <target state="new">Save .editorconfig file</target>
+        <target state="translated">.editorconfig 파일 저장</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination">
         <source>Select destination</source>
-        <target state="new">Select destination</target>
+	<target state="new">Select destination</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Dependents">
         <source>_Select Dependents</source>
-        <target state="new">_Select Dependents</target>
+	<target state="new">_Select Dependents</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
         <source>_Select Public</source>
-        <target state="new">_Select Public</target>
+	<target state="new">_Select Public</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">
         <source>Select destination and members to pull up.</source>
-        <target state="new">Select destination and members to pull up.</target>
+	<target state="new">Select destination and members to pull up.</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_colon">
         <source>Select destination:</source>
-        <target state="new">Select destination:</target>
+	<target state="new">Select destination:</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_member">
         <source>Select member</source>
-        <target state="new">Select member</target>
+	<target state="new">Select member</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_members_colon">
         <source>Select members:</source>
-        <target state="new">Select members:</target>
+	<target state="new">Select members:</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
-        <target state="new">Unused value is explicitly assigned to an unused local</target>
+        <target state="translated">사용하지 않은 값은 사용하지 않은 로컬에 명시적으로 할당합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_discard">
         <source>Unused value is explicitly assigned to discard</source>
-        <target state="new">Unused value is explicitly assigned to discard</target>
+        <target state="translated">사용하지 않은 값은 버리기에 명시적으로 할당됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
-        <target state="new">Use expression body for lambdas</target>
+        <target state="translated">람다에 식 본문 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">
         <source>Use expression body for local functions</source>
-        <target state="new">Use expression body for local functions</target>
+	<target state="new">Use expression body for local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
-        <target state="new">Value assigned here is never used</target>
+        <target state="translated">여기에 할당된 값이 사용되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
         <source>Value returned by invocation is implicitly ignored</source>
-        <target state="new">Value returned by invocation is implicitly ignored</target>
+        <target state="translated">호출에서 반환된 값은 암시적으로 무시됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
@@ -379,17 +379,17 @@
       </trans-unit>
       <trans-unit id="_0_will_be_changed_to_abstract">
         <source>'{0}' will be changed to abstract.</source>
-        <target state="new">'{0}' will be changed to abstract.</target>
+	<target state="new">'{0}' will be changed to abstract.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_will_be_changed_to_non_static">
         <source>'{0}' will be changed to non-static.</source>
-        <target state="new">'{0}' will be changed to non-static.</target>
+	<target state="new">'{0}' will be changed to non-static.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
-        <target state="new">'{0}' will be changed to public.</target>
+	<target state="new">'{0}' will be changed to public.</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
-        <target state="translated">어셈블리 </target>
+        <target state="translated">어셈블리</target>
         <note />
       </trans-unit>
       <trans-unit id="Exceptions_colon">
@@ -479,7 +479,7 @@
       </trans-unit>
       <trans-unit id="Project">
         <source>Project </source>
-        <target state="translated">프로젝트 </target>
+        <target state="translated">프로젝트</target>
         <note />
       </trans-unit>
       <trans-unit id="Remarks_colon">
@@ -686,7 +686,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="Name_colon1">
         <source>Name:</source>
-        <target state="translated">이름:</target>
+        <target state="translated">이름: </target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter">
@@ -716,7 +716,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="Type">
         <source>Type</source>
-        <target state="translated">형식</target>
+        <target state="translated">Type</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Details_colon">
@@ -861,7 +861,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="NotApplicable">
         <source>N/A</source>
-        <target state="translated">해당 없음</target>
+        <target state="translated">N/A</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionNotSupportedToolTip">
@@ -1021,7 +1021,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="Name_colon2">
         <source>Name:</source>
-        <target state="translated">이름:</target>
+        <target state="translated">이름: </target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_Rule">
@@ -1101,7 +1101,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="example">
         <source>example</source>
-        <target state="translated">예</target>
+        <target state="translated">예제</target>
         <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
       </trans-unit>
       <trans-unit id="identifier">
@@ -1230,7 +1230,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Copy_to_Clipboard">
         <source>Copy to Clipboard</source>
-        <target state="translated">클립보드로 복사</target>
+        <target state="translated">클립보드에 복사</target>
         <note />
       </trans-unit>
       <trans-unit id="Close">
@@ -1245,7 +1245,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="End_of_inner_exception_stack">
         <source>--- End of inner exception stack trace ---</source>
-        <target state="translated">--- 내부 예외 스택 추적 끝 ---</target>
+        <target state="translated">--- 내부 예외 스택 추적의 끝 ---</target>
         <note />
       </trans-unit>
       <trans-unit id="For_locals_parameters_and_members">
@@ -1470,7 +1470,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="built_in_types">
         <source>built-in types</source>
-        <target state="translated">기본 제공 형식인 경우</target>
+        <target state="translated">기본 제공 유형</target>
         <note />
       </trans-unit>
       <trans-unit id="everywhere_else">

@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Info">
         <source>Info</source>
-        <target state="translated">Informazioni</target>
+        <target state="translated">Info</target>
         <note />
       </trans-unit>
       <trans-unit id="Hidden">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Checking_out_0_for_editing">
         <source>Checking out {0} for editing...</source>
-        <target state="translated">Estrazione di {0} per la modifica in corso...</target>
+        <target state="translated">Estrazione di {0} per la modifica...</target>
         <note />
       </trans-unit>
       <trans-unit id="Name">
@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Path">
         <source>Path</source>
-        <target state="translated">Percorso</target>
+        <target state="translated">PERCORSO</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">

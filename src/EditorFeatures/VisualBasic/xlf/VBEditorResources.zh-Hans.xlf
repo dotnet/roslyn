@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
-        <target state="translated">正在格式化文档...</target>
+        <target state="translated">正在设置文档格式...</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_new_line">

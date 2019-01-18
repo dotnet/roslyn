@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="cmdidContextOrganizeRemoveAndSort|ButtonText">
         <source>Remove &amp;and Sort</source>
-        <target state="translated">Entfernen &amp;und sortieren</target>
+        <target state="translated">Entfernen und sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidContextOrganizeRemoveAndSort|LocCanonicalName">
@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|LocCanonicalName">
         <source>None</source>
-        <target state="translated">Keine</target>
+        <target state="translated">NONE</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|CommandName">

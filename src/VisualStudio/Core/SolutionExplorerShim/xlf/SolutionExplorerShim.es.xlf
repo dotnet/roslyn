@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Folder_Properties">
         <source>Folder Properties</source>
-        <target state="translated">Propiedades de carpeta</target>
+        <target state="translated">Propiedades de la carpeta</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_Properties">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Error_">
         <source>Error</source>
-        <target state="translated">Error</target>
+        <target state="translated">Fehler</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning">
@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Path">
         <source>Path</source>
-        <target state="translated">Ruta de acceso</target>
+        <target state="translated">PATH</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="ID">
         <source>ID</source>
-        <target state="translated">Id.</target>
+        <target state="translated">ID.</target>
         <note />
       </trans-unit>
       <trans-unit id="Message">
