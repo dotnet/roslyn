@@ -3,6 +3,8 @@
 using RunTests.Cache;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,18 +16,19 @@ namespace RunTests
 {
     internal sealed class ProcessTestExecutor : ITestExecutor
     {
-        private readonly TestExecutionOptions _options;
+        public TestExecutionOptions Options { get; }
 
         public IDataStorage DataStorage => EmptyDataStorage.Instance;
 
         internal ProcessTestExecutor(TestExecutionOptions options)
         {
-            _options = options;
+            Options = options;
         }
+
 
         public string GetCommandLine(AssemblyInfo assemblyInfo)
         {
-            return $"{_options.XunitPath} {GetCommandLineArguments(assemblyInfo)}";
+            return $"{Options.XunitPath} {GetCommandLineArguments(assemblyInfo)}";
         }
 
         public string GetCommandLineArguments(AssemblyInfo assemblyInfo)
@@ -36,21 +39,21 @@ namespace RunTests
             var builder = new StringBuilder();
             builder.AppendFormat(@"""{0}""", assemblyInfo.AssemblyPath);
             builder.AppendFormat(@" {0}", assemblyInfo.ExtraArguments);
-            builder.AppendFormat(@" -{0} ""{1}""", _options.UseHtml ? "html" : "xml", resultsFilePath);
+            builder.AppendFormat(@" -{0} ""{1}""", Options.UseHtml ? "html" : "xml", resultsFilePath);
             builder.Append(" -noshadow -verbose");
 
-            if (!string.IsNullOrWhiteSpace(_options.Trait))
+            if (!string.IsNullOrWhiteSpace(Options.Trait))
             {
-                var traits = _options.Trait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                var traits = Options.Trait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var trait in traits)
                 {
                     builder.AppendFormat(" -trait {0}", trait);
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(_options.NoTrait))
+            if (!string.IsNullOrWhiteSpace(Options.NoTrait))
             {
-                var traits = _options.NoTrait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                var traits = Options.NoTrait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var trait in traits)
                 {
                     builder.AppendFormat(" -notrait {0}", trait);
@@ -62,8 +65,7 @@ namespace RunTests
 
         private string GetResultsFilePath(AssemblyInfo assemblyInfo)
         {
-            var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyInfo.AssemblyPath), Constants.ResultsDirectoryName);
-            return Path.Combine(resultsDir, assemblyInfo.ResultsFileName);
+            return Path.Combine(Options.OutputDirectory, assemblyInfo.ResultsFileName);
         }
 
         public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
@@ -73,6 +75,8 @@ namespace RunTests
                 var commandLineArguments = GetCommandLineArguments(assemblyInfo);
                 var resultsFilePath = GetResultsFilePath(assemblyInfo);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
+                var processResultList = new List<ProcessResult>();
+                ProcessInfo? procDumpProcessInfo = null;
 
                 // NOTE: xUnit doesn't always create the log directory
                 Directory.CreateDirectory(resultsDir);
@@ -83,32 +87,47 @@ namespace RunTests
 
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>();
-                _options.ProcDumpInfo?.WriteEnvironmentVariables(environmentVariables);
-
-                // Attach procDump to processes when the are started so we can watch for 
-                // unexepected crashes.
-                void onProcessStart(Process process)
-                {
-                    if (_options.ProcDumpInfo != null)
-                    {
-                        ProcDumpUtil.AttachProcDump(_options.ProcDumpInfo.Value, process.Id);
-                    }
-                }
+                Options.ProcDumpInfo?.WriteEnvironmentVariables(environmentVariables);
 
                 var start = DateTime.UtcNow;
-                var xunitPath = _options.XunitPath;
-                var processOutput = await ProcessRunner.RunProcessAsync(
-                    xunitPath,
-                    commandLineArguments,
+                var xunitProcessInfo = ProcessRunner.CreateProcess(
+                    ProcessRunner.CreateProcessStartInfo(
+                        Options.XunitPath,
+                        commandLineArguments,
+                        displayWindow: false,
+                        captureOutput: true,
+                        environmentVariables: environmentVariables),
                     lowPriority: false,
-                    displayWindow: false,
-                    captureOutput: true,
-                    cancellationToken: cancellationToken,
-                    environmentVariables: environmentVariables,
-                    onProcessStartHandler: onProcessStart);
+                    cancellationToken: cancellationToken);
+                Logger.Log($"Create xunit process with id {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName}");
+
+                // Now that xunit is running we should kick off a procDump process if it was specified
+                if (Options.ProcDumpInfo != null)
+                {
+                    var procDumpInfo = Options.ProcDumpInfo.Value;
+                    var procDumpStartInfo = ProcessRunner.CreateProcessStartInfo(
+                        procDumpInfo.ProcDumpFilePath,
+                        ProcDumpUtil.GetProcDumpCommandLine(xunitProcessInfo.Id, procDumpInfo.DumpDirectory),
+                        captureOutput: true,
+                        displayWindow: false);
+                    Directory.CreateDirectory(procDumpInfo.DumpDirectory);
+                    procDumpProcessInfo = ProcessRunner.CreateProcess(procDumpStartInfo, cancellationToken: cancellationToken);
+                    Logger.Log($"Create procdump process with id {procDumpProcessInfo.Value.Id} for xunit {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName}");
+                }
+
+                var xunitProcessResult = await xunitProcessInfo.Result;
                 var span = DateTime.UtcNow - start;
 
-                if (processOutput.ExitCode != 0)
+                Logger.Log($"Exit xunit process with id {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName} with code {xunitProcessResult.ExitCode}");
+                processResultList.Add(xunitProcessResult);
+                if (procDumpProcessInfo != null)
+                {
+                    var procDumpProcessResult = await procDumpProcessInfo.Value.Result;
+                    Logger.Log($"Exit procdump process with id {procDumpProcessInfo.Value.Id} for {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName} with code {procDumpProcessResult.ExitCode}");
+                    processResultList.Add(procDumpProcessResult);
+                }
+
+                if (xunitProcessResult.ExitCode != 0)
                 {
                     // On occasion we get a non-0 output but no actual data in the result file.  The could happen
                     // if xunit manages to crash when running a unit test (a stack overflow could cause this, for instance).
@@ -134,11 +153,10 @@ namespace RunTests
 
                 var commandLine = GetCommandLine(assemblyInfo);
                 Logger.Log($"Command line {assemblyInfo.DisplayName}: {commandLine}");
-                var standardOutput = string.Join(Environment.NewLine, processOutput.OutputLines) ?? "";
-                var errorOutput = string.Join(Environment.NewLine, processOutput.ErrorLines) ?? "";
+                var standardOutput = string.Join(Environment.NewLine, xunitProcessResult.OutputLines) ?? "";
+                var errorOutput = string.Join(Environment.NewLine, xunitProcessResult.ErrorLines) ?? "";
                 var testResultInfo = new TestResultInfo(
-                    exitCode: processOutput.ExitCode,
-                    resultsDirectory: resultsDir,
+                    exitCode: xunitProcessResult.ExitCode,
                     resultsFilePath: resultsFilePath,
                     elapsed: span,
                     standardOutput: standardOutput,
@@ -148,11 +166,12 @@ namespace RunTests
                     assemblyInfo,
                     testResultInfo,
                     commandLine,
-                    isFromCache: false);
+                    isFromCache: false,
+                    processResults: ImmutableArray.CreateRange(processResultList));
             }
             catch (Exception ex)
             {
-                throw new Exception($"Unable to run {assemblyInfo.AssemblyPath} with {_options.XunitPath}. {ex}");
+                throw new Exception($"Unable to run {assemblyInfo.AssemblyPath} with {Options.XunitPath}. {ex}");
             }
         }
     }

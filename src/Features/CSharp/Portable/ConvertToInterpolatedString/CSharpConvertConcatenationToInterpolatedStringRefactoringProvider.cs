@@ -10,10 +10,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
     internal class CSharpConvertConcatenationToInterpolatedStringRefactoringProvider :
         AbstractConvertConcatenationToInterpolatedStringRefactoringProvider
     {
+        private const string InterpolatedVerbatimText = "$@\"";
+
         protected override SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim)
-            => SyntaxFactory.Token(isVerbatim
-                ? SyntaxKind.InterpolatedVerbatimStringStartToken
-                : SyntaxKind.InterpolatedStringStartToken);
+        {
+            return isVerbatim
+                ? SyntaxFactory.Token(default, SyntaxKind.InterpolatedVerbatimStringStartToken, InterpolatedVerbatimText, InterpolatedVerbatimText, default)
+                : SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken);
+        }
 
         protected override SyntaxToken CreateInterpolatedStringEndToken()
             => SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken);

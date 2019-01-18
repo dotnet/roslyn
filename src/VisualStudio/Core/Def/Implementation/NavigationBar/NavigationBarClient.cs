@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
         private readonly IVsDropdownBarManager _manager;
         private readonly IVsCodeWindow _codeWindow;
         private readonly VisualStudioWorkspaceImpl _workspace;
-        private readonly IComEventSink _codeWindowEventsSink;
+        private readonly ComEventSink _codeWindowEventsSink;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IntPtr _imageList;
         private readonly IVsImageService2 _imageService;

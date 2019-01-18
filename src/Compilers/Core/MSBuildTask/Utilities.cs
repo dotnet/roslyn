@@ -19,6 +19,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private const string MSBuildRoslynFolderName = "Roslyn";
 
         /// <summary>
+        /// Copied from msbuild. ItemSpecs are normalized using this method.
+        /// </summary>
+        public static string FixFilePath(string path)
+            => string.IsNullOrEmpty(path) || Path.DirectorySeparatorChar == '\\' ? path : path.Replace('\\', '/');
+
+        /// <summary>
         /// Convert a task item metadata to bool. Throw an exception if the string is badly formed and can't
         /// be converted.
         /// 

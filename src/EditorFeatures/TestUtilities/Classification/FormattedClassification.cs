@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 {
@@ -35,17 +36,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
         public override string ToString()
         {
+            if (ClassificationName.StartsWith("regex"))
+            {
+                var remainder = ClassificationName.Substring("regex - ".Length);
+                var parts = remainder.Split(' ');
+                var type = string.Join("", parts.Select(Capitalize));
+                return "Regex." + $"{type}(\"{Text}\")";
+            }
+
             switch (ClassificationName)
             {
                 case "punctuation":
                     switch (Text)
                     {
                         case "(":
-                            return "Punctation.OpenParen";
+                            return "Punctuation.OpenParen";
                         case ")":
-                            return "Punctation.CloseParen";
+                            return "Punctuation.CloseParen";
+                        case "{":
+                            return "Punctuation.OpenCurly";
+                        case "}":
+                            return "Punctuation.CloseCurly";
                         case ";":
-                            return "Punctation.Semicolon";
+                            return "Punctuation.Semicolon";
                         case ":":
                             return "Punctuation.Colon";
                         case ",":
@@ -64,8 +77,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                     goto default;
 
                 default:
-                    return $"{char.ToUpperInvariant(ClassificationName[0])}{ClassificationName.Substring(1)}(\"{Text}\")";
+                    return $"{Capitalize(ClassificationName)}(\"{Text}\")";
             }
         }
+
+        private static string Capitalize(string val)
+            => char.ToUpperInvariant(val[0]) + val.Substring(1);
     }
 }

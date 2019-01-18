@@ -160,7 +160,7 @@ class C
                 // (6,9): error CS0103: The name 'x' does not exist in the current context
                 //         x;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 9),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         x;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(6, 9));
         }
@@ -904,7 +904,7 @@ class Program
         d = (int)d;
     }
 }";
-            CreateCompilation(source, new[] { SystemCoreRef }).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]

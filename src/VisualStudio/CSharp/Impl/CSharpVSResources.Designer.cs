@@ -79,6 +79,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Apply all C# formatting rules (indentation, wrapping, spacing).
+        /// </summary>
+        internal static string Apply_all_csharp_formatting_rules_indentation_wrapping_spacing {
+            get {
+                return ResourceManager.GetString("Apply_all_csharp_formatting_rules_indentation_wrapping_spacing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Automatically format _block on }.
         /// </summary>
         internal static string Automatically_format_block_on_close_brace {
@@ -142,6 +151,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C# Coding Conventions.
+        /// </summary>
+        internal static string CSharp_Coding_Conventions {
+            get {
+                return ResourceManager.GetString("CSharp_Coding_Conventions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to C# Formatting Rules.
+        /// </summary>
+        internal static string CSharp_Formatting_Rules {
+            get {
+                return ResourceManager.GetString("CSharp_Formatting_Rules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Discard.
+        /// </summary>
+        internal static string Discard {
+            get {
+                return ResourceManager.GetString("Discard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Do not prefer &apos;this.&apos;.
         /// </summary>
         internal static string Do_not_prefer_this {
@@ -196,15 +232,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate Event Subscription Command Handler.
-        /// </summary>
-        internal static string Event_Hookup_Command_Handler {
-            get {
-                return ResourceManager.GetString("Event_Hookup_Command_Handler", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Extract Method.
         /// </summary>
         internal static string Extract_Method {
@@ -228,6 +255,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string For_built_in_types {
             get {
                 return ResourceManager.GetString("For_built_in_types", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format Document Settings (Experiment) .
+        /// </summary>
+        internal static string Format_document_settings {
+            get {
+                return ResourceManager.GetString("Format_document_settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate Event Subscription.
+        /// </summary>
+        internal static string Generate_Event_Subscription {
+            get {
+                return ResourceManager.GetString("Generate_Event_Subscription", resourceCulture);
             }
         }
         
@@ -291,6 +336,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Ignore_spaces_in_declaration_statements {
             get {
                 return ResourceManager.GetString("Ignore_spaces_in_declaration_statements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |.
+        /// </summary>
+        internal static string In_arithmetic_binary_operators {
+            get {
+                return ResourceManager.GetString("In_arithmetic_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In other binary operators:  &amp;&amp;   ||   ??.
+        /// </summary>
+        internal static string In_other_binary_operators {
+            get {
+                return ResourceManager.GetString("In_other_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=.
+        /// </summary>
+        internal static string In_relational_binary_operators {
+            get {
+                return ResourceManager.GetString("In_relational_binary_operators", resourceCulture);
             }
         }
         
@@ -709,6 +781,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Perform additional code cleanup during formatting.
+        /// </summary>
+        internal static string Perform_additional_code_cleanup_during_formatting {
+            get {
+                return ResourceManager.GetString("Perform_additional_code_cleanup_during_formatting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Performance.
         /// </summary>
         internal static string Performance {
@@ -943,11 +1024,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer &apos;is null&apos; over &apos;object.ReferenceEquals(..., null)&apos;.
+        ///   Looks up a localized string similar to Prefer &apos;is null&apos; for reference equality checks.
         /// </summary>
-        internal static string Prefer_is_null_over_ReferenceEquals {
+        internal static string Prefer_is_null_for_reference_equality_checks {
             get {
-                return ResourceManager.GetString("Prefer_is_null_over_ReferenceEquals", resourceCulture);
+                return ResourceManager.GetString("Prefer_is_null_for_reference_equality_checks", resourceCulture);
             }
         }
         
@@ -1047,6 +1128,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Remove_spaces_before_and_after_binary_operators {
             get {
                 return ResourceManager.GetString("Remove_spaces_before_and_after_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unnecessary usings.
+        /// </summary>
+        internal static string Remove_unnecessary_usings {
+            get {
+                return ResourceManager.GetString("Remove_unnecessary_usings", resourceCulture);
             }
         }
         
@@ -1204,6 +1294,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sort usings.
+        /// </summary>
+        internal static string Sort_usings {
+            get {
+                return ResourceManager.GetString("Sort_usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Split string literals on _enter.
         /// </summary>
         internal static string Split_string_literals_on_enter {
@@ -1258,6 +1357,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unused local.
+        /// </summary>
+        internal static string Unused_local {
+            get {
+                return ResourceManager.GetString("Unused_local", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;var&apos; when generating locals.
         /// </summary>
         internal static string Use_var_when_generating_locals {
@@ -1281,6 +1389,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string var_preferences_colon {
             get {
                 return ResourceManager.GetString("var_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When on multiple lines.
+        /// </summary>
+        internal static string When_on_multiple_lines {
+            get {
+                return ResourceManager.GetString("When_on_multiple_lines", resourceCulture);
             }
         }
         

@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Windows.Data;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor;
@@ -19,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -128,12 +128,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public void UpdatePreview(string text)
         {
-            const string start = "//[";
-            const string end = "//]";
-
-            var service = MefV1HostServices.Create(_componentModel.DefaultExportProvider);
+            var service = VisualStudioMefHostServices.Create(_componentModel.GetService<ExportProvider>());
             var workspace = new PreviewWorkspace(service);
-            var fileName = string.Format("project.{0}", Language == "C#" ? "csproj" : "vbproj");
+            var fileName = "project." + (Language == "C#" ? "csproj" : "vbproj");
             var project = workspace.CurrentSolution.AddProject(fileName, "assembly.dll", Language);
 
             // use the mscorlib, system, and system.core that are loaded in the current process.
@@ -160,17 +157,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var container = textBuffer.AsTextContainer();
             var documentBackedByTextBuffer = document.WithText(container.CurrentText);
 
-            var bufferText = textBuffer.CurrentSnapshot.GetText().ToString();
-            var startIndex = bufferText.IndexOf(start, StringComparison.Ordinal);
-            var endIndex = bufferText.IndexOf(end, StringComparison.Ordinal);
-            var startLine = textBuffer.CurrentSnapshot.GetLineNumberFromPosition(startIndex) + 1;
-            var endLine = textBuffer.CurrentSnapshot.GetLineNumberFromPosition(endIndex);
-
             var projection = _projectionBufferFactory.CreateProjectionBufferWithoutIndentation(_contentTypeRegistryService,
                 _editorOptions.CreateOptions(),
                 textBuffer.CurrentSnapshot,
-                "",
-                LineSpan.FromBounds(startLine, endLine));
+                separator: "",
+                exposedLineSpans: GetExposedLineSpans(textBuffer.CurrentSnapshot).ToArray());
 
             var textView = _textEditorFactoryService.CreateTextView(projection,
               _textEditorFactoryService.CreateTextViewRoleSet(PredefinedTextViewRoles.Interactive));
@@ -187,6 +178,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             };
         }
 
+        private static List<LineSpan> GetExposedLineSpans(ITextSnapshot textSnapshot)
+        {
+            const string start = "//[";
+            const string end = "//]";
+
+            var bufferText = textSnapshot.GetText().ToString();
+
+            var lineSpans = new List<LineSpan>();
+            var lastEndIndex = 0;
+
+            while (true)
+            {
+                var startIndex = bufferText.IndexOf(start, lastEndIndex, StringComparison.Ordinal);
+                if (startIndex == -1)
+                {
+                    break;
+                }
+
+                var endIndex = bufferText.IndexOf(end, lastEndIndex, StringComparison.Ordinal);
+
+                var startLine = textSnapshot.GetLineNumberFromPosition(startIndex) + 1;
+                var endLine = textSnapshot.GetLineNumberFromPosition(endIndex);
+
+                lineSpans.Add(LineSpan.FromBounds(startLine, endLine));
+                lastEndIndex = endIndex + end.Length;
+            }
+
+            return lineSpans;
+        }
+
         public void Dispose()
         {
             if (_textViewHost != null)
@@ -199,6 +220,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private void UpdateDocument(string text)
         {
             UpdatePreview(text);
+        }
+
+        protected void AddParenthesesOption(
+            string language, OptionSet optionSet,
+            PerLanguageOption<CodeStyleOption<ParenthesesPreference>> languageOption,
+            string title, string[] examples, bool defaultAddForClarity)
+        {
+            var preferences = new List<ParenthesesPreference>();
+            var codeStylePreferences = new List<CodeStylePreference>();
+
+            preferences.Add(ParenthesesPreference.AlwaysForClarity);
+            codeStylePreferences.Add(new CodeStylePreference(ServicesVSResources.Always_for_clarity, isChecked: defaultAddForClarity));
+
+            preferences.Add(ParenthesesPreference.NeverIfUnnecessary);
+            codeStylePreferences.Add(new CodeStylePreference(
+                ServicesVSResources.Never_if_unnecessary,
+                isChecked: !defaultAddForClarity));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ParenthesesPreference>(
+                languageOption, language, title, preferences.ToArray(),
+                examples, this, optionSet, ServicesVSResources.Parentheses_preferences_colon,
+                codeStylePreferences));
+        }
+
+        protected void AddUnusedParameterOption(string language, OptionSet optionSet, string title, string[] examples)
+        {
+            var unusedParameterPreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(ServicesVSResources.Non_public_methods, isChecked: false),
+                new CodeStylePreference(ServicesVSResources.All_methods, isChecked: true),
+            };
+
+            var enumValues = new[]
+            {
+                UnusedParametersPreference.NonPublicMethods,
+                UnusedParametersPreference.AllMethods
+            };
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<UnusedParametersPreference>(
+                CodeStyleOptions.UnusedParameters, language,
+                ServicesVSResources.Avoid_unused_parameters, enumValues,
+                examples, this, optionSet, title,
+                unusedParameterPreferences));
         }
     }
 }

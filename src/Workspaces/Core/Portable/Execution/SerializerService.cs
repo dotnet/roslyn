@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -22,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal partial class SerializerService : ISerializerService
     {
+        private static readonly Func<WellKnownSynchronizationKind, string> s_logKind = k => k.ToString();
+
         private readonly HostWorkspaceServices _workspaceServices;
 
         private readonly IReferenceSerializationService _hostSerializationService;
@@ -30,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
 
-        [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SerializerService(HostWorkspaceServices workspaceServices)
         {
             _workspaceServices = workspaceServices;
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             var kind = value.GetWellKnownSynchronizationKind();
 
-            using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, kind.ToStringFast(), cancellationToken))
+            using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, s_logKind, kind, cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -69,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return Checksum.Create(kind, _hostSerializationService.CreateChecksum((MetadataReference)value, cancellationToken));
 
                     case WellKnownSynchronizationKind.AnalyzerReference:
-                        return Checksum.Create(kind, _hostSerializationService.CreateChecksum((AnalyzerReference)value, cancellationToken));
+                        return Checksum.Create(kind, _hostSerializationService.CreateChecksum((AnalyzerReference)value, usePathFromAssembly: true, cancellationToken));
 
                     case WellKnownSynchronizationKind.SourceText:
                         return Checksum.Create(kind, ((SourceText)value).GetChecksum());
@@ -86,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             var kind = value.GetWellKnownSynchronizationKind();
 
-            using (Logger.LogBlock(FunctionId.Serializer_Serialize, kind.ToString(), cancellationToken))
+            using (Logger.LogBlock(FunctionId.Serializer_Serialize, s_logKind, kind, cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -142,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         public T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Serializer_Deserialize, kind.ToString(), cancellationToken))
+            using (Logger.LogBlock(FunctionId.Serializer_Deserialize, s_logKind, kind, cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

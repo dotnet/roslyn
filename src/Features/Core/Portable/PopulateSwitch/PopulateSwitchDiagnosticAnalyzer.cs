@@ -12,8 +12,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal sealed class PopulateSwitchDiagnosticAnalyzer : 
-        AbstractCodeStyleDiagnosticAnalyzer
+    internal sealed class PopulateSwitchDiagnosticAnalyzer :
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_missing_cases), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Populate_switch), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     .Add(PopulateSwitchHelpers.MissingDefaultCase, missingDefaultCase.ToString());
 
                 var diagnostic = Diagnostic.Create(
-                    HiddenDescriptor,
+                    Descriptor,
                     switchBlock.GetFirstToken().GetLocation(),
                     properties: properties,
                     additionalLocations: new[] { switchBlock.GetLocation() });

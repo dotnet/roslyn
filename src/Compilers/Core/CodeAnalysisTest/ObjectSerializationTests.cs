@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private T RoundTripValue<T>(T value, bool recursive)
         {
-            return RoundTrip(value, 
+            return RoundTrip(value,
                 (w, v) =>
                 {
                     if (v != null && v.GetType().IsEnum)
@@ -95,8 +95,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         w.WriteValue(v);
                     }
                 },
-                r => value != null && value.GetType().IsEnum 
-                    ? (T)Enum.ToObject(typeof(T), r.ReadInt64()) 
+                r => value != null && value.GetType().IsEnum
+                    ? (T)Enum.ToObject(typeof(T), r.ReadInt64())
                     : (T)r.ReadValue(), recursive);
         }
 
@@ -156,10 +156,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             private TypeWithOneMember(ObjectReader reader)
             {
-                _member = typeof(T).IsEnum 
+                _member = typeof(T).IsEnum
                     ? (T)Enum.ToObject(typeof(T), reader.ReadInt64())
                     : (T)reader.ReadValue();
             }
+
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             void IObjectWritable.WriteTo(ObjectWriter writer)
             {
@@ -218,6 +220,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 _member2 = (S)reader.ReadValue();
             }
 
+            bool IObjectWritable.ShouldReuseInSerialization => true;
+
             void IObjectWritable.WriteTo(ObjectWriter writer)
             {
                 writer.WriteValue(_member1);
@@ -237,7 +241,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
                 else
                 {
-                    return  _member1.GetHashCode();
+                    return _member1.GetHashCode();
                 }
             }
 
@@ -275,6 +279,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     _members[i] = (T)reader.ReadValue();
                 }
             }
+
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             void IObjectWritable.WriteTo(ObjectWriter writer)
             {
@@ -510,6 +516,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 TestReadingPrimitiveArrays(reader);
             }
+
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             void IObjectWritable.WriteTo(ObjectWriter writer)
             {
@@ -804,6 +812,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 TestReadingPrimitiveAPIs(reader);
             }
 
+            bool IObjectWritable.ShouldReuseInSerialization => true;
+
             void IObjectWritable.WriteTo(ObjectWriter writer)
             {
                 TestWritingPrimitiveAPIs(writer);
@@ -885,6 +895,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 TestReadingPrimitiveValues(reader);
             }
+
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             void IObjectWritable.WriteTo(ObjectWriter writer)
             {
@@ -1147,6 +1159,30 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void TestReuse()
+        {
+            var oneNode = new Node("one");
+            var n1 = new Node("x", oneNode, oneNode, oneNode, oneNode);
+            var n2 = RoundTripValue(n1, recursive: true);
+
+            Assert.Same(n2.Children[0], n2.Children[1]);
+            Assert.Same(n2.Children[1], n2.Children[2]);
+            Assert.Same(n2.Children[2], n2.Children[3]);
+        }
+
+        [Fact]
+        public void TestReuseNegative()
+        {
+            var oneNode = new Node("one", isReusable: false);
+            var n1 = new Node("x", oneNode, oneNode, oneNode, oneNode);
+            var n2 = RoundTripValue(n1, recursive: true);
+
+            Assert.NotSame(n2.Children[0], n2.Children[1]);
+            Assert.NotSame(n2.Children[1], n2.Children[2]);
+            Assert.NotSame(n2.Children[2], n2.Children[3]);
+        }
+
+        [Fact]
         public void TestWideObjectGraph()
         {
             int id = 0;
@@ -1197,11 +1233,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             internal readonly string Name;
             internal readonly Node[] Children;
+            private readonly bool _isReusable = true;
 
             public Node(string name, params Node[] children)
             {
                 this.Name = name;
                 this.Children = children;
+            }
+
+            public Node(string name, bool isReusable)
+                : this(name)
+            {
+                this._isReusable = isReusable;
             }
 
             private Node(ObjectReader reader)
@@ -1211,6 +1254,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             private static readonly Func<ObjectReader, object> s_createInstance = r => new Node(r);
+
+            bool IObjectWritable.ShouldReuseInSerialization => _isReusable;
 
             public void WriteTo(ObjectWriter writer)
             {
@@ -1257,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-// keep these around for analyzing perf issues
+        // keep these around for analyzing perf issues
 #if false
         [Fact]
         public void TestReaderPerf()

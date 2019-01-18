@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class FileUtilitiesTests
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void IsAbsolute()
         {
             Assert.False(PathUtilities.IsAbsolute(null));
@@ -29,24 +30,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(PathUtilities.IsAbsolute(@"\\server"));          // incomplete UNC 
             Assert.True(PathUtilities.IsAbsolute(@"\\server\share"));    // UNC
             Assert.True(PathUtilities.IsAbsolute(@"\\?\C:\share"));      // long UNC
-
-            // '/' is an absolute path on unix-like systems
-            switch (Environment.OSVersion.Platform)
-            {
-                case PlatformID.MacOSX:
-                case PlatformID.Unix:
-                    Assert.True(PathUtilities.IsAbsolute(@"\C"));
-                    Assert.True(PathUtilities.IsAbsolute(@"/C"));
-                    break;
-
-                default:
-                    Assert.False(PathUtilities.IsAbsolute(@"\C"));
-                    Assert.False(PathUtilities.IsAbsolute(@"/C"));
-                    break;
-            }
+            Assert.False(PathUtilities.IsAbsolute(@"\C"));
+            Assert.False(PathUtilities.IsAbsolute(@"/C"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void GetPathRoot()
         {
             Assert.Equal(null, PathUtilities.GetPathRoot(null));
@@ -98,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Assert.Equal(@"\\?\C:\", PathUtilities.GetPathRoot(@"\\?\C:\abc\def"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void CombinePaths()
         {
             Assert.Equal(@"C:\x/y", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x/y", @""));
@@ -117,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(@"C:\x/y\../goo", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x/y", @"../goo"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ResolveRelativePath()
         {
             string baseDir = @"X:\rootdir\dir";
@@ -229,7 +217,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected, Path.ChangeExtension(path, extension));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void Extension()
         {
             TestGetExtension(path: "a.dll", expected: ".dll");

@@ -510,6 +510,20 @@ Done:
             End Get
         End Property
 
+        Private ReadOnly Property ITypeSymbol_IsRefLikeType As Boolean Implements ITypeSymbol.IsRefLikeType
+            Get
+                ' VB has no concept of ref-like types
+                Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeSymbol_IsUnmanagedType As Boolean Implements ITypeSymbol.IsUnmanagedType
+            Get
+                ' VB has no concept of unmanaged types
+                Return False
+            End Get
+        End Property
+
 #End Region
 
 #Region "Interface checks"

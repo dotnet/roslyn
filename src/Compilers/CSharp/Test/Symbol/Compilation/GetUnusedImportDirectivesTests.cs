@@ -329,12 +329,8 @@ using System;
 /// <see cref='Console'/>
 public class C { }
 ";
-
-            // Not binding doc comments.
-            CreateCompilation(source).VerifyDiagnostics(
-                // (2,1): info CS8019: Unnecessary using directive.
-                // using System;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
+            // Not reporting doc comment diagnostics. It is still a use.
+            CreateCompilation(source).VerifyDiagnostics();
 
             // Binding doc comments.
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics();
@@ -429,6 +425,35 @@ partial class Program
                 //// using System.Runtime.InteropServices;
                 //Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Runtime.InteropServices;").WithLocation(1, 1)
                 );
+        }
+
+        [Fact, WorkItem(2773, "https://github.com/dotnet/roslyn/issues/2773")]
+        public void UsageInDocComment()
+        {
+            var source = @"using X;
+
+/// <summary/>
+public class Program
+{
+    /// <summary>
+    /// <see cref=""Q""/>
+    /// </summary>
+    static void Main(string[] args)
+    {
+    }
+}
+
+namespace X
+{
+    /// <summary/>
+    public class Q { }
+}
+";
+            foreach (DocumentationMode documentationMode in Enum.GetValues(typeof(DocumentationMode)))
+            {
+                var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithDocumentationMode(documentationMode));
+                compilation.VerifyDiagnostics();
+            }
         }
     }
 }

@@ -487,15 +487,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         foreach (var typeParameter in this.TypeParameters)
                         {
                             typeParameter.ForceComplete(locationOpt, cancellationToken);
-                            var diagnostics = DiagnosticBag.GetInstance();
-
-                            if (typeParameter.HasUnmanagedTypeConstraint)
-                            {
-                                this.DeclaringCompilation.EnsureIsUnmanagedAttributeExists(diagnostics, typeParameter.GetNonNullSyntaxNode().Location, modifyCompilationForIsUnmanaged: true);
-                            }
-
-                            AddDeclarationDiagnostics(diagnostics);
-                            diagnostics.Free();
                         }
 
                         state.NotePartComplete(CompletionPart.TypeParameters);
@@ -610,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     foreach (var member in _lazyMembersAndInitializers.NonTypeNonIndexerMembers)
                     {
                         FieldSymbol field;
-                        if (!member.IsFieldOrFieldLikeEvent(out field) || field.IsConst || field.IsFixed)
+                        if (!member.IsFieldOrFieldLikeEvent(out field) || field.IsConst || field.IsFixedSizeBuffer)
                         {
                             continue;
                         }
@@ -719,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsByRefLikeType
+        public sealed override bool IsRefLikeType
         {
             get
             {
@@ -1214,13 +1205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = _lazyMembersFlattened;
             }
 
-#if DEBUG
-            // In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-            // more obviously.
-            return result.DeOrder();
-#else
-            return result;
-#endif
+            return result.ConditionallyDeOrder();
         }
 
         public override ImmutableArray<Symbol> GetMembers()
@@ -1423,14 +1408,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForProtectedInStaticClass(diagnostics);
             CheckForUnmatchedOperators(diagnostics);
 
-            if (this.IsByRefLikeType)
+            var location = Locations[0];
+            if (this.IsRefLikeType)
             {
-                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, Locations[0], modifyCompilationForIsByRefLike: true);
+                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
             if (this.IsReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, Locations[0], modifyCompilationForRefReadOnly: true);
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
+            var baseType = BaseTypeNoUseSiteDiagnostics;
+            var interfaces = InterfacesNoUseSiteDiagnostics();
+            if (baseType?.NeedsNullableAttribute() == true ||
+                interfaces.Any(t => t.NeedsNullableAttribute()))
+            {
+                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
         }
 
@@ -1889,7 +1884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         continue;
                     }
-                    var type = field.Type;
+                    var type = field.Type.TypeSymbol;
                     if (((object)type != null) &&
                         (type.TypeKind == TypeKind.Struct) &&
                         BaseTypeAnalysis.StructDependsOn((NamedTypeSymbol)type, this) &&
@@ -2021,7 +2016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!op1.ReturnType.Equals(op2.ReturnType, TypeCompareKind.AllIgnoreOptions))
+            if (!op1.ReturnType.TypeSymbol.Equals(op2.ReturnType.TypeSymbol, TypeCompareKind.AllIgnoreOptions))
             {
                 return false;
             }
@@ -2086,7 +2081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var f = m as FieldSymbol;
                 if ((object)f == null || !f.IsStatic || f.Type.TypeKind != TypeKind.Struct) continue;
-                var type = (NamedTypeSymbol)f.Type;
+                var type = (NamedTypeSymbol)f.Type.TypeSymbol;
                 if (InfiniteFlatteningGraph(this, type, instanceMap))
                 {
                     // Struct member '{0}' of type '{1}' causes a cycle in the struct layout
@@ -2105,7 +2100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (instanceMap.TryGetValue(tOriginal, out oldInstance))
             {
                 // short circuit when we find a cycle, but only return true when the cycle contains the top struct
-                return (oldInstance != t) && ReferenceEquals(tOriginal, top);
+                return (!TypeSymbol.Equals(oldInstance, t, TypeCompareKind.ConsiderEverything2)) && ReferenceEquals(tOriginal, top);
             }
             else
             {
@@ -2116,7 +2111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var f = m as FieldSymbol;
                         if ((object)f == null || !f.IsStatic || f.Type.TypeKind != TypeKind.Struct) continue;
-                        var type = (NamedTypeSymbol)f.Type;
+                        var type = (NamedTypeSymbol)f.Type.TypeSymbol;
                         if (InfiniteFlatteningGraph(top, type, instanceMap)) return true;
                     }
                     return false;
@@ -2454,7 +2449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             //key and value will be the same object
-            var methodsBySignature = new Dictionary<MethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
+            var methodsBySignature = new Dictionary<MethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.PartialMethodsComparer);
 
             foreach (var name in memberNames)
             {
@@ -2553,7 +2548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return builder.ToImmutableAndFree();
         }
-        
+
         /// <summary>
         /// Report an error if a member (other than a method) exists with the same name
         /// as the property accessor, or if a method exists with the same name and signature.
@@ -2677,8 +2672,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                var propertyParamType = ((i == numParams - 1) && !getNotSet) ? propertySymbol.Type : propertyParams[i].Type;
-                if (!propertyParamType.Equals(methodParam.Type, TypeCompareKind.AllIgnoreOptions))
+                var propertyParamType = (((i == numParams - 1) && !getNotSet) ? propertySymbol.Type : propertyParams[i].Type).TypeSymbol;
+                if (!propertyParamType.Equals(methodParam.Type.TypeSymbol, TypeCompareKind.AllIgnoreOptions))
                 {
                     return false;
                 }
@@ -2696,7 +2691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return
                 methodParams.Length == 1 &&
                 methodParams[0].RefKind == RefKind.None &&
-                eventSymbol.Type.Equals(methodParams[0].Type, TypeCompareKind.AllIgnoreOptions);
+                eventSymbol.Type.TypeSymbol.Equals(methodParams[0].Type.TypeSymbol, TypeCompareKind.AllIgnoreOptions);
         }
 
         private void AddEnumMembers(MembersAndInitializersBuilder result, EnumDeclarationSyntax syntax, DiagnosticBag diagnostics)

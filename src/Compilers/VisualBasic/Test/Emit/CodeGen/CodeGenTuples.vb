@@ -64,7 +64,6 @@ End Namespace
 
 "
 
-
         ReadOnly s_trivial3uple As String = "
 Namespace System
     Public Structure ValueTuple(Of T1, T2, T3)
@@ -109,6 +108,31 @@ Namespace System
     End Structure
 End Namespace
 "
+
+        <Fact>
+        Public Sub TupleNamesInArrayInAttribute()
+
+            Dim comp = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+<My(New (String, bob As String)() { })>
+Public Class MyAttribute
+    Inherits System.Attribute
+
+    Public Sub New(x As (alice As String, String)())
+    End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30045: Attribute constructor has a parameter of type '(alice As String, String)()', which is not an integral, floating-point or Enum type or one of Object, Char, String, Boolean, System.Type or 1-dimensional array of these types.
+<My(New (String, bob As String)() { })>
+ ~~
+                                        ]]></errors>)
+
+        End Sub
 
         <Fact>
         Public Sub TupleTypeBinding()
@@ -4595,7 +4619,7 @@ BC30311: Value of type '(Integer, Object, Integer)' cannot be converted to '(Int
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub LongTupleTypeMismatch()
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -5639,7 +5663,7 @@ End Class
 
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         Public Sub HugeTupleCreationParses()
 
             Dim b = New StringBuilder()
@@ -5665,7 +5689,7 @@ End Class
 
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         Public Sub HugeTupleDeclarationParses()
 
             Dim b = New StringBuilder()
@@ -9086,6 +9110,10 @@ End Module
             Assert.Equal("I1#I2#I3#I5#I6#I7#Item1#Item2#Item3#Item4#Item5#Item6#Item7#Item8#Item9#Rest", fields.Join("#"))
         End Sub
 
+        ' The NonNullTypes context for nested tuple types is using a dummy rather than actual context from surrounding code.
+        ' This does not affect `IsNullable`, but it affects `IsAnnotatedWithNonNullTypesContext`, which is used in comparisons.
+        ' So when we copy modifiers (re-applying nullability information, including actual NonNullTypes context), we make the comparison fail.
+        ' I think the solution is to never use a dummy context, even for value types.
         <Fact>
         Public Sub TupleNamesFromCS001()
 
@@ -18695,11 +18723,10 @@ BC30652: Reference required to assembly '5a03232e-1a0f-4d1b-99ba-5d7b40ea931e, V
 </errors>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub ValueTupleBase_AssemblyUnification()
-            Dim signedDllOptions = TestOptions.ReleaseDll.
-                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(s_defaultDesktopProvider)
+            Dim signedDllOptions = TestOptions.SigningReleaseDll.
+                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile)
             Dim comp0v1 = CreateCompilationWithMscorlib40(
 <compilation name="A">
     <file name="a.vb"><![CDATA[
@@ -18802,7 +18829,7 @@ BC41009: The tuple element name 'c' is ignored because a different name or no na
 
         <Fact>
         <WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")>
-        Public Sub NullCoalesingOperatorWithTupleNames()
+        Public Sub NullCoalescingOperatorWithTupleNames()
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="Tuples">
@@ -21518,6 +21545,193 @@ End Module
             Assert.Equal("IResult(Of System.Int32)", actSymbol.ReturnType.ToTestDisplayString())
         End Sub
 
+        <Fact>
+        <WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")>
+        Public Sub FailedDecodingOfTupleNamesWhenMissingValueTupleType()
+            Dim vtLib = CreateEmptyCompilation(s_trivial2uple, references:={MscorlibRef}, assemblyName:="vt")
+
+            Dim libComp = CreateCompilationWithMscorlib40AndVBRuntime(
+                <compilation>
+                    <file name="a.vb">
+Imports System.Collections.Generic
+Imports System.Collections
+
+Public Class ClassA
+    Implements IEnumerable(Of (alice As Integer, bob As Integer))
+
+    Function GetGenericEnumerator() As IEnumerator(Of (alice As Integer, bob As Integer)) Implements IEnumerable(Of (alice As Integer, bob As Integer)).GetEnumerator
+        Return Nothing
+    End Function
+
+    Function GetEnumerator() As IEnumerator Implements IEnumerable(Of (alice As Integer, bob As Integer)).GetEnumerator
+        Return Nothing
+    End Function
+End Class
+                    </file>
+                </compilation>, additionalRefs:={vtLib.EmitToImageReference()})
+            libComp.VerifyDiagnostics()
+
+            Dim source As Xml.Linq.XElement =
+                 <compilation>
+                     <file name="a.vb">
+Class ClassB
+    Sub M()
+        Dim x = New ClassA()
+        x.ToString()
+    End Sub
+End Class
+                    </file>
+                 </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference()}) ' missing reference to vt
+            comp.AssertNoDiagnostics()
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp, successfulDecoding:=False)
+
+            Dim compWithMetadataReference = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:={libComp.ToMetadataReference()}) ' missing reference to vt
+
+            compWithMetadataReference.AssertNoDiagnostics()
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compWithMetadataReference, successfulDecoding:=True)
+
+            Dim fakeVtLib = CreateEmptyCompilation("", references:={MscorlibRef}, assemblyName:="vt")
+            Dim compWithFakeVt = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
+            compWithFakeVt.AssertNoDiagnostics()
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compWithFakeVt, successfulDecoding:=False)
+
+            Dim source2 As Xml.Linq.XElement =
+                 <compilation>
+                     <file name="a.vb">
+Class ClassB
+    Sub M()
+        Dim x = New ClassA().GetGenericEnumerator()
+        For Each i In New ClassA()
+             System.Console.Write(i.alice)
+        Next
+    End Sub
+End Class
+                    </file>
+                 </compilation>
+
+            Dim comp2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, additionalRefs:={libComp.EmitToImageReference()}) ' missing reference to vt
+            comp2.AssertTheseDiagnostics(<errors>
+BC30652: Reference required to assembly 'vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'ValueTuple(Of ,)'. Add one to your project.
+        Dim x = New ClassA().GetGenericEnumerator()
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                         </errors>)
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp2, successfulDecoding:=False)
+
+            Dim comp2WithFakeVt = CreateCompilationWithMscorlib40AndVBRuntime(source2, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
+            comp2WithFakeVt.AssertTheseDiagnostics(<errors>
+BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'vt.dll' failed.
+        Dim x = New ClassA().GetGenericEnumerator()
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                   </errors>)
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp2WithFakeVt, successfulDecoding:=False)
+        End Sub
+
+        Private Sub FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compilation As Compilation, successfulDecoding As Boolean)
+            Dim classA = DirectCast(compilation.GetMember("ClassA"), NamedTypeSymbol)
+            Dim iEnumerable = classA.Interfaces()(0)
+
+            If successfulDecoding Then
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of (alice As System.Int32, bob As System.Int32))",
+                    iEnumerable.ToTestDisplayString())
+
+                Dim tuple = iEnumerable.TypeArguments()(0)
+                Assert.Equal("(alice As System.Int32, bob As System.Int32)", tuple.ToTestDisplayString())
+                Assert.True(tuple.IsTupleType)
+                Assert.True(tuple.TupleUnderlyingType.IsErrorType())
+            Else
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.ValueTuple(Of System.Int32, System.Int32)[missing])",
+                    iEnumerable.ToTestDisplayString())
+                Dim tuple = iEnumerable.TypeArguments()(0)
+                Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32)[missing]", tuple.ToTestDisplayString())
+                Assert.False(tuple.IsTupleType)
+            End If
+        End Sub
+
+        <Fact>
+        <WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")>
+        Public Sub FailedDecodingOfTupleNamesWhenMissingContainerType()
+            Dim containerLib = CreateCompilationWithMscorlib40AndVBRuntime(
+                <compilation>
+                    <file name="a.vb">
+Public Class Container(Of T)
+    Public Class Contained(Of U)
+    End Class
+End Class
+                    </file>
+                </compilation>)
+            containerLib.VerifyDiagnostics()
+
+            Dim libComp = CreateCompilationWithMscorlib40AndVBRuntime(
+                <compilation>
+                    <file name="a.vb">
+Imports System.Collections.Generic
+Imports System.Collections
+
+Public Class ClassA
+    Implements IEnumerable(Of Container(Of (alice As Integer, bob As Integer)).Contained(Of (charlie As Integer, dylan as Integer)))
+    
+    Function GetGenericEnumerator() As IEnumerator(Of Container(Of (alice As Integer, bob As Integer)).Contained(Of (charlie As Integer, dylan as Integer))) _
+        Implements IEnumerable(Of Container(Of (alice As Integer, bob As Integer)).Contained(Of (charlie As Integer, dylan as Integer))).GetEnumerator
+
+        Return Nothing
+    End Function
+
+    Function GetEnumerator() As IEnumerator Implements IEnumerable(Of Container(Of (alice As Integer, bob As Integer)).Contained(Of (charlie As Integer, dylan as Integer))).GetEnumerator
+        Return Nothing
+    End Function
+End Class
+                    </file>
+                </compilation>, additionalRefs:={containerLib.EmitToImageReference(), ValueTupleRef, SystemRuntimeFacadeRef})
+            libComp.VerifyDiagnostics()
+
+            Dim source As Xml.Linq.XElement =
+                 <compilation>
+                     <file name="a.vb">
+Class ClassB
+    Sub M()
+        Dim x = New ClassA()
+        x.ToString()
+    End Sub
+End Class
+                    </file>
+                 </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source,
+                additionalRefs:={libComp.EmitToImageReference(), ValueTupleRef, SystemRuntimeFacadeRef}) ' missing reference to container
+
+            comp.AssertNoDiagnostics()
+            FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(comp, decodingSuccessful:=False)
+
+            Dim compWithMetadataReference = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:={libComp.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef}) ' missing reference to container
+
+            compWithMetadataReference.AssertNoDiagnostics()
+            FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compWithMetadataReference, decodingSuccessful:=True)
+
+            Dim fakeContainerLib = CreateEmptyCompilation("", references:={MscorlibRef}, assemblyName:="vt")
+            Dim compWithFakeVt = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference(), fakeContainerLib.EmitToImageReference(), ValueTupleRef, SystemRuntimeFacadeRef}) ' reference to fake container
+            compWithFakeVt.AssertNoDiagnostics()
+            FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compWithFakeVt, decodingSuccessful:=False)
+
+        End Sub
+
+        Private Sub FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compilation As Compilation, decodingSuccessful As Boolean)
+            Dim classA = DirectCast(compilation.GetMember("ClassA"), NamedTypeSymbol)
+            Dim iEnumerable = classA.Interfaces()(0)
+            Dim tuple = DirectCast(iEnumerable.TypeArguments()(0), NamedTypeSymbol).TypeArguments()(0)
+
+            If decodingSuccessful Then
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of Container(Of (alice As System.Int32, bob As System.Int32))[missing].Contained(Of (charlie As System.Int32, dylan As System.Int32))[missing])", iEnumerable.ToTestDisplayString())
+                Assert.Equal("(charlie As System.Int32, dylan As System.Int32)", tuple.ToTestDisplayString())
+                Assert.True(tuple.IsTupleType)
+                Assert.False(tuple.TupleUnderlyingType.IsErrorType())
+            Else
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of Container(Of System.ValueTuple(Of System.Int32, System.Int32))[missing].Contained(Of System.ValueTuple(Of System.Int32, System.Int32))[missing])", IEnumerable.ToTestDisplayString())
+                Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32)", tuple.ToTestDisplayString())
+                Assert.False(tuple.IsTupleType)
+            End If
+        End Sub
     End Class
 
 End Namespace

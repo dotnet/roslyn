@@ -63,10 +63,23 @@ namespace Microsoft.CodeAnalysis
         public string OutputRefFilePath => _projectState.OutputRefFilePath;
 
         /// <summary>
-        /// <code>true</code> if this <see cref="Project"/> supports providing data through the
+        /// The default namespace of the project ("" if not defined, which means global namespace),
+        /// or null if it is unknown or not applicable. 
+        /// </summary>
+        /// <remarks>
+        /// Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
+        /// by assigning the value of the project's root namespace to it. So various feature can choose to 
+        /// use it for their own purpose.
+        /// In the future, we might consider officially exposing "default namespace" for VB project 
+        /// (e.g. through a "defaultnamespace" msbuild property)
+        /// </remarks>
+        internal string DefaultNamespace => _projectState.DefaultNamespace;
+
+        /// <summary>
+        /// <see langword="true"/> if this <see cref="Project"/> supports providing data through the
         /// <see cref="GetCompilationAsync(CancellationToken)"/> method.
         /// 
-        /// If <code>false</code> then this method will return <code>null</code> instead.
+        /// If <see langword="false"/> then this method will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsCompilation => this.LanguageServices.GetService<ICompilationFactoryService>() != null;
 
@@ -224,6 +237,12 @@ namespace Microsoft.CodeAnalysis
             return _projectState.GetAdditionalDocumentState(documentId);
         }
 
+        internal async Task<bool> ContainsSymbolsWithNameAsync(string name, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            return this.SupportsCompilation &&
+                   await _solution.State.ContainsSymbolsWithNameAsync(Id, name, filter, cancellationToken).ConfigureAwait(false);
+        }
+
         internal async Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
             return this.SupportsCompilation &&
@@ -334,6 +353,14 @@ namespace Microsoft.CodeAnalysis
         public Project WithAssemblyName(string assemblyName)
         {
             return this.Solution.WithProjectAssemblyName(this.Id, assemblyName).GetProject(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this project updated to have the new default namespace.
+        /// </summary>
+        internal Project WithDefaultNamespace(string defaultNamespace)
+        {
+            return this.Solution.WithProjectDefaultNamespace(this.Id, defaultNamespace).GetProject(this.Id);
         }
 
         /// <summary>

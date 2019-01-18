@@ -112,7 +112,7 @@ comp.goo()");
         {
             VisualStudio.InteractiveWindow.SubmitText(@"using System.Diagnostics;
 Process.GetCurrentProcess().ProcessName");
-            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"InteractiveHost\"");
+            VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"InteractiveHost64\"");
         }
 
         [WpfFact]

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithCustomQueryAsync(
+        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithCustomQueryAsync(
             Solution solution, SearchQuery query, SymbolFilter filter, CancellationToken cancellationToken)
         {
             if (solution == null)

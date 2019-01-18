@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Summarizes whether a conversion is allowed, and if so, which kind of conversion (and in some cases, the
     /// associated symbol).
     /// </summary>
-    public struct Conversion : IEquatable<Conversion>
+    public struct Conversion : IEquatable<Conversion>, IConvertibleConversion
     {
         private readonly ConversionKind _kind;
         private readonly UncommonData _uncommonData;
@@ -172,28 +172,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (kind)
             {
-                case ConversionKind.NoConversion: 
-                case ConversionKind.Identity: 
-                case ConversionKind.ImplicitConstant: 
-                case ConversionKind.ImplicitNumeric: 
-                case ConversionKind.ImplicitReference: 
+                case ConversionKind.NoConversion:
+                case ConversionKind.Identity:
+                case ConversionKind.ImplicitConstant:
+                case ConversionKind.ImplicitNumeric:
+                case ConversionKind.ImplicitReference:
                 case ConversionKind.ImplicitEnumeration:
                 case ConversionKind.ImplicitThrow:
-                case ConversionKind.AnonymousFunction: 
-                case ConversionKind.Boxing: 
-                case ConversionKind.DefaultOrNullLiteral: 
-                case ConversionKind.NullToPointer: 
-                case ConversionKind.PointerToVoid: 
-                case ConversionKind.PointerToPointer: 
-                case ConversionKind.PointerToInteger: 
-                case ConversionKind.IntegerToPointer: 
-                case ConversionKind.Unboxing: 
-                case ConversionKind.ExplicitReference: 
-                case ConversionKind.IntPtr: 
-                case ConversionKind.ExplicitEnumeration: 
-                case ConversionKind.ExplicitNumeric: 
-                case ConversionKind.ImplicitDynamic: 
-                case ConversionKind.ExplicitDynamic: 
+                case ConversionKind.AnonymousFunction:
+                case ConversionKind.Boxing:
+                case ConversionKind.DefaultOrNullLiteral:
+                case ConversionKind.NullToPointer:
+                case ConversionKind.PointerToVoid:
+                case ConversionKind.PointerToPointer:
+                case ConversionKind.PointerToInteger:
+                case ConversionKind.IntegerToPointer:
+                case ConversionKind.Unboxing:
+                case ConversionKind.ExplicitReference:
+                case ConversionKind.IntPtr:
+                case ConversionKind.ExplicitEnumeration:
+                case ConversionKind.ExplicitNumeric:
+                case ConversionKind.ImplicitDynamic:
+                case ConversionKind.ExplicitDynamic:
                 case ConversionKind.InterpolatedString:
                     isTrivial = true;
                     break;
@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
             var methodSymbol = IsUserDefined ? MethodSymbol : null;
-            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, methodSymbol);
+            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, methodSymbol);
         }
 
         /// <summary>
@@ -958,10 +958,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sub.Add(new TreeDumperNode("method", self.Method.ToDisplayString(), null));
                 }
 
-                if ((object)self.DeconstructionInfo != null)
+                if (!self.DeconstructionInfo.IsDefault)
                 {
                     sub.Add(new TreeDumperNode("deconstructionInfo", null,
-                        new[] { BoundTreeDumperNodeProducer.MakeTree(self.DeconstructionInfo.Invocation)}));
+                        new[] { BoundTreeDumperNodeProducer.MakeTree(self.DeconstructionInfo.Invocation) }));
                 }
 
                 var underlyingConversions = self.UnderlyingConversions;
@@ -983,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal DeconstructMethodInfo(BoundExpression invocation, BoundDeconstructValuePlaceholder inputPlaceholder,
             ImmutableArray<BoundDeconstructValuePlaceholder> outputPlaceholders)
         {
-             (Invocation, InputPlaceholder, OutputPlaceholders) = (invocation, inputPlaceholder, outputPlaceholders);
+            (Invocation, InputPlaceholder, OutputPlaceholders) = (invocation, inputPlaceholder, outputPlaceholders);
         }
 
         readonly internal BoundExpression Invocation;

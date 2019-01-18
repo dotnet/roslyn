@@ -373,12 +373,12 @@ End Class";
                     var parameterSymbols = SpecializedCollections.EmptyList<AttributeData>();
                     return ImmutableArray.Create<IEventSymbol>(
                         new CodeGenerationEventSymbol(
-                            GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel), 
-                            default(ImmutableArray<AttributeData>),
+                            GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel),
+                            attributes: default,
                             Accessibility.Public,
-                            default(DeclarationModifiers),
+                            modifiers: default,
                             GetTypeSymbol(typeof(System.ComponentModel.PropertyChangedEventHandler))(semanticModel),
-                            default,
+                            explicitInterfaceImplementations: default,
                             nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null));
                 };
 

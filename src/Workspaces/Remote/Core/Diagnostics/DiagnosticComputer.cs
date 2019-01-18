@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 var referenceSet = pooledObject.Object;
                 var analyzerMap = pooledMap.Object;
 
-                // this follow what we do in HostAnalayzerManager.CheckAnalyzerReferenceIdentity
+                // this follow what we do in HostAnalyzerManager.CheckAnalyzerReferenceIdentity
                 foreach (var reference in hostAnalyzers.Concat(project.AnalyzerReferences))
                 {
                     if (!referenceSet.Add(reference.Id))

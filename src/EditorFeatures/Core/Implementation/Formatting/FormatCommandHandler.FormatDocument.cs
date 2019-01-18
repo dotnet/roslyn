@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -18,12 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
         {
-            return TryExecuteCommand(args, context);
-        }
-
-        private bool TryExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
-        {
-            if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
+            if (!CanExecuteCommand(args.SubjectBuffer))
             {
                 return false;
             }
@@ -40,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
             {
-                Format(args.TextView, document, null, context.WaitContext.UserCancellationToken);
+                Format(args.TextView, document, null, context.OperationContext.UserCancellationToken);
             }
 
             return true;

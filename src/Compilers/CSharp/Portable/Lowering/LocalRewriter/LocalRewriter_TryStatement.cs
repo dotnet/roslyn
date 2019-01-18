@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (catchBlocks.IsDefaultOrEmpty && finallyBlockOpt == null)
                 ? (BoundNode)tryBlock
-                : (BoundNode)node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.PreferFaultHandler);
+                : (BoundNode)node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler);
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (statement.Kind)
             {
                 case BoundKind.NoOpStatement:
-                    return true;
+                    return false;
                 case BoundKind.Block:
                     {
                         var block = (BoundBlock)statement;

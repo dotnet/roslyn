@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToAdjacentMember)]
-    internal class GoToAdjacentMemberCommandHandler : 
-        VSCommanding.ICommandHandler<GoToNextMemberCommandArgs>, 
+    internal class GoToAdjacentMemberCommandHandler :
+        VSCommanding.ICommandHandler<GoToNextMemberCommandArgs>,
         VSCommanding.ICommandHandler<GoToPreviousMemberCommandArgs>
     {
         private readonly IOutliningManagerService _outliningManagerService;
 
-        public string DisplayName => EditorFeaturesResources.Go_To_Adjacent_Member_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Go_To_Adjacent_Member;
 
         [ImportingConstructor]
         public GoToAdjacentMemberCommandHandler(IOutliningManagerService outliningManagerService)
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
 
         private VSCommanding.CommandState GetCommandStateImpl(EditorCommandArgs args)
-        { 
+        {
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             return IsAvailable(document, caretPoint) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
@@ -92,10 +92,10 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             int? targetPosition = null;
 
-            using (context.WaitContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Navigating))
+            using (context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Navigating))
             {
-                var task = GetTargetPositionAsync(document, caretPoint.Value.Position, gotoNextMember, context.WaitContext.UserCancellationToken);
-                targetPosition = task.WaitAndGetResult(context.WaitContext.UserCancellationToken);
+                var task = GetTargetPositionAsync(document, caretPoint.Value.Position, gotoNextMember, context.OperationContext.UserCancellationToken);
+                targetPosition = task.WaitAndGetResult(context.OperationContext.UserCancellationToken);
             }
 
             if (targetPosition != null)

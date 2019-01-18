@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Remote.DebugUtil;
+using Microsoft.CodeAnalysis.Remote.Shared;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -68,11 +68,48 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var solution = workspace.CurrentSolution;
 
                 await UpdatePrimaryWorkspace(client, solution);
-                VerifyAssetStorage(client, solution);
+                await VerifyAssetStorageAsync(client, solution);
 
                 Assert.Equal(
                     await solution.State.GetChecksumAsync(CancellationToken.None),
                     await RemoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestRemoteHostTextSynchronize()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using (var workspace = TestWorkspace.CreateCSharp(code))
+            {
+                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
+
+                var solution = workspace.CurrentSolution;
+
+                // sync base solution
+                await UpdatePrimaryWorkspace(client, solution);
+                await VerifyAssetStorageAsync(client, solution);
+
+                // get basic info
+                var oldDocument = solution.Projects.First().Documents.First();
+                var oldState = await oldDocument.State.GetStateChecksumsAsync(CancellationToken.None);
+                var oldText = await oldDocument.GetTextAsync();
+
+                // update text
+                var newText = oldText.WithChanges(new TextChange(TextSpan.FromBounds(0, 0), "/* test */"));
+
+                // sync
+                await client.TryRunRemoteAsync(WellKnownRemoteHostServices.RemoteHostService, nameof(IRemoteHostService.SynchronizeTextAsync),
+                    new object[] { oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText) }, CancellationToken.None);
+
+                // apply change to solution
+                var newDocument = oldDocument.WithText(newText);
+                var newState = await newDocument.State.GetStateChecksumsAsync(CancellationToken.None);
+
+                // check that text already exist in remote side
+                Assert.True(client.AssetStorage.TryGetAsset<SourceText>(newState.Text, out var remoteText));
+                Assert.Equal(newText.ToString(), remoteText.ToString());
             }
         }
 
@@ -148,7 +185,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
 
             await UpdatePrimaryWorkspace(client, solution);
-            VerifyAssetStorage(client, solution);
+            await VerifyAssetStorageAsync(client, solution);
 
             Assert.Equal(
                 await solution.State.GetChecksumAsync(CancellationToken.None),
@@ -166,7 +203,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 // verify initial setup
                 await UpdatePrimaryWorkspace(client, solution);
-                VerifyAssetStorage(client, solution);
+                await VerifyAssetStorageAsync(client, solution);
 
                 Assert.Equal(
                     await solution.State.GetChecksumAsync(CancellationToken.None),
@@ -288,9 +325,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
-        private static void VerifyAssetStorage(InProcRemoteHostClient client, Solution solution)
+        private static async Task VerifyAssetStorageAsync(InProcRemoteHostClient client, Solution solution)
         {
-            var map = solution.GetAssetMap();
+            var map = await solution.GetAssetMapAsync(CancellationToken.None);
+
             var storage = client.AssetStorage;
 
             foreach (var kv in map)

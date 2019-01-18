@@ -19,7 +19,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
-    internal abstract partial class AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
+        Name = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers), Shared]
+    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
+                    Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
+    internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
         public const string GenerateOperatorsId = nameof(GenerateOperatorsId);
         public const string ImplementIEquatableId = nameof(ImplementIEquatableId);
@@ -29,12 +33,15 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private readonly IPickMembersService _pickMembersService_forTestingPurposes;
 
-        protected AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService)
+        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider()
+            : this(pickMembersService: null)
+        {
+        }
+
+        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService)
         {
             _pickMembersService_forTestingPurposes = pickMembersService;
         }
-
-        protected abstract ImmutableArray<SyntaxNode> WrapWithUnchecked(ImmutableArray<SyntaxNode> statements);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -91,7 +98,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             // Find all the possible instance fields/properties.  If there are any, then
             // show a dialog to the user to select the ones they want.
-            var viableMembers = containingType.GetMembers().WhereAsArray(IsViableInstanceFieldOrProperty);
+            var viableMembers = containingType.GetMembers().WhereAsArray(IsReadableInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
             {
                 return;
@@ -133,7 +140,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             }
 
             var actions = CreateActions(
-                document, textSpan, containingType, 
+                document, textSpan, containingType,
                 viableMembers, pickMembersOptions.ToImmutableAndFree(),
                 hasEquals, hasGetHashCode,
                 withDialog: true);
@@ -173,7 +180,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             {
                 var info = await this.GetSelectedMemberInfoAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
                 if (info != null &&
-                    info.SelectedMembers.All(IsViableInstanceFieldOrProperty))
+                    info.SelectedMembers.All(IsReadableInstanceFieldOrProperty))
                 {
                     if (info.ContainingType != null && info.ContainingType.TypeKind != TypeKind.Interface)
                     {
@@ -181,7 +188,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                             info.ContainingType, out var hasEquals, out var hasGetHashCode);
 
                         return CreateActions(
-                            document, textSpan, info.ContainingType, 
+                            document, textSpan, info.ContainingType,
                             info.SelectedMembers, ImmutableArray<PickMembersOption>.Empty,
                             hasEquals, hasGetHashCode, withDialog: false);
                     }
@@ -210,13 +217,13 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 result.Add(CreateCodeAction(document, textSpan, containingType,
                     selectedMembers, pickMembersOptions,
                     generateEquals: true, generateGetHashCode: false, withDialog: withDialog));
-                result.Add(CreateCodeAction(document, textSpan, containingType, 
+                result.Add(CreateCodeAction(document, textSpan, containingType,
                     selectedMembers, pickMembersOptions,
                     generateEquals: true, generateGetHashCode: true, withDialog: withDialog));
             }
             else if (!hasEquals)
             {
-                result.Add(CreateCodeAction(document, textSpan, containingType, 
+                result.Add(CreateCodeAction(document, textSpan, containingType,
                     selectedMembers, pickMembersOptions,
                     generateEquals: true, generateGetHashCode: false, withDialog: withDialog));
             }
@@ -231,7 +238,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         }
 
         private CodeAction CreateCodeAction(
-            Document document, TextSpan textSpan, INamedTypeSymbol containingType, 
+            Document document, TextSpan textSpan, INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members, ImmutableArray<PickMembersOption> pickMembersOptions,
             bool generateEquals, bool generateGetHashCode, bool withDialog)
         {
@@ -245,7 +252,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             else
             {
                 return new GenerateEqualsAndGetHashCodeAction(
-                    this, document, textSpan, containingType, members,
+                    document, textSpan, containingType, members,
                     generateEquals, generateGetHashCode,
                     implementIEquatable: false, generateOperators: false);
             }

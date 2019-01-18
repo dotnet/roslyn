@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Reference to the event being bound.
         /// </summary>
-        IEventReferenceOperation EventReference { get; }
-        
+        IOperation EventReference { get; }
+
         /// <summary>
         /// Handler supplied for the event.
         /// </summary>

@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     model = (constructor.HasAnyBody() || constructor.Initializer != null) ? GetOrAddModel(node) : null;
                     break;
                 case BaseMethodDeclarationSyntax method:
-                    model = method.HasAnyBody() ? GetOrAddModel(node) :  null;
+                    model = method.HasAnyBody() ? GetOrAddModel(node) : null;
                     break;
                 case AccessorDeclarationSyntax accessor:
                     model = (accessor.Body != null || accessor.ExpressionBody != null) ? GetOrAddModel(node) : null;
@@ -347,11 +347,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (!type.IsVar)
                             {
-                                return binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved);
+                                return binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved).Symbol;
                             }
 
                             Symbol result = bindVarAsAliasFirst
-                                ? binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved)
+                                ? binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved).Symbol
                                 : null;
 
                             // CONSIDER: we might bind "var" twice - once to see if it is an alias and again
@@ -374,16 +374,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     var fieldSymbol = GetDeclaredFieldSymbol(variableDecl.Variables.First());
                                     if ((object)fieldSymbol != null)
                                     {
-                                        result = fieldSymbol.Type;
+                                        result = fieldSymbol.Type.TypeSymbol;
                                     }
                                 }
                             }
 
-                            return result ?? binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved);
+                            return result ?? binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved).Symbol;
                         }
                         else
                         {
-                            return binder.BindNamespaceOrTypeOrAliasSymbol(type, diagnostics, basesBeingResolved, basesBeingResolved != null);
+                            return binder.BindNamespaceOrTypeOrAliasSymbol(type, diagnostics, basesBeingResolved, basesBeingResolved != null).Symbol;
                         }
                     }
                     finally
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (model == null) ? SymbolInfo.None : model.GetSymbolInfo(node, cancellationToken);
         }
 
-        private ConsList<Symbol> GetBasesBeingResolved(TypeSyntax expression)
+        private ConsList<TypeSymbol> GetBasesBeingResolved(TypeSyntax expression)
         {
             // if the expression is the child of a base-list node, then the expression should be
             // bound in the context of the containing symbols base being resolved.
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // we have a winner
                     var decl = (BaseTypeDeclarationSyntax)parent.Parent.Parent;
                     var symbol = this.GetDeclaredSymbol(decl);
-                    return ConsList<Symbol>.Empty.Prepend((Symbol)symbol.OriginalDefinition);
+                    return ConsList<TypeSymbol>.Empty.Prepend((TypeSymbol)symbol.OriginalDefinition);
                 }
             }
 
@@ -591,6 +591,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override CSharpSemanticModel ParentModel
         {
             get { return null; }
+        }
+
+        internal override SemanticModel ContainingModelOrSelf
+        {
+            get { return this; }
         }
 
         internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out SemanticModel speculativeModel)
@@ -875,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return ImmutableInterlocked.GetOrAdd(ref _memberModels, attribute,
-                                                 (node, binder) => CreateModelForAttribute(binder, (AttributeSyntax) node),
+                                                 (node, binder) => CreateModelForAttribute(binder, (AttributeSyntax)node),
                                                  containing.GetEnclosingBinder(attribute.SpanStart));
         }
 
@@ -909,14 +914,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameterSymbol = (ParameterSymbol)containing.GetDeclaredSymbol(paramDecl);
                 if ((object)parameterSymbol != null)
                 {
-                    return ImmutableInterlocked.GetOrAdd(ref _memberModels, defaultValueSyntax, 
+                    return ImmutableInterlocked.GetOrAdd(ref _memberModels, defaultValueSyntax,
                                                          (equalsValue, tuple) =>
                                                             InitializerSemanticModel.Create(
-                                                                tuple.compilation,
+                                                                this,
                                                                 tuple.paramDecl,
                                                                 tuple.parameterSymbol,
                                                                 tuple.containing.GetEnclosingBinder(tuple.paramDecl.SpanStart).
-                                                                    CreateBinderForParameterDefaultValue(tuple.parameterSymbol, 
+                                                                    CreateBinderForParameterDefaultValue(tuple.parameterSymbol,
                                                                                             (EqualsValueClauseSyntax)equalsValue)),
                                                          (compilation: this.Compilation,
                                                           paramDecl: paramDecl,
@@ -967,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 additionalFlags = BinderFlags.IgnoreAccessibility;
             }
-            
+
             Binder defaultOuter() => _binderFactory.GetBinder(node).WithAdditionalFlags(additionalFlags);
 
             switch (node.Kind())
@@ -987,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
-                        return MethodBodySemanticModel.Create(this.Compilation, symbol, binder, memberDecl);
+                        return MethodBodySemanticModel.Create(this, symbol, binder, memberDecl);
                     }
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
@@ -1003,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
-                        return MethodBodySemanticModel.Create(this.Compilation, symbol, binder, accessorDecl);
+                        return MethodBodySemanticModel.Create(this, symbol, binder, accessorDecl);
                     }
 
                 case SyntaxKind.Block:
@@ -1020,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 SourceMemberFieldSymbol fieldSymbol = GetDeclaredFieldSymbol(variableDecl);
 
                                 return InitializerSemanticModel.Create(
-                                    this.Compilation,
+                                    this,
                                     variableDecl,   //pass in the entire field initializer to permit region analysis. 
                                     fieldSymbol,
                                     //if we're in regular C#, then insert an extra binder to perform field initialization checks
@@ -1032,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var propertyDecl = (PropertyDeclarationSyntax)node.Parent;
                                 var propertySymbol = (SourcePropertySymbol)GetDeclaredSymbol(propertyDecl);
                                 return InitializerSemanticModel.Create(
-                                    this.Compilation,
+                                    this,
                                     propertyDecl,
                                     propertySymbol,
                                     GetFieldOrPropertyInitializerBinder(propertySymbol.BackingField, defaultOuter(), propertyDecl.Initializer));
@@ -1049,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     return null;
 
                                 return InitializerSemanticModel.Create(
-                                    this.Compilation,
+                                    this,
                                     parameterDecl,
                                     parameterSymbol,
                                     defaultOuter().CreateBinderForParameterDefaultValue(parameterSymbol, (EqualsValueClauseSyntax)node));
@@ -1063,7 +1068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     return null;
 
                                 return InitializerSemanticModel.Create(
-                                    this.Compilation,
+                                    this,
                                     enumDecl,
                                     enumSymbol,
                                     GetFieldOrPropertyInitializerBinder(enumSymbol, defaultOuter(), enumDecl.EqualsValue));
@@ -1095,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
-                        return MethodBodySemanticModel.Create(_compilation, symbol, binder, exprDecl);
+                        return MethodBodySemanticModel.Create(this, symbol, binder, exprDecl);
                     }
 
                 case SyntaxKind.GlobalStatement:
@@ -1120,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             return MethodBodySemanticModel.Create(
-                                this.Compilation,
+                                this,
                                 scriptInitializer,
                                 new ExecutableCodeBinder(node, scriptInitializer, new ScriptLocalScopeBinder(_globalStatementLabels, defaultOuter())),
                                 node);
@@ -1135,15 +1140,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute)
+        private AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute)
         {
             AliasSymbol aliasOpt;
             DiagnosticBag discarded = DiagnosticBag.GetInstance();
-            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, discarded, out aliasOpt);
+            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, discarded, out aliasOpt).TypeSymbol;
             discarded.Free();
 
             return AttributeSemanticModel.Create(
-                enclosingBinder.Compilation,
+                this,
                 attribute,
                 attributeType,
                 aliasOpt,
@@ -1191,7 +1196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsMemberDeclaration(CSharpSyntaxNode node)
         {
-            return (node is MemberDeclarationSyntax) || (node is AccessorDeclarationSyntax) || 
+            return (node is MemberDeclarationSyntax) || (node is AccessorDeclarationSyntax) ||
                    (node.Kind() == SyntaxKind.Attribute) || (node.Kind() == SyntaxKind.Parameter);
         }
 

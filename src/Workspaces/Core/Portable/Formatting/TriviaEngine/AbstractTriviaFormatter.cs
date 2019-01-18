@@ -845,7 +845,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             LineColumnDelta whitespaceBetween,
             SyntaxTrivia trivia2)
         {
-            Contract.Requires(IsWhitespaceOrEndOfLine(trivia2));
+            Debug.Assert(IsWhitespaceOrEndOfLine(trivia2));
 
             // treat elastic as new line as long as its previous trivia is not elastic or
             // it has line break right before it

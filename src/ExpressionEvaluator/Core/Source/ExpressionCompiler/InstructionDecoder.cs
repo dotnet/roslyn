@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Clr;
 
@@ -21,6 +19,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+        private readonly bool _useReferencedAssembliesOnly;
+
+        internal InstructionDecoder()
+        {
+            // Should be passed by the ExpressionCompiler as an argument to this constructor.
+            _useReferencedAssembliesOnly = ExpressionCompiler.GetUseReferencedAssembliesOnlySetting();
+        }
+
+        internal MakeAssemblyReferencesKind GetMakeAssemblyReferencesKind()
+        {
+            return _useReferencedAssembliesOnly ? MakeAssemblyReferencesKind.AllReferences : MakeAssemblyReferencesKind.AllAssemblies;
+        }
 
         internal abstract void AppendFullName(StringBuilder builder, TMethodSymbol method);
 

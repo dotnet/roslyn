@@ -599,10 +599,12 @@ class MyClass
             var impconv = model.GetConversion(expr1);
             Assert.Equal(Conversion.Identity, impconv);
             Conversion conv = model.ClassifyConversion(expr1, (TypeSymbol)info.ConvertedType);
+            CheckIsAssignableTo(model, expr1);
             Assert.Equal(impconv, conv);
             Assert.Equal("Identity", conv.ToString());
 
             conv = model.ClassifyConversion(expr2, (TypeSymbol)info.ConvertedType);
+            CheckIsAssignableTo(model, expr2);
             Assert.Equal(impconv, conv);
         }
 
@@ -629,9 +631,17 @@ class C {
             Assert.True(impconv.IsUserDefined);
 
             Conversion conv = model.ClassifyConversion(expr1, (TypeSymbol)info.ConvertedType);
+            CheckIsAssignableTo(model, expr1);
             Assert.Equal(impconv, conv);
             Assert.True(conv.IsImplicit);
             Assert.True(conv.IsUserDefined);
+        }
+
+        private void CheckIsAssignableTo(SemanticModel model, ExpressionSyntax syntax)
+        {
+            var info = model.GetTypeInfo(syntax);
+            var conversion = info.Type != null && info.ConvertedType != null ? model.Compilation.ClassifyConversion(info.Type, info.ConvertedType) : Conversion.NoConversion;
+            Assert.Equal(conversion.IsImplicit, model.Compilation.HasImplicitConversion(info.Type, info.ConvertedType));
         }
 
         [Fact, WorkItem(544151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544151")]
@@ -833,6 +843,7 @@ class C {
 
             // NOT expect NoConversion
             Conversion act1 = semanticModel.ClassifyConversion(expr, (TypeSymbol)info.ConvertedType);
+            CheckIsAssignableTo(semanticModel, expr);
             Assert.Equal(ept1, act1.Kind);
             ValidateConversion(act1, ept1);
             ValidateConversion(act1, conv.Kind);
@@ -858,6 +869,7 @@ class C {
 
             // NOT expect NoConversion
             Conversion act1 = semanticModel.ClassifyConversion(expr, expsym);
+            CheckIsAssignableTo(semanticModel, expr);
             Assert.Equal(expkind, act1.Kind);
             ValidateConversion(act1, expkind);
         }
@@ -1007,7 +1019,7 @@ class C
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
             MethodSymbol methodSymbol = (MethodSymbol)bindInfo.Symbol;
-            TypeSymbol returnType = methodSymbol.ReturnType;
+            TypeSymbol returnType = methodSymbol.ReturnType.TypeSymbol;
             var symbols = model.LookupSymbols(0, returnType);
             Assert.Equal(0, symbols.Length);
         }
@@ -1150,7 +1162,7 @@ class C
             Assert.Equal(systemActionType, bindInfo.Type);
 
             var parameterSymbol = (ParameterSymbol)bindInfo.Symbol;
-            Assert.Equal(systemActionType, parameterSymbol.Type);
+            Assert.Equal(systemActionType, parameterSymbol.Type.TypeSymbol);
             Assert.Equal("value", parameterSymbol.Name);
             Assert.Equal(MethodKind.EventAdd, ((MethodSymbol)parameterSymbol.ContainingSymbol).MethodKind);
         }
@@ -1179,7 +1191,7 @@ class C
             Assert.Equal(systemActionType, bindInfo.Type);
 
             var parameterSymbol = (ParameterSymbol)bindInfo.Symbol;
-            Assert.Equal(systemActionType, parameterSymbol.Type);
+            Assert.Equal(systemActionType, parameterSymbol.Type.TypeSymbol);
             Assert.Equal("value", parameterSymbol.Name);
             Assert.Equal(MethodKind.EventRemove, ((MethodSymbol)parameterSymbol.ContainingSymbol).MethodKind);
         }
@@ -2712,7 +2724,7 @@ class C
             var symbol = symbolInfo.Symbol;
             Assert.Equal(SymbolKind.Local, symbol.Kind);
             Assert.Equal("c", symbol.Name);
-            Assert.Equal(type, ((LocalSymbol)symbol).Type);
+            Assert.Equal(type, ((LocalSymbol)symbol).Type.TypeSymbol);
 
             var typeInfo = model.GetTypeInfo(expr);
             Assert.Equal(type, typeInfo.Type);
@@ -2783,7 +2795,7 @@ class C
             Assert.Equal(operatorSymbol, symbolInfo.Symbol);
 
             var method = (MethodSymbol)symbolInfo.Symbol;
-            var returnType = method.ReturnType;
+            var returnType = method.ReturnType.TypeSymbol;
 
             var typeInfo = model.GetTypeInfo(expr);
             Assert.Equal(returnType, typeInfo.Type);
@@ -3227,7 +3239,7 @@ class C
             var model = comp.GetSemanticModel(tree);
 
             var operators = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.AdditionOperatorName).Cast<MethodSymbol>();
-            var operatorSymbol = operators.Where(method => method.Parameters[0].Type == method.Parameters[1].Type).Single();
+            var operatorSymbol = operators.Where(method => TypeSymbol.Equals(method.Parameters[0].Type.TypeSymbol, method.Parameters[1].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2)).Single();
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.NotNull(expr);
@@ -3312,7 +3324,7 @@ class Z
 
             var gType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("G");
             var mngMethod = (MethodSymbol)comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Z").GetMembers("MNG").First();
-            var gNullableType = mngMethod.ParameterTypes[0];
+            var gNullableType = mngMethod.ParameterTypes[0].TypeSymbol;
             Assert.True(gNullableType.IsNullableType(), "MNG parameter is not a nullable type?");
             Assert.Equal(gType, gNullableType.StrippedType());
 
@@ -3320,6 +3332,7 @@ class Z
             Assert.NotNull(expr);
 
             var conversion = model.ClassifyConversion(expr, gNullableType);
+            CheckIsAssignableTo(model, expr);
 
             // Here we have a situation where Roslyn deliberately violates the specification in order
             // to be compatible with the native compiler. 
@@ -3377,7 +3390,7 @@ class Z
 
             var gType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("G");
             var mngMethod = (MethodSymbol)comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Z").GetMembers("MNG").First();
-            var gNullableType = mngMethod.ParameterTypes[0];
+            var gNullableType = mngMethod.ParameterTypes[0].TypeSymbol;
             Assert.True(gNullableType.IsNullableType(), "MNG parameter is not a nullable type?");
             Assert.Equal(gType, gNullableType.StrippedType());
 
@@ -3385,6 +3398,7 @@ class Z
             Assert.NotNull(expr);
 
             var conversion = model.ClassifyConversion(expr, gNullableType);
+            CheckIsAssignableTo(model, expr);
 
             Assert.Equal(ConversionKind.ImplicitUserDefined, conversion.Kind);
 
@@ -3663,6 +3677,7 @@ class C
             Assert.Equal(ConversionKind.Identity, castConversion.Kind);
 
             Assert.Equal(ConversionKind.Boxing, model.ClassifyConversion(literal, (TypeSymbol)castTypeInfo.Type).Kind);
+            CheckIsAssignableTo(model, literal);
         }
 
         [Fact]
@@ -3699,6 +3714,7 @@ class C
 
             // Note that this reflects the hypothetical conversion, not the cast in the code.
             Assert.Equal(ConversionKind.ImplicitNumeric, model.ClassifyConversion(literal, (TypeSymbol)cast1TypeInfo.Type).Kind);
+            CheckIsAssignableTo(model, literal);
 
             var cast2 = (CastExpressionSyntax)cast1.Parent;
 
@@ -3709,6 +3725,7 @@ class C
             Assert.Equal(ConversionKind.Identity, cast2Conversion.Kind);
 
             Assert.Equal(ConversionKind.Boxing, model.ClassifyConversion(cast1, (TypeSymbol)cast2TypeInfo.Type).Kind);
+            CheckIsAssignableTo(model, cast1);
         }
 
         [WorkItem(545136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545136")]
@@ -4042,7 +4059,7 @@ static class Program
             Assert.NotNull(reducedFrom1);
             Assert.Equal("System.Boolean Program.Any<System.Reflection.FieldInfo>(this System.Collections.Generic.ICollection<System.Reflection.FieldInfo> s, System.Func<System.Reflection.FieldInfo, System.Boolean> predicate)", reducedFrom1.ToTestDisplayString());
             Assert.Equal("Program", reducedFrom1.ReceiverType.ToTestDisplayString());
-            Assert.Equal(SpecialType.System_Collections_Generic_ICollection_T, ((TypeSymbol)reducedFrom1.Parameters[0].Type.OriginalDefinition).SpecialType);
+            Assert.Equal(SpecialType.System_Collections_Generic_ICollection_T, ((TypeSymbol)reducedFrom1.Parameters[0].Type.TypeSymbol.OriginalDefinition).SpecialType);
 
             var speculativeSyntax = SyntaxFactory.ParseExpression("fields.Any((field => field.IsStatic))"); //cast removed
             Assert.Equal(SyntaxKind.InvocationExpression, speculativeSyntax.Kind());
@@ -4053,7 +4070,7 @@ static class Program
             Assert.Equal("Any", method2.Name);
             var reducedFrom2 = method2.CallsiteReducedFromMethod;
             Assert.NotNull(reducedFrom2);
-            Assert.Equal(SpecialType.System_Collections_Generic_ICollection_T, ((TypeSymbol)reducedFrom2.Parameters[0].Type.OriginalDefinition).SpecialType);
+            Assert.Equal(SpecialType.System_Collections_Generic_ICollection_T, ((TypeSymbol)reducedFrom2.Parameters[0].Type.TypeSymbol.OriginalDefinition).SpecialType);
 
             Assert.Equal(reducedFrom1, reducedFrom2);
             Assert.Equal(method1, method2);
@@ -4660,9 +4677,9 @@ class C : A
             var classC = global.GetMember<NamedTypeSymbol>("C");
             var methodBar = classC.GetMember<MethodSymbol>("Bar");
 
-            var paramType0 = methodBar.ParameterTypes[0];
+            var paramType0 = methodBar.ParameterTypes[0].TypeSymbol;
             Assert.Equal(TypeKind.TypeParameter, paramType0.TypeKind);
-            var paramType1 = methodBar.ParameterTypes[1];
+            var paramType1 = methodBar.ParameterTypes[1].TypeSymbol;
             Assert.Equal(TypeKind.Class, paramType1.TypeKind);
 
             int position = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First().SpanStart;
@@ -4705,9 +4722,9 @@ class C : A
             var classC = global.GetMember<NamedTypeSymbol>("C");
             var methodBar = classC.GetMember<MethodSymbol>("Bar");
 
-            var paramType0 = methodBar.ParameterTypes[0];
+            var paramType0 = methodBar.ParameterTypes[0].TypeSymbol;
             Assert.Equal(TypeKind.TypeParameter, paramType0.TypeKind);
-            var paramType1 = methodBar.ParameterTypes[1];
+            var paramType1 = methodBar.ParameterTypes[1].TypeSymbol;
             Assert.Equal(TypeKind.Class, paramType1.TypeKind);
 
             int position = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First().SpanStart;
@@ -5517,6 +5534,7 @@ class Program
 
                 var otherFuncType = comp.GetWellKnownType(WellKnownType.System_Func_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
                 var conversion = model.ClassifyConversion(lambdaSyntax, otherFuncType);
+                CheckIsAssignableTo(model, lambdaSyntax);
 
                 var typeInfo = model.GetTypeInfo(lambdaSyntax);
                 Assert.Null(typeInfo.Type);
@@ -5564,6 +5582,7 @@ class C { }
             var typeC = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
             var conversion = model.ClassifyConversion(nullSyntax, typeC);
+            CheckIsAssignableTo(model, nullSyntax);
             Assert.Equal(ConversionKind.ImplicitReference, conversion.Kind);
         }
 
@@ -5602,6 +5621,7 @@ class B { }
             var typeFuncB = comp.GetWellKnownType(WellKnownType.System_Func_T).Construct(typeB);
 
             var conversion = model.ClassifyConversion(lambdaSyntax, typeFuncB);
+            CheckIsAssignableTo(model, lambdaSyntax);
             Assert.Equal(ConversionKind.AnonymousFunction, conversion.Kind);
         }
 
@@ -5648,6 +5668,7 @@ class C { }
             var typeFuncC = comp.GetWellKnownType(WellKnownType.System_Func_T).Construct(typeC);
 
             var conversion = model.ClassifyConversion(lambdaSyntax, typeFuncC);
+            CheckIsAssignableTo(model, lambdaSyntax);
             Assert.Equal(ConversionKind.AnonymousFunction, conversion.Kind);
         }
 
@@ -5708,6 +5729,7 @@ class C { }
             var typeFuncC = typeFunc.Construct(typeInt, typeC);
 
             var conversionA = model.ClassifyConversion(methodGroupSyntax, typeFuncA);
+            CheckIsAssignableTo(model, methodGroupSyntax);
             Assert.Equal(ConversionKind.MethodGroup, conversionA.Kind);
 
             var conversionB = model.ClassifyConversion(methodGroupSyntax, typeFuncB);

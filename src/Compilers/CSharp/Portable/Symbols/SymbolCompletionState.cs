@@ -34,16 +34,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Used to force (source) symbols to a given state of completion.
+        /// Used to force (source) symbols to a given state of completion when the only potential remaining 
+        /// part is attributes. This does force the invariant on the caller that the implementation of 
+        /// of <see cref="Symbol.GetAttributes"/> will set the part <see cref="CompletionPart.Attributes"/> on
+        /// the thread that actually completes the loading of attributes. Failure to do so will potentially
+        /// result in a deadlock.
         /// </summary>
         /// <param name="symbol">The owning source symbol.</param>
-        internal void DefaultForceComplete(Symbol symbol)
+        internal void DefaultForceComplete(Symbol symbol, CancellationToken cancellationToken)
         {
             Debug.Assert(symbol.RequiresCompletion);
-
             if (!HasComplete(CompletionPart.Attributes))
             {
-                symbol.GetAttributes();
+                _ = symbol.GetAttributes();
+
+                // Consider the following items:
+                //  1. It is possible for parallel calls to GetAttributes to exist
+                //  2. GetAttributes implementation can validly return when the attributes are available but before the 
+                //     CompletionParts.Attributes value is set.
+                //  3. GetAttributes implementation typically have the invariant that the thread which completes the 
+                //     loading of attributes is the one which sets CompletionParts.Attributes.
+                //  4. This call cannot correctly return until CompletionParts.Attributes is set.
+                //
+                // Note: #2 above is common practice amongst all of the symbols. 
+                //
+                // Note: #3 above is an invariant that has existed in the code base for some time. It's not 100% clear
+                // whether this invariant is tied to correctness or not. The most compelling example though is 
+                // SourceEventSymbol which raises SymbolDeclaredEvent before CompletionPart.Attributes is noted as completed. 
+                // Many other implementations have this pattern but no apparent code which could depend on it.
+                SpinWaitComplete(CompletionPart.Attributes, cancellationToken);
             }
 
             // any other values are completion parts intended for other kinds of symbols

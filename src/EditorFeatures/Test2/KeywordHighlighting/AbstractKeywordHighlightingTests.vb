@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -25,10 +26,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 
                 workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language, optionIsEnabled)
 
-                WpfTestCase.RequireWpfFact($"{NameOf(AbstractKeywordHighlightingTests)}.VerifyHighlightsAsync creates asynchronous taggers")
+                WpfTestRunner.RequireWpfFact($"{NameOf(AbstractKeywordHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
 
                 Dim highlightingService = workspace.GetService(Of IHighlightingService)()
                 Dim tagProducer = New HighlighterViewTaggerProvider(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     highlightingService,
                     workspace.GetService(Of IForegroundNotificationService),
                     AsynchronousOperationListenerProvider.NullProvider)

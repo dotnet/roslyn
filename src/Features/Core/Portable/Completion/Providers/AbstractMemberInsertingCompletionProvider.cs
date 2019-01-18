@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var declaration = GetSyntax(newRoot.FindToken(destinationSpan.End));
 
             document = document.WithSyntaxRoot(newRoot.ReplaceNode(declaration, declaration.WithAdditionalAnnotations(_annotation)));
-            return Formatter.FormatAsync(document, _annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            return await Formatter.FormatAsync(document, _annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Document> GenerateMemberAndUsingsAsync(
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var codeGenService = document.GetLanguageService<ICodeGenerationService>();
 
             // Resolve member and type in our new, forked, solution
-            var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(line.Start, cancellationToken);
             var symbols = await SymbolCompletionItem.GetSymbolsAsync(completionItem, document, cancellationToken).ConfigureAwait(false);
             var overriddenMember = symbols.FirstOrDefault();
@@ -156,15 +156,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Document memberContainingDocument = null;
             if (generatedMember.Kind == SymbolKind.Method)
             {
-                memberContainingDocument = codeGenService.AddMethodAsync(document.Project.Solution, containingType, (IMethodSymbol)generatedMember, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                memberContainingDocument = await codeGenService.AddMethodAsync(document.Project.Solution, containingType, (IMethodSymbol)generatedMember, options, cancellationToken).ConfigureAwait(false);
             }
             else if (generatedMember.Kind == SymbolKind.Property)
             {
-                memberContainingDocument = codeGenService.AddPropertyAsync(document.Project.Solution, containingType, (IPropertySymbol)generatedMember, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                memberContainingDocument = await codeGenService.AddPropertyAsync(document.Project.Solution, containingType, (IPropertySymbol)generatedMember, options, cancellationToken).ConfigureAwait(false);
             }
             else if (generatedMember.Kind == SymbolKind.Event)
             {
-                memberContainingDocument = codeGenService.AddEventAsync(document.Project.Solution, containingType, (IEventSymbol)generatedMember, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                memberContainingDocument = await codeGenService.AddEventAsync(document.Project.Solution, containingType, (IEventSymbol)generatedMember, options, cancellationToken).ConfigureAwait(false);
             }
 
             return memberContainingDocument;
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
-                commitCharacterRules: s_commitRules, 
+                commitCharacterRules: s_commitRules,
                 filterCharacterRules: s_filterRules,
                 enterKeyRule: EnterKeyRule.Never);
 

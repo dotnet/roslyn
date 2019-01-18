@@ -10,6 +10,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class Helper
     {
+        /// <summary>
+        /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
+        /// </summary>
+        public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(1);
+
         private static IUIAutomation2 _automation;
 
         public static IUIAutomation2 Automation
@@ -58,7 +63,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <param name="delay">the amount of time to wait between retries</param>
         /// <typeparam name="T">type of return value</typeparam>
         /// <returns>the return value of 'action'</returns>
-        public static T Retry<T>(Func<T> action, TimeSpan delay)
+        public static T Retry<T>(Func<T> action, TimeSpan delay, int retryCount = -1)
         {
             return RetryHelper(() =>
                 {
@@ -72,7 +77,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                         return default(T);
                     }
                 },
-                delay);
+                delay,
+                retryCount);
         }
 
         /// <summary>
@@ -110,7 +116,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <param name="delay">the amount of time to wait between retries in milliseconds</param>
         /// <typeparam name="T">type of return value</typeparam>
         /// <returns>the return value of 'action'</returns>
-        public static T RetryIgnoringExceptions<T>(Func<T> action, TimeSpan delay)
+        public static T RetryIgnoringExceptions<T>(Func<T> action, TimeSpan delay, int retryCount = -1)
         {
             return RetryHelper(() =>
                 {
@@ -123,14 +129,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                         return default(T);
                     }
                 },
-                delay);
+                delay,
+                retryCount);
         }
 
-        private static T RetryHelper<T>(Func<T> action, TimeSpan delay)
+        private static T RetryHelper<T>(Func<T> action, TimeSpan delay, int retryCount)
         {
-            while (true)
+            for (var i = 0; true; i++)
             {
                 var retval = action();
+                if (i == retryCount)
+                {
+                    return retval;
+                }
 
                 if (!Equals(default(T), retval))
                 {

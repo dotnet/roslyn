@@ -2,6 +2,36 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../VBFeaturesResources.resx">
     <body>
+      <trans-unit id="Add_Await">
+        <source>Add Await</source>
+        <target state="new">Add Await</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
+        <source>Add Await and 'ConfigureAwait(false)'</source>
+        <target state="new">Add Await and 'ConfigureAwait(false)'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add &lt;Obsolete&gt;</source>
+        <target state="new">Add &lt;Obsolete&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_Imports">
+        <source>Add missing Imports</source>
+        <target state="new">Add missing Imports</target>
+        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_Shadows">
+        <source>Add 'Shadows'</source>
+        <target state="new">Add 'Shadows'</target>
+        <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="If_statement_can_be_simplified">
+        <source>'If' statement can be simplified</source>
+        <target state="translated">A instrução 'If' pode ser simplificada</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">Inserir "{0}".</target>
@@ -37,10 +67,10 @@
         <target state="translated">Conflito(s) detectado(s).</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_If_statement">
-        <source>Invert If statement</source>
-        <target state="translated">Instrução Invert If</target>
-        <note />
+      <trans-unit id="Introduce_Using_statement">
+        <source>Introduce 'Using' statement</source>
+        <target state="new">Introduce 'Using' statement</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
@@ -50,6 +80,11 @@
       <trans-unit id="Delete_the_0_statement2">
         <source>Delete the '{0}' statement.</source>
         <target state="translated">Exclua a instrução "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="translated">&lt;Vários Tipos&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
@@ -160,16 +195,6 @@
       <trans-unit id="Fix_Incorrect_Function_Return_Type">
         <source>Fix Incorrect Function Return Type</source>
         <target state="translated">Corrigir Tipo de Retorno de Função Incorreta</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Remover Conversão Desnecessária</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant</source>
-        <target state="translated">A conversão é redundante</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_name_0">
@@ -1703,9 +1728,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Overloads">
-        <source>Add Overloads</source>
-        <target state="translated">Adicionar Sobrecargas</target>
-        <note />
+        <source>Add 'Overloads'</source>
+        <target state="needs-review-translation">Adicionar Sobrecargas</target>
+        <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">
         <source>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</source>
@@ -1814,17 +1839,22 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>
-        <target state="new">Convert to 'Select Case'</target>
+        <target state="translated">Converter em 'Select Case'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_For_Each">
         <source>Convert to 'For Each'</source>
-        <target state="new">Convert to 'For Each'</target>
+        <target state="translated">Converter em 'For Each'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_For">
         <source>Convert  to 'For'</source>
-        <target state="new">Convert  to 'For'</target>
+        <target state="translated">Converter em 'For'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_If">
+        <source>Invert If</source>
+        <target state="translated">Inverter If</target>
         <note />
       </trans-unit>
     </body>

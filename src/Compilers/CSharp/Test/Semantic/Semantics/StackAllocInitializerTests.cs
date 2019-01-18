@@ -738,19 +738,19 @@ unsafe class Test
                 // (6,9): error CS1525: Invalid expression term 'stackalloc'
                 //         stackalloc[] {1};
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 9),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         stackalloc[] {1};
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc[] {1}").WithLocation(6, 9),
                 // (7,9): error CS1525: Invalid expression term 'stackalloc'
                 //         stackalloc int[] {1};
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 9),
-                // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         stackalloc int[] {1};
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc int[] {1}").WithLocation(7, 9),
                 // (8,9): error CS1525: Invalid expression term 'stackalloc'
                 //         stackalloc int[1] {1};
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 9),
-                // (8,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (8,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         stackalloc int[1] {1};
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc int[1] {1}").WithLocation(8, 9)
                 );
@@ -1342,14 +1342,14 @@ class Test
         Span<int> x3 = stackalloc     [ ] { 1, 2, 3 };
     }
 }", options: TestOptions.UnsafeReleaseDll, parseOptions: parseOptions).VerifyDiagnostics(
-                // (7,24): error CS8107: Feature 'stackalloc initilizer' is not available in C# 7.0. Please use language version 7.3 or greater.
-                //         Span<int> x1 = stackalloc int[1] { 2 };
+                // (7,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
+                //         Span<int> x1 = stackalloc int [3] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(7, 24),
-                // (8,24): error CS8107: Feature 'stackalloc initilizer' is not available in C# 7.0. Please use language version 7.3 or greater.
-                //         Span<int> x2 = stackalloc int[] { 2 };
+                // (8,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
+                //         Span<int> x2 = stackalloc int [ ] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(8, 24),
-                // (9,24): error CS8107: Feature 'stackalloc initilizer' is not available in C# 7.0. Please use language version 7.3 or greater.
-                //         Span<int> x3 = stackalloc [] { 2 };
+                // (9,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
+                //         Span<int> x3 = stackalloc     [ ] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(9, 24)
                 );
         }
@@ -1396,13 +1396,13 @@ public class Test
 }
 ";
             CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var v1 = stackalloc int [3] { 1, 2, 3 })
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 = stackalloc int [3] { 1, 2, 3 }").WithArguments("int*").WithLocation(6, 16),
-                // (7,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (7,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var v2 = stackalloc int [ ] { 1, 2, 3 })
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v2 = stackalloc int [ ] { 1, 2, 3 }").WithArguments("int*").WithLocation(7, 16),
-                // (8,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (8,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var v3 = stackalloc     [ ] { 1, 2, 3 })
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v3 = stackalloc     [ ] { 1, 2, 3 }").WithArguments("int*").WithLocation(8, 16)
                 );

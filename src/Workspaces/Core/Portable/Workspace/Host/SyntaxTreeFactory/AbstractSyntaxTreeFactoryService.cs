@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Host
         public abstract SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
         public abstract SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding encoding, SyntaxNode root);
         public abstract SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
+        public abstract ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
 
         public virtual bool CanCreateRecoverableTree(SyntaxNode root)
         {

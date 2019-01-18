@@ -231,11 +231,8 @@
   <data name="Could_not_find_location_of_folder_on_disk" xml:space="preserve">
     <value>Could not find location of folder on disk</value>
   </data>
-  <data name="Error_while_reading_0_colon_1" xml:space="preserve">
-    <value>Error while reading '{0}': {1}</value>
-  </data>
   <data name="ErrorReadingFile" xml:space="preserve">
-    <value>Error while reading a file</value>
+    <value>Error while reading file '{0}': {1}</value>
   </data>
   <data name="Assembly" xml:space="preserve">
     <value>Assembly </value>
@@ -348,6 +345,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Add_to_existing_file" xml:space="preserve">
     <value>Add to _existing file</value>
   </data>
+  <data name="Add_to_current_file" xml:space="preserve">
+    <value>Add to _current file</value>
+  </data>
   <data name="Change_Signature" xml:space="preserve">
     <value>Change Signature</value>
   </data>
@@ -368,6 +368,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="Location_colon" xml:space="preserve">
     <value>Location:</value>
+  </data>
+  <data name="Select_destination" xml:space="preserve">
+    <value>Select destination</value>
   </data>
   <data name="Modifier" xml:space="preserve">
     <value>Modifier</value>
@@ -783,8 +786,8 @@ Additional information: {1}</value>
   <data name="Manage_specifications" xml:space="preserve">
     <value>Manage specifications</value>
   </data>
-  <data name="Manage_styles" xml:space="preserve">
-    <value>Manage styles</value>
+  <data name="Manage_naming_styles" xml:space="preserve">
+    <value>Manage naming styles</value>
   </data>
   <data name="Reorder" xml:space="preserve">
     <value>Reorder</value>
@@ -968,11 +971,29 @@ Additional information: {1}</value>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
     <value>Prefer local function over anonymous function</value>
   </data>
+  <data name="Keep_all_parentheses_in_colon" xml:space="preserve">
+    <value>Keep all parentheses in:</value>
+  </data>
+  <data name="In_other_operators" xml:space="preserve">
+    <value>In other operators</value>
+  </data>
+  <data name="Never_if_unnecessary" xml:space="preserve">
+    <value>Never if unnecessary</value>
+  </data>
+  <data name="Always_for_clarity" xml:space="preserve">
+    <value>Always for clarity</value>
+  </data>
+  <data name="Parentheses_preferences_colon" xml:space="preserve">
+    <value>Parentheses preferences:</value>
+  </data>
   <data name="ModuleHasBeenUnloaded" xml:space="preserve">
     <value>Module has been unloaded.</value>
   </data>
   <data name="CantApplyChangesModuleHasBeenUnloaded" xml:space="preserve">
     <value>Can't apply changes -- module '{0}' has been unloaded.</value>
+  </data>
+  <data name="CantApplyChangesUnexpectedError" xml:space="preserve">
+    <value>Can't apply changes -- unexpected error: '{0}'</value>
   </data>
   <data name="Prefer_deconstructed_variable_declaration" xml:space="preserve">
     <value>Prefer deconstructed variable declaration</value>
@@ -986,17 +1007,11 @@ Additional information: {1}</value>
   <data name="Search_found_no_results" xml:space="preserve">
     <value>Search found no results</value>
   </data>
-  <data name="Snippet_Command_Handler" xml:space="preserve">
-    <value>Snippet Command Handler</value>
+  <data name="Sync_Class_View" xml:space="preserve">
+    <value>Sync Class View</value>
   </data>
-  <data name="Sync_Class_View_Command_Handler" xml:space="preserve">
-    <value>Sync Class View Command Handler</value>
-  </data>
-  <data name="Restore_Visual_Studio_keybindings" xml:space="preserve">
-    <value>Restore Visual Studio keybindings</value>
-  </data>
-  <data name="Use_Keybindings_for_extensions" xml:space="preserve">
-    <value>Use keybindings for ReSharper/IntelliJ/Vim/etc.</value>
+  <data name="Reset_Visual_Studio_default_keymapping" xml:space="preserve">
+    <value>Reset Visual Studio default keymapping</value>
   </data>
   <data name="Enable_navigation_to_decompiled_sources" xml:space="preserve">
     <value>Enable navigation to decompiled sources (experimental)</value>
@@ -1015,9 +1030,17 @@ I agree to all of the foregoing:</value>
   <data name="Decompiler_Legal_Notice_Title" xml:space="preserve">
     <value>Decompiler Legal Notice</value>
   </data>
-  <data name="Disabling_the_extension_0_unbound_your_keyboard_bindings" xml:space="preserve">
-    <value>Disabling the extension '{0}' unbound your keyboard bindings.</value>
-    <comment>0 is an extension name</comment>
+  <data name="Colorize_regular_expressions" xml:space="preserve">
+    <value>Colorize regular expressions</value>
+  </data>
+  <data name="Highlight_related_components_under_cursor" xml:space="preserve">
+    <value>Highlight related components under cursor</value>
+  </data>
+  <data name="Regular_Expressions" xml:space="preserve">
+    <value>Regular Expressions</value>
+  </data>
+  <data name="Report_invalid_regular_expressions" xml:space="preserve">
+    <value>Report invalid regular expressions</value>
   </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
     <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
@@ -1027,5 +1050,140 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Prefer_readonly" xml:space="preserve">
     <value>Prefer readonly</value>
+  </data>
+  <data name="Analyzing_0" xml:space="preserve">
+    <value>Analyzing '{0}'</value>
+  </data>
+  <data name="Live_code_analysis" xml:space="preserve">
+    <value>Live code analysis</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with assignments</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_returns" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with returns</value>
+  </data>
+  <data name="Apply_0_keymapping_scheme" xml:space="preserve">
+    <value>Apply '{0}' keymapping scheme</value>
+  </data>
+  <data name="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor" xml:space="preserve">
+    <value>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</value>
+  </data>
+  <data name="Use_expression_body_for_lambdas" xml:space="preserve">
+    <value>Use expression body for lambdas</value>
+  </data>
+  <data name="Prefer_compound_assignments" xml:space="preserve">
+    <value>Prefer compound assignments</value>
+  </data>
+  <data name="Generate_dot_editorconfig_file_from_settings" xml:space="preserve">
+    <value>Generate .editorconfig file from settings</value>
+  </data>
+  <data name="Save_dot_editorconfig_file" xml:space="preserve">
+    <value>Save .editorconfig file</value>
+  </data>
+  <data name="Kind" xml:space="preserve">
+    <value>Kind</value>
+  </data>
+  <data name="Prefer_index_operator" xml:space="preserve">
+    <value>Prefer index operator</value>
+  </data>
+  <data name="Prefer_range_operator" xml:space="preserve">
+    <value>Prefer range operator</value>
+  </data>
+  <data name="All_methods" xml:space="preserve">
+    <value>All methods</value>
+  </data>
+  <data name="Avoid_expression_statements_that_implicitly_ignore_value" xml:space="preserve">
+    <value>Avoid expression statements that implicitly ignore value</value>
+  </data>
+  <data name="Avoid_unused_parameters" xml:space="preserve">
+    <value>Avoid unused parameters</value>
+  </data>
+  <data name="Avoid_unused_value_assignments" xml:space="preserve">
+    <value>Avoid unused value assignments</value>
+  </data>
+  <data name="Parameter_preferences_colon" xml:space="preserve">
+    <value>Parameter preferences:</value>
+  </data>
+  <data name="Non_public_methods" xml:space="preserve">
+    <value>Non-public methods</value>
+  </data>
+  <data name="Unused_value_is_explicitly_assigned_to_an_unused_local" xml:space="preserve">
+    <value>Unused value is explicitly assigned to an unused local</value>
+  </data>
+  <data name="Unused_value_is_explicitly_assigned_to_discard" xml:space="preserve">
+    <value>Unused value is explicitly assigned to discard</value>
+  </data>
+  <data name="Value_assigned_here_is_never_used" xml:space="preserve">
+    <value>Value assigned here is never used</value>
+  </data>
+  <data name="Value_returned_by_invocation_is_implicitly_ignored" xml:space="preserve">
+    <value>Value returned by invocation is implicitly ignored</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+  <data name="Interface_cannot_have_field" xml:space="preserve">
+    <value>Interface cannot have field.</value>
+  </data>
+  <data name="Make_abstract" xml:space="preserve">
+    <value>Make abstract</value>
+  </data>
+  <data name="Members" xml:space="preserve">
+    <value>Members</value>
+  </data>
+  <data name="Namespace_0" xml:space="preserve">
+    <value>Namespace: '{0}'</value>
+  </data>
+  <data name="Pull_Members_Up" xml:space="preserve">
+    <value>Pull Members Up</value>
+  </data>
+  <data name="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below" xml:space="preserve">
+    <value>Additional changes are needed to complete the refactoring. Review changes below.</value>
+  </data>
+  <data name="Select_Dependents" xml:space="preserve">
+    <value>_Select Dependents</value>
+  </data>
+  <data name="Select_destination_and_members_to_pull_up" xml:space="preserve">
+    <value>Select destination and members to pull up.</value>
+  </data>
+  <data name="Select_members_colon" xml:space="preserve">
+    <value>Select members:</value>
+  </data>
+  <data name="Select_Public" xml:space="preserve">
+    <value>_Select Public</value>
+  </data>
+  <data name="_0_will_be_changed_to_abstract" xml:space="preserve">
+    <value>'{0}' will be changed to abstract.</value>
+  </data>
+  <data name="_0_will_be_changed_to_non_static" xml:space="preserve">
+    <value>'{0}' will be changed to non-static.</value>
+  </data>
+  <data name="_0_will_be_changed_to_public" xml:space="preserve">
+    <value>'{0}' will be changed to public.</value>
+  </data>
+  <data name="Calculating_dependents" xml:space="preserve">
+    <value>Calculating dependents...</value>
+  </data>
+  <data name="Select_destination_colon" xml:space="preserve">
+    <value>Select destination:</value>
+  </data>
+  <data name="Use_expression_body_for_local_functions" xml:space="preserve">
+    <value>Use expression body for local functions</value>
+  </data>
+  <data name="Allow_colon" xml:space="preserve">
+    <value>Allow:</value>
+  </data>
+  <data name="Make_0_abstract" xml:space="preserve">
+    <value>Make '{0}' abstract</value>
+  </data>
+  <data name="Review_Changes" xml:space="preserve">
+    <value>Review Changes</value>
+  </data>
+  <data name="Select_member" xml:space="preserve">
+    <value>Select member</value>
   </data>
 </root>

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public static MethodDeclarationSyntax GenerateMethodDeclaration(
-            IMethodSymbol method, CodeGenerationDestination destination, 
+            IMethodSymbol method, CodeGenerationDestination destination,
             Workspace workspace, CodeGenerationOptions options,
             ParseOptions parseOptions)
         {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static MethodDeclarationSyntax GenerateMethodDeclarationWorker(
-            IMethodSymbol method, CodeGenerationDestination destination, 
+            IMethodSymbol method, CodeGenerationDestination destination,
             Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
         {
             var hasNoBody = !options.GenerateMethodBodies ||
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (methodDeclaration.ExpressionBody == null)
             {
                 var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
-                if (methodDeclaration.Body.TryConvertToExpressionBody(
+                if (methodDeclaration.Body.TryConvertToArrowExpressionBody(
                         methodDeclaration.Kind(), options, expressionBodyPreference,
                         out var expressionBody, out var semicolonToken))
                 {

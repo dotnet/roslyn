@@ -1015,7 +1015,8 @@ End interface
             GC.KeepAlive(tc7)
         End Sub
 
-        <Fact(), WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
+        <WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>
         Public Sub Bug16689_1()
             Dim ilSource =
             <![CDATA[
@@ -1153,7 +1154,8 @@ Derived
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
+        <WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>
         Public Sub Bug16689_3()
 
             Dim i3Def =
@@ -1164,7 +1166,7 @@ End Interface
     </file>
 </compilation>
 
-            Dim i3Compilation = CreateCompilationWithMscorlib40(i3Def, TestOptions.ReleaseDll)
+            Dim i3Compilation = CreateCompilationWithMscorlib40(i3Def, options:=TestOptions.ReleaseDll)
 
             Dim ilSource =
             <![CDATA[

@@ -101,7 +101,7 @@ End Module")
 
         private static void ReferenceNetstandardDllIfCoreClr(TempDirectory currentDirectory, List<string> arguments)
         {
-#if NETCOREAPP2_0
+#if !NET472
             var filePath = Path.Combine(currentDirectory.Path, "netstandard.dll");
             File.WriteAllBytes(filePath, TestResources.NetFX.netstandard20.netstandard);
             arguments.Add("/nostdlib");
@@ -187,6 +187,11 @@ End Module")
             bool shouldRunOnServer = true)
         {
             var arguments = new List<string>(argumentsSingle.Split(' '));
+
+            // This is validating that localization to a specific locale works no matter what the locale of the 
+            // machine running the tests are. 
+            arguments.Add("/preferreduilang:en");
+
             ReferenceNetstandardDllIfCoreClr(currentDirectory, arguments);
             CheckForBadShared(arguments);
             CreateFiles(currentDirectory, filesInDirectory);
@@ -227,7 +232,7 @@ End Module")
 
         private static void VerifyResult((int ExitCode, string Output) result)
         {
-            Assert.Equal("", result.Output);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", result.Output);
             Assert.Equal(0, result.ExitCode);
         }
 
@@ -242,6 +247,28 @@ End Module")
         }
 
         #endregion
+
+        [ConditionalFact(typeof(UnixLikeOnly))]
+        public async Task ServerFailsWithLongTempPathUnix()
+        {
+            var newTempDir = _tempDirectory.CreateDirectory(new string('a', 100 - _tempDirectory.Path.Length));
+            await ApplyEnvironmentVariables(
+                new[] { new KeyValuePair<string, string>("TMPDIR", newTempDir.Path) },
+                async () =>
+            {
+                using (var serverData = ServerUtil.CreateServer())
+                {
+                    var result = RunCommandLineCompiler(
+                        CSharpCompilerClientExecutable,
+                        $"/shared:{serverData.PipeName} /nologo hello.cs",
+                        _tempDirectory,
+                        s_helloWorldSrcCs,
+                        shouldRunOnServer: false);
+                    VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
+                    await serverData.Verify(connections: 0, completed: 0).ConfigureAwait(true);
+                }
+            });
+        }
 
         [Fact]
         public async Task FallbackToCsc()
@@ -356,6 +383,18 @@ End Module")
             using (var serverData = ServerUtil.CreateServer())
             {
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
+                VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
+            }
+        }
+
+        [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
+        public async Task HelloWorldCSDashShared()
+        {
+            using (var serverData = ServerUtil.CreateServer())
+            {
+                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"-shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -757,7 +796,7 @@ End Module
             GC.KeepAlive(rootDirectory);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Skip = "https://github.com/dotnet/roslyn/issues/19763")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/19763")]
         [WorkItem(723280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/723280")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ReferenceCachingCS()
@@ -1166,7 +1205,7 @@ End Module
 {
     public System.Exception GetException()
     {
-        return null;
+        return new System.Exception();
     }
 }
 "}};
@@ -1254,7 +1293,8 @@ class Program
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
+        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive1()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive", _tempDirectory, shouldRunOnServer: false);
@@ -1263,7 +1303,8 @@ class Program
             Assert.Equal("Missing argument for '/keepalive' option.", result.Output.Trim());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
+        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive2()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:goo", _tempDirectory, shouldRunOnServer: false);
@@ -1272,7 +1313,8 @@ class Program
             Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
+        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive3()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:-100", _tempDirectory, shouldRunOnServer: false);
@@ -1281,7 +1323,8 @@ class Program
             Assert.Equal("Arguments to '/keepalive' option below -1 are invalid.", result.Output.Trim());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
+        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive4()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:9999999999", _tempDirectory, shouldRunOnServer: false);
@@ -1385,7 +1428,7 @@ class Program
             });
             using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
             {
-                var request = new BuildRequest(1, RequestLanguage.CSharpCompile, new BuildRequest.Argument[0]);
+                var request = new BuildRequest(1, RequestLanguage.CSharpCompile, string.Empty, new BuildRequest.Argument[0]);
                 var compileTask = ServerUtil.Send(serverData.PipeName, request);
                 var response = await compileTask;
                 Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);

@@ -406,15 +406,36 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
 
             var newParameters = new List<T>();
-            foreach (var newParam in reorderedParameters)
+            for (var index = 0; index < reorderedParameters.Count; index++)
             {
+                var newParam = reorderedParameters[index];
                 var pos = originalParameters.IndexOf(newParam);
                 var param = list[pos];
+
+                // copy whitespace trivia from original position
+                param = TransferLeadingWhitespaceTrivia(param, list[index]);
+
                 newParameters.Add(param);
             }
 
             var numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count;
             return SyntaxFactory.SeparatedList(newParameters, GetSeparators(list, numSeparatorsToSkip));
+        }
+
+        private static T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument) where T : SyntaxNode
+        {
+            var oldTrivia = oldArgument.GetLeadingTrivia();
+            var oldOnlyHasWhitespaceTrivia = oldTrivia.All(t => t.IsKind(SyntaxKind.WhitespaceTrivia));
+
+            var newTrivia = newArgument.GetLeadingTrivia();
+            var newOnlyHasWhitespaceTrivia = newTrivia.All(t => t.IsKind(SyntaxKind.WhitespaceTrivia));
+
+            if (oldOnlyHasWhitespaceTrivia && newOnlyHasWhitespaceTrivia)
+            {
+                newArgument = newArgument.WithLeadingTrivia(oldTrivia);
+            }
+
+            return newArgument;
         }
 
         private static SeparatedSyntaxList<AttributeArgumentSyntax> PermuteAttributeArgumentList(
@@ -425,7 +446,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             var newArguments = PermuteArguments(document, declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(), updatedSignature);
             var numSeparatorsToSkip = arguments.Count - newArguments.Count;
-            return SyntaxFactory.SeparatedList(newArguments.Select(a => (AttributeArgumentSyntax)(UnifiedArgumentSyntax)a), GetSeparators(arguments, numSeparatorsToSkip));
+
+            // copy whitespace trivia from original position
+            var newArgumentsWithTrivia = TransferLeadingWhitespaceTrivia(
+                newArguments.Select(a => (AttributeArgumentSyntax)(UnifiedArgumentSyntax)a), arguments);
+
+            return SyntaxFactory.SeparatedList(newArgumentsWithTrivia, GetSeparators(arguments, numSeparatorsToSkip));
         }
 
         private static SeparatedSyntaxList<ArgumentSyntax> PermuteArgumentList(
@@ -436,8 +462,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             bool isReducedExtensionMethod = false)
         {
             var newArguments = PermuteArguments(document, declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(), updatedSignature, isReducedExtensionMethod);
+
+            // copy whitespace trivia from original position
+            var newArgumentsWithTrivia = TransferLeadingWhitespaceTrivia(
+                newArguments.Select(a => (ArgumentSyntax)(UnifiedArgumentSyntax)a), arguments);
+
             var numSeparatorsToSkip = arguments.Count - newArguments.Count;
-            return SyntaxFactory.SeparatedList(newArguments.Select(a => (ArgumentSyntax)(UnifiedArgumentSyntax)a), GetSeparators(arguments, numSeparatorsToSkip));
+            return SyntaxFactory.SeparatedList(newArgumentsWithTrivia, GetSeparators(arguments, numSeparatorsToSkip));
+        }
+
+        private static List<T> TransferLeadingWhitespaceTrivia<T, U>(IEnumerable<T> newArguments, SeparatedSyntaxList<U> oldArguments)
+            where T : SyntaxNode
+            where U : SyntaxNode
+        {
+            var result = new List<T>();
+            int index = 0;
+            foreach (var newArgument in newArguments)
+            {
+                result.Add(TransferLeadingWhitespaceTrivia(newArgument, oldArguments[index]));
+                index++;
+            }
+
+            return result;
         }
 
         private List<SyntaxTrivia> UpdateParamTagsInLeadingTrivia(CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature)
@@ -578,8 +624,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, 
-            Document document, 
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
+            Document document,
             CancellationToken cancellationToken)
         {
             var symbol = symbolAndProjectId.Symbol;
@@ -606,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                             if (convertedType != null)
                             {
-                                convertedType = SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult(cancellationToken) ?? convertedType;
+                                convertedType = SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken) ?? convertedType;
                             }
 
                             return convertedType == symbol.ContainingType;

@@ -130,18 +130,27 @@ public struct C
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
+// (8,44): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+//         Expression<Func<bool>> ex1 = ()=>M(__makeref(S)); // CS7053
+Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "__makeref(S)").WithArguments("TypedReference").WithLocation(8, 44),
 // (8,44): error CS7053: An expression tree may not contain '__makeref'
 //         Expression<Func<bool>> ex1 = ()=>M(__makeref(S)); // CS7053
-Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__makeref(S)").WithArguments("__makeref"),
+Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__makeref(S)").WithArguments("__makeref").WithLocation(8, 44),
 // (9,42): error CS7053: An expression tree may not contain '__reftype'
 //         Expression<Func<Type>> ex2 = ()=>__reftype(default(TypedReference));
-Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__reftype(default(TypedReference))").WithArguments("__reftype"),
+Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__reftype(default(TypedReference))").WithArguments("__reftype").WithLocation(9, 42),
+// (9,52): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+//         Expression<Func<Type>> ex2 = ()=>__reftype(default(TypedReference));
+Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default(TypedReference)").WithArguments("TypedReference").WithLocation(9, 52),
 // (10,41): error CS7053: An expression tree may not contain '__refvalue'
 //         Expression<Func<int>> ex3 = ()=>__refvalue(default(TypedReference), int);
-Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__refvalue(default(TypedReference), int)").WithArguments("__refvalue"),
+Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__refvalue(default(TypedReference), int)").WithArguments("__refvalue").WithLocation(10, 41),
+// (10,52): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+//         Expression<Func<int>> ex3 = ()=>__refvalue(default(TypedReference), int);
+Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default(TypedReference)").WithArguments("TypedReference").WithLocation(10, 52),
 // (11,44): error CS1952: An expression tree lambda may not contain a method with variable arguments
 //         Expression<Func<bool>> ex4 = ()=>N(__arglist());
-Diagnostic(ErrorCode.ERR_VarArgsInExpressionTree, "__arglist()")
+Diagnostic(ErrorCode.ERR_VarArgsInExpressionTree, "__arglist()").WithLocation(11, 44)
                 );
         }
 
@@ -369,7 +378,7 @@ Diagnostic(ErrorCode.ERR_ValueCantBeNull, "__reftype(null)").WithArguments("Syst
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest01()
         {
             var text = @"
@@ -399,7 +408,7 @@ public class C
             verifier.VerifyIL("C.M(__arglist)", expectedIL);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest02()
         {
             var text = @"
@@ -470,7 +479,7 @@ public class C
             verifier.VerifyIL("C.Main", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest03()
         {
             // The native parser produces "type expected" when __arglist is preceded by an illegal
@@ -1331,7 +1340,7 @@ class A
         }
 
         [WorkItem(545086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545086")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void BoxReceiverTest()
         {
             var text = @"
@@ -1563,6 +1572,89 @@ public class SpecialCases
     //         ArgListMethod(__arglist(""));
     Diagnostic(ErrorCode.ERR_AmbigCall, "ArgListMethod").WithArguments("SpecialCases.ArgListMethod(__arglist)", "SpecialCases.ArgListMethod(__arglist)").WithLocation(10, 9)
                 );
+        }
+
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void ArgListMayNotHaveAnOutArgument()
+        {
+            CreateCompilation(@"
+class Program
+{
+    static void Test(__arglist)
+    {
+        var a = 1;
+    	Test(__arglist(out a));
+    }
+}
+").VerifyDiagnostics(
+                // (7,25): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //     	Test(__arglist(out a));
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "a").WithLocation(7, 25));
+        }
+
+        [Fact]
+        public void ArgListMayNotHaveAnInArgument()
+        {
+            CreateCompilation(@"
+class Program
+{
+    static void Test(__arglist)
+    {
+        var a = 1;
+    	Test(__arglist(in a));
+    }
+}
+").VerifyDiagnostics(
+                // (7,24): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //     	Test(__arglist(in a));
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "a").WithLocation(7, 24));
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void ArgListMayHaveARefArgument()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    static void Test(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        ref int a = ref __refvalue(args.GetNextArg(), int);
+        a = 5;
+    }
+    static void Main()
+    {
+        int a = 0;
+        Test(__arglist(ref a));
+        Console.WriteLine(a);
+    }
+}",
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug),
+                expectedOutput: "5");
+        }
+
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void ArgListMayHaveAByValArgument()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    static void Test(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        int a = __refvalue(args.GetNextArg(), int);
+        Console.WriteLine(a);
+    }
+    static void Main()
+    {
+        int a = 5;
+        Test(__arglist(a));
+    }
+}",
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug),
+                expectedOutput: "5");
         }
     }
 }

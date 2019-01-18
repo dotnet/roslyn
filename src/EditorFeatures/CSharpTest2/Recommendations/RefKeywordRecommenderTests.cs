@@ -170,14 +170,6 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterThis()
-        {
-            await VerifyAbsenceAsync(
-@"static class C {
-    static void Goo(this $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterMethodOpenParen()
         {
             await VerifyKeywordAsync(
@@ -532,9 +524,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterPartial()
+        public async Task TestAfterPartial()
         {
-            await VerifyAbsenceAsync(@"partial $$");
+            await VerifyKeywordAsync(@"partial $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -546,9 +538,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAbstract()
+        public async Task TestAfterAbstract()
         {
-            await VerifyAbsenceWithRefsAsync(@"abstract $$");
+            await VerifyKeywordWithRefsAsync(@"abstract $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -560,9 +552,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterInternal()
+        public async Task TestAfterInternal()
         {
-            await VerifyAbsenceWithRefsAsync(SourceCodeKind.Regular, @"internal $$");
+            await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular, @"internal $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -580,9 +572,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterPublic()
+        public async Task TestAfterPublic()
         {
-            await VerifyAbsenceWithRefsAsync(SourceCodeKind.Regular, @"public $$");
+            await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular, @"public $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -600,9 +592,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterPrivate()
+        public async Task TestAfterPrivate()
         {
-            await VerifyAbsenceWithRefsAsync(SourceCodeKind.Regular,
+            await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular,
 @"private $$");
         }
 
@@ -622,9 +614,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterProtected()
+        public async Task TestAfterProtected()
         {
-            await VerifyAbsenceWithRefsAsync(
+            await VerifyKeywordWithRefsAsync(
 @"protected $$");
         }
 
@@ -637,9 +629,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterSealed()
+        public async Task TestAfterSealed()
         {
-            await VerifyAbsenceWithRefsAsync(@"sealed $$");
+            await VerifyKeywordWithRefsAsync(@"sealed $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -651,9 +643,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStatic()
+        public async Task TestAfterStatic()
         {
-            await VerifyAbsenceWithRefsAsync(SourceCodeKind.Regular, @"static $$");
+            await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular, @"static $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -663,7 +655,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterStatic()
+        public async Task TestAfterStatic_InClass()
         {
             await VerifyKeywordWithRefsAsync(
 @"class C {
@@ -671,9 +663,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStaticPublic()
+        public async Task TestAfterStaticPublic()
         {
-            await VerifyAbsenceWithRefsAsync(SourceCodeKind.Regular, @"static public $$");
+            await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular, @"static public $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -721,10 +713,45 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNew()
+        public async Task TestAfterReadonly()
         {
-            await VerifyAbsenceWithRefsAsync(
+            await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular,
+@"readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInReadonlyStruct()
+        {
+            await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular,
+@"readonly $$ struct { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInReadonlyStruct_AfterReadonly()
+        {
+            await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular,
+@"$$ readonly struct { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNew()
+        {
+            await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular,
 @"new $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNewInClass()
+        {
+            await VerifyKeywordWithRefsAsync(
+@"class C { new $$ }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNewInStruct()
+        {
+            await VerifyKeywordWithRefsAsync(
+@"struct S { new $$ }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -815,7 +842,7 @@ ref int x = ref true ? $$"));
             await VerifyKeywordWithRefsAsync(AddInsideMethod(@"
 int x = 0;
 ref int y = ref true ? ref x : $$"));
-	}
+        }
 
         [WorkItem(22253, "https://github.com/dotnet/roslyn/issues/22253")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -855,6 +882,103 @@ y = $$"));
             await VerifyKeywordWithRefsAsync(AddInsideMethod(@"
 ref int x = ref (new int[1])[0];
 return ref (x = $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter()
+        {
+            await VerifyKeywordAsync(
+@"static class Extensions {
+    static void Extension($$");
+        }
+
+        [WorkItem(30339, "https://github.com/dotnet/roslyn/issues/30339")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword()
+        {
+            await VerifyKeywordAsync(
+@"static class Extensions {
+    static void Extension(this $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter()
+        {
+            await VerifyKeywordAsync(
+@"static class Extensions {
+    static void Extension(this int i, $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_AfterThisKeyword()
+        {
+            await VerifyAbsenceAsync(
+@"static class Extensions {
+    static void Extension(this int i, this $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_NonStaticClass()
+        {
+            await VerifyKeywordAsync(
+@"class Extensions {
+    static void Extension($$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword_NonStaticClass()
+        {
+            await VerifyAbsenceAsync(
+@"class Extensions {
+    static void Extension(this $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_NonStaticClass()
+        {
+            await VerifyKeywordAsync(
+@"class Extensions {
+    static void Extension(this int i, $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_AfterThisKeyword_NonStaticClass()
+        {
+            await VerifyAbsenceAsync(
+@"class Extensions {
+    static void Extension(this int i, this $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_NonStaticMethod()
+        {
+            await VerifyKeywordAsync(
+@"static class Extensions {
+    void Extension($$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword_NonStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"static class Extensions {
+    void Extension(this $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_NonStaticMethod()
+        {
+            await VerifyKeywordAsync(
+@"static class Extensions {
+    void Extension(this int i, $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_AfterThisKeyword_NonStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"static class Extensions {
+    void Extension(this int i, this $$");
         }
     }
 }

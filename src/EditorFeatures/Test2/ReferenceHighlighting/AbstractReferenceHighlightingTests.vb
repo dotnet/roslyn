@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
@@ -24,13 +25,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
         Private Async Function VerifyHighlightsAsync(test As XElement, optionIsEnabled As Boolean, outOfProcess As Boolean) As Tasks.Task
             Using workspace = TestWorkspace.Create(test)
-                WpfTestCase.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.VerifyHighlightsAsync creates asynchronous taggers")
+                WpfTestRunner.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
 
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
                                                       WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).
                                                       WithChangedOption(RemoteFeatureOptions.DocumentHighlightingEnabled, outOfProcess)
 
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     workspace.GetService(Of IForegroundNotificationService),
                     workspace.GetService(Of ISemanticChangeNotificationService),
                     AsynchronousOperationListenerProvider.NullProvider)

@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Fix_interpolated_verbatim_string" xml:space="preserve">
+    <value>Fix interpolated verbatim string</value>
+  </data>
   <data name="Press_TAB_to_insert" xml:space="preserve">
     <value>     (Press TAB to insert)</value>
   </data>
@@ -125,8 +128,5 @@
   </data>
   <data name="Split_string" xml:space="preserve">
     <value>Split string</value>
-  </data>
-  <data name="Split_String_Literal_Command_Handler" xml:space="preserve">
-    <value>Split String Literal Command Handler</value>
   </data>
 </root>

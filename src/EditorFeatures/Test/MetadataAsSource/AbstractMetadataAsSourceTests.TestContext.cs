@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                     : metadataSources;
 
                 var workspace = CreateWorkspace(
-                    projectLanguage, metadataSources, includeXmlDocComments, 
+                    projectLanguage, metadataSources, includeXmlDocComments,
                     sourceWithSymbolReference, languageVersion);
                 return new TestContext(workspace);
             }
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             }
 
             private static TestWorkspace CreateWorkspace(
-                string projectLanguage, IEnumerable<string> metadataSources, 
+                string projectLanguage, IEnumerable<string> metadataSources,
                 bool includeXmlDocComments, string sourceWithSymbolReference,
                 string languageVersion)
             {

@@ -2,6 +2,7 @@
 {
     internal interface IProgressTracker
     {
+        string Description { get; set; }
         int CompletedItems { get; }
         int TotalItems { get; }
 

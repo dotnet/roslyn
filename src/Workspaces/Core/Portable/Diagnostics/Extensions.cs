@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -15,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal static class Extensions
+    internal static partial class Extensions
     {
         public static readonly CultureInfo s_USCultureInfo = new CultureInfo("en-US");
 
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
-                        Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                        Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSyntaxDiagnostics(tree, diagnostics);
                     }
                 }
@@ -194,14 +195,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
-                        Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                        Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSemanticDiagnostics(tree, diagnostics);
                     }
                 }
 
                 if (analysisResult.CompilationDiagnostics.TryGetValue(analyzer, out diagnostics))
                 {
-                    Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                    Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                     result.AddCompilationDiagnostics(diagnostics);
                 }
 

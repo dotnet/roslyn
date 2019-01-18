@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int i = 0;
                 goto start;
 
-            again:
+again:
                 hashCode = unchecked((text[i] ^ hashCode) * 16777619);
                 i = i + 1;
 
-            start:
+start:
                 if (i < text.Length)
                     goto again;
             }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            F.CurrentMethod = this;
+            F.CurrentFunction = this;
 
             try
             {
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         F.If(
                             F.Binary(BinaryOperatorKind.ObjectNotEqual, F.SpecialType(SpecialType.System_Boolean),
                                 F.Parameter(text),
-                                F.Null(text.Type)),
+                                F.Null(text.Type.TypeSymbol)),
                             F.Block(
                                 F.Assignment(F.Local(hashCode), F.Literal((uint)2166136261)),
                                 F.Assignment(F.Local(i), F.Literal(0)),
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 F.Label(again),
                                 F.Assignment(
                                     F.Local(hashCode),
-                                    F.Binary(BinaryOperatorKind.Multiplication, hashCode.Type,
-                                        F.Binary(BinaryOperatorKind.Xor, hashCode.Type,
-                                            F.Convert(hashCode.Type,
+                                    F.Binary(BinaryOperatorKind.Multiplication, hashCode.Type.TypeSymbol,
+                                        F.Binary(BinaryOperatorKind.Xor, hashCode.Type.TypeSymbol,
+                                            F.Convert(hashCode.Type.TypeSymbol,
                                                 F.Call(
                                                     F.Parameter(text),
                                                     F.SpecialMethod(SpecialMember.System_String__Chars),
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         F.Literal(16777619))),
                                 F.Assignment(
                                     F.Local(i),
-                                    F.Binary(BinaryOperatorKind.Addition, i.Type,
+                                    F.Binary(BinaryOperatorKind.Addition, i.Type.TypeSymbol,
                                         F.Local(i),
                                         F.Literal(1))),
                                 F.Label(start),
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            F.CurrentMethod = (MethodSymbol)this.OriginalDefinition;
+            F.CurrentFunction = (MethodSymbol)this.OriginalDefinition;
 
             try
             {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            F.CurrentMethod = (MethodSymbol)this.OriginalDefinition;
+            F.CurrentFunction = (MethodSymbol)this.OriginalDefinition;
 
             try
             {
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
                 SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-                F.CurrentMethod = this.OriginalDefinition;
+                F.CurrentFunction = this.OriginalDefinition;
 
                 try
                 {
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var argBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             //var refKindBuilder = ArrayBuilder<RefKind>.GetInstance();
 
-            foreach (var param in F.CurrentMethod.Parameters)
+            foreach (var param in F.CurrentFunction.Parameters)
             {
                 argBuilder.Add(F.Parameter(param));
                 //refKindBuilder.Add(param.RefKind);
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 methodToInvoke,
                                                 argBuilder.ToImmutableAndFree());
 
-            return F.CurrentMethod.ReturnsVoid
+            return F.CurrentFunction.ReturnsVoid
                         ? F.Block(F.ExpressionStatement(invocation), F.Return())
                         : F.Block(F.Return(invocation));
         }

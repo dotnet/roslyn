@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public string ArgumentName { get; }
 
         /// <summary>
-        /// The item to select by default.  If this is <code>null</code> then the controller will
+        /// The item to select by default.  If this is <see langword="null"/> then the controller will
         /// pick the first item that has enough arguments to be viable based on what argument 
         /// position the user is currently inside of.
         /// </summary>

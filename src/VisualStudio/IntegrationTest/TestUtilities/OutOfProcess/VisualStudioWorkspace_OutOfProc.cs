@@ -79,5 +79,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetFeatureOption(string feature, string optionName, string language, string valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
+
+        public string GetWorkingFolder() => _inProc.GetWorkingFolder();
     }
 }

@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// that expression. 
         /// </summary>
         public static string GenerateNameForExpression(
-            this SemanticModel semanticModel, ExpressionSyntax expression, 
+            this SemanticModel semanticModel, ExpressionSyntax expression,
             bool capitalize, CancellationToken cancellationToken)
         {
             // Try to find a usable name node that we can use to name the
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static ImmutableArray<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
-            ArgumentListSyntax argumentList, 
+            ArgumentListSyntax argumentList,
             CancellationToken cancellationToken)
         {
             return semanticModel.GenerateParameterNames(
@@ -490,7 +490,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            // Type constraint must be at least as accessible as the declaring member (class, interface, delegate, method)
+            if (type.IsParentKind(SyntaxKind.TypeConstraint))
+            {
+                return AllContainingTypesArePublicOrProtected(semanticModel, type, cancellationToken)
+                    ? Accessibility.Public
+                    : Accessibility.Internal;
+            }
+
             return Accessibility.Private;
+        }
+
+        public static bool AllContainingTypesArePublicOrProtected(
+            this SemanticModel semanticModel,
+            TypeSyntax type,
+            CancellationToken cancellationToken)
+        {
+            if (type == null)
+            {
+                return false;
+            }
+
+            var typeDeclarations = type.GetAncestors<TypeDeclarationSyntax>();
+
+            foreach (var typeDeclaration in typeDeclarations)
+            {
+                var symbol = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
+
+                if (symbol.DeclaredAccessibility == Accessibility.Private ||
+                    symbol.DeclaredAccessibility == Accessibility.ProtectedAndInternal ||
+                    symbol.DeclaredAccessibility == Accessibility.Internal)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static TypeSyntax GetOutermostType(TypeSyntax type)

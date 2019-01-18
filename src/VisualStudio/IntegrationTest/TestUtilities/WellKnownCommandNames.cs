@@ -25,6 +25,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Edit_Delete = "Edit.Delete";
         public const string Edit_LineUp = "Edit.LineUp";
         public const string Edit_LineDown = "Edit.LineDown";
+        public const string Edit_FormatDocument = "Edit.FormatDocument";
 
         public const string File_OpenFile = "File.OpenFile";
         public const string File_SaveAll = "File.SaveAll";
@@ -34,11 +35,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string InteractiveConsole_ExecuteInInteractive = "InteractiveConsole.ExecuteInInteractive";
 
         public const string ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages = "ProjectandSolutionContextMenus.Solution.RestoreNuGetPackages";
-        public const string ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject 
+        public const string ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject
             = "ProjectandSolutionContextMenus.Project.ResetC#InteractiveFromProject";
 
         public const string Refactor_Rename = "Refactor.Rename";
-        public const string Refactor_ExtractMethod= "Refactor.ExtractMethod";
+        public const string Refactor_ExtractMethod = "Refactor.ExtractMethod";
         public const string Refactor_ExtractInterface = "Refactor.ExtractInterface";
         public const string Refactor_EncapsulateField = "Refactor.EncapsulateField";
         public const string Refactor_RemoveParameters = "Refactor.RemoveParameters";

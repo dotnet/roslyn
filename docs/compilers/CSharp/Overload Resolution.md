@@ -95,4 +95,17 @@ var x = new Test(10);
 
 Old compiler calls the second overload (```Test(int a, params List<string>[] p)```)
 
-See #4458 for more details, and #4761 for the implementation and tests that enable Roslyn to compile this code.
+See https://github.com/dotnet/roslyn/issues/4458 for more details, and https://github.com/dotnet/roslyn/issues/4761 for the implementation and tests that enable Roslyn to compile this code.
+
+### Compiler won't lift asymmetric `operator==` and `operator!=`
+
+The C# compiler (all versions) won’t lift user-defined equality operators
+
+``` c#
+public static bool operator ==(Type1 x, Type2 y)
+public static bool operator !=(Type1 x, Type2 y)
+```
+
+unless `Type1` and `Type2` are identical types. The spec requires all user-defined equality operators defined on value types to also be considered in lifted form, so this is technically a spec violation.  We believe that fixing this longstanding behavior might break some programs, so we do not expect to change it.
+
+See https://github.com/dotnet/roslyn/issues/13686 for more details.

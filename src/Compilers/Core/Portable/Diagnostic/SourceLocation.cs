@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        public SourceLocation(SyntaxToken token)
+        public SourceLocation(in SyntaxToken token)
             : this(token.SyntaxTree, token.Span)
         {
         }
 
-        public SourceLocation(SyntaxNodeOrToken nodeOrToken)
+        public SourceLocation(in SyntaxNodeOrToken nodeOrToken)
             : this(nodeOrToken.SyntaxTree, nodeOrToken.Span)
         {
         }
 
-        public SourceLocation(SyntaxTrivia trivia)
+        public SourceLocation(in SyntaxTrivia trivia)
             : this(trivia.SyntaxTree, trivia.Span)
         {
         }

@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
                 x2 = new TestNode(1, 2));
 
             var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot,
-                new[] { KeyValuePair.Create(x1, x2), KeyValuePair.Create(x1, x2) });
+                new[] { KeyValuePairUtil.Create(x1, x2), KeyValuePairUtil.Create(x1, x2) });
             Assert.True(m.TryGetNewNode(x1, out var n));
             Assert.Equal(n, x2);
 
-            Assert.Throws<ArgumentException>(() => TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, new[] { KeyValuePair.Create(x1, x1) }));
+            Assert.Throws<ArgumentException>(() => TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, new[] { KeyValuePairUtil.Create(x1, x1) }));
 
-            Assert.Throws<ArgumentException>(() => TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, new[] { KeyValuePair.Create(x1, x2), KeyValuePair.Create(x1, new TestNode(0, 0)) }));
+            Assert.Throws<ArgumentException>(() => TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, new[] { KeyValuePairUtil.Create(x1, x2), KeyValuePairUtil.Create(x1, new TestNode(0, 0)) }));
         }
 
         [Fact]
@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, new[]
             {
-                KeyValuePair.Create(x1, x2),
-                KeyValuePair.Create(y1, x2),
+                KeyValuePairUtil.Create(x1, x2),
+                KeyValuePairUtil.Create(y1, x2),
             });
 
             // the first one wins:
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, new[]
             {
-                KeyValuePair.Create(x1, newRoot),
+                KeyValuePairUtil.Create(x1, newRoot),
             });
 
             // the root wins:

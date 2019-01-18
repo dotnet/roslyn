@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using Roslyn.Utilities;
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// A crypto hash algorithm used to calculate PDB Checksum stored in the PE/COFF File.
-        /// If not specified (the value is <code>default(HashAlgorithmName)</code>) the checksum is not calculated.
+        /// If not specified (the value is <c>default(HashAlgorithmName)</c>) the checksum is not calculated.
         /// </summary>
         public HashAlgorithmName PdbChecksumAlgorithm { get; private set; }
 
@@ -293,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             if (PdbChecksumAlgorithm.Name != null)
-            {                
+            {
                 try
                 {
                     IncrementalHash.CreateHash(PdbChecksumAlgorithm).Dispose();
@@ -306,6 +307,11 @@ namespace Microsoft.CodeAnalysis.Emit
             else if (isDeterministic)
             {
                 diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidHashAlgorithmName, Location.None, ""));
+            }
+
+            if (PdbFilePath != null && !PathUtilities.IsValidFilePath(PdbFilePath))
+            {
+                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.FTL_InvalidInputFileName, Location.None, PdbFilePath));
             }
         }
 

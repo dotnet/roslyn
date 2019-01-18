@@ -19,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void AddControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -32,7 +32,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Contains(@"private System.Windows.Forms.Button SomeButton;", actualText);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeControlProperty()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -45,7 +45,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Contains(@"this.SomeButton.Text = ""NewButtonText""", actualText);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeControlPropertyInCode()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -64,7 +64,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             //  Replace text property with something else
             VisualStudio.Editor.SelectTextInCurrentDocument(@"this.SomeButton.Text = ""ButtonTextGoesHere"";");
             VisualStudio.Editor.SendKeys(@"this.SomeButton.Text = ""GibberishText"";");
-            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.Designer.cs",  saveFile: true);
+            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.Designer.cs", saveFile: true);
             //  Verify that the control text has changed in the designer
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.cs");
             expectedPropertyValue = "GibberishText";
@@ -72,7 +72,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Equal(expectedPropertyValue, actualPropertyValue);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void AddClickHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);

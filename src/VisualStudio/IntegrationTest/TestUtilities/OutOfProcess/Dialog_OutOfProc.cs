@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
     public class Dialog_OutOfProc : OutOfProcComponent
     {
-        public Dialog_OutOfProc(VisualStudioInstance visualStudioInstance) 
+        public Dialog_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
         }

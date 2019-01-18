@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -43,12 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return name;
             }
 
-            // Avoid checking constraints when binding explicit interface type since
+            // Avoid checking constraints context when binding explicit interface type since
             // that might result in a recursive attempt to bind the containing class.
             binder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
 
             NameSyntax explicitInterfaceName = explicitInterfaceSpecifierOpt.Name;
-            explicitInterfaceTypeOpt = binder.BindType(explicitInterfaceName, diagnostics);
+            explicitInterfaceTypeOpt = binder.BindType(explicitInterfaceName, diagnostics).TypeSymbol;
             aliasQualifierOpt = explicitInterfaceName.GetAliasQualifierOpt();
             return GetMemberName(name, explicitInterfaceTypeOpt, aliasQualifierOpt);
         }
@@ -204,13 +205,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // 13.4.1: "For an explicit interface member implementation to be valid, the class or struct must name an
             // interface in its base class list that contains a member ..."
-            if (!containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(explicitInterfaceNamedType))
+            MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>.ValueSet set = containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics[explicitInterfaceNamedType];
+            int setCount = set.Count;
+            if (setCount == 0 || !set.Contains(explicitInterfaceNamedType))
             {
                 //we'd like to highlight just the type part of the name
                 var explicitInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
                 var location = new SourceLocation(explicitInterfaceSyntax);
 
-                diagnostics.Add(ErrorCode.ERR_ClassDoesntImplementInterface, location, implementingMember, explicitInterfaceNamedType);
+                if (setCount > 0 && set.Contains(explicitInterfaceNamedType, TypeSymbol.EqualsIgnoringNullableComparer))
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, location);
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_ClassDoesntImplementInterface, location, implementingMember, explicitInterfaceNamedType);
+                }
+
                 //do a lookup anyway
             }
 
@@ -231,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                if (MemberSignatureComparer.ExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
+                if (MemberSignatureComparer.ExplicitImplementationLookupComparer.Equals(implementingMember, interfaceMember))
                 {
                     foundMatchingMember = true;
                     // Cannot implement accessor directly unless
@@ -305,9 +316,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(memberLocation, useSiteDiagnostics);
             }
 
+            return implementedMember;
+        }
+
+        internal static void FindExplicitlyImplementedMemberVerification(
+            this Symbol implementingMember,
+            Symbol implementedMember,
+            DiagnosticBag diagnostics)
+        {
+            if ((object)implementedMember == null)
+            {
+                return;
+            }
+
             if (implementingMember.ContainsTupleNames() && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implementingMember, implementedMember))
             {
                 // it is ok to explicitly implement with no tuple names, for compatibility with C# 6, but otherwise names should match
+                var memberLocation = implementingMember.Locations[0];
                 diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, memberLocation, implementingMember, implementedMember);
             }
 
@@ -316,8 +341,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // tried to implement the ambiguous interface implicitly, we would separately raise an error about
             // the implicit implementation methods differing by only ref/out.
             FindExplicitImplementationCollisions(implementingMember, implementedMember, diagnostics);
-
-            return implementedMember;
         }
 
         /// <summary>

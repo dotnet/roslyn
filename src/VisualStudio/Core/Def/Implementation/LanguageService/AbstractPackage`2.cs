@@ -2,8 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
-using Microsoft.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -12,7 +12,10 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Packaging;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -34,24 +37,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
         }
 
-        protected override void Initialize()
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            base.Initialize();
+            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+            var solution = (IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
+            cancellationToken.ThrowIfCancellationRequested();
+            Assumes.Present(shell);
+            Assumes.Present(solution);
 
             foreach (var editorFactory in CreateEditorFactories())
             {
                 RegisterEditorFactory(editorFactory);
             }
 
-            RegisterLanguageService(typeof(TLanguageService), () =>
+            RegisterLanguageService(typeof(TLanguageService), async ct =>
             {
+                await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
+
                 // Create the language service, tell it to set itself up, then store it in a field
                 // so we can notify it that it's time to clean up.
                 _languageService = CreateLanguageService();
                 _languageService.Setup();
                 return _languageService.ComAggregate;
             });
-            var shell = (IVsShell)this.GetService(typeof(SVsShell));
+
             // Okay, this is also a bit strange.  We need to get our Interop dll into our process,
             // but we're in the GAC.  Ask the base Roslyn Package to load, and it will take care of
             // it for us.
@@ -69,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             RegisterMiscellaneousFilesWorkspaceInformation(_miscellaneousFilesWorkspace);
 
             this.Workspace = this.CreateWorkspace();
-            if (IsInIdeMode(this.Workspace))
+            if (await IsInIdeModeAsync(this.Workspace, cancellationToken).ConfigureAwait(true))
             {
                 // make sure solution crawler start once everything has been setup.
                 // this also should be started before any of workspace events start firing
@@ -77,19 +90,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 // start remote host
                 EnableRemoteHostClientService();
-
-                Workspace.AdviseSolutionEvents((IVsSolution)GetService(typeof(SVsSolution)));
             }
 
-            // Ensure services that must be created on the UI thread have been.
-            HACK_AbstractCreateServicesOnUiThread.CreateServicesOnUIThread(ComponentModel, RoslynLanguageName);
-
-            LoadComponentsInUIContextOnceSolutionFullyLoaded();
+            LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
         }
 
-        protected override void LoadComponentsInUIContext()
+        protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
         {
-            ForegroundObject.AssertIsForeground();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Ensure the nuget package services are initialized after we've loaded
             // the solution.
@@ -108,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             get
             {
-                ForegroundObject.AssertIsForeground();
+                ThreadHelper.ThrowIfNotOnUIThread();
 
                 return (IComponentModel)GetService(typeof(SComponentModel));
             }
@@ -119,36 +127,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected abstract IEnumerable<IVsEditorFactory> CreateEditorFactories();
         protected abstract TLanguageService CreateLanguageService();
 
-        protected void RegisterService<T>(Func<T> serviceCreator)
+        protected void RegisterService<T>(Func<CancellationToken, Task<T>> serviceCreator)
         {
-            ((IServiceContainer)this).AddService(typeof(T), (container, type) => serviceCreator(), promote: true);
+            AddService(typeof(T), async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
         }
 
         // When registering a language service, we need to take its ComAggregate wrapper.
-        protected void RegisterLanguageService(Type t, Func<object> serviceCreator)
+        protected void RegisterLanguageService(Type t, Func<CancellationToken, Task<object>> serviceCreator)
         {
-            ((IServiceContainer)this).AddService(t, (container, type) => serviceCreator(), promote: true);
+            AddService(t, async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (_miscellaneousFilesWorkspace != null)
+            if (disposing)
             {
-                _miscellaneousFilesWorkspace.StopSolutionCrawler();
-            }
+                if (_miscellaneousFilesWorkspace != null)
+                {
+                    _miscellaneousFilesWorkspace.StopSolutionCrawler();
+                }
 
-            if (IsInIdeMode(this.Workspace))
-            {
-                this.Workspace.StopSolutionCrawler();
+                if (ThreadHelper.JoinableTaskFactory.Run(() => IsInIdeModeAsync(this.Workspace, CancellationToken.None)))
+                {
+                    this.Workspace.StopSolutionCrawler();
 
-                DisableRemoteHostClientService();
-            }
+                    DisableRemoteHostClientService();
+                }
 
-            // If we've created the language service then tell it it's time to clean itself up now.
-            if (_languageService != null)
-            {
-                _languageService.TearDown();
-                _languageService = null;
+                // If we've created the language service then tell it it's time to clean itself up now.
+                if (_languageService != null)
+                {
+                    _languageService.TearDown();
+                    _languageService = null;
+                }
             }
 
             base.Dispose(disposing);
@@ -156,14 +167,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected abstract string RoslynLanguageName { get; }
 
-        private bool IsInIdeMode(Workspace workspace)
+        private async Task<bool> IsInIdeModeAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            return workspace != null && !IsInCommandLineMode();
+            return workspace != null && !await IsInCommandLineModeAsync(cancellationToken).ConfigureAwait(true);
         }
 
-        private bool IsInCommandLineMode()
+        private async Task<bool> IsInCommandLineModeAsync(CancellationToken cancellationToken)
         {
-            var shell = (IVsShell)this.GetService(typeof(SVsShell));
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
 
             if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out var result)))
             {

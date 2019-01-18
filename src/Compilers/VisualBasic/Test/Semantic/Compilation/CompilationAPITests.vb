@@ -352,7 +352,7 @@ End Namespace
 
             result.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_InvalidDebugInformationFormat).WithArguments("-1"),
-                Diagnostic(ERRID.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameCannotStartWithWhitespace),
+                Diagnostic(ERRID.ERR_InvalidOutputName).WithArguments("Name cannot start with whitespace."),
                 Diagnostic(ERRID.ERR_InvalidFileAlignment).WithArguments("513"),
                 Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("1000000.-1000000"),
                 Diagnostic(ERRID.ERR_InvalidHashAlgorithmName).WithArguments("invalid hash algorithm name"))
@@ -1902,13 +1902,14 @@ End Class
             End Function
         End Class
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         Public Sub MetadataConsistencyWhileEvolvingCompilation()
             Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib40({"Public Class C : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
             Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib40({"Public Class D : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
             Dim reference = New EvolvingTestReference({md1, md2})
 
-            Dim c1 = CreateCompilationWithMscorlib40({"Public Class Main : Public Shared C As C : End Class"}, {reference, reference}, options:=TestOptions.ReleaseDll)
+            Dim references = TargetFrameworkUtil.Mscorlib40References.AddRange({reference, reference})
+            Dim c1 = CreateEmptyCompilation({"Public Class Main : Public Shared C As C : End Class"}, references:=references, options:=TestOptions.ReleaseDll)
             Dim c2 = c1.WithAssemblyName("c2")
             Dim c3 = c2.AddSyntaxTrees(Parse("Public Class Main2 : Public Shared A As Integer : End Class"))
             Dim c4 = c3.WithOptions(New VisualBasicCompilationOptions(OutputKind.NetModule))
@@ -1977,7 +1978,7 @@ Namespace NS2
     End Namespace
 End Namespace
     </file>
-</compilation>, TestOptions.ReleaseModule)
+</compilation>, options:=TestOptions.ReleaseModule)
 
 
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(

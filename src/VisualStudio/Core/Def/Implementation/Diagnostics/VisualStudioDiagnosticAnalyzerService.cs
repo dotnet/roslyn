@@ -15,11 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     [Export(typeof(IVisualStudioDiagnosticAnalyzerService))]
     internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiagnosticAnalyzerService
     {
-        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly VisualStudioWorkspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
 
         [ImportingConstructor]
-        public VisualStudioDiagnosticAnalyzerService(VisualStudioWorkspaceImpl workspace, IDiagnosticAnalyzerService diagnosticService)
+        public VisualStudioDiagnosticAnalyzerService(VisualStudioWorkspace workspace, IDiagnosticAnalyzerService diagnosticService)
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
@@ -31,18 +31,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         {
             if (hierarchyOpt == null)
             {
-                return Transform(_diagnosticService.GetDiagnosticDescriptors(projectOpt: null));
+                return Transform(_diagnosticService.CreateDiagnosticDescriptorsPerReference(projectOpt: null));
             }
 
             // Analyzers are only supported for C# and VB currently.
-            var projectsWithHierarchy = (_workspace.DeferredState?.ProjectTracker.ImmutableProjects ?? ImmutableArray<AbstractProject>.Empty)
+            var projectsWithHierarchy = _workspace.CurrentSolution.Projects
                 .Where(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
-                .Where(p => p.Hierarchy == hierarchyOpt)
-                .Select(p => _workspace.CurrentSolution.GetProject(p.Id));
+                .Where(p => _workspace.GetHierarchy(p.Id) == hierarchyOpt);
 
             if (projectsWithHierarchy.Count() <= 1)
             {
-                return Transform(_diagnosticService.GetDiagnosticDescriptors(projectsWithHierarchy.FirstOrDefault()));
+                return Transform(_diagnosticService.CreateDiagnosticDescriptorsPerReference(projectsWithHierarchy.FirstOrDefault()));
             }
             else
             {
@@ -51,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 var descriptorsMap = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticDescriptor>>();
                 foreach (var project in projectsWithHierarchy)
                 {
-                    var newDescriptorTuples = _diagnosticService.GetDiagnosticDescriptors(project);
+                    var newDescriptorTuples = _diagnosticService.CreateDiagnosticDescriptorsPerReference(project);
                     foreach (var kvp in newDescriptorTuples)
                     {
                         if (descriptorsMap.TryGetValue(kvp.Key, out var existingDescriptors))

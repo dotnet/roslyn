@@ -2883,7 +2883,7 @@ BC37204: Parameter of a method 'Private Sub Goo6(ParamArray x As Integer())' dif
             End Sub
         End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -2912,7 +2912,7 @@ BC37204: Parameter of a method 'Private Sub Goo6(ParamArray x As Integer())' dif
             End Sub
         End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -2941,7 +2941,7 @@ BC37204: Parameter of a method 'Private Sub Goo6(ParamArray x As Integer())' dif
             End Sub
         End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -2970,7 +2970,7 @@ BC37204: Parameter of a method 'Private Sub Goo6(ParamArray x As Integer())' dif
             End Sub
         End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -3020,7 +3020,7 @@ BC30663: Attribute 'ParamArrayAttribute' cannot be applied multiple times.
             End Sub
         End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -3049,7 +3049,7 @@ BC30663: Attribute 'ParamArrayAttribute' cannot be applied multiple times.
             End Sub
         End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+    </compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
@@ -6011,7 +6011,7 @@ End Class
                 End Interface
             End Namespace
         ]]></file>
-    </compilation>, options)
+    </compilation>, options:=options)
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC30561: 'I1' is ambiguous, imported from the namespaces or types 'N1, N2'.
@@ -9475,7 +9475,7 @@ BC31051: Namespace or type 'genclass(Of String)' has already been imported.
         Class C
         End Class
         ]]></file>
-    </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithGlobalImports(
+    </compilation>, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithGlobalImports(
                                 GlobalImport.Parse(
                                     {"System.Collections", "System.Collections"}
                                 )
@@ -9498,7 +9498,7 @@ BC31051: Namespace or type 'System.Collections' has already been imported.
         Class C
         End Class
         ]]></file>
-    </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithGlobalImports(
+    </compilation>, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithGlobalImports(
                                 GlobalImport.Parse(
                                     {"System.Collections", "System.Collections"}
                                 )
@@ -19105,7 +19105,7 @@ BC40039: Name '_B' in the root namespace 'A._B' is not CLS-compliant.
                 Inherits GenCompClass(Of UInteger)
             End Class
         ]]></file>
-    </compilation>, opt)
+    </compilation>, options:=opt)
             Dim expectedErrors1 = <errors><![CDATA[
 BC40041: Type 'UInteger' is not CLS-compliant.
             Public Class C(Of t)
@@ -19583,7 +19583,7 @@ End Namespace
             End Structure
         ]]></file>
     </compilation>,
-    options
+    options:=options
             )
             Dim expectedErrors1 = <errors><![CDATA[
 BC40056: Namespace or type specified in the Imports 'ns1.GenStruct' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
@@ -19640,7 +19640,7 @@ BC40056: Namespace or type specified in the Imports 'Alias2' doesn't contain any
     <compilation name="UndefinedOrEmpyProjectNamespaceOrClass1">
         <file name="a.vb"><![CDATA[
         ]]></file>
-    </compilation>, options)
+    </compilation>, options:=options)
             Dim expectedErrors1 = <errors><![CDATA[
 BC40057: Namespace or type specified in the project-level Imports 'N12 = Alias2' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
                  ]]></errors>
@@ -22031,7 +22031,7 @@ Public Partial Class C
     End Sub
 End Class
     ]]></file>
-</compilation>)
+</compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
             Dim expectedErrors = <errors><![CDATA[
 BC36716: Visual Basic 15.0 does not support Private Protected.
@@ -23438,7 +23438,7 @@ Public Class MyAttribute1
     Inherits System.Attribute
 End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll)
+    </compilation>, options:=TestOptions.ReleaseDll)
 
             Dim comp2 = CreateCompilationWithMscorlib40AndReferences(
     <compilation>
@@ -23696,7 +23696,7 @@ Class Account
     Property Status() As xEmailMsg
 End Class
         ]]></file>
-    </compilation>, options)
+    </compilation>, options:=options)
 
             CompileAndVerify(compilation).VerifyDiagnostics()
         End Sub
@@ -23722,7 +23722,7 @@ Class Account
     Property Status() As xEmailMsg
 End Class
         ]]></file>
-    </compilation>, TestOptions.ReleaseDll)
+    </compilation>, options:=TestOptions.ReleaseDll)
 
             compilation.AssertTheseDiagnostics(<expected>
 BC40008: 'GlobEnumsClass' is obsolete.
@@ -23817,9 +23817,9 @@ Friend MustOverride ReadOnly Property P
             IL_0007:  ret
         }
 }"
-            Dim ilReference = CompileIL(forwardingIL, prependDefaultHeader:= False)
+            Dim ilReference = CompileIL(forwardingIL, prependDefaultHeader:=False)
 
-            Dim code = 
+            Dim code =
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports TestSpace
@@ -23834,15 +23834,15 @@ End Namespace
     </compilation>
 
             CompileAndVerify(
-                source:= code,
-                references:= { ilReference },
-                expectedOutput:= "TEST VALUE")
+                source:=code,
+                references:={ilReference},
+                expectedOutput:="TEST VALUE")
         End Sub
-        
+
         <Fact>
         <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub MultipleForwardsOfFullyQualifiedTypeToDifferentAssembliesWhileReferencingItShouldErrorOut()
-            Dim userCode = 
+            Dim userCode =
     <compilation>
         <file name="a.vb"><![CDATA[
 Namespace ForwardingNamespace
@@ -23877,7 +23877,7 @@ End Namespace
 {
 	.assembly extern Destination2
 }"
-            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:= False)
+            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:=False)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
 BC30002: Type 'Destination.TestClass' is not defined.
@@ -23888,12 +23888,12 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, C
                           ~~~~~~~~~~~~~~~~~~~~~
  ]]></errors>)
         End Sub
-        
+
         <Fact>
         <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub MultipleForwardsToManyAssembliesShouldJustReportTheFirstTwo()
-            
-            Dim userCode = 
+
+            Dim userCode =
     <compilation>
         <file name="a.vb"><![CDATA[
 Namespace ForwardingNamespace
@@ -23945,7 +23945,7 @@ End Namespace
 	.assembly extern Destination2
 }"
 
-            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:= False)
+            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:=False)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
 BC30002: Type 'Destination.TestClass' is not defined.
@@ -23956,7 +23956,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
                           ~~~~~~~~~~~~~~~~~~~~~
  ]]></errors>)
         End Sub
-        
+
         <Fact>
         <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub RequiredExternalTypesForAMethodSignatureWillReportErrorsIfForwardedToMultipleAssemblies()
@@ -23971,9 +23971,9 @@ Namespace C
 End Namespace"
 
             Dim referenceC = CreateCompilationWithMscorlib40(
-                source:= codeC,
-                options:= New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:= "C") .EmitToImageReference()
+                source:=codeC,
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="C").EmitToImageReference()
 
             Dim codeB = "
 Imports C
@@ -23987,10 +23987,10 @@ Namespace B
 End Namespace"
 
             Dim compilationB = CreateCompilationWithMscorlib40(
-                source:= codeB,
-                references:= { referenceC },
-                options:= New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:= "B")
+                source:=codeB,
+                references:={referenceC},
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="B")
 
             Dim referenceB = compilationB.EmitToImageReference()
 
@@ -24006,13 +24006,13 @@ Namespace A
 End Namespace"
 
             Dim compilation = CreateCompilationWithMscorlib40(
-                source:= codeA,
-                references:= { referenceB, referenceC },
-                options:= New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:= "A")
+                source:=codeA,
+                references:={referenceB, referenceC},
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="A")
 
             compilation.VerifyDiagnostics() ' No Errors
-            
+
             Dim codeC2 = "
 .assembly C { }
 .module CModule.dll
@@ -24027,13 +24027,13 @@ End Namespace"
 	.assembly extern D2
 }"
 
-            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:= False)
+            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:=False)
 
             compilation = CreateCompilationWithMscorlib40(
-                source:= codeA,
-                references:= { referenceB, referenceC2 },
-                options:= New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:= "A")
+                source:=codeA,
+                references:={referenceB, referenceC2},
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="A")
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
 BC37208: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.

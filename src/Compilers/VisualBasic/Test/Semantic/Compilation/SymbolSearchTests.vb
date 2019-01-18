@@ -15,98 +15,131 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                                                     Dim compilation = GetTestCompilation()
                                                     compilation.GetSymbolsWithName(Function(n) True, SymbolFilter.None)
                                                 End Sub)
+
+            Assert.Throws(Of ArgumentException)(Sub()
+                                                    Dim compilation = GetTestCompilation()
+                                                    compilation.ContainsSymbolsWithName("", SymbolFilter.None)
+                                                End Sub)
+
+            Assert.Throws(Of ArgumentException)(Sub()
+                                                    Dim compilation = GetTestCompilation()
+                                                    compilation.GetSymbolsWithName("", SymbolFilter.None)
+                                                End Sub)
         End Sub
 
         <Fact>
         Public Sub TestPredicateNull()
             Assert.Throws(Of ArgumentNullException)(Sub()
                                                         Dim compilation = GetTestCompilation()
-                                                        compilation.ContainsSymbolsWithName(Nothing)
+                                                        compilation.ContainsSymbolsWithName(predicate:=Nothing)
                                                     End Sub)
 
             Assert.Throws(Of ArgumentNullException)(Sub()
                                                         Dim compilation = GetTestCompilation()
-                                                        compilation.GetSymbolsWithName(Nothing)
+                                                        compilation.GetSymbolsWithName(predicate:=Nothing)
+                                                    End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub TestStringNull()
+            Assert.Throws(Of ArgumentNullException)(Sub()
+                                                        Dim compilation = GetTestCompilation()
+                                                        compilation.ContainsSymbolsWithName(name:=Nothing)
+                                                    End Sub)
+
+            Assert.Throws(Of ArgumentNullException)(Sub()
+                                                        Dim compilation = GetTestCompilation()
+                                                        compilation.GetSymbolsWithName(name:=Nothing)
                                                     End Sub)
         End Sub
 
         <Fact>
         Public Sub TestMergedNamespace()
             Dim compilation = GetTestCompilation()
-            Test(compilation, Function(n) n = "System", includeNamespace:=True, includeType:=False, includeMember:=False, count:=1)
-            Test(compilation, Function(n) n = "System", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
-            Test(compilation, Function(n) n = "System", includeNamespace:=True, includeType:=False, includeMember:=True, count:=1)
-            Test(compilation, Function(n) n = "System", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "System", includeNamespace:=True, includeType:=False, includeMember:=False, count:=1)
+            TestNameAndPredicate(compilation, "System", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
+            TestNameAndPredicate(compilation, "System", includeNamespace:=True, includeType:=False, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "System", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
-            Test(compilation, Function(n) n = "System", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
-            Test(compilation, Function(n) n = "System", includeNamespace:=False, includeType:=True, includeMember:=False, count:=0)
-            Test(compilation, Function(n) n = "System", includeNamespace:=False, includeType:=True, includeMember:=True, count:=0)
+            TestNameAndPredicate(compilation, "System", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
+            TestNameAndPredicate(compilation, "System", includeNamespace:=False, includeType:=True, includeMember:=False, count:=0)
+            TestNameAndPredicate(compilation, "System", includeNamespace:=False, includeType:=True, includeMember:=True, count:=0)
         End Sub
 
         <Fact>
         Public Sub TestSourceNamespace()
             Dim compilation = GetTestCompilation()
-            Test(compilation, Function(n) n = "MyNamespace", includeNamespace:=True, includeType:=False, includeMember:=False, count:=1)
-            Test(compilation, Function(n) n = "MyNamespace", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
-            Test(compilation, Function(n) n = "MyNamespace", includeNamespace:=True, includeType:=False, includeMember:=True, count:=1)
-            Test(compilation, Function(n) n = "MyNamespace", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=True, includeType:=False, includeMember:=False, count:=1)
+            TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
+            TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=True, includeType:=False, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
-            Test(compilation, Function(n) n = "MyNamespace", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
-            Test(compilation, Function(n) n = "MyNamespace", includeNamespace:=False, includeType:=True, includeMember:=False, count:=0)
-            Test(compilation, Function(n) n = "MyNamespace", includeNamespace:=False, includeType:=True, includeMember:=True, count:=0)
+            TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
+            TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=False, includeType:=True, includeMember:=False, count:=0)
+            TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=False, includeType:=True, includeMember:=True, count:=0)
         End Sub
 
         <Fact>
         Public Sub TestClassInMergedNamespace()
             Dim compilation = GetTestCompilation()
-            Test(compilation, Function(n) n = "Test", includeNamespace:=False, includeType:=True, includeMember:=False, count:=1)
-            Test(compilation, Function(n) n = "Test", includeNamespace:=False, includeType:=True, includeMember:=True, count:=1)
-            Test(compilation, Function(n) n = "Test", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
-            Test(compilation, Function(n) n = "Test", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "Test", includeNamespace:=False, includeType:=True, includeMember:=False, count:=1)
+            TestNameAndPredicate(compilation, "Test", includeNamespace:=False, includeType:=True, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "Test", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
+            TestNameAndPredicate(compilation, "Test", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
-            Test(compilation, Function(n) n = "Test", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
-            Test(compilation, Function(n) n = "Test", includeNamespace:=True, includeType:=False, includeMember:=False, count:=0)
-            Test(compilation, Function(n) n = "Test", includeNamespace:=True, includeType:=False, includeMember:=True, count:=0)
+            TestNameAndPredicate(compilation, "Test", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
+            TestNameAndPredicate(compilation, "Test", includeNamespace:=True, includeType:=False, includeMember:=False, count:=0)
+            TestNameAndPredicate(compilation, "Test", includeNamespace:=True, includeType:=False, includeMember:=True, count:=0)
         End Sub
 
         <Fact>
         Public Sub TestClassInSourceNamespace()
             Dim compilation = GetTestCompilation()
-            Test(compilation, Function(n) n = "Test1", includeNamespace:=False, includeType:=True, includeMember:=False, count:=1)
-            Test(compilation, Function(n) n = "Test1", includeNamespace:=False, includeType:=True, includeMember:=True, count:=1)
-            Test(compilation, Function(n) n = "Test1", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
-            Test(compilation, Function(n) n = "Test1", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "Test1", includeNamespace:=False, includeType:=True, includeMember:=False, count:=1)
+            TestNameAndPredicate(compilation, "Test1", includeNamespace:=False, includeType:=True, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "Test1", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
+            TestNameAndPredicate(compilation, "Test1", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
-            Test(compilation, Function(n) n = "Test1", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
-            Test(compilation, Function(n) n = "Test1", includeNamespace:=True, includeType:=False, includeMember:=False, count:=0)
-            Test(compilation, Function(n) n = "Test1", includeNamespace:=True, includeType:=False, includeMember:=True, count:=0)
+            TestNameAndPredicate(compilation, "Test1", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
+            TestNameAndPredicate(compilation, "Test1", includeNamespace:=True, includeType:=False, includeMember:=False, count:=0)
+            TestNameAndPredicate(compilation, "Test1", includeNamespace:=True, includeType:=False, includeMember:=True, count:=0)
         End Sub
 
         <Fact>
         Public Sub TestMembers()
             Dim compilation = GetTestCompilation()
-            Test(compilation, Function(n) n = "myField", includeNamespace:=False, includeType:=False, includeMember:=True, count:=1)
-            Test(compilation, Function(n) n = "myField", includeNamespace:=False, includeType:=True, includeMember:=True, count:=1)
-            Test(compilation, Function(n) n = "myField", includeNamespace:=True, includeType:=False, includeMember:=True, count:=1)
-            Test(compilation, Function(n) n = "myField", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "myField", includeNamespace:=False, includeType:=False, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "myField", includeNamespace:=False, includeType:=True, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "myField", includeNamespace:=True, includeType:=False, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "myField", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
-            Test(compilation, Function(n) n = "myField", includeNamespace:=False, includeType:=True, includeMember:=False, count:=0)
-            Test(compilation, Function(n) n = "myField", includeNamespace:=True, includeType:=False, includeMember:=False, count:=0)
-            Test(compilation, Function(n) n = "myField", includeNamespace:=True, includeType:=True, includeMember:=False, count:=0)
+            TestNameAndPredicate(compilation, "myField", includeNamespace:=False, includeType:=True, includeMember:=False, count:=0)
+            TestNameAndPredicate(compilation, "myField", includeNamespace:=True, includeType:=False, includeMember:=False, count:=0)
+            TestNameAndPredicate(compilation, "myField", includeNamespace:=True, includeType:=True, includeMember:=False, count:=0)
+        End Sub
+
+        <Fact>
+        Public Sub TestCaseInsensitivity()
+            Dim compilation = GetTestCompilation()
+            TestName(compilation, "system", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestName(Compilation, "mynamespace", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestName(Compilation, "test", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestName(Compilation, "test1", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestName(Compilation, "myfield", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
         End Sub
 
         <Fact>
         Public Sub TestPartialSearch()
             Dim compilation = GetTestCompilation()
 
-            Test(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=False, includeType:=False, includeMember:=True, count:=4)
-            Test(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=False, includeType:=True, includeMember:=False, count:=4)
-            Test(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=False, includeType:=True, includeMember:=True, count:=8)
-            Test(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=False, includeMember:=False, count:=1)
-            Test(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=False, includeMember:=True, count:=5)
-            Test(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=True, includeMember:=False, count:=5)
-            Test(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=True, includeMember:=True, count:=9)
-            Test(compilation, Function(n) n.IndexOf("enum", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=True, includeMember:=True, count:=2)
+            TestPredicate(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=False, includeType:=False, includeMember:=True, count:=4)
+            TestPredicate(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=False, includeType:=True, includeMember:=False, count:=4)
+            TestPredicate(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=False, includeType:=True, includeMember:=True, count:=8)
+            TestPredicate(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=False, includeMember:=False, count:=1)
+            TestPredicate(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=False, includeMember:=True, count:=5)
+            TestPredicate(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=True, includeMember:=False, count:=5)
+            TestPredicate(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=True, includeMember:=True, count:=9)
+            TestPredicate(compilation, Function(n) n.IndexOf("enum", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=True, includeMember:=True, count:=2)
         End Sub
 
         Private Shared Function GetTestCompilation() As VisualBasicCompilation
@@ -150,14 +183,31 @@ End Enum
             Return CreateCompilationWithMscorlib40({source})
         End Function
 
-        Private Shared Sub Test(compilation As VisualBasicCompilation, predicate As Func(Of String, Boolean), includeNamespace As Boolean, includeType As Boolean, includeMember As Boolean, count As Integer)
-            Dim filter = SymbolFilter.None
-            filter = If(includeNamespace, filter Or SymbolFilter.Namespace, filter)
-            filter = If(includeType, filter Or SymbolFilter.Type, filter)
-            filter = If(includeMember, filter Or SymbolFilter.Member, filter)
+        Private Shared Sub TestNameAndPredicate(compilation As VisualBasicCompilation, name As String, includeNamespace As Boolean, includeType As Boolean, includeMember As Boolean, count As Integer)
+            TestName(compilation, name, includeNamespace, includeType, includeMember, count)
+            TestPredicate(compilation, Function(n) n = name, includeNamespace, includeType, includeMember, count)
+        End Sub
+
+        Private Shared Sub TestName(compilation As VisualBasicCompilation, name As String, includeNamespace As Boolean, includeType As Boolean, includeMember As Boolean, count As Integer)
+            Dim filter = ComputeFilter(includeNamespace, includeType, includeMember)
+
+            Assert.Equal(count > 0, compilation.ContainsSymbolsWithName(name, filter))
+            Assert.Equal(count, compilation.GetSymbolsWithName(name, filter).Count())
+        End Sub
+
+        Private Shared Sub TestPredicate(compilation As VisualBasicCompilation, predicate As Func(Of String, Boolean), includeNamespace As Boolean, includeType As Boolean, includeMember As Boolean, count As Integer)
+            Dim filter = ComputeFilter(includeNamespace, includeType, includeMember)
 
             Assert.Equal(count > 0, compilation.ContainsSymbolsWithName(predicate, filter))
             Assert.Equal(count, compilation.GetSymbolsWithName(predicate, filter).Count())
         End Sub
+
+        Private Shared Function ComputeFilter(includeNamespace As Boolean, includeType As Boolean, includeMember As Boolean) As SymbolFilter
+            Dim filter = SymbolFilter.None
+            filter = If(includeNamespace, filter Or SymbolFilter.Namespace, filter)
+            filter = If(includeType, filter Or SymbolFilter.Type, filter)
+            filter = If(includeMember, filter Or SymbolFilter.Member, filter)
+            Return filter
+        End Function
     End Class
 End Namespace

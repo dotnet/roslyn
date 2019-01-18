@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Services
@@ -68,9 +70,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         private void VerifyBadAnalyzer(ExpensiveAnalyzerInfo analyzer, string analyzerId, double lof, double mean, double stddev)
         {
             Assert.True(analyzer.PIISafeAnalyzerId.IndexOf(analyzerId, StringComparison.OrdinalIgnoreCase) >= 0);
-            Assert.Equal(analyzer.LocalOutlierFactor, lof, precision: 4);
-            Assert.Equal(analyzer.Average, mean, precision: 4);
-            Assert.Equal(analyzer.AdjustedStandardDeviation, stddev, precision: 4);
+            Assert.Equal(lof, analyzer.LocalOutlierFactor, precision: 4);
+            Assert.Equal(mean, analyzer.Average, precision: 4);
+            Assert.Equal(stddev, analyzer.AdjustedStandardDeviation, precision: 4);
         }
 
         private List<ExpensiveAnalyzerInfo> GetBadAnalyzers(string testFileName, int to)
@@ -131,7 +133,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 for (var j = 0; j < data.Length; j++)
                 {
                     double result;
-                    if (!double.TryParse(data[j], out result))
+                    if (!double.TryParse(data[j], NumberStyles.Float | NumberStyles.AllowThousands, EnsureEnglishUICulture.PreferredOrNull, out result))
                     {
                         // no data for this analyzer for this particular run
                         result = double.NaN;

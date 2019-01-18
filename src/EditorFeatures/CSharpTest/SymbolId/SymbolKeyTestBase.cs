@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                     body = accessor.Body;
                 }
 
-                if (body != null || body.Statements.Any())
+                if (body != null && body.Statements.Any())
                 {
                     list.Add(body);
                 }
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                     list.Add((Symbol)v);
                     if (v is LocalSymbol local && (local.Type.Kind == SymbolKind.ArrayType || local.Type.Kind == SymbolKind.PointerType))
                     {
-                        list.Add(local.Type);
+                        list.Add(local.Type.TypeSymbol);
                     }
                 }
             }

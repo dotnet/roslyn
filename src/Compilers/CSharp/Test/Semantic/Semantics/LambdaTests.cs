@@ -76,7 +76,7 @@ class C
 
         D1 q10 = (x10,y10,z10)=>{}; 
 
-        // COMPATIBILITY: THe C# 4 compiler produces two errors:
+        // COMPATIBILITY: The C# 4 compiler produces two errors:
         //
         // error CS0127: Since 'System.Action' returns void, a return keyword must 
         // not be followed by an object expression
@@ -108,7 +108,7 @@ class C
 
         object q19 = new Action( (int x)=>{} );
  
-        Expression<int> ex1 = ()=>1;  
+        Expression<int> ex1 = ()=>1;
 
     }
 }");
@@ -162,7 +162,7 @@ class C
     // (52,28): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
     //         Action q11 = ()=>{ return 1; };
     Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(52, 28),
-    // (54,26): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (54,26): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         Action q12 = ()=>1;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(54, 26),
     // (56,42): warning CS0162: Unreachable code detected
@@ -245,6 +245,36 @@ class C
                 // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Goo(Func<IComparable<I>>)' and 'C.Goo(Func<I>)'
                 //         Goo(() => null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("C.Goo(System.Func<System.IComparable<I>>)", "C.Goo(System.Func<I>)").WithLocation(12, 9));
+        }
+
+        [WorkItem(18645, "https://github.com/dotnet/roslyn/issues/18645")]
+        [Fact]
+        public void LambdaExpressionTreesErrors()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void M()
+    {
+        Expression<Func<int,int>> ex1 = () => 1;
+        Expression<Func<int,int>> ex2 = (double d) => 1;
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,41): error CS1593: Delegate 'Func<int, int>' does not take 0 arguments
+                //         Expression<Func<int,int>> ex1 = () => 1;
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => 1").WithArguments("System.Func<int, int>", "0").WithLocation(9, 41),
+                // (10,41): error CS1661: Cannot convert lambda expression to type 'Expression<Func<int, int>>' because the parameter types do not match the delegate parameter types
+                //         Expression<Func<int,int>> ex2 = (double d) => 1;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(double d) => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<int, int>>").WithLocation(10, 41),
+                // (10,49): error CS1678: Parameter 1 is declared as type 'double' but should be 'int'
+                //         Expression<Func<int,int>> ex2 = (double d) => 1;
+                Diagnostic(ErrorCode.ERR_BadParamType, "d").WithArguments("1", "", "double", "", "int").WithLocation(10, 49));
         }
 
         [WorkItem(539976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539976")]
@@ -561,7 +591,7 @@ class Program
     // (9,32): error CS0020: Division by constant zero
     //         ((Func<int>)delegate { 1 / 0; })();
     Diagnostic(ErrorCode.ERR_IntDivByZero, "1 / 0").WithLocation(9, 32),
-    // (9,32): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (9,32): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         ((Func<int>)delegate { 1 / 0; })();
     Diagnostic(ErrorCode.ERR_IllegalStatement, "1 / 0").WithLocation(9, 32),
     // (9,21): error CS1643: Not all code paths return a value in anonymous method of type 'Func<int>'
@@ -612,10 +642,10 @@ class Program
             // statement expression.
 
             CreateCompilation(csSource).VerifyDiagnostics(
-                // (7,21): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (7,21): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         D d = () => new D(() => { });
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new D(() => { })"),
-                // (8,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (8,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         new D(()=>{});
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new D(()=>{})"));
         }
@@ -1315,7 +1345,7 @@ class Program
 }
 ");
             comp.VerifyDiagnostics(
-                // (6,41): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,41): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         var d = new System.Action(() => (new object()));
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(new object())").WithLocation(6, 41));
         }
@@ -1503,6 +1533,208 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "y = y").WithLocation(9, 45));
         }
 
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Class1 c) => c.Method2(default(Struct1)));
+    }
+
+    public void Method2(Struct1 s1) { }
+
+    public static void Method<T>(Expression<Action<T>> expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (8,40): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
+                //         Method((Class1 c) => c.Method2(default(Struct1)));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default(Struct1)").WithArguments("Struct1").WithLocation(8, 40));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructDefaultExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Class1 c) => c.Method2(default));
+    }
+
+    public void Method2(Struct1 s1) { }
+
+    public static void Method<T>(Expression<Action<T>> expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (8,40): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
+                //         Method((Class1 c) => c.Method2(default));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("Struct1").WithLocation(8, 40));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructDefaultCastExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Class1 c) => c.Method2((Struct1) default));
+    }
+
+    public void Method2(Struct1 s1) { }
+
+    public static void Method<T>(Expression<Action<T>> expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (8,50): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
+                //         Method((Class1 c) => c.Method2((Struct1) default));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("Struct1").WithLocation(8, 50));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructNewExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Class1 c) => c.Method2(new Struct1()));
+    }
+
+    public void Method2(Struct1 s1) { }
+
+    public static void Method<T>(Expression<Action<T>> expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (8,40): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
+                //         Method((Class1 c) => c.Method2(new Struct1()));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "new Struct1()").WithArguments("Struct1").WithLocation(8, 40));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructParamExpressionTree()
+        {
+            var text = @"
+using System.Linq.Expressions;
+
+public delegate void Delegate1(Struct1 s);
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Struct1 s) => Method2());
+    }
+
+    public void Method2() { }
+
+    public static void Method(Expression<Delegate1> expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (9,25): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
+                //         Method((Struct1 s) => Method2());
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "s").WithArguments("Struct1").WithLocation(9, 25));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructParamLambda()
+        {
+            var text = @"
+public delegate void Delegate1(Struct1 s);
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Struct1 s) => Method2());
+    }
+
+    public void Method2() { }
+
+    public static void Method(Delegate1 expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void TypedReferenceExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public class Class1
+{
+    public void Method1()
+    {
+        Method(() => Method2(default));
+    }
+
+    public void Method2(TypedReference tr) { }
+
+    public static void Method(Expression<Action> expression) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (8,30): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+                //         Method(() => Method2(default));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("TypedReference").WithLocation(8, 30));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void TypedReferenceParamExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public delegate void Delegate1(TypedReference tr);
+public class Class1
+{
+    public void Method1()
+    {
+        Method((TypedReference tr) => Method2());
+    }
+
+    public void Method2() { }
+
+    public static void Method(Expression<Delegate1> expression) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (9,32): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+                //         Method((TypedReference tr) => Method2());
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "tr").WithArguments("TypedReference").WithLocation(9, 32));
+        }
+
         [Fact, WorkItem(5363, "https://github.com/dotnet/roslyn/issues/5363")]
         public void ReturnInferenceCache_Dynamic_vs_Object_01()
         {
@@ -1537,7 +1769,7 @@ public static class Program
 
 public interface IColumn { }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
@@ -1575,7 +1807,7 @@ public static class Program
 
 public interface IColumn { }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
@@ -2320,23 +2552,23 @@ class C
             var lambda = lambdas[0];
             var parameters = lambda.ParameterList.Parameters;
             var parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
-            Assert.False(parameter.Type.IsErrorType());
+            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal("System.Int32 t", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[1]);
-            Assert.False(parameter.Type.IsErrorType());
+            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[3]);
-            Assert.Equal(tooMany, parameter.Type.IsErrorType());
+            Assert.Equal(tooMany, parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
 
             // var o = this[(a, b, c) => { }];
             lambda = lambdas[1];
             parameters = lambda.ParameterList.Parameters;
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
-            Assert.False(parameter.Type.IsErrorType());
+            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[2]);
-            Assert.Equal(tooMany, parameter.Type.IsErrorType());
+            Assert.Equal(tooMany, parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
         }
 

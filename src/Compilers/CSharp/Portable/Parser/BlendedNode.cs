@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal struct BlendedNode
+    internal readonly struct BlendedNode
     {
         internal readonly CSharp.CSharpSyntaxNode Node;
         internal readonly SyntaxToken Token;

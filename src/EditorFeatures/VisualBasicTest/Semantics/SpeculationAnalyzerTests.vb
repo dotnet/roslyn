@@ -26,6 +26,96 @@ End Module
             </Code>.Value, "Vain(5)", False)
         End Sub
 
+        <Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")>
+        Public Sub SpeculationAnalyzerIndexerPropertyWithRedundantCast()
+            Test(<Code>
+Class Indexer
+    Default Public ReadOnly Property Item(ByVal x As Integer) As Integer
+        Get
+            Return x
+        End Get
+    End Property
+End Class
+Class A
+    Public ReadOnly Property Foo As Indexer
+End Class
+Class B
+    Inherits A
+End Class
+Class Program
+    Sub Main()
+        Dim b As B = New B()
+        Dim y As Integer = [|DirectCast(b, A)|].Foo(2)
+    End Sub
+End Class
+            </Code>.Value, "b", False)
+        End Sub
+
+        <Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")>
+        Public Sub SpeculationAnalyzerIndexerPropertyWithRequiredCast()
+            Test(<Code>
+Class Indexer
+    Default Public ReadOnly Property Item(ByVal x As Integer) As Integer
+        Get
+            Return x
+        End Get
+    End Property
+End Class
+Class A
+    Public ReadOnly Property Foo As Indexer
+End Class
+Class B
+    Inherits A
+    Public Shadows ReadOnly Property Foo As Indexer
+End Class
+Class Program
+    Sub Main()
+        Dim b As B = New B()
+        Dim y As Integer = [|DirectCast(b, A)|].Foo(2)
+    End Sub
+End Class
+            </Code>.Value, "b", True)
+        End Sub
+
+        <Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")>
+        Public Sub SpeculationAnalyzerDelegatePropertyWithRedundantCast()
+            Test(<Code>
+Public Delegate Sub MyDelegate()
+Class A
+    Public ReadOnly Property Foo As MyDelegate
+End Class
+Class B
+    Inherits A
+End Class
+Class Program
+    Sub Main()
+        Dim b As B = New B()
+        [|DirectCast(b, A)|].Foo.Invoke()
+    End Sub
+End Class
+            </Code>.Value, "b", False)
+        End Sub
+
+        <Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")>
+        Public Sub SpeculationAnalyzerDelegatePropertyWithRequiredCast()
+            Test(<Code>
+Public Delegate Sub MyDelegate()
+Class A
+    Public ReadOnly Property Foo As MyDelegate
+End Class
+Class B
+    Inherits A
+    Public Shadows ReadOnly Property Foo As MyDelegate
+End Class
+Class Program
+    Sub Main()
+        Dim b As B = New B()
+        [|DirectCast(b, A)|].Foo.Invoke()
+    End Sub
+End Class
+            </Code>.Value, "b", True)
+        End Sub
+
         Protected Overrides Function Parse(text As String) As SyntaxTree
             Return SyntaxFactory.ParseSyntaxTree(text)
         End Function
@@ -39,7 +129,7 @@ End Module
                 CompilationName,
                 {DirectCast(tree, VisualBasicSyntaxTree)},
                 References,
-                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions({KeyValuePair.Create("BC0219", ReportDiagnostic.Suppress)}))
+                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions({KeyValuePairUtil.Create("BC0219", ReportDiagnostic.Suppress)}))
         End Function
 
         Protected Overrides Function CompilationSucceeded(compilation As Compilation, temporaryStream As Stream) As Boolean

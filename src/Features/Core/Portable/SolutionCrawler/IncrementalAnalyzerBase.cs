@@ -15,22 +15,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public virtual Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public virtual Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public virtual Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public virtual Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -40,17 +40,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public virtual Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public virtual Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public virtual Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         public virtual void RemoveDocument(DocumentId documentId)

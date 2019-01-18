@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal BoundExpression Receiver { get; private set; }
         internal ArrayBuilder<MethodSymbol> Methods { get; }
-        internal ArrayBuilder<TypeSymbol> TypeArguments { get; }
+        internal ArrayBuilder<TypeSymbolWithAnnotations> TypeArguments { get; }
         internal bool IsExtensionMethodGroup { get; private set; }
         internal DiagnosticInfo Error { get; private set; }
         internal LookupResultKind ResultKind { get; private set; }
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodGroup()
         {
             this.Methods = new ArrayBuilder<MethodSymbol>();
-            this.TypeArguments = new ArrayBuilder<TypeSymbol>();
+            this.TypeArguments = new ArrayBuilder<TypeSymbolWithAnnotations>();
         }
 
         internal void PopulateWithSingleMethod(
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void PopulateWithExtensionMethods(
             BoundExpression receiverOpt,
             ArrayBuilder<Symbol> members,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             LookupResultKind resultKind = LookupResultKind.Viable,
             DiagnosticInfo error = null)
         {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void PopulateWithNonExtensionMethods(
             BoundExpression receiverOpt,
             ImmutableArray<MethodSymbol> methods,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             LookupResultKind resultKind = LookupResultKind.Viable,
             DiagnosticInfo error = null)
         {

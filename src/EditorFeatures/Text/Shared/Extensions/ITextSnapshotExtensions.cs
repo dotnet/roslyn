@@ -11,8 +11,18 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         public static SnapshotPoint GetPoint(this ITextSnapshot snapshot, int position)
             => new SnapshotPoint(snapshot, position);
 
-        public static SnapshotPoint GetPoint(this ITextSnapshot snapshot, int lineNumber, int columnIndex)
-            => new SnapshotPoint(snapshot, snapshot.GetPosition(lineNumber, columnIndex));
+        public static SnapshotPoint? TryGetPoint(this ITextSnapshot snapshot, int lineNumber, int columnIndex)
+        {
+            var position = snapshot.TryGetPosition(lineNumber, columnIndex);
+            if (position.HasValue)
+            {
+                return new SnapshotPoint(snapshot, position.Value);
+            }
+            else
+            {
+                return null;
+            }
+        }
 
         /// <summary>
         /// Convert a <see cref="LinePositionSpan"/> to <see cref="TextSpan"/>.
@@ -110,12 +120,12 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
             return new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan());
         }
 
-        public static void GetLineAndColumn(this ITextSnapshot snapshot, int position, out int lineNumber, out int columnIndex)
+        public static void GetLineAndCharacter(this ITextSnapshot snapshot, int position, out int lineNumber, out int characterIndex)
         {
             var line = snapshot.GetLineFromPosition(position);
 
             lineNumber = line.LineNumber;
-            columnIndex = position - line.Start.Position;
+            characterIndex = position - line.Start.Position;
         }
 
         /// <summary>

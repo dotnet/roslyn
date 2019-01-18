@@ -37,8 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var codeStyleOption = ((CodeStyleOption<bool>)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
             _selectedPreference = Preferences.Single(c => c.IsChecked == codeStyleOption.Value);
 
-            var notificationViewModel = NotificationPreferences.Single(i => i.Notification.Value == codeStyleOption.Notification.Value);
-            _selectedNotificationPreference = NotificationPreferences.Single(p => p.Notification.Value == notificationViewModel.Notification.Value);
+            var notificationViewModel = NotificationPreferences.Single(i => i.Notification.Severity == codeStyleOption.Notification.Severity);
+            _selectedNotificationPreference = NotificationPreferences.Single(p => p.Notification.Severity == notificationViewModel.Notification.Severity);
 
             NotifyPropertyChanged(nameof(SelectedPreference));
             NotifyPropertyChanged(nameof(SelectedNotificationPreference));
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public override string GetPreview() 
+        public override string GetPreview()
             => SelectedPreference.IsChecked ? _truePreview : _falsePreview;
     }
 }

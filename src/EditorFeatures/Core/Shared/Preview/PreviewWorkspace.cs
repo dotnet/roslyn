@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             }
 
             var document = this.CurrentSolution.GetDocument(documentId);
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
 
             this.OnDocumentOpened(documentId, text.Container);
         }
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
         {
             var document = this.CurrentSolution.GetAdditionalDocument(documentId);
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
 
             this.OnAdditionalDocumentOpened(documentId, text.Container);
         }
@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         public override void CloseDocument(DocumentId documentId)
         {
             var document = this.CurrentSolution.GetDocument(documentId);
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var version = document.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
+            var version = document.GetTextVersionSynchronously(CancellationToken.None);
 
             this.OnDocumentClosed(documentId, TextLoader.From(TextAndVersion.Create(text, version)));
         }
@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         public override void CloseAdditionalDocument(DocumentId documentId)
         {
             var document = this.CurrentSolution.GetAdditionalDocument(documentId);
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var version = document.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
+            var version = document.GetTextVersionSynchronously(CancellationToken.None);
 
             this.OnAdditionalDocumentClosed(documentId, TextLoader.From(TextAndVersion.Create(text, version)));
         }

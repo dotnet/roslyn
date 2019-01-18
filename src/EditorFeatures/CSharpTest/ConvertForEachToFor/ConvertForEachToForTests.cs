@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
             Workspace workspace, TestParameters parameters)
             => new CSharpConvertForEachToForCodeRefactoringProvider();
 
-        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
+        private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
 
         private IDictionary<OptionKey, object> ImplicitTypeEverywhere => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithSilent));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task EmptyBlockBody()
@@ -917,7 +917,7 @@ class List : IList
             await TestInRegularAndScriptAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29740"), Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task ImmutableArray()
         {
             var text = @"
@@ -1720,6 +1720,24 @@ class Explicit : IReadOnlyList<int>
 }
 ";
             await TestInRegularAndScriptAsync(text, expected, options: ImplicitTypeEverywhere);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        public async Task ArrayRank2()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        foreach [||] (int a in new int[,] { {1, 2} })
+        {
+            Console.WriteLine(a);
+        }
+    }
+}
+";
+            await TestMissingAsync(text);
         }
     }
 }

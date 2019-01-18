@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\..\build\Targets\GenerateCompilerExecutableBindingRedirects.targets" />
+  <Import Project="$(RepositoryEngineeringDir)targets\GenerateCompilerExecutableBindingRedirects.targets" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -9,24 +9,26 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CompilerServer</RootNamespace>
     <LargeAddressAware>true</LargeAddressAware>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks46)</TargetFrameworks>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ServerGarbageCollection>true</ServerGarbageCollection>
+    <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\CSharp\Portable\CSharpCodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
-    <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'netcoreapp2.0'" />
-    <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
+    <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'netcoreapp2.1'" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)"/>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Shared\NamedPipeUtil.cs" />
     <Compile Include="..\..\Shared\BuildClient.cs">
       <Link>BuildClient.cs</Link>
     </Compile>
@@ -53,9 +55,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Compilers.CompilerServer.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
+    <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
   </ItemGroup>
   <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
 </Project>

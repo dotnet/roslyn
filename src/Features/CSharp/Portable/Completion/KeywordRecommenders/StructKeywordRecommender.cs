@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 SyntaxKind.PublicKeyword,
                 SyntaxKind.PrivateKeyword,
                 SyntaxKind.ProtectedKeyword,
-                SyntaxKind.UnsafeKeyword
+                SyntaxKind.UnsafeKeyword,
+                SyntaxKind.RefKeyword,
+                SyntaxKind.ReadOnlyKeyword
             };
 
         public StructKeywordRecommender()

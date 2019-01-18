@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // From what I see in our own codebase, tokens longer then 40-50 chars are 
         // not very common. 
         // So it seems reasonable to limit the sizes to some round number like 42.
-        private const int MaxCachedTokenSize = 42;
+        internal const int MaxCachedTokenSize = 42;
 
         private enum QuickScanState : byte
         {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // to be able to detect exiting conditions in one "state >= Done" test.
             // And we are also relying on this to be the last item in the enum.
             Done,
-            Bad = Done + 1    
+            Bad = Done + 1
         }
 
         private enum CharFlags : byte
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 (byte)QuickScanState.Done,                // Letter
                 (byte)QuickScanState.Number,              // Digit
                 (byte)QuickScanState.Done,                // Punct
-                (byte)QuickScanState.Done,                // Dot
+                (byte)QuickScanState.Bad,                 // Dot (DotDot range token, exit so that we handle it in subsequent scanning code)
                 (byte)QuickScanState.Done,                // Compound
                 (byte)QuickScanState.Bad,                 // Slash
                 (byte)QuickScanState.Bad,                 // Complex
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             state = QuickScanState.Bad; // ran out of characters in window
-        exitWhile:
+exitWhile:
 
             TextWindow.AdvanceChar(i - TextWindow.Offset);
             Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done, "can only exit with Bad or Done");

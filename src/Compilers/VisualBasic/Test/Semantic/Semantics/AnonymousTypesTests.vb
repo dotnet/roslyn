@@ -27,33 +27,33 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>, IsImplicit) (Syntax: 'New With {. ...  = .b + .a}')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.b = .a')
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>, IsImplicit) (Syntax: 'New With {. ...  = .b + .a}')
         Right: 
           IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '.a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>, IsImplicit) (Syntax: 'New With {. ...  = .b + .a}')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.c = .b + .a')
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.c As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'c')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>, IsImplicit) (Syntax: 'New With {. ...  = .b + .a}')
         Right: 
-          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '.b + .a')
+          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: '.b + .a')
             Left: 
               IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '.b')
                 Instance Receiver: 
-                  null
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>, IsImplicit) (Syntax: 'New With {. ...  = .b + .a}')
             Right: 
               IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '.a')
                 Instance Receiver: 
-                  null
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>, IsImplicit) (Syntax: 'New With {. ...  = .b + .a}')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -78,7 +78,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As ?, b As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As ?, b As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... s, .b = .a}')
         Right: 
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'sss')
             Children(0)
@@ -86,11 +86,11 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As ?, b As ?>.b As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'b')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As ?, b As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... s, .b = .a}')
         Right: 
           IPropertyReferenceOperation: Property <anonymous type: a As ?, b As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: '.a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As ?, b As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... s, .b = .a}')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -134,7 +134,7 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                       Left: 
                         IPropertyReferenceOperation: Property <anonymous type: a As System.TypedReference>.a As System.TypedReference (OperationKind.PropertyReference, Type: System.TypedReference) (Syntax: 'a')
                           Instance Receiver: 
-                            null
+                            IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.TypedReference>, IsInvalid, IsImplicit) (Syntax: 'New With {.a = tr}')
                       Right: 
                         IParameterReferenceOperation: tr (OperationKind.ParameterReference, Type: System.TypedReference, IsInvalid) (Syntax: 'tr')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Dim v2 As O ... a = {{tr}}}')
@@ -154,7 +154,7 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                       Left: 
                         IPropertyReferenceOperation: Property <anonymous type: a As System.TypedReference(,)>.a As System.TypedReference(,) (OperationKind.PropertyReference, Type: System.TypedReference(,)) (Syntax: 'a')
                           Instance Receiver: 
-                            null
+                            IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.TypedReference(,)>, IsInvalid, IsImplicit) (Syntax: 'New With {.a = {{tr}}}')
                       Right: 
                         IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.TypedReference(,), IsInvalid) (Syntax: '{{tr}}')
                           Dimension Sizes(2):
@@ -206,14 +206,14 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As <anonymous type: c As ?>>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As <anonymous type: c As ?>>, IsInvalid, IsImplicit) (Syntax: 'New With {. ...  {.c = .a}}')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: c As ?>, IsInvalid) (Syntax: '.b = New With {.c = .a}')
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As <anonymous type: c As ?>>.b As <anonymous type: c As ?> (OperationKind.PropertyReference, Type: <anonymous type: c As ?>) (Syntax: 'b')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As <anonymous type: c As ?>>, IsInvalid, IsImplicit) (Syntax: 'New With {. ...  {.c = .a}}')
         Right: 
           IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: c As ?>, IsInvalid) (Syntax: 'New With {.c = .a}')
             Initializers(1):
@@ -221,7 +221,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                   Left: 
                     IPropertyReferenceOperation: Property <anonymous type: c As ?>.c As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'c')
                       Instance Receiver: 
-                        null
+                        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: c As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {.c = .a}')
                   Right: 
                     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.a')
                       Children(0)
@@ -253,7 +253,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: b As ?, c As ?>.b As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'b')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: b As ?, c As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... c, .c = .b}')
         Right: 
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.c')
             Children(0)
@@ -261,11 +261,11 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: b As ?, c As ?>.c As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'c')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: b As ?, c As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... c, .c = .b}')
         Right: 
           IPropertyReferenceOperation: Property <anonymous type: b As ?, c As ?>.b As ? (OperationKind.PropertyReference, Type: ?) (Syntax: '.b')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: b As ?, c As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... c, .c = .b}')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -294,7 +294,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: b As ?, c As System.Int32>.b As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'b')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: b As ?, c As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... .c, .c = 1}')
         Right: 
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.c')
             Children(0)
@@ -302,7 +302,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: b As ?, c As System.Int32>.c As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'c')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: b As ?, c As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... .c, .c = 1}')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
@@ -333,7 +333,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... ToString()}')
         Right: 
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.ToString()')
             Children(1):
@@ -367,7 +367,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... , Nothing)}')
         Right: 
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.ReferenceE ... g, Nothing)')
             Children(3):
@@ -408,7 +408,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {.a = .EM()}')
         Right: 
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.EM()')
             Children(1):
@@ -442,7 +442,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {.a = .New()}')
         Right: 
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.New()')
             Children(1):
@@ -478,7 +478,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {. ...  SubName()}')
         Right: 
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'SubName()')
             Children(1):
@@ -514,18 +514,18 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... f Integer)}')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '.b = .a(Of Integer)')
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... f Integer)}')
         Right: 
           IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: '.a(Of Integer)')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {. ... f Integer)}')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -554,7 +554,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {.a = .}')
         Right: 
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.')
             Children(0)
@@ -586,7 +586,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As System.Object>.a As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Object>, IsImplicit) (Syntax: 'New With {.a = Nothing}')
         Right: 
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -618,13 +618,19 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: $0 As System.Int32>, IsInvalid) (Syntax: 'New With {N ... f Integer)}')
   Initializers(1):
-      IInvocationOperation ( Function AM.A.F(Of System.Int32)() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'New A().F(Of Integer)')
-        Instance Receiver: 
-          IObjectCreationOperation (Constructor: Sub AM.A..ctor()) (OperationKind.ObjectCreation, Type: AM.A, IsInvalid) (Syntax: 'New A()')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'New A().F(Of Integer)')
+        Left: 
+          IPropertyReferenceOperation: Property <anonymous type: $0 As System.Int32>.$0 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'New A().F(Of Integer)')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: $0 As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {N ... f Integer)}')
+        Right: 
+          IInvocationOperation ( Function AM.A.F(Of System.Int32)() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'New A().F(Of Integer)')
+            Instance Receiver: 
+              IObjectCreationOperation (Constructor: Sub AM.A..ctor()) (OperationKind.ObjectCreation, Type: AM.A, IsInvalid) (Syntax: 'New A()')
+                Arguments(0)
+                Initializer: 
+                  null
             Arguments(0)
-            Initializer: 
-              null
-        Arguments(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -650,7 +656,13 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: $0 As System.Xml.Linq.XElement>, IsInvalid) (Syntax: 'New With {< ... some-name>}')
   Initializers(1):
-      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '<some-name></some-name>')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Xml.Linq.XElement, IsInvalid, IsImplicit) (Syntax: '<some-name></some-name>')
+        Left: 
+          IPropertyReferenceOperation: Property <anonymous type: $0 As System.Xml.Linq.XElement>.$0 As System.Xml.Linq.XElement (OperationKind.PropertyReference, Type: System.Xml.Linq.XElement, IsInvalid, IsImplicit) (Syntax: '<some-name></some-name>')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: $0 As System.Xml.Linq.XElement>, IsInvalid, IsImplicit) (Syntax: 'New With {< ... some-name>}')
+        Right: 
+          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '<some-name></some-name>')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -675,7 +687,13 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: aa As System.String>) (Syntax: 'New With {< ... -name>.@aa}')
   Initializers(1):
-      IOperation:  (OperationKind.None, Type: null) (Syntax: '<some-name> ... e-name>.@aa')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: '<some-name> ... e-name>.@aa')
+        Left: 
+          IPropertyReferenceOperation: Property <anonymous type: aa As System.String>.aa As System.String (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: '<some-name> ... e-name>.@aa')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: aa As System.String>, IsImplicit) (Syntax: 'New With {< ... -name>.@aa}')
+        Right: 
+          IOperation:  (OperationKind.None, Type: null) (Syntax: '<some-name> ... e-name>.@aa')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -696,7 +714,13 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: $0 As System.String>, IsInvalid) (Syntax: 'New With {< ... me>.@<a-a>}')
   Initializers(1):
-      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '<some-name  ... ame>.@<a-a>')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid, IsImplicit) (Syntax: '<some-name  ... ame>.@<a-a>')
+        Left: 
+          IPropertyReferenceOperation: Property <anonymous type: $0 As System.String>.$0 As System.String (OperationKind.PropertyReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: '<some-name  ... ame>.@<a-a>')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: $0 As System.String>, IsInvalid, IsImplicit) (Syntax: 'New With {< ... me>.@<a-a>}')
+        Right: 
+          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '<some-name  ... ame>.@<a-a>')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -734,7 +758,13 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= New With {<a/>.<_>}')
           IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, IsInvalid) (Syntax: 'New With {<a/>.<_>}')
             Initializers(1):
-                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '<a/>.<_>')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement), IsInvalid, IsImplicit) (Syntax: '<a/>.<_>')
+                  Left: 
+                    IPropertyReferenceOperation: Property <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>.$0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement), IsInvalid, IsImplicit) (Syntax: '<a/>.<_>')
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, IsInvalid, IsImplicit) (Syntax: 'New With {<a/>.<_>}')
+                  Right: 
+                    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '<a/>.<_>')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim ok = Ne ... {<a/>.<__>}')
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'ok = New Wi ... {<a/>.<__>}')
       Declarators:
@@ -745,7 +775,13 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New With {<a/>.<__>}')
           IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (Syntax: 'New With {<a/>.<__>}')
             Initializers(1):
-                IOperation:  (OperationKind.None, Type: null) (Syntax: '<a/>.<__>')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement), IsImplicit) (Syntax: '<a/>.<__>')
+                  Left: 
+                    IPropertyReferenceOperation: Property <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>.__ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement) (OperationKind.PropertyReference, Type: System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement), IsImplicit) (Syntax: '<a/>.<__>')
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, IsImplicit) (Syntax: 'New With {<a/>.<__>}')
+                  Right: 
+                    IOperation:  (OperationKind.None, Type: null) (Syntax: '<a/>.<__>')
   ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
@@ -777,11 +813,17 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: $0 As System.Int32>, IsInvalid) (Syntax: 'New With {a * 2}')
   Initializers(1):
-      IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid) (Syntax: 'a * 2')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a * 2')
         Left: 
-          ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
+          IPropertyReferenceOperation: Property <anonymous type: $0 As System.Int32>.$0 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a * 2')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: $0 As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {a * 2}')
         Right: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+          IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.Binary, Type: System.Int32, IsInvalid) (Syntax: 'a * 2')
+            Left: 
+              ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -811,10 +853,16 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, a As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, a As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {.a = 1, a}')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-      ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a')
+        Left: 
+          IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, a As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, a As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {.a = 1, a}')
+        Right: 
+          ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -843,12 +891,24 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: FLD As System.Int32, FLD As System.Int32>, IsInvalid) (Syntax: 'New With {a ... D, a.FLD()}')
   Initializers(2):
-      IPropertyReferenceOperation: Property ModuleA.S.FLD As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a.FLD')
-        Instance Receiver: 
-          ILocalReferenceOperation: a (OperationKind.LocalReference, Type: ModuleA.S) (Syntax: 'a')
-      IPropertyReferenceOperation: Property ModuleA.S.FLD As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'a.FLD()')
-        Instance Receiver: 
-          ILocalReferenceOperation: a (OperationKind.LocalReference, Type: ModuleA.S, IsInvalid) (Syntax: 'a')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a.FLD')
+        Left: 
+          IPropertyReferenceOperation: Property <anonymous type: FLD As System.Int32, FLD As System.Int32>.FLD As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'a.FLD')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: FLD As System.Int32, FLD As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {a ... D, a.FLD()}')
+        Right: 
+          IPropertyReferenceOperation: Property ModuleA.S.FLD As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a.FLD')
+            Instance Receiver: 
+              ILocalReferenceOperation: a (OperationKind.LocalReference, Type: ModuleA.S) (Syntax: 'a')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a.FLD()')
+        Left: 
+          IPropertyReferenceOperation: Property <anonymous type: FLD As System.Int32, FLD As System.Int32>.FLD As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a.FLD()')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: FLD As System.Int32, FLD As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {a ... D, a.FLD()}')
+        Right: 
+          IPropertyReferenceOperation: Property ModuleA.S.FLD As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'a.FLD()')
+            Instance Receiver: 
+              ILocalReferenceOperation: a (OperationKind.LocalReference, Type: ModuleA.S, IsInvalid) (Syntax: 'a')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -879,17 +939,23 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: x As System.Int32, x As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: x As System.Int32, x As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {.x = 1, a!x}')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IPropertyReferenceOperation: Property System.Collections.Generic.Dictionary(Of System.String, System.Int32).Item(key As System.String) As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'a!x')
-        Instance Receiver: 
-          ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid) (Syntax: 'a')
-        Arguments(1):
-            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: key) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
-              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "x", IsInvalid) (Syntax: 'x')
-              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a!x')
+        Left: 
+          IPropertyReferenceOperation: Property <anonymous type: x As System.Int32, x As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a!x')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: x As System.Int32, x As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'New With {.x = 1, a!x}')
+        Right: 
+          IPropertyReferenceOperation: Property System.Collections.Generic.Dictionary(Of System.String, System.Int32).Item(key As System.String) As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'a!x')
+            Instance Receiver: 
+              ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid) (Syntax: 'a')
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: key) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "x", IsInvalid) (Syntax: 'x')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -921,7 +987,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key a As ?>, IsInvalid, IsImplicit) (Syntax: 'New With {K ... ddressOf S}')
         Right: 
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'AddressOf S')
             Children(1):
@@ -929,7 +995,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                   Children(1):
                       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'S')
                         Children(1):
-                            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'S')
+                            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'S')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -965,14 +1031,14 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.x As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'x')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.String, Key a As System.String>, IsInvalid, IsImplicit) (Syntax: 'New With {' ... ).Invoke()}')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "--value--") (Syntax: '"--value--"')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: 'Key .a = Di ... )).Invoke()')
         Left: 
           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.a As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.String, Key a As System.String>, IsInvalid, IsImplicit) (Syntax: 'New With {' ... ).Invoke()}')
         Right: 
           IInvocationOperation (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.Invocation, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
             Instance Receiver: 
@@ -987,7 +1053,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                             Instance Receiver: 
                               IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.x As System.String (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: '.x')
                                 Instance Receiver: 
-                                  null
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key x As System.String, Key a As System.String>, IsInvalid, IsImplicit) (Syntax: 'New With {' ... ).Invoke()}')
                             Arguments(0)
                       ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
                         Statement: 
@@ -1030,7 +1096,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key a As System.String>, IsInvalid, IsImplicit) (Syntax: 'New With {' ... ).Invoke()}')
         Right: 
           IInvocationOperation (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.Invocation, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
             Instance Receiver: 
@@ -1093,7 +1159,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key a As System.String>, IsInvalid, IsImplicit) (Syntax: 'New With {' ... ).Invoke()}')
         Right: 
           IInvocationOperation (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.Invocation, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
             Instance Receiver: 
@@ -1158,7 +1224,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'a')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key a As System.String>, IsInvalid, IsImplicit) (Syntax: 'New With {' ... ).Invoke()}')
         Right: 
           IInvocationOperation (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.Invocation, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
             Instance Receiver: 
@@ -1233,9 +1299,43 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: Property <anonymous type: Default As System.String>.Default As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Default')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Default As System.String>, IsImplicit) (Syntax: 'New With {. ... t = "Test"}')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Test") (Syntax: '"Test"')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub AnonymousTypeCreation_MixedInitializers()
+            Dim source = <![CDATA[
+Module Program
+    Sub M(a As Integer, o As Object)
+        o = New With { a, .b = 1 }'BIND:"New With { a, .b = 1 }"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As System.Int32, b As System.Int32>) (Syntax: 'New With { a, .b = 1 }')
+  Initializers(2):
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a')
+        Left: 
+          IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'a')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With { a, .b = 1 }')
+        Right: 
+          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, Constant: 1) (Syntax: '.b = 1')
+        Left: 
+          IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With { a, .b = 1 }')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1293,7 +1393,13 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: x2 As T>) (Syntax: 'New With {x2}')
   Initializers(1):
-      ILocalReferenceOperation: x2 (OperationKind.LocalReference, Type: T) (Syntax: 'x2')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: T, IsImplicit) (Syntax: 'x2')
+        Left: 
+          IPropertyReferenceOperation: Property <anonymous type: x2 As T>.x2 As T (OperationKind.PropertyReference, Type: T, IsImplicit) (Syntax: 'x2')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: x2 As T>, IsImplicit) (Syntax: 'New With {x2}')
+        Right: 
+          ILocalReferenceOperation: x2 (OperationKind.LocalReference, Type: T) (Syntax: 'x2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
