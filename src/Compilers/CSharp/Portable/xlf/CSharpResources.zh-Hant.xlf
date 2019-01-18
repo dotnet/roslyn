@@ -8213,7 +8213,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -baseaddress:&lt;address&gt;        Base address for the library to be built
 -checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
                               checksum stored in PDB. Supported values are:
-                              SHA1 (default) or SHA256.
+                              SHA1 or SHA256 (default).
 -codepage:&lt;n&gt;                 Specify the codepage to use when opening source
                               files
 -utf8output                   Output compiler messages in UTF-8 encoding
