@@ -17230,6 +17230,31 @@ class C
         }
 
         [Fact]
+        public void ConditionalOperator_15()
+        {
+            var source =
+@"class Program
+{
+    static void F(bool b)
+    {
+        var x = b ? new[] { x } : default;
+        x[0].ToString(); // 1
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,29): error CS0841: Cannot use local variable 'x' before it is declared
+                //         var x = b ? new[] { x } : default;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(5, 29),
+                // (5,29): error CS0165: Use of unassigned local variable 'x'
+                //         var x = b ? new[] { x } : default;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(5, 29),
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         x[0].ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 9));
+        }
+
+        [Fact]
         public void ConditionalOperator_TopLevelNullability()
         {
             var source0 =

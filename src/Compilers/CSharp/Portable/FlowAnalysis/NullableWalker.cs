@@ -3464,6 +3464,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Set the nullability of tuple elements for tuples at the point of construction.
+        /// If <paramref name="useRestField"/> is true, the tuple was constructed with an explicit
+        /// 'new ValueTuple' call, in which case the 8-th element, if any, represents the 'Rest' field.
+        /// </summary>
         private void TrackNullableStateOfTupleElements(
             int slot,
             TupleTypeSymbol tupleType,
