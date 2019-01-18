@@ -44,6 +44,8 @@ param (
 
     # official build settings
     [string]$officialBuildId = "",
+    [string]$officialSkipApplyOptimizationData = "",
+    [string]$officialSkipTests = "",
     [string]$vsDropName = "",
     [string]$vsBranch = "",
     [string]$vsDropAccessToken = "",
@@ -98,10 +100,12 @@ function Print-Usage() {
     Write-Host "  -warnAsError              Treat all warnings as errors"
     Write-Host ""    
     Write-Host "Official build settings:"
-    Write-Host "  -officialBuildId          An official build id, e.g. 20190102.3"
-    Write-Host "  -vsDropName               Visual Studio product drop name"
-    Write-Host "  -vsBranch                 Visual Studio insertion branch"
-    Write-Host "  -vsDropAccessToken        Visual Studio drop access token"
+    Write-Host "  -officialBuildId                            An official build id, e.g. 20190102.3"
+    Write-Host "  -officialSkipTests <bool>                   Pass 'true' to not run tests"
+    Write-Host "  -officialSkipApplyOptimizationData <bool>   Pass 'true' to not apply optimization data"
+    Write-Host "  -vsDropName                                 Visual Studio product drop name"
+    Write-Host "  -vsBranch                                   Visual Studio insertion branch"
+    Write-Host "  -vsDropAccessToken                          Visual Studio drop access token"
     Write-Host ""
     Write-Host "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -114,32 +118,40 @@ function Print-Usage() {
 # $build based on say $testDesktop. It's possible the developer wanted only for testing
 # to execute, not any build.
 function Process-Arguments() {
+    function OfficialBuildOnly([string]$argName) {
+        if ((Get-Variable $argName -Scope Script).Value) {
+            if (!$officialBuildId) {
+                Write-Host "$argName can only be specified for official builds"
+                exit 1          
+            }
+        } else {
+            if ($officialBuildId) {
+                Write-Host "$argName must be specified in official builds"
+                exit 1          
+            }
+        }
+    }
+
     if ($help -or (($properties -ne $null) -and ($properties.Contains("/help") -or $properties.Contains("/?")))) {
        Print-Usage
        exit 0
     }
-    
-    if (!$vsBranch) {
-        if ($officialBuildId) {
-            Write-Host "vsBranch must be specified for official builds"
-            exit 1
-        }
 
+    OfficialBuildOnly "vsBranch"
+    OfficialBuildOnly "vsDropName"
+    OfficialBuildOnly "vsDropAccessToken"
+    OfficialBuildOnly "officialSkipTests"
+    OfficialBuildOnly "officialSkipApplyOptimizationData"
+
+    if ($officialBuildId) {
+        $script:procdump = $true
+        $script:testDesktop = ![System.Boolean]::Parse($officialSkipTests)
+        $script:applyOptimizationData = ![System.Boolean]::Parse($officialSkipApplyOptimizationData)
+        $script:buildOptimizationData = $true
+    } else {
         $script:vsBranch = "dummy/ci"
-    }
-
-    if (!$vsDropName) {
-        if ($officialBuildId) {
-            Write-Host "vsDropName must be specified for official builds"
-            exit 1
-        }
-
         $script:vsDropName = "Products/DummyDrop"
-    }
-
-    if (!$vsDropAccessToken -and $officialBuildId) {
-        Write-Host "vsDropAccessToken must be specified for official builds"
-        exit 1
+        $script:applyOptimizationData = $script:buildOptimizationData = $ci -and $configuration -eq "Release" -and $msbuildEngine -eq "vs"
     }
     
     if ($test32 -and $test64) {
@@ -264,7 +276,7 @@ function Restore-OptProfData() {
     $dropNamePrefix = "OptimizationData/dotnet/roslyn/master-vs-deps"
     $patAuth = if ($officialBuildId) { "--patAuth `"$vsDropAccessToken`"" } else { "" }
 
-    $dropsJsonPath = Join-Path $IbcOptimizationDataDir "AvailableDrops.json"
+    $dropsJsonPath = Join-Path $LogDir "OptimizationDataDrops.json"
     $logFile = Join-Path $LogDir "OptimizationDataAcquisition.log"
 
     Exec-Console $dropToolPath "list --dropservice `"$dropServiceUrl`" $patAuth --pathPrefixFilter `"$dropNamePrefix`" --toJsonFile `"$dropsJsonPath`" --traceto `"$logFile`""
@@ -276,7 +288,7 @@ function Restore-OptProfData() {
         ExitWithExitCode 1
     }
 
-    Write-Host "Downloading optimization data from drop $dropServiceUrl/$($latestDrop.Name)"
+    Write-Host "Downloading optimization data from service $dropServiceUrl drop $($latestDrop.Name)"
     Exec-Console $dropToolPath "get --dropservice `"$dropServiceUrl`" $patAuth --name `"$($latestDrop.Name)`" --dest `"$IbcOptimizationDataDir`" --traceto `"$logFile`""
 }
 
@@ -494,9 +506,6 @@ try {
 
     . (Join-Path $PSScriptRoot "build-utils.ps1")
 
-    # IBC merge is only invoked in official build, but we want to enable running IBCMerge locally as well.
-    $applyOptimizationData = $ci -and $configuration -eq "Release" -and $msbuildEngine -eq "vs"
-
     if ($testVsi) {
         $processesToStopOnExit += "devenv"
     }
@@ -520,7 +529,7 @@ try {
         BuildSolution
     }
     
-    if ($applyOptimizationData -and $build) {
+    if ($buildOptimizationData -and $build) {
         Build-OptProfData
     }
 
