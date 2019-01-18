@@ -39367,7 +39367,7 @@ class Program
             var source =
 @"class Program
 {
-    static void F(object x, object? y)
+    static void F(bool b, object x, object? y)
     {
         (object?, object, object?, object, object?, (object, object?), object, object, object?, object) t = (x, x, x, y, y, (y, x), x, x, y, y) // 1
             /*T:(object?, object, object?, object, object?, (object, object?), object, (object?, object, object?))*/;
@@ -39379,12 +39379,18 @@ class Program
         t.Item6.Item1.ToString(); // 4
         t.Item6.Item2.ToString();
         t.Item7.ToString();
-        t.Item8.ToString();
-        t.Item9.ToString(); // 5
-        t.Item10.ToString(); // 6
-        t.Rest.Item1.ToString();
-        t.Rest.Item2.ToString(); // 7
-        t.Rest.Item3.ToString(); // 8
+        if (b)
+        {
+            t.Item8.ToString();
+            t.Item9.ToString(); // 5
+            t.Item10.ToString(); // 6
+        }
+        else
+        {
+            t.Rest.Item1.ToString();
+            t.Rest.Item2.ToString(); // 7
+            t.Rest.Item3.ToString(); // 8
+        }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -39401,12 +39407,18 @@ class Program
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         t.Item6.Item1.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item6.Item1").WithLocation(12, 9),
-                // (16,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Item9.ToString(); // 5
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item9").WithLocation(16, 9),
-                // (17,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Item10.ToString(); // 6
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item10").WithLocation(17, 9));
+                // (18,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item9.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item9").WithLocation(18, 13),
+                // (19,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item10.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item10").WithLocation(19, 13),
+                // (24,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Rest.Item2.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item2").WithLocation(24, 13),
+                // (25,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Rest.Item3.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item3").WithLocation(25, 13));
             comp.VerifyTypes();
         }
 
@@ -39417,7 +39429,7 @@ class Program
             var source =
 @"class Program
 {
-    static void F(object x)
+    static void F(bool b, object x)
     {
         (object?, object, object?, object, object?, (object, object?), object, object, object?, object) t = (x, x, x, default, default, default, x, x, default, default) // 1
             /*T:(object?, object, object?, object, object?, (object, object?), object, (object?, object, object?))*/;
@@ -39429,12 +39441,18 @@ class Program
         t.Item6.Item1.ToString(); // 4
         t.Item6.Item2.ToString(); // 5
         t.Item7.ToString();
-        t.Item8.ToString();
-        t.Item9.ToString(); // 6
-        t.Item10.ToString(); // 7
-        t.Rest.Item1.ToString();
-        t.Rest.Item2.ToString(); // 8
-        t.Rest.Item3.ToString(); // 9
+        if (b)
+        {
+            t.Item8.ToString();
+            t.Item9.ToString(); // 6
+            t.Item10.ToString(); // 7
+        }
+        else
+        {
+            t.Rest.Item1.ToString();
+            t.Rest.Item2.ToString(); // 8
+            t.Rest.Item3.ToString(); // 9
+        }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -39454,12 +39472,18 @@ class Program
                 // (13,9): warning CS8602: Possible dereference of a null reference.
                 //         t.Item6.Item2.ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item6.Item2").WithLocation(13, 9),
-                // (16,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Item9.ToString(); // 6
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item9").WithLocation(16, 9),
-                // (17,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Item10.ToString(); // 7
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item10").WithLocation(17, 9));
+                // (18,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item9.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item9").WithLocation(18, 13),
+                // (19,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item10.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item10").WithLocation(19, 13),
+                // (24,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Rest.Item2.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item2").WithLocation(24, 13),
+                // (25,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Rest.Item3.ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item3").WithLocation(25, 13));
             comp.VerifyTypes();
         }
 
@@ -39500,7 +39524,7 @@ class Program
 @"using System;
 class Program
 {
-    static void F(object x, object? y)
+    static void F(bool b, object x, object? y)
     {
         var t = new ValueTuple<object?, object, object?, object, object?, ValueTuple<object, object?>, object, ValueTuple<object, object?, object>>(
             x,
@@ -39520,12 +39544,18 @@ class Program
         t.Item6.Item1.ToString(); // 6
         t.Item6.Item2.ToString();
         t.Item7.ToString();
-        t.Item8.ToString();
-        t.Item9.ToString(); // 7
-        t.Item10.ToString(); // 8
-        t.Rest.Item1.ToString();
-        t.Rest.Item2.ToString(); // 9
-        t.Rest.Item3.ToString(); // 10
+        if (b)
+        {
+            t.Item8.ToString();
+            t.Item9.ToString(); // 7
+            t.Item10.ToString(); // 8
+        }
+        else
+        {
+            t.Rest.Item1.ToString();
+            t.Rest.Item2.ToString(); // 9
+            t.Rest.Item3.ToString(); // 10
+        }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -39548,12 +39578,18 @@ class Program
                 // (21,9): warning CS8602: Possible dereference of a null reference.
                 //         t.Item6.Item1.ToString(); // 6
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item6.Item1").WithLocation(21, 9),
-                // (25,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Item9.ToString(); // 7
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item9").WithLocation(25, 9),
-                // (26,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Item10.ToString(); // 8
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item10").WithLocation(26, 9));
+                // (27,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item9.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item9").WithLocation(27, 13),
+                // (28,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item10.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item10").WithLocation(28, 13),
+                // (33,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Rest.Item2.ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item2").WithLocation(33, 13),
+                // (34,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Rest.Item3.ToString(); // 10
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item3").WithLocation(34, 13));
             comp.VerifyTypes();
         }
 
@@ -39565,7 +39601,7 @@ class Program
 @"using System;
 class Program
 {
-    static void F(object x)
+    static void F(bool b, object x)
     {
         var t = new ValueTuple<object?, object, object?, object, object?, ValueTuple<object, object?>, object, ValueTuple<object, object?, object>>(
             x,
@@ -39585,12 +39621,18 @@ class Program
         t.Item6.Item1.ToString(); // 4
         t.Item6.Item2.ToString(); // 5
         t.Item7.ToString();
-        t.Item8.ToString(); // 6
-        t.Item9.ToString(); // 7
-        t.Item10.ToString(); // 8
-        t.Rest.Item1.ToString(); // 9
-        t.Rest.Item2.ToString(); // 10
-        t.Rest.Item3.ToString(); // 11
+        if (b)
+        {
+            t.Item8.ToString(); // 6
+            t.Item9.ToString(); // 7
+            t.Item10.ToString(); // 8
+        }
+        else
+        {
+            t.Rest.Item1.ToString(); // 9
+            t.Rest.Item2.ToString(); // 10
+            t.Rest.Item3.ToString(); // 11
+        }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -39610,15 +39652,24 @@ class Program
                 // (22,9): warning CS8602: Possible dereference of a null reference.
                 //         t.Item6.Item2.ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item6.Item2").WithLocation(22, 9),
-                // (24,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Item8.ToString(); // 6
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item8").WithLocation(24, 9),
-                // (25,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Item9.ToString(); // 7
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item9").WithLocation(25, 9),
-                // (26,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Item10.ToString(); // 8
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item10").WithLocation(26, 9));
+                // (26,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item8.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item8").WithLocation(26, 13),
+                // (27,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item9.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item9").WithLocation(27, 13),
+                // (28,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item10.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item10").WithLocation(28, 13),
+                // (32,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Rest.Item1.ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item1").WithLocation(32, 13),
+                // (33,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Rest.Item2.ToString(); // 10
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item2").WithLocation(33, 13),
+                // (34,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Rest.Item3.ToString(); // 11
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item3").WithLocation(34, 13));
             comp.VerifyTypes();
         }
 
