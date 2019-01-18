@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             Dim features As IEnumerable(Of KeyValuePair(Of String, String)) = Nothing
             ReadParseOptionsFrom(reader, kind, documentationMode, features, cancellationToken)
 
-            Dim languageVersion = DirectCast(reader.ReadInt32(), LanguageVersion)
+            Dim languageVersion = DirectCast(reader.ReadInt32(), Language.LanguageVersion)
 
             Dim count = reader.ReadInt32()
             Dim builder = ImmutableArray.CreateBuilder(Of KeyValuePair(Of String, Object))(count)

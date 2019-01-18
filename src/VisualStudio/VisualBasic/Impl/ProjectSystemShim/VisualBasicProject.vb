@@ -415,7 +415,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Dim resultParseOptions = VisualBasicProjectOptionsHelper.CreateParseOptions(baseParseOptions, _rawOptions)
 
             Dim commandLineOptions = DirectCast(commandLineArguments.ParseOptions, VisualBasicParseOptions)
-            If commandLineOptions.LanguageVersion > LanguageVersion.VisualBasic15 Then
+            If commandLineOptions.LanguageVersion > CodeAnalysis.VisualBasic.Language.LanguageVersion.VisualBasic15 Then
                 ' For language versions after VB 15, we expect the version to be passed from MSBuild to the IDE
                 ' via command-line arguments (`ICompilerOptionsHostObject.SetCompilerOptions`)
                 ' instead of using `IVbcHostObject3.SetLanguageVersion`

@@ -39,8 +39,12 @@
   </ItemGroup>
   <ItemGroup>
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.Language" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures" />
     <Import Include="Roslyn.Utilities" />
     <Import Include="Xunit" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.Language" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

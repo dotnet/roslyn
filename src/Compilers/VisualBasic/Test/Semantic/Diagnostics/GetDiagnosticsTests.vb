@@ -251,7 +251,7 @@ BC37285: Provided source code kind is unsupported or invalid: 'Interactive'
 
         <Fact>
         Public Sub CompilingCodeWithInvalidLanguageVersionShouldProvideDiagnostics()
-            Dim compilation = CreateEmptyCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithLanguageVersion(DirectCast(10000, LanguageVersion)))
+            Dim compilation = CreateEmptyCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithLanguageVersion(DirectCast(10000, Language.LanguageVersion)))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
 BC37287: Provided language version is unsupported or invalid: '10000'.

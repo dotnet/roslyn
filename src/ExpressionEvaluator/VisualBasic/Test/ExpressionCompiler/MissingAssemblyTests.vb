@@ -641,7 +641,7 @@ End Class"
                 (Integer, Integer, (Integer, Integer)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
-}", LanguageVersion.VisualBasic15_3)
+}", Language.LanguageVersion.VisualBasic15_3)
         End Sub
 
         <WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")>
@@ -671,7 +671,7 @@ End Class"
         End Sub
 
         Private Shared Sub TupleContextNoSystemRuntime(source As String, methodName As String, expression As String, expectedIL As String,
-                                                       Optional languageVersion As LanguageVersion = LanguageVersion.VisualBasic15)
+                                                       Optional languageVersion As Language.LanguageVersion = Language.LanguageVersion.VisualBasic15)
             Dim comp = CreateCompilationWithMscorlib40({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll,
                                                      parseOptions:=TestOptions.Regular.WithLanguageVersion(languageVersion))
             Using systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance()

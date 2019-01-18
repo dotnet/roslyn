@@ -467,10 +467,9 @@ DoneWithErrorReporting:
                 ElseIf ((implementedProperty.GetMethod Is Nothing) Xor (implementedProperty.SetMethod Is Nothing)) AndAlso
                        implementingProperty.GetMethod IsNot Nothing AndAlso implementingProperty.SetMethod IsNot Nothing Then
 
-                    errorReported = errorReported Or
-                                    Not InternalSyntax.Parser.CheckFeatureAvailability(diagBag, implementedMemberSyntax.GetLocation(),
-                                        DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
-                                        InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite)
+                    errorReported = errorReported Or Not LanguageFeatures.CheckFeatureAvailability.CheckFeatureAvailability(
+                                      Language.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite, DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options, implementedMemberSyntax.GetLocation(), diagBag)
+
                 End If
             End If
 

@@ -1843,7 +1843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Debug.Assert(yieldKeyword IsNot Nothing AndAlso yieldKeyword.Kind = SyntaxKind.YieldKeyword)
 
-            yieldKeyword = CheckFeatureAvailability(Feature.Iterators, yieldKeyword)
+            yieldKeyword = LanguageFeatures.CheckFeatureAvailability.CheckFeatureAvailability(yieldKeyword,Language.Feature.Iterators, Options)
             GetNextToken()
 
             Dim expression As ExpressionSyntax = ParseExpressionCore()

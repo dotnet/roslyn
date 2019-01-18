@@ -26,6 +26,8 @@ Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Roslyn.Utilities
 Imports Xunit
+Imports Microsoft.CodeAnalysis.VisualBasic.Language
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
     Partial Public Class CommandLineTests
@@ -1803,7 +1805,7 @@ End Module").Path
             InlineData("latest", True, LanguageVersion.Latest),
             InlineData(Nothing, False, LanguageVersion.Default),
             InlineData("bad", False, LanguageVersion.Default)>
-        Public Sub LanguageVersion_TryParseDisplayString(input As String, success As Boolean, expected As LanguageVersion)
+        Public Sub LanguageVersion_TryParseDisplayString(input As String, success As Boolean, expected As Language.LanguageVersion)
             Dim version As LanguageVersion
             Assert.Equal(success, TryParse(input, version))
             Assert.Equal(expected, version)
@@ -1820,7 +1822,7 @@ End Module").Path
             Assert.Equal(0, exitCode)
 
             Dim actual = outWriter.ToString()
-            Dim expected = [Enum].GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString())
+            Dim expected = [Enum].GetValues(GetType(Language.LanguageVersion)).Cast(Of Language.LanguageVersion)().Select(Function(v) v.ToDisplayString())
             Dim acceptableSurroundingChar = {CChar(vbCr), CChar(vbLf), "("c, ")"c, " "c}
 
             For Each v In expected

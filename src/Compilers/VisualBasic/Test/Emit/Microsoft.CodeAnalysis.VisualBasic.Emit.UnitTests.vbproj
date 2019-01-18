@@ -113,6 +113,8 @@
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
     <Import Include="Roslyn.Utilities" />
     <Import Include="Xunit" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.Language" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="ExpressionTrees\ExpTreeTestResources.resx">

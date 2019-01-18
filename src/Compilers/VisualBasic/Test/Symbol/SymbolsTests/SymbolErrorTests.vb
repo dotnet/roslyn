@@ -8,6 +8,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Language
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -6573,7 +6575,7 @@ BC30628: Structures cannot have 'Inherits' statements.
                 End Structure
             End Module
         ]]></file>
-    </compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic12))
+    </compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(Language.LanguageVersion.VisualBasic12))
             Dim expectedErrors1 = <errors><![CDATA[
 BC30629: Structures cannot declare a non-shared 'Sub New' with no parameters.
                     Public Sub New()

@@ -661,7 +661,7 @@ class C1
             using (var workspace = CreateMSBuildWorkspace())
             {
                 var project = await workspace.OpenProjectAsync(projectFilePath);
-                Assert.Equal(VB.LanguageVersion.VisualBasic15_3, ((VB.VisualBasicParseOptions)project.ParseOptions).LanguageVersion);
+                Assert.Equal(VB.Language.LanguageVersion.VisualBasic15_3, ((VB.VisualBasicParseOptions)project.ParseOptions).LanguageVersion);
             }
         }
 
@@ -675,8 +675,8 @@ class C1
             using (var workspace = CreateMSBuildWorkspace())
             {
                 var project = await workspace.OpenProjectAsync(projectFilePath);
-                Assert.Equal(VB.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(VB.LanguageVersion.Latest), ((VB.VisualBasicParseOptions)project.ParseOptions).LanguageVersion);
-                Assert.Equal(VB.LanguageVersion.Latest, ((VB.VisualBasicParseOptions)project.ParseOptions).SpecifiedLanguageVersion);
+                Assert.Equal(VB.Language.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(VB.Language.LanguageVersion.Latest), ((VB.VisualBasicParseOptions)project.ParseOptions).LanguageVersion);
+                Assert.Equal(VB.Language.LanguageVersion.Latest, ((VB.VisualBasicParseOptions)project.ParseOptions).SpecifiedLanguageVersion);
             }
         }
 

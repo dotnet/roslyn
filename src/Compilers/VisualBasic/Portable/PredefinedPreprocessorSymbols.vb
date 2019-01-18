@@ -2,6 +2,8 @@
 
 Imports System.Collections.Immutable
 Imports System.Globalization
+Imports Microsoft.CodeAnalysis.VisualBasic.Language
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Public Module PredefinedPreprocessorSymbols

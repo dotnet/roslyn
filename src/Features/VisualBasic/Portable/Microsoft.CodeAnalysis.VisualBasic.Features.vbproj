@@ -47,6 +47,8 @@
     <Import Include="Roslyn.Utilities" />
     <Import Include="System.Threading.Tasks" />
     <Import Include="System.Xml.Linq" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.Language" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.LanguageFeatue" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\VisualBasic\Portable\Syntax\LambdaUtilities.vb">

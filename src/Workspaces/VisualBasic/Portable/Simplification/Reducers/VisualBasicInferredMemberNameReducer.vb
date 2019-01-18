@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return False
             End If
 
-            If parseOptions.LanguageVersion < LanguageVersion.VisualBasic15_3 Then
+            If parseOptions.LanguageVersion < Language.LanguageVersion.VisualBasic15_3 Then
                 Return False
             End If
 

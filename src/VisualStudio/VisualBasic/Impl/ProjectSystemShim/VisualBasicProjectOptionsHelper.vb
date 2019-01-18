@@ -160,7 +160,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             ' The project system may pass us zero to mean "default". Old project system binaries (prior to mid-September 2014)
             ' would also use other constants that we just got rid of. This check can be replaced with an explicit check for just
             ' zero in October 2014 or later.
-            If compilerOptions.langVersion < LanguageVersion.VisualBasic9 Then
+            If compilerOptions.langVersion < CodeAnalysis.VisualBasic.Language.LanguageVersion.VisualBasic9 Then
                 compilerOptions.langVersion = VisualBasicParseOptions.Default.LanguageVersion
             End If
 

@@ -81,6 +81,8 @@
     <Import Include="Roslyn.Utilities" />
     <Import Include="System.Threading.Tasks" />
     <Import Include="Xunit" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.Language" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

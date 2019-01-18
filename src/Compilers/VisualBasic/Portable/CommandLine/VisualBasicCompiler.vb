@@ -6,6 +6,8 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Language
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 

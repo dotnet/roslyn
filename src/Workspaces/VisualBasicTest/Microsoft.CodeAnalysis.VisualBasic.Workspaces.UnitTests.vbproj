@@ -38,13 +38,14 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="System.Xml.Linq" />
     <Import Include="System.Threading.Tasks" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.Language" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

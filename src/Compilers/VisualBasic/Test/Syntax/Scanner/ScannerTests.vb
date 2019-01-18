@@ -16,7 +16,7 @@ Public Class ScannerTests
         Return SyntaxFactory.ParseToken(str, startStatement:=startStatement)
     End Function
 
-    Private Function ScanOnce(str As String, languageVersion As VisualBasic.LanguageVersion) As SyntaxToken
+    Private Function ScanOnce(str As String, languageVersion As Language.LanguageVersion) As SyntaxToken
         Return SyntaxFactory.ParseTokens(str, options:=New VisualBasicParseOptions(languageVersion:=languageVersion)).First()
     End Function
 
@@ -1311,7 +1311,7 @@ End If]]>.Value,
     <Fact>
     Public Sub Scanner_UnderscoreFeatureFlag()
         Dim Str = "&H_1"
-        Dim tk = ScanOnce(Str, LanguageVersion.VisualBasic14)
+        Dim tk = ScanOnce(Str, Language.LanguageVersion.VisualBasic14)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
         Dim errors = tk.Errors()
         Assert.Equal(1, errors.Count)
@@ -1319,7 +1319,7 @@ End If]]>.Value,
         Assert.Equal(1, CInt(tk.Value))
 
         Str = "&H_123_456_789_ABC_DEF_123"
-        tk = ScanOnce(Str, LanguageVersion.VisualBasic14)
+        tk = ScanOnce(Str, Language.LanguageVersion.VisualBasic14)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
         errors = tk.Errors()
         Assert.Equal(2, errors.Count)

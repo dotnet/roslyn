@@ -3926,7 +3926,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(Language.LanguageVersion.VisualBasic15_3))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>

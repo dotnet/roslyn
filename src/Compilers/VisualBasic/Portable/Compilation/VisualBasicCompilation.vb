@@ -17,6 +17,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
+Imports Microsoft.CodeAnalysis.VisualBasic.Language
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -174,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' The common language version among the trees of the compilation.
         ''' </summary>
-        Private ReadOnly _languageVersion As LanguageVersion
+        Private ReadOnly _languageVersion As Language.LanguageVersion
 
         Public Overrides ReadOnly Property Language As String
             Get
@@ -209,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' The language version that was used to parse the syntax trees of this compilation.
         ''' </summary>
-        Public ReadOnly Property LanguageVersion As LanguageVersion
+        Public ReadOnly Property LanguageVersion As Language.LanguageVersion
             Get
                 Return _languageVersion
             End Get
@@ -469,10 +470,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function CommonLanguageVersion(syntaxTrees As ImmutableArray(Of SyntaxTree)) As LanguageVersion
+        Private Function CommonLanguageVersion(syntaxTrees As ImmutableArray(Of SyntaxTree)) As Language.LanguageVersion
             ' We don't check m_Options.ParseOptions.LanguageVersion for consistency, because
             ' it isn't consistent in practice.  In fact sometimes m_Options.ParseOptions is Nothing.
-            Dim result As LanguageVersion? = Nothing
+            Dim result As Language.LanguageVersion? = Nothing
             For Each tree In syntaxTrees
                 Dim version = CType(tree.Options, VisualBasicParseOptions).LanguageVersion
                 If result Is Nothing Then

@@ -3,6 +3,8 @@
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Language
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -10,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class NonTrailingNamedArgumentsTests
         Inherits BasicTestBase
 
-        Private Shared ReadOnly latestParseOptions As VisualBasicParseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)
+        Private Shared ReadOnly latestParseOptions As VisualBasicParseOptions = TestOptions.Regular.WithLanguageVersion(Language.LanguageVersion.Latest)
 
         <Fact>
         Public Sub TestSimpleWithOldLangVer()
@@ -26,7 +28,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(Language.LanguageVersion.VisualBasic15_3))
             comp.AssertTheseDiagnostics(<errors>
 BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M(a:=1, 2)
@@ -576,7 +578,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(Language.LanguageVersion.VisualBasic15_3))
             comp.AssertTheseDiagnostics(<errors>
 BC30274: Parameter 'x' of 'Public Shared Sub M(x As Integer, y As Integer, z As Integer)' already has a matching argument.
         M(x:=1, x:=2, 3)
@@ -830,7 +832,7 @@ BC37304: Named argument specifications must appear after all fixed arguments hav
                   ~
                                         </errors>)
 
-            Dim comp2 = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+            Dim comp2 = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(Language.LanguageVersion.VisualBasic15))
             comp2.AssertTheseDiagnostics(<errors>
 BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         d.M(a:=1, 2)
@@ -999,7 +1001,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(Language.LanguageVersion.VisualBasic15_3))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1023,7 +1025,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(Language.LanguageVersion.VisualBasic15_3))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1054,7 +1056,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(Language.LanguageVersion.VisualBasic15_3))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1100,7 +1102,7 @@ End Class
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options:=TestOptions.DebugExe)
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(Language.LanguageVersion.Latest), options:=TestOptions.DebugExe)
 
             CompilationUtils.AssertNoDiagnostics(compilation)
             CompileAndVerify(compilation, expectedOutput:="1 2. 3 -1. 4 5. 6 7.")
@@ -1123,7 +1125,7 @@ End Class
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options:=TestOptions.DebugExe)
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(Language.LanguageVersion.Latest), options:=TestOptions.DebugExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
 BC30272: 'bad' is not a parameter of 'Public Sub New(input1 As Integer, [input2 As Integer = 2], [input3 As Integer = 3])'.
@@ -1153,7 +1155,7 @@ End Class
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
-                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options:=TestOptions.DebugExe)
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(Language.LanguageVersion.Latest), options:=TestOptions.DebugExe)
 
             CompilationUtils.AssertNoDiagnostics(compilation)
             CompileAndVerify(compilation, expectedOutput:="1 2 3. 1 2 4. 1 2 5. 1 6 7.")

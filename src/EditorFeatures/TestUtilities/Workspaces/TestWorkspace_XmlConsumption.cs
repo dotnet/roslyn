@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
             else if (language == LanguageNames.VisualBasic)
             {
-                var languageVersion = (CodeAnalysis.VisualBasic.LanguageVersion)Enum.Parse(typeof(CodeAnalysis.VisualBasic.LanguageVersion), languageVersionAttribute.Value);
+                var languageVersion = (CodeAnalysis.VisualBasic.Language.LanguageVersion)Enum.Parse(typeof(CodeAnalysis.VisualBasic.Language.LanguageVersion), languageVersionAttribute.Value);
                 parseOptions = ((VisualBasicParseOptions)parseOptions).WithLanguageVersion(languageVersion);
             }
 

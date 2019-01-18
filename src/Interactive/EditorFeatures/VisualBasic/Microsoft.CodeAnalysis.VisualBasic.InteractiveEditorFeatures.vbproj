@@ -48,6 +48,8 @@
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Extensions" />
     <Import Include="Roslyn.Utilities" />
     <Import Include="Roslyn.Utilities.Contract" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.Language" />
+    <Import Include="Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />

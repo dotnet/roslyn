@@ -6,6 +6,8 @@
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
+Imports Microsoft.CodeAnalysis.VisualBasic.Language
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageFeatures
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
@@ -417,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         ' This looks like ?. or ?! 
 
                         Dim qToken = DirectCast(start, PunctuationSyntax)
-                        qToken = CheckFeatureAvailability(Feature.NullPropagatingOperator, qToken)
+                        qToken = qToken.CheckFeatureAvailability(Feature.NullPropagatingOperator, Me.Options)
 
                         GetNextToken()
                         term = SyntaxFactory.ConditionalAccessExpression(term, qToken, ParsePostFixExpression(RedimOrNewParent, term:=Nothing))
@@ -483,7 +485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' This looks like ?. ?! or ?(
 
                     Dim qToken = DirectCast([Next], PunctuationSyntax)
-                    qToken = CheckFeatureAvailability(Feature.NullPropagatingOperator, qToken)
+                    qToken = qToken.CheckFeatureAvailability(Feature.NullPropagatingOperator, Me.Options)
 
                     GetNextToken()
 
@@ -671,7 +673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.NameOfKeyword, "should be at NameOf.")
 
             Dim [nameOf] As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
-            [nameOf] = CheckFeatureAvailability(Feature.NameOfExpressions, [nameOf])
+            [nameOf] = [nameOf].CheckFeatureAvailability(Feature.NameOfExpressions, Me.Options)
 
             GetNextToken()
 
@@ -944,7 +946,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 operatorToken = DirectCast(current, KeywordSyntax)
 
                 If operatorToken.Kind = SyntaxKind.IsNotKeyword Then
-                    operatorToken = CheckFeatureAvailability(Feature.TypeOfIsNot, operatorToken)
+                    operatorToken = operatorToken.CheckFeatureAvailability(Feature.TypeOfIsNot, Me.Options)
                 End If
 
                 GetNextToken()
@@ -1300,7 +1302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim tupleExpression = SyntaxFactory.TupleExpression(openParen, arguments, closeParen)
 
-            tupleExpression = CheckFeatureAvailability(Feature.Tuples, tupleExpression)
+            tupleExpression = tupleExpression.CheckFeatureAvailability(Feature.Tuples, me.Options)
             Return tupleExpression
         End Function
 
@@ -1392,7 +1394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseArguments(ByRef unexpected As GreenNode, Optional RedimOrNewParent As Boolean = False, Optional attributeListParent As Boolean = False) As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax)
             Dim arguments = _pool.AllocateSeparated(Of ArgumentSyntax)()
 
-            Dim allowNonTrailingNamedArguments = _scanner.Options.LanguageVersion.AllowNonTrailingNamedArguments()
+            Dim allowNonTrailingNamedArguments =  Feature.NonTrailingNamedArguments.IsAvailable(_scanner.Options)
             Dim seenNames As Boolean = False
 
             Do
@@ -1827,7 +1829,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             If isMultiLine Then
-                value = CheckFeatureAvailability(Feature.StatementLambdas, value)
+                value = value.CheckFeatureAvailability(Feature.StatementLambdas, Me.Options)
             End If
 
             Return value

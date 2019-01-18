@@ -39,21 +39,21 @@ Microsoft.CodeAnalysis.VisualBasic.HandledEventKind.Me = 0 -> Microsoft.CodeAnal
 Microsoft.CodeAnalysis.VisualBasic.HandledEventKind.MyBase = 2 -> Microsoft.CodeAnalysis.VisualBasic.HandledEventKind
 Microsoft.CodeAnalysis.VisualBasic.HandledEventKind.MyClass = 1 -> Microsoft.CodeAnalysis.VisualBasic.HandledEventKind
 Microsoft.CodeAnalysis.VisualBasic.HandledEventKind.WithEvents = 3 -> Microsoft.CodeAnalysis.VisualBasic.HandledEventKind
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Default = 0 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic10 = 10 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic11 = 11 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic12 = 12 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic14 = 14 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15 = 15 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_3 = 1503 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_5 = 1505 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic9 = 9 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.ToDisplayString(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> String
-Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.TryParse(version As String, ByRef result As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Boolean
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion.Default = 0 -> Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion.VisualBasic10 = 10 -> Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion.VisualBasic11 = 11 -> Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion.VisualBasic12 = 12 -> Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion.VisualBasic14 = 14 -> Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion.VisualBasic15 = 15 -> Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion.VisualBasic15_3 = 1503 -> Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion.VisualBasic15_5 = 1505 -> Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion.VisualBasic9 = 9 -> Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersionFacts
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(version As Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersionFacts.ToDisplayString(version As Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion) -> String
+Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersionFacts.TryParse(version As String, ByRef result As Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion) -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.LocalizableErrorArgument
 Microsoft.CodeAnalysis.VisualBasic.LocalizableErrorArgument.ToString_IFormattable(format As String, formatProvider As System.IFormatProvider) -> String
 Microsoft.CodeAnalysis.VisualBasic.OptionStrict
@@ -3104,7 +3104,7 @@ Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ClassifyConversion(sou
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.Clone() -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ContainsSyntaxTree(syntaxTree As Microsoft.CodeAnalysis.SyntaxTree) -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.GetSemanticModel(syntaxTree As Microsoft.CodeAnalysis.SyntaxTree, ignoreAccessibility As Boolean = False) -> Microsoft.CodeAnalysis.SemanticModel
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.LanguageVersion() -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.LanguageVersion() -> Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.Options() -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.RemoveAllReferences() -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.RemoveAllSyntaxTrees() -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
@@ -3293,13 +3293,13 @@ Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.TryGetSpeculativeSemant
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.TryGetSpeculativeSemanticModel(semanticModel As Microsoft.CodeAnalysis.SemanticModel, position As Integer, type As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax, ByRef speculativeModel As Microsoft.CodeAnalysis.SemanticModel, bindingOption As Microsoft.CodeAnalysis.SpeculativeBindingOption = Microsoft.CodeAnalysis.SpeculativeBindingOption.BindAsExpression) -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.TryGetSpeculativeSemanticModelForMethodBody(semanticModel As Microsoft.CodeAnalysis.SemanticModel, position As Integer, method As Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodBlockBaseSyntax, ByRef speculativeModel As Microsoft.CodeAnalysis.SemanticModel) -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.LanguageVersion() -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.New(languageVersion As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Default, documentationMode As Microsoft.CodeAnalysis.DocumentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, kind As Microsoft.CodeAnalysis.SourceCodeKind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, preprocessorSymbols As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Object)) = Nothing) -> Void
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.LanguageVersion() -> Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.New(languageVersion As Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion = Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion.Default, documentationMode As Microsoft.CodeAnalysis.DocumentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, kind As Microsoft.CodeAnalysis.SourceCodeKind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, preprocessorSymbols As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Object)) = Nothing) -> Void
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.PreprocessorSymbols() -> System.Collections.Immutable.ImmutableArray(Of System.Collections.Generic.KeyValuePair(Of String, Object))
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.SpecifiedLanguageVersion() -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.SpecifiedLanguageVersion() -> Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.WithFeatures(features As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, String))) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.WithKind(kind As Microsoft.CodeAnalysis.SourceCodeKind) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.WithLanguageVersion(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.WithLanguageVersion(version As Microsoft.CodeAnalysis.VisualBasic.Language.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.WithPreprocessorSymbols(ParamArray symbols As System.Collections.Generic.KeyValuePair(Of String, Object)()) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.WithPreprocessorSymbols(symbols As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Object))) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.WithPreprocessorSymbols(symbols As System.Collections.Immutable.ImmutableArray(Of System.Collections.Generic.KeyValuePair(Of String, Object))) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
