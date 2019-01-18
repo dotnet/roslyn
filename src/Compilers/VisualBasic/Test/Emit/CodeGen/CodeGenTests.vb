@@ -276,7 +276,8 @@ End Module
         End Sub
 
         <WorkItem(578074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578074")>
-        <Fact()>
+        <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/32576")> ' PROTOTYPE(DefaultInterfaceImplementation): https://github.com/dotnet/roslyn/issues/32576
         Public Sub PreserveZeroDigitsInDecimal()
             CompileAndVerify(
 <compilation>
@@ -621,7 +622,10 @@ expectedOutput:=<![CDATA[
         ''' Breaking change: native compiler considers
         ''' digits &lt; 1e-49 when rounding.
         ''' </summary>
-        <Fact, WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494"), WorkItem(568520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
+        <WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")>
+        <WorkItem(568520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
+        <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/32576")> ' PROTOTYPE(DefaultInterfaceImplementation): https://github.com/dotnet/roslyn/issues/32576
         Public Sub DecimalLiteral_BreakingChange()
 
             CompileAndVerify(
