@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentDescription">
         <source>DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's '{0}' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.</source>
-        <target state="translated">Los métodos Register específicos de lenguaje de DiagnosticAnalyzer, como RegisterSyntaxNodeAction, RegisterCodeBlockStartAction y RegisterCodeBlockEndAction, esperan un argumento de tipo “SyntaxKind” específico de lenguaje para el parámetro de tipo “{0}”. De lo contrario, la acción del analizador registrada no se puede invocar nunca durante el análisis.</target>
+        <target state="translated">Los métodos Register específicos del lenguaje de DiagnosticAnalyzer, como RegisterSyntaxNodeAction, RegisterCodeBlockStartAction y RegisterCodeBlockEndAction, esperan un argumento de tipo “SyntaxKind” específico del lenguaje para el parámetro de tipo “{0}”. De lo contrario, la acción del analizador registrada no se puede invocar nunca durante el análisis.</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithOnlyEndActionTitle">
