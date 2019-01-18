@@ -96,16 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             System.Threading.Tasks.Task.Run(() => ConnectToOpenFileTrackerOnUIThreadAsync(asyncServiceProvider));
 
-            var fileChangeWatcherProvider = exportProvider.GetExportedValue<FileChangeWatcherProvider>();
-
-            FileChangeWatcher = fileChangeWatcherProvider.Watcher;
-            System.Threading.Tasks.Task.Run(async () =>
-                {
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                    var fileChangeService = (IVsFileChangeEx)ServiceProvider.GlobalProvider.GetService(typeof(SVsFileChangeEx));
-                    fileChangeWatcherProvider.SetFileChangeService(fileChangeService);
-                });
+            FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
         }
 
         public async System.Threading.Tasks.Task ConnectToOpenFileTrackerOnUIThreadAsync(IAsyncServiceProvider asyncServiceProvider)
