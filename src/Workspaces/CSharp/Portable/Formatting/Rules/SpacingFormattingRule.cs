@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // Put a space between the type and a positional pattern
             // ex: `e is Type ( /*positional*/ )`
             if (currentToken.IsKind(SyntaxKind.OpenParenToken) &&
-                currentParentKind == SyntaxKindEx.DeconstructionPatternClause)
+                currentParentKind == SyntaxKindEx.PositionalPatternClause)
             {
 #if !CODE_STYLE
                 var recursivePatternType = ((RecursivePatternSyntax)currentToken.Parent.Parent).Type;
