@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -79,9 +79,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                 // We have all the cheap stuff, so let's do expensive stuff now
                 string messageToShow = null;
 
+                var userCancellationToken = context.OperationContext.UserCancellationToken;
+
                 using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Locating_implementations))
+                using (Logger.LogBlock(FunctionId.CommandHandler_GoToImplementation, KeyValueLogMessage.Create(LogType.UserAction), userCancellationToken))
                 {
-                    var userCancellationToken = context.OperationContext.UserCancellationToken;
                     StreamingGoToImplementation(
                         document, caretPosition,
                         streamingService, streamingPresenter,
