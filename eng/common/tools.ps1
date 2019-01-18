@@ -94,6 +94,9 @@ function InitializeDotNetCli([bool]$install) {
   # Don't resolve runtime, shared framework, or SDK from other locations to ensure build determinism
   $env:DOTNET_MULTILEVEL_LOOKUP=0
 
+  # PROTOTYPE(DefaultInterfaceImplementation): Set this to be able to run apps targeting netcoreapp2.1 against netcoreapp3.0
+  $env:DOTNET_ROLL_FORWARD_ON_NO_CANDIDATE_FX=2
+
   # Disable first run since we do not need all ASP.NET packages restored.
   $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 
