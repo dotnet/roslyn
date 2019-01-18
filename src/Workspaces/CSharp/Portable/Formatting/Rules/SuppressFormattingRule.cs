@@ -44,20 +44,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (node.IsKind(SyntaxKindEx.RecursivePattern))
             {
 #if !CODE_STYLE
-                var deconstruct = ((RecursivePatternSyntax)node).DeconstructionPatternClause;
+                var positional = ((RecursivePatternSyntax)node).PositionalPatternClause;
                 var property = ((RecursivePatternSyntax)node).PropertyPatternClause;
 #else
-                var deconstruct = node.ChildNodes().SingleOrDefault(child => child.IsKind(SyntaxKindEx.DeconstructionPatternClause));
+                var positional = node.ChildNodes().SingleOrDefault(child => child.IsKind(SyntaxKindEx.PositionalPatternClause));
                 var property = node.ChildNodes().SingleOrDefault(child => child.IsKind(SyntaxKindEx.PropertyPatternClause));
 #endif
-                if (deconstruct != null)
+                if (positional != null)
                 {
 #if !CODE_STYLE
-                    var openParenToken = deconstruct.OpenParenToken;
-                    var closeParenToken = deconstruct.CloseParenToken;
+                    var openParenToken = positional.OpenParenToken;
+                    var closeParenToken = positional.CloseParenToken;
 #else
-                    var openParenToken = deconstruct.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.OpenParenToken));
-                    var closeParenToken = deconstruct.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.CloseParenToken));
+                    var openParenToken = positional.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.OpenParenToken));
+                    var closeParenToken = positional.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.CloseParenToken));
 #endif
                     // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
                     AddSuppressWrappingIfOnSingleLineOperation(list, openParenToken, closeParenToken);

@@ -1816,15 +1816,15 @@
   <Node Name="RecursivePatternSyntax" Base="PatternSyntax">
     <Kind Name="RecursivePattern" />
     <Field Name="Type" Type="TypeSyntax" Optional="true" />
-    <Field Name="DeconstructionPatternClause" Type="DeconstructionPatternClauseSyntax" Optional="true" />
+    <Field Name="PositionalPatternClause" Type="PositionalPatternClauseSyntax" Optional="true" />
     <Field Name="PropertyPatternClause" Type="PropertyPatternClauseSyntax" Optional="true" />
     <Field Name="Designation" Type="VariableDesignationSyntax" Optional="true">
       <Kind Name="SingleVariableDesignation"/>
       <Kind Name="DiscardDesignation"/>
     </Field>
   </Node>
-  <Node Name="DeconstructionPatternClauseSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="DeconstructionPatternClause"/>
+  <Node Name="PositionalPatternClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="PositionalPatternClause"/>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
     </Field>
