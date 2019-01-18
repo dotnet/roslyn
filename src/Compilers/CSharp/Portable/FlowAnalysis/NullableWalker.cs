@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
                 else if (EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
-                    targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                    targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.AllIgnoreOptions))
                 {
                     InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), isByRefTarget: IsByRefTarget(targetSlot), slotWatermark: GetSlotWatermark());
                 }

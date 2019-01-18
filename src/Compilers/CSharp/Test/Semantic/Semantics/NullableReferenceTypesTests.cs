@@ -39704,6 +39704,161 @@ class Program
 @"using System;
 class Program
 {
+    static void F(bool b, object x, object? y)
+    {
+        var t = new ValueTuple<object?, object, object?, object, object?, (object, object?), object, (object, object?, object)>(
+            x,
+            x,
+            x,
+            y, // 1
+            y,
+            (y, x), // 2
+            x,
+            (x, y, y))/*T:(object?, object!, object?, object!, object?, (object!, object?), object!, object!, object?, object!)*/; // 3
+        t.Item1.ToString();
+        t.Item2.ToString();
+        t.Item3.ToString();
+        t.Item4.ToString(); // 4
+        t.Item5.ToString(); // 5
+        t.Item6.Item1.ToString(); // 6
+        t.Item6.Item2.ToString();
+        t.Item7.ToString();
+        if (b)
+        {
+            t.Item8.ToString();
+            t.Item9.ToString(); // 7
+            t.Item10.ToString(); // 8
+        }
+        else
+        {
+            t.Rest.Item1.ToString();
+            t.Rest.Item2.ToString(); // 9
+            t.Rest.Item3.ToString(); // 10
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,13): warning CS8604: Possible null reference argument for parameter 'item4' in '(object?, object, object?, object, object?, (object, object?), object, object, object?, object).(object? item1, object item2, object? item3, object item4, object? item5, (object, object?) item6, object item7, (object, object?, object) rest)'.
+                //             y, // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("item4", "(object?, object, object?, object, object?, (object, object?), object, object, object?, object).(object? item1, object item2, object? item3, object item4, object? item5, (object, object?) item6, object item7, (object, object?, object) rest)").WithLocation(10, 13),
+                // (12,13): warning CS8620: Nullability of reference types in argument of type '(object? y, object x)' doesn't match target type '(object, object?)' for parameter 'item6' in '(object?, object, object?, object, object?, (object, object?), object, object, object?, object).(object? item1, object item2, object? item3, object item4, object? item5, (object, object?) item6, object item7, (object, object?, object) rest)'.
+                //             (y, x), // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(y, x)").WithArguments("(object? y, object x)", "(object, object?)", "item6", "(object?, object, object?, object, object?, (object, object?), object, object, object?, object).(object? item1, object item2, object? item3, object item4, object? item5, (object, object?) item6, object item7, (object, object?, object) rest)").WithLocation(12, 13),
+                // (14,13): warning CS8620: Nullability of reference types in argument of type '(object x, object?, object?)' doesn't match target type '(object, object?, object)' for parameter 'rest' in '(object?, object, object?, object, object?, (object, object?), object, object, object?, object).(object? item1, object item2, object? item3, object item4, object? item5, (object, object?) item6, object item7, (object, object?, object) rest)'.
+                //             (x, y, y))/*T:(object?, object!, object?, object!, object?, (object!, object?), object!, object!, object?, object!)*/; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y, y)").WithArguments("(object x, object?, object?)", "(object, object?, object)", "rest", "(object?, object, object?, object, object?, (object, object?), object, object, object?, object).(object? item1, object item2, object? item3, object item4, object? item5, (object, object?) item6, object item7, (object, object?, object) rest)").WithLocation(14, 13),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Item4.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item4").WithLocation(18, 9),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Item5.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item5").WithLocation(19, 9),
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Item6.Item1.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item6.Item1").WithLocation(20, 9),
+                // (26,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item9.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item9").WithLocation(26, 13),
+                // (27,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item10.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item10").WithLocation(27, 13),
+                // (32,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Rest.Item2.ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item2").WithLocation(32, 13),
+                // (33,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Rest.Item3.ToString(); // 10
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item3").WithLocation(33, 13));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
+        public void Tuple_Assignment_14()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F(bool b, object x)
+    {
+        var t = new ValueTuple<object?, object, object?, object, object?, (object, object?), object, (object, object?, object)>(
+            x,
+            x,
+            x,
+            default, // 1
+            default,
+            default,
+            x,
+            default)/*T:(object?, object!, object?, object!, object?, (object!, object?), object!, object!, object?, object!)*/;
+        t.Item1.ToString();
+        t.Item2.ToString();
+        t.Item3.ToString();
+        t.Item4.ToString(); // 2
+        t.Item5.ToString(); // 3
+        t.Item6.Item1.ToString(); // 4
+        t.Item6.Item2.ToString(); // 5
+        t.Item7.ToString();
+        if (b)
+        {
+            t.Item8.ToString(); // 6
+            t.Item9.ToString(); // 7
+            t.Item10.ToString(); // 8
+        }
+        else
+        {
+            t.Rest.Item1.ToString(); // 9
+            t.Rest.Item2.ToString(); // 10
+            t.Rest.Item3.ToString(); // 11
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //             default, // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(10, 13),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Item4.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item4").WithLocation(18, 9),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Item5.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item5").WithLocation(19, 9),
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Item6.Item1.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item6.Item1").WithLocation(20, 9),
+                // (21,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Item6.Item2.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item6.Item2").WithLocation(21, 9),
+                // (25,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item8.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item8").WithLocation(25, 13),
+                // (26,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item9.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item9").WithLocation(26, 13),
+                // (27,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item10.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item10").WithLocation(27, 13),
+                // (31,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Rest.Item1.ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item1").WithLocation(31, 13),
+                // (32,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Rest.Item2.ToString(); // 10
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item2").WithLocation(32, 13),
+                // (33,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Rest.Item3.ToString(); // 11
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item3").WithLocation(33, 13));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
+        public void Tuple_Assignment_15()
+        {
+            var source =
+@"using System;
+class Program
+{
     static void F(object x, string? y)
     {
         var t = new ValueTuple<object?, string>(1);
@@ -39733,7 +39888,7 @@ class Program
 
         [Fact]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
-        public void Tuple_Assignment_14()
+        public void Tuple_Assignment_16()
         {
             var source =
 @"class Program
@@ -39772,7 +39927,7 @@ class Program
 
         [Fact]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
-        public void Tuple_Assignment_15()
+        public void Tuple_Assignment_17()
         {
             var source =
 @"class C
@@ -39812,7 +39967,7 @@ class Program
 
         [Fact]
         [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
-        public void Tuple_Assignment_16()
+        public void Tuple_Assignment_18()
         {
             var source =
 @"class Program
@@ -39840,7 +39995,7 @@ class Program
 
         [Fact]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
-        public void Tuple_Assignment_17()
+        public void Tuple_Assignment_19()
         {
             var source =
 @"class C
