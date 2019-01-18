@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             {
                 words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
 
-                // Edge case: the only character(s) in the name is(are) the WordSpearator
+                // Edge case: the only character(s) in the name is (are) the WordSeparator
                 if (words.Count() == 0)
                 {
                     return name;
