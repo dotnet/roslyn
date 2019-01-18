@@ -24,6 +24,7 @@
     <Reference Include="WindowsBase" />
     <PackageReference Include="Microsoft.DotNet.VersionTools" Version="$(MicrosoftDotNetVersionToolsVersion)" />
     <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
+    <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackagingVersion)" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
