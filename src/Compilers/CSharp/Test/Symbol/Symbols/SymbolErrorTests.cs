@@ -15032,9 +15032,6 @@ public class C
 }
 ";
             var comp = CreateCompilation(text).VerifyDiagnostics(
-    // (8,10): error CS1667: Attribute 'Obsolete' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-    //         [Obsolete]  // CS1667
-    Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate"),
     // (10,10): error CS1667: Attribute 'System.Diagnostics.Conditional' is not valid on property or event accessors. It is only valid on 'class, method' declarations.
     //         [System.Diagnostics.Conditional("Bernard")]
     Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "System.Diagnostics.Conditional").WithArguments("System.Diagnostics.Conditional", "class, method")
