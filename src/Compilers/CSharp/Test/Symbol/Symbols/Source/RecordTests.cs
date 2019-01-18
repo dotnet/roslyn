@@ -94,5 +94,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var param = Assert.Single(equals.Parameters);
             Assert.False(param.Type.IsNull);
         }
+
+        [Fact]
+        public void GeneratedGetHashCodeClass()
+        {
+            var comp = CreateCompilation("class C(int x, int y);");
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+
+            var hashcode = c.GetMethod("GetHashCode");
+            Assert.Empty(hashcode.Parameters);
+            Assert.Equal(0, hashcode.ParameterCount);
+            Assert.Equal(SpecialType.System_Int32, hashcode.ReturnType.SpecialType);
+        }
     }
 }
