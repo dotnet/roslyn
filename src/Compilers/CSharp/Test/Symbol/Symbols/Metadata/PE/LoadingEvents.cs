@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(SymbolKind.Event, instanceEvent.Kind);
             Assert.False(instanceEvent.IsStatic);
-            Assert.Equal(eventTypeDisplayString, instanceEvent.Type.ToTestDisplayString());
+            Assert.Equal(eventTypeDisplayString, instanceEvent.Type.TypeSymbol.ToTestDisplayString());
 
             CheckAccessorShape(instanceEvent.AddMethod, instanceEvent);
             CheckAccessorShape(instanceEvent.RemoveMethod, instanceEvent);
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(SymbolKind.Event, staticEvent.Kind);
             Assert.True(staticEvent.IsStatic);
-            Assert.Equal(eventTypeDisplayString, staticEvent.Type.ToTestDisplayString());
+            Assert.Equal(eventTypeDisplayString, staticEvent.Type.TypeSymbol.ToTestDisplayString());
 
             CheckAccessorShape(staticEvent.AddMethod, staticEvent);
             CheckAccessorShape(staticEvent.RemoveMethod, staticEvent);
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(@event.IsExtern, @accessor.IsExtern);
 
             Assert.Equal(SpecialType.System_Void, accessor.ReturnType.SpecialType);
-            Assert.Equal(@event.Type, accessor.Parameters.Single().Type);
+            Assert.Equal(@event.Type.TypeSymbol, accessor.Parameters.Single().Type.TypeSymbol);
         }
 
         [Fact]
@@ -128,10 +128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var mismatchedAddEvent = @class.GetMember<EventSymbol>("AddMismatch");
             var mismatchedRemoveEvent = @class.GetMember<EventSymbol>("RemoveMismatch");
 
-            Assert.NotEqual(mismatchedAddEvent.Type, mismatchedAddEvent.AddMethod.Parameters.Single().Type);
+            Assert.NotEqual(mismatchedAddEvent.Type.TypeSymbol, mismatchedAddEvent.AddMethod.Parameters.Single().Type.TypeSymbol);
             Assert.True(mismatchedAddEvent.MustCallMethodsDirectly);
 
-            Assert.NotEqual(mismatchedRemoveEvent.Type, mismatchedRemoveEvent.RemoveMethod.Parameters.Single().Type);
+            Assert.NotEqual(mismatchedRemoveEvent.Type.TypeSymbol, mismatchedRemoveEvent.RemoveMethod.Parameters.Single().Type.TypeSymbol);
             Assert.True(mismatchedRemoveEvent.MustCallMethodsDirectly);
         }
 
@@ -460,8 +460,8 @@ public class C
     public event System.Action E;
 }
 ";
-            var reference = CreateStandardCompilation(source).EmitToImageReference();
-            var comp = CreateStandardCompilation("", new[] { reference }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var reference = CreateCompilation(source).EmitToImageReference();
+            var comp = CreateCompilation("", new[] { reference }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var @event = type.GetMember<PEEventSymbol>("E");
@@ -514,7 +514,7 @@ public class C
 } // end of class C
 ";
             var ilRef = CompileIL(ilSource);
-            var comp = CreateStandardCompilation("", new[] { ilRef }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateCompilation("", new[] { ilRef }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -525,7 +525,7 @@ public class C
             Assert.NotNull(field);
 
             Assert.Equal(@event, field.AssociatedSymbol);
-            Assert.Equal(@event.Type, field.Type);
+            Assert.Equal(@event.Type.TypeSymbol, field.Type.TypeSymbol);
         }
 
         [Fact]
@@ -574,7 +574,7 @@ public class C
 } // end of class C
 ";
             var ilRef = CompileIL(ilSource);
-            var comp = CreateStandardCompilation("", new[] { ilRef }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateCompilation("", new[] { ilRef }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");

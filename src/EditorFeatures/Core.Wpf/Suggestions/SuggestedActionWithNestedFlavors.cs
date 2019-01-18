@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -31,11 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private ImmutableArray<SuggestedActionSet> _nestedFlavors;
 
         public SuggestedActionWithNestedFlavors(
+            IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace, ITextBuffer subjectBuffer,
-            object provider, CodeAction codeAction, 
-            SuggestedActionSet additionalFlavors = null) 
-            : base(sourceProvider, workspace, subjectBuffer, 
+            object provider, CodeAction codeAction,
+            SuggestedActionSet additionalFlavors = null)
+            : base(threadingContext, sourceProvider, workspace, subjectBuffer,
                    provider, codeAction)
         {
             _additionalFlavors = additionalFlavors;
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return null;
             }
 
-            return new SuggestedActionSet(ImmutableArray.Create(previewChangesAction));
+            return new SuggestedActionSet(categoryName: null, actions: ImmutableArray.Create(previewChangesAction));
         }
 
         // HasPreview is called synchronously on the UI thread. In order to avoid blocking the UI thread,

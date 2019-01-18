@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -30,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private readonly ITextBuffer _subjectBuffer;
 
+            private readonly CancellationTokenSource _cancellationTokenSource;
+
             private readonly TagSource _tagSource;
 
             #endregion
@@ -46,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
             public Tagger(
+                IThreadingContext threadingContext,
                 IAsynchronousOperationListener listener,
                 IForegroundNotificationService notificationService,
                 TagSource tagSource,
@@ -54,8 +58,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 Contract.ThrowIfNull(subjectBuffer);
 
                 _subjectBuffer = subjectBuffer;
+                _cancellationTokenSource = new CancellationTokenSource();
+
                 _batchChangeNotifier = new BatchChangeNotifier(
-                    subjectBuffer, listener, notificationService, NotifyEditorNow);
+                    threadingContext,
+                    subjectBuffer, listener, notificationService, NotifyEditorNow, _cancellationTokenSource.Token);
 
                 _tagSource = tagSource;
 
@@ -93,11 +100,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                             this.NotifyEditorNow(collection);
                         }
                     },
-                    listener.BeginAsyncOperation(GetType().FullName + ".ctor-ReportInitialTags"));
+                    listener.BeginAsyncOperation(GetType().FullName + ".ctor-ReportInitialTags"),
+                    _cancellationTokenSource.Token);
             }
 
             public void Dispose()
             {
+                _cancellationTokenSource.Cancel();
+                _cancellationTokenSource.Dispose();
+
                 _tagSource.Resumed -= OnResumed;
                 _tagSource.Paused -= OnPaused;
                 _tagSource.TagsChangedForBuffer -= OnTagsChangedForBuffer;
@@ -153,8 +164,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
 
                 // if delay is anything more than that, we let notifier knows about the change after given delay
-                // event notification is not cancellable.
-                _tagSource.RegisterNotification(() => _batchChangeNotifier.EnqueueChanges(changes), (int)delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds, CancellationToken.None);
+                // event notification is only cancellable when disposing of the tagger.
+                _tagSource.RegisterNotification(() => _batchChangeNotifier.EnqueueChanges(changes), (int)delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds, _cancellationTokenSource.Token);
             }
 
             private void NotifyEditorNow(NormalizedSnapshotSpanCollection normalizedSpans)

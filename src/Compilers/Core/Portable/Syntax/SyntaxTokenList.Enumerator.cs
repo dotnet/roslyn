@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
             private GreenNode _current;
             private int _position;
 
-            internal Enumerator(ref SyntaxTokenList list)
+            internal Enumerator(in SyntaxTokenList list)
             {
                 _parent = list._parent;
                 _singleNodeOrList = list.Node;
@@ -129,9 +129,9 @@ namespace Microsoft.CodeAnalysis
             private Enumerator _enumerator;
 
             // SyntaxTriviaList is a relatively big struct so is passed by ref
-            internal EnumeratorImpl(ref SyntaxTokenList list)
+            internal EnumeratorImpl(in SyntaxTokenList list)
             {
-                _enumerator = new Enumerator(ref list);
+                _enumerator = new Enumerator(in list);
             }
 
             public SyntaxToken Current => _enumerator.Current;

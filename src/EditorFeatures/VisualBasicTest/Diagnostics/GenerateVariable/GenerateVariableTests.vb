@@ -2622,7 +2622,7 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
-        Public Async Function TestPreferReadOnlyIfAfterReadOnlyAssignment() As Task 
+        Public Async Function TestPreferReadOnlyIfAfterReadOnlyAssignment() As Task
             await TestInRegularAndScriptAsync(
 "class C
     private readonly _goo as integer
@@ -2770,6 +2770,66 @@ class C
         me.y = 0
     end sub
 end class", index:=1)
+        End Function
+
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGenerateSimplePropertyInSyncLock() As Threading.Tasks.Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+        SyncLock [|Bar|]
+        End SyncLock
+    End Sub
+End Module",
+"Module Program
+    Public Property Bar As Object
+
+    Sub Main(args As String())
+        SyncLock Bar
+        End SyncLock
+    End Sub
+End Module")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGenerateSimpleFieldInSyncLock() As Threading.Tasks.Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+        SyncLock [|Bar|]
+        End SyncLock
+    End Sub
+End Module",
+"Module Program
+    Private Bar As Object
+
+    Sub Main(args As String())
+        SyncLock Bar
+        End SyncLock
+    End Sub
+End Module",
+index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGenerateReadOnlyFieldInSyncLock() As Threading.Tasks.Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+        SyncLock [|Bar|]
+        End SyncLock
+    End Sub
+End Module",
+"Module Program
+    Private ReadOnly Bar As Object
+
+    Sub Main(args As String())
+        SyncLock Bar
+        End SyncLock
+    End Sub
+End Module",
+index:=2)
         End Function
     End Class
 End Namespace

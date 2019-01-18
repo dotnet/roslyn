@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly Symbol _memberSymbol;
         private readonly SyntaxNode _root;
-        private readonly Func<Binder, SyntaxNode, Binder> _rootBinderAdjusterOpt;
+        private readonly Action<Binder, SyntaxNode> _binderUpdatedHandler;
         private SmallDictionary<SyntaxNode, Binder> _lazyBinderMap;
         private ImmutableArray<MethodSymbol> _methodSymbolsWithYield;
 
-        internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next, Func<Binder, SyntaxNode, Binder> rootBinderAdjusterOpt = null)
+        internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next, Action<Binder, SyntaxNode> binderUpdatedHandler = null)
             : this(root, memberSymbol, next, next.Flags)
         {
-            _rootBinderAdjusterOpt = rootBinderAdjusterOpt;
+            _binderUpdatedHandler = binderUpdatedHandler;
         }
 
         internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next, BinderFlags additionalFlags)
@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return _memberSymbol ?? Next.ContainingMemberOrLambda; }
         }
+
+        protected override bool InExecutableBinder
+            => true;
 
         internal Symbol MemberSymbol { get { return _memberSymbol; } }
 
@@ -64,11 +67,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var methodsWithYield = ArrayBuilder<SyntaxNode>.GetInstance();
                 var symbolsWithYield = ArrayBuilder<MethodSymbol>.GetInstance();
-                map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, methodsWithYield, _rootBinderAdjusterOpt);
+                map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, methodsWithYield, _binderUpdatedHandler);
                 foreach (var methodWithYield in methodsWithYield)
                 {
-                    Binder binder;
-                    if (map.TryGetValue(methodWithYield, out binder))
+                    Binder binder = this;
+                    if (methodWithYield.Kind() != SyntaxKind.GlobalStatement &&
+                        (methodWithYield == _root || map.TryGetValue(methodWithYield, out binder)))
                     {
                         Symbol containing = binder.ContainingMemberOrLambda;
 

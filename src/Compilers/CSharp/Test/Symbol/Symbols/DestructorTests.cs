@@ -22,7 +22,7 @@ class C
     ~C(int x) {}
 }";
             // This is a parse error.
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             Assert.NotEmpty(comp.GetParseDiagnostics());
         }
 
@@ -34,7 +34,7 @@ class C
 {
     ~C() { return 1; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,12): error CS0127: Since 'C.~C()' returns void, a return keyword must not be followed by an object expression
                 Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("C.~C()"));
         }
@@ -51,7 +51,7 @@ class Q
         ~C() { }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,10): error CS0111: Type 'Q.C' already defines a member called '~C' with the same parameter types
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("~C", "Q.C"));
         }
@@ -69,7 +69,7 @@ interface I
 {
     ~I();
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 //  error CS0575: Only class types can contain destructors
                 Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "S").WithArguments("S.~S()"),
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I").WithArguments("I.~I()"),
@@ -114,7 +114,7 @@ class C7
 {
     extern ~C7();
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,13): error CS0106: The modifier 'public' is not valid for this item
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "C1").WithArguments("public"),
                 // (9,14): error CS0106: The modifier 'virtual' is not valid for this item
@@ -195,7 +195,7 @@ class G : F
         Action a = Finalize;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (23,17): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"),
                 // (41,28): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
@@ -277,7 +277,7 @@ class G : F
         Action a = base.Finalize;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (23,17): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"),
                 // (41,28): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
@@ -319,7 +319,7 @@ class D : C
 {
     protected override void Finalize() { }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,28): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize"),
                 // (9,29): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
@@ -349,7 +349,7 @@ class C : I
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,10): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
                 //     void Finalize();
                 Diagnostic(ErrorCode.WRN_FinalizeMethod, "Finalize").WithLocation(4, 10),
@@ -373,7 +373,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -386,7 +386,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var destructor = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.DestructorName);
             Assert.Equal(MethodKind.Destructor, destructor.MethodKind);
@@ -421,7 +421,7 @@ class @ref
 {
     ~@ref() { }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(546830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546830")]
@@ -453,7 +453,7 @@ class Derived : Base
 {
     ~Derived() { }
 }";
-            CreateCompilationWithCustomILSource(source, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(source, il).VerifyDiagnostics(
                 // (4,6): error CS0239: 'Derived.~Derived()': cannot override inherited member 'Base.~Base()' because it is sealed
                 //     ~Derived() { }
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "Derived").WithArguments("Derived.~Derived()", "Base.~Base()"));
@@ -491,7 +491,7 @@ class Derived : Base
 
             // BREAK: Dev11 doesn't report this error, but it does generate code that won't run,
             // so this change is reasonable.
-            CreateCompilationWithCustomILSource(source, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(source, il).VerifyDiagnostics(
                 // (4,6): error CS0239: 'Derived.~Derived()': cannot override inherited member 'Base.Finalize()' because it is sealed
                 //     ~Derived() { }
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "Derived").WithArguments("Derived.~Derived()", "Base.Finalize()"));
@@ -517,7 +517,7 @@ class Derived : Base
 
             // In dev11, compilation succeeded, but the finalizer would fail at runtime when it made
             // a non-virtual call to the abstract method Base.Finalize.
-            CreateStandardCompilation(source, new[] { vbRef }).VerifyDiagnostics(
+            CreateCompilation(source, new[] { vbRef }).VerifyDiagnostics(
                 // (2,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base.~Base()'
                 // class Derived : Base
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.~Base()"));
@@ -540,7 +540,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (5,6): error CS0577: The Conditional attribute is not valid on 'Test.~Test()' because it is a constructor, destructor, operator, or explicit interface implementation
                 //     [Conditional("Debug")]
                 Diagnostic(ErrorCode.ERR_ConditionalOnSpecialMethod, @"Conditional(""Debug"")").WithArguments("Test.~Test()"));

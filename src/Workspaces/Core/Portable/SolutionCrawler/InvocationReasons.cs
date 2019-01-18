@@ -59,5 +59,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             return _reasons.GetEnumerator();
         }
+
+        public override string ToString()
+        {
+            return string.Join("|", _reasons ?? ImmutableHashSet<string>.Empty);
+        }
     }
 }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -255,6 +256,192 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
 {
     var x = [|(|]new Dictionary<int, string>(), new List<int>()[|)$$|];
 }", TestOptions.Regular);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexGroupBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$[|(|]a[|)|]"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexGroupBracket2()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""[|(|]a[|)|]$$"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexUnclosedGroupBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$(a"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexCommentBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$[|(|]?#a[|)|]"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexCommentBracket2()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""[|(|]?#a[|)|]$$"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexUnclosedCommentBracket()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$(?#a"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexCharacterClassBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$[|<|]a[|>|]"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexCharacterClassBracket2()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""[|<|]a[|>|]$$"");
+    }
+}";
+            await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexUnclosedCharacterClassBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$<a"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexNegativeCharacterClassBracket1()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""$$[|<|]^a[|>|]"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        public async Task TestRegexNegativeCharacterClassBracket2()
+        {
+            var input = @"
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@""[|<|]^a[|>|]$$"");
+    }
+}";
+
+            await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
         }
     }
 }

@@ -135,7 +135,7 @@ namespace WinRTDelegateLibrary
                 SystemCoreRef_v4_0_30319_17929
             };
 
-            var winRtDelegateLibrary = CreateCompilation(
+            var winRtDelegateLibrary = CreateEmptyCompilation(
                 winRtDelegateLibrarySrc,
                 references: coreRefs45,
                 options: TestOptions.ReleaseWinMD.WithAllowUnsafe(true),
@@ -143,7 +143,7 @@ namespace WinRTDelegateLibrary
 
             var nonWinRtLibrarySrc = winRtDelegateLibrarySrc.Replace("WinRTDelegateLibrary", "NonWinRTDelegateLibrary");
 
-            var nonWinRtDelegateLibrary = CreateCompilation(
+            var nonWinRtDelegateLibrary = CreateEmptyCompilation(
                 nonWinRtLibrarySrc,
                 references: coreRefs45,
                 options: TestOptions.UnsafeReleaseDll,
@@ -218,7 +218,7 @@ class Test
 
             Func<FieldSymbol, bool> isWinRt = (field) =>
             {
-                var fieldType = field.Type;
+                var fieldType = field.Type.TypeSymbol;
 
                 if ((object)fieldType == null)
                 {
@@ -269,7 +269,7 @@ class Test
 
             var comp = CompileAndVerify(
                 allDelegates,
-                additionalRefs: new[] {
+                references: new[] {
                     winRtDelegateLibrary,
                     nonWinRtDelegateLibrary
                 },

@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     public class TypeTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(30023, "https://github.com/dotnet/roslyn/issues/30023")]
         public void Bug18280()
         {
             string brackets = "[][][][][][][][][][][][][][][][][][][][]";
@@ -29,12 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
             string code = "class C {  int " + brackets + @" x; }";
 
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var c = compilation.GlobalNamespace.GetTypeMembers("C")[0];
             var x = c.GetMembers("x").Single() as FieldSymbol;
-            var arr = x.Type;
+            var arr = x.Type.TypeSymbol;
 
             arr.GetHashCode();
+            // https://github.com/dotnet/roslyn/issues/30023: StackOverflowException in SetUnknownNullabilityForReferenceTypes.
+            //arr.SetUnknownNullabilityForReferenceTypes();
         }
 
         [Fact]
@@ -49,15 +52,15 @@ class A<T> {
   }
 }
 ";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var aint1 = compilation.GlobalNamespace.GetTypeMembers("A1")[0].BaseType();  // A<int>
             var aint2 = compilation.GlobalNamespace.GetTypeMembers("A2")[0].BaseType();  // A<int>
             var b1 = aint1.GetTypeMembers("B", 1).Single();                            // A<int>.B<U>
             var b2 = aint2.GetTypeMembers("B", 1).Single();                            // A<int>.B<U>
             Assert.NotSame(b1.TypeParameters[0], b2.TypeParameters[0]);                // they've been alpha renamed independently
             Assert.Equal(b1.TypeParameters[0], b2.TypeParameters[0]);                  // but happen to be the same type
-            var xtype1 = (b1.GetMembers("X")[0] as FieldSymbol).Type;                  // Types using them are the same too
-            var xtype2 = (b2.GetMembers("X")[0] as FieldSymbol).Type;
+            var xtype1 = (b1.GetMembers("X")[0] as FieldSymbol).Type.TypeSymbol;                  // Types using them are the same too
+            var xtype2 = (b2.GetMembers("X")[0] as FieldSymbol).Type.TypeSymbol;
             Assert.Equal(xtype1, xtype2);
         }
 
@@ -73,7 +76,7 @@ struct S {
 interface B {
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var b = global.GetTypeMembers("B", 0).Single();
@@ -112,7 +115,7 @@ interface B {
 }
 ";
 
-            var comp = CreateStandardCompilation(new[] { text, text1, text2, text3 });
+            var comp = CreateCompilation(new[] { text, text1, text2, text3 });
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("NS").Single() as NamespaceSymbol;
 
@@ -178,14 +181,14 @@ interface B {
     public class C : B {}
 }
 ";
-            var comp1 = CreateStandardCompilation(text);
+            var comp1 = CreateCompilation(text);
             var compRef1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateStandardCompilation(new string[] { text1, text2 }, assemblyName: "Test1",
+            var comp2 = CreateCompilation(new string[] { text1, text2 }, assemblyName: "Test1",
                             references: new List<MetadataReference> { compRef1 });
             var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateStandardCompilation(text3, assemblyName: "Test2",
+            var comp = CreateCompilation(text3, assemblyName: "Test2",
                             references: new List<MetadataReference> { compRef2, compRef1 });
 
             Assert.Equal(0, comp1.GetDiagnostics().Count());
@@ -259,7 +262,7 @@ interface B {
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("Test", 0).SingleOrDefault() as NamedTypeSymbol;
@@ -334,7 +337,7 @@ namespace NS {
 }
 ";
 
-            var comp = CreateStandardCompilation(new[] { text, text1, text2 });
+            var comp = CreateCompilation(new[] { text, text1, text2 });
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("NS").Single() as NamespaceSymbol;
 
@@ -366,9 +369,9 @@ namespace NS {
         public void M0() {}
     }
 ";
-            var comp1 = CreateStandardCompilation(text);
+            var comp1 = CreateCompilation(text);
             var compRef1 = new CSharpCompilationReference(comp1);
-            var comp = CreateStandardCompilation(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
+            var comp = CreateCompilation(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
 
             Assert.Equal(0, comp.GetDiagnostics().Count());
             #endregion
@@ -385,9 +388,9 @@ namespace NS {
         void M1();
     }
 ";
-            comp1 = CreateStandardCompilation(text);
+            comp1 = CreateCompilation(text);
             compRef1 = new CSharpCompilationReference(comp1);
-            comp = CreateStandardCompilation(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
+            comp = CreateCompilation(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
 
             Assert.Equal(0, comp.GetDiagnostics().Count());
             #endregion
@@ -404,9 +407,9 @@ public class B : A {
     void M1() {}
 }
 ";
-            comp1 = CreateStandardCompilation(text);
+            comp1 = CreateCompilation(text);
             compRef1 = new CSharpCompilationReference(comp1);
-            comp = CreateStandardCompilation(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
+            comp = CreateCompilation(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
 
             Assert.Equal(0, comp.GetDiagnostics().Count());
             #endregion
@@ -427,9 +430,9 @@ public partial interface IBar {
 
 public partial class A { }
 ";
-            comp1 = CreateStandardCompilation(text);
+            comp1 = CreateCompilation(text);
             compRef1 = new CSharpCompilationReference(comp1);
-            comp = CreateStandardCompilation(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
+            comp = CreateCompilation(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
 
             Assert.Equal(0, comp.GetDiagnostics().Count());
             #endregion
@@ -453,7 +456,7 @@ public partial class A { }
     }
 }";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var classTest = comp.GlobalNamespace.GetTypeMembers("Test", 0).Single();
 
             var field1 = classTest.GetMembers("intAryField").Single();
@@ -463,19 +466,19 @@ public partial class A { }
             Assert.True(field1.IsStatic);
             var elemType1 = (field1 as FieldSymbol).Type;
             Assert.Equal(TypeKind.Array, elemType1.TypeKind);
-            Assert.Equal("System.Int32[,]", elemType1.ToTestDisplayString());
+            Assert.Equal("System.Int32[,]", elemType1.TypeSymbol.ToTestDisplayString());
 
             // ArrayType public API
-            Assert.False(elemType1.IsStatic);
-            Assert.False(elemType1.IsAbstract);
-            Assert.False(elemType1.IsSealed);
-            Assert.Equal(Accessibility.NotApplicable, elemType1.DeclaredAccessibility);
+            Assert.False(elemType1.TypeSymbol.IsStatic);
+            Assert.False(elemType1.TypeSymbol.IsAbstract);
+            Assert.False(elemType1.TypeSymbol.IsSealed);
+            Assert.Equal(Accessibility.NotApplicable, elemType1.TypeSymbol.DeclaredAccessibility);
 
             field1 = classTest.GetMembers("ulongAryField").Single();
             Assert.Equal(classTest, field1.ContainingSymbol);
             Assert.Equal(SymbolKind.Field, field1.Kind);
             Assert.True(field1.IsDefinition);
-            var elemType2 = (field1 as FieldSymbol).Type;
+            var elemType2 = (field1 as FieldSymbol).Type.TypeSymbol;
             Assert.Equal(TypeKind.Array, elemType2.TypeKind);
             // bug 2034
             Assert.Equal("System.UInt64[][,]", elemType2.ToTestDisplayString());
@@ -485,7 +488,7 @@ public partial class A { }
             Assert.Equal(classTest, method.ContainingSymbol);
             Assert.Equal(SymbolKind.Method, method.Kind);
             Assert.True(method.IsDefinition);
-            var retType = (method as MethodSymbol).ReturnType;
+            var retType = (method as MethodSymbol).ReturnType.TypeSymbol;
             Assert.Equal(TypeKind.Array, retType.TypeKind);
 
             // ArrayType public API
@@ -525,13 +528,13 @@ public class A {
 }
 ";
 
-            var compilation = CreateCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
             int[] ary = new int[2];
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
             var classTest = globalNS.GetTypeMembers("A").Single() as NamedTypeSymbol;
 
-            var sym1 = (classTest.GetMembers("AryField").First() as FieldSymbol).Type;
+            var sym1 = (classTest.GetMembers("AryField").First() as FieldSymbol).Type.TypeSymbol;
             Assert.Equal(SymbolKind.ArrayType, sym1.Kind);
             //
             Assert.Equal(1, sym1.Interfaces().Length);
@@ -560,7 +563,7 @@ public class A {
             Assert.Equal("System.Collections.IStructuralComparable", i8.ToTestDisplayString());
             Assert.Equal("System.Collections.IStructuralEquatable", i9.ToTestDisplayString());
 
-            var sym2 = (classTest.GetMembers("AryField2").First() as FieldSymbol).Type;
+            var sym2 = (classTest.GetMembers("AryField2").First() as FieldSymbol).Type.TypeSymbol;
             Assert.Equal(SymbolKind.ArrayType, sym2.Kind);
             Assert.Equal(0, sym2.Interfaces().Length);
         }
@@ -574,24 +577,24 @@ public class A {
     private sbyte[,,] AryField3;
     A(){}
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
             var classTest = globalNS.GetTypeMembers("A").Single() as NamedTypeSymbol;
 
-            var sym1 = (classTest.GetMembers().First() as FieldSymbol).Type;
+            var sym1 = (classTest.GetMembers().First() as FieldSymbol).Type.TypeSymbol;
             Assert.Equal(SymbolKind.ArrayType, sym1.Kind);
             var v1 = sym1.GetHashCode();
             var v2 = sym1.GetHashCode();
             Assert.Equal(v1, v2);
 
-            var sym2 = (classTest.GetMembers("AryField2").First() as FieldSymbol).Type;
+            var sym2 = (classTest.GetMembers("AryField2").First() as FieldSymbol).Type.TypeSymbol;
             Assert.Equal(SymbolKind.ArrayType, sym2.Kind);
             v1 = sym2.GetHashCode();
             v2 = sym2.GetHashCode();
             Assert.Equal(v1, v2);
 
-            var sym3 = (classTest.GetMembers("AryField3").First() as FieldSymbol).Type;
+            var sym3 = (classTest.GetMembers("AryField3").First() as FieldSymbol).Type.TypeSymbol;
             Assert.Equal(SymbolKind.ArrayType, sym3.Kind);
             v1 = sym3.GetHashCode();
             v2 = sym3.GetHashCode();
@@ -608,13 +611,13 @@ public class A {
     dynamic field2;
 }";
 
-            var global = CreateStandardCompilation(text).GlobalNamespace;
+            var global = CreateCompilation(text).GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             foreach (var m in a.GetMembers())
             {
                 if (m.Name == "field1")
                 {
-                    var f1 = (m as FieldSymbol).Type;
+                    var f1 = (m as FieldSymbol).Type.TypeSymbol;
                     Assert.False(f1 is ErrorTypeSymbol, f1.GetType().ToString() + " : " + f1.ToTestDisplayString());
                 }
                 else if (m.Name == "field2")
@@ -631,7 +634,7 @@ public class A {
             Assert.Equal(a, obj.ContainingSymbol);
             Assert.Equal(SymbolKind.Field, obj.Kind);
             Assert.True(obj.IsDefinition);
-            var objType = (obj as FieldSymbol).Type;
+            var objType = (obj as FieldSymbol).Type.TypeSymbol;
             Assert.False(objType is ErrorTypeSymbol, objType.GetType().ToString() + " : " + objType.ToTestDisplayString());
             Assert.NotEqual(SymbolKind.ErrorType, objType.Kind);
 
@@ -639,7 +642,7 @@ public class A {
             Assert.Equal(a, dyn.ContainingSymbol);
             Assert.Equal(SymbolKind.Field, dyn.Kind);
             Assert.True(dyn.IsDefinition);
-            var dynType = (obj as FieldSymbol).Type;
+            var dynType = (obj as FieldSymbol).Type.TypeSymbol;
             Assert.False(dynType is ErrorTypeSymbol, dynType.GetType().ToString() + " : " + dynType.ToTestDisplayString()); // this is ok
             Assert.NotEqual(SymbolKind.ErrorType, dynType.Kind);
         }
@@ -656,7 +659,7 @@ public class A {
     Three,
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var v = comp.GlobalNamespace.GetTypeMembers("MyEnum", 0).Single();
             Assert.NotEqual(null, v);
             Assert.Equal(Accessibility.Public, v.DeclaredAccessibility);
@@ -695,7 +698,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (10,13): warning CS0436: The type 'System.Void' in '' conflicts with the imported type 'void' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //             System.Void.Equals(1, 1);
@@ -731,8 +734,8 @@ namespace N
 }
 ";
 
-            var refAsm = CreateStandardCompilation(refSource, assemblyName: "RefAsm").ToMetadataReference();
-            var compilation = CreateStandardCompilation(csharp, references: new[] { refAsm });
+            var refAsm = CreateCompilation(refSource, assemblyName: "RefAsm").ToMetadataReference();
+            var compilation = CreateCompilation(csharp, references: new[] { refAsm });
             compilation.VerifyDiagnostics(
                 // (10,13): warning CS0436: The type 'N.C' in '' conflicts with the imported type 'N.C' in 'RefAsm, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //             N.C.Equals(1, 1);
@@ -752,10 +755,10 @@ namespace N
     public class C { }
 }
 ";
-            var compilation1 = CreateStandardCompilation(referenceText, assemblyName: "A");
+            var compilation1 = CreateCompilation(referenceText, assemblyName: "A");
             compilation1.VerifyDiagnostics();
 
-            var compilation2 = CreateStandardCompilation(referenceText, assemblyName: "B");
+            var compilation2 = CreateCompilation(referenceText, assemblyName: "B");
             compilation2.VerifyDiagnostics();
 
             var testText = @"
@@ -770,7 +773,7 @@ namespace M
     }
 }";
 
-            var compilation3 = CreateStandardCompilation(testText, new[] { new CSharpCompilationReference(compilation1), new CSharpCompilationReference(compilation2) });
+            var compilation3 = CreateCompilation(testText, new[] { new CSharpCompilationReference(compilation1), new CSharpCompilationReference(compilation2) });
             compilation3.VerifyDiagnostics(
                 // (8,13): error CS0433: The type 'N.C' exists in both 'A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //             N.C.ToString();
@@ -792,7 +795,7 @@ namespace System
     }
 }
 ";
-            var sysConsoleRef = CreateCompilation(
+            var sysConsoleRef = CreateEmptyCompilation(
                 sysConsoleSrc,
                 new[] { SystemRuntimePP7Ref },
                 TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_b03f5f7f11d50a3a),
@@ -803,7 +806,7 @@ System.Console.Goo();
 Goo();
 ";
 
-            var main1 = CreateCompilation(
+            var main1 = CreateEmptyCompilation(
                 new[] { Parse(mainSrc, options: TestOptions.Script) },
                 new[] { MscorlibRef_v46, sysConsoleRef },
                 TestOptions.ReleaseDll.WithUsings("System.Console"));
@@ -816,7 +819,7 @@ Goo();
                 // (2,9): error CS0103: The name 'Goo' does not exist in the current context
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo").WithArguments("Goo"));
 
-            var main2 = CreateCompilation(
+            var main2 = CreateEmptyCompilation(
                 new[] { Parse(mainSrc, options: TestOptions.Script) },
                 new[] { MscorlibRef_v46, sysConsoleRef, SystemRuntimeFacadeRef },
                 TestOptions.ReleaseDll.WithUsings("System.Console").WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
@@ -837,7 +840,7 @@ Goo();
     public struct S<X, Y, Z> {}
 }";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var namespaceNS = comp.GlobalNamespace.GetMembers("NS").First() as NamespaceOrTypeSymbol;
             Assert.Equal(3, namespaceNS.GetMembers().Length);
 
@@ -890,7 +893,7 @@ Goo();
 }";
 
             var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateStandardCompilation(text, references: new[] { module1Ref });
+            var comp = CreateCompilation(text, references: new[] { module1Ref });
 
             var globalNS = comp.SourceModule.GlobalNamespace;
             var classTest = globalNS.GetTypeMembers("Test").First();
@@ -914,7 +917,7 @@ static class @main
 }
 
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateEmptyCompilation(text);
             var typeSym = comp.Assembly.GlobalNamespace.GetTypeMembers().First();
             Assert.Equal("main", typeSym.ToTestDisplayString());
             var memSym = typeSym.GetMembers("Main").First();
@@ -932,7 +935,7 @@ static class @main
                     {
                     }
                 }";
-            var comp = CreateCompilation(code);
+            var comp = CreateEmptyCompilation(code);
             NamedTypeSymbol testTypeSymbol = comp.Assembly.GlobalNamespace.GetTypeMembers("Test").Single() as NamedTypeSymbol;
             MethodSymbol methodSymbol = testTypeSymbol.GetMembers("Main").Single() as MethodSymbol;
             Assert.Equal("void Test.Main()", methodSymbol.ToTestDisplayString());
@@ -954,7 +957,7 @@ static class @main
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var typeSym = comp.Assembly.GlobalNamespace.GetTypeMembers("MyClass").First();
             var actual = string.Join(", ", typeSym.GetMembers().Select(symbol => symbol.ToTestDisplayString()).OrderBy(name => name));
             Assert.Equal("MyClass..ctor(), MyClass..ctor(System.Int32 DummyInt)", actual);
@@ -968,7 +971,7 @@ static class @main
 public class MyClass : T1
 {
 }";
-            var comp = CreateCompilation(code);
+            var comp = CreateEmptyCompilation(code);
             NamedTypeSymbol testTypeSymbol = comp.Assembly.GlobalNamespace.GetTypeMembers("MyClass").Single() as NamedTypeSymbol;
             Assert.Equal("T1", testTypeSymbol.BaseType().ToTestDisplayString());
         }
@@ -981,7 +984,7 @@ public class MyClass : T1
 public class GC1<T> {}
 public class X : GC1<BOGUS> {}
 ";
-            var comp = CreateCompilation(code);
+            var comp = CreateEmptyCompilation(code);
             NamedTypeSymbol testTypeSymbol = comp.Assembly.GlobalNamespace.GetTypeMembers("X").Single() as NamedTypeSymbol;
             Assert.Equal("GC1<BOGUS>", testTypeSymbol.BaseType().ToTestDisplayString());
         }
@@ -1004,7 +1007,7 @@ public class SubGenericClass<T> : BaseT<T>
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var typeSym = comp.Assembly.GlobalNamespace.GetTypeMembers("SubGenericClass").First();
             var actualSymbols = typeSym.GetMembers();
             var actual = string.Join(", ", actualSymbols.Select(symbol => symbol.ToTestDisplayString()).OrderBy(name => name));
@@ -1023,7 +1026,7 @@ interface I3 : I1, I2 {}
 interface I4 : I2, I3 {}
 interface I5 : I3, I4 {}
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var interfaces = global.GetTypeMembers("I5", 0).Single().AllInterfaces();
             Assert.Equal(4, interfaces.Length);
@@ -1048,7 +1051,7 @@ namespace Convert
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("Convert").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("Test").Single() as NamedTypeSymbol;
@@ -1066,7 +1069,7 @@ namespace NS1.NS2
     internal proteced class B<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10, T11, T12> {}
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var ns1 = global.GetMembers("NS1").Single() as NamespaceSymbol;
             var ns2 = ns1.GetMembers("NS2").Single() as NamespaceSymbol;
@@ -1088,7 +1091,7 @@ namespace Collections {
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("Collections").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("Test", 1).Single() as NamedTypeSymbol;
@@ -1106,7 +1109,7 @@ namespace NS
   class B : A[] {}
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var ns1 = global.GetMembers("NS").Single() as NamespaceSymbol;
             var syma = ns1.GetMembers("A").Single() as NamedTypeSymbol;
@@ -1127,7 +1130,7 @@ class A
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
         }
 
@@ -1141,7 +1144,7 @@ partial class C2 : C1 {}
 partial class C2 : C1 {}
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
         }
 
@@ -1166,12 +1169,12 @@ class D : C
     A.X x;
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count(diag => !ErrorFacts.IsWarning((ErrorCode)diag.Code)));
             var global = comp.GlobalNamespace;
             var d = global.GetMembers("D").Single() as NamedTypeSymbol;
             var x = d.GetMembers("x").Single() as FieldSymbol;
-            Assert.Equal("B.A.X", x.Type.ToTestDisplayString());
+            Assert.Equal("B.A.X", x.Type.TypeSymbol.ToTestDisplayString());
         }
 
         [WorkItem(537970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537970")]
@@ -1185,7 +1188,7 @@ namespace System
     public class MyString : String { }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count(e => e.Severity >= DiagnosticSeverity.Error));
             var global = comp.GlobalNamespace;
             var system = global.GetMembers("System").Single() as NamespaceSymbol;
@@ -1223,7 +1226,7 @@ namespace N
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             Assert.Equal(4, comp.GetDiagnostics().Count());
 
             var global = comp.SourceModule.GlobalNamespace;
@@ -1292,7 +1295,7 @@ partial class Derived6 : Interface2<int, int> { }
 partial class Derived6 : Base<int, int>, Interface1<int, int> { }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.SourceModule.GlobalNamespace;
 
             var baseType = global.GetMember<NamedTypeSymbol>("Base");
@@ -1373,7 +1376,7 @@ class Bar : Bar.IGoo
 
     public Goo GetGoo() { return null; }
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             Assert.Empty(comp.GetDiagnostics());
             var bar = comp.GetTypeByMetadataName("Bar");
             var iGooGetGoo = comp.GetTypeByMetadataName("Bar+IGoo").GetMembers("GetGoo").Single();
@@ -1394,14 +1397,14 @@ public class Test1<Q> : I<Q>
 {
     void I<Q>.Goo() {}
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             Assert.Empty(comp.GetDiagnostics());
         }
 
         [Fact]
         public void MetadataNameOfGenericTypes()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class Gen1<T,U,V>
 {}
 class NonGen
@@ -1441,7 +1444,7 @@ class Program
         [Fact, WorkItem(530171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")]
         public void ErrorTypeTest01()
         {
-            var comp = CreateStandardCompilation(@"public void TopLevelMethod() {}");
+            var comp = CreateCompilation(@"public void TopLevelMethod() {}");
 
             var errSymbol = comp.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
             Assert.NotNull(errSymbol);
@@ -1464,12 +1467,12 @@ class Program
     }
 }";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var namespaceNS = comp.GlobalNamespace.GetMembers("NS").First() as NamespaceOrTypeSymbol;
             var classA = namespaceNS.GetTypeMembers("A").First();
             var varX = classA.GetMembers("x").First() as FieldSymbol;
             Assert.Equal(SymbolKind.Field, varX.Kind);
-            Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), varX.Type.OriginalDefinition);
+            Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), varX.Type.TypeSymbol.OriginalDefinition);
         }
 
         [Fact]
@@ -1491,11 +1494,11 @@ public class NullableTest
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var topType = comp.SourceModule.GlobalNamespace.GetTypeMembers("NullableTest").FirstOrDefault();
             // ------------------------------
             var mem = topType.GetMembers("field01").Single();
-            var memType = (mem as FieldSymbol).Type;
+            var memType = (mem as FieldSymbol).Type.TypeSymbol;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
             Assert.True(memType.CanBeAssignedNull());
 
@@ -1504,7 +1507,7 @@ public class NullableTest
             Assert.Same(comp.GetSpecialType(SpecialType.System_SByte), underType);
             // ------------------------------
             mem = topType.GetMembers("field02").Single();
-            memType = (mem as FieldSymbol).Type;
+            memType = (mem as FieldSymbol).Type.TypeSymbol;
             Assert.True(memType.IsNullableType());
             Assert.False(memType.CanBeConst());
 
@@ -1513,7 +1516,7 @@ public class NullableTest
             Assert.Same(underType, memType.GetNullableUnderlyingType());
             // ------------------------------
             mem = topType.GetMembers("Prop01").Single();
-            memType = (mem as PropertySymbol).Type;
+            memType = (mem as PropertySymbol).Type.TypeSymbol;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
             Assert.True(memType.CanBeAssignedNull());
 
@@ -1522,7 +1525,7 @@ public class NullableTest
             Assert.Same(underType, memType.GetNullableUnderlyingType());
             // ------------------------------
             mem = topType.GetMembers(WellKnownMemberNames.Indexer).Single();
-            memType = (mem as PropertySymbol).Type;
+            memType = (mem as PropertySymbol).Type.TypeSymbol;
             Assert.True(memType.CanBeAssignedNull());
             Assert.False(memType.CanBeConst());
 
@@ -1532,13 +1535,13 @@ public class NullableTest
 
             var paras = mem.GetParameters();
             Assert.Equal(2, paras.Length);
-            memType = paras[0].Type;
+            memType = paras[0].Type.TypeSymbol;
             Assert.Same(comp.GetSpecialType(SpecialType.System_UInt16), memType.GetNullableUnderlyingType());
-            memType = paras[1].Type;
+            memType = paras[1].Type.TypeSymbol;
             Assert.Same(comp.GetSpecialType(SpecialType.System_UInt32), memType.GetNullableUnderlyingType());
             // ------------------------------
             mem = topType.GetMembers("Method01").Single();
-            memType = (mem as MethodSymbol).ReturnType;
+            memType = (mem as MethodSymbol).ReturnType.TypeSymbol;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
             Assert.True(memType.CanBeAssignedNull());
             underType = memType.StrippedType();
@@ -1548,13 +1551,13 @@ public class NullableTest
             paras = mem.GetParameters();
             Assert.Equal(RefKind.Ref, paras[0].RefKind);
             Assert.Equal(RefKind.Out, paras[1].RefKind);
-            memType = paras[0].Type;
+            memType = paras[0].Type.TypeSymbol;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Int64), memType.GetNullableUnderlyingType());
-            memType = paras[1].Type;
+            memType = paras[1].Type.TypeSymbol;
             Assert.Same(comp.GetSpecialType(SpecialType.System_UInt64), memType.GetNullableUnderlyingType());
             // ------------------------------
             mem = topType.GetMembers("Method02").Single();
-            memType = (mem as MethodSymbol).ReturnType;
+            memType = (mem as MethodSymbol).ReturnType.TypeSymbol;
             Assert.True(memType.IsNullableType());
             underType = memType.GetNullableUnderlyingType();
             Assert.True(underType.IsNonNullableValueType());
@@ -1564,11 +1567,11 @@ public class NullableTest
             paras = mem.GetParameters();
             Assert.True(paras[0].IsOptional);
             Assert.True(paras[1].IsParams);
-            memType = paras[0].Type;
+            memType = paras[0].Type.TypeSymbol;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Double), memType.GetNullableUnderlyingType());
-            memType = paras[1].Type;
+            memType = paras[1].Type.TypeSymbol;
             Assert.True(memType.IsArray());
-            Assert.Same(comp.GetSpecialType(SpecialType.System_Single), (memType as ArrayTypeSymbol).ElementType.GetNullableUnderlyingType());
+            Assert.Same(comp.GetSpecialType(SpecialType.System_Single), (memType as ArrayTypeSymbol).ElementType.TypeSymbol.GetNullableUnderlyingType());
         }
 
         [Fact]
@@ -1596,28 +1599,28 @@ public struct S
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var topType = comp.SourceModule.GlobalNamespace.GetTypeMembers("S").FirstOrDefault();
             var nestedType = topType.GetTypeMembers("Nested").Single();
             var enumType = comp.SourceModule.GlobalNamespace.GetTypeMembers("E").Single();
             // ------------------------------
             var mem = topType.GetMembers("efield").Single();
-            var deleType = (mem as EventSymbol).Type;
+            var deleType = (mem as EventSymbol).Type.TypeSymbol;
             Assert.True(deleType.IsDelegateType());
-            var memType = deleType.DelegateInvokeMethod().ReturnType;
+            var memType = deleType.DelegateInvokeMethod().ReturnType.TypeSymbol;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
 
             var paras = deleType.DelegateParameters();
             Assert.False(paras[0].IsOptional);
             Assert.True(paras[1].IsOptional);
-            memType = paras[0].Type;
+            memType = paras[0].Type.TypeSymbol;
             Assert.Same(topType, memType.GetNullableUnderlyingType());
-            memType = paras[1].Type;
+            memType = paras[1].Type.TypeSymbol;
             Assert.Same(enumType, memType.GetNullableUnderlyingType());
             Assert.Equal("E?", memType.ToDisplayString());
             // ------------------------------
             mem = topType.GetMembers(WellKnownMemberNames.ImplicitConversionName).Single();
-            memType = (mem as MethodSymbol).ReturnType;
+            memType = (mem as MethodSymbol).ReturnType.TypeSymbol;
             Assert.True(memType.IsNullableType());
             Assert.False(memType.CanBeConst());
 
@@ -1626,17 +1629,17 @@ public struct S
             Assert.Same(nestedType, underType);
 
             paras = (mem as MethodSymbol).GetParameters();
-            Assert.Same(topType, paras[0].Type.GetNullableUnderlyingType());
+            Assert.Same(topType, paras[0].Type.TypeSymbol.GetNullableUnderlyingType());
             // ------------------------------
             mem = topType.GetMembers(WellKnownMemberNames.AdditionOperatorName).Single();
-            memType = (mem as MethodSymbol).ReturnType;
+            memType = (mem as MethodSymbol).ReturnType.TypeSymbol;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
             Assert.True(memType.CanBeAssignedNull());
 
             paras = mem.GetParameters();
-            memType = paras[0].Type;
+            memType = paras[0].Type.TypeSymbol;
             Assert.Same(topType, memType.GetNullableUnderlyingType());
-            memType = paras[1].Type;
+            memType = paras[1].Type.TypeSymbol;
             Assert.Same(nestedType, memType.GetNullableUnderlyingType());
         }
 
@@ -1662,7 +1665,7 @@ class A
 ";
 
             var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var mnode = (MethodDeclarationSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.MethodDeclaration);
@@ -1671,44 +1674,44 @@ class A
             // 4 locals + 2 lambda params
             Assert.Equal(6, locals.Length);
             // local04
-            var anonymousType = (locals[3] as LocalSymbol).Type;
+            var anonymousType = (locals[3] as LocalSymbol).Type.TypeSymbol;
             Assert.True(anonymousType.IsAnonymousType);
 
             // --------------------
             // local01
-            var memType = anonymousType.GetMember<PropertySymbol>("p0").Type;
+            var memType = anonymousType.GetMember<PropertySymbol>("p0").Type.TypeSymbol;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
-            Assert.Same((locals[0] as LocalSymbol).Type, memType);
+            Assert.Same((locals[0] as LocalSymbol).Type.TypeSymbol, memType);
 
             // --------------------
-            var nestedType = anonymousType.GetMember<PropertySymbol>("p1").Type;
+            var nestedType = anonymousType.GetMember<PropertySymbol>("p1").Type.TypeSymbol;
             Assert.True(nestedType.IsAnonymousType);
             // local02
-            memType = nestedType.GetMember<PropertySymbol>("p1").Type;
+            memType = nestedType.GetMember<PropertySymbol>("p1").Type.TypeSymbol;
             Assert.True(memType.IsDelegateType());
-            Assert.Same((locals[1] as LocalSymbol).Type, memType);
+            Assert.Same((locals[1] as LocalSymbol).Type.TypeSymbol, memType);
             // 
             var paras = memType.DelegateInvokeMethod().Parameters;
-            memType = paras[0].Type;
+            memType = paras[0].Type.TypeSymbol;
             Assert.True(memType.IsNullableType());
             Assert.False(memType.CanBeConst());
-            memType = paras[1].Type;
+            memType = paras[1].Type.TypeSymbol;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
             Assert.True(memType.GetNullableUnderlyingType().IsEnumType());
             Assert.Equal("System.PlatformID?", memType.ToDisplayString());
 
             // local03
-            memType = nestedType.GetMember<PropertySymbol>("local03").Type;
-            Assert.Same((locals[2] as LocalSymbol).Type, memType);
+            memType = nestedType.GetMember<PropertySymbol>("local03").Type.TypeSymbol;
+            Assert.Same((locals[2] as LocalSymbol).Type.TypeSymbol, memType);
             Assert.True(memType.IsDelegateType());
             // return type
-            memType = memType.DelegateInvokeMethod().ReturnType;
+            memType = memType.DelegateInvokeMethod().ReturnType.TypeSymbol;
             Assert.True(memType.IsNullableType());
             Assert.True(memType.CanBeAssignedNull());
             // --------------------
             // method parameter symbol
-            var compType = (model.GetDeclaredSymbol(mnode) as MethodSymbol).Parameters[0].Type;
-            memType = anonymousType.GetMember<PropertySymbol>("p").Type;
+            var compType = (model.GetDeclaredSymbol(mnode) as MethodSymbol).Parameters[0].Type.TypeSymbol;
+            memType = anonymousType.GetMember<PropertySymbol>("p").Type.TypeSymbol;
             Assert.Same(compType, memType);
             Assert.True(memType.IsNullableType());
             Assert.Equal("System.Collections.DictionaryEntry?", memType.ToDisplayString());
@@ -1746,7 +1749,7 @@ namespace NS
 ";
 
             var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var node1 = (LocalDeclarationStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.LocalDeclarationStatement, 3);
@@ -1754,7 +1757,7 @@ namespace NS
             var sym = model.GetDeclaredSymbol(node1.Declaration.Variables.First()) as LocalSymbol;
             // --------------------
             // R?
-            var memType = sym.Type;
+            var memType = sym.Type.TypeSymbol;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
             Assert.Equal("System.PlatformID?", memType.ToDisplayString());
 
@@ -1789,14 +1792,14 @@ class Goo {
     Func<object> W;
 }
 ";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var Goo = compilation.GlobalNamespace.GetTypeMembers("Goo")[0];
-            var Dynamic = (Goo.GetMembers("X")[0] as FieldSymbol).Type;
-            var Object = (Goo.GetMembers("Y")[0] as FieldSymbol).Type;
-            var Func_Dynamic = (Goo.GetMembers("Z")[0] as FieldSymbol).Type;
-            var Func_Object = (Goo.GetMembers("W")[0] as FieldSymbol).Type;
+            var Dynamic = (Goo.GetMembers("X")[0] as FieldSymbol).Type.TypeSymbol;
+            var Object = (Goo.GetMembers("Y")[0] as FieldSymbol).Type.TypeSymbol;
+            var Func_Dynamic = (Goo.GetMembers("Z")[0] as FieldSymbol).Type.TypeSymbol;
+            var Func_Object = (Goo.GetMembers("W")[0] as FieldSymbol).Type.TypeSymbol;
 
-            var comparator = TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer;
+            var comparator = TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer;
             Assert.NotEqual(Object, Dynamic);
             Assert.Equal(comparator.GetHashCode(Dynamic), comparator.GetHashCode(Object));
             Assert.True(comparator.Equals(Dynamic, Object));
@@ -1816,7 +1819,7 @@ class C<T>
 {
 }
 ";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var originalDefinition = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
             var unboundGeneric1 = originalDefinition.AsUnboundGenericType();
@@ -1836,7 +1839,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -1861,8 +1864,14 @@ using System.Runtime.InteropServices;
 public interface I1
 {
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+
+            compilation = CreateCompilation(code);
+            i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
+            i1.GetAttributes();
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
         }
@@ -1877,7 +1886,7 @@ using System.Runtime.InteropServices;
 public interface I1
 {
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
@@ -1898,7 +1907,7 @@ namespace NS1
     {
     }
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
 
             Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType);
@@ -1911,6 +1920,11 @@ namespace NS1
                 //     [alias1]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "alias1").WithArguments("TypeIdentifier").WithLocation(8, 6)
                 );
+
+            compilation = CreateCompilation(code);
+            i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
+            i1.GetAttributes();
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
         [Fact]
@@ -1928,7 +1942,7 @@ namespace NS1
     {
     }
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
 
             Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType);
@@ -1961,7 +1975,7 @@ namespace NS1
     {
     }
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
@@ -1982,7 +1996,7 @@ namespace NS1
     {
     }
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
@@ -2003,7 +2017,7 @@ namespace NS1
     {
     }
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
@@ -2024,7 +2038,7 @@ namespace NS1
     {
     }
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
@@ -2050,7 +2064,7 @@ namespace NS1
         }
     }
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.NS2.I1");
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
@@ -2074,7 +2088,7 @@ namespace NS1
         }
     }
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.NS2.I1");
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
@@ -2100,7 +2114,7 @@ namespace NS1
         }
     }
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.NS2.I1");
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
@@ -2149,7 +2163,7 @@ namespace NS1
     }
 }
 ";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.NS2.I1");
             var i2 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.NS2.I2");
 
@@ -2200,7 +2214,7 @@ namespace NS1
     }
 }
 ";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.NS2.I1");
             var i2 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.NS2.I2");
 
@@ -2221,7 +2235,7 @@ namespace NS1
     {
     }
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
 
             Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType);
@@ -2241,7 +2255,7 @@ namespace NS1
 public interface I1
 {
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
@@ -2255,7 +2269,7 @@ public interface I1
 public interface I1
 {
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
@@ -2271,7 +2285,7 @@ using alias1 = System.Runtime.InteropServices.TypeIdentifierAttribute;
 public interface I1
 {
 }";
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);

@@ -142,6 +142,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             ITypeSymbol ITypeSymbol.OriginalDefinition => _symbol.OriginalDefinition;
             public new INamedTypeSymbol OriginalDefinition => this;
+
+            public bool IsSerializable => throw new NotImplementedException();
+
+            public bool IsRefLikeType => throw new NotImplementedException();
+
+            public bool IsUnmanagedType => throw new NotImplementedException();
         }
     }
 }

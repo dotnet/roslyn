@@ -3,6 +3,8 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -709,7 +711,7 @@ End Class");
             {
                 var file = await context.GenerateSourceAsync("System.Console", project: context.DefaultProject);
                 var document = context.GetDocument(file);
-                await Formatting.Formatter.FormatAsync(document);
+                await Formatter.FormatAsync(document);
             }
         }
 
@@ -1398,6 +1400,232 @@ Public Interface [|IGoo|]
     Function Method1() As Uri
 End Interface";
             await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB, includeXmlDocComments: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestUnmanagedCSharpConstraint_Type()
+        {
+            var metadata = @"using System;
+public class TestType<T> where T : unmanaged
+{
+}";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M()
+    {
+        var obj = new [|TestType|]&lt;int&gt;();
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public class [|TestType|]<T> where T : unmanaged
+{{
+    public TestType();
+}}";
+
+            using (var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp7_3",
+                sourceWithSymbolReference: sourceWithSymbolReference))
+            {
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+                context.VerifyResult(metadataAsSourceFile, expected);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestUnmanagedCSharpConstraint_Method()
+        {
+            var metadata = @"using System;
+public class TestType
+{
+    public void M<T>() where T : unmanaged
+    {
+    }
+}";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M()
+    {
+        var obj = new TestType().[|M|]&lt;int&gt;();
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public class TestType
+{{
+    public TestType();
+
+    public void [|M|]<T>() where T : unmanaged;
+}}";
+
+            using (var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp7_3",
+                sourceWithSymbolReference: sourceWithSymbolReference))
+            {
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+                context.VerifyResult(metadataAsSourceFile, expected);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestUnmanagedCSharpConstraint_Delegate()
+        {
+            var metadata = @"using System;
+public delegate void D<T>() where T : unmanaged;";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M([|D|]&lt;int&gt; lambda)
+    {
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public delegate void [|D|]<T>() where T : unmanaged;";
+
+            using (var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp7_3",
+                sourceWithSymbolReference: sourceWithSymbolReference))
+            {
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+                context.VerifyResult(metadataAsSourceFile, expected);
+            }
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestSByteMinValue()
+        {
+            var source = @"
+class C
+{
+    sbyte Goo = sbyte.[|MinValue|];
+}";
+
+            var expected = "public const SByte MinValue = -128;";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestSByteMinValueVB()
+        {
+            var source = @"
+Class C
+    Public Goo = SByte.[|MinValue|]
+End Class";
+
+            var expected = "Public Const MinValue As [SByte] = -128";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestInt16MinValue()
+        {
+            var source = @"
+class C
+{
+    short Goo = short.[|MinValue|];
+}";
+
+            var expected = $"public const Int16 MinValue = -32768;";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestInt16MinValueVB()
+        {
+            var source = @"
+Class C
+    Public Goo = Short.[|MinValue|]
+End Class";
+
+            var expected = $"Public Const MinValue As Int16 = -32768";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestInt32MinValue()
+        {
+            var source = @"
+class C
+{
+    int Goo = int.[|MinValue|];
+}";
+
+            var expected = $"public const Int32 MinValue = -2147483648;";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestInt32MinValueVB()
+        {
+            var source = @"
+Class C
+    Public Goo = Integer.[|MinValue|]
+End Class";
+
+            var expected = $"Public Const MinValue As Int32 = -2147483648";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestInt64MinValue()
+        {
+            var source = @"
+class C
+{
+    long Goo = long.[|MinValue|];
+}";
+
+            var expected = $"public const Int64 MinValue = -9223372036854775808;";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestInt64MinValueVB()
+        {
+            var source = @"
+Class C
+    Public Goo = Long.[|MinValue|]
+End Class";
+
+            var expected = $"Public Const MinValue As Int64 = -9223372036854775808";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
         }
     }
 }

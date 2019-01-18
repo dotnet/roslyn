@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Dim previousToken = token.GetPreviousToken()
 
             Dim spans = SpecializedCollections.SingletonEnumerable(TextSpan.FromBounds(previousToken.SpanStart, token.Span.End))
-            Return Formatter.GetFormattedTextChangesAsync(_root, spans, workspace, _optionSet, _formattingRules, cancellationToken)
+            Return Task.FromResult(Formatter.GetFormattedTextChanges(_root, spans, workspace, _optionSet, _formattingRules, cancellationToken))
         End Function
     End Class
 End Namespace

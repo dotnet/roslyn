@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -52,13 +53,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
          }
      }
  }
-", 
+",
                 open: true);
 
             VisualStudio.InteractiveWindow.SubmitText("using System;");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
         public void SendSingleLineSubmissionToInteractive()
         {
             VisualStudio.InteractiveWindow.InsertCode("// scenario 1");
@@ -74,7 +75,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("\"1\"");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
         public void SendMultipleLineSubmissionToInteractive()
         {
             VisualStudio.InteractiveWindow.InsertCode("// scenario 2");
@@ -92,7 +93,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("\"3\"");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
         public void SendMultipleLineBlockSelectedSubmissionToInteractive()
         {
             VisualStudio.InteractiveWindow.SubmitText("int x = 1;");
@@ -113,7 +114,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("4");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
         public void SendToInteractiveWithKeyboardShortcut()
         {
             VisualStudio.InteractiveWindow.InsertCode("// scenario 4");
@@ -129,7 +130,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("\"7\"");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
         public void ExecuteSingleLineSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
             VisualStudio.InteractiveWindow.InsertCode("// scenario 5");
@@ -145,7 +146,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("1");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
         public void ExecuteMultipleLineSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
             VisualStudio.InteractiveWindow.InsertCode("// scenario 6");
@@ -163,7 +164,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("3");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
         public void ExecuteMultipleLineBlockSelectedSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
             VisualStudio.InteractiveWindow.SubmitText("int x = 1;");
@@ -186,7 +187,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("4");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
         public void ExecuteInInteractiveWithKeyboardShortcut()
         {
             VisualStudio.InteractiveWindow.InsertCode("// scenario 8");
@@ -202,7 +203,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("7");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
         public void AddAssemblyReferenceAndTypesToInteractive()
         {
             VisualStudio.InteractiveWindow.ClearReplText();
@@ -216,7 +217,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
         public void ResetInteractiveFromProjectAndVerify()
         {
             var assembly = new ProjectUtils.AssemblyReference("System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");

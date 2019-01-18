@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     {
         public readonly List<EncEditSessionInfo> EditSessions = new List<EncEditSessionInfo>();
         public int EmptyEditSessions { get; private set; }
-        public bool ReadOnlyEditAttemptedProjectNotBuiltOrLoaded { get; private set; }
 
         internal void EndEditSession(EncEditSessionInfo encEditSessionInfo)
         {
@@ -20,11 +19,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 EditSessions.Add(encEditSessionInfo);
             }
-        }
-
-        internal void LogReadOnlyEditAttemptedProjectNotBuiltOrLoaded()
-        {
-            ReadOnlyEditAttemptedProjectNotBuiltOrLoaded = true;
         }
     }
 }

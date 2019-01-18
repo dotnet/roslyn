@@ -3,6 +3,7 @@
 Option Strict Off
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -16,6 +17,7 @@ Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+    <[UseExportProvider]>
     Partial Public MustInherit Class AbstractCrossLanguageUserDiagnosticTest
         Protected Const DestinationDocument = "DestinationDocument"
 
@@ -45,7 +47,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                             Optional verifyTokens As Boolean = True,
                             Optional fileNameToExpected As Dictionary(Of String, String) = Nothing,
                             Optional verifySolutions As Func(Of Solution, Solution, Task) = Nothing,
-                            Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing) As Task
+                            Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing,
+                            Optional glyphTags As ImmutableArray(Of String) = Nothing) As Task
             Using workspace = TestWorkspace.CreateWorkspace(definition)
                 onAfterWorkspaceCreated?.Invoke(workspace)
 
@@ -53,6 +56,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Dim codeActions = diagnosticAndFix.Item2.Fixes.Select(Function(f) f.Action).ToList()
                 codeActions = MassageActions(codeActions)
                 Dim codeAction = codeActions(codeActionIndex)
+
+                If Not glyphTags.IsDefault Then
+                    Assert.Equal(glyphTags, codeAction.Tags)
+                End If
 
                 Dim oldSolution = workspace.CurrentSolution
                 Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
@@ -142,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
 
-            Dim syntaxFacts = document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
+            Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
             Dim root = Await document.GetSyntaxRootAsync()
             Dim start = syntaxFacts.GetContainingMemberDeclaration(root, invocationPoint)
 

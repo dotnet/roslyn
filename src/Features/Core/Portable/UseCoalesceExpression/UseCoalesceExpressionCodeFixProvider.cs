@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         }
 
         private static SyntaxNode GetCoalesceExpression(
-            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, 
-            SyntaxNode whenPart, SyntaxNode whenTrue, 
-            SyntaxNode conditionalPartLow, 
+            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator,
+            SyntaxNode whenPart, SyntaxNode whenTrue,
+            SyntaxNode conditionalPartLow,
             SyntaxNode currentWhenTrue, SyntaxNode currentWhenFalse)
         {
             return whenPart == whenTrue

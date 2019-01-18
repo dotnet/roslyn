@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _getExceptionMethodName = getExceptionMethodName;
         }
 
-        internal override bool IsWritable
+        internal override bool IsWritableVariable
         {
             get { return false; }
         }
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var method = GetIntrinsicMethod(compilation, _getExceptionMethodName);
             var call = BoundCall.Synthesized(syntax, receiverOpt: null, method: method);
-            return ConvertToLocalType(compilation, call, this.Type, diagnostics);
+            return ConvertToLocalType(compilation, call, this.Type.TypeSymbol, diagnostics);
         }
     }
 }

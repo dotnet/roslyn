@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -15,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Remote
     internal class SolutionService : ISolutionController
     {
         private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
-        public static readonly RemoteWorkspace PrimaryWorkspace = new RemoteWorkspace();
 
         private readonly AssetService _assetService;
 
@@ -26,6 +27,24 @@ namespace Microsoft.CodeAnalysis.Remote
         public SolutionService(AssetService assetService)
         {
             _assetService = assetService;
+        }
+
+        public static RemoteWorkspace PrimaryWorkspace
+        {
+            get
+            {
+                var exportProvider = (IMefHostExportProvider)RoslynServices.HostServices;
+                var primaryWorkspace = exportProvider.GetExports<PrimaryWorkspace>().Single().Value;
+                if (primaryWorkspace.Workspace == null)
+                {
+                    // The Roslyn OOP service assumes a singleton workspace exists, but doesn't initialize it anywhere.
+                    // If we get here, code is asking for a workspace before it exists, so we create one on the fly.
+                    // The RemoteWorkspace constructor assigns itself as the new singleton instance.
+                    new RemoteWorkspace();
+                }
+
+                return (RemoteWorkspace)primaryWorkspace.Workspace;
+            }
         }
 
         public Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
@@ -122,9 +141,9 @@ namespace Microsoft.CodeAnalysis.Remote
             return workspace.CurrentSolution;
         }
 
-        async Task<Solution> ISolutionController.GetSolutionAsync(Checksum solutionChecksum, bool primary, CancellationToken cancellationToken)
+        Task<Solution> ISolutionController.GetSolutionAsync(Checksum solutionChecksum, bool primary, CancellationToken cancellationToken)
         {
-            return await GetSolutionInternalAsync(solutionChecksum, primary, cancellationToken).ConfigureAwait(false);
+            return GetSolutionInternalAsync(solutionChecksum, primary, cancellationToken);
         }
 
         async Task ISolutionController.UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken)

@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis
         public Encoding Encoding { get; internal set; }
 
         /// <summary>
-        /// Hash algorithm to use to calculate source file debug checksums.
+        /// Hash algorithm to use to calculate source file debug checksums and PDB checksum.
         /// </summary>
         public SourceHashAlgorithm ChecksumAlgorithm { get; internal set; }
 
@@ -282,16 +282,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CultureInfo PreferredUILang { get; internal set; }
 
-        internal StrongNameProvider GetStrongNameProvider(
-            StrongNameFileSystem fileSystem,
-            string tempDirectory)
-        {
-            bool fallback = ParseOptionsCore.Features.ContainsKey("UseLegacyStrongNameProvider") ||
-                CompilationOptionsCore.CryptoKeyContainer != null;
-            return fallback ?
-                new DesktopStrongNameProvider(KeyFileSearchPaths, tempDirectory, fileSystem) :
-                (StrongNameProvider)new PortableStrongNameProvider(KeyFileSearchPaths, fileSystem);
-        }
+        internal StrongNameProvider GetStrongNameProvider(StrongNameFileSystem fileSystem)
+            => new DesktopStrongNameProvider(KeyFileSearchPaths, fileSystem);
 
         internal CommandLineArguments()
         {

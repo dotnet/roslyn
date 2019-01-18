@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
     ''' <summary>
     ''' Tests for Error List. Since it is language agnostic there are no C# or VB Specific tests
     ''' </summary>
+    <[UseExportProvider]>
     Public Class DiagnosticProviderTests
         Private Const s_errorElementName As String = "Error"
         Private Const s_projectAttributeName As String = "Project"

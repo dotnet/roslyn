@@ -1869,10 +1869,10 @@ lUnsplitAndFinish:
 
         Public Overrides Function VisitRelationalCaseClause(node As BoundRelationalCaseClause) As BoundNode
             ' Exactly one of the operand or condition must be non-null
-            Debug.Assert(node.OperandOpt IsNot Nothing Xor node.ConditionOpt IsNot Nothing)
+            Debug.Assert(node.ValueOpt IsNot Nothing Xor node.ConditionOpt IsNot Nothing)
 
-            If node.OperandOpt IsNot Nothing Then
-                VisitRvalue(node.OperandOpt)
+            If node.ValueOpt IsNot Nothing Then
+                VisitRvalue(node.ValueOpt)
             Else
                 VisitRvalue(node.ConditionOpt)
             End If
@@ -2546,8 +2546,16 @@ EnteredRegion:
         End Function
 
         Public Overrides Function VisitConditionalGoto(node As BoundConditionalGoto) As BoundNode
-            VisitRvalue(node.Condition)
-            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me._nesting))
+            VisitCondition(node.Condition)
+            Debug.Assert(Me.IsConditionalState)
+            If node.JumpIfTrue Then
+                _pendingBranches.Add(New PendingBranch(node, Me.StateWhenTrue, Me._nesting))
+                Me.SetState(Me.StateWhenFalse)
+            Else
+                _pendingBranches.Add(New PendingBranch(node, Me.StateWhenFalse, Me._nesting))
+                Me.SetState(Me.StateWhenTrue)
+            End If
+
             Return Nothing
         End Function
 

@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using static Roslyn.Test.Utilities.ExceptionHelper; 
+using static Roslyn.Test.Utilities.ExceptionHelper;
 
 namespace Roslyn.Test.Utilities
 {
@@ -18,19 +18,12 @@ namespace Roslyn.Test.Utilities
         }
     }
 
-    public class PeVerifyException : Exception
-    {
-        public PeVerifyException(string output, string exePath) 
-            : base(GetMessageFromResult(output, exePath)) { }
-
-    }
-
     public class ExecutionException : Exception
     {
-        public ExecutionException(string expectedOutput, string actualOutput, string exePath) 
+        public ExecutionException(string expectedOutput, string actualOutput, string exePath)
             : base(GetMessageFromResult(expectedOutput, actualOutput, exePath)) { }
 
-        public ExecutionException(Exception innerException, string exePath) 
+        public ExecutionException(Exception innerException, string exePath)
             : base(GetMessageFromException(innerException, exePath), innerException) { }
     }
 }

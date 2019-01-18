@@ -42,6 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 constraints.Add(SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint));
             }
+            else if (typeParameter.HasUnmanagedTypeConstraint)
+            {
+                constraints.Add(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("unmanaged")));
+            }
             else if (typeParameter.HasValueTypeConstraint)
             {
                 constraints.Add(SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint));

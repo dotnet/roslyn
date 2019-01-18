@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseDefaultLiteralDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpUseDefaultLiteralDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public CSharpUseDefaultLiteralDiagnosticAnalyzer() 
+        public CSharpUseDefaultLiteralDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Simplify_default_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.default_expression_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
@@ -50,9 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
             // Create a normal diagnostic that covers the entire default expression.
             context.ReportDiagnostic(
-                Diagnostic.Create(GetDescriptorWithSeverity(
-                    optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Notification.Value),
-                    defaultExpression.GetLocation()));
+                DiagnosticHelper.Create(
+                    Descriptor,
+                    defaultExpression.GetLocation(),
+                    optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Notification.Severity,
+                    additionalLocations: null,
+                    properties: null));
 
             // Also fade out the part of the default expression from the open paren through 
             // the close paren.

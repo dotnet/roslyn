@@ -1,18 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Debugging;
-using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 {
+    [UseExportProvider]
     public class NameResolverTests
     {
         private async Task TestAsync(string text, string searchText, params string[] expectedNames)
@@ -483,18 +481,18 @@ class G<T>
   void Goo() { };
 }";
             await TestAsync(text, "Goo;", "C.Goo()");
-            await TestAsync(text, 
+            await TestAsync(text,
 @"Goo();", "C.Goo()");
             await TestAsync(text, "  Goo;", "C.Goo()");
             await TestAsync(text, "  Goo;;");
             await TestAsync(text, "  Goo; ;");
-            await TestAsync(text, 
+            await TestAsync(text,
 @"Goo();", "C.Goo()");
-            await TestAsync(text, 
+            await TestAsync(text,
 @"Goo();", "C.Goo()");
-            await TestAsync(text, 
+            await TestAsync(text,
 @"Goo(); // comment", "C.Goo()");
-            await TestAsync(text, 
+            await TestAsync(text,
 @"/*comment*/
            Goo(/* params */); /* comment", "C.Goo()");
         }

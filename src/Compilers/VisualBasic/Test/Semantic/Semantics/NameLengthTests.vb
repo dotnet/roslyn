@@ -431,7 +431,7 @@ BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in m
 </errors>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Locals()
             Dim sourceTemplate = <![CDATA[
 Class C
@@ -444,7 +444,7 @@ End Class
 ]]>
 
             Dim source = Format(sourceTemplate, s_longLocalName)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, options:=TestOptions.DebugDll)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40({source}, {}, options:=TestOptions.DebugDll)
             Dim _longSquiggle_ As New String("~"c, s_longLocalName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
@@ -454,7 +454,7 @@ BC42373: Local name '<%= s_longLocalName %>1' is too long for PDB.  Consider sho
 </errors>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ConstantLocals()
             Dim sourceTemplate = <![CDATA[
 Class C
@@ -467,7 +467,7 @@ End Class
 ]]>
 
             Dim source = Format(sourceTemplate, s_longLocalName)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, {}, options:=TestOptions.DebugDll)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40({source}, {}, options:=TestOptions.DebugDll)
             Dim _longSquiggle_ As New String("~"c, s_longLocalName.Length)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
@@ -546,7 +546,7 @@ BC37220: Name '<%= s_longSymbolName %>3' exceeds the maximum length allowed in m
         End Function
 
         Private Function CreateCompilationWithMscorlib(source As String) As VisualBasicCompilation
-            Return CompilationUtils.CreateCompilationWithMscorlib({source}, {}, TestOptions.ReleaseDll)
+            Return CompilationUtils.CreateCompilationWithMscorlib40({source}, {}, TestOptions.ReleaseDll)
         End Function
 
         Private Function CreateCompilationWithMscorlib45(source As String) As VisualBasicCompilation

@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (_lazyRoslynServices == null)
                 {
-                    _lazyRoslynServices = new RoslynServices(_solutionInfo.ScopeId, AssetStorage);
+                    _lazyRoslynServices = new RoslynServices(_solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
                 }
 
                 return _lazyRoslynServices;
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
-            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage);
+            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
             return GetSolutionAsync(localRoslynService, solutionInfo, cancellationToken);
         }
 
@@ -252,13 +253,54 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (!cancellationToken.IsCancellationRequested)
             {
-                LogError("Exception: " + ex.ToString());
-
-                var callStack = new StackTrace().ToString();
-                LogError("From: " + callStack);
+                LogException(ex);
             }
 
             return false;
+        }
+
+        protected void LogException(Exception ex)
+        {
+            LogError("Exception: " + ex.ToString());
+
+            LogExtraInformation(ex);
+
+            var callStack = new StackTrace().ToString();
+            LogError("From: " + callStack);
+        }
+
+        private void LogExtraInformation(Exception ex)
+        {
+            if (ex == null)
+            {
+                return;
+            }
+
+            if (ex is ReflectionTypeLoadException reflection)
+            {
+                foreach (var loaderException in reflection.LoaderExceptions)
+                {
+                    LogError("LoaderException: " + loaderException.ToString());
+                    LogExtraInformation(loaderException);
+                }
+            }
+
+            if (ex is FileNotFoundException file)
+            {
+                LogError("FusionLog: " + file.FusionLog);
+            }
+
+            if (ex is AggregateException agg)
+            {
+                foreach (var innerException in agg.InnerExceptions)
+                {
+                    LogExtraInformation(innerException);
+                }
+            }
+            else
+            {
+                LogExtraInformation(ex.InnerException);
+            }
         }
     }
 }

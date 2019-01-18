@@ -2,6 +2,7 @@
 
 using System;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Roslyn.Test.Utilities;
@@ -20,17 +21,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
         public void GoToClassDeclaration()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, "FileDef.cs");
-            VisualStudio.SolutionExplorer.OpenFile( project, "FileDef.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project, "FileDef.cs");
             VisualStudio.Editor.SetText(
 @"class SomeClass
 {
 }");
-            VisualStudio.SolutionExplorer.AddFile(project,"FileConsumer.cs");
+            VisualStudio.SolutionExplorer.AddFile(project, "FileConsumer.cs");
             VisualStudio.SolutionExplorer.OpenFile(project, "FileConsumer.cs");
             VisualStudio.Editor.SetText(
 @"class SomeOtherClass
@@ -43,7 +44,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
         public void GoToDefinitionOpensProvisionalTabIfDocumentNotAlreadyOpen()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -68,7 +69,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
         public void GoToDefinitionWithMultipleResults()
         {
             SetUpEditor(

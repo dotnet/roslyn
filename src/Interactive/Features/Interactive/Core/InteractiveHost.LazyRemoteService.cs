@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 try
                 {
-                    Host.ProcessStarting?.Invoke(this.Options.InitializationFile != null);
+                    Host.ProcessStarting?.Invoke(Options.InitializationFile != null);
 
-                    var remoteService = await TryStartProcessAsync(Options.Culture, cancellationToken).ConfigureAwait(false);
+                    var remoteService = await TryStartProcessAsync(GetPath(Options.Is64Bit), Options.Culture, cancellationToken).ConfigureAwait(false);
                     if (remoteService == null)
                     {
-                        return default(InitializedRemoteService);
+                        return default;
                     }
 
                     if (SkipInitialization)
@@ -81,10 +81,10 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     if (!initializationResult.Success)
                     {
-                        remoteService.Dispose(joinThreads: false);
                         Host.ReportProcessExited(remoteService.Process);
+                        remoteService.Dispose(joinThreads: false);
 
-                        return default(InitializedRemoteService);
+                        return default;
                     }
 
                     // Hook up a handler that initiates restart when the process exits.
@@ -100,9 +100,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private Task<RemoteService> TryStartProcessAsync(CultureInfo culture, CancellationToken cancellationToken)
+            private Task<RemoteService> TryStartProcessAsync(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
             {
-                return Task.Run(() => Host.TryStartProcess(culture, cancellationToken));
+                return Task.Run(() => Host.TryStartProcess(hostPath, culture, cancellationToken));
             }
         }
     }

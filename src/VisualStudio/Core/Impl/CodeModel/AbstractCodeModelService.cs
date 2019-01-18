@@ -488,30 +488,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public abstract string GetFullyQualifiedName(string name, int position, SemanticModel semanticModel);
 
-        public void Rename(ISymbol symbol, string newName, Solution solution)
+        public void Rename(ISymbol symbol, string newName, Workspace workspace, ProjectCodeModelFactory projectCodeModelFactory)
         {
-            // TODO: (tomescht) make this testable through unit tests.
-            // Right now we have to go through the project system to find all
-            // the outstanding CodeElements which might be affected by the
-            // rename. This is silly. This functionality should be moved down
-            // into the service layer.
-
-            var workspace = solution.Workspace as VisualStudioWorkspaceImpl;
-            if (workspace == null)
-            {
-                throw Exceptions.ThrowEFail();
-            }
-
             // Save the node keys.
-            var nodeKeyValidation = new NodeKeyValidation();
-            foreach (var project in workspace.DeferredState.ProjectTracker.ImmutableProjects)
-            {
-                nodeKeyValidation.AddProject(project);
-            }
+            var nodeKeyValidation = new NodeKeyValidation(projectCodeModelFactory);
 
             // Rename symbol.
-            var newSolution = Renamer.RenameSymbolAsync(solution, symbol, newName, solution.Options).WaitAndGetResult_CodeModel(CancellationToken.None);
-            var changedDocuments = newSolution.GetChangedDocuments(solution);
+            var oldSolution = workspace.CurrentSolution;
+            var newSolution = Renamer.RenameSymbolAsync(oldSolution, symbol, newName, oldSolution.Options).WaitAndGetResult_CodeModel(CancellationToken.None);
+            var changedDocuments = newSolution.GetChangedDocuments(oldSolution);
 
             // Notify third parties of the coming rename operation and let exceptions propagate out
             _refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: true);

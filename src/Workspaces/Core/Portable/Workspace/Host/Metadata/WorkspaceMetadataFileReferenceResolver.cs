@@ -34,8 +34,9 @@ namespace Microsoft.CodeAnalysis.Host
 
         public bool Equals(WorkspaceMetadataFileReferenceResolver other)
         {
-            return other != null && _metadataService == other._metadataService &&
-                   PathResolver.Equals(other.PathResolver);
+            return other != null
+                && _metadataService == other._metadataService
+                && PathResolver.Equals(other.PathResolver);
         }
 
         public override int GetHashCode()

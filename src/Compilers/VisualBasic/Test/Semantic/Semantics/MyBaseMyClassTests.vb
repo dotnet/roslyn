@@ -3990,7 +3990,7 @@ End Module
 
             Dim verifier = CompileAndVerify(compilationDef,
                              options:=TestOptions.DebugDll,
-                             additionalRefs:={SystemCoreRef})
+                             references:={SystemCoreRef})
 
 
             Dim _assembly = Assembly.Load(verifier.EmittedAssemblyData.ToArray())

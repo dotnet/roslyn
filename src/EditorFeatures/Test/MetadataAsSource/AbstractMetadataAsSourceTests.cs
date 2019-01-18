@@ -2,9 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
@@ -12,6 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
+    [UseExportProvider]
     public abstract partial class AbstractMetadataAsSourceTests
     {
         internal static async Task GenerateAndVerifySourceAsync(
@@ -20,6 +19,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             using (var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments, languageVersion: languageVersion))
             {
                 await context.GenerateAndVerifySourceAsync(symbolName, expected);
+            }
+        }
+
+        internal static async Task GenerateAndVerifySourceLineAsync(string source, string language, string expected)
+        {
+            using (var context = TestContext.Create(language, sourceWithSymbolReference: source))
+            {
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+                var document = context.GetDocument(metadataAsSourceFile);
+                var text = await document.GetTextAsync();
+                var line = text.Lines.GetLineFromPosition(metadataAsSourceFile.IdentifierLocation.SourceSpan.Start);
+                var lineText = line.ToString().Trim();
+
+                Assert.Equal(expected, lineText);
             }
         }
 

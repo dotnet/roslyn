@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 _typeMap = typeMap;
                 _taggerProvider = taggerProvider;
 
-                _workQueue = new AsynchronousSerialWorkQueue(asyncListener);
+                _workQueue = new AsynchronousSerialWorkQueue(taggerProvider._threadingContext, asyncListener);
                 _reportChangeCancellationSource = new CancellationTokenSource();
 
                 _lastLineCache = new LastLineCache();
@@ -162,6 +162,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             public void DisconnectFromWorkspace()
             {
+                _reportChangeCancellationSource.Cancel();
+
                 if (_workspace != null)
                 {
                     _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
@@ -256,8 +258,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             private IEnumerable<ITagSpan<IClassificationTag>> GetTags<TClassificationService>(
-                NormalizedSnapshotSpanCollection spans, 
-                HostLanguageServices languageServices, 
+                NormalizedSnapshotSpanCollection spans,
+                HostLanguageServices languageServices,
                 IClassificationDelegationService<TClassificationService> delegationService) where TClassificationService : class, ILanguageService
             {
                 var classificationService = languageServices.GetService<TClassificationService>();
@@ -430,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 if (_workspace != null && _workspace == args.Solution.Workspace)
                 {
-                    ParseIfThisDocument(null, args.Solution, args.NewActiveContextDocumentId);
+                    ParseIfThisDocument(args.Solution, args.NewActiveContextDocumentId);
                 }
             }
 
@@ -438,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 if (_workspace != null)
                 {
-                    ParseIfThisDocument(null, args.Document.Project.Solution, args.Document.Id);
+                    ParseIfThisDocument(args.Document.Project.Solution, args.Document.Id);
                 }
             }
 
@@ -473,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                     case WorkspaceChangeKind.DocumentChanged:
                         {
-                            ParseIfThisDocument(args.OldSolution, args.NewSolution, args.DocumentId);
+                            ParseIfThisDocument(args.NewSolution, args.DocumentId);
                             break;
                         }
                 }
@@ -523,22 +525,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
 
 #if DEBUG
-                // do some sanity check
-                Contract.ThrowIfFalse(object.Equals(lastDocument.Project.ParseOptions, document.Project.ParseOptions));
-
                 // this must exist since we are holding it in the field.
                 Contract.ThrowIfNull(lastParsedSnapshot);
-                Contract.ThrowIfFalse(lastParsedSnapshot == newSnapshot || lastParsedText == newText || lastParsedText.ContentEquals(newText));
 #endif
-
-                // update document to new snapshot with same content
-                lock (_gate)
+                if (lastParsedSnapshot == newSnapshot)
                 {
-                    _lastParsedDocument = document;
+                    // update document to new snapshot with same content
+                    lock (_gate)
+                    {
+                        _lastParsedDocument = document;
+                    }
+                }
+                else
+                {
+                    // This workspace change must have also implicitly changed the text of our file. This can happen
+                    // if it's a linked file (and we are observing the non-active linked file changing before our own active file)
+                    // or some other workspace change (say a SolutionChanged) caused a text edit to happen and we didn't process
+                    // it directly. In that case, requeue a parse. This might be a redundant parse in the linked file case
+                    // since we might also get a DocumentChanged event for our ID. It's fine.
+                    ParseIfThisDocument(newSolution, document.Id);
                 }
             }
 
-            private void ParseIfThisDocument(Solution oldSolution, Solution newSolution, DocumentId documentId)
+            private void ParseIfThisDocument(Solution newSolution, DocumentId documentId)
             {
                 if (_workspace != null)
                 {

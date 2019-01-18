@@ -1243,7 +1243,7 @@ public class D
         }
 
         [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void InplaceCtor005()
         {
             string source = @"
@@ -1579,6 +1579,30 @@ public class D
   IL_001d:  ret
 }
 ");
+        }
+
+        [Fact]
+        [WorkItem(27049, "https://github.com/dotnet/roslyn/issues/27049")]
+        public void BoxingRefStructForBaseCall()
+        {
+            CreateCompilation(@"
+ref struct S
+{
+    public override bool Equals(object obj) => base.Equals(obj);
+
+    public override int GetHashCode() => base.GetHashCode();
+
+    public override string ToString() => base.ToString();
+}").VerifyDiagnostics(
+                // (4,48): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
+                //     public override bool Equals(object obj) => base.Equals(obj);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(4, 48),
+                // (6,42): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
+                //     public override int GetHashCode() => base.GetHashCode();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(6, 42),
+                // (8,42): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
+                //     public override string ToString() => base.ToString();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(8, 42));
         }
 
         #endregion
@@ -2071,39 +2095,33 @@ readonly struct S
             compilation.VerifyIL("S.Main",
 @"
 {
-  // Code size       63 (0x3f)
+  // Code size       57 (0x39)
   .maxstack  3
-  .locals init (S& V_0,
+  .locals init (S V_0,
                 S V_1,
                 S V_2,
-                S& V_3,
-                S V_4,
-                S V_5)
+                S V_3)
   IL_0000:  ldc.i4.5
   IL_0001:  call       ""S S.I(int)""
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  stloc.0
-  IL_000a:  ldc.i4.3
-  IL_000b:  call       ""S S.I(int)""
-  IL_0010:  stloc.2
-  IL_0011:  ldloca.s   V_2
-  IL_0013:  ldloc.0
-  IL_0014:  call       ""ref readonly S S.RefMethod(in S, in S)""
-  IL_0019:  ldc.i4.0
-  IL_001a:  call       ""S S.I(int)""
-  IL_001f:  stloc.s    V_4
-  IL_0021:  ldloca.s   V_4
-  IL_0023:  stloc.3
-  IL_0024:  ldc.i4.0
-  IL_0025:  call       ""S S.I(int)""
-  IL_002a:  stloc.s    V_5
-  IL_002c:  ldloca.s   V_5
-  IL_002e:  ldloc.3
-  IL_002f:  call       ""ref readonly S S.RefMethod(in S, in S)""
-  IL_0034:  call       ""bool S.GreaterThan(in S)""
-  IL_0039:  call       ""void System.Console.WriteLine(bool)""
-  IL_003e:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.3
+  IL_0008:  call       ""S S.I(int)""
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""ref readonly S S.RefMethod(in S, in S)""
+  IL_0017:  ldc.i4.0
+  IL_0018:  call       ""S S.I(int)""
+  IL_001d:  stloc.2
+  IL_001e:  ldc.i4.0
+  IL_001f:  call       ""S S.I(int)""
+  IL_0024:  stloc.3
+  IL_0025:  ldloca.s   V_3
+  IL_0027:  ldloca.s   V_2
+  IL_0029:  call       ""ref readonly S S.RefMethod(in S, in S)""
+  IL_002e:  call       ""bool S.GreaterThan(in S)""
+  IL_0033:  call       ""void System.Console.WriteLine(bool)""
+  IL_0038:  ret
 }
 ");
         }
@@ -2193,7 +2211,7 @@ readonly struct S
             compilation.VerifyIL("S.TestRO",
 @"
 {
-  // Code size       48 (0x30)
+  // Code size       46 (0x2e)
   .maxstack  2
   .locals init (S& V_0,
                 S& V_1,
@@ -2208,24 +2226,22 @@ readonly struct S
     IL_000d:  ldloc.0
     IL_000e:  call       ""ref readonly S S.RefMethodRO(in S, in S)""
     IL_0013:  stloc.1
-    IL_0014:  leave.s    IL_002e
+    IL_0014:  leave.s    IL_002c
   }
   finally
   {
     IL_0016:  ldc.i4.5
     IL_0017:  call       ""S S.I_Val(int)""
     IL_001c:  stloc.2
-    IL_001d:  ldloca.s   V_2
-    IL_001f:  stloc.0
-    IL_0020:  ldc.i4.3
-    IL_0021:  call       ""ref S S.I(int)""
-    IL_0026:  ldloc.0
-    IL_0027:  call       ""ref readonly S S.RefMethodRO(in S, in S)""
-    IL_002c:  pop
-    IL_002d:  endfinally
+    IL_001d:  ldc.i4.3
+    IL_001e:  call       ""ref S S.I(int)""
+    IL_0023:  ldloca.s   V_2
+    IL_0025:  call       ""ref readonly S S.RefMethodRO(in S, in S)""
+    IL_002a:  pop
+    IL_002b:  endfinally
   }
-  IL_002e:  ldloc.1
-  IL_002f:  ret
+  IL_002c:  ldloc.1
+  IL_002d:  ret
 }
 ");
         }
@@ -2266,7 +2282,7 @@ public class Test
             compilation.VerifyIL("NullableTest.EqualEqual",
 @"
 {
-  // Code size      120 (0x78)
+  // Code size      112 (0x70)
   .maxstack  2
   .locals init (decimal? V_0)
   IL_0000:  ldc.i4.0
@@ -2280,31 +2296,27 @@ public class Test
   IL_001c:  ldloca.s   V_0
   IL_001e:  call       ""decimal decimal?.GetValueOrDefault()""
   IL_0023:  call       ""bool decimal.op_Equality(decimal, decimal)""
-  IL_0028:  brtrue.s   IL_002d
-  IL_002a:  ldc.i4.0
-  IL_002b:  br.s       IL_0034
-  IL_002d:  ldloca.s   V_0
-  IL_002f:  call       ""bool decimal?.HasValue.get""
-  IL_0034:  box        ""bool""
-  IL_0039:  ldc.i4.0
-  IL_003a:  box        ""bool""
-  IL_003f:  call       ""void Test.Eval(object, object)""
-  IL_0044:  ldsfld     ""decimal decimal.Zero""
-  IL_0049:  ldsfld     ""decimal? NullableTest.NULL""
-  IL_004e:  stloc.0
-  IL_004f:  ldloca.s   V_0
-  IL_0051:  call       ""decimal decimal?.GetValueOrDefault()""
-  IL_0056:  call       ""bool decimal.op_Equality(decimal, decimal)""
-  IL_005b:  brtrue.s   IL_0060
-  IL_005d:  ldc.i4.0
-  IL_005e:  br.s       IL_0067
-  IL_0060:  ldloca.s   V_0
-  IL_0062:  call       ""bool decimal?.HasValue.get""
-  IL_0067:  box        ""bool""
-  IL_006c:  ldc.i4.0
-  IL_006d:  box        ""bool""
-  IL_0072:  call       ""void Test.Eval(object, object)""
-  IL_0077:  ret
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""bool decimal?.HasValue.get""
+  IL_002f:  and
+  IL_0030:  box        ""bool""
+  IL_0035:  ldc.i4.0
+  IL_0036:  box        ""bool""
+  IL_003b:  call       ""void Test.Eval(object, object)""
+  IL_0040:  ldsfld     ""decimal decimal.Zero""
+  IL_0045:  ldsfld     ""decimal? NullableTest.NULL""
+  IL_004a:  stloc.0
+  IL_004b:  ldloca.s   V_0
+  IL_004d:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0052:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0057:  ldloca.s   V_0
+  IL_0059:  call       ""bool decimal?.HasValue.get""
+  IL_005e:  and
+  IL_005f:  box        ""bool""
+  IL_0064:  ldc.i4.0
+  IL_0065:  box        ""bool""
+  IL_006a:  call       ""void Test.Eval(object, object)""
+  IL_006f:  ret
 }
 ");
         }

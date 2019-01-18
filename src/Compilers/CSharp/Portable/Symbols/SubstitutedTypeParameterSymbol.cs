@@ -4,8 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Globalization;
-using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
 
         internal SubstitutedTypeParameterSymbol(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
-            : base(substitutedFrom) 
+            : base(substitutedFrom)
         {
             _container = newContainer;
             // it is important that we don't use the map here in the constructor, as the map is still being filled
@@ -97,9 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingTypeParameter.GetAttributes();
         }
 
-        internal override ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
-            return _map.SubstituteTypesWithoutModifiers(_underlyingTypeParameter.GetConstraintTypes(inProgress)).WhereAsArray(s_isNotObjectFunc).Distinct();
+            var constraintTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            _map.SubstituteTypesDistinctWithoutModifiers(_underlyingTypeParameter.GetConstraintTypes(inProgress, early), constraintTypes, null);
+            return constraintTypes.ToImmutableAndFree().WhereAsArray(type => type.SpecialType != SpecialType.System_Object || !type.NullableAnnotation.IsAnyNullable());
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
@@ -116,7 +117,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _map.SubstituteType(_underlyingTypeParameter.GetDeducedBaseType(inProgress)).AsTypeSymbolOnly();
         }
-
-        private static readonly Func<TypeSymbol, bool> s_isNotObjectFunc = type => type.SpecialType != SpecialType.System_Object;
     }
 }

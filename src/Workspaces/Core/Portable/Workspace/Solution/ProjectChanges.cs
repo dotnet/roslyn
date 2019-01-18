@@ -116,16 +116,42 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Get Documents with any changes, including textual and non-textual changes
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<DocumentId> GetChangedDocuments()
         {
-            // if the document states are different then there is a change.
+            return GetChangedDocuments(false);
+        }
+
+        /// <summary>
+        /// Get Changed Documents:
+        /// When onlyGetDocumentsWithTextChanges is true, only get documents with text changes;
+        /// otherwise get documents with any changes i.e. DocumentState changes:
+        /// <see cref="DocumentState.ParseOptions"/>, <see cref="DocumentState.SourceCodeKind"/>, <see cref="TextDocumentState.FilePath"/>
+        /// </summary>
+        /// <param name="onlyGetDocumentsWithTextChanges"></param>
+        /// <returns></returns>
+        public IEnumerable<DocumentId> GetChangedDocuments(bool onlyGetDocumentsWithTextChanges)
+        {
             foreach (var id in _newProject.DocumentIds)
             {
                 var newState = _newProject.GetDocumentState(id);
                 var oldState = _oldProject.GetDocumentState(id);
-                if (oldState != null && newState != oldState)
+
+                if (oldState != null)
                 {
-                    yield return id;
+                    if (onlyGetDocumentsWithTextChanges)
+                    {
+                        if (newState.HasTextChanged(oldState))
+                            yield return id;
+                    }
+                    else
+                    {
+                        if (newState != oldState)
+                            yield return id;
+                    }
                 }
             }
         }

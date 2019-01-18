@@ -14,6 +14,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const string IL_KEYWORD_MODOPT = "modopt";
         private const string IL_KEYWORD_MODREQ = "modreq";
 
+        private void VisitFieldType(IFieldSymbol symbol)
+        {
+            var fieldSymbol = symbol as FieldSymbol;
+            if ((object)fieldSymbol == null)
+            {
+                symbol.Type.Accept(this.NotFirstVisitor);
+            }
+            else
+            {
+                VisitTypeSymbolWithAnnotations(fieldSymbol.Type);
+            }
+        }
+
         public override void VisitField(IFieldSymbol symbol)
         {
             AddAccessibilityIfRequired(symbol);
@@ -24,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.isFirstSymbolVisited &&
                 !IsEnumMember(symbol))
             {
-                symbol.Type.Accept(this.NotFirstVisitor);
+                VisitFieldType(symbol);
                 AddSpace();
 
                 AddCustomModifiersIfRequired(symbol.CustomModifiers);
@@ -37,7 +50,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.DotToken);
             }
 
-            builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, symbol.Name));
+            if (symbol.ContainingType.TypeKind == TypeKind.Enum)
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.EnumMemberName, symbol, symbol.Name));
+            }
+            else if (symbol.IsConst)
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, symbol.Name));
+            }
+            else
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, symbol.Name));
+            }
 
             if (this.isFirstSymbolVisited &&
                 format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeConstantValue) &&
@@ -71,7 +95,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
 
-                symbol.Type.Accept(this.NotFirstVisitor);
+                var propertySymbol = symbol as PropertySymbol;
+                if ((object)propertySymbol == null)
+                {
+                    symbol.Type.Accept(this.NotFirstVisitor);
+                }
+                else
+                {
+                    VisitTypeSymbolWithAnnotations(propertySymbol.Type);
+                }
+
                 AddSpace();
 
                 AddCustomModifiersIfRequired(symbol.TypeCustomModifiers);
@@ -143,7 +176,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
             {
-                symbol.Type.Accept(this.NotFirstVisitor);
+                var eventSymbol = symbol as EventSymbol;
+
+                if ((object)eventSymbol == null)
+                {
+                    symbol.Type.Accept(this.NotFirstVisitor);
+                }
+                else
+                {
+                    VisitTypeSymbolWithAnnotations(eventSymbol.Type);
+                }
+
                 AddSpace();
             }
 
@@ -254,11 +297,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (symbol.ReturnType != null)
                             {
-                                symbol.ReturnType.Accept(this.NotFirstVisitor);
+                                AddReturnType(symbol);
                             }
 
                             AddSpace();
-                            AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers); 
+                            AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers);
                             break;
                     }
                 }
@@ -307,10 +350,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case MethodKind.Ordinary:
                 case MethodKind.DelegateInvoke:
-                case MethodKind.ReducedExtension:
                 case MethodKind.LocalFunction:
                     //containing type will be the delegate type, name will be Invoke
                     builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
+                    break;
+                case MethodKind.ReducedExtension:
+                    // Note: Extension methods invoked off of their static class will be tagged as methods.
+                    //       This behavior matches the semantic classification done in NameSyntaxClassifier.
+                    builder.Add(CreatePart(SymbolDisplayPartKind.ExtensionMethodName, symbol, symbol.Name));
                     break;
                 case MethodKind.PropertyGet:
                 case MethodKind.PropertySet:
@@ -416,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddSpace();
                         AddKeyword(SyntaxKind.OperatorKeyword);
                         AddSpace();
-                        symbol.ReturnType.Accept(this.NotFirstVisitor);
+                        AddReturnType(symbol);
                     }
                     break;
 
@@ -426,9 +473,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isAccessor)
             {
-                AddTypeArguments(symbol.TypeArguments);
+                AddTypeArguments(symbol, default(ImmutableArray<ImmutableArray<CustomModifier>>));
                 AddParameters(symbol);
                 AddTypeParameterConstraints(symbol);
+            }
+        }
+
+        private void AddReturnType(IMethodSymbol symbol)
+        {
+            var methodSymbol = symbol as MethodSymbol;
+
+            if ((object)methodSymbol == null)
+            {
+                symbol.ReturnType.Accept(this.NotFirstVisitor);
+            }
+            else
+            {
+                VisitTypeSymbolWithAnnotations(methodSymbol.ReturnType);
             }
         }
 
@@ -481,7 +542,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSpace();
                 }
 
-                symbol.Type.Accept(this.NotFirstVisitor);
+                var parameter = symbol as ParameterSymbol;
+                if ((object)parameter != null)
+                {
+                    VisitTypeSymbolWithAnnotations(parameter.Type);
+                }
+                else
+                {
+                    symbol.Type.Accept(this.NotFirstVisitor);
+                }
                 AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
             }
 
@@ -492,7 +561,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeName)
             {
-                builder.Add(CreatePart(SymbolDisplayPartKind.ParameterName, symbol, symbol.Name));
+                var kind = symbol.IsThis ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ParameterName;
+                builder.Add(CreatePart(kind, symbol, symbol.Name));
 
                 if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
                     symbol.HasExplicitDefaultValue &&
@@ -563,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeModifiers) &&
                 (containingType == null ||
-                 (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol))))
+                 (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol) && !IsLocalFunction(symbol))))
             {
                 var isConst = symbol is IFieldSymbol && ((IFieldSymbol)symbol).IsConst;
                 if (symbol.IsStatic && !isConst)

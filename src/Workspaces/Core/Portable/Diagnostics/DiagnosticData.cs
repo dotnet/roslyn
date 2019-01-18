@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -233,9 +234,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
-        {
-            return HasTextSpan ? TextSpan : GetTextSpan(this.DataLocation, text);
-        }
+            => HasTextSpan ? EnsureInBounds(TextSpan, text) : GetTextSpan(this.DataLocation, text);
+
+        private static TextSpan EnsureInBounds(TextSpan textSpan, SourceText text)
+            => TextSpan.FromBounds(
+                Math.Min(textSpan.Start, text.Length),
+                Math.Min(textSpan.End, text.Length));
 
         public DiagnosticData WithCalculatedSpan(SourceText text)
         {
@@ -276,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return new TextSpan(text.Length, 0);
             }
 
-            AdjustBoundaries(dataLocation, lines, 
+            AdjustBoundaries(dataLocation, lines,
                 out var startLine, out var startColumn, out var endLine, out var endColumn);
 
             var startLinePosition = new LinePosition(startLine, startColumn);
@@ -284,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SwapIfNeeded(ref startLinePosition, ref endLinePosition);
 
             var span = text.Lines.GetTextSpan(new LinePositionSpan(startLinePosition, endLinePosition));
-            return TextSpan.FromBounds(Math.Min(Math.Max(span.Start, 0), text.Length), Math.Min(Math.Max(span.End, 0), text.Length));
+            return EnsureInBounds(TextSpan.FromBounds(Math.Max(span.Start, 0), Math.Max(span.End, 0)), text);
         }
 
         private static void AdjustBoundaries(DiagnosticDataLocation dataLocation,
@@ -328,13 +332,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static DiagnosticData Create(Workspace workspace, Diagnostic diagnostic)
         {
-            Contract.Requires(diagnostic.Location == null || !diagnostic.Location.IsInSource);
+            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
 
             return new DiagnosticData(
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(),
+                diagnostic.GetBingHelpMessage(workspace),
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
@@ -351,13 +355,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static DiagnosticData Create(Project project, Diagnostic diagnostic)
         {
-            Contract.Requires(diagnostic.Location == null || !diagnostic.Location.IsInSource);
+            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
 
             return new DiagnosticData(
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(),
+                diagnostic.GetBingHelpMessage(project.Solution.Workspace),
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
@@ -413,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(),
+                diagnostic.GetBingHelpMessage(document.Project.Solution.Workspace),
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,

@@ -21,6 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Order(Before = HierarchyItemsProviderNames.Contains)]
     internal class AnalyzersFolderItemProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
     {
+        // NOTE: the IComponentModel is used here rather than importing ISolutionExplorerWorkspaceProvider directly
+        // to avoid loading VisualStudioWorkspace and dependent assemblies directly
         private readonly IComponentModel _componentModel;
         private readonly IAnalyzersCommandHandler _commandHandler;
         private IHierarchyItemToProjectIdMap _projectMap;

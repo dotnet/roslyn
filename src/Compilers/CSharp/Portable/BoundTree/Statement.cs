@@ -16,14 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual ImmutableArray<BoundNode> Children => ImmutableArray<BoundNode>.Empty;
     }
 
-    internal partial class BoundBadStatement
+    internal partial class BoundBadStatement : IBoundInvalidNode
     {
         protected override ImmutableArray<BoundNode> Children => this.ChildBoundNodes;
-    }
 
-    partial class BoundLocalFunctionStatement
-    {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Body);
+        ImmutableArray<BoundNode> IBoundInvalidNode.InvalidNodeChildren => this.ChildBoundNodes;
     }
 
     partial class BoundFixedStatement

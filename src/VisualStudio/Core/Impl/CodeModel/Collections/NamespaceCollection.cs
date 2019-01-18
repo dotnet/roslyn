@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             nodesBuilder.AddRange(CodeModelService.GetAttributeNodes(node));
             nodesBuilder.AddRange(CodeModelService.GetLogicalSupportedMemberNodes(node));
 
-            return new NodeSnapshot(this.State, _fileCodeModel, node, parentElement, 
+            return new NodeSnapshot(this.State, _fileCodeModel, node, parentElement,
                 nodesBuilder.ToImmutableAndFree());
         }
 

@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -114,13 +113,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterMap argsToParameters = new ParameterMap(parametersPositions, argumentCount);
 
             // We have analyzed every argument and tried to make it correspond to a particular parameter. 
-            // There are now four questions we must answer:
+            // We must now answer the following questions:
             //
             // (1) Is there any named argument used out-of-position and followed by unnamed arguments?
             // (2) Is there any argument without a corresponding parameter?
             // (3) Was there any named argument that specified a parameter that was already
             //     supplied with a positional parameter?
             // (4) Is there any non-optional parameter without a corresponding argument?
+            // (5) Is there any named argument that were specified twice?
             //
             // If the answer to any of these questions is "yes" then the method is not applicable.
             // It is possible that the answer to any number of these questions is "yes", and so
@@ -173,6 +173,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ArgumentAnalysisResult.RequiredParameterMissing(parameters.Length);
             }
 
+            // (5) Is there any named argument that were specified twice?
+
+            int? duplicateNamedArgument = CheckForDuplicateNamedArgument(arguments);
+            if (duplicateNamedArgument != null)
+            {
+                return ArgumentAnalysisResult.DuplicateNamedArgument(duplicateNamedArgument.Value);
+            }
+
             // We're good; this one might be applicable in the given form.
 
             return expanded ?
@@ -193,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Find the first named argument which is used out-of-position
             int foundPosition = -1;
             int length = arguments.Arguments.Count;
-            for (int i = 0; i < length;  i++)
+            for (int i = 0; i < length; i++)
             {
                 int parameter = argsToParameters[i];
                 if (parameter != -1 && parameter != i && arguments.Name(i) != null)
@@ -467,6 +475,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            return null;
+        }
+
+        private static int? CheckForDuplicateNamedArgument(AnalyzedArguments arguments)
+        {
+            if (arguments.Names.IsEmpty())
+            {
+                // No checks if there are no named arguments
+                return null;
+            }
+
+            var alreadyDefined = PooledHashSet<string>.GetInstance();
+            for (int i = 0; i < arguments.Names.Count; ++i)
+            {
+                string name = arguments.Name(i);
+
+                if (name is null)
+                {
+                    // Skip unnamed arguments
+                    continue;
+                }
+
+                if (!alreadyDefined.Add(name))
+                {
+                    alreadyDefined.Free();
+                    return i;
+                }
+            }
+
+            alreadyDefined.Free();
             return null;
         }
     }

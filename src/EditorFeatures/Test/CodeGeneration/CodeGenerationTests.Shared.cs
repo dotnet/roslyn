@@ -2,13 +2,14 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
     public partial class CodeGenerationTests
     {
+        [UseExportProvider]
         public class Shared
         {
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]

@@ -45,6 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         {
             InitializeComponent();
 
+            Loaded += PreviewPane_Loaded;
+
             _id = id;
             _logIdVerbatimInTelemetry = logIdVerbatimInTelemetry;
             _uiShell = uiShell;
@@ -82,6 +84,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
             // Initialize preview (i.e. diff view) portion.
             InitializePreviewElement(previewContent);
+        }
+
+        public FrameworkElement ParentElement
+        {
+            get { return (FrameworkElement)GetValue(ParentElementProperty); }
+            set { SetValue(ParentElementProperty, value); }
+        }
+
+        public static readonly DependencyProperty ParentElementProperty =
+            DependencyProperty.Register("ParentElement", typeof(FrameworkElement), typeof(PreviewPane), new PropertyMetadata(null));
+
+        private void PreviewPane_Loaded(object sender, RoutedEventArgs e)
+        {
+            Loaded -= PreviewPane_Loaded;
+            ParentElement = Parent as FrameworkElement;
         }
 
         public string AutomationName => ServicesVSResources.Preview_pane;
@@ -208,9 +225,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private void InitializeHyperlinks(Uri helpLink, string helpLinkToolTipText)
         {
-            IdHyperlink.SetVSHyperLinkStyle();
-            LearnMoreHyperlink.SetVSHyperLinkStyle();
-
             IdHyperlink.Inlines.Add(_id);
             IdHyperlink.NavigateUri = helpLink;
             IdHyperlink.IsEnabled = true;

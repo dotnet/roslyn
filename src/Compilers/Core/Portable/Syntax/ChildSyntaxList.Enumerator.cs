@@ -62,10 +62,11 @@ namespace Microsoft.CodeAnalysis
                 _childIndex = -1;
             }
 
-            internal bool TryMoveNextAndGetCurrent(ref SyntaxNodeOrToken current)
+            internal bool TryMoveNextAndGetCurrent(out SyntaxNodeOrToken current)
             {
                 if (!MoveNext())
                 {
+                    current = default;
                     return false;
                 }
 

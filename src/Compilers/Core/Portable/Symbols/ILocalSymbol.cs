@@ -46,5 +46,10 @@ namespace Microsoft.CodeAnalysis
 
         // TODO: Add XML doc comment.
         bool IsFunctionValue { get; }
+
+        /// <summary>
+        /// Returns true if the local variable is declared with fixed-pointer-initializer (in unsafe context).
+        /// </summary>
+        bool IsFixed { get; }
     }
 }

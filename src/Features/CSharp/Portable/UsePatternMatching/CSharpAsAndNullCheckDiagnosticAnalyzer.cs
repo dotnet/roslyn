@@ -2,10 +2,10 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,16 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     /// 
     ///     var x = o as Type;
     ///     if (x != null) ...
-    ///     
-    ///     T x;
-    ///     if/while ((x = e as T) != null)
     /// 
     /// and converts it to:
     /// 
-    ///     if/while (o is Type x) ...
+    ///     if (o is Type x) ...
+    ///     
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal partial class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public override bool OpenFileOnly(Workspace workspace) => false;
 
@@ -39,10 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(SyntaxNodeAction,
-                SyntaxKind.IfStatement,
-                SyntaxKind.WhileStatement,
-                SyntaxKind.ReturnStatement,
-                SyntaxKind.LocalDeclarationStatement);
+                SyntaxKind.EqualsExpression,
+                SyntaxKind.NotEqualsExpression);
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
@@ -71,38 +67,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var targetStatement = (StatementSyntax)node;
-            var leftmostCondition = GetLeftmostCondition(targetStatement);
-            if (!leftmostCondition.IsKind(SyntaxKind.NotEqualsExpression, out BinaryExpressionSyntax notEquals))
-            {
-                return;
-            }
-
-            var operand = GetNullCheckOperand(notEquals.Left, notEquals.Right)?.WalkDownParentheses();
+            var comparison = (BinaryExpressionSyntax)node;
+            var operand = GetNullCheckOperand(comparison.Left, comparison.Right)?.WalkDownParentheses();
             if (operand == null)
             {
                 return;
             }
 
-            // if/while has to be in a block so we can at least look for a preceding local variable declaration.
-            if (!targetStatement.Parent.IsKind(SyntaxKind.Block, out BlockSyntax parentBlock))
-            {
-                return;
-            }
-
-            if (!TryGetTypeCheckParts(operand, targetStatement, parentBlock,
-                    out var declarator, out var asExpression))
-            {
-                return;
-            }
-
             var semanticModel = syntaxContext.SemanticModel;
-            if (semanticModel.GetSymbolInfo(notEquals).GetAnySymbol().IsUserDefinedOperator())
+            if (operand.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression))
+            {
+                // Unwrap object cast
+                var castType = semanticModel.GetTypeInfo(castExpression.Type).Type;
+                if (castType.IsObjectType())
+                {
+                    operand = castExpression.Expression;
+                }
+            }
+
+            if (semanticModel.GetSymbolInfo(comparison).GetAnySymbol().IsUserDefinedOperator())
             {
                 return;
             }
 
-            var typeNode = ((BinaryExpressionSyntax)asExpression).Right;
+            if (!TryGetTypeCheckParts(semanticModel, operand,
+                    out VariableDeclaratorSyntax declarator,
+                    out BinaryExpressionSyntax asExpression,
+                    out ILocalSymbol localSymbol))
+            {
+                return;
+            }
+
+            var localStatement = declarator.Parent?.Parent;
+            var enclosingBlock = localStatement?.Parent;
+            if (localStatement == null ||
+                enclosingBlock == null)
+            {
+                return;
+            }
+
+            var typeNode = asExpression.Right;
             var asType = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
             if (asType.IsNullable())
             {
@@ -116,7 +120,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
             if (!localSymbol.Type.Equals(asType))
             {
                 // We have something like:
@@ -135,223 +138,139 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var declarationStatement = (StatementSyntax)declarator.Parent.Parent;
+            // Check if the as operand is ever written up to the point of null check.
+            //
+            //      var s = field as string;
+            //      field = null;
+            //      if (s != null) { ... }
+            //
+            // It's no longer safe to use pattern-matching because 'field is string s' would never be true.
+            // 
+            // Additionally, also bail out if the assigned local is referenced (i.e. read/write/nameof) up to the point of null check.
+            //      var s = field as string;
+            //      MethodCall(flag: s == null);
+            //      if (s != null) { ... }
+            //
+            var asOperand = semanticModel.GetSymbolInfo(asExpression.Left, cancellationToken).Symbol;
+            var localStatementStart = localStatement.SpanStart;
+            var comparisonSpanStart = comparison.SpanStart;
 
-            // If we convert this to 'if (o is Type x)' then 'x' will not be definitely assigned
-            // in the Else branch of the IfStatement, or after the IfStatement. Make sure
-            // that doesn't cause definite assignment issues.
-            if (IsAccessedBeforeAssignment(semanticModel, localSymbol,
-                    declarationStatement, targetStatement, parentBlock, cancellationToken))
+            foreach (var descendentNode in enclosingBlock.DescendantNodes())
+            {
+                var descendentNodeSpanStart = descendentNode.SpanStart;
+                if (descendentNodeSpanStart <= localStatementStart)
+                {
+                    continue;
+                }
+
+                if (descendentNodeSpanStart >= comparisonSpanStart)
+                {
+                    break;
+                }
+
+                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
+                {
+                    // Check if this is a 'write' to the asOperand.
+                    if (identifierName.Identifier.ValueText == asOperand?.Name &&
+                        asOperand.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol) &&
+                        identifierName.IsWrittenTo())
+                    {
+                        return;
+                    }
+
+                    // Check is a reference of any sort (i.e. read/write/nameof) to the local.
+                    if (identifierName.Identifier.ValueText == localSymbol.Name)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            if (!Analyzer.CanSafelyConvertToPatternMatching(
+                semanticModel, localSymbol, comparison, operand,
+                localStatement, enclosingBlock, cancellationToken))
             {
                 return;
             }
 
             // Looks good!
             var additionalLocations = ImmutableArray.Create(
-                declarationStatement.GetLocation(),
-                targetStatement.GetLocation(),
-                leftmostCondition.GetLocation(),
+                declarator.GetLocation(),
+                comparison.GetLocation(),
                 asExpression.GetLocation());
 
             // Put a diagnostic with the appropriate severity on the declaration-statement itself.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                GetDescriptorWithSeverity(styleOption.Notification.Value),
-                declarationStatement.GetLocation(),
-                additionalLocations));
-        }
-
-        private static bool IsAccessedBeforeAssignment(
-            SemanticModel semanticModel,
-            ISymbol localVariable,
-            StatementSyntax declarationStatement,
-            StatementSyntax targetStatement,
-            BlockSyntax parentBlock,
-            CancellationToken cancellationToken)
-        {
-            var isAssigned = false;
-            var isAccessedBeforeAssignment = false;
-
-            var statements = parentBlock.Statements;
-            var targetIndex = statements.IndexOf(targetStatement);
-            var declarationIndex = statements.IndexOf(declarationStatement);
-
-            // Since we're going to remove this declaration-statement,
-            // we need to first ensure that it's not used up to the target statement.
-            for (var index = declarationIndex + 1; index < targetIndex; index++)
-            {
-                CheckDefiniteAssignment(
-                    semanticModel, localVariable, statements[index],
-                    out isAssigned, out isAccessedBeforeAssignment,
-                    cancellationToken);
-
-                if (isAssigned || isAccessedBeforeAssignment)
-                {
-                    return true;
-                }
-            }
-
-            // In case of an if-statement, we need to check if the variable
-            // is being accessed before assignment in the else clause.
-            if (targetStatement.IsKind(SyntaxKind.IfStatement, out IfStatementSyntax ifStatement))
-            {
-                CheckDefiniteAssignment(
-                    semanticModel, localVariable, ifStatement.Else,
-                    out isAssigned, out isAccessedBeforeAssignment,
-                    cancellationToken);
-
-                if (isAccessedBeforeAssignment)
-                {
-                    return true;
-                }
-
-                if (isAssigned)
-                {
-                    return false;
-                }
-            }
-
-            // Make sure that no access is made to the variable before assignment in the subsequent statements
-            for (int index = targetIndex + 1, n = statements.Count; index < n; index++)
-            {
-                CheckDefiniteAssignment(
-                    semanticModel, localVariable, statements[index],
-                    out isAssigned, out isAccessedBeforeAssignment,
-                    cancellationToken);
-
-                if (isAccessedBeforeAssignment)
-                {
-                    return true;
-                }
-
-                if (isAssigned)
-                {
-                    // The scope of pattern variables in a while-statement does not leak out to
-                    // the enclosing block so we bail also if there is any assignments afterwards.
-                    return targetStatement.Kind() == SyntaxKind.WhileStatement;
-                }
-            }
-
-            return false;
-        }
-
-        private static void CheckDefiniteAssignment(
-            SemanticModel semanticModel, ISymbol localVariable, SyntaxNode node,
-            out bool isAssigned, out bool isAccessedBeforeAssignment,
-            CancellationToken cancellationToken)
-        {
-            if (node != null)
-            {
-                foreach (var descendantNode in node.DescendantNodes())
-                {
-                    if(!descendantNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax id))
-                    {
-                        continue;
-                    }
-
-                    var symbol = semanticModel.GetSymbolInfo(id, cancellationToken).GetAnySymbol();
-                    if (localVariable.Equals(symbol))
-                    {
-                        isAssigned = id.IsOnlyWrittenTo();
-                        isAccessedBeforeAssignment = !isAssigned;
-                        return;
-                    }
-                }
-            }
-
-            isAssigned = false;
-            isAccessedBeforeAssignment = false;
+            syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                localStatement.GetLocation(),
+                styleOption.Notification.Severity,
+                additionalLocations,
+                properties: null));
         }
 
         private static bool TryGetTypeCheckParts(
+            SemanticModel semanticModel,
             SyntaxNode operand,
-            StatementSyntax targetStatement,
-            BlockSyntax parentBlock,
-            out SyntaxNode variableDeclarator,
-            out SyntaxNode asExpression)
+            out VariableDeclaratorSyntax declarator,
+            out BinaryExpressionSyntax asExpression,
+            out ILocalSymbol localSymbol)
         {
             switch (operand.Kind())
             {
-                // We have something like:
-                //
-                //      var x = e as T;
-                //      while (b != null) { ... }
-                //
-                // It's not necessarily safe to convert this to:
-                //
-                //      while (x is T b) { ... }
-                //
-                // That's because in this case, unlike the original code, we're type-checking in every iteration
-                // so we do not replace simple null check with the "is" operator if it's in a while loop
-                case SyntaxKind.IdentifierName when targetStatement.Kind() != SyntaxKind.WhileStatement:
-                {
-                    // var x = e as T;
-                    // if (x != null) F(x);
-                    var identifier = (IdentifierNameSyntax)operand;
-                    var declarator = TryFindVariableDeclarator(identifier, targetStatement, parentBlock);
-                    var initializerValue = declarator?.Initializer?.Value;
-                    if (!initializerValue.IsKind(SyntaxKind.AsExpression))
+                case SyntaxKind.IdentifierName:
                     {
-                        break;
-                    }
+                        // var x = e as T;
+                        // if (x != null) F(x);
+                        var identifier = (IdentifierNameSyntax)operand;
+                        if (!TryFindVariableDeclarator(semanticModel, identifier, out localSymbol, out declarator))
+                        {
+                            break;
+                        }
 
-                    variableDeclarator = declarator;
-                    asExpression = initializerValue;
-                    return true;
-                }
+                        var initializerValue = declarator.Initializer?.Value;
+                        if (!initializerValue.IsKind(SyntaxKind.AsExpression, out asExpression))
+                        {
+                            break;
+                        }
+
+                        return true;
+                    }
 
                 case SyntaxKind.SimpleAssignmentExpression:
-                {
-                    // T x;
-                    // if ((x = e as T) != null) F(x);
-                    var assignment = (AssignmentExpressionSyntax)operand;
-                    if (!assignment.Right.IsKind(SyntaxKind.AsExpression) ||
-                        !assignment.Left.IsKind(SyntaxKind.IdentifierName))
                     {
-                        break;
-                    }
+                        // T x;
+                        // if ((x = e as T) != null) F(x);
+                        var assignment = (AssignmentExpressionSyntax)operand;
+                        if (!assignment.Right.IsKind(SyntaxKind.AsExpression, out asExpression) ||
+                            !assignment.Left.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifier))
+                        {
+                            break;
+                        }
 
-                    var identifier = (IdentifierNameSyntax)assignment.Left;
-                    var declarator = TryFindVariableDeclarator(identifier, targetStatement, parentBlock);
-                    if (declarator == null)
-                    {
-                        break;
-                    }
+                        if (!TryFindVariableDeclarator(semanticModel, identifier, out localSymbol, out declarator))
+                        {
+                            break;
+                        }
 
-                    variableDeclarator = declarator;
-                    asExpression = assignment.Right;
-                    return true;
-                }
+                        return true;
+                    }
             }
 
-            variableDeclarator = null;
+            declarator = null;
             asExpression = null;
+            localSymbol = null;
             return false;
         }
 
-        private static VariableDeclaratorSyntax TryFindVariableDeclarator(
-            IdentifierNameSyntax identifier, StatementSyntax targetStatement, BlockSyntax parentBlock)
+        private static bool TryFindVariableDeclarator(
+            SemanticModel semanticModel,
+            IdentifierNameSyntax identifier,
+            out ILocalSymbol localSymbol,
+            out VariableDeclaratorSyntax declarator)
         {
-            var statement = parentBlock.Statements;
-            var targetIndex = statement.IndexOf(targetStatement);
-            for (var index = targetIndex - 1; index >= 0; index--)
-            {
-                if (!statement[index].IsKind(SyntaxKind.LocalDeclarationStatement,
-                        out LocalDeclarationStatementSyntax declarationStatement))
-                {
-                    continue;
-                }
-
-                var declarators = declarationStatement.Declaration.Variables;
-                var declarator = declarators.FirstOrDefault(d => d.Identifier.ValueText == identifier.Identifier.ValueText);
-                if (declarator != null)
-                {
-                    // We require this to be the only declarator in the declaration statement
-                    // to simplify definitive assignment check and the code fix for now
-                    return declarators.Count == 1 ? declarator : null;
-                }
-            }
-
-            return null;
+            localSymbol = semanticModel.GetSymbolInfo(identifier).Symbol as ILocalSymbol;
+            declarator = localSymbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as VariableDeclaratorSyntax;
+            return declarator != null;
         }
 
         private static ExpressionSyntax GetNullCheckOperand(ExpressionSyntax left, ExpressionSyntax right)
@@ -369,44 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             return null;
         }
 
-        private static SyntaxNode GetLeftmostCondition(SyntaxNode node)
-        {
-            while (true)
-            {
-                switch (node?.Kind())
-                {
-                    case SyntaxKind.WhileStatement:
-                        node = ((WhileStatementSyntax)node).Condition;
-                        continue;
-                    case SyntaxKind.IfStatement:
-                        node = ((IfStatementSyntax)node).Condition;
-                        continue;
-                    case SyntaxKind.ReturnStatement:
-                        node = ((ReturnStatementSyntax)node).Expression;
-                        continue;
-                    case SyntaxKind.LocalDeclarationStatement:
-                        var declarators = ((LocalDeclarationStatementSyntax)node).Declaration.Variables;
-                        // We require this to be the only declarator in the declaration statement
-                        // to simplify definitive assignment check and the code fix for now
-                        node = declarators.Count == 1 ? declarators[0].Initializer?.Value : null;
-                        continue;
-                    case SyntaxKind.ParenthesizedExpression:
-                        node = ((ParenthesizedExpressionSyntax)node).Expression;
-                        continue;
-                    case SyntaxKind.ConditionalExpression:
-                        node = ((ConditionalExpressionSyntax)node).Condition;
-                        continue;
-                    case SyntaxKind.LogicalAndExpression:
-                    case SyntaxKind.LogicalOrExpression:
-                        node = ((BinaryExpressionSyntax)node).Left;
-                        continue;
-                }
-
-                return node;
-            }
-        }
-
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

@@ -2,10 +2,12 @@
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
+    [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicErrorListNetCore : BasicErrorListCommon
     {
         public BasicErrorListNetCore(VisualStudioInstanceFactory instanceFactory)
@@ -13,16 +15,16 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Test.Utilities.WorkItem(1825 , "https://github.com/dotnet/roslyn-project-system/issues/1825")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorList()
         {
             base.ErrorList();
         }
 
-        [Test.Utilities.WorkItem(1825 , "https://github.com/dotnet/roslyn-project-system/issues/1825")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn-project-system/issues/1825"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void ErrorsDuringMethodBodyEditing()
         {

@@ -25,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
     {
         private readonly IWpfTextView _textView;
         private readonly IContentType _contentType;
+        private readonly IContentType _originalContentType;
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
         protected readonly Microsoft.VisualStudio.TextManager.Interop.TextSpan CurrentStatementSpan;
         private readonly IVsTextLines _debuggerTextLines;
@@ -58,13 +59,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             this.ContextBuffer = contextBuffer;
             this.CurrentStatementSpan = currentStatementSpan[0];
             _contentType = contentType;
+            _originalContentType = _textView.TextBuffer.ContentType;
             this.ProjectionBufferFactoryService = componentModel.GetService<IProjectionBufferFactoryService>();
             _bufferGraphFactoryService = componentModel.GetService<IBufferGraphFactoryService>();
             _isImmediateWindow = IsImmediateWindow((IVsUIShell)serviceProvider.GetService(typeof(SVsUIShell)), vsTextView);
         }
 
         // Constructor for testing
-        protected AbstractDebuggerIntelliSenseContext(IWpfTextView wpfTextView,
+        protected AbstractDebuggerIntelliSenseContext(
+            IWpfTextView wpfTextView,
             ITextBuffer contextBuffer,
             Microsoft.VisualStudio.TextManager.Interop.TextSpan[] currentStatementSpan,
             IComponentModel componentModel,
@@ -195,8 +198,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
             var bufferGraph = _bufferGraphFactoryService.CreateBufferGraph(_projectionBuffer);
 
-            _debuggerTextView = new DebuggerTextView(_textView, bufferGraph, this.InImmediateWindow);
+            _debuggerTextView = new DebuggerTextView(_textView, bufferGraph, _debuggerTextLines, InImmediateWindow);
             return true;
+        }
+
+        internal void SetContentType(bool install)
+        {
+            var contentType = install ? _contentType : _originalContentType;
+            _textView.TextBuffer.ChangeContentType(contentType, null);
         }
 
         private ITrackingSpan CreateImmediateWindowProjectionMapping(Document document, out ImmediateWindowContext immediateWindowContext)

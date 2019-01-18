@@ -174,12 +174,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Protected Overrides Function UnreachableState() As DataFlowPass.LocalState
-            ' The iterator transformation causes some unreachable code to become
-            ' reachable from the code gen's point of view, so we analyze the unreachable code too.
-            Return Me.State
-        End Function
-
         Protected Overrides ReadOnly Property IgnoreOutSemantics As Boolean
             Get
                 Return False

@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -16,25 +17,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     [TextViewRole(PredefinedTextViewRoles.Editable)] // TODO (tomat): ?
     internal sealed class ActiveStatementTaggerProvider : ITaggerProvider
     {
+        private readonly IThreadingContext _threadingContext;
+
         [ImportingConstructor]
-        public ActiveStatementTaggerProvider()
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public ActiveStatementTaggerProvider(IThreadingContext threadingContext)
         {
+            _threadingContext = threadingContext;
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
-        {
-            if (!Workspace.TryGetWorkspace(buffer.AsTextContainer(), out var workspace))
-            {
-                return null;
-            }
-
-            var trackingService = workspace.Services.GetService<IActiveStatementTrackingService>();
-            if (trackingService == null)
-            {
-                return null;
-            }
-
-            return new ActiveStatementTagger(trackingService, buffer) as ITagger<T>;
-        }
+            => new ActiveStatementTagger(_threadingContext, buffer) as ITagger<T>;
     }
 }

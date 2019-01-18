@@ -101,7 +101,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new TextChange(new TextSpan(0, 5), "Halo")
             };
 
-            Assert.Throws<ArgumentException>(() => text.WithChanges(changes));
+            var newText = text.WithChanges(changes);
+            Assert.Equal("Halo Universe", newText.ToString());
         }
 
         [Fact]
@@ -138,8 +139,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new TextChange(new TextSpan(6, 0), "Super ")
             };
 
-            // this causes overlap
-            Assert.Throws<ArgumentException>(() => text.WithChanges(changes));
+            var newText = text.WithChanges(changes);
+            Assert.Equal("Hello Super Vurld", newText.ToString());
         }
 
         [Fact]
@@ -738,7 +739,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("o World", changes[0].NewText);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10961")]
         public void TestMergeChanges_NoMiddleMan()
         {
             var original = SourceText.From("Hell");

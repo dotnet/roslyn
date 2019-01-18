@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -9,6 +7,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -23,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Foreach()
         {
             var input = @"class C
@@ -44,7 +43,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Verify("in", ImmutableArray.Create<TextSpan>());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PreprocessorConditionals()
         {
             var input = @"
@@ -77,7 +76,7 @@ class PurchaseTransaction
             Verify("#endif", spans["else"]);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void PreprocessorRegions()
         {
             var input = @"
@@ -104,11 +103,13 @@ class C
         private void Verify(string marker, ImmutableArray<TextSpan> expectedCount)
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
-            VisualStudio.Workspace.WaitForAsyncOperations(string.Concat(
-               FeatureAttribute.SolutionCrawler,
-               FeatureAttribute.DiagnosticService,
-               FeatureAttribute.Classification,
-               FeatureAttribute.KeywordHighlighting));
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.Classification,
+                FeatureAttribute.KeywordHighlighting);
+
             Assert.Equal(expectedCount, VisualStudio.Editor.GetKeywordHighlightTags());
         }
     }

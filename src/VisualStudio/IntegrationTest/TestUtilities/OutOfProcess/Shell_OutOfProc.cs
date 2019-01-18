@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         private readonly Shell_InProc _inProc;
 
         public Shell_OutOfProc(VisualStudioInstance visualStudioInstance)
-            :base(visualStudioInstance)
+            : base(visualStudioInstance)
         {
             _inProc = CreateInProcComponent<Shell_InProc>(visualStudioInstance);
         }
@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetActiveWindowCaption()
             => _inProc.GetActiveWindowCaption();
 
-        public int GetHWnd()
+        public IntPtr GetHWnd()
             => _inProc.GetHWnd();
 
         public bool IsActiveTabProvisional()

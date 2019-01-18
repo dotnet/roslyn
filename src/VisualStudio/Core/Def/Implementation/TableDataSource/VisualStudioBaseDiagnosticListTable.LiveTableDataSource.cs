@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -28,23 +29,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
-            private readonly IServiceProvider _serviceProvider;
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticData> _tracker;
 
-            public LiveTableDataSource(IServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
                 base(workspace)
             {
                 _workspace = workspace;
-                _serviceProvider = serviceProvider;
                 _identifier = identifier;
 
                 _tracker = new OpenDocumentTracker<DiagnosticData>(_workspace);
 
                 _diagnosticService = diagnosticService;
-                _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
-                PopulateInitialData(workspace, diagnosticService);
+                ConnectToDiagnosticService(workspace, diagnosticService);
             }
 
             public override string DisplayName => ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source;
@@ -145,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, GetDiagnosticUpdatedMessage, e, CancellationToken.None))
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(a), e, CancellationToken.None))
                 {
                     if (_workspace != e.Workspace)
                     {
@@ -175,12 +173,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
             }
 
+            private void ConnectToDiagnosticService(Workspace workspace, IDiagnosticService diagnosticService)
+            {
+                if (diagnosticService == null)
+                {
+                    // it can be null in unit test
+                    return;
+                }
+
+                _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
+
+                PopulateInitialData(workspace, diagnosticService);
+            }
+
             private static bool ShouldInclude(DiagnosticData diagnostic)
             {
                 if (diagnostic == null)
                 {
                     // guard us from wrong provider that gives null diagnostic
-                    Contract.Requires(false, "Let's see who does this");
+                    Debug.Assert(false, "Let's see who does this");
                     return false;
                 }
 
@@ -380,8 +391,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     switch (value)
                     {
                         case WellKnownDiagnosticTags.Build:
-                            // any error from build is highest priority
-                            return ErrorRank.Lexical;
+                            // any error from build gets lowest priority
+                            // see https://github.com/dotnet/roslyn/issues/28807
+                            //
+                            // this is only used when intellisense (live) errors are involved.
+                            // with "build only" filter on, we use order of errors came in from build for ordering
+                            // and doesn't use ErrorRank for ordering (by giving same rank for all errors)
+                            //
+                            // when live errors are involved, by default, error list will use the following to sort errors
+                            // error rank > project rank > project name > file name > line > column
+                            // which will basically make syntax errors show up before declaration error and method body semantic errors
+                            // among same type of errors, leaf project's error will show up first and then projects that depends on the leaf projects
+                            //
+                            // any build errors mixed with live errors will show up at the end. when live errors are on, some of errors
+                            // still left as build errors such as errors produced after CompilationStages.Compile or ones listed here
+                            // http://source.roslyn.io/#Microsoft.CodeAnalysis.CSharp/Compilation/CSharpCompilerDiagnosticAnalyzer.cs,23 or similar ones for VB
+                            // and etc.
+                            return ErrorRank.PostBuild;
                         case nameof(ErrorRank.Lexical):
                             return ErrorRank.Lexical;
                         case nameof(ErrorRank.Syntactic):
@@ -545,12 +571,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private static string GetDiagnosticUpdatedMessage(DiagnosticsUpdatedArgs e)
             {
                 var id = e.Id.ToString();
-                if (e.Id is AnalyzerUpdateArgsId analyzer)
+                if (e.Id is LiveDiagnosticUpdateArgsId live)
+                {
+                    id = $"{live.Analyzer.ToString()}/{live.Kind}";
+                }
+                else if (e.Id is AnalyzerUpdateArgsId analyzer)
                 {
                     id = analyzer.Analyzer.ToString();
                 }
 
-                return $"{e.Workspace.Kind} {id} {e.Kind} {(object)e.DocumentId ?? e.ProjectId} {e.Diagnostics.Length}";
+                return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, e.Diagnostics)})";
             }
         }
     }

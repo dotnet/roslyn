@@ -5,23 +5,19 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -41,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private readonly BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
+        private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         public TestWorkspace()
             : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceKind.Test)
@@ -48,10 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public TestWorkspace(ExportProvider exportProvider, string workspaceKind = null, bool disablePartialSolutions = true)
-            : base(MefV1HostServices.Create(exportProvider.AsExportProvider()), workspaceKind ?? WorkspaceKind.Test)
+            : base(VisualStudioMefHostServices.Create(exportProvider), workspaceKind ?? WorkspaceKind.Test)
         {
-            ResetThreadAffinity();
-
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
             this.ExportProvider = exportProvider;
             this.Projects = new List<TestHostProject>();
@@ -64,30 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _backgroundCompiler = new BackgroundCompiler(this);
             _backgroundParser = new BackgroundParser(this);
             _backgroundParser.Start();
-        }
 
-        /// <summary>
-        /// Reset the thread affinity, in particular the designated foreground thread, to the active 
-        /// thread.  
-        /// </summary>
-        internal static void ResetThreadAffinity(ForegroundThreadData foregroundThreadData = null)
-        {
-            foregroundThreadData = foregroundThreadData ?? ForegroundThreadAffinitizedObject.CurrentForegroundThreadData;
-
-            // HACK: When the platform team took over several of our components they created a copy
-            // of ForegroundThreadAffinitizedObject.  This needs to be reset in the same way as our copy
-            // does.  Reflection is the only choice at the moment. 
-            foreach (var assembly in System.AppDomain.CurrentDomain.GetAssemblies())
-            {
-                var type = assembly.GetType("Microsoft.VisualStudio.Language.Intellisense.Implementation.ForegroundThreadAffinitizedObject", throwOnError: false);
-                if (type != null)
-                {
-                    type.GetField("foregroundThread", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, foregroundThreadData.Thread);
-                    type.GetField("ForegroundTaskScheduler", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, foregroundThreadData.TaskScheduler);
-
-                    break;
-                }
-            }
+            _metadataAsSourceFileService = exportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
         }
 
         protected internal override bool PartialSemanticsEnabled
@@ -95,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             get { return _backgroundCompiler != null; }
         }
 
-        public TestHostDocument DocumentWithCursor 
+        public TestHostDocument DocumentWithCursor
             => Documents.Single(d => d.CursorPosition.HasValue && !d.IsLinkFile);
 
         protected override void OnDocumentTextChanged(Document document)
@@ -121,11 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void Dispose(bool finalize)
         {
-            var metadataAsSourceService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
-            if (metadataAsSourceService != null)
-            {
-                metadataAsSourceService.CleanupGeneratedFiles();
-            }
+            _metadataAsSourceFileService?.CleanupGeneratedFiles();
 
             this.ClearSolutionData();
 
@@ -142,38 +111,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             foreach (var document in ProjectionDocuments)
             {
                 document.CloseTextView();
-            }
-
-            var exceptions = Flatten(ExportProvider.GetExportedValue<TestExtensionErrorHandler>().GetExceptions());
-
-            if (exceptions.Count > 0)
-            {
-                var messageBuilder = new StringBuilder();
-                messageBuilder.AppendLine(
-$@"{exceptions.Count} exception(s) were thrown during test.
-Note: exceptions may have been thrown by another test running concurrently with
-this test.  This can happen with any tests that share the same ExportProvider.
-Examining individual exception stacks may help reveal the original test and source 
-of the problem.");
-
-                messageBuilder.AppendLine();
-                for (int i = 0; i < exceptions.Count; i++)
-                {
-                    var exception = exceptions[i];
-                    messageBuilder.AppendLine($"Exception {i}:");
-                    messageBuilder.AppendLine(exception.ToString());
-                    messageBuilder.AppendLine();
-                }
-
-                var message = messageBuilder.ToString();
-                if (exceptions.Count == 1)
-                {
-                    throw new Exception(message, exceptions[0]);
-                }
-                else
-                {
-                    throw new AggregateException(message, exceptions);
-                }
             }
 
             if (SynchronizationContext.Current != null)
@@ -244,7 +181,7 @@ of the problem.");
         {
             base.OnDocumentOpened(documentId, textContainer, isCurrentContext);
         }
-        
+
         public new void OnParseOptionsChanged(ProjectId projectId, ParseOptions parseOptions)
         {
             base.OnParseOptionsChanged(projectId, parseOptions);
@@ -333,7 +270,7 @@ of the problem.");
         {
             var hostProject = this.GetTestProject(info.Id.ProjectId);
             var hostDocument = new TestHostDocument(
-                text.ToString(), info.Name, info.SourceCodeKind, 
+                text.ToString(), info.Name, info.SourceCodeKind,
                 info.Id, folders: info.Folders);
             hostProject.AddDocument(hostDocument);
             this.OnDocumentAdded(hostDocument.ToDocumentInfo());
@@ -425,7 +362,13 @@ of the problem.");
         /// <param name="baseDocuments">The set of documents from which the projection buffer 
         /// document will be composed.</param>
         /// <returns></returns>
-        public TestHostDocument CreateProjectionBufferDocument(string markup, IList<TestHostDocument> baseDocuments, string languageName, string path = "projectionbufferdocumentpath", ProjectionBufferOptions options = ProjectionBufferOptions.None, IProjectionEditResolver editResolver = null)
+        public TestHostDocument CreateProjectionBufferDocument(
+            string markup,
+            IList<TestHostDocument> baseDocuments,
+            string languageName,
+            string path = "projectionbufferdocumentpath",
+            ProjectionBufferOptions options = ProjectionBufferOptions.None,
+            IProjectionEditResolver editResolver = null)
         {
             GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments,
                 out var projectionBufferSpans, out Dictionary<string, ImmutableArray<TextSpan>> mappedSpans, out var mappedCaretLocation);
@@ -436,8 +379,8 @@ of the problem.");
             // Add in mapped spans from each of the base documents
             foreach (var document in baseDocuments)
             {
-                mappedSpans[string.Empty] = mappedSpans.ContainsKey(string.Empty) 
-                    ? mappedSpans[string.Empty] 
+                mappedSpans[string.Empty] = mappedSpans.ContainsKey(string.Empty)
+                    ? mappedSpans[string.Empty]
                     : ImmutableArray<TextSpan>.Empty;
                 foreach (var span in document.SelectedSpans)
                 {
@@ -453,14 +396,21 @@ of the problem.");
                 foreach (var kvp in document.AnnotatedSpans)
                 {
                     mappedSpans[kvp.Key] = mappedSpans.ContainsKey(kvp.Key)
-                        ? mappedSpans[kvp.Key] 
+                        ? mappedSpans[kvp.Key]
                         : ImmutableArray<TextSpan>.Empty;
 
                     foreach (var span in kvp.Value)
                     {
                         var snapshotSpan = span.ToSnapshotSpan(document.TextBuffer.CurrentSnapshot);
-                        var mappedSpan = projectionBuffer.CurrentSnapshot.MapFromSourceSnapshot(snapshotSpan).Single();
-                        mappedSpans[kvp.Key] = mappedSpans[kvp.Key].Add(mappedSpan.ToTextSpan());
+                        var mappedSpan = projectionBuffer.CurrentSnapshot.MapFromSourceSnapshot(snapshotSpan).Cast<Span?>().SingleOrDefault();
+                        if (mappedSpan == null)
+                        {
+                            // not all span on subject buffer needs to exist on surface buffer
+                            continue;
+                        }
+
+                        // but if they do, it must be only 1
+                        mappedSpans[kvp.Key] = mappedSpans[kvp.Key].Add(mappedSpan.Value.ToTextSpan());
                     }
                 }
             }
@@ -468,7 +418,7 @@ of the problem.");
             var languageServices = this.Services.GetLanguageServices(languageName);
 
             var projectionDocument = new TestHostDocument(
-                TestExportProvider.ExportProviderWithCSharpAndVisualBasic,
+                ExportProvider,
                 languageServices,
                 projectionBuffer,
                 path,
@@ -480,7 +430,7 @@ of the problem.");
         }
 
         private void GetSpansAndCaretFromSurfaceBufferMarkup(
-            string markup, IList<TestHostDocument> baseDocuments, 
+            string markup, IList<TestHostDocument> baseDocuments,
             out IList<object> projectionBufferSpans,
             out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans, out int? mappedCaretLocation)
         {
@@ -493,7 +443,7 @@ of the problem.");
 
             var namedSpans = markupSpans.Where(kvp => kvp.Key != string.Empty);
             var sortedAndNamedSpans = namedSpans.OrderBy(kvp => kvp.Value.Single().Start)
-                                                .ThenBy(kvp => markup.IndexOf("{|" + kvp.Key + ":|}", StringComparison.Ordinal));
+                                                .ThenBy(kvp => markup.IndexOf("{|" + kvp.Key + ":", StringComparison.Ordinal));
 
             var currentPositionInInertText = 0;
             var currentPositionInProjectionBuffer = 0;
@@ -597,9 +547,11 @@ of the problem.");
 
                     foreach (var projectionSpan in projectionBufferSpans)
                     {
-
                         if (projectionSpan is string text)
                         {
+                            // this currently has a bug where it can't distinguish a markup of {|ProjectionMarkup:|}{|Markup1:|} and {|Markup1:{|ProjectionMarkup:|}|}
+                            // it always map markup1 span as the later one.
+                            // tracking issue - {|ProjectionMarkup:|}{|Markup1:|} and {|Markup1:{|ProjectionMarkup:|}|}
                             if (spanStartLocation == null && positionInMarkup <= markupSpanStart && markupSpanStart <= positionInMarkup + text.Length)
                             {
                                 var offsetInText = markupSpanStart - positionInMarkup;

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         [ImportingConstructor]
         public SolutionCrawlerRegistrationService(
             [ImportMany] IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _gate = new object();
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             AssertAnalyzerProviders(_analyzerProviders);
 
             _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
-            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.SolutionCrawler);
+            _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
 
             _progressReporter = new SolutionCrawlerProgressReporter(_listener);
         }
@@ -230,13 +230,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     if (IsDefaultProvider(lazyProvider.Metadata))
                     {
-                        Contract.Requires(set.Add(Default));
+                        Debug.Assert(set.Add(Default));
                         continue;
                     }
 
                     foreach (var kind in lazyProvider.Metadata.WorkspaceKinds)
                     {
-                        Contract.Requires(set.Add(kind));
+                        Debug.Assert(set.Add(kind));
                     }
                 }
 

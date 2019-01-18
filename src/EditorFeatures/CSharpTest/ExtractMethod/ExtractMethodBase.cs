@@ -1,21 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 {
+    [UseExportProvider]
     public class ExtractMethodBase
     {
         protected async Task ExpectExtractMethodToFailAsync(string codeWithMarker, bool allowMovingDeclaration = true, bool dontPutOutOrRefOnStruct = true, string[] features = null)
@@ -77,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             bool temporaryFailing = false,
             bool allowMovingDeclaration = true,
             bool dontPutOutOrRefOnStruct = true,
+            bool allowBestEffort = false,
             CSharpParseOptions parseOptions = null)
         {
             using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions))
@@ -85,8 +85,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 var subjectBuffer = testDocument.TextBuffer;
 
                 var tree = await ExtractMethodAsync(
-                    workspace, testDocument, allowMovingDeclaration: allowMovingDeclaration,
-                    dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
+                    workspace, testDocument,
+                    allowMovingDeclaration: allowMovingDeclaration,
+                    dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct,
+                    allowBestEffort: allowBestEffort);
 
                 using (var edit = subjectBuffer.CreateEdit())
                 {
@@ -94,13 +96,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                     edit.Apply();
                 }
 
+                var actual = subjectBuffer.CurrentSnapshot.GetText();
                 if (temporaryFailing)
                 {
-                    Assert.NotEqual(expected, subjectBuffer.CurrentSnapshot.GetText());
+                    Assert.NotEqual(expected, actual);
                 }
                 else
                 {
-                    Assert.Equal(expected, subjectBuffer.CurrentSnapshot.GetText());
+                    if (expected != "")
+                    {
+                        Assert.Equal(expected, actual);
+                    }
+                    else
+                    {
+                        // print out the entire diff to make adding tests simpler.
+                        Assert.Equal((object)expected, actual);
+                    }
                 }
             }
         }
@@ -110,7 +121,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             TestHostDocument testDocument,
             bool succeed = true,
             bool allowMovingDeclaration = true,
-            bool dontPutOutOrRefOnStruct = true)
+            bool dontPutOutOrRefOnStruct = true,
+            bool allowBestEffort = false)
         {
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             Assert.NotNull(document);
@@ -134,7 +146,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var extractor = new CSharpMethodExtractor((CSharpSelectionResult)selectedCode);
             var result = await extractor.ExtractMethodAsync(CancellationToken.None);
             Assert.NotNull(result);
-            Assert.Equal(succeed, result.Succeeded || result.SucceededWithSuggestion);
+            Assert.Equal(succeed,
+                result.Succeeded ||
+                result.SucceededWithSuggestion ||
+                (allowBestEffort && result.Status.HasBestEffort()));
 
             var doc = result.Document;
             return doc == null

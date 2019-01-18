@@ -24,13 +24,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
-        public VisualStudioInfoBarService(SVsServiceProvider serviceProvider,
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioInfoBarService(
+            IThreadingContext threadingContext,
+            SVsServiceProvider serviceProvider,
             IForegroundNotificationService foregroundNotificationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             _foregroundNotificationService = foregroundNotificationService;
-            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.InfoBar);
+            _listener = listenerProvider.GetListener(FeatureAttribute.InfoBar);
         }
 
         public void ShowInfoBarInActiveView(string message, params InfoBarUI[] items)

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     ///     }
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public static readonly CSharpIsAndCastCheckDiagnosticAnalyzer Instance = new CSharpIsAndCastCheckDiagnosticAnalyzer();
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var severity = styleOption.Notification.Value;
+            var severity = styleOption.Notification.Severity;
 
             // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
             // in projects targetting a lesser version.
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var isExpression = (BinaryExpressionSyntax)syntaxContext.Node;
 
             if (!TryGetPatternPieces(isExpression,
-                    out var ifStatement, out var localDeclarationStatement, 
+                    out var ifStatement, out var localDeclarationStatement,
                     out var declarator, out var castExpression))
             {
                 return;
@@ -144,10 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 localDeclarationStatement.GetLocation());
 
             // Put a diagnostic with the appropriate severity on the declaration-statement itself.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                GetDescriptorWithSeverity(severity),
+            syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 localDeclarationStatement.GetLocation(),
-                additionalLocations));
+                severity,
+                additionalLocations,
+                properties: null));
         }
 
         public bool TryGetPatternPieces(
@@ -225,6 +227,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

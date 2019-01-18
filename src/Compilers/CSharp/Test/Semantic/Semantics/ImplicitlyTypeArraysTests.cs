@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ImplicitlyTypedArrayLocal()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class M {}
 
 class C 
@@ -39,7 +39,7 @@ class C
 
             var typeM = compilation.GlobalNamespace.GetMember<TypeSymbol>("M");
 
-            Assert.Equal(typeM, localA.ElementType);
+            Assert.Equal(typeM, localA.ElementType.TypeSymbol);
         }
 
         [Fact]
@@ -57,7 +57,7 @@ class C
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -83,7 +83,7 @@ class C
 ";
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));

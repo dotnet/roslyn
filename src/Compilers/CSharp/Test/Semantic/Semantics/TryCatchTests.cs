@@ -31,7 +31,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
@@ -63,7 +63,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,16): error CS0155: The type caught or thrown must be derived from System.Exception
                 //         catch (int e)
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "int").WithLocation(9, 16),

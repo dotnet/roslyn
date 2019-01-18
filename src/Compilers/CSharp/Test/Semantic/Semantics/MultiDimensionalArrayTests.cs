@@ -191,7 +191,7 @@ class Program {
         int?[ , ] ar1 = { null  };
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
 // (5,27): error CS0846: A nested array initializer is expected
 //         int?[ , ] ar1 = { null  };
 Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
@@ -291,7 +291,7 @@ Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
         System.Console.WriteLine(t.Test1()[0]);
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 -100");
@@ -326,7 +326,7 @@ Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
         System.Console.WriteLine(t.Test2(a));
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 Test2
@@ -374,7 +374,7 @@ Test2
         val = 123;
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 Test2
@@ -414,7 +414,7 @@ Test2
         return null;
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
     // (3,30): error CS0508: 'C.Test1()': return type must be 'double[*]' to match overridden member 'Test.Test1()'
     //     public override double[] Test1()
@@ -434,7 +434,7 @@ Test2
         return x[0];
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
     // (3,28): error CS0115: 'C.Test2(double[])': no suitable method found to override
     //     public override double Test2(double[] x)
@@ -465,7 +465,7 @@ Test2
         mdarray = new [] { 3.0d };
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
     // (6,23): error CS0029: Cannot implicitly convert type 'double[*]' to 'double[]'
     //         double[] a1 = t.Test1();
@@ -525,17 +525,17 @@ Test2
     static void M2<T>(T a, T b){}
     static void M3<T>(System.Collections.Generic.IList<T> a){}
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
 
             var m2 = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("M2");
-            var szArray = (IArrayTypeSymbol)m2.Parameters.First().Type;
+            var szArray = (IArrayTypeSymbol)m2.Parameters.First().Type.TypeSymbol;
             Assert.Equal("T[]", szArray.ToTestDisplayString());
             Assert.True(szArray.IsSZArray);
             Assert.Equal(1, szArray.Rank);
             Assert.True(szArray.Sizes.IsEmpty);
             Assert.True(szArray.LowerBounds.IsDefault);
 
-            var mdArray = (IArrayTypeSymbol)m2.Parameters.Last().Type;
+            var mdArray = (IArrayTypeSymbol)m2.Parameters.Last().Type.TypeSymbol;
             Assert.Equal("T[*]", mdArray.ToTestDisplayString());
             Assert.False(mdArray.IsSZArray);
             Assert.Equal(1, mdArray.Rank);
@@ -594,7 +594,7 @@ Test2
         System.Console.WriteLine(typeof(T));
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput:
 @"Test1
 System.Double[*]
@@ -619,7 +619,7 @@ System.Double
         }
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 -100");
@@ -673,7 +673,7 @@ System.Double
         System.Console.WriteLine(t.Test1().Length);
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 1");
@@ -705,7 +705,7 @@ System.Double
         System.Console.WriteLine(t.Test1().LongLength);
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 1");
@@ -739,7 +739,7 @@ System.Double
         t.Test3(new double [] {d});
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
     // (7,17): error CS1503: Argument 1: cannot convert from 'double' to 'params double[*]'
     //         t.Test3(d);
@@ -1083,122 +1083,122 @@ System.Double
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var test = compilation.GetTypeByMetadataName("Test");
-            var array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test1").ReturnType;
+            var array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test1").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.True(array.LowerBounds.IsEmpty);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test2").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test2").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.True(array.LowerBounds.IsEmpty);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test3").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test3").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.True(array.LowerBounds.IsEmpty);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test4").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test4").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 0 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test5").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test5").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 0 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test6").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test6").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5, 5 }, array.Sizes);
             Assert.True(array.LowerBounds.IsDefault);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test7").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test7").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 0, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test8").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test8").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5, 7 }, array.Sizes);
             Assert.Equal(new[] { 0, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test9").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test9").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test10").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test10").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test11").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test11").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5, 5 }, array.Sizes);
             Assert.Equal(new[] { 1, 0 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test12").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test12").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 1, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test13").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test13").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.Equal(new[] { 5, 7 }, array.Sizes);
             Assert.Equal(new[] { 1, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test14").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test14").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test15").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test15").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test16").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test16").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[,]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(2, array.Rank);
             Assert.True(array.Sizes.IsEmpty);
             Assert.Equal(new[] { 1, 2 }, array.LowerBounds);
 
-            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test17").ReturnType;
+            array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test17").ReturnType.TypeSymbol;
             Assert.Equal("System.Double[*]", array.ToTestDisplayString());
             Assert.False(array.IsSZArray);
             Assert.Equal(1, array.Rank);
@@ -1531,7 +1531,7 @@ Overriden 16
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 Test2
@@ -1671,15 +1671,15 @@ class C
         return (System.Type)typeof(Program).GetMember(target)[0].GetCustomAttributesData().ElementAt(0).ConstructorArguments[0].Value;
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, new [] { SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseExe);
 
             var p = compilation.GetTypeByMetadataName("Program");
-            var a1 = (ArrayTypeSymbol)p.GetMember<MethodSymbol>("Test1").GetAttributes().Single().ConstructorArguments.Single().Value;
+            var a1 = (IArrayTypeSymbol)p.GetMember<MethodSymbol>("Test1").GetAttributes().Single().ConstructorArguments.Single().Value;
             Assert.Equal("System.Int32[]", a1.ToTestDisplayString());
             Assert.Equal(1, a1.Rank);
             Assert.True(a1.IsSZArray);
 
-            var a2 = (ArrayTypeSymbol)p.GetMember<MethodSymbol>("Test2").GetAttributes().Single().ConstructorArguments.Single().Value;
+            var a2 = (IArrayTypeSymbol)p.GetMember<MethodSymbol>("Test2").GetAttributes().Single().ConstructorArguments.Single().Value;
             Assert.Equal("System.Int32[*]", a2.ToTestDisplayString());
             Assert.Equal(1, a2.Rank);
             Assert.False(a2.IsSZArray);

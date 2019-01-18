@@ -179,10 +179,9 @@ namespace N1 {
     internal interface I1 {}
     enum E1 { Red }
     delegate void D1(int i);
-
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
 
@@ -199,7 +198,7 @@ namespace N1 {
             var s1 = n1.GetTypeMembers("S1").Single() as NamedTypeSymbol;
             var f = s1.GetMembers("f").Single() as FieldSymbol;
 
-            CheckDeclaringSyntaxNodes(comp, f.Type, 1);  // constructed type C1<int>.
+            CheckDeclaringSyntaxNodes(comp, f.Type.TypeSymbol, 1);  // constructed type C1<int>.
 
             // Nested types.
             foreach (Symbol s in c1.GetTypeMembers())
@@ -226,7 +225,7 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
@@ -234,7 +233,7 @@ namespace N1 {
             // Check types of each field in C1; should not have declaring syntax node.
             foreach (FieldSymbol f in c1.GetMembers().OfType<FieldSymbol>())
             {
-                CheckDeclaringSyntaxNodes(comp, f.Type, 0);
+                CheckDeclaringSyntaxNodes(comp, f.Type.TypeSymbol, 0);
             }
         }
 
@@ -252,14 +251,14 @@ class C1 {
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var global = comp.GlobalNamespace;
             int posA1 = text.IndexOf("a1", StringComparison.Ordinal);
 
             var declaratorA1 = tree.GetCompilationUnitRoot().FindToken(posA1).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             var localA1 = (LocalSymbol)model.GetDeclaredSymbol(declaratorA1);
-            var localA1Type = localA1.Type;
+            var localA1Type = localA1.Type.TypeSymbol;
             Assert.True(localA1Type.IsAnonymousType);
 
             // Anonymous types don't support GetDeclaredSymbol.
@@ -295,7 +294,7 @@ class C1 {
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var global = comp.GlobalNamespace;
 
@@ -323,7 +322,7 @@ class C1 {
 
         private void CheckAnonymousType(SemanticModel model, LocalSymbol local, AnonymousObjectCreationExpressionSyntax anonObjectCreation)
         {
-            var localType = local.Type;
+            var localType = local.Type.TypeSymbol;
             Assert.True(localType.IsAnonymousType);
 
             // IsImplicitlyDeclared: Return false. The new { } clause 
@@ -401,7 +400,7 @@ namespace N1.N2 {
 
 namespace System {}
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var system = global.GetMembers("System").Single() as NamespaceSymbol;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
@@ -441,7 +440,7 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
@@ -455,7 +454,7 @@ namespace N1 {
 
             foreach (FieldSymbol f in c2.GetMembers().OfType<FieldSymbol>())
             {
-                foreach (TypeParameterSymbol tp in ((NamedTypeSymbol)f.Type).TypeParameters)
+                foreach (TypeParameterSymbol tp in ((NamedTypeSymbol)f.Type.TypeSymbol).TypeParameters)
                 {
                     CheckDeclaringSyntaxNodes(comp, tp, 1);
                 }
@@ -471,7 +470,7 @@ namespace N1 {
 
             foreach (FieldSymbol f in c3.GetMembers().OfType<FieldSymbol>())
             {
-                foreach (TypeParameterSymbol tp in ((NamedTypeSymbol)f.Type).TypeParameters)
+                foreach (TypeParameterSymbol tp in ((NamedTypeSymbol)f.Type.TypeSymbol).TypeParameters)
                 {
                     CheckDeclaringSyntaxNodes(comp, tp, 0);
                 }
@@ -508,7 +507,7 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
@@ -547,7 +546,7 @@ namespace N1 {
             }
 
             var fieldT = c1.GetMembers("t").Single() as FieldSymbol;
-            var constructedC1 = fieldT.Type;
+            var constructedC1 = fieldT.Type.TypeSymbol;
 
             foreach (Symbol memb in constructedC1.GetMembers())
             {
@@ -597,7 +596,7 @@ class C1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             CheckDeclaringSyntax<VariableDeclaratorSyntax>(comp, tree, "loc1", SymbolKind.Local);
             CheckDeclaringSyntax<VariableDeclaratorSyntax>(comp, tree, "loc2", SymbolKind.Local);
             CheckDeclaringSyntax<VariableDeclaratorSyntax>(comp, tree, "loc3", SymbolKind.Local);
@@ -632,7 +631,7 @@ class C1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             CheckDeclaringSyntax<LabeledStatementSyntax>(comp, tree, "lab1", SymbolKind.Label);
             CheckDeclaringSyntax<LabeledStatementSyntax>(comp, tree, "lab2", SymbolKind.Label);
             CheckDeclaringSyntax<LabeledStatementSyntax>(comp, tree, "lab3", SymbolKind.Label);
@@ -658,7 +657,7 @@ namespace N1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "ConsoleAlias", SymbolKind.Alias);
             CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "ListOfIntAlias", SymbolKind.Alias);
             CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "GooAlias", SymbolKind.Alias);
@@ -684,7 +683,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             CheckDeclaringSyntax<QueryClauseSyntax>(comp, tree, "range1", SymbolKind.RangeVariable);
             CheckDeclaringSyntax<QueryClauseSyntax>(comp, tree, "range2", SymbolKind.RangeVariable);
             CheckDeclaringSyntax<QueryContinuationSyntax>(comp, tree, "range3", SymbolKind.RangeVariable);
@@ -713,7 +712,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             CheckLambdaDeclaringSyntax<ParenthesizedLambdaExpressionSyntax>(comp, tree, "/*1*/");
             CheckLambdaDeclaringSyntax<SimpleLambdaExpressionSyntax>(comp, tree, "/*2*/");
             CheckLambdaDeclaringSyntax<AnonymousMethodExpressionSyntax>(comp, tree, "/*3*/");
@@ -731,7 +730,7 @@ class C
             var source1 = Parse("namespace N { partial class C { } } namespace N1 { } class C1 { }");
             var source2 = Parse("namespace N { struct S { } }");
             var source3 = Parse("namespace N { partial class C { } } namespace N3 { } class C3 { }");
-            var comp0 = CreateStandardCompilation(new[] { source0, source1, source2, source3 });
+            var comp0 = CreateCompilation(new[] { source0, source1, source2, source3 });
             comp0.VerifyDiagnostics();
             Assert.Equal(new[] { source0, source1, source2, source3 }, comp0.SyntaxTrees);
 

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     /// editor doesn't know about all the regions in the file, then it wouldn't be able to
     /// persist them to the SUO file to persist this data across sessions.
     /// </summary>
-    internal abstract partial class AbstractStructureTaggerProvider<TRegionTag> : 
+    internal abstract partial class AbstractStructureTaggerProvider<TRegionTag> :
         AsynchronousTaggerProvider<TRegionTag>
         where TRegionTag : class, ITag
     {
@@ -42,12 +43,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
 
         protected AbstractStructureTaggerProvider(
+            IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
             ITextEditorFactoryService textEditorFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-                : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Outlining), notificationService)
+            IAsynchronousOperationListenerProvider listenerProvider)
+                : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Outlining), notificationService)
         {
             TextEditorFactoryService = textEditorFactoryService;
             EditorOptionsFactoryService = editorOptionsFactoryService;
@@ -189,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 {
                     var spanToCollapse = new SnapshotSpan(snapshot, region.TextSpan.ToSpan());
 
-                    while (tagSpanStack.Count > 0 && 
+                    while (tagSpanStack.Count > 0 &&
                            tagSpanStack.Peek().Span.End <= spanToCollapse.Span.Start)
                     {
                         tagSpanStack.Pop();
@@ -214,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         private static bool s_exceptionReported = false;
 
         private ImmutableArray<BlockSpan> GetMultiLineRegions(
-            BlockStructureService service, 
+            BlockStructureService service,
             ImmutableArray<BlockSpan> regions, ITextSnapshot snapshot)
         {
             // Remove any spans that aren't multiline.

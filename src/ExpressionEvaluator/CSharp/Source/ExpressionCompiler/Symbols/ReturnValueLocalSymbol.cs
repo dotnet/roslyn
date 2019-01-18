@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _index = index;
         }
 
-        internal override bool IsWritable
+        internal override bool IsWritableVariable
         {
             get { return false; }
         }
@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var argument = new BoundLiteral(
                 syntax,
                 Microsoft.CodeAnalysis.ConstantValue.Create(_index),
-                method.Parameters[0].Type);
+                method.Parameters[0].Type.TypeSymbol);
             var call = BoundCall.Synthesized(
                 syntax,
                 receiverOpt: null,
                 method: method,
                 arguments: ImmutableArray.Create<BoundExpression>(argument));
-            return ConvertToLocalType(compilation, call, this.Type, diagnostics);
+            return ConvertToLocalType(compilation, call, this.Type.TypeSymbol, diagnostics);
         }
     }
 }

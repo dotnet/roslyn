@@ -3,6 +3,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
@@ -10,6 +11,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 {
+    [UseExportProvider]
     public class CSharpCompilerOptionsTests
     {
         [WpfFact]
@@ -21,7 +23,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             {
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_XML_DOCFILE, "DocFile.xml");
+                project.SetOption(CompilerOptions.OPTID_XML_DOCFILE, "DocFile.xml");
 
                 var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 var options = (CSharpParseOptions)workspaceProject.ParseOptions;
@@ -39,7 +41,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             {
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_XML_DOCFILE, "");
+                project.SetOption(CompilerOptions.OPTID_XML_DOCFILE, "");
 
                 var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 var options = (CSharpParseOptions)workspaceProject.ParseOptions;
@@ -56,7 +58,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             {
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_COMPATIBILITY, "6");
+                project.SetOption(CompilerOptions.OPTID_COMPATIBILITY, "6");
 
                 var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 var options = (CSharpParseOptions)workspaceProject.ParseOptions;
@@ -93,11 +95,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             {
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNASERRORLIST, "1111");
+                project.SetOption(CompilerOptions.OPTID_WARNASERRORLIST, "1111");
                 var options = environment.GetUpdatedCompilationOptionOfSingleProject();
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: options.SpecificDiagnosticOptions["CS1111"]);
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNASERRORLIST, null);
+                project.SetOption(CompilerOptions.OPTID_WARNASERRORLIST, null);
                 options = environment.GetUpdatedCompilationOptionOfSingleProject();
                 Assert.False(options.SpecificDiagnosticOptions.ContainsKey("CS1111"));
             }

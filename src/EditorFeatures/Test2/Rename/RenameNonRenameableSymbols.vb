@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
+    <[UseExportProvider]>
     Public Class RenameNonRenameableSymbols
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 

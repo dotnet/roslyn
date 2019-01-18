@@ -12,7 +12,6 @@ Option Strict On
 Option Explicit On
 
 Imports System
-Imports System.Reflection
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     
@@ -40,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ResourceManager() As Global.System.Resources.ResourceManager
             Get
                 If Object.ReferenceEquals(resourceMan, Nothing) Then
-                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBResources", GetType(VBResources).GetTypeInfo.Assembly)
+                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBResources", GetType(VBResources).Assembly)
                     resourceMan = temp
                 End If
                 Return resourceMan
@@ -5171,7 +5170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to First operand in a binary &apos;If&apos; expression must be nullable or a reference type..
+        '''  Looks up a localized string similar to First operand in a binary &apos;If&apos; expression must be a nullable value type, a reference type, or an unconstrained generic type..
         '''</summary>
         Friend ReadOnly Property ERR_IllegalCondTypeInIIF() As String
             Get
@@ -6104,6 +6103,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_InvalidHandles() As String
             Get
                 Return ResourceManager.GetString("ERR_InvalidHandles", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Invalid hash algorithm name: &apos;{0}&apos;.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidHashAlgorithmName() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidHashAlgorithmName", resourceCulture)
             End Get
         End Property
         
@@ -12064,6 +12072,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to interpolated strings.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_InterpolatedStrings() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_InterpolatedStrings", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to iterators.
         '''</summary>
         Friend ReadOnly Property FEATURE_Iterators() As String
@@ -12208,6 +12225,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to unconstrained type parameters in binary conditional expressions.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_UnconstrainedTypeParameterInConditional() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_UnconstrainedTypeParameterInConditional", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to warning directives.
         '''</summary>
         Friend ReadOnly Property FEATURE_WarningDirectives() As String
@@ -12237,9 +12263,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''<summary>
         '''  Looks up a localized string similar to File name &apos;{0}&apos; is empty, contains invalid characters, has a drive specification without an absolute path, or is too long.
         '''</summary>
-        Friend ReadOnly Property FTL_InputFileNameTooLong() As String
+        Friend ReadOnly Property FTL_InvalidInputFileName() As String
             Get
-                Return ResourceManager.GetString("FTL_InputFileNameTooLong", resourceCulture)
+                Return ResourceManager.GetString("FTL_InvalidInputFileName", resourceCulture)
             End Get
         End Property
         
@@ -12418,13 +12444,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''  Looks up a localized string similar to                   Visual Basic Compiler Options
         '''
         '''                                  - OUTPUT FILE -
-        '''/out:&lt;file&gt;                       Specifies the output file name.
-        '''/target:exe                       Create a console application (default). 
-        '''                                  (Short form: /t)
-        '''/target:winexe                    Create a Windows application.
-        '''/target:library                   Create a library assembly.
-        '''/target:module                    Create a module that can be added to an 
-        '''             [rest of string was truncated]&quot;;.
+        '''-out:&lt;file&gt;                       Specifies the output file name.
+        '''-target:exe                       Create a console application (default).
+        '''                                  (Short form: -t)
+        '''-target:winexe                    Create a Windows application.
+        '''-target:library                   Create a library assembly.
+        '''-target:module                    Create a module that can be added to an
+        '''               [rest of string was truncated]&quot;;.
         '''</summary>
         Friend ReadOnly Property IDS_VBCHelp() As String
             Get

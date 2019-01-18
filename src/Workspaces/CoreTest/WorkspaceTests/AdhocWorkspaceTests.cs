@@ -13,6 +13,7 @@ using Xunit;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using System;
 using CS = Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -148,41 +149,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal(info2.Language, project2.Language);
                 Assert.Equal(1, project2.ProjectReferences.Count());
                 Assert.Equal(id1, project2.ProjectReferences.First().ProjectId);
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public async Task TestAddProject_CommandLineProjectAsync()
-        {
-            CreateFiles(GetSimpleCSharpSolutionFiles());
-
-            string commandLine = @"CSharpClass.cs /out:goo.dll /target:library";
-            var baseDirectory = Path.Combine(this.SolutionDirectory.Path, "CSharpProject");
-
-            using (var ws = new AdhocWorkspace())
-            {
-                var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, baseDirectory);
-                ws.AddProject(info);
-                var project = ws.CurrentSolution.GetProject(info.Id);
-
-                Assert.Equal("TestProject", project.Name);
-                Assert.Equal("goo", project.AssemblyName);
-                Assert.Equal(OutputKind.DynamicallyLinkedLibrary, project.CompilationOptions.OutputKind);
-
-                Assert.Equal(1, project.Documents.Count());
-
-                var gooDoc = project.Documents.First(d => d.Name == "CSharpClass.cs");
-                Assert.Equal(0, gooDoc.Folders.Count);
-                var expectedPath = Path.Combine(baseDirectory, "CSharpClass.cs");
-                Assert.Equal(expectedPath, gooDoc.FilePath);
-
-                var text = (await gooDoc.GetTextAsync()).ToString();
-                Assert.NotEqual("", text);
-
-                var tree = await gooDoc.GetSyntaxRootAsync();
-                Assert.Equal(false, tree.ContainsDiagnostics);
-
-                var compilation = await project.GetCompilationAsync();
             }
         }
 
@@ -403,9 +369,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private AdhocWorkspace CreateWorkspaceWithRecoverableTrees()
+        private AdhocWorkspace CreateWorkspaceWithRecoverableTrees(HostServices hostServices)
         {
-            var ws = new AdhocWorkspace(TestHost.Services, workspaceKind: "NotKeptAlive");
+            var ws = new AdhocWorkspace(hostServices, workspaceKind: "NotKeptAlive");
             ws.Options = ws.Options.WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0);
             return ws;
         }
@@ -413,8 +379,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task TestUpdatedDocumentTextIsObservablyConstantAsync()
         {
-            await CheckUpdatedDocumentTextIsObservablyConstantAsync(new AdhocWorkspace());
-            await CheckUpdatedDocumentTextIsObservablyConstantAsync(CreateWorkspaceWithRecoverableTrees());
+            var hostServices = MefHostServices.Create(TestHost.Assemblies);
+            await CheckUpdatedDocumentTextIsObservablyConstantAsync(new AdhocWorkspace(hostServices));
+            await CheckUpdatedDocumentTextIsObservablyConstantAsync(CreateWorkspaceWithRecoverableTrees(hostServices));
         }
 
         private async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)

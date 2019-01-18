@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return false;
             }
 
+            if (RemovalCausesAmbiguity(((TupleExpressionSyntax)node.Parent).Arguments, node))
+            {
+                return false;
+            }
+
             var inferredName = node.Expression.TryGetInferredMemberName();
             if (inferredName == null || inferredName != node.NameColon.Name.Identifier.ValueText)
             {
@@ -49,6 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return false;
             }
 
+            if (RemovalCausesAmbiguity(((AnonymousObjectCreationExpressionSyntax)node.Parent).Initializers, node))
+            {
+                return false;
+            }
+
             var inferredName = node.Expression.TryGetInferredMemberName();
             if (inferredName == null || inferredName != node.NameEquals.Name.Identifier.ValueText)
             {
@@ -56,6 +66,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             return true;
+        }
+
+        // An explicit name cannot be removed if some other position would produce it as inferred name
+        private static bool RemovalCausesAmbiguity(SeparatedSyntaxList<ArgumentSyntax> arguments, ArgumentSyntax toRemove)
+        {
+            string name = toRemove.NameColon.Name.Identifier.ValueText;
+            foreach (var argument in arguments)
+            {
+                if (argument == toRemove)
+                {
+                    continue;
+                }
+
+                if (argument.NameColon is null && argument.Expression.TryGetInferredMemberName()?.Equals(name) == true)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // An explicit name cannot be removed if some other position would produce it as inferred name
+        private static bool RemovalCausesAmbiguity(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, AnonymousObjectMemberDeclaratorSyntax toRemove)
+        {
+            string name = toRemove.NameEquals.Name.Identifier.ValueText;
+            foreach (var initializer in initializers)
+            {
+                if (initializer == toRemove)
+                {
+                    continue;
+                }
+
+                if (initializer.NameEquals is null && initializer.Expression.TryGetInferredMemberName()?.Equals(name) == true)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

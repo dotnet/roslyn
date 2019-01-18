@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using ImplementInterfaceCodeAction = Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService.ImplementInterfaceCodeAction;
 
@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
         {
-            var fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "global::I1", explicitly: false, abstractly: false, throughMember: null, codeActionTypeName: typeof(ImplementInterfaceCodeAction).FullName);
-
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -113,7 +111,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -121,8 +119,6 @@ class B3 : I1, I2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
         {
-            var fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "global::I1", explicitly: false, abstractly: false, throughMember: null, codeActionTypeName: typeof(ImplementInterfaceCodeAction).FullName);
-
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -227,7 +223,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -235,8 +231,6 @@ class B3 : I1, I2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
         {
-            var fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "global::I2", explicitly: true, abstractly: false, throughMember: null, codeActionTypeName: typeof(ImplementInterfaceCodeAction).FullName);
-
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -350,7 +344,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestInRegularAndScriptAsync(input, expected, index: 1);
         }
 
         [Fact]
@@ -358,8 +352,6 @@ class B3 : I1, I2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
         {
-            var fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "global::I2", explicitly: true, abstractly: false, throughMember: null, codeActionTypeName: typeof(ImplementInterfaceCodeAction).FullName);
-
             var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -482,7 +474,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestInRegularAndScriptAsync(input, expected, index: 1);
         }
 
         #endregion

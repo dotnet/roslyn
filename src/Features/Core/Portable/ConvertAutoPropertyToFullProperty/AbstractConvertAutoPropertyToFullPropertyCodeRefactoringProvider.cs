@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             context.RegisterRefactoring(
                 new ConvertAutoPropertyToFullPropertyCodeAction(
                     FeaturesResources.Convert_to_full_property,
-                    c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, cancellationToken)));
+                    c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, c)));
         }
 
         internal bool IsValidAutoProperty(SyntaxNode property, IPropertySymbol propertySymbol)
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 var block = GetTypeBlock(await td.GetSyntaxAsync(cancellationToken).ConfigureAwait(false));
                 if (property.Ancestors().Contains(block))
                 {
-                    editor.ReplaceNode(block, (currentTypeDecl, _)  
+                    editor.ReplaceNode(block, (currentTypeDecl, _)
                         => CodeGenerator.AddFieldDeclaration(currentTypeDecl, newField, workspace)
                         .WithAdditionalAnnotations(Formatter.Annotation));
                 }
@@ -117,10 +117,10 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
         private class ConvertAutoPropertyToFullPropertyCodeAction : CodeAction.DocumentChangeAction
         {
             public ConvertAutoPropertyToFullPropertyCodeAction(
-                string title, 
+                string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument)
             {
             }
         }
-}
+    }
 }

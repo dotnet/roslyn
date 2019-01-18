@@ -1,15 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Runtime.ExceptionServices;
-using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
+using System.Threading;
+using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -21,6 +18,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public class VisualStudioInstance
     {
+        /// <summary>
+        /// Used for creating unique IPC channel names each time a Visual Studio instance is created during tests.
+        /// </summary>
+        /// <seealso cref="GetIpcClientChannelName"/>
+        private static int s_connectionIndex = 0;
+
         private readonly IntegrationService _integrationService;
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
@@ -28,6 +31,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
 
         public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
+
+        public ObjectBrowserWindow_OutOfProc ObjectBrowserWindow { get; }
 
         public Debugger_OutOfProc Debugger { get; }
 
@@ -45,6 +50,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
+        public ImmediateWindow_OutOfProc ImmediateWindow { get; }
+
         public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
 
         public LocalsWindow_OutOfProc LocalsWindow { get; set; }
@@ -58,6 +65,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
 
         public VisualStudioWorkspace_OutOfProc Workspace { get; }
+
+        public StartPage_OutOfProc StartPage { get; }
 
         internal DTE Dte { get; }
 
@@ -83,7 +92,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             StartRemoteIntegrationService(dte);
 
-            _integrationServiceChannel = new IpcClientChannel($"IPC channel client for {HostProcess.Id}", sinkProvider: null);
+            _integrationServiceChannel = new IpcClientChannel(GetIpcClientChannelName(HostProcess), sinkProvider: null);
             ChannelServices.RegisterChannel(_integrationServiceChannel, ensureSecurity: true);
 
             // Connect to a 'well defined, shouldn't conflict' IPC channel
@@ -101,6 +110,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
+            ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
             Debugger = new Debugger_OutOfProc(this);
             Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
@@ -110,16 +120,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
             InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
+            ImmediateWindow = new ImmediateWindow_OutOfProc(this);
             LocalsWindow = new LocalsWindow_OutOfProc(this);
             PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             Workspace = new VisualStudioWorkspace_OutOfProc(this);
+            StartPage = new StartPage_OutOfProc(this);
 
             SendKeys = new SendKeys(this);
 
             // Ensure we are in a known 'good' state by cleaning up anything changed by the previous instance
             CleanUp();
+        }
+
+        private static string GetIpcClientChannelName(Process hostProcess)
+        {
+            var index = Interlocked.Increment(ref s_connectionIndex) - 1;
+            if (index == 0)
+            {
+                return $"IPC channel client for {hostProcess.Id}";
+            }
+            else
+            {
+                return $"IPC channel client for {hostProcess.Id} ({index})";
+            }
         }
 
         public void ExecuteInHostProcess(Type type, string methodName)
@@ -138,11 +163,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
         }
 
-        public void ActivateMainWindow(bool skipAttachingThreads = false)
-            => _inProc.ActivateMainWindow(skipAttachingThreads);
+        public void ActivateMainWindow()
+            => _inProc.ActivateMainWindow();
 
-        public void WaitForApplicationIdle()
-            => _inProc.WaitForApplicationIdle();
+        public void WaitForApplicationIdle(CancellationToken cancellationToken)
+        {
+            var task = Task.Factory.StartNew(() => _inProc.WaitForApplicationIdle(), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            task.Wait(cancellationToken);
+        }
 
         public void ExecuteCommand(string commandName, string argument = "")
             => _inProc.ExecuteCommand(commandName, argument);
@@ -166,19 +194,40 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Workspace.CleanUpWaitingService();
             Workspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
+            Workspace.WaitForAllAsyncOperations();
+
+            // Close any windows leftover from previous (failed) tests
             InteractiveWindow.CloseInteractiveWindow();
+            ObjectBrowserWindow.CloseWindow();
+            ChangeSignatureDialog.CloseWindow();
+            GenerateTypeDialog.CloseWindow();
+            ExtractInterfaceDialog.CloseWindow();
+            StartPage.CloseWindow();
+
+            // Prevent the start page from showing after each solution closes
+            StartPage.SetEnabled(false);
         }
 
         public void Close(bool exitHostProcess = true)
         {
             if (!IsRunning)
             {
+                CloseRemotingService(allowInProcCalls: false);
                 return;
             }
 
-            CleanUp();
+            try
+            {
+                CleanUp();
+            }
+            catch
+            {
+                // A cleanup failure occurred, but we still need to close the communication channel from this side
+                CloseRemotingService(allowInProcCalls: false);
+                throw;
+            }
 
-            CloseRemotingService();
+            CloseRemotingService(allowInProcCalls: true);
 
             if (exitHostProcess)
             {
@@ -192,15 +241,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             IntegrationHelper.KillProcess(HostProcess);
         }
 
-        private void CloseRemotingService()
+        private void CloseRemotingService(bool allowInProcCalls)
         {
             try
             {
-                StopRemoteIntegrationService();
+                if (allowInProcCalls)
+                {
+                    StopRemoteIntegrationService();
+                }
             }
             finally
             {
-                if (_integrationServiceChannel != null)
+                if (_integrationServiceChannel != null
+                    && ChannelServices.RegisteredChannels.Contains(_integrationServiceChannel))
                 {
                     ChannelServices.UnregisterChannel(_integrationServiceChannel);
                 }
@@ -211,9 +264,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
 
-            if (RetryRpcCall(() => dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_Start).IsAvailable))
+            if (dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_Start).IsAvailable)
             {
-                RetryRpcCall(() => dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Start));
+                dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Start);
             }
         }
 
@@ -223,36 +276,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 _inProc.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Stop);
             }
-        }
-
-        private static void RetryRpcCall(Action action)
-        {
-            do
-            {
-                try
-                {
-                    action();
-                    return;
-                }
-                catch (COMException exception) when ((exception.HResult == VSConstants.RPC_E_CALL_REJECTED) ||
-                                                     (exception.HResult == VSConstants.RPC_E_SERVERCALL_RETRYLATER))
-                {
-                    // We'll just try again in this case
-                }
-            }
-            while (true);
-        }
-
-        private static T RetryRpcCall<T>(Func<T> action)
-        {
-            var result = default(T);
-
-            RetryRpcCall(() =>
-            {
-                result = action();
-            });
-
-            return result;
         }
 
         public TelemetryVerifier EnableTestTelemetryChannel()

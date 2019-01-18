@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
         private readonly IVsDropdownBarManager _manager;
         private readonly IVsCodeWindow _codeWindow;
         private readonly VisualStudioWorkspaceImpl _workspace;
-        private readonly IComEventSink _codeWindowEventsSink;
+        private readonly ComEventSink _codeWindowEventsSink;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IntPtr _imageList;
         private readonly IVsImageService2 _imageService;
@@ -49,14 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             _projectItems = SpecializedCollections.EmptyList<NavigationBarProjectItem>();
             _currentTypeItems = SpecializedCollections.EmptyList<NavigationBarItem>();
 
-            if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell vsShell)
-            {
-                int hresult = vsShell.GetProperty((int)__VSSPROPID.VSSPROPID_ObjectMgrTypesImgList, out var varImageList);
-                if (ErrorHandler.Succeeded(hresult) && varImageList != null)
-                {
-                    _imageList = (IntPtr)(int)varImageList;
-                }
-            }
+            var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
+            vsShell?.TryGetPropertyValue(__VSSPROPID.VSSPROPID_ObjectMgrTypesImgList, out _imageList);
 
             _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
             _editorAdaptersFactoryService = serviceProvider.GetMefService<IVsEditorAdaptersFactoryService>();

@@ -388,7 +388,7 @@ End Module
     <WorkItem(530663, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530663")>
     <Fact()>
     Public Sub Bug16663()
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
 Module M
@@ -401,7 +401,7 @@ End Module
     ]]></file>
 </compilation>)
         compilation.AssertNoErrors()
-        compilation = CreateCompilationWithMscorlibAndVBRuntime(
+        compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
 Module M
@@ -414,7 +414,7 @@ End Module
     ]]></file>
 </compilation>)
         compilation.AssertNoErrors()
-        compilation = CreateCompilationWithMscorlibAndVBRuntime(
+        compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
 Module M

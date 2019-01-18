@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         /// <summary>
-        /// Calculates a list of "V arrays" using Eugene W. Myers O(ND) Difference Algoritm
+        /// Calculates a list of "V arrays" using Eugene W. Myers O(ND) Difference Algorithm
         /// </summary>
         /// <remarks>
         /// 
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             VArray previousV = new VArray(1);
             VArray currentV;
 
-            bool reachedEnd= false;
+            bool reachedEnd = false;
 
             for (int d = 0; d <= oldLength + newLength && !reachedEnd; d++)
             {

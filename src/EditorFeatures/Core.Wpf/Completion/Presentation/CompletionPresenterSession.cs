@@ -15,6 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
+    using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
+
     internal sealed class CompletionPresenterSession : ForegroundThreadAffinitizedObject, ICompletionPresenterSession
     {
         internal static readonly object Key = new object();
@@ -49,10 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private IDisposable _logger;
 
         public CompletionPresenterSession(
+            IThreadingContext threadingContext,
             ICompletionBroker completionBroker,
             IGlyphService glyphService,
             ITextView textView,
             ITextBuffer subjectBuffer)
+            : base(threadingContext)
         {
             _completionBroker = completionBroker;
             this.GlyphService = glyphService;
@@ -60,8 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             SubjectBuffer = subjectBuffer;
 
             _trackLogSession = new CancellationTokenSource();
-            _logger = Logger.LogBlock(FunctionId.Intellisense_Completion, 
-                KeyValueLogMessage.Create(LogType.UserAction), 
+            _logger = Logger.LogBlock(FunctionId.Intellisense_Completion,
+                KeyValueLogMessage.Create(LogType.UserAction),
                 _trackLogSession.Token);
 
             _completionSet = new RoslynCompletionSet(this, textView, subjectBuffer);

@@ -12,15 +12,20 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.UpgradeProject
 {
-#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract partial class AbstractUpgradeProjectCodeFixProvider : CodeFixProvider
-#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
-        public abstract ImmutableArray<string> SuggestedVersions(ImmutableArray<Diagnostic> diagnostics);
+        public abstract string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics);
         public abstract Solution UpgradeProject(Project project, string version);
         public abstract bool IsUpgrade(ParseOptions projectOptions, string newVersion);
         public abstract string UpgradeThisProjectResource { get; }
         public abstract string UpgradeAllProjectsResource { get; }
+        public abstract string AddBetaIfNeeded(string version);
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // This code fix uses a dedicated action for fixing all instances in a solution
+            return null;
+        }
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -34,31 +39,23 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         {
             var project = context.Document.Project;
             var solution = project.Solution;
-            var newVersions = SuggestedVersions(context.Diagnostics);
+            var newVersion = SuggestedVersion(context.Diagnostics);
             var result = new List<CodeAction>();
             var language = project.Language;
 
-            foreach (var newVersion in newVersions)
+            var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, AddBetaIfNeeded(newVersion));
+            var fixOneProject = new ParseOptionsChangeAction(fixOneProjectTitle,
+                _ => Task.FromResult(UpgradeProject(project, newVersion)));
+
+            result.Add(fixOneProject);
+            if (solution.Projects.Count(p => CanUpgrade(p, language, newVersion)) > 1)
             {
-                var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, newVersion);
+                var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, AddBetaIfNeeded(newVersion));
 
-                var fixOneProject = new ParseOptionsChangeAction(fixOneProjectTitle,
-                    _ => Task.FromResult(UpgradeProject(project, newVersion)));
+                var fixAllProjects = new ParseOptionsChangeAction(fixAllProjectsTitle,
+                    ct => Task.FromResult(UpgradeAllProjects(solution, language, newVersion, ct)));
 
-                result.Add(fixOneProject);
-            }
-
-            foreach (var newVersion in newVersions)
-            {
-                if (solution.Projects.Count(p => CanUpgrade(p, language, newVersion)) > 1)
-                {
-                    var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, newVersion);
-
-                    var fixAllProjects = new ParseOptionsChangeAction(fixAllProjectsTitle,
-                        ct => Task.FromResult(UpgradeAllProjects(solution, language, newVersion, ct)));
-
-                    result.Add(fixAllProjects);
-                }
+                result.Add(fixAllProjects);
             }
 
             return result.AsImmutable();

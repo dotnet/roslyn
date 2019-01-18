@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -368,6 +369,12 @@ namespace Microsoft.CodeAnalysis
 
             retVal = e.Severity.ToString() + " " + e.Id + ": " + e.GetMessage(CultureInfo.CurrentCulture);
             return retVal;
+        }
+
+        public static string ToString(this Diagnostic d, IFormatProvider formatProvider)
+        {
+            IFormattable formattable = d;
+            return formattable.ToString(null, formatProvider);
         }
     }
 }

@@ -56,9 +56,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
     internal sealed class BuildServerConnection
     {
-        internal const string ServerNameDesktop = "VBCSCompiler.exe";
-        internal const string ServerNameCoreClr = "VBCSCompiler.dll";
-
         // Spend up to 1s connecting to existing process (existing processes should be always responsive).
         internal const int TimeOutMsExistingProcess = 1000;
 
@@ -68,8 +65,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Determines if the compiler server is supported in this environment.
         /// </summary>
-        internal static bool IsCompilerServerSupported => 
-            GetPipeNameForPathOpt("") != null;
+        internal static bool IsCompilerServerSupported(string tempPath)
+        {
+            var pipeName = GetPipeNameForPathOpt("");
+            return pipeName != null && !IsPipePathTooLong(pipeName, tempPath);
+        }
 
         public static Task<BuildResponse> RunServerCompilation(
             RequestLanguage language,
@@ -115,50 +115,71 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return new RejectedBuildResponse();
             }
 
+            // early check for the build hash. If we can't find it something is wrong; no point even trying to go to the server
+            if (string.IsNullOrWhiteSpace(BuildProtocolConstants.GetCommitHash()))
+            {
+                return new IncorrectHashBuildResponse();
+            }
+
             var clientDir = buildPaths.ClientDirectory;
             var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
-            var clientMutexName = GetClientMutexName(pipeName);
             Task<NamedPipeClientStream> pipeTask = null;
-            using (var clientMutex = new Mutex(initiallyOwned: true,
-                                               name: clientMutexName,
-                                               createdNew: out var holdsMutex))
+            Mutex clientMutex = null;
+            var holdsMutex = false;
+            try
             {
                 try
                 {
-                    if (!holdsMutex)
-                    {
-                        try
-                        {
-                            holdsMutex = clientMutex.WaitOne(timeoutNewProcess);
+                    var clientMutexName = GetClientMutexName(pipeName);
+                    clientMutex = new Mutex(initiallyOwned: true, name: clientMutexName, out holdsMutex);
+                }
+                catch
+                {
+                    // The Mutex constructor can throw in certain cases. One specific example is docker containers
+                    // where the /tmp directory is restricted. In those cases there is no reliable way to execute
+                    // the server and we need to fall back to the command line.
+                    //
+                    // Example: https://github.com/dotnet/roslyn/issues/24124
+                    return new RejectedBuildResponse();
+                }
 
-                            if (!holdsMutex)
-                            {
-                                return new RejectedBuildResponse();
-                            }
-                        }
-                        catch (AbandonedMutexException)
+                if (!holdsMutex)
+                {
+                    try
+                    {
+                        holdsMutex = clientMutex.WaitOne(timeoutNewProcess);
+
+                        if (!holdsMutex)
                         {
-                            holdsMutex = true;
+                            return new RejectedBuildResponse();
                         }
                     }
-
-                    // Check for an already running server
-                    var serverMutexName = GetServerMutexName(pipeName);
-                    bool wasServerRunning = WasServerMutexOpen(serverMutexName);
-                    var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
-
-                    if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
+                    catch (AbandonedMutexException)
                     {
-                        pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
+                        holdsMutex = true;
                     }
                 }
-                finally
+
+                // Check for an already running server
+                var serverMutexName = GetServerMutexName(pipeName);
+                bool wasServerRunning = WasServerMutexOpen(serverMutexName);
+                var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
+
+                if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
+                {
+                    pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
+                }
+            }
+            finally
+            {
+                if (clientMutex != null)
                 {
                     if (holdsMutex)
                     {
                         clientMutex.ReleaseMutex();
                     }
+                    clientMutex.Dispose();
                 }
             }
 
@@ -170,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     var request = BuildRequest.Create(language,
                                                       buildPaths.WorkingDirectory,
                                                       buildPaths.TempDirectory,
+                                                      BuildProtocolConstants.GetCommitHash(),
                                                       arguments,
                                                       keepAlive,
                                                       libEnvVariable);
@@ -295,12 +317,20 @@ namespace Microsoft.CodeAnalysis.CommandLine
             NamedPipeClientStream pipeStream;
             try
             {
+                // If the pipe path would be too long, there cannot be a server at the other end.
+                // We're not using a saved temp path here because pipes are created with
+                // Path.GetTempPath() in corefx NamedPipeClientStream and we want to replicate that behavior.
+                if (IsPipePathTooLong(pipeName, Path.GetTempPath()))
+                {
+                    return null;
+                }
+
                 // Machine-local named pipes are named "\\.\pipe\<pipename>".
                 // We use the SHA1 of the directory the compiler exes live in as the pipe name.
                 // The NamedPipeClientStream class handles the "\\.\pipe\" part for us.
                 Log("Attempt to open named pipe '{0}'", pipeName);
 
-                pipeStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+                pipeStream = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
                 cancellationToken.ThrowIfCancellationRequested();
 
                 Log("Attempt to connect named pipe '{0}'", pipeName);
@@ -324,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Verify that we own the pipe.
-                if (!CheckPipeConnectionOwnership(pipeStream))
+                if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeStream))
                 {
                     Log("Owner of named pipe is incorrect");
                     return null;
@@ -341,31 +371,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static bool TryCreateServerCore(string clientDir, string pipeName)
         {
-            bool isRunningOnCoreClr = CoreClrShim.IsRunningOnCoreClr;
-            string expectedPath;
-            string processArguments;
-            if (isRunningOnCoreClr)
-            {
-                // The server should be in the same directory as the client
-                var expectedCompilerPath = Path.Combine(clientDir, ServerNameCoreClr);
-                expectedPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
-                processArguments = $@"""{expectedCompilerPath}"" ""-pipename:{pipeName}""";
+            var serverPathWithoutExtension = Path.Combine(clientDir, "VBCSCompiler");
+            var serverInfo = RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, $"-pipename:{pipeName}");
 
-                if (!File.Exists(expectedCompilerPath))
-                {
-                    return false;
-                }
-            }
-            else
+            if (!File.Exists(serverInfo.toolFilePath))
             {
-                // The server should be in the same directory as the client
-                expectedPath = Path.Combine(clientDir, ServerNameDesktop);
-                processArguments = $@"""-pipename:{pipeName}""";
-
-                if (!File.Exists(expectedPath))
-                {
-                    return false;
-                }
+                return false;
             }
 
             if (PlatformInformation.IsWindows)
@@ -384,9 +395,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 PROCESS_INFORMATION processInfo;
 
-                Log("Attempting to create process '{0}'", expectedPath);
+                Log("Attempting to create process '{0}'", serverInfo.processFilePath);
 
-                var builder = new StringBuilder($@"""{expectedPath}"" {processArguments}");
+                var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
 
                 bool success = CreateProcess(
                     lpApplicationName: null,
@@ -418,8 +429,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 {
                     var startInfo = new ProcessStartInfo()
                     {
-                        FileName = expectedPath,
-                        Arguments = processArguments,
+                        FileName = serverInfo.processFilePath,
+                        Arguments = serverInfo.commandLineArguments,
                         UseShellExecute = false,
                         WorkingDirectory = clientDir,
                         RedirectStandardInput = true,
@@ -438,90 +449,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        /// <summary>
-        /// Check to ensure that the named pipe server we connected to is owned by the same
-        /// user.
-        /// </summary>
-        /// <remarks>
-        /// The type is embedded in assemblies that need to run cross platform.  While this particular
-        /// code will never be hit when running on non-Windows platforms it does need to work when
-        /// on Windows.  To facilitate that we use reflection to make the check here to enable it to
-        /// compile into our cross plat assemblies.
-        /// </remarks>
-        private static bool CheckPipeConnectionOwnership(NamedPipeClientStream pipeStream)
-        {
-            try
-            {
-                if (PlatformInformation.IsWindows)
-                {
-                    var currentIdentity = WindowsIdentity.GetCurrent();
-                    var currentOwner = currentIdentity.Owner;
-                    var remotePipeSecurity = GetPipeSecurity(pipeStream);
-                    var remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
-                    return currentOwner.Equals(remoteOwner);
-                }
-                else
-                {
-                    return CheckIdentityUnix(pipeStream);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log("Exception checking pipe connection: {0}", ex.Message);
-                return false;
-            }
-        }
-
-#if NETSTANDARD1_3
-        internal static bool CheckIdentityUnix(PipeStream stream)
-        {
-            // Identity verification is unavailable in the MSBuild task,
-            // but verification is not needed client-side so that's okay.
-            // (unavailable due to lack of internal reflection capabilities in netstandard1.3)
-            return true;
-        }
-#else
-        [DllImport("System.Native", EntryPoint = "SystemNative_GetEUid")]
-        private static extern uint GetEUid();
-
-        [DllImport("System.Native", EntryPoint = "SystemNative_GetPeerID", SetLastError = true)]
-        private static extern int GetPeerID(SafeHandle socket, out uint euid);
-
-        internal static bool CheckIdentityUnix(PipeStream stream)
-        {
-            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
-            var handle = (SafePipeHandle)typeof(PipeStream).GetField("_handle", flags).GetValue(stream);
-            var handle2 = (SafeHandle)typeof(SafePipeHandle).GetField("_namedPipeSocketHandle", flags).GetValue(handle);
-
-            uint myID = GetEUid();
-
-            if (GetPeerID(handle, out uint peerID) == -1)
-            {
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
-
-            return myID == peerID;
-        }
-#endif
-
-        private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream)
-        {
-#if NETSTANDARD1_3
-            return (ObjectSecurity)typeof(PipeStream)
-                .GetTypeInfo()
-                .GetDeclaredMethod("GetAccessControl")
-                ?.Invoke(pipeStream, parameters: null);
-#else
-            return pipeStream.GetAccessControl();
-#endif
-        }
-
-        private static string GetUserName() =>
-            (string)typeof(Environment)
-            .GetTypeInfo()
-            .GetDeclaredProperty("UserName")
-            ?.GetMethod?.Invoke(null, parameters: null);
-
         /// <returns>
         /// Null if not enough information was found to create a valid pipe name.
         /// </returns>
@@ -538,13 +465,34 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
             }
 
-            var userName = GetUserName();
+            var userName = Environment.UserName;
             if (userName == null)
             {
                 return null;
             }
 
-            return $"{userName}.{isAdmin}.{basePipeName}";
+            return $"{userName}.{(isAdmin ? 'T' : 'F')}.{basePipeName}";
+        }
+
+        /// <summary>
+        /// Check if our constructed path is too long. On some Unix machines the pipe is a
+        /// real file in the temp directory, and there is a limit on how long the path can
+        /// be. This will never be true on Windows.
+        /// </summary>
+        internal static bool IsPipePathTooLong(string pipeName, string tempPath)
+        {
+            if (PlatformInformation.IsUnix)
+            {
+                // This is the maximum path length of Unix Domain Sockets on a number of systems.
+                // Since CoreFX implements named pipes using Unix Domain Sockets, if we exceed this
+                // length than the pipe will fail.
+                // This number is considered the smallest known max length according to
+                // http://man7.org/linux/man-pages/man7/unix.7.html
+                const int MaxPipePathLength = 92;
+                const int PrefixLength = 11; // "CoreFxPipe_".Length
+                return (tempPath.Length + PrefixLength + pipeName.Length) > MaxPipePathLength;
+            }
+            return false;
         }
 
         internal static string GetBasePipeName(string compilerExeDirectory)
@@ -559,6 +507,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
                 basePipeName = Convert.ToBase64String(bytes)
+                    .Substring(0, 10) // We only have ~50 total characters on Mac, so strip this down
                     .Replace("/", "_")
                     .Replace("=", string.Empty);
             }
@@ -568,12 +517,21 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static bool WasServerMutexOpen(string mutexName)
         {
-            Mutex mutex;
-            var open = Mutex.TryOpenExisting(mutexName, out mutex);
-            if (open)
+            try
             {
-                mutex.Dispose();
-                return true;
+                Mutex mutex;
+                var open = Mutex.TryOpenExisting(mutexName, out mutex);
+                if (open)
+                {
+                    mutex.Dispose();
+                    return true;
+                }
+            }
+            catch
+            {
+                // In the case an exception occured trying to open the Mutex then 
+                // the assumption is that it's not open. 
+                return false;
             }
 
             return false;
@@ -588,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             return $"{pipeName}.client";
         }
-  
+
         /// <summary>
         /// Gets the value of the temporary path for the current environment assuming the working directory
         /// is <paramref name="workingDir"/>.  This function must emulate <see cref="Path.GetTempPath"/> as 

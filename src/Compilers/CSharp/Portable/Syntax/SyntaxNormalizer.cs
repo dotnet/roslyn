@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (token.IsKind(SyntaxKind.ColonToken))
             {
-                return true;
+                return !token.Parent.IsKind(SyntaxKind.InterpolationFormatClause);
             }
 
             if (next.IsKind(SyntaxKind.ColonToken))
@@ -398,6 +398,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             if (token.IsKind(SyntaxKind.CloseBracketToken) && IsWord(next.Kind()))
+            {
+                return true;
+            }
+
+            // We don't want to add extra space after cast, we want space only after tuple
+            if (token.IsKind(SyntaxKind.CloseParenToken) && IsWord(next.Kind()) && token.Parent.IsKind(SyntaxKind.TupleType) == true)
             {
                 return true;
             }
@@ -431,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     !next.IsKind(SyntaxKind.QuestionToken) &&
                     !next.IsKind(SyntaxKind.SemicolonToken) &&
                     !next.IsKind(SyntaxKind.OpenBracketToken) &&
-                    (!next.IsKind(SyntaxKind.OpenParenToken) || KeywordNeedsSeparatorBeforeOpenParen(token.Kind())) &&
+                    (!next.IsKind(SyntaxKind.OpenParenToken) || KeywordNeedsSeparatorBeforeOpenParen(token.Kind()) || next.Parent.IsKind(SyntaxKind.TupleType)) &&
                     !next.IsKind(SyntaxKind.CloseParenToken) &&
                     !next.IsKind(SyntaxKind.CloseBraceToken) &&
                     !next.IsKind(SyntaxKind.ColonColonToken) &&

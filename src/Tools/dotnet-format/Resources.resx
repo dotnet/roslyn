@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="The_project_file_0_does_not_exist" xml:space="preserve">
+    <value>The project file '{0}' does not exist.</value>
+  </data>
+  <data name="The_solution_file_0_does_not_exist" xml:space="preserve">
+    <value>The solution file '{0}' does not exist.</value>
+  </data>
+  <data name="Both_a_MSBuild_project_file_and_solution_file_found_in_0_Specify_which_to_use_with_the_workspace_option" xml:space="preserve">
+    <value>Both a MSBuild project file and solution file found in '{0}'. Specify which to use with the --workspace option.</value>
+  </data>
+  <data name="Could_not_find_a_MSBuild_project_or_solution_file_in_0_Specify_which_to_use_with_the_workspace_option" xml:space="preserve">
+    <value>Could not find a MSBuild project file or solution file in '{0}'. Specify which to use with the --workspace option.</value>
+  </data>
+  <data name="Failed_to_save_formatting_changes" xml:space="preserve">
+    <value>Failed to save formatting changes.</value>
+  </data>
+  <data name="The_file_0_does_not_appear_to_be_a_valid_project_or_solution_file" xml:space="preserve">
+    <value>The file '{0}' does not appear to be a valid project or solution file.</value>
+  </data>
+  <data name="Multiple_MSBuild_project_files_found_in_0_Specify_which_to_use_with_the_workspace_option" xml:space="preserve">
+    <value>Multiple MSBuild project files found in '{0}'. Specify which to use with the --workspace option.</value>
+  </data>
+  <data name="Multiple_MSBuild_solution_files_found_in_0_Specify_which_to_use_with_the_workspace_option" xml:space="preserve">
+    <value>Multiple MSBuild solution files found in '{0}'. Specify which to use with the --workspace option.</value>
+  </data>
+  <data name="Format_complete" xml:space="preserve">
+    <value>Format complete.</value>
+  </data>
+  <data name="Formatting_code_file_0" xml:space="preserve">
+    <value>Formatting code file '{0}'.</value>
+  </data>
+  <data name="Formatting_code_files_in_project_0" xml:space="preserve">
+    <value>Formatting code files in project '{0}'.</value>
+  </data>
+  <data name="Formatting_code_files_in_workspace_0" xml:space="preserve">
+    <value>Formatting code files in workspace '{0}'.</value>
+  </data>
+  <data name="Could_not_format_0_Format_currently_supports_only_CSharp_and_Visual_Basic_projects" xml:space="preserve">
+    <value>Could not format '{0}'. Format currently supports only C# and Visual Basic projects.</value>
+  </data>
+  <data name="Format_complete_in_0_ms" xml:space="preserve">
+    <value>Format complete in {0}ms.</value>
+  </data>
+  <data name="Loading_workspace" xml:space="preserve">
+    <value>Loading workspace.</value>
+  </data>
+  <data name="Skipping_referenced_project_0" xml:space="preserve">
+    <value>Skipping referenced project '{0}'.</value>
+  </data>
+  <data name="Unable_to_load_workspace" xml:space="preserve">
+    <value>Unable to load workspace.</value>
+  </data>
+  <data name="Workspace_loaded_in_0_ms" xml:space="preserve">
+    <value>Workspace loaded in {0}ms.</value>
+  </data>
+  <data name="Set_the_verbosity_level_Allowed_values_are_quiet_minimal_normal_detailed_and_diagnostic" xml:space="preserve">
+    <value>Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]</value>
+  </data>
+  <data name="The_solution_or_project_file_to_operate_on_If_a_file_is_not_specified_the_command_will_search_the_current_directory_for_one" xml:space="preserve">
+    <value>The solution or project file to operate on. If a file is not specified, the command will search the current directory for one.</value>
+  </data>
+  <data name="Maximum_number_of_workspace_warnings_to_log_has_been_reached_Set_the_verbosity_option_to_the_diagnostic_level_to_see_all_warnings" xml:space="preserve">
+    <value>Maximum number of workspace warnings to log has been reached. Set the --verbosity option to the 'diagnostic' level to see all warnings.</value>
+  </data>
+</root>

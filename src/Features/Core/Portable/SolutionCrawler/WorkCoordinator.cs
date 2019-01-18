@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
@@ -151,15 +150,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void ReanalyzeOnOptionChange(object sender, OptionChangedEventArgs e)
             {
-                // let each analyzer decide what they want on option change
-                foreach (var analyzer in _documentAndProjectWorkerProcessor.Analyzers)
+                // get off from option changed event handler since it runs on UI thread
+                // getting analyzer can be slow for the very first time since it is lazily initialized
+                var asyncToken = _listener.BeginAsyncOperation("ReanalyzeOnOptionChange");
+                _eventProcessingQueue.ScheduleTask(() =>
                 {
-                    if (analyzer.NeedsReanalysisOnOptionChanged(sender, e))
+                    // let each analyzer decide what they want on option change
+                    foreach (var analyzer in _documentAndProjectWorkerProcessor.Analyzers)
                     {
-                        var scope = new ReanalyzeScope(_registration.CurrentSolution.Id);
-                        Reanalyze(analyzer, scope);
+                        if (analyzer.NeedsReanalysisOnOptionChanged(sender, e))
+                        {
+                            var scope = new ReanalyzeScope(_registration.CurrentSolution.Id);
+                            Reanalyze(analyzer, scope);
+                        }
                     }
-                }
+                }, _shutdownToken).CompletesAsyncOperation(asyncToken);
             }
 
             public void Reanalyze(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority = false)
@@ -174,7 +179,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // we are not interested in 1 file re-analysis request which can happen from like venus typing
                     var solution = _registration.CurrentSolution;
                     SolutionCrawlerLogger.LogReanalyze(
-                        CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguages(solution), highPriority);
+                        CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution), highPriority);
                 }
             }
 
@@ -500,7 +505,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
                     !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
                     !object.Equals(oldProject.Name, newProject.Name) ||
-                    !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions))
+                    !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
+                    !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
+                    !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
+                    !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath))
                 {
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);
                 }
@@ -624,9 +632,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public bool HasMultipleDocuments => _solutionId != null || _projectOrDocumentIds?.Count > 1;
 
-            public string GetLanguages(Solution solution)
+            public string GetLanguagesStringForTelemetry(Solution solution)
             {
-                Contract.ThrowIfFalse(_solutionId == null || solution.Id == _solutionId);
+                if (_solutionId != null && solution.Id != _solutionId)
+                {
+                    // return empty if given solution is not 
+                    // same as solution this scope is created for
+                    return string.Empty;
+                }
 
                 using (var pool = SharedPools.Default<HashSet<string>>().GetPooledObject())
                 {
@@ -665,7 +678,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public int GetDocumentCount(Solution solution)
             {
-                Contract.ThrowIfFalse(_solutionId == null || solution.Id == _solutionId);
+                if (_solutionId != null && solution.Id != _solutionId)
+                {
+                    return 0;
+                }
 
                 var count = 0;
                 if (_solutionId != null)
@@ -702,7 +718,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public IEnumerable<Document> GetDocuments(Solution solution)
             {
-                Contract.ThrowIfFalse(_solutionId == null || solution.Id == _solutionId);
+                if (_solutionId != null && solution.Id != _solutionId)
+                {
+                    yield break;
+                }
 
                 if (_solutionId != null)
                 {
@@ -719,26 +738,26 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     switch (projectOrDocumentId)
                     {
                         case ProjectId projectId:
-                        {
-                            var project = solution.GetProject(projectId);
-                            if (project != null)
                             {
-                                foreach (var document in project.Documents)
+                                var project = solution.GetProject(projectId);
+                                if (project != null)
+                                {
+                                    foreach (var document in project.Documents)
+                                    {
+                                        yield return document;
+                                    }
+                                }
+                                break;
+                            }
+                        case DocumentId documentId:
+                            {
+                                var document = solution.GetDocument(documentId);
+                                if (document != null)
                                 {
                                     yield return document;
                                 }
+                                break;
                             }
-                            break;
-                        }
-                        case DocumentId documentId:
-                        {
-                            var document = solution.GetDocument(documentId);
-                            if (document != null)
-                            {
-                                yield return document;
-                            }
-                            break;
-                        }
                     }
                 }
             }

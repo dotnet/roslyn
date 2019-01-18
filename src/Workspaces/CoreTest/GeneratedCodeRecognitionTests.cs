@@ -2,10 +2,12 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public class GeneratedCodeRecognitionTests
     {
         [Fact]

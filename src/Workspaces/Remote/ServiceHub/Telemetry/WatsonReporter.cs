@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         public static TelemetrySession SessionOpt => s_sessionOpt;
 
         /// <summary>
+        /// Check whether current user is microsoft internal or not
+        /// </summary>
+        public static bool IsUserMicrosoftInternal => SessionOpt?.IsUserMicrosoftInternal ?? false;
+
+        /// <summary>
         /// Report Non-Fatal Watson
         /// </summary>
         /// <param name="exception">Exception that triggered this non-fatal error</param>

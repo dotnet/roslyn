@@ -46,9 +46,14 @@ namespace Microsoft.CodeAnalysis
         bool HasReferenceTypeConstraint { get; }
 
         /// <summary>
-        /// True if the value type constraint (<c>struct</c>)was specified for the type parameter.
+        /// True if the value type constraint (<c>struct</c>) was specified for the type parameter.
         /// </summary>
         bool HasValueTypeConstraint { get; }
+
+        /// <summary>
+        /// True if the value type constraint (<c>unmanaged</c>) was specified for the type parameter.
+        /// </summary>
+        bool HasUnmanagedTypeConstraint { get; }
 
         /// <summary>
         /// True if the parameterless constructor constraint (<c>new()</c>) was specified for the type parameter.

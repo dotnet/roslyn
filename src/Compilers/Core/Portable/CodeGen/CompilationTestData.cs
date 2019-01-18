@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.DiaSymReader;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // The emitted module.
         public CommonPEModuleBuilder Module;
 
-        public Func<object> SymWriterFactory;
+        public Func<ISymWriterMetadataProvider, SymUnmanagedWriter> SymWriterFactory;
 
         public ILBuilder GetIL(Func<IMethodSymbol, bool> predicate)
         {

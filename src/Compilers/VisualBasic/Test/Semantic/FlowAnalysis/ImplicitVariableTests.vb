@@ -46,6 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
             ]]>,
             alwaysAssigned:={"f", "x"},
             captured:={"x"},
+            capturedInside:={"x"},
             variablesDeclared:={"f"},
             dataFlowsIn:={"x"},
             readInside:={"x"},
@@ -94,7 +95,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
                 Optional readOutside() As String = Nothing,
                 Optional variablesDeclared() As String = Nothing,
                 Optional writtenInside() As String = Nothing,
-                Optional writtenOutside() As String = Nothing)
+                Optional writtenOutside() As String = Nothing,
+                Optional capturedInside() As String = Nothing,
+                Optional capturedOutside() As String = Nothing)
             VerifyDataFlowAnalysis(Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit.ImplicitVariableTests.GetSourceXElementFromTemplate(code),
                                    alwaysAssigned,
                                    captured,
@@ -104,7 +107,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
                                    readOutside,
                                    variablesDeclared,
                                    writtenInside,
-                                   writtenOutside)
+                                   writtenOutside,
+                                   capturedInside,
+                                   capturedOutside)
         End Sub
 
 #End Region

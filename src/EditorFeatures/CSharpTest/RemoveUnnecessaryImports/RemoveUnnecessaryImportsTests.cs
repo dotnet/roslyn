@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -35,6 +36,99 @@ class Program
 {
     static void Main(string[] args)
     {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        public async Task TestNoReferencesWithCopyright()
+        {
+            await TestInRegularAndScriptAsync(
+@"[|// Copyright (c) Somebody.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}|]",
+@"// Copyright (c) Somebody.
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}");
+        }
+
+        [WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        public async Task TestReferencesWithCopyrightAndPreservableTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+@"[|// Copyright (c) Somebody.
+
+using System;
+
+using System.Collections.Generic;
+// This is important
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Action a;
+    }
+}|]",
+@"// Copyright (c) Somebody.
+
+using System;
+// This is important
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Action a;
+    }
+}");
+        }
+
+        [WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        public async Task TestReferencesWithCopyrightAndGroupings()
+        {
+            await TestInRegularAndScriptAsync(
+@"[|// Copyright (c) Somebody.
+
+using System;
+
+using System.Collections.Generic;
+
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Action a;
+    }
+}|]",
+@"// Copyright (c) Somebody.
+
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Action a;
     }
 }");
         }
@@ -1306,19 +1400,23 @@ public class QueryExpressionTest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestReferenceInCref()
         {
-            // parsing doc comments as simple trivia; System is unnecessary
-            await TestInRegularAndScriptAsync(
+            // parsing doc comments as simple trivia; we don't know System is unnecessary
+            await TestMissingAsync(
 @"[|using System;
 /// <summary><see cref=""String"" /></summary>
 class C
 {
-}|]",
-@"/// <summary><see cref=""String"" /></summary>
-class C
-{
-}");
+}|]", new TestParameters(Options.Regular.WithDocumentationMode(DocumentationMode.None)));
 
             // fully parsing doc comments; System is necessary
+            await TestMissingAsync(
+@"[|using System;
+/// <summary><see cref=""String"" /></summary>
+class C
+{
+}|]", new TestParameters(Options.Regular.WithDocumentationMode(DocumentationMode.Parse)));
+
+            // fully parsing and diagnosing doc comments; System is necessary
             await TestMissingAsync(
 @"[|using System;
 /// <summary><see cref=""String"" /></summary>
@@ -1352,6 +1450,35 @@ class Program
         Console.WriteLine();
     }
 }");
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        [InlineData(4)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(20377, "https://github.com/dotnet/roslyn/issues/20377")]
+        public async Task TestWarningLevel(int warningLevel)
+        {
+            await TestInRegularAndScriptAsync(
+@"[|using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}|]",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: warningLevel));
         }
     }
 }

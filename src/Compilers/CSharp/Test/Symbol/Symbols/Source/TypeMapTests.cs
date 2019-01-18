@@ -46,7 +46,7 @@ public class Top : A<E> { // base is A<E>
   public class BF : B<F> {} // base is A<E>.B<F>
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
             var at = global.GetTypeMembers("A", 1).Single(); // A<T>
             var t = at.TypeParameters[0];
@@ -90,7 +90,7 @@ public class Top : A<E> { // base is A<E>
             Assert.True(type.IsDefinition);
             var allTypeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             type.GetAllTypeParameters(allTypeParameters);
-            return new TypeMap(allTypeParameters.ToImmutableAndFree(), typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers)).SubstituteNamedType(type);
+            return new TypeMap(allTypeParameters.ToImmutableAndFree(), typeArguments.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t))).SubstituteNamedType(type);
         }
 
         [Fact]
@@ -104,12 +104,12 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
             var field = c.GetMembers("field").Single() as FieldSymbol;
-            var neti = field.Type as NamedTypeSymbol;
+            var neti = field.Type.TypeSymbol as NamedTypeSymbol;
             Assert.Equal(SpecialType.System_Int32, neti.TypeArguments()[0].SpecialType);
         }
 
@@ -128,7 +128,7 @@ class C1<C1T1, C1T2>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var _int = compilation.GetSpecialType(SpecialType.System_Int32);
             var _byte = compilation.GetSpecialType(SpecialType.System_Byte);
@@ -151,7 +151,7 @@ class C1<C1T1, C1T2>
             var v1 = c1OfByteChar_c2OfIntInt_c3OfIntByte.GetMembers().OfType<FieldSymbol>().First();
             var type = v1.Type;
 
-            Assert.Equal("C1<System.Int32, System.Byte>.C2<System.Byte, System.Byte>.C3<System.Char, System.Byte>", type.ToTestDisplayString());
+            Assert.Equal("C1<System.Int32, System.Byte>.C2<System.Byte, System.Byte>.C3<System.Char, System.Byte>", type.TypeSymbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -170,7 +170,7 @@ class C1<C1T1, C1T2>
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var _int = compilation.GetSpecialType(SpecialType.System_Int32);
             var _byte = compilation.GetSpecialType(SpecialType.System_Byte);

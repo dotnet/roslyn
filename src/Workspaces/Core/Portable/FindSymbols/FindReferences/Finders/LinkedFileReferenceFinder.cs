@@ -12,7 +12,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class LinkedFileReferenceFinder : IReferenceFinder
     {
         public async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var linkedSymbols = new HashSet<SymbolAndProjectId>();
 
@@ -62,7 +63,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return linkedSymbols.ToImmutableArray();
         }
 
-        public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+            ISymbol symbol, Project project, IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyImmutableArray<Document>();
         }
@@ -72,10 +75,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return SpecializedTasks.EmptyImmutableArray<Project>();
         }
 
-        public Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
-            SymbolAndProjectId symbolAndProjectId, Document document, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel,
+            FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
+            return SpecializedTasks.EmptyImmutableArray<FinderLocation>();
         }
     }
 }

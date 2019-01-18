@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class SimplificationTests
         Inherits AbstractSimplificationTests
 
-        Private Shared ReadOnly DoNotPreferBraces As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(CSharpCodeStyleOptions.PreferBraces), CodeStyleOptions.FalseWithNoneEnforcement}}
+        Private Shared ReadOnly DoNotPreferBraces As Dictionary(Of OptionKey, Object) = New Dictionary(Of OptionKey, Object) From {{New OptionKey(CSharpCodeStyleOptions.PreferBraces), New CodeStyleOption(Of PreferBracesPreference)(PreferBracesPreference.None, NotificationOption.Silent)}}
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_DoNotSimplifyIfBlock() As Task

@@ -19,18 +19,37 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly RemoteHostClient.Connection _connection;
         private readonly PinnedRemotableDataScope _scope;
 
-        public static async Task<SessionWithSolution> CreateAsync(RemoteHostClient.Connection connection, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
+        public static async Task<SessionWithSolution> CreateAsync(RemoteHostClient.Connection connection, Solution solution, CancellationToken cancellationToken)
         {
-            var sessionWithSolution = new SessionWithSolution(connection, scope);
+            Contract.ThrowIfNull(connection);
+            Contract.ThrowIfNull(solution);
 
+            PinnedRemotableDataScope scope = null;
             try
             {
-                await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                return sessionWithSolution;
+                scope = await solution.GetPinnedScopeAsync(cancellationToken).ConfigureAwait(false);
+
+                // set connection state for this session.
+                // we might remove this in future. see https://github.com/dotnet/roslyn/issues/24836
+                await connection.InvokeAsync(
+                    WellKnownServiceHubServices.ServiceHubServiceBase_Initialize,
+                    new object[] { scope.SolutionInfo },
+                    cancellationToken).ConfigureAwait(false);
+
+                return new SessionWithSolution(connection, scope);
             }
             catch
             {
-                sessionWithSolution.Dispose();
+                // Make sure disposable objects are disposed when exceptions are thrown. The try/finally is used to
+                // ensure 'scope' is disposed even if an exception is thrown while disposing 'connection'.
+                try
+                {
+                    connection.Dispose();
+                }
+                finally
+                {
+                    scope?.Dispose();
+                }
 
                 // we only expect this to happen on cancellation. otherwise, rethrow
                 cancellationToken.ThrowIfCancellationRequested();

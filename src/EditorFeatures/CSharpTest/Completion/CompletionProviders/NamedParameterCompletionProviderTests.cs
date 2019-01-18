@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -74,7 +75,7 @@ class Goo
     }
 }";
 
-            await VerifyItemExistsAsync(markup, "a:");
+            await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -93,7 +94,7 @@ class DogBed : Goo
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "a:");
+            await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -109,7 +110,7 @@ class Goo
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "a:");
+            await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -125,7 +126,7 @@ class Goo
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "a:");
+            await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -158,7 +159,7 @@ class Program
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "i:");
+            await VerifyItemExistsAsync(markup, "i", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -178,8 +179,8 @@ partial class PartialClass
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "declaring:");
-            await VerifyItemIsAbsentAsync(markup, "implementing:");
+            await VerifyItemExistsAsync(markup, "declaring", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "implementing", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -236,8 +237,8 @@ class Class1
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "str:");
-            await VerifyItemIsAbsentAsync(markup, "character:");
+            await VerifyItemExistsAsync(markup, "str", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "character", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -259,8 +260,8 @@ class Class1
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "boolean:");
-            await VerifyItemExistsAsync(markup, "character:");
+            await VerifyItemExistsAsync(markup, "boolean", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "character", displayTextSuffix: ":");
         }
 
         [WorkItem(544191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544191")]
@@ -291,10 +292,10 @@ class Goo
 }
 class Bar { }
 ";
-            await VerifyItemExistsAsync(markup, "str:");
-            await VerifyItemExistsAsync(markup, "num:");
-            await VerifyItemExistsAsync(markup, "b:");
-            await VerifyItemIsAbsentAsync(markup, "dbl:");
+            await VerifyItemExistsAsync(markup, "str", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "num", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "b", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "dbl", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -320,9 +321,9 @@ class Goo
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "str:");
-            await VerifyItemExistsAsync(markup, "num:");
-            await VerifyItemExistsAsync(markup, "b:");
+            await VerifyItemExistsAsync(markup, "str", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "num", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "b", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -351,10 +352,10 @@ class Goo
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "num:");
-            await VerifyItemExistsAsync(markup, "b:");
-            await VerifyItemIsAbsentAsync(markup, "obj:");
-            await VerifyItemIsAbsentAsync(markup, "str:");
+            await VerifyItemExistsAsync(markup, "num", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "b", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "obj", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "str", displayTextSuffix: ":");
         }
 
         [WorkItem(529369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529369")]
@@ -370,7 +371,7 @@ class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "integer:");
+            await VerifyItemExistsAsync(markup, "integer", displayTextSuffix: ":");
         }
 
         [WorkItem(544209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544209")]
@@ -392,7 +393,7 @@ class Class1
     { }
 }
 ";
-            await VerifyItemExistsAsync(markup, "obj:",
+            await VerifyItemExistsAsync(markup, "obj", displayTextSuffix: ":",
                 expectedDescriptionOrNull: $"({FeaturesResources.parameter}) Class1 obj = default(Class1)");
         }
 
@@ -415,7 +416,7 @@ class Program
         handler($$
     }
 }";
-            await VerifyItemExistsAsync(markup, "message:");
+            await VerifyItemExistsAsync(markup, "message", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -437,7 +438,7 @@ class Program
         handler.Invoke($$
     }
 }";
-            await VerifyItemExistsAsync(markup, "message:");
+            await VerifyItemExistsAsync(markup, "message", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

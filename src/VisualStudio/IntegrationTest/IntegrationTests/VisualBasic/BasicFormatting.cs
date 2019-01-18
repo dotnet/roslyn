@@ -3,6 +3,7 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
@@ -20,7 +21,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void VerifyFormattingIndent()
         {
             var testCode = new StringBuilder()
@@ -42,7 +43,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 End Module");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void VerifyCaseCorrection()
         {
             SetUpEditor(@"
@@ -54,7 +55,7 @@ Module A
 End Module");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18065"), 
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18065"),
          Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ShiftEnterWithIntelliSenseAndBraceMatching()
         {

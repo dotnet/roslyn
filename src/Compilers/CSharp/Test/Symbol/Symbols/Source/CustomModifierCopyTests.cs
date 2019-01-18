@@ -42,7 +42,7 @@ class Class : CppCli.CppInterface1
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -85,7 +85,7 @@ class Class : CppCli.CppInterface1, CppCli.CppInterface2
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -104,7 +104,7 @@ class Class : CppCli.CppInterface1, CppCli.CppInterface2
             var classMethod2 = @class.GetMember<MethodSymbol>("Method2");
             AssertNoParameterHasModOpts(classMethod2);
 
-            // bridges method for implicit implementation have custom modifiers
+            // bridge methods for implicit implementation have custom modifiers
             var method2ExplicitImpls = @class.GetSynthesizedExplicitImplementations(CancellationToken.None);
             Assert.Equal(2, method2ExplicitImpls.Length);
             foreach (var explicitImpl in method2ExplicitImpls)
@@ -136,7 +136,7 @@ class Class : CppCli.CppBase1
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -185,7 +185,7 @@ class Derived : Base
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -247,7 +247,7 @@ class Derived : MethodCustomModifierCombinations
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -283,7 +283,7 @@ class Derived : PropertyCustomModifierCombinations
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -324,13 +324,13 @@ class Derived : PropertyCustomModifierCombinations
         {
             if (!method.ReturnsVoid)
             {
-                CheckCustomModifier(inReturnType, ((ArrayTypeSymbol)method.ReturnType).CustomModifiers);
-                CheckCustomModifier(onReturnType, method.ReturnTypeCustomModifiers);
+                CheckCustomModifier(inReturnType, ((ArrayTypeSymbol)method.ReturnType.TypeSymbol).ElementType.CustomModifiers);
+                CheckCustomModifier(onReturnType, method.ReturnType.CustomModifiers);
             }
             if (method.Parameters.Any())
             {
-                CheckCustomModifier(inParameterType, ((ArrayTypeSymbol)method.Parameters.Single().Type).CustomModifiers);
-                CheckCustomModifier(onParameterType, method.Parameters.Single().CustomModifiers);
+                CheckCustomModifier(inParameterType, ((ArrayTypeSymbol)method.Parameters.Single().Type.TypeSymbol).ElementType.CustomModifiers);
+                CheckCustomModifier(onParameterType, method.Parameters.Single().Type.CustomModifiers);
             }
         }
 
@@ -342,8 +342,8 @@ class Derived : PropertyCustomModifierCombinations
         /// <param name="onType">True if a custom modifier is expected on the return type.</param>
         private static void CheckPropertyCustomModifiers(PropertySymbol property, bool inType, bool onType)
         {
-            CheckCustomModifier(inType, ((ArrayTypeSymbol)property.Type).CustomModifiers);
-            CheckCustomModifier(onType, property.TypeCustomModifiers);
+            CheckCustomModifier(inType, ((ArrayTypeSymbol)property.Type.TypeSymbol).ElementType.CustomModifiers);
+            CheckCustomModifier(onType, property.Type.CustomModifiers);
         }
 
         /// <summary>
@@ -392,7 +392,7 @@ class Class3 : CppCli.CppBase2, CppCli.CppInterface1
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -426,7 +426,7 @@ class Class3 : CppCli.CppBase2, CppCli.CppInterface1
 
             //Method1 is implemented in Class3, but a bridge is needed because custom modifiers are not copied
             var class3Method1 = class3.GetMember<MethodSymbol>("Method1");
-            Assert.False(class3Method1.Parameters.Single().CustomModifiers.Any());
+            Assert.False(class3Method1.Parameters.Single().Type.CustomModifiers.Any());
 
             // GetSynthesizedExplicitImplementations doesn't guarantee order, so sort to make the asserts easier to write.
 
@@ -461,7 +461,7 @@ class Class : I2
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -470,7 +470,7 @@ class Class : I2
 
             // explicit implementation copies custom modifiers
             var classMethod1 = @class.GetMethod("I2.M1");
-            var classMethod1CustomModifiers = classMethod1.Parameters.Single().CustomModifiers;
+            var classMethod1CustomModifiers = classMethod1.Parameters.Single().Type.CustomModifiers;
             Assert.Equal(2, classMethod1CustomModifiers.Length);
             foreach (var customModifier in classMethod1CustomModifiers)
             {
@@ -508,7 +508,7 @@ public class Derived2 : Derived
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -552,7 +552,7 @@ class Explicit : CppCli.CppIndexerInterface
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -585,7 +585,7 @@ class Implicit : CppCli.CppIndexerInterface
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -626,7 +626,7 @@ class Override : CppCli.CppIndexerBase
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -667,7 +667,7 @@ public class Derived2 : Derived
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -730,9 +730,10 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il,
+            var comp = CreateCompilationWithILAndMscorlib40(source, il,
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                references: new[] { CSharpRef, SystemCoreRef });
+                targetFramework: TargetFramework.Standard,
+                references: new[] { CSharpRef });
 
             CompileAndVerify(comp, expectedOutput: "Bug813305.M",
                 symbolValidator: m =>
@@ -763,7 +764,7 @@ class C : I
     void I.M(dynamic x) { }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il, new[] { SystemCoreRef });
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -807,7 +808,7 @@ class C : I
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -851,7 +852,7 @@ class C : I
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp1 = CreateCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp1 = CreateEmptyCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp1.VerifyDiagnostics();
 
             var interfaceMethod1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("I.M");
@@ -859,15 +860,15 @@ class C : I
 
             Assert.Equal("(System.Object a, System.Object b) I.M((System.Object c, System.Object d) x)", interfaceMethod1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    interfaceMethod1.ReturnType.TupleUnderlyingType.ToTestDisplayString());
+                    interfaceMethod1.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    interfaceMethod1.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                    interfaceMethod1.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             Assert.Equal("(System.Object a, System.Object b) C.I.M((System.Object c, System.Object d) x)", classMethod1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod1.ReturnType.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod1.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod1.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                    classMethod1.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var source2 = @"
 class C : I
@@ -875,7 +876,7 @@ class C : I
     (object a, object b) I.M((object, object) x) { return x; }
 }
 ";
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp2 = CreateEmptyCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp2.VerifyDiagnostics(
                 // (4,28): error CS8141: The tuple element names in the signature of method 'C.I.M((object, object))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
                 //     (object a, object b) I.M((object, object) x) { return x; }
@@ -886,10 +887,10 @@ class C : I
 
             Assert.Equal("(System.Object a, System.Object b) C.I.M((System.Object, System.Object) x)", classMethod2.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                classMethod2.ReturnType.TupleUnderlyingType.ToTestDisplayString());
+                classMethod2.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                classMethod2.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                classMethod2.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var source3 = @"
 class C : I
@@ -897,7 +898,7 @@ class C : I
     (object, object) I.M((object c, object d) x) { return x; }
 }
 ";
-            var comp3 = CreateCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp3 = CreateEmptyCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp3.VerifyDiagnostics(
                 // (4,24): error CS8141: The tuple element names in the signature of method 'C.I.M((object c, object d))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
                 //     (object, object) I.M((object c, object d) x) { return x; }
@@ -908,9 +909,9 @@ class C : I
 
             Assert.Equal("(System.Object, System.Object) C.I.M((System.Object c, System.Object d) x)", classMethod3.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod3.ReturnType.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod3.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod3.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                    classMethod3.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var source4 = @"
 class C : I
@@ -918,14 +919,14 @@ class C : I
     public (object a, object b) M((object c, object d) x) { return x; }
 }
 ";
-            var comp4 = CreateCompilation(source4, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp4 = CreateEmptyCompilation(source4, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp4.VerifyDiagnostics();
 
             var classMethod4 = comp4.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMethod("M");
 
             Assert.Equal("(System.Object a, System.Object b) C.M((System.Object c, System.Object d) x)", classMethod4.ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod4.ReturnType.TupleUnderlyingType.ToTestDisplayString()); // modopts not copied
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod4.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString()); // modopts not copied
+            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod4.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString()); // modopts not copied
+            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod4.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString()); // modopts not copied
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -971,7 +972,7 @@ class C : I
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp1 = CreateCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp1 = CreateEmptyCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp1.VerifyDiagnostics();
 
             var interfaceProperty1 = comp1.GlobalNamespace.GetMember<PropertySymbol>("I.P");
@@ -979,11 +980,11 @@ class C : I
 
             Assert.Equal("(System.Object a, System.Object b) I.P { get; set; }", interfaceProperty1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    interfaceProperty1.Type.TupleUnderlyingType.ToTestDisplayString());
+                    interfaceProperty1.Type.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             Assert.Equal("(System.Object a, System.Object b) C.I.P { get; set; }", classProperty1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classProperty1.Type.TupleUnderlyingType.ToTestDisplayString());
+                    classProperty1.Type.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var source2 = @"
 class C : I
@@ -991,13 +992,13 @@ class C : I
     (object, object) I.P { get; set; }
 }
 ";
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp2 = CreateEmptyCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp2.VerifyDiagnostics();
 
             var classProperty2 = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetProperty("I.P");
 
             Assert.Equal("(System.Object, System.Object) C.I.P { get; set; }", classProperty2.ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classProperty2.Type.TupleUnderlyingType.ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classProperty2.Type.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var source3 = @"
 class C : I
@@ -1005,13 +1006,13 @@ class C : I
     public (object a, object b) P { get; set; }
 }
 ";
-            var comp3 = CreateCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp3 = CreateEmptyCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp3.VerifyDiagnostics();
 
             var classProperty3 = comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetProperty("P");
 
             Assert.Equal("(System.Object a, System.Object b) C.P { get; set; }", classProperty3.ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classProperty3.Type.TupleUnderlyingType.ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classProperty3.Type.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1114,35 +1115,35 @@ class C : Base
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp1 = CreateCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp1 = CreateEmptyCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp1.VerifyDiagnostics();
 
             var baseMethod1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("Base.M");
 
             Assert.Equal("(System.Object a, System.Object b) Base.M((System.Object c, System.Object d) x)", baseMethod1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    baseMethod1.ReturnType.TupleUnderlyingType.ToTestDisplayString());
+                    baseMethod1.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    baseMethod1.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                    baseMethod1.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var baseProperty1 = comp1.GlobalNamespace.GetMember<PropertySymbol>("Base.P");
 
             Assert.Equal("(System.Object a, System.Object b) Base.P { get; set; }", baseProperty1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    baseProperty1.Type.TupleUnderlyingType.ToTestDisplayString());
+                    baseProperty1.Type.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var classProperty1 = comp1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetProperty("P");
             var classMethod1 = comp1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMethod("M");
 
             Assert.Equal("(System.Object a, System.Object b) C.P { get; set; }", classProperty1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classProperty1.Type.TupleUnderlyingType.ToTestDisplayString());
+                    classProperty1.Type.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             Assert.Equal("(System.Object a, System.Object b) C.M((System.Object c, System.Object d) y)", classMethod1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod1.ReturnType.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod1.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod1.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                    classMethod1.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var source2 = @"
 class C : Base
@@ -1151,7 +1152,7 @@ class C : Base
     public override (object, object) M((object c, object d) y) { return y; }
 }
 ";
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp2 = CreateEmptyCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp2.VerifyDiagnostics(
                 // (5,38): error CS8139: 'C.M((object c, object d))': cannot change tuple element names when overriding inherited member 'Base.M((object c, object d))'
                 //     public override (object, object) M((object c, object d) y) { return y; }
@@ -1163,13 +1164,13 @@ class C : Base
 
             Assert.Equal("(System.Object, System.Object) C.P { get; set; }", classProperty2.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object, System.Object>",
-                    classProperty2.Type.TupleUnderlyingType.ToTestDisplayString());
+                    classProperty2.Type.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             Assert.Equal("(System.Object, System.Object) C.M((System.Object c, System.Object d) y)", classMethod2.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod2.ReturnType.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod2.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod2.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                    classMethod2.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var source3 = @"
 class C : Base
@@ -1178,7 +1179,7 @@ class C : Base
     public override (object a, object b) M((object, object) y) { return y; }
 }
 ";
-            var comp3 = CreateCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp3 = CreateEmptyCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp3.VerifyDiagnostics(
                 // (5,42): error CS8139: 'C.M((object, object))': cannot change tuple element names when overriding inherited member 'Base.M((object c, object d))'
                 //     public override (object a, object b) M((object, object) y) { return y; }
@@ -1189,9 +1190,9 @@ class C : Base
 
             Assert.Equal("(System.Object a, System.Object b) C.M((System.Object, System.Object) y)", classMethod3.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod3.ReturnType.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod3.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod3.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                    classMethod3.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1225,7 +1226,7 @@ class C : I
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1265,7 +1266,7 @@ class C : I
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1310,7 +1311,7 @@ public class C : I<byte, char>
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1354,7 +1355,7 @@ public class C : I<byte, char>
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1409,7 +1410,7 @@ class Derived : Base
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1463,7 +1464,7 @@ class Derived : Base
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1513,7 +1514,7 @@ class Derived : Base
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1598,7 +1599,7 @@ class Derived : Base
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1622,23 +1623,23 @@ class Derived : Base
             Assert.Equal(0, derivedProperty.CustomModifierCount());
             Assert.Equal(0, derivedIndexer.CustomModifierCount());
 
-            Assert.Equal(int8Type, baseProperty.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, derivedProperty.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, baseProperty.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, derivedProperty.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int16Type, baseProperty.SetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
-            Assert.Equal(int16Type, derivedProperty.SetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, baseProperty.SetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, derivedProperty.SetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int8Type, baseIndexer.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, derivedIndexer.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, baseIndexer.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, derivedIndexer.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int16Type, baseIndexer.GetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
-            Assert.Equal(int16Type, derivedIndexer.GetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, baseIndexer.GetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, derivedIndexer.GetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int32Type, baseIndexer.SetMethod.Parameters[0].CustomModifiers.Single().Modifier);
-            Assert.Equal(int32Type, derivedIndexer.SetMethod.Parameters[0].CustomModifiers.Single().Modifier);
+            Assert.Equal(int32Type, baseIndexer.SetMethod.Parameters[0].Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int32Type, derivedIndexer.SetMethod.Parameters[0].Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int64Type, baseIndexer.SetMethod.Parameters[1].CustomModifiers.Single().Modifier);
-            Assert.Equal(int64Type, derivedIndexer.SetMethod.Parameters[1].CustomModifiers.Single().Modifier);
+            Assert.Equal(int64Type, baseIndexer.SetMethod.Parameters[1].Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int64Type, derivedIndexer.SetMethod.Parameters[1].Type.CustomModifiers.Single().Modifier);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1715,7 +1716,7 @@ class Derived : Base
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1741,14 +1742,14 @@ class Derived : Base
             Assert.Equal(0, derivedIndexer.GetMethod.CustomModifierCount());
             Assert.Equal(0, derivedIndexer.SetMethod.CustomModifierCount());
 
-            Assert.Equal(int8Type, baseProperty.TypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, derivedProperty.TypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, baseProperty.Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, derivedProperty.Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int8Type, baseIndexer.TypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, derivedIndexer.TypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, baseIndexer.Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, derivedIndexer.Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int16Type, baseIndexer.Parameters.Single().CustomModifiers.Single().Modifier);
-            Assert.Equal(int16Type, derivedIndexer.Parameters.Single().CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, baseIndexer.Parameters.Single().Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, derivedIndexer.Parameters.Single().Type.CustomModifiers.Single().Modifier);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1810,7 +1811,7 @@ class Implementation : I
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1834,23 +1835,23 @@ class Implementation : I
             Assert.Equal(0, implementationProperty.CustomModifierCount());
             Assert.Equal(0, implementationIndexer.CustomModifierCount());
 
-            Assert.Equal(int8Type, interfaceProperty.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, implementationProperty.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, interfaceProperty.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, implementationProperty.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int16Type, interfaceProperty.SetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
-            Assert.Equal(int16Type, implementationProperty.SetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, interfaceProperty.SetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, implementationProperty.SetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int8Type, interfaceIndexer.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, implementationIndexer.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, interfaceIndexer.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, implementationIndexer.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int16Type, interfaceIndexer.GetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
-            Assert.Equal(int16Type, implementationIndexer.GetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, interfaceIndexer.GetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, implementationIndexer.GetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int32Type, interfaceIndexer.SetMethod.Parameters[0].CustomModifiers.Single().Modifier);
-            Assert.Equal(int32Type, implementationIndexer.SetMethod.Parameters[0].CustomModifiers.Single().Modifier);
+            Assert.Equal(int32Type, interfaceIndexer.SetMethod.Parameters[0].Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int32Type, implementationIndexer.SetMethod.Parameters[0].Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int64Type, interfaceIndexer.SetMethod.Parameters[1].CustomModifiers.Single().Modifier);
-            Assert.Equal(int64Type, implementationIndexer.SetMethod.Parameters[1].CustomModifiers.Single().Modifier);
+            Assert.Equal(int64Type, interfaceIndexer.SetMethod.Parameters[1].Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int64Type, implementationIndexer.SetMethod.Parameters[1].Type.CustomModifiers.Single().Modifier);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1912,7 +1913,7 @@ class Implementation : I
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1938,14 +1939,14 @@ class Implementation : I
             Assert.Equal(0, implementationIndexer.GetMethod.CustomModifierCount());
             Assert.Equal(0, implementationIndexer.SetMethod.CustomModifierCount());
 
-            Assert.Equal(int8Type, interfaceProperty.TypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, implementationProperty.TypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, interfaceProperty.Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, implementationProperty.Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int8Type, interfaceIndexer.TypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, implementationIndexer.TypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, interfaceIndexer.Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, implementationIndexer.Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int16Type, interfaceIndexer.Parameters.Single().CustomModifiers.Single().Modifier);
-            Assert.Equal(int16Type, implementationIndexer.Parameters.Single().CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, interfaceIndexer.Parameters.Single().Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, implementationIndexer.Parameters.Single().Type.CustomModifiers.Single().Modifier);
         }
 
         private static Func<Symbol, bool> IsPropertyWithSingleParameter(SpecialType paramSpecialType, bool isArrayType = false)
@@ -1956,8 +1957,8 @@ class Implementation : I
                 {
                     return false;
                 }
-                var paramType = s.GetParameters().Single().Type;
-                var comparisonType = isArrayType ? ((ArrayTypeSymbol)paramType).ElementType : paramType;
+                var paramType = s.GetParameters().Single().Type.TypeSymbol;
+                var comparisonType = isArrayType ? ((ArrayTypeSymbol)paramType).ElementType.TypeSymbol : paramType;
                 return comparisonType.SpecialType == paramSpecialType;
             };
         }
@@ -1971,7 +1972,7 @@ class Implementation : I
                 if (!(ignoreLast && i == numParameters - 1))
                 {
                     var param = parameters[i];
-                    Assert.Equal(ConstModOptType, param.CustomModifiers.Single().Modifier.ToTestDisplayString());
+                    Assert.Equal(ConstModOptType, param.Type.CustomModifiers.Single().Modifier.ToTestDisplayString());
                 }
             }
         }
@@ -1980,7 +1981,7 @@ class Implementation : I
         {
             foreach (var param in member.GetParameters())
             {
-                Assert.Equal(0, param.CustomModifiers.Length);
+                Assert.Equal(0, param.Type.CustomModifiers.Length);
             }
         }
     }

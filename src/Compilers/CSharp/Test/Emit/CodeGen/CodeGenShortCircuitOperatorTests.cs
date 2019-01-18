@@ -1006,7 +1006,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "NULL#System.Int32[]");
+            var comp = CompileAndVerify(source, expectedOutput: "NULL#System.Int32[]");
             comp.VerifyIL("C.Test", @"
 {
   // Code size       37 (0x25)
@@ -1050,7 +1050,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#System.Int32[]");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#System.Int32[]");
             comp.VerifyIL("C.Test", @"
 {
   // Code size      355 (0x163)
@@ -1196,7 +1196,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#y");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#y");
         }
 
         [Fact]
@@ -1219,7 +1219,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#-1");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#-1");
         }
 
         [Fact]
@@ -1243,7 +1243,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#y");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#y");
         }
 
         [Fact]
@@ -1267,7 +1267,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#3");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#3");
         }
 
         [Fact]
@@ -1291,7 +1291,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#3");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#3");
         }
 
         [Fact]
@@ -1509,7 +1509,7 @@ public class C
     }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "");
             comp.VerifyIL("C.Main", @"
 {
   // Code size       82 (0x52)
@@ -1627,7 +1627,7 @@ public static class C1
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"3
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"3
 1");
             comp.VerifyIL("C.Main", @"
 {
@@ -1957,7 +1957,7 @@ print2");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement02()
         {
@@ -2009,12 +2009,12 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
 print1
 print2");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement03()
         {
@@ -2066,7 +2066,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
 print1
 print2");
         }
@@ -2633,7 +2633,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new MetadataReference[] { SystemCoreRef, CSharpRef }, expectedOutput: @"False
+            var comp = CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"False
 True
 False
 False");
@@ -2692,7 +2692,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new MetadataReference[] { SystemCoreRef, CSharpRef }, expectedOutput: @"False
+            var comp = CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"False
 True
 False
 False");
@@ -3194,7 +3194,7 @@ static class Ext
 }
 
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
             comp.VerifyIL("Test.Test0<T>(T)", @"
 {
   // Code size       21 (0x15)
@@ -3240,7 +3240,7 @@ static class Ext
 }
 
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
             comp.VerifyIL("Test.Test0<T>(ref T)", @"
 {
   // Code size       46 (0x2e)
@@ -3294,7 +3294,7 @@ class Test
 }
 
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"");
             comp.VerifyIL("Test.Test0<T>(T)", @"
 {
   // Code size       27 (0x1b)
@@ -3365,7 +3365,7 @@ interface I1
 
 
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { CSharpRef });
             base.CompileAndVerify(comp);
         }
 
@@ -3414,7 +3414,7 @@ interface I1
     int CallAsync(int x);
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
             base.CompileAndVerify(comp, expectedOutput: "420");
         }
 
@@ -3831,6 +3831,48 @@ class Program
         }
 
         [Fact]
+        public void ConditionalMemberAccessCoalesceDefault()
+        {
+            var source = @"
+class Program
+{
+    class C1
+    {
+        public int x { get; set; }
+    }
+
+    static void Main()
+    {
+        var c = new C1() { x = 42 };
+        System.Console.WriteLine(Test(c));
+        System.Console.WriteLine(Test(null));
+    }
+
+    static int Test(C1 c)
+    {
+        return c?.x ?? 0;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"
+42
+0");
+            comp.VerifyIL("Program.Test(Program.C1)", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""int Program.C1.x.get""
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
         public void ConditionalMemberAccessNullCheck001()
         {
             var source = @"
@@ -4093,7 +4135,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"   >
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"   >
 False
 False
 <
@@ -5152,7 +5194,7 @@ unsafe class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput: @"---
 M
 ---
 ---");
@@ -5327,7 +5369,7 @@ class C
     void M() => System.Console.WriteLine(""M"");
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (16,32): error CS0029: Cannot implicitly convert type 'void' to 'object'
@@ -5457,7 +5499,7 @@ class C<T>
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (15,33): error CS0023: Operator '?' cannot be applied to operand of type 'T'
@@ -5513,7 +5555,7 @@ unsafe class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput: @"---
 F1
 ---
 F1
@@ -5586,7 +5628,7 @@ unsafe class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
 
             compilation.VerifyDiagnostics(
     // (16,40): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
@@ -5723,7 +5765,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (15,17): error CS0023: Operator '?' cannot be applied to operand of type 'T'
@@ -5966,7 +6008,7 @@ OverflowException");
   IL_000f:  ret
 }").VerifyIL("C.HasLengthChecked", @"
 {
-  // Code size       49 (0x31)
+  // Code size       48 (0x30)
   .maxstack  2
   .locals init (int? V_0,
                 int V_1,
@@ -5987,12 +6029,11 @@ OverflowException");
   IL_001d:  ldloca.s   V_0
   IL_001f:  call       ""int int?.GetValueOrDefault()""
   IL_0024:  ldloc.1
-  IL_0025:  beq.s      IL_0029
-  IL_0027:  ldc.i4.0
-  IL_0028:  ret
-  IL_0029:  ldloca.s   V_0
-  IL_002b:  call       ""bool int?.HasValue.get""
-  IL_0030:  ret
+  IL_0025:  ceq
+  IL_0027:  ldloca.s   V_0
+  IL_0029:  call       ""bool int?.HasValue.get""
+  IL_002e:  and
+  IL_002f:  ret
 }");
         }
 
@@ -6103,7 +6144,7 @@ class C
 
             verifier.VerifyIL("C.NotHasLength", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       42 (0x2a)
   .maxstack  2
   .locals init (int? V_0)
   IL_0000:  ldarg.0
@@ -6119,14 +6160,13 @@ class C
   IL_0014:  stloc.0
   IL_0015:  ldloca.s   V_0
   IL_0017:  call       ""int int?.GetValueOrDefault()""
-  IL_001c:  beq.s      IL_0020
-  IL_001e:  ldc.i4.1
-  IL_001f:  ret
-  IL_0020:  ldloca.s   V_0
-  IL_0022:  call       ""bool int?.HasValue.get""
-  IL_0027:  ldc.i4.0
-  IL_0028:  ceq
-  IL_002a:  ret
+  IL_001c:  ceq
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       ""bool int?.HasValue.get""
+  IL_0025:  and
+  IL_0026:  ldc.i4.0
+  IL_0027:  ceq
+  IL_0029:  ret
 }");
         }
 
@@ -6816,7 +6856,7 @@ class C
 
             verifier.VerifyIL("C.NotHasLength", @"
 {
-  // Code size       58 (0x3a)
+  // Code size       57 (0x39)
   .maxstack  2
   .locals init (int? V_0,
                 int V_1)
@@ -6837,14 +6877,13 @@ class C
   IL_0023:  stloc.0
   IL_0024:  ldloca.s   V_0
   IL_0026:  call       ""int int?.GetValueOrDefault()""
-  IL_002b:  beq.s      IL_002f
-  IL_002d:  ldc.i4.1
-  IL_002e:  ret
-  IL_002f:  ldloca.s   V_0
-  IL_0031:  call       ""bool int?.HasValue.get""
-  IL_0036:  ldc.i4.0
-  IL_0037:  ceq
-  IL_0039:  ret
+  IL_002b:  ceq
+  IL_002d:  ldloca.s   V_0
+  IL_002f:  call       ""bool int?.HasValue.get""
+  IL_0034:  and
+  IL_0035:  ldc.i4.0
+  IL_0036:  ceq
+  IL_0038:  ret
 }");
         }
 
@@ -7313,7 +7352,7 @@ class Program
   IL_002b:  ret
 }");
 
-            comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes);
+            comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes);
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -7397,7 +7436,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var obj1 = new MyObject1 { MyDate = DateTime.Parse(""2017-11-13T14:25:00Z"") };
+        var obj1 = new MyObject1 { MyDate = new DateTime(636461511000000000L) };
         var obj2 = new MyObject2<MyObject1>(obj1);
 
         System.Console.WriteLine(obj1.MyDate.Ticks);
@@ -7448,7 +7487,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var obj1 = new MyObject1 { MyDate = DateTime.Parse(""2017-11-13T14:25:00Z"") };
+        var obj1 = new MyObject1 { MyDate = new DateTime(636461511000000000L) };
         var obj2 = new MyObject2<MyObject1>(obj1);
 
         System.Console.WriteLine(obj1.MyDate.Ticks);

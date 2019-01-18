@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var currentConditionalAccessID = ++_currentConditionalAccessID;
 
             LocalSymbol temp = null;
-            BoundExpression unconditionalAccess = null;
 
             switch (loweringKind)
             {
@@ -126,19 +125,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type = nodeType = accessExpressionType;
             }
 
-            if (accessExpressionType != nodeType && nodeType.IsNullableType())
+            if (!TypeSymbol.Equals(accessExpressionType, nodeType, TypeCompareKind.ConsiderEverything2) && nodeType.IsNullableType())
             {
-                Debug.Assert(accessExpressionType == nodeType.GetNullableUnderlyingType());
+                Debug.Assert(TypeSymbol.Equals(accessExpressionType, nodeType.GetNullableUnderlyingType(), TypeCompareKind.ConsiderEverything2));
                 loweredAccessExpression = _factory.New((NamedTypeSymbol)nodeType, loweredAccessExpression);
-
-                if (unconditionalAccess != null)
-                {
-                    unconditionalAccess = _factory.New((NamedTypeSymbol)nodeType, unconditionalAccess);
-                }
             }
             else
             {
-                Debug.Assert(accessExpressionType == nodeType ||
+                Debug.Assert(TypeSymbol.Equals(accessExpressionType, nodeType, TypeCompareKind.ConsiderEverything2) ||
                     (nodeType.SpecialType == SpecialType.System_Void && !used));
             }
 

@@ -14,20 +14,15 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.Remote
     [ExportWorkspaceService(typeof(IRemoteHostClientFactory), layer: ServiceLayer.Host), Shared]
     internal class RemoteHostClientFactory : IRemoteHostClientFactory
     {
-        public async Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        public Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
             // this is the point where we can create different kind of remote host client in future (cloud or etc)
             if (workspace.Options.GetOption(RemoteHostClientFactoryOptions.RemoteHost_InProc))
             {
-                var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                // register workspace host for in proc remote host client
-                await ServiceHubRemoteHostClient.RegisterWorkspaceHostAsync(workspace, client).ConfigureAwait(false);
-
-                return client;
+                return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: true, cancellationToken: cancellationToken);
             }
 
-            return await ServiceHubRemoteHostClient.CreateAsync(workspace, cancellationToken).ConfigureAwait(false);
+            return ServiceHubRemoteHostClient.CreateAsync(workspace, cancellationToken);
         }
     }
 }

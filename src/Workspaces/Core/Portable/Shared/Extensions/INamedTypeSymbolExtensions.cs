@@ -447,8 +447,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var result = new Dictionary<ISymbol, int>();
             var index = 0;
 
-            if (containingType != null && 
-                !containingType.IsScriptClass && 
+            if (containingType != null &&
+                !containingType.IsScriptClass &&
                 !containingType.IsImplicitClass &&
                 !containingType.IsStatic)
             {
@@ -531,5 +531,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
         }
+
+        public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)
+            => typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
     }
 }

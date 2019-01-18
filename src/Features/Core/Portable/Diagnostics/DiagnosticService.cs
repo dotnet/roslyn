@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map;
 
         [ImportingConstructor]
-        public DiagnosticService([ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners) : this()
+        public DiagnosticService(IAsynchronousOperationListenerProvider listenerProvider) : this()
         {
             // queue to serialize events.
             _eventMap = new EventMap();
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
             _eventQueue = new SimpleTaskQueue(s_eventScheduler);
 
-            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService);
+            _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
 
             _gate = new object();
             _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>>();
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // we expect source who uses this ability to have small number of diagnostics.
             lock (_gate)
             {
-                Contract.Requires(_updateSources.Contains(source));
+                Debug.Assert(_updateSources.Contains(source));
 
                 // check cheap early bail out
                 if (args.Diagnostics.Length == 0 && !_map.ContainsKey(source))
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     using (var pool = SharedPools.Default<List<Data>>().GetPooledObject())
                     {
                         AppendMatchingData(source, workspace, projectId, documentId, id, pool.Object);
-                        Contract.Requires(pool.Object.Count == 0 || pool.Object.Count == 1);
+                        Debug.Assert(pool.Object.Count == 0 || pool.Object.Count == 1);
 
                         if (pool.Object.Count == 1)
                         {
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (obj == null)
             {
-                Contract.Requires(false, "who returns invalid data?");
+                Debug.Assert(false, "who returns invalid data?");
             }
         }
 

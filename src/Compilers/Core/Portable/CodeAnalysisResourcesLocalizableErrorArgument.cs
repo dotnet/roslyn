@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct CodeAnalysisResourcesLocalizableErrorArgument : IFormattable, IMessageSerializable
+    internal struct CodeAnalysisResourcesLocalizableErrorArgument : IFormattable
     {
         private readonly string _targetResourceId;
 

@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ThisConstructorInitializer:
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ConstructorDeclaration:
-                    var newConstructor = (ConstructorDeclarationSyntax)newBody.Parent;
+                    var newConstructor = (ConstructorDeclarationSyntax)(newBody.Parent.IsKind(SyntaxKind.ArrowExpressionClause) ? newBody.Parent.Parent : newBody.Parent);
                     newStatement = (SyntaxNode)newConstructor.Initializer ?? newConstructor;
                     return true;
 
@@ -685,11 +685,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     if (parent.IsKind(SyntaxKind.Block))
                     {
-                        yield return KeyValuePair.Create(parent, (int)(direction > 0 ? BlockPart.CloseBrace : BlockPart.OpenBrace));
+                        yield return KeyValuePairUtil.Create(parent, (int)(direction > 0 ? BlockPart.CloseBrace : BlockPart.OpenBrace));
                     }
                     else if (parent.IsKind(SyntaxKind.ForEachStatement))
                     {
-                        yield return KeyValuePair.Create(parent, (int)ForEachPart.ForEach);
+                        yield return KeyValuePairUtil.Create(parent, (int)ForEachPart.ForEach);
                     }
 
                     if (direction > 0)
@@ -705,14 +705,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // We don't have any better place where to place the span than the initial field.
                         // Consider: in non-partial classes we could find a single constructor. 
                         // Otherwise, it would be confusing to select one arbitrarily.
-                        yield return KeyValuePair.Create(statement, -1);
+                        yield return KeyValuePairUtil.Create(statement, -1);
                     }
 
                     nodeOrToken = statement = parent;
                     fieldOrPropertyModifiers = SyntaxUtilities.TryGetFieldOrPropertyModifiers(statement);
                     direction = +1;
 
-                    yield return KeyValuePair.Create(nodeOrToken.AsNode(), 0);
+                    yield return KeyValuePairUtil.Create(nodeOrToken.AsNode(), 0);
                 }
                 else
                 {
@@ -735,14 +735,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     if (node.IsKind(SyntaxKind.Block))
                     {
-                        yield return KeyValuePair.Create(node, (int)(direction > 0 ? BlockPart.OpenBrace : BlockPart.CloseBrace));
+                        yield return KeyValuePairUtil.Create(node, (int)(direction > 0 ? BlockPart.OpenBrace : BlockPart.CloseBrace));
                     }
                     else if (node.IsKind(SyntaxKind.ForEachStatement))
                     {
-                        yield return KeyValuePair.Create(node, (int)ForEachPart.ForEach);
+                        yield return KeyValuePairUtil.Create(node, (int)ForEachPart.ForEach);
                     }
 
-                    yield return KeyValuePair.Create(node, 0);
+                    yield return KeyValuePairUtil.Create(node, 0);
                 }
             }
         }
@@ -1327,7 +1327,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.SwitchStatement:
                     var switchStatement = (SwitchStatementSyntax)node;
-                    return TextSpan.FromBounds(switchStatement.SwitchKeyword.SpanStart, switchStatement.CloseParenToken.Span.End);
+                    return TextSpan.FromBounds(switchStatement.SwitchKeyword.SpanStart,
+                        (switchStatement.CloseParenToken != default) ? switchStatement.CloseParenToken.Span.End : switchStatement.Expression.Span.End);
 
                 case SyntaxKind.SwitchSection:
                     return ((SwitchSectionSyntax)node).Labels.Last().Span;
@@ -2100,6 +2101,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 if (method.Arity > 0)
                 {
                     ReportError(RudeEditKind.InsertGenericMethod);
+                }
+
+                if (method.ExplicitInterfaceSpecifier != null)
+                {
+                    ReportError(RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier);
                 }
 
                 ClassifyPossibleReadOnlyRefAttributesForType(method, method.ReturnType);
@@ -2930,7 +2936,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Exception Handling Rude Edits
 
-        protected override List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isLeaf)
+        protected override List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isNonLeaf)
         {
             var result = new List<SyntaxNode>();
 
@@ -2941,7 +2947,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (kind)
                 {
                     case SyntaxKind.TryStatement:
-                        if (!isLeaf)
+                        if (isNonLeaf)
                         {
                             result.Add(node);
                         }
@@ -3214,20 +3220,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             Match<SyntaxNode> match,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
-            bool isLeaf)
+            bool isNonLeaf)
         {
-            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
-            ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
+            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement);
+            ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isNonLeaf);
         }
 
         private void ReportRudeEditsForCheckedStatements(
             List<RudeEditDiagnostic> diagnostics,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
-            bool isLeaf)
+            bool isNonLeaf)
         {
-            // checked context can be changed around leaf active statement:
-            if (isLeaf)
+            // checked context can't be changed around non-leaf active statement:
+            if (!isNonLeaf)
             {
                 return;
             }
@@ -3279,8 +3285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             List<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
             SyntaxNode oldActiveStatement,
-            SyntaxNode newActiveStatement,
-            bool isLeaf)
+            SyntaxNode newActiveStatement)
         {
             // Rude Edits for fixed/using/lock/foreach statements that are added/updated around an active statement.
             // Although such changes are technically possible, they might lead to confusion since 

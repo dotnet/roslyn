@@ -30,7 +30,7 @@ class C {
   }
 }";
 
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (5,16): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
                 //       Nullable<Nullable<int>> x = null;
@@ -54,14 +54,39 @@ class C
     Console.WriteLine(s1.ToString() + s2.ToString());
   }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-// (7,5): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
-//     string? s1 = null;
-Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string?").WithArguments("System.Nullable<T>", "T", "string"),
-// (8,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
-//     Nullable<string> s2 = null;
-Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string")
+                // (7,11): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     string? s1 = null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(7, 11),
+                // (8,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     Nullable<string> s2 = null;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 14)
+                );
+        }
+
+        [Fact, WorkItem(544152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544152")]
+        public void TestBug12347_CSharp8()
+        {
+            string source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        string? s1 = null;
+        Nullable<string> s2 = null;
+        Console.WriteLine(s1.ToString() + s2.ToString());
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,15): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //         string? s1 = null;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 15),
+                // (8,18): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         Nullable<string> s2 = null;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 18)
                 );
         }
 
@@ -99,7 +124,7 @@ class C
     System.Console.WriteLine(object.ReferenceEquals(c, null));
   }
 }";
-            var comp = CreateStandardCompilation(source1);
+            var comp = CreateCompilation(source1);
             comp.VerifyDiagnostics(
                 // (11,5): error CS0266: Cannot implicitly convert type 'int?' to 'C'. An explicit conversion exists (are you missing a cast?)
                 //     c++;
@@ -171,7 +196,7 @@ class C
 }";
 
             verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.Fails);
-            verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.RegularLatest.WithPEVerifyCompatFeature());
+            verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
         }
 
         [Fact, WorkItem(543954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
@@ -230,7 +255,7 @@ class C
             foreach (string type in new[] { "int", "ushort", "byte", "long", "float", "decimal" })
             {
                 CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.Fails);
-                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.RegularLatest.WithPEVerifyCompatFeature());
+                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
             }
         }
 
@@ -1761,12 +1786,12 @@ public class Test
 }
 ";
 
-            var complib = CreateStandardCompilation(
+            var complib = CreateCompilation(
                 source,
                 options: TestOptions.ReleaseDll,
                 assemblyName: "TestDLL");
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source2,
                 references: new MetadataReference[] { complib.EmitToImageReference() },
                 options: TestOptions.ReleaseExe,
@@ -1800,7 +1825,7 @@ public class Test
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(544909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544909")]
@@ -1854,7 +1879,7 @@ class A
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
 // (7,18): error CS0019: Operator '&&' cannot be applied to operands of type 'bool?' and 'bool?'
 //         var bb = b1 && b2;
 Diagnostic(ErrorCode.ERR_BadBinaryOps, "b1 && b2").WithArguments("&&", "bool?", "bool?"),
@@ -2063,7 +2088,7 @@ class Test
             // Dev11: error CS0118: 'int?' is a 'type' but is used like a 'variable'
             // Roslyn: (9,18): error CS0119: 'int?' is a type, which is not valid in the given context
             // Roslyn: (9,33): error CS0571: 'int?.implicit operator int?(int)': cannot explicitly call operator or accessor
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments("."),
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Nullable<int>").WithArguments("int?", "type"),
                 Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_Implicit").WithArguments("int?.implicit operator int?(int)")

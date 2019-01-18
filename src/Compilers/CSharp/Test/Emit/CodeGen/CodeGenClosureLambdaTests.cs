@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -11,6 +12,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenClosureLambdaTests : CSharpTestBase
     {
+        [Fact]
+        public void LambdaInIndexerAndBinaryOperator()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+
+class C
+{
+    private static Func<int> _f1;
+    private static Func<int> _f2;
+
+    public static void Main() {
+        var c = new C();
+        c[() => 0] += 1;
+        Console.WriteLine(object.ReferenceEquals(_f1, _f2));
+    }
+
+    int this[Func<int> f] {
+        get { _f1 = f; return 0; }
+        set { _f2 = f; }
+    }
+}", expectedOutput: "True");
+        }
+
+        [Fact]
+        public void MethodGroupInIndexerAndBinaryOperator()
+        {
+            CompileAndVerify(@"
+using System;
+
+class C
+{
+    private static Func<int> _f1;
+    private static Func<int> _f2;
+
+    public static void Main() {
+        var c = new C();
+        c[F] += 1;
+        Console.WriteLine(object.ReferenceEquals(_f1, _f2));
+    }
+
+    static int F() => 0;
+    
+    public int this[Func<int> f] {
+        get { _f1 = f; return 0; }
+        set { _f2 = f; }
+    }
+}", expectedOutput: "True");
+        }
+
         [Fact]
         public void EnvironmentChainContainsUnusedEnvironment()
         {
@@ -1410,7 +1461,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "this: D::F\r\nbase: B1::F");
+            CompileAndVerify(source, expectedOutput: $"this: D::F{Environment.NewLine}base: B1::F");
         }
 
         [Fact]
@@ -1469,7 +1520,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "this: D::F\r\nbase: B1::F");
+            CompileAndVerify(source, expectedOutput: $"this: D::F{Environment.NewLine}base: B1::F");
         }
 
         [Fact]
@@ -1643,7 +1694,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "D::F\r\nB1::F");
+            CompileAndVerify(source, expectedOutput: $"D::F{Environment.NewLine}B1::F");
         }
 
         [Fact]
@@ -1696,7 +1747,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "D::F\r\nB1::F");
+            CompileAndVerify(source, expectedOutput: $"D::F{Environment.NewLine}B1::F");
         }
 
         [Fact]
@@ -1751,7 +1802,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "D::F\r\nB1::F");
+            CompileAndVerify(source, expectedOutput: $"D::F{Environment.NewLine}B1::F");
         }
 
         [Fact]
@@ -2518,7 +2569,7 @@ class C
         d();
     }
 }";
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F");
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F", verify: Verification.Passes);
         }
 
         [Fact]
@@ -4103,7 +4154,6 @@ public class Program
 
             CompileAndVerify(
                 source,
-                new[] { LinqAssemblyRef },
                 expectedOutput:
 @"1
 1
@@ -4161,7 +4211,7 @@ namespace Lambda.Bugs
 }
 ";
 
-            CreateStandardCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0' exceeds the maximum length allowed in metadata.
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0").WithLocation(1, 1),
                 // (17,81): error CS7013: Name 'Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo' exceeds the maximum length allowed in metadata.
@@ -4194,7 +4244,7 @@ class Program
         }
 
         [WorkItem(1019237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019237")]
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10838")]
         public void OrderOfDelegateMembers()
         {
             var source = @"
@@ -4219,7 +4269,6 @@ class Program
             // ref emit would just have different metadata tokens
             // we are not interested in testing that
             CompileAndVerify(source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: @"
 Void .ctor(System.Object, IntPtr)
 Int32 Invoke()
@@ -4652,7 +4701,7 @@ class D
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {
                 Signature("C+<>c__DisplayClass0_0`1", "<>9__0",
@@ -4744,7 +4793,7 @@ class D
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp);
 
             verifier.VerifyIL("Program.Test", @"
@@ -4873,7 +4922,7 @@ class D
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp);
 
             verifier.VerifyIL("Program.Test", @"
@@ -5197,7 +5246,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -5217,7 +5266,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -5250,7 +5299,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerify(source);
         }
 
         [Fact, WorkItem(2549, "https://github.com/dotnet/roslyn/issues/2549")]
@@ -5269,7 +5318,7 @@ public class BadBaby
         return from child in Children select from T ch in Children select false;
     }
 }";
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerify(source);
         }
 
         [WorkItem(9131, "https://github.com/dotnet/roslyn/issues/9131")]
@@ -5299,44 +5348,41 @@ class C
             var compilation = CompileAndVerify(source, expectedOutput: @"True");
             compilation.VerifyIL("C.Main",
 @"{
-  // Code size       92 (0x5c)
+  // Code size       90 (0x5a)
   .maxstack  3
   .locals init (int? V_0, //i
                 C.<>c__DisplayClass0_0 V_1, //CS$<>8__locals0
-                int V_2,
-                System.Func<object> V_3) //f
+                System.Func<object> V_2) //f
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""int?""
   IL_0008:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
   IL_000d:  stloc.1
   IL_000e:  ldloca.s   V_0
   IL_0010:  call       ""bool int?.HasValue.get""
-  IL_0015:  brfalse.s  IL_0022
+  IL_0015:  brfalse.s  IL_0020
   IL_0017:  ldloca.s   V_0
   IL_0019:  call       ""int int?.GetValueOrDefault()""
-  IL_001e:  stloc.2
-  IL_001f:  ldloc.2
-  IL_0020:  brfalse.s  IL_004f
-  IL_0022:  ldloc.1
-  IL_0023:  ldnull
-  IL_0024:  stfld      ""object C.<>c__DisplayClass0_0.o""
-  IL_0029:  ldloc.1
-  IL_002a:  ldftn      ""object C.<>c__DisplayClass0_0.<Main>b__0()""
-  IL_0030:  newobj     ""System.Func<object>..ctor(object, System.IntPtr)""
-  IL_0035:  stloc.3
-  IL_0036:  ldstr      ""{0}""
-  IL_003b:  ldloc.3
-  IL_003c:  callvirt   ""object System.Func<object>.Invoke()""
-  IL_0041:  ldnull
-  IL_0042:  ceq
-  IL_0044:  box        ""bool""
-  IL_0049:  call       ""void System.Console.Write(string, object)""
-  IL_004e:  ret
-  IL_004f:  ldloc.1
-  IL_0050:  ldc.i4.1
-  IL_0051:  box        ""int""
-  IL_0056:  stfld      ""object C.<>c__DisplayClass0_0.o""
-  IL_005b:  ret
+  IL_001e:  brfalse.s  IL_004d
+  IL_0020:  ldloc.1
+  IL_0021:  ldnull
+  IL_0022:  stfld      ""object C.<>c__DisplayClass0_0.o""
+  IL_0027:  ldloc.1
+  IL_0028:  ldftn      ""object C.<>c__DisplayClass0_0.<Main>b__0()""
+  IL_002e:  newobj     ""System.Func<object>..ctor(object, System.IntPtr)""
+  IL_0033:  stloc.2
+  IL_0034:  ldstr      ""{0}""
+  IL_0039:  ldloc.2
+  IL_003a:  callvirt   ""object System.Func<object>.Invoke()""
+  IL_003f:  ldnull
+  IL_0040:  ceq
+  IL_0042:  box        ""bool""
+  IL_0047:  call       ""void System.Console.Write(string, object)""
+  IL_004c:  ret
+  IL_004d:  ldloc.1
+  IL_004e:  ldc.i4.1
+  IL_004f:  box        ""int""
+  IL_0054:  stfld      ""object C.<>c__DisplayClass0_0.o""
+  IL_0059:  ret
 }");
         }
     }

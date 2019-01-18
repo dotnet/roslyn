@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.Spellcheck;
+using Microsoft.CodeAnalysis.CSharp.SpellCheck;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -532,7 +532,7 @@ class Program : IProjectConfigurationsService
 }");
         }
 
-        
+
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
@@ -564,6 +564,33 @@ class C
         var y =
         [|var|]
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        public async Task TestUnmanagedConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C<T> where T : [|umanaged|]
+{
+}",
+@"class C<T> where T : unmanaged
+{
+}");
+        }
+
+        [WorkItem(28244, "https://github.com/dotnet/roslyn/issues/28244")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        public async Task TestMisspelledConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class SomeClass
+{
+    public [|SomeClss|]() { }
+}",
+@"public class SomeClass
+{
+    public SomeClass() { }
 }");
         }
     }

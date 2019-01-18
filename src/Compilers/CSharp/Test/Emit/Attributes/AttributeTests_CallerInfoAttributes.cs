@@ -1313,7 +1313,7 @@ name: ThingHappened
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestCallerMemberName_ConstructorDestructor()
         {
             string source = @"
@@ -1486,7 +1486,7 @@ partial class A
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void TestCallerFilePath2()
         {
             string source1 = @"
@@ -1538,10 +1538,15 @@ partial class A { static void Main5() { Log(); } }
                 new[] { SystemRef },
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: @"C:\A\B")));
 
-            CompileAndVerify(compilation, expectedOutput: @"
+            // On CoreClr the '*' is a legal path character
+            // https://github.com/dotnet/docs/issues/4483
+            var expectedStarPath = ExecutionConditionUtil.IsCoreClr
+                ? @"C:\A\B\*"
+                : "*";
+            CompileAndVerify(compilation, expectedOutput: $@"
 1: 'C:\filename'
 2: 'C:\A\B\a\c\d.cs'
-3: '*'
+3: '{expectedStarPath}'
 4: 'C:\abc'
 5: '     '
 ");
@@ -2454,7 +2459,7 @@ C:\filename
 ";
 
             var compilation = CreateCompilationWithMscorlib45(
-                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
+                new[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular7, path: @"C:\filename", encoding: Encoding.UTF8) },
                 options: TestOptions.ReleaseExe);
 
             compilation.VerifyDiagnostics(
@@ -2524,7 +2529,7 @@ class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename") }).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular7, path: @"C:\filename") }).VerifyDiagnostics(
                 // C:\filename(7,38): error CS4018: CallerFilePathAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
                 //     static void M1([CallerLineNumber,CallerFilePath,CallerMemberName] int i = 0) { Console.WriteLine(); }
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithArguments("string", "int"),

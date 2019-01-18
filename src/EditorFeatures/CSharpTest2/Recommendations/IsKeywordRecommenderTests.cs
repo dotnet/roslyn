@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -160,12 +160,43 @@ $$");
 @"var x = ""\{0}\{1}\{2}"" $$"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExpression_InMethodWithArrowBody()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    bool M() => this $$
+}");
+        }
+
         [WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotWithinNumericLiteral()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"var x = .$$0;"));
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterAsync()
+        {
+            await VerifyAbsenceAsync(
+@"
+using System;
+
+class C
+{
+    void Goo()
+    {
+        Bar(async $$
+    }
+
+    void Bar(Func<int, string> f)
+    {
+    }
+}");
         }
     }
 }

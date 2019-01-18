@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
         {
             var sdkDir = GetSystemSdkDirectory();
-            if (CoreClrShim.IsRunningOnCoreClr)
+            if (RuntimeHostInfo.IsCoreClrRuntime)
             {
                 // Register encodings for console
                 // https://github.com/dotnet/roslyn/issues/10785
@@ -59,28 +59,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             CancellationToken cancellationToken)
         {
             return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TimeoutOverride, TryCreateServer, cancellationToken);
-        }
-
-        public static Task<BuildResponse> RunServerCompilation(
-            RequestLanguage language,
-            List<string> arguments,
-            BuildPaths buildPaths,
-            string keepAlive,
-            string libEnvVariable,
-            CancellationToken cancellationToken)
-        {
-            var pipeNameOpt = BuildServerConnection.GetPipeNameForPathOpt(buildPaths.ClientDirectory);
-
-            return RunServerCompilationCore(
-                language,
-                arguments,
-                buildPaths,
-                pipeNameOpt,
-                keepAlive,
-                libEnvVariable,
-                timeoutOverride: null,
-                tryCreateServerFunc: BuildServerConnection.TryCreateServerCore,
-                cancellationToken: cancellationToken);
         }
 
         private static Task<BuildResponse> RunServerCompilationCore(

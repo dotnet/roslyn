@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
@@ -75,9 +76,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 
         private static void AddUnicodeInputs(List<NativeMethods.INPUT> inputs, char ch)
         {
-            var keyDownInput = new NativeMethods.INPUT {
+            var keyDownInput = new NativeMethods.INPUT
+            {
                 Type = NativeMethods.INPUT_KEYBOARD,
-                ki = new NativeMethods.KEYBDINPUT {
+                ki = new NativeMethods.KEYBDINPUT
+                {
                     wVk = 0,
                     wScan = ch,
                     dwFlags = NativeMethods.KEYEVENTF_UNICODE,
@@ -86,9 +89,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
                 }
             };
 
-            var keyUpInput = new NativeMethods.INPUT {
+            var keyUpInput = new NativeMethods.INPUT
+            {
                 Type = NativeMethods.INPUT_KEYBOARD,
-                ki = new NativeMethods.KEYBDINPUT {
+                ki = new NativeMethods.KEYBDINPUT
+                {
                     wVk = 0,
                     wScan = ch,
                     dwFlags = NativeMethods.KEYEVENTF_UNICODE | NativeMethods.KEYEVENTF_KEYUP,
@@ -103,9 +108,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 
         private static void AddInputs(List<NativeMethods.INPUT> inputs, VirtualKey virtualKey, uint dwFlags)
         {
-            var input = new NativeMethods.INPUT {
+            var input = new NativeMethods.INPUT
+            {
                 Type = NativeMethods.INPUT_KEYBOARD,
-                ki = new NativeMethods.KEYBDINPUT {
+                ki = new NativeMethods.KEYBDINPUT
+                {
                     wVk = (ushort)virtualKey,
                     wScan = 0,
                     dwFlags = dwFlags,
@@ -193,7 +200,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
                 }
             }
 
-            _visualStudioInstance.WaitForApplicationIdle();
+            _visualStudioInstance.WaitForApplicationIdle(CancellationToken.None);
         }
     }
 }

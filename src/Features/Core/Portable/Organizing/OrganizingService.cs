@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Organizing.Organizers;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Organizing
 {
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Organizing
         /// </summary>
         public static Task<Document> OrganizeAsync(Document document, IEnumerable<ISyntaxOrganizer> organizers = null, CancellationToken cancellationToken = default)
         {
-            var service = document.Project.LanguageServices.GetService<IOrganizingService>();
+            var service = document.GetLanguageService<IOrganizingService>();
             return service.OrganizeAsync(document, organizers, cancellationToken);
         }
     }

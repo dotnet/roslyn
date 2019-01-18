@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentExpressionStatement(original, rewritten);
         }
 
-        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement original, BoundStatement rewritten)
         {
             return Previous.InstrumentFieldOrPropertyInitializer(original, rewritten);
         }
@@ -153,14 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentSwitchStatement(original, rewritten);
         }
 
-        public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
-            return Previous.InstrumentPatternSwitchStatement(original, rewritten);
-        }
-
-        public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
-        {
-            return Previous.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
+            return Previous.InstrumentSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
         }
 
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
@@ -188,9 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory);
         }
 
-        public override BoundStatement InstrumentPatternSwitchBindCasePatternVariables(BoundStatement bindings)
+        public override BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)
         {
-            return Previous.InstrumentPatternSwitchBindCasePatternVariables(bindings);
+            return Previous.InstrumentSwitchBindCasePatternVariables(bindings);
         }
 
         public override BoundStatement InstrumentForEachStatementDeconstructionVariablesDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)

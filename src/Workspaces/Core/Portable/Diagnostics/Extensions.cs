@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -15,11 +16,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal static class Extensions
+    internal static partial class Extensions
     {
         public static readonly CultureInfo s_USCultureInfo = new CultureInfo("en-US");
 
-        public static string GetBingHelpMessage(this Diagnostic diagnostic, Workspace workspace = null)
+        public static string GetBingHelpMessage(this Diagnostic diagnostic, Workspace workspace)
         {
             var option = GetCustomTypeInBingSearchOption(workspace);
 
@@ -35,13 +36,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool GetCustomTypeInBingSearchOption(Workspace workspace)
         {
-            var workspaceForOptions = workspace ?? PrimaryWorkspace.Workspace;
-            if (workspaceForOptions == null)
+            if (workspace == null)
             {
                 return false;
             }
 
-            return workspaceForOptions.Options.GetOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch);
+            return workspace.Options.GetOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch);
         }
 
         public static DiagnosticData GetPrimaryDiagnosticData(this CodeFix fix)
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
-                        Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                        Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSyntaxDiagnostics(tree, diagnostics);
                     }
                 }
@@ -195,14 +195,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
-                        Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                        Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSemanticDiagnostics(tree, diagnostics);
                     }
                 }
 
                 if (analysisResult.CompilationDiagnostics.TryGetValue(analyzer, out diagnostics))
                 {
-                    Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                    Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                     result.AddCompilationDiagnostics(diagnostics);
                 }
 

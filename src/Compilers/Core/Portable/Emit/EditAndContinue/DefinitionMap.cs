@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                     try
                     {
-                        previousLocals = localSignature.IsNil ? ImmutableArray<EncLocalInfo>.Empty : 
+                        previousLocals = localSignature.IsNil ? ImmutableArray<EncLocalInfo>.Empty :
                             GetLocalSlotMapFromMetadata(localSignature, debugInfo);
                     }
                     catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException || e is IOException)
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             diagnostics.Add(MessageProvider.CreateDiagnostic(
                 MessageProvider.ERR_EncUpdateFailedMissingAttribute,
-                method.Locations.First(), 
+                method.Locations.First(),
                 MessageProvider.GetErrorDisplayString(method),
                 stateMachineAttributeFullName));
         }
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Emit
             for (int i = 0; i < lambdaDebugInfo.Length; i++)
             {
                 var lambdaInfo = lambdaDebugInfo[i];
-                lambdas[lambdaInfo.SyntaxOffset] = KeyValuePair.Create(lambdaInfo.LambdaId, lambdaInfo.ClosureOrdinal);
+                lambdas[lambdaInfo.SyntaxOffset] = KeyValuePairUtil.Create(lambdaInfo.LambdaId, lambdaInfo.ClosureOrdinal);
             }
 
             for (int i = 0; i < closureDebugInfo.Length; i++)

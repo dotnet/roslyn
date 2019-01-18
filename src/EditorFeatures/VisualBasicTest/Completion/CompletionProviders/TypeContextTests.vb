@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Protected Overrides Function CheckResultAsync(validLocation As Boolean, position As Integer, syntaxTree As SyntaxTree) As Task
             Dim token = syntaxTree.GetTargetToken(position, CancellationToken.None)
             Assert.Equal(validLocation, syntaxTree.IsTypeContext(position, token, CancellationToken.None))
-            Return SpecializedTasks.EmptyTask
+            Return Task.CompletedTask
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

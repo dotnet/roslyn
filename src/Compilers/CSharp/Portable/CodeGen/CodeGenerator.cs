@@ -129,7 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _boundBody = boundBody;
             }
 
-            _methodBodySyntaxOpt = (method as SourceMemberMethodSymbol)?.BodySyntax;
+            var sourceMethod = method as SourceMemberMethodSymbol;
+            (BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody) = sourceMethod?.Bodies ?? default;
+            _methodBodySyntaxOpt = (SyntaxNode)blockBody ?? expressionBody ?? sourceMethod?.SyntaxNode;
         }
 
         private bool IsDebugPlus()
@@ -137,10 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return _module.Compilation.Options.DebugPlusMode;
         }
 
-        private bool EnablePEVerifyCompat()
-        {
-            return _module.Compilation.LanguageVersion < LanguageVersion.CSharp7_2 || _module.Compilation.FeaturePEVerifyCompatEnabled;
-        }
+        private bool IsPeVerifyCompatEnabled() => _module.Compilation.IsPeVerifyCompatEnabled;
 
         private LocalDefinition LazyReturnTemp
         {
@@ -162,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var localSymbol = new SynthesizedLocal(_method, _method.ReturnType, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
 
                         result = _builder.LocalSlotManager.DeclareLocal(
-                            type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics),
+                            type: _module.Translate(localSymbol.Type.TypeSymbol, bodySyntax, _diagnostics),
                             symbol: localSymbol,
                             name: null,
                             kind: localSymbol.SynthesizedKind,
@@ -175,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     else
                     {
-                        result = AllocateTemp(_method.ReturnType, _boundBody.Syntax, slotConstraints);
+                        result = AllocateTemp(_method.ReturnType.TypeSymbol, _boundBody.Syntax, slotConstraints);
                     }
 
                     _returnTemp = result;
@@ -184,10 +183,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private bool IsStackLocal(LocalSymbol local)
-        {
-            return _stackLocals != null && _stackLocals.Contains(local);
-        }
+        internal static bool IsStackLocal(LocalSymbol local, HashSet<LocalSymbol> stackLocalsOpt)
+            => stackLocalsOpt?.Contains(local) ?? false;
+
+        private bool IsStackLocal(LocalSymbol local) => IsStackLocal(local, _stackLocals);
 
         public void Generate()
         {
@@ -445,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (_expressionTemps?.Count > 0)
             {
                 // release in reverse order to keep same temps on top of the temp stack if possible
-                for(int i = _expressionTemps.Count - 1; i >= 0; i--)
+                for (int i = _expressionTemps.Count - 1; i >= 0; i--)
                 {
                     var temp = _expressionTemps[i];
                     FreeTemp(temp);

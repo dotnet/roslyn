@@ -50,6 +50,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal partial class BoundPassByCopy
+    {
+        public override ConstantValue ConstantValue
+        {
+            get
+            {
+                Debug.Assert(Expression.ConstantValue == null);
+                return null;
+            }
+        }
+
+        public override Symbol ExpressionSymbol
+        {
+            get
+            {
+                return Expression.ExpressionSymbol;
+            }
+        }
+    }
+
     internal partial class BoundCall
     {
         public override Symbol ExpressionSymbol
@@ -112,19 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.LocalSymbol; }
         }
 
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors)
-            : this(syntax, localSymbol, false, constantValueOpt, type, hasErrors)
-        {
-        }
-
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
-            : this(syntax, localSymbol, false, constantValueOpt, type)
+        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, localSymbol, BoundLocalDeclarationKind.None, constantValueOpt, false, type, hasErrors)
         {
         }
 
         public BoundLocal Update(LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
         {
-            return this.Update(localSymbol, this.IsDeclaration, constantValueOpt, type);
+            return this.Update(localSymbol, this.DeclarationKind, constantValueOpt, this.IsNullableUnknown, type);
         }
     }
 
@@ -341,6 +356,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
+    internal partial class BoundSuppressNullableWarningExpression
+    {
+        public override ConstantValue ConstantValue
+        {
+            get { return this.Expression.ConstantValue; }
+        }
+    }
+
     internal partial class BoundLiteral
     {
         public override ConstantValue ConstantValue
@@ -440,14 +463,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundObjectCreationExpression UpdateArgumentsAndInitializer(
             ImmutableArray<BoundExpression> newArguments,
-            BoundExpression newInitializerExpression,
+            ImmutableArray<RefKind> newRefKinds,
+            BoundObjectInitializerExpressionBase newInitializerExpression,
             TypeSymbol changeTypeOpt = null)
         {
             return Update(
                 constructor: Constructor,
                 arguments: newArguments,
                 argumentNamesOpt: default(ImmutableArray<string>),
-                argumentRefKindsOpt: ArgumentRefKindsOpt,
+                argumentRefKindsOpt: newRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 constantValueOpt: ConstantValueOpt,
@@ -559,14 +583,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return this.MemberSymbol;
             }
-        }
-    }
-
-    internal partial class BoundAwaitExpression : BoundExpression
-    {
-        internal bool IsDynamic
-        {
-            get { return (object)this.GetResult == null; }
         }
     }
 

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public IteratorStateMachine(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol iteratorMethod, int iteratorMethodOrdinal, bool isEnumerable, TypeSymbol elementType)
             : base(slotAllocatorOpt, compilationState, iteratorMethod, iteratorMethodOrdinal)
         {
-            this.ElementType = TypeMap.SubstituteType(elementType).Type;
+            this.ElementType = TypeMap.SubstituteType(elementType).TypeSymbol;
 
             var interfaces = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             if (isEnumerable)
@@ -49,14 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _constructor; }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _interfaces;
         }
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-        {
-            get { return ContainingAssembly.GetSpecialType(SpecialType.System_Object); }
-        }
+        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => ContainingAssembly.GetSpecialType(SpecialType.System_Object);
     }
 }

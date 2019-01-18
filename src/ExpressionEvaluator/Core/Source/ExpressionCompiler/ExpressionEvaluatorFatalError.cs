@@ -12,13 +12,11 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal static class ExpressionEvaluatorFatalError
+    internal static class RegistryHelpers
     {
         private const string RegistryKey = @"Software\Microsoft\ExpressionEvaluator";
-        private const string RegistryValue = "EnableFailFast";
-        internal static bool IsFailFastEnabled;
 
-        static ExpressionEvaluatorFatalError()
+        internal static object GetRegistryValue(string name)
         {
             try
             {
@@ -38,11 +36,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                                 if (eeKey != null)
                                 {
                                     var getValueMethod = eeKey.GetType().GetTypeInfo().GetDeclaredMethod("GetValue", new Type[] { typeof(string) });
-                                    var value = getValueMethod.Invoke(eeKey, new object[] { RegistryValue });
-                                    if ((value != null) && (value is int))
-                                    {
-                                        IsFailFastEnabled = ((int)value == 1);
-                                    }
+                                    return getValueMethod.Invoke(eeKey, new object[] { name });
                                 }
                             }
                         }
@@ -53,7 +47,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 Debug.Assert(false, "Failure checking registry key: " + ex.ToString());
             }
+            return null;
         }
+
+        internal static bool GetBoolRegistryValue(string name)
+        {
+            var value = RegistryHelpers.GetRegistryValue(name);
+            return value is int i && i == 1;
+        }
+    }
+
+    internal static class ExpressionEvaluatorFatalError
+    {
+        private const string RegistryValue = "EnableFailFast";
+        internal static bool IsFailFastEnabled = RegistryHelpers.GetBoolRegistryValue(RegistryValue);
 
         internal static bool CrashIfFailFastEnabled(Exception exception)
         {

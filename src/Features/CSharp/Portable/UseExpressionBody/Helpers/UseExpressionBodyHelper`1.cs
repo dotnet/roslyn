@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -70,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override (bool canOffer, bool fixesError) CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
             => CanOfferUseBlockBody(optionSet, (TDeclaration)declaration, forAnalyzer);
 
-        public override SyntaxNode Update(SyntaxNode declaration, OptionSet options, ParseOptions parseOptions, bool useExpressionBody)
-            => Update((TDeclaration)declaration, options, parseOptions, useExpressionBody);
+        public sealed override SyntaxNode Update(SemanticModel semanticModel, SyntaxNode declaration, OptionSet options, ParseOptions parseOptions, bool useExpressionBody)
+            => Update(semanticModel, (TDeclaration)declaration, options, parseOptions, useExpressionBody);
 
         public override Location GetDiagnosticLocation(SyntaxNode declaration)
             => GetDiagnosticLocation((TDeclaration)declaration);
@@ -82,12 +81,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public bool CanOfferUseExpressionBody(
             OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
         {
-            var preference = optionSet.GetOption(this.Option).Value;
+            var currentOptionValue = optionSet.GetOption(Option);
+            var preference = currentOptionValue.Value;
             var userPrefersExpressionBodies = preference != ExpressionBodyPreference.Never;
+            var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
 
             // If the user likes expression bodies, then we offer expression bodies from the diagnostic analyzer.
             // If the user does not like expression bodies then we offer expression bodies from the refactoring provider.
-            if (userPrefersExpressionBodies == forAnalyzer)
+            // If the analyzer is disabled completely, the refactoring is enabled in both directions.
+            if (userPrefersExpressionBodies == forAnalyzer || (!forAnalyzer && analyzerDisabled))
             {
                 var expressionBody = this.GetExpressionBody(declaration);
                 if (expressionBody == null)
@@ -108,8 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         protected virtual bool TryConvertToExpressionBody(
             TDeclaration declaration,
-            ParseOptions options, ExpressionBodyPreference conversionPreference, 
-            out ArrowExpressionClauseSyntax expressionWhenOnSingleLine, 
+            ParseOptions options, ExpressionBodyPreference conversionPreference,
+            out ArrowExpressionClauseSyntax expressionWhenOnSingleLine,
             out SyntaxToken semicolonWhenOnSingleLine)
         {
             return TryConvertToExpressionBodyWorker(
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
             var body = this.GetBody(declaration);
 
-            return body.TryConvertToExpressionBody(
+            return body.TryConvertToArrowExpressionBody(
                 declaration.Kind(), options, conversionPreference,
                 out expressionWhenOnSingleLine, out semicolonWhenOnSingleLine);
         }
@@ -156,8 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public (bool canOffer, bool fixesError) CanOfferUseBlockBody(
             OptionSet optionSet, TDeclaration declaration, bool forAnalyzer)
         {
-            var preference = optionSet.GetOption(this.Option).Value;
+            var currentOptionValue = optionSet.GetOption(Option);
+            var preference = currentOptionValue.Value;
             var userPrefersBlockBodies = preference == ExpressionBodyPreference.Never;
+            var analyzerDisabled = currentOptionValue.Notification.Severity == ReportDiagnostic.Suppress;
 
             var expressionBodyOpt = this.GetExpressionBody(declaration);
             var canOffer = expressionBodyOpt?.TryConvertToBlock(
@@ -197,11 +201,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
             // If the user likes block bodies, then we offer block bodies from the diagnostic analyzer.
             // If the user does not like block bodies then we offer block bodies from the refactoring provider.
-            return (userPrefersBlockBodies == forAnalyzer, fixesError: false);
+            // If the analyzer is disabled completely, the refactoring is enabled in both directions.
+            canOffer = userPrefersBlockBodies == forAnalyzer || (!forAnalyzer && analyzerDisabled);
+            return (canOffer, fixesError: false);
         }
 
         public TDeclaration Update(
-            TDeclaration declaration, OptionSet options, 
+            SemanticModel semanticModel, TDeclaration declaration, OptionSet options,
             ParseOptions parseOptions, bool useExpressionBody)
         {
             if (useExpressionBody)
@@ -225,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 return WithSemicolonToken(
                            WithExpressionBody(
-                               WithGenerateBody(declaration, options, parseOptions),
+                               WithGenerateBody(semanticModel, declaration, options, parseOptions),
                                expressionBody: null),
                            default);
             }
@@ -235,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         protected abstract ArrowExpressionClauseSyntax GetExpressionBody(TDeclaration declaration);
 
-        protected abstract bool CreateReturnStatementForExpression(TDeclaration declaration);
+        protected abstract bool CreateReturnStatementForExpression(SemanticModel semanticModel, TDeclaration declaration);
 
         protected abstract SyntaxToken GetSemicolonToken(TDeclaration declaration);
 
@@ -244,14 +250,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected abstract TDeclaration WithBody(TDeclaration declaration, BlockSyntax body);
 
         protected virtual TDeclaration WithGenerateBody(
-            TDeclaration declaration, OptionSet options, ParseOptions parseOptions)
+            SemanticModel semanticModel, TDeclaration declaration, OptionSet options, ParseOptions parseOptions)
         {
             var expressionBody = GetExpressionBody(declaration);
             var semicolonToken = GetSemicolonToken(declaration);
 
             if (expressionBody.TryConvertToBlock(
                     GetSemicolonToken(declaration),
-                    CreateReturnStatementForExpression(declaration),
+                    CreateReturnStatementForExpression(semanticModel, declaration),
                     out var block))
             {
                 return WithBody(declaration, block);
@@ -261,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected TDeclaration WithAccessorList(
-            TDeclaration declaration, OptionSet options, ParseOptions parseOptions)
+            SemanticModel semanticModel, TDeclaration declaration, OptionSet options, ParseOptions parseOptions)
         {
             var expressionBody = GetExpressionBody(declaration);
             var semicolonToken = GetSemicolonToken(declaration);
@@ -274,7 +280,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             // an expression bodied accessor they'll just have to convert that to a block as well
             // and that means two steps to take instead of one.
 
-            expressionBody.TryConvertToBlock(GetSemicolonToken(declaration), CreateReturnStatementForExpression(declaration), out var block);
+            expressionBody.TryConvertToBlock(
+                GetSemicolonToken(declaration),
+                CreateReturnStatementForExpression(semanticModel, declaration),
+                out var block);
 
             var accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration);
             accessor = block != null

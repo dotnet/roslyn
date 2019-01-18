@@ -5,10 +5,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 {
     using CSharp = Microsoft.CodeAnalysis.CSharp;
 
+    [UseExportProvider]
     public class CodeCleanupTests
     {
 #if false
@@ -305,7 +306,7 @@ End Module";
 
         private void VerifyRange(string codeWithMarker, string language = LanguageNames.CSharp)
         {
-            MarkupTestFile.GetSpans(codeWithMarker, 
+            MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out IDictionary<string, ImmutableArray<TextSpan>> namedSpans);
 
             var expectedResult = namedSpans.ContainsKey("r") ? namedSpans["r"] as IEnumerable<TextSpan> : SpecializedCollections.EmptyEnumerable<TextSpan>();
@@ -315,7 +316,7 @@ End Module";
 
         private void VerifyRange(string codeWithMarker, ICodeCleanupProvider transformer, ref IEnumerable<TextSpan> expectedResult, string language = LanguageNames.CSharp)
         {
-            MarkupTestFile.GetSpans(codeWithMarker, 
+            MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out IDictionary<string, ImmutableArray<TextSpan>> namedSpans);
 
             VerifyRange(codeWithoutMarker, ImmutableArray.Create(transformer), namedSpans["b"], ref expectedResult, language);

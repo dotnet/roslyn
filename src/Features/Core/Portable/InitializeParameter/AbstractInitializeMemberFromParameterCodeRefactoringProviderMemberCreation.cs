@@ -1,73 +1,47 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Naming;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
     internal abstract partial class AbstractInitializeMemberFromParameterCodeRefactoringProvider<
         TParameterSyntax,
-        TMemberDeclarationSyntax,
         TStatementSyntax,
-        TExpressionSyntax,
-        TBinaryExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
+        TExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
             TParameterSyntax,
-            TMemberDeclarationSyntax,
             TStatementSyntax,
-            TExpressionSyntax,
-            TBinaryExpressionSyntax>
+            TExpressionSyntax>
         where TParameterSyntax : SyntaxNode
-        where TMemberDeclarationSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
-        where TBinaryExpressionSyntax : TExpressionSyntax
     {
-        // Standard field/property names we look for when we have a parameter with a given name.
-        // We also use the rules to help generate fresh fields/properties.  Note that we always
-        // look at these rules *after* the user's own rules.  That way we respect user naming, but
-        // also have a reasonably fallback if they don't have any specified preferences.
-        private static readonly ImmutableArray<NamingRule> s_builtInRules = ImmutableArray.Create(
-                new NamingRule(new SymbolSpecification(
-                    Guid.NewGuid(), "Property",
-                    ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property))),
-                    new NamingStyles.NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.PascalCase),
-                    enforcementLevel: DiagnosticSeverity.Hidden),
-                new NamingRule(new SymbolSpecification(
-                    Guid.NewGuid(), "Field",
-                    ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field))),
-                    new NamingStyles.NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.CamelCase),
-                    enforcementLevel: DiagnosticSeverity.Hidden),
-                new NamingRule(new SymbolSpecification(
-                    Guid.NewGuid(), "FieldWithUnderscore",
-                    ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field))),
-                    new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "_", capitalizationScheme: Capitalization.CamelCase),
-                    enforcementLevel: DiagnosticSeverity.Hidden));
-
         protected abstract SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt);
 
+        protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
+
+        protected abstract Accessibility DetermineDefaultPropertyAccessibility();
+
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
-            Document document, IParameterSymbol parameter, TMemberDeclarationSyntax memberDeclaration,
+            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
             // Only supported for constructor parameters.
-            var methodSymbol = parameter.ContainingSymbol as IMethodSymbol;
-            if (methodSymbol?.MethodKind != MethodKind.Constructor)
+            if (method.MethodKind != MethodKind.Constructor)
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
@@ -102,7 +76,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return ImmutableArray.Create<CodeAction>(new MyCodeAction(
                     title,
                     c => AddSymbolInitializationAsync(
-                        document, parameter, memberDeclaration, blockStatementOpt, fieldOrProperty, c)));
+                        document, parameter, functionDeclaration, method, blockStatementOpt, fieldOrProperty, c)));
             }
             else
             {
@@ -113,24 +87,30 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 // Get the parts of the parameter name and the appropriate naming rules so
                 // that we can name the field/property accordingly.
                 var parameterNameParts = this.GetParameterWordParts(parameter);
-                var rules = await this.GetNamingRulesAsync(document, cancellationToken).ConfigureAwait(false);
+                var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
 
-                var field = CreateField(parameter, rules, parameterNameParts);
-                var property = CreateProperty(parameter, rules, parameterNameParts);
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
+
+                var field = CreateField(requireAccessibilityModifiers, parameter, rules, parameterNameParts);
+                var property = CreateProperty(requireAccessibilityModifiers, parameter, rules, parameterNameParts);
 
                 // Offer to generate either a property or a field.  Currently we place the property
                 // suggestion first (to help users with the immutable object+property pattern). But
                 // we could consider swapping this if people prefer creating private fields more.
                 return ImmutableArray.Create<CodeAction>(
                     new MyCodeAction(string.Format(FeaturesResources.Create_and_initialize_property_0, property.Name),
-                        c => AddSymbolInitializationAsync(document, parameter, memberDeclaration, blockStatementOpt, property, c)),
+                        c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, method, blockStatementOpt, property, c)),
                     new MyCodeAction(string.Format(FeaturesResources.Create_and_initialize_field_0, field.Name),
-                        c => AddSymbolInitializationAsync(document, parameter, memberDeclaration, blockStatementOpt, field, c)));
+                        c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, method, blockStatementOpt, field, c)));
             }
         }
 
         private IFieldSymbol CreateField(
-            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterNameParts)
+            CodeStyleOption<AccessibilityModifiersRequired> requireAccessibilityModifiers,
+            IParameterSymbol parameter,
+            ImmutableArray<NamingRule> rules,
+            ImmutableArray<string> parameterNameParts)
         {
             foreach (var rule in rules)
             {
@@ -138,9 +118,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 {
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
+                    var accessibilityLevel = Accessibility.Private;
+                    if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
+                    {
+                        var defaultAccessibility = DetermineDefaultFieldAccessibility(parameter.ContainingType);
+                        if (defaultAccessibility == Accessibility.Private)
+                        {
+                            accessibilityLevel = Accessibility.NotApplicable;
+                        }
+                    }
+
                     return CodeGenerationSymbolFactory.CreateFieldSymbol(
                         default,
-                        Accessibility.Private,
+                        accessibilityLevel,
                         DeclarationModifiers.ReadOnly,
                         parameter.Type, uniqueName);
                 }
@@ -165,13 +155,26 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private IPropertySymbol CreateProperty(
-            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterNameParts)
+            CodeStyleOption<AccessibilityModifiersRequired> requireAccessibilityModifiers,
+            IParameterSymbol parameter,
+            ImmutableArray<NamingRule> rules,
+            ImmutableArray<string> parameterNameParts)
         {
             foreach (var rule in rules)
             {
                 if (rule.SymbolSpecification.AppliesTo(SymbolKind.Property, Accessibility.Public))
                 {
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
+
+                    var accessibilityLevel = Accessibility.Public;
+                    if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
+                    {
+                        var defaultAccessibility = DetermineDefaultPropertyAccessibility();
+                        if (defaultAccessibility == Accessibility.Public)
+                        {
+                            accessibilityLevel = Accessibility.NotApplicable;
+                        }
+                    }
 
                     var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         default,
@@ -180,7 +183,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
                     return CodeGenerationSymbolFactory.CreatePropertySymbol(
                         default,
-                        Accessibility.Public,
+                        accessibilityLevel,
                         new DeclarationModifiers(),
                         parameter.Type,
                         RefKind.None,
@@ -198,11 +201,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private async Task<Document> AddSymbolInitializationAsync(
-            Document document, IParameterSymbol parameter, TMemberDeclarationSyntax memberDeclaration,
+            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
             IBlockOperation blockStatementOpt, ISymbol fieldOrProperty, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
             var workspace = document.Project.Solution.Workspace;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, workspace);
@@ -215,10 +216,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
                 // First, look for the right containing type (As a type may be partial). 
                 // We want the type-block that this constructor is contained within.
-                var typeDeclaration = 
+                var typeDeclaration =
                     parameter.ContainingType.DeclaringSyntaxReferences
                                             .Select(r => GetTypeBlock(r.GetSyntax(cancellationToken)))
-                                            .Single(d => memberDeclaration.Ancestors().Contains(d));
+                                            .Single(d => functionDeclaration.Ancestors().Contains(d));
 
                 // Now add the field/property to this type.  Use the 'ReplaceNode+callback' form
                 // so that nodes will be appropriate tracked and so we can then update the constructor
@@ -264,9 +265,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // We'll want to keep initialization statements in the same order as we see
             // parameters for the constructor.
             var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(
-                semanticModel, parameter, blockStatementOpt, cancellationToken);
+                parameter, blockStatementOpt, cancellationToken);
 
-            InsertStatement(editor, memberDeclaration, statementToAddAfterOpt, initializationStatement);
+            InsertStatement(editor, functionDeclaration, method, statementToAddAfterOpt, initializationStatement);
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
@@ -319,7 +320,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private SyntaxNode TryGetStatementToAddInitializationAfter(
-            SemanticModel semanticModel,
             IParameterSymbol parameter,
             IBlockOperation blockStatementOpt,
             CancellationToken cancellationToken)
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Look for a field/property that really looks like it corresponds to this parameter.
             // Use a variety of heuristics around the name/type to see if this is a match.
 
-            var rules = await GetNamingRulesAsync(document, cancellationToken).ConfigureAwait(false);
+            var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
             var parameterWords = GetParameterWordParts(parameter);
 
             var containingType = parameter.ContainingType;
@@ -475,18 +475,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return false;
         }
 
-        private async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(
-            Document document, CancellationToken cancellationToken)
-        {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var namingStyleOptions = options.GetOption(SimplificationOptions.NamingPreferences);
-
-            // Add our built-in-rules at the end so that we always respect user naming rules 
-            // first, but we always have something to fall-back upon if there are no matches.
-            var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(s_builtInRules);
-            return rules;
-        }
-
         /// <summary>
         /// Get the individual words in the parameter name.  This way we can generate 
         /// appropriate field/property names based on the user's preference.
@@ -494,7 +482,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private ImmutableArray<string> GetParameterWordParts(IParameterSymbol parameter)
         {
             var parts = StringBreaker.GetWordParts(parameter.Name);
-            var result  = CreateWords(parts, parameter.Name);
+            var result = CreateWords(parts, parameter.Name);
             parts.Free();
             return result;
         }

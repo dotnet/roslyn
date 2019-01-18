@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M", atLineNumber: 999);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
                 Assert.Equal(locals.Count, 4);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (string V_0, //b
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0001:  ret
 }");
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "a", expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (string V_0, //b
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   IL_0001:  ret
 }");
                 VerifyLocal(testData, typeName, locals[2], "<>m2", "b", expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (string V_0, //b
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 }
 ");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "c", expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (string V_0, //b
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M", atLineNumber: 1000);
@@ -165,14 +165,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
-                string V_1,
+  .locals init (string V_0, //a
+                string V_1, //s
                 int V_2,
-                string V_3, //a
-                string V_4, //s
-                int V_5,
-                object V_6,
-                object V_7)
+                object V_3,
+                object V_4)
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -180,14 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
-                string V_1,
+  .locals init (string V_0, //a
+                string V_1, //s
                 int V_2,
-                string V_3, //a
-                string V_4, //s
-                int V_5,
-                object V_6,
-                object V_7)
+                object V_3,
+                object V_4)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -195,31 +189,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
-                string V_1,
+  .locals init (string V_0, //a
+                string V_1, //s
                 int V_2,
-                string V_3, //a
-                string V_4, //s
-                int V_5,
-                object V_6,
-                object V_7)
-  IL_0000:  ldloc.3
+                object V_3,
+                object V_4)
+  IL_0000:  ldloc.0
   IL_0001:  ret
 }");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
 @"{
-  // Code size        3 (0x3)
+  // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
-                string V_1,
+  .locals init (string V_0, //a
+                string V_1, //s
                 int V_2,
-                string V_3, //a
-                string V_4, //s
-                int V_5,
-                object V_6,
-                object V_7)
-  IL_0000:  ldloc.s    V_4
-  IL_0002:  ret
+                object V_3,
+                object V_4)
+  IL_0000:  ldloc.1
+  IL_0001:  ret
 }");
                 locals.Free();
 
@@ -236,14 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
+  .locals init (string V_0, //a
                 string V_1,
-                int V_2,
-                string V_3, //a
-                string V_4,
-                int V_5, //s
-                object V_6,
-                object V_7)
+                int V_2, //s
+                object V_3,
+                object V_4)
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -251,14 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
+  .locals init (string V_0, //a
                 string V_1,
-                int V_2,
-                string V_3, //a
-                string V_4,
-                int V_5, //s
-                object V_6,
-                object V_7)
+                int V_2, //s
+                object V_3,
+                object V_4)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -266,31 +248,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
+  .locals init (string V_0, //a
                 string V_1,
-                int V_2,
-                string V_3, //a
-                string V_4,
-                int V_5, //s
-                object V_6,
-                object V_7)
-  IL_0000:  ldloc.3
+                int V_2, //s
+                object V_3,
+                object V_4)
+  IL_0000:  ldloc.0
   IL_0001:  ret
 }");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
 @"{
-  // Code size        3 (0x3)
+  // Code size        2 (0x2)
   .maxstack  1
-  .locals init (object V_0,
+  .locals init (string V_0, //a
                 string V_1,
-                int V_2,
-                string V_3, //a
-                string V_4,
-                int V_5, //s
-                object V_6,
-                object V_7)
-  IL_0000:  ldloc.s    V_5
-  IL_0002:  ret
+                int V_2, //s
+                object V_3,
+                object V_4)
+  IL_0000:  ldloc.2
+  IL_0001:  ret
 }");
                 locals.Free();
             });
@@ -327,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M", atLineNumber: 1000);
@@ -346,11 +322,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .maxstack  1
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 object V_1,
-                string V_2,
-                int V_3,
-                object V_4,
-                object V_5,
-                System.Action V_6)
+                object V_2,
+                System.Action V_3)
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -360,11 +333,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .maxstack  1
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 object V_1,
-                string V_2,
-                int V_3,
-                object V_4,
-                object V_5,
-                System.Action V_6)
+                object V_2,
+                System.Action V_3)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -374,34 +344,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .maxstack  1
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 object V_1,
-                string V_2,
-                int V_3,
-                object V_4,
-                object V_5,
-                System.Action V_6)
+                object V_2,
+                System.Action V_3)
   IL_0000:  ldloc.0
   IL_0001:  ldfld      ""string C.<>c__DisplayClass0_0.a""
   IL_0006:  ret
 }");
                 // We should be able to evaluate "s" within this context, https://github.com/dotnet/roslyn/issues/16594.
-//                VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
-//@"{
-//  // Code size        8 (0x8)
-//  .maxstack  1
-//  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
-//                object V_1,
-//                string V_2,
-//                int V_3,
-//                object V_4,
-//                object V_5,
-//                int? V_6,
-//                C.<>c__DisplayClass0_0 V_7, //CS$<>8__locals1
-//                System.Action V_8,
-//                C.<>c__DisplayClass0_2 V_9)
-//  IL_0000:  ldloc.s    V_7
-//  IL_0002:  ldfld      ""string C.<>c__DisplayClass0_0.s""
-//  IL_0007:  ret
-//}");
+                //                VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
+                //@"{
+                //  // Code size        8 (0x8)
+                //  .maxstack  1
+                //  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                //                object V_1,
+                //                string V_2,
+                //                int V_3,
+                //                object V_4,
+                //                object V_5,
+                //                int? V_6,
+                //                C.<>c__DisplayClass0_0 V_7, //CS$<>8__locals1
+                //                System.Action V_8,
+                //                C.<>c__DisplayClass0_2 V_9)
+                //  IL_0000:  ldloc.s    V_7
+                //  IL_0002:  ldfld      ""string C.<>c__DisplayClass0_0.s""
+                //  IL_0007:  ret
+                //}");
                 locals.Free();
 
                 context = CreateMethodContext(runtime, "C.M", atLineNumber: 3000);
@@ -419,11 +386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .maxstack  1
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 object V_1,
-                string V_2,
-                int V_3,
-                object V_4,
-                object V_5,
-                System.Action V_6)
+                object V_2,
+                System.Action V_3)
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -433,11 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .maxstack  1
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 object V_1,
-                string V_2,
-                int V_3,
-                object V_4,
-                object V_5,
-                System.Action V_6)
+                object V_2,
+                System.Action V_3)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }");
@@ -447,34 +408,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   .maxstack  1
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 object V_1,
-                string V_2,
-                int V_3,
-                object V_4,
-                object V_5,
-                System.Action V_6)
+                object V_2,
+                System.Action V_3)
   IL_0000:  ldloc.0
   IL_0001:  ldfld      ""string C.<>c__DisplayClass0_0.a""
   IL_0006:  ret
 }");
                 // We should be able to evaluate "s" within this context, https://github.com/dotnet/roslyn/issues/16594.
-//                VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
-//@"{
-//  // Code size        8 (0x8)
-//  .maxstack  1
-//  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
-//                object V_1,
-//                string V_2,
-//                int V_3,
-//                object V_4,
-//                object V_5,
-//                int? V_6,
-//                C.<>c__DisplayClass0_0 V_7,
-//                System.Action V_8,
-//                C.<>c__DisplayClass0_2 V_9) //CS$<>8__locals2
-//  IL_0000:  ldloc.s    V_9
-//  IL_0002:  ldfld      ""int C.<>c__DisplayClass0_2.s""
-//  IL_0007:  ret
-//}");
+                //                VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
+                //@"{
+                //  // Code size        8 (0x8)
+                //  .maxstack  1
+                //  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
+                //                object V_1,
+                //                string V_2,
+                //                int V_3,
+                //                object V_4,
+                //                object V_5,
+                //                int? V_6,
+                //                C.<>c__DisplayClass0_0 V_7,
+                //                System.Action V_8,
+                //                C.<>c__DisplayClass0_2 V_9) //CS$<>8__locals2
+                //  IL_0000:  ldloc.s    V_9
+                //  IL_0002:  ldfld      ""int C.<>c__DisplayClass0_2.s""
+                //  IL_0007:  ret
+                //}");
                 locals.Free();
 
                 context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<M>b__0", atLineNumber: 2000);
@@ -487,14 +445,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
                 Assert.Equal(locals.Count, 1);
                 // We should be able to evaluate "s" within this context, https://github.com/dotnet/roslyn/issues/16594.
-//                VerifyLocal(testData, typeName, locals[0], "<>m0", "s", expectedILOpt:
-//@"{
-//  // Code size        7 (0x7)
-//  .maxstack  1
-//  IL_0000:  ldarg.0
-//  IL_0001:  ldfld      ""string C.<>c__DisplayClass0_0.s""
-//  IL_0006:  ret
-//}");
+                //                VerifyLocal(testData, typeName, locals[0], "<>m0", "s", expectedILOpt:
+                //@"{
+                //  // Code size        7 (0x7)
+                //  .maxstack  1
+                //  IL_0000:  ldarg.0
+                //  IL_0001:  ldfld      ""string C.<>c__DisplayClass0_0.s""
+                //  IL_0006:  ret
+                //}");
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "a", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -515,14 +473,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
                 Assert.Equal(locals.Count, 1);
                 // We should be able to evaluate "s" within this context, https://github.com/dotnet/roslyn/issues/16594.
-//                VerifyLocal(testData, typeName, locals[0], "<>m0", "s", expectedILOpt:
-//@"{
-//  // Code size        7 (0x7)
-//  .maxstack  1
-//  IL_0000:  ldarg.0
-//  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_2.s""
-//  IL_0006:  ret
-//}");
+                //                VerifyLocal(testData, typeName, locals[0], "<>m0", "s", expectedILOpt:
+                //@"{
+                //  // Code size        7 (0x7)
+                //  .maxstack  1
+                //  IL_0000:  ldarg.0
+                //  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_2.s""
+                //  IL_0006:  ret
+                //}");
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "a", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -569,7 +527,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, 
+            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -590,13 +548,10 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<M>d__1.<>4__this""
   IL_0006:  ret
@@ -608,13 +563,10 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.o""
   IL_0006:  ret
@@ -626,15 +578,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                System.Exception V_6)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""string C.<M>d__1.<a>5__4""
+  IL_0001:  ldfld      ""string C.<M>d__1.<a>5__1""
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
@@ -644,15 +593,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                System.Exception V_6)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""string C.<M>d__1.<s>5__5""
+  IL_0001:  ldfld      ""string C.<M>d__1.<s>5__2""
   IL_0006:  ret
 }");
                 locals.Free();
@@ -673,13 +619,10 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<M>d__1.<>4__this""
   IL_0006:  ret
@@ -691,13 +634,10 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                System.Exception V_6)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""object C.<M>d__1.o""
   IL_0006:  ret
@@ -709,15 +649,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                System.Exception V_6)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""string C.<M>d__1.<a>5__4""
+  IL_0001:  ldfld      ""string C.<M>d__1.<a>5__1""
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "s", expectedILOpt:
@@ -727,15 +664,12 @@ class C
   .locals init (int V_0,
                 object V_1,
                 object V_2,
-                string V_3,
-                bool V_4,
-                object V_5,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_6,
-                C.<M>d__1 V_7,
-                System.Runtime.CompilerServices.TaskAwaiter<object> V_8,
-                System.Exception V_9)
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_3,
+                C.<M>d__1 V_4,
+                System.Runtime.CompilerServices.TaskAwaiter<object> V_5,
+                System.Exception V_6)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<M>d__1.<s>5__6""
+  IL_0001:  ldfld      ""int C.<M>d__1.<s>5__3""
   IL_0006:  ret
 }");
                 locals.Free();
@@ -765,7 +699,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, references: null, includeLocalSignatures: false, includeIntrinsicAssembly: true, validator: runtime =>
             {
@@ -781,14 +715,14 @@ class C
 
                 Assert.Equal(locals.Count, 2);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "a", expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.1
@@ -805,7 +739,7 @@ class C
                 context.CompileExpression("a[1]", out error, testData);
                 string actualIL = testData.GetMethodData("<>x.<>m0").GetMethodIL();
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(actualIL,
-@"{
+    @"{
   // Code size        4 (0x4)
   .maxstack  2
   IL_0000:  ldarg.1
@@ -816,7 +750,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void LocalsAndPseudoVariables()
         {
             var source =
@@ -826,7 +760,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -864,7 +798,7 @@ class C
                 diagnostics.Free();
                 Assert.Equal(locals.Count, 6);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "$exception", "Error", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-@"{
+    @"{
   // Code size       11 (0xb)
   .maxstack  1
   IL_0000:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException()""
@@ -873,7 +807,7 @@ class C
 }");
                 // $ReturnValue is suppressed since it always matches the last $ReturnValueN
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "$ReturnValue2", "Method M2 returned", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-@"{
+    @"{
   // Code size       12 (0xc)
   .maxstack  1
   IL_0000:  ldc.i4.2
@@ -932,7 +866,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -943,14 +877,14 @@ class C
 
                 Assert.Equal(locals.Count, 2);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "@this", expectedILOpt: // Native EE uses "this" rather than "@this".
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.1
@@ -971,7 +905,7 @@ class C
         object y = x;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -982,7 +916,7 @@ class C
 
                 Assert.Equal(locals.Count, 1);
                 VerifyLocal(testData, typeName, locals[0], "<>m0<T>", "x", expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (object V_0) //y
@@ -1017,7 +951,7 @@ class C
         return false;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.F", atLineNumber: 999);
@@ -1028,7 +962,7 @@ class C
 
                 Assert.Equal(locals.Count, 2);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "args", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
@@ -1042,7 +976,7 @@ class C
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "o", expectedILOpt:
-@"{
+    @"{
   // Code size        3 (0x3)
   .maxstack  1
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
@@ -1082,7 +1016,7 @@ class C
         return w + x + y;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.F", atLineNumber: 888);
@@ -1127,7 +1061,7 @@ IL_0001:  ret
                 VerifyLocal(testData, typeName, locals[2], "<>m2", "y", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult);
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "v", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult);
                 VerifyLocal(testData, typeName, locals[4], "<>m4", "z", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-@"{
+    @"{
 // Code size        6 (0x6)
 .maxstack  1
 .locals init (bool V_0,
@@ -1156,7 +1090,7 @@ class C
         M(E.A);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugExe);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1168,10 +1102,10 @@ class C
                 Assert.Equal(locals.Count, 2);
 
                 var method = (MethodSymbol)testData.GetMethodData("<>x.<>m0").Method;
-                Assert.Equal(method.Parameters[0].Type, method.ReturnType);
+                Assert.Equal(method.Parameters[0].Type.TypeSymbol, method.ReturnType.TypeSymbol);
 
                 VerifyLocal(testData, "<>x", locals[0], "<>m0", "x", expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -1179,10 +1113,10 @@ class C
 }");
 
                 method = (MethodSymbol)testData.GetMethodData("<>x.<>m1").Method;
-                Assert.Equal(method.Parameters[0].Type, method.ReturnType);
+                Assert.Equal(method.Parameters[0].Type.TypeSymbol, method.ReturnType.TypeSymbol);
 
                 VerifyLocal(testData, "<>x", locals[1], "<>m1", "y", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldc.i4.1
@@ -1212,7 +1146,7 @@ class P
         C<object>.M<string>();
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugExe);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1224,7 +1158,7 @@ class P
                 Assert.Equal(locals.Count, 3);
 
                 VerifyLocal(testData, "<>x<T>", locals[0], "<>m0<U>", "t", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldc.i4.0
@@ -1233,7 +1167,7 @@ class P
                     expectedGeneric: true);
 
                 VerifyLocal(testData, "<>x<T>", locals[1], "<>m1<U>", "u", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldc.i4.0
@@ -1242,7 +1176,7 @@ class P
                     expectedGeneric: true);
 
                 VerifyLocal(testData, "<>x<T>", locals[2], "<>m2<U>", "<>TypeVariables", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-@"{
+    @"{
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  newobj     ""<>c__TypeVariables<T, U>..ctor()""
@@ -1251,7 +1185,7 @@ class P
                     expectedGeneric: true);
 
                 testData.GetMethodData("<>c__TypeVariables<T, U>..ctor").VerifyIL(
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -1285,20 +1219,20 @@ class P
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M",
-                atLineNumber: 999);
+                    runtime,
+                    methodName: "C.M",
+                    atLineNumber: 999);
                 var testData = new CompilationTestData();
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
 
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
@@ -1310,7 +1244,7 @@ class P
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
@@ -1322,7 +1256,7 @@ class P
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[2], "<>m2", "z", expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
@@ -1333,7 +1267,7 @@ class P
   IL_0001:  ret
 }");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "y", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
@@ -1345,7 +1279,7 @@ class P
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[4], "<>m4", "w", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (C.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
@@ -1382,7 +1316,7 @@ class P
         });
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<>c__DisplayClass1_0.<M>b__0");
@@ -1392,7 +1326,7 @@ class P
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
 
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (C.<>c__DisplayClass1_1 V_0, //CS$<>8__locals0
@@ -1402,7 +1336,7 @@ class P
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "_1", expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (C.<>c__DisplayClass1_1 V_0, //CS$<>8__locals0
@@ -1444,7 +1378,7 @@ class C
 {
     void M() { }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1479,7 +1413,7 @@ class C
 {
     void M() { }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1543,7 +1477,7 @@ class C
         f(1, 2, 3, 4)(5, 6, 7)(8, 9)(10);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -1556,7 +1490,7 @@ class C
 
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "x1");
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "x2", expectedILOpt:
-    @"
+@"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1569,7 +1503,7 @@ class C
 }");
                 VerifyLocal(testData, typeName, locals[2], "<>m2", "x3");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "x4");
-                
+
                 Assert.Equal(locals.Count, 4);
 
                 locals.Free();
@@ -1660,7 +1594,7 @@ class C
 
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "w1");
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "z2", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (bool V_0,
@@ -1674,7 +1608,7 @@ class C
                 VerifyLocal(testData, typeName, locals[4], "<>m4", "x2");
                 VerifyLocal(testData, typeName, locals[5], "<>m5", "x3");
                 VerifyLocal(testData, typeName, locals[6], "<>m6", "x4", expectedILOpt:
-@"{
+    @"{
   // Code size       17 (0x11)
   .maxstack  1
   .locals init (bool V_0,
@@ -1713,7 +1647,7 @@ class C
         f(2)(x);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<M>b__0");
@@ -1758,7 +1692,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "A.B.M");
@@ -1769,7 +1703,7 @@ class C
 
                 Assert.Equal(locals.Count, 6);
                 VerifyLocal(testData, "<>x<T, U, V>", locals[0], "<>m0<W>", "this", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (T V_0, //t
@@ -1779,15 +1713,14 @@ class C
   IL_0001:  ldobj      ""A<T>.B<U, V>""
   IL_0006:  ret
 }",
-                    expectedGeneric: true);
+                        expectedGeneric: true);
                 var method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m0<W>").Method;
                 var containingType = method.ContainingType;
-                var returnType = (NamedTypeSymbol)method.ReturnType;
+                var returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
                 Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments()[0]);
                 Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments()[1]);
                 returnType = returnType.ContainingType;
                 Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments()[0]);
-
                 VerifyLocal(testData, "<>x<T, U, V>", locals[1], "<>m1<W>", "o", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -1801,11 +1734,10 @@ class C
                     expectedGeneric: true);
                 method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m1<W>").Method;
                 // method.ReturnType: A<U>.B<V, object>[]
-                returnType = (NamedTypeSymbol)((ArrayTypeSymbol)method.ReturnType).ElementType;
+                returnType = (NamedTypeSymbol)((ArrayTypeSymbol)method.ReturnType.TypeSymbol).ElementType.TypeSymbol;
                 Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments()[0]);
                 returnType = returnType.ContainingType;
                 Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments()[0]);
-
                 VerifyLocal(testData, "<>x<T, U, V>", locals[2], "<>m2<W>", "t", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -1816,13 +1748,13 @@ class C
   IL_0000:  ldloc.0
   IL_0001:  ret
 }",
-                    expectedGeneric: true);
+                expectedGeneric: true);
                 method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m2<W>").Method;
                 containingType = method.ContainingType;
-                Assert.Equal(containingType.TypeParameters[0], method.ReturnType);
+                Assert.Equal(containingType.TypeParameters[0], method.ReturnType.TypeSymbol);
 
                 VerifyLocal(testData, "<>x<T, U, V>", locals[3], "<>m3<W>", "u", expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (T V_0, //t
@@ -1834,10 +1766,10 @@ class C
                     expectedGeneric: true);
                 method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m3<W>").Method;
                 containingType = method.ContainingType;
-                Assert.Equal(containingType.TypeParameters[1], method.ReturnType);
+                Assert.Equal(containingType.TypeParameters[1], method.ReturnType.TypeSymbol);
 
                 VerifyLocal(testData, "<>x<T, U, V>", locals[4], "<>m4<W>", "w", expectedILOpt:
-@"{
+    @"{
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (T V_0, //t
@@ -1848,10 +1780,10 @@ class C
 }",
                     expectedGeneric: true);
                 method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m4<W>").Method;
-                Assert.Equal(method.TypeParameters[0], method.ReturnType);
+                Assert.Equal(method.TypeParameters[0], method.ReturnType.TypeSymbol);
 
                 VerifyLocal(testData, "<>x<T, U, V>", locals[5], "<>m5<W>", "<>TypeVariables", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-@"{
+    @"{
   // Code size        6 (0x6)
   .maxstack  1
   .locals init (T V_0, //t
@@ -1860,9 +1792,9 @@ class C
   IL_0000:  newobj     ""<>c__TypeVariables<T, U, V, W>..ctor()""
   IL_0005:  ret
 }",
-                    expectedGeneric: true);
+                        expectedGeneric: true);
                 method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m5<W>").Method;
-                returnType = (NamedTypeSymbol)method.ReturnType;
+                returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
                 Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments()[0]);
                 Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments()[1]);
                 Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments()[2]);
@@ -1875,7 +1807,6 @@ class C
                     var typeDef = reader.GetTypeDef("<>c__TypeVariables");
                     reader.CheckTypeParameters(typeDef.GetGenericParameters(), "T", "U", "V", "W");
                 }
-
                 locals.Free();
             });
         }
@@ -1893,7 +1824,7 @@ class C
         f();
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<M>b__0");
@@ -1906,7 +1837,7 @@ class C
                 Assert.Equal(locals.Count, 3);
                 VerifyLocal(testData, "<>x<T, U>", locals[0], "<>m0", "t");
                 VerifyLocal(testData, "<>x<T, U>", locals[1], "<>m1", "u", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (object V_0)
@@ -1919,7 +1850,7 @@ class C
 
                 var method = (MethodSymbol)testData.GetMethodData("<>x<T, U>.<>m1").Method;
                 var containingType = method.ContainingType;
-                Assert.Equal(containingType.TypeParameters[1], method.ReturnType);
+                Assert.Equal(containingType.TypeParameters[1], method.ReturnType.TypeSymbol);
 
                 locals.Free();
             });
@@ -1946,7 +1877,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>d__2.MoveNext", atLineNumber: 999);
@@ -1956,7 +1887,7 @@ class C
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(locals.Count, 2);
                 VerifyLocal(testData, "<>x", locals[0], "<>m0", "this", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0)
@@ -1965,7 +1896,7 @@ class C
   IL_0006:  ret
 }");
                 VerifyLocal(testData, "<>x", locals[1], "<>m1", "o", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0)
@@ -1995,14 +1926,14 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
-                runtime,
-                methodName: "C.<F>d__0.MoveNext",
-                atLineNumber: 999);
+                    runtime,
+                    methodName: "C.<F>d__0.MoveNext",
+                    atLineNumber: 999);
 
                 var testData = new CompilationTestData();
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -2010,7 +1941,7 @@ class C
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
 
                 VerifyLocal(testData, "<>x<T>", locals[0], "<>m0", "o", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -2021,7 +1952,7 @@ class C
   IL_0006:  ret
 }");
                 VerifyLocal(testData, "<>x<T>", locals[1], "<>m1", "i", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -2032,7 +1963,7 @@ class C
   IL_0006:  ret
 }");
                 VerifyLocal(testData, "<>x<T>", locals[2], "<>m2", "t", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -2077,7 +2008,7 @@ struct S<T> where T : class
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
 
                 VerifyLocal(testData, "<>x<T, U>", locals[0], "<>m0", "this", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -2088,7 +2019,7 @@ struct S<T> where T : class
   IL_0006:  ret
 }");
                 VerifyLocal(testData, "<>x<T, U>", locals[1], "<>m1", "y", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -2099,7 +2030,7 @@ struct S<T> where T : class
   IL_0006:  ret
 }");
                 VerifyLocal(testData, "<>x<T, U>", locals[2], "<>m2", "z", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -2148,7 +2079,7 @@ class C
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
 
                 VerifyLocal(testData, "<>x", locals[0], "<>m0", "x", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -2161,7 +2092,7 @@ class C
   IL_0006:  ret
 }");
                 VerifyLocal(testData, "<>x", locals[1], "<>m1", "y", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -2332,7 +2263,7 @@ class C
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(locals.Count, 2);
                 VerifyLocal(testData, "<>x", locals[0], "<>m0", "x", expectedILOpt:
-@"{
+    @"{
   // Code size       12 (0xc)
   .maxstack  1
   .locals init (int V_0,
@@ -2346,7 +2277,7 @@ class C
   IL_000b:  ret
 }");
                 VerifyLocal(testData, "<>x", locals[1], "<>m1", "y", expectedILOpt:
-@"{
+    @"{
   // Code size       12 (0xc)
   .maxstack  1
   .locals init (int V_0,
@@ -2390,7 +2321,7 @@ class C
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(locals.Count, 2);
                 VerifyLocal(testData, "<>x", locals[0], "<>m0", "x", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -2400,7 +2331,7 @@ class C
   IL_0006:  ret
 }");
                 VerifyLocal(testData, "<>x", locals[1], "<>m1", "y", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -2431,12 +2362,12 @@ public struct B
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(
+            var compilation0 = CreateCompilation(
                 source0,
                 options: TestOptions.DebugDll,
                 assemblyName: "Comp1");
 
-            var compilation1 = CreateStandardCompilation(
+            var compilation1 = CreateCompilation(
                 source1,
                 options: TestOptions.DebugDll,
                 references: new[] { compilation0.EmitToImageReference() });
@@ -2451,9 +2382,9 @@ public struct B
                 string typeName;
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData, expectedDiagnostics: new[]
                 {
-                    // error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                    Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
-                });
+                // error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            });
 
                 Assert.Equal(locals.Count, 0);
                 locals.Free();
@@ -2475,12 +2406,12 @@ public struct B
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(
+            var compilation0 = CreateCompilation(
                 source0,
                 options: TestOptions.DebugDll,
                 assemblyName: "Comp1");
 
-            var compilation1 = CreateStandardCompilation(
+            var compilation1 = CreateCompilation(
                 source1,
                 options: TestOptions.DebugDll,
                 references: new[] { compilation0.EmitToImageReference() });
@@ -2496,9 +2427,9 @@ public struct B
 
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData, expectedDiagnostics: new[]
                 {
-                    // error CS0012: The type 'I' is defined in an assembly that is not referenced. You must add a reference to assembly 'Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                    Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("I", "Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
-                });
+                // error CS0012: The type 'I' is defined in an assembly that is not referenced. You must add a reference to assembly 'Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("I", "Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
+            });
 
                 Assert.Equal(locals.Count, 0);
                 locals.Free();
@@ -2521,13 +2452,13 @@ class C
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
-                runtime,
-                methodName: "C.M",
-                atLineNumber: 999);
+                    runtime,
+                    methodName: "C.M",
+                    atLineNumber: 999);
 
                 string error;
                 var testData = new CompilationTestData();
@@ -2535,7 +2466,7 @@ class C
                 Assert.Null(error); // In regular code, there would be an error about modifying a lock local.
 
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+    @"{
   // Code size        5 (0x5)
   .maxstack  2
   .locals init (object V_0,
@@ -2552,7 +2483,7 @@ class C
                 Assert.Null(error); // In regular code, there would be an error about modifying a lock local.
 
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+    @"{
   // Code size        4 (0x4)
   .maxstack  1
   .locals init (object V_0,
@@ -2578,7 +2509,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -2589,7 +2520,7 @@ class C
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-@"{
+    @"{
   // Code size       10 (0xa)
   .maxstack  1
   IL_0000:  ldc.r8     2.74745778612482E-266
@@ -2612,7 +2543,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -2649,7 +2580,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M");
@@ -2664,7 +2595,7 @@ class C
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
-@"{
+    @"{
   // Code size       12 (0xc)
   .maxstack  5
   IL_0000:  ldc.i4.s   15
@@ -2691,7 +2622,7 @@ class C
         string @namespace = ""NS"";
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -2780,7 +2711,7 @@ static class C
   IL_0006:  ret
 }";
 
-            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext");
@@ -2841,7 +2772,7 @@ class C
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 string displayClassName;
@@ -3006,7 +2937,7 @@ class C
         Func<T, T> g = t => t;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 string displayClassName;
@@ -3092,7 +3023,7 @@ class C
         return local;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 string typeName;
@@ -3317,7 +3248,7 @@ class C
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "o", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -3327,7 +3258,7 @@ class C
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "e", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -3377,7 +3308,7 @@ class C
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "o", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -3387,7 +3318,7 @@ class C
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "e", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -3430,8 +3361,8 @@ class C
     }
 }
 ";
-            var libRef = CreateStandardCompilation(libSource).EmitToImageReference();
-            var comp = CreateStandardCompilation(source, new[] { SystemRef }, TestOptions.DebugDll);
+            var libRef = CreateCompilation(libSource).EmitToImageReference();
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef }, runtime =>
             {
@@ -3476,7 +3407,7 @@ class C
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.Equal(locals.Count, 2);
                 VerifyLocal(testData, "<>x", locals[0], "<>m0", "this", expectedILOpt:
-@"{
+    @"{
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
@@ -3488,7 +3419,7 @@ class C
   IL_0006:  ret
 }");
                 VerifyLocal(testData, "<>x", locals[1], "<>m1", "s", expectedILOpt:
-@"{
+    @"{
   // Code size       12 (0xc)
   .maxstack  1
   .locals init (int V_0,
@@ -3586,7 +3517,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 string typeName;
@@ -3682,7 +3613,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 string typeName;
@@ -3754,7 +3685,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 string typeName;
@@ -3788,7 +3719,7 @@ class Program
         const int a = 1;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             WithRuntimeInstance(comp, runtime =>
             {
                 var badConst = new MockSymUnmanagedConstant(
@@ -3797,7 +3728,7 @@ class Program
                     (int bufferLength, out int count, byte[] name) =>
                     {
                         count = 0;
-                        return HResult.E_NOTIMPL;
+                        return Roslyn.Test.Utilities.HResult.E_NOTIMPL;
                     });
                 var debugInfo = new MethodDebugInfoBytes.Builder(constants: new[] { badConst }).Build();
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -3841,7 +3772,7 @@ class C
                 locals.Free();
             });
 
-            comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 EvaluationContext context;
@@ -3852,6 +3783,1194 @@ class C
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The problem is not fixed in versions before 4.5: the order of arguments can be wrong.
                 Assert.Equal(names, new[] { "x", "y" });
+                locals.Free();
+            });
+        }
+
+        /// <summary>
+        /// CompileGetLocals should skip locals with errors.
+        /// </summary>
+        [WorkItem(535899, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=535899")]
+        [Fact]
+        public void SkipPseudoVariablesWithUseSiteErrors()
+        {
+            var source =
+@"class C
+{
+    static void M(object x)
+    {
+        object y;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var aliases = ImmutableArray.Create(ReturnValueAlias(1, "UnknownType, UnknownAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"));
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var diagnostics = DiagnosticBag.GetInstance();
+                var testData = new CompilationTestData();
+                context.CompileGetLocals(
+                    locals,
+                    argumentsOnly: false,
+                    aliases: aliases,
+                    diagnostics: diagnostics,
+                    typeName: out typeName,
+                    testData: testData);
+                diagnostics.Verify();
+                diagnostics.Free();
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "y");
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInFieldInitializer_01()
+        {
+            var source =
+@"class C
+{
+#line 1000
+    bool Test1 = TakeOutParam(1, out var x1);
+
+    C() {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInFieldInitializer_02()
+        {
+            var source =
+@"class C : Base
+{
+#line 1000
+    bool Test1 = TakeOutParam(1, out var x1), 
+         Test2 = TakeOutParam(2, out var x2);
+
+    C()     
+#line 2000
+    : base(TakeOutParam(0, out var x0))
+    {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class Base
+{
+    public Base(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1,
+                int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1,
+                int V_2)
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1001);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0,
+                int V_1, //x2
+                int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x2", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0,
+                int V_1, //x2
+                int V_2)
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 2000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0,
+                int V_1, 
+                int V_2) //x0
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x0", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0,
+                int V_1, 
+                int V_2) //x0
+  IL_0000:  ldloc.2
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInFieldInitializer_03()
+        {
+            var source =
+@"class C
+{
+#line 1000
+    bool Test1 = TakeOutParam(1, out var x1) && F(() => x1);
+
+    C() {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+    static bool F(System.Func<int> x) 
+    {
+        throw null;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass1_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass1_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass1_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass1_0.<.ctor>b__0", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 1);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass1_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInFieldInitializer_04()
+        {
+            var source =
+@"class C
+{
+#line 1000
+    bool Test1 = TakeOutParam(1, out var x1) && F(() => x1),
+         Test2 = TakeOutParam(2, out var x2) && F(() => x2);
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+    static bool F(System.Func<int> x) 
+    {
+        throw null;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass4_0 V_0, //CS$<>8__locals0
+                C.<>c__DisplayClass4_1 V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass4_0 V_0, //CS$<>8__locals0
+                C.<>c__DisplayClass4_1 V_1)
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass4_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass4_0.<.ctor>b__0", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 1);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass4_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1001);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass4_0 V_0,
+                C.<>c__DisplayClass4_1 V_1) //CS$<>8__locals1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x2", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass4_0 V_0,
+                C.<>c__DisplayClass4_1 V_1) //CS$<>8__locals1
+  IL_0000:  ldloc.1
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass4_1.x2""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass4_1.<.ctor>b__1", atLineNumber: 1001);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 1);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x2", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass4_1.x2""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInPropertyInitializer_01()
+        {
+            var source =
+@"class C
+{
+#line 1000
+    bool Test1 { get; } = TakeOutParam(1, out var x1);
+
+    C() {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInPropertyInitializer_02()
+        {
+            var source =
+@"class C
+{
+#line 1000
+    bool Test1 { get; } = TakeOutParam(1, out var x1) && F(() => x1);
+
+    C() {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+    static bool F(System.Func<int> x) 
+    {
+        throw null;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass3_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass3_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass3_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass3_0.<.ctor>b__0", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 1);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass3_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInConstructorInitializer_01()
+        {
+            var source =
+@"class C : Base
+{
+    C() 
+#line 1000
+    : base(TakeOutParam(1, out var x1))
+    {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class Base
+{
+    public Base(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInConstructorInitializer_02()
+        {
+            var source =
+@"class C : Base
+{
+    C() 
+    : base(TakeOutParam(1, out var x1))
+    {
+#line 1000
+        ;
+    }     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class Base
+{
+    public Base(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInConstructorInitializer_03()
+        {
+            var source =
+@"class C : Base
+{
+    C() 
+    : base(TakeOutParam(1, out var x1))
+#line 1000
+    => System.Console.WriteLine();
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class Base
+{
+    public Base(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInConstructorInitializer_04()
+        {
+            var source =
+@"class C : Base
+{
+    C() 
+    : base(TakeOutParam(1, out var x1))
+    {
+        int x2 = 1;
+#line 1000
+        System.Console.WriteLine(x2);
+    }     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class Base
+{
+    public Base(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 3);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1) //x2
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1) //x2
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "x2", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1) //x2
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInConstructorInitializer_05()
+        {
+            var source =
+@"class C : Base
+{
+    C() 
+    : base(TakeOutParam(1, out var x1))
+#line 1000
+    => System.Console.WriteLine(TakeOutParam(2, out var x2));
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+
+class Base
+{
+    public Base(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 3);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1) //x2
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1) //x2
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "x2", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0, //x1
+                int V_1) //x2
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInConstructorInitializer_06()
+        {
+            var source =
+@"class C : Base
+{
+    C() 
+#line 1000
+    : base(TakeOutParam(1, out var x1) && F(() => x1))
+    {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+    static bool F(System.Func<int> x) 
+    {
+        throw null;
+    }
+}
+
+class Base
+{
+    public Base(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<.ctor>b__0", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 1);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInConstructorInitializer_07()
+        {
+            var source =
+@"class C
+{
+    C() 
+#line 1000
+    : this(TakeOutParam(1, out var x1))
+    {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+
+    C(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInQuery_01()
+        {
+            var source =
+@"
+using System.Linq;
+
+class C
+{
+    C() 
+    {
+#line 1000
+        var q = from a in new [] {1} 
+                where 
+                      TakeOutParam(a, out var x1)   
+                select a;
+    }     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c.<.ctor>b__0_0", atLineNumber: 1002);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "a", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
+        public void LocalsInQuery_02()
+        {
+            var source =
+@"
+using System.Linq;
+
+class C
+{
+    C() 
+    {
+#line 1000
+        var q = from a in new [] {1} 
+                where 
+                      TakeOutParam(a, out var x1) && F(() => x1)   
+                select a;
+    }     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+    static bool F(System.Func<int> x) 
+    {
+        throw null;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c.<.ctor>b__0_0", atLineNumber: 1002);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "a", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x1""
+  IL_0006:  ret
+}");
+
+                locals.Free();
+            });
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<.ctor>b__1", atLineNumber: 1002);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 1);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x1""
+  IL_0006:  ret
+}");
+
                 locals.Free();
             });
         }
@@ -3887,15 +5006,16 @@ class C
                 {
                     {methodToken, debugInfo}
                 }.ToImmutableDictionary());
-            var context = EvaluationContext.CreateMethodContext(
-                default(CSharpMetadataContext),
+            var context = CreateMethodContext(
+                new AppDomain(),
                 blocks,
                 symReader,
                 moduleVersionId,
                 methodToken,
                 methodVersion: 1,
                 ilOffset: 0,
-                localSignatureToken: localSignatureToken);
+                localSignatureToken: localSignatureToken,
+                kind: MakeAssemblyReferencesKind.AllAssemblies);
 
             string typeName;
             var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: null);

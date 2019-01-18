@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -232,7 +233,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     foreach (var unimplementedInterfaceMember in unimplementedInterfaceMembers)
                     {
                         var member = GenerateMember(
-                            compilation, unimplementedInterfaceMember, implementedVisibleMembers, 
+                            compilation, unimplementedInterfaceMember, implementedVisibleMembers,
                             propertyGenerationBehavior, cancellationToken);
                         if (member != null)
                         {
@@ -497,7 +498,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                             var explicitImplementationCast = generator.CastExpression(
                                 explicitlyImplementedProperty.ContainingType,
                                 generator.ThisExpression());
-                            
+
                             through = generator.MemberAccessExpression(explicitImplementationCast,
                                 generator.IdentifierName(explicitlyImplementedProperty.Name));
 
@@ -536,7 +537,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 string memberName,
                 ISymbol baseMember)
             {
-                Contract.Requires(memberName == baseMember.Name);
+                Debug.Assert(memberName == baseMember.Name);
 
                 if (member.Kind == SymbolKind.Method && baseMember.Kind == SymbolKind.Method)
                 {

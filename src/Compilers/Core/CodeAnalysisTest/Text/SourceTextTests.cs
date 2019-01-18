@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.True(SourceText.IsBinary("a\0\0bc"));
             Assert.True(SourceText.IsBinary("abc\0\0"));
 
-            var encoding = Encoding.GetEncoding(1252);
+            var encoding = Encoding.UTF8;
             Assert.False(SourceText.IsBinary(encoding.GetString(new byte[] { 0x81, 0x8D, 0x8F, 0x90, 0x9D })));
             // Unicode string: äëïöüû
             Assert.False(SourceText.IsBinary("abc def baz aeiouy \u00E4\u00EB\u00EF\u00F6\u00FC\u00FB"));

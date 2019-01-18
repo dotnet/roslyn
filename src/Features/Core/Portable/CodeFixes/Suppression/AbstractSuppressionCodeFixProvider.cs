@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -42,10 +41,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return SuppressionHelpers.CanBeSuppressed(diagnostic) || SuppressionHelpers.CanBeUnsuppressed(diagnostic);
         }
 
-        protected abstract Task<SyntaxTriviaList> CreatePragmaDisableDirectiveTriviaAsync(Diagnostic diagnostic, Func<SyntaxNode, Task<SyntaxNode>> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
-        protected abstract Task<SyntaxTriviaList> CreatePragmaRestoreDirectiveTriviaAsync(Diagnostic diagnostic, Func<SyntaxNode, Task<SyntaxNode>> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
+        protected abstract SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
+        protected abstract SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
 
-        protected abstract Task<SyntaxNode> AddGlobalSuppressMessageAttributeAsync(SyntaxNode newRoot, ISymbol targetSymbol, Diagnostic diagnostic, Workspace workspace, CancellationToken cancellationToken);
+        protected abstract SyntaxNode AddGlobalSuppressMessageAttribute(SyntaxNode newRoot, ISymbol targetSymbol, Diagnostic diagnostic, Workspace workspace, CancellationToken cancellationToken);
 
         protected abstract string DefaultFileExtension { get; }
         protected abstract string SingleLineCommentStart { get; }
@@ -224,9 +223,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                     // targetMemberNode could be a declaration node with multiple decls (e.g. field declaration defining multiple variables).
                     // Let us compute all the declarations intersecting the span.
-                    var decls = new List<DeclarationInfo>();
-                    analyzerDriverService.ComputeDeclarationsInSpan(semanticModel, span, true, decls, cancellationToken);
-                    if (decls.Any())
+                    var declsBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
+                    analyzerDriverService.ComputeDeclarationsInSpan(semanticModel, span, true, declsBuilder, cancellationToken);
+                    var decls = declsBuilder.ToImmutableAndFree();
+
+                    if (!decls.IsEmpty)
                     {
                         var containedDecls = decls.Where(d => span.Contains(d.DeclaredNode.Span));
                         if (containedDecls.Count() == 1)

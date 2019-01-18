@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             CSharpEditAndContinueTestHelpers.Instance.VerifyUnchangedDocument(
                 ActiveStatementsDescription.ClearTags(source),
-                description.OldSpans,
+                description.OldStatements,
                 description.OldTrackingSpans,
                 description.NewSpans,
                 description.OldRegions,

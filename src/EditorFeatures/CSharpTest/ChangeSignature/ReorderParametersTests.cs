@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,6 +10,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ReorderLocalFunctionParametersAndArguments_OnDeclaration()
+        {
+            var markup = @"
+using System;
+class MyClass
+{
+    public void M()
+    {
+        Goo(1, 2);
+        void $$Goo(int x, string y)
+        {
+        }
+    }
+}";
+            var permutation = new[] { 1, 0 };
+            var updatedCode = @"
+using System;
+class MyClass
+{
+    public void M()
+    {
+        Goo(2, 1);
+        void Goo(string y, int x)
+        {
+        }
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ReorderLocalFunctionParametersAndArguments_OnInvocation()
+        {
+            var markup = @"
+using System;
+class MyClass
+{
+    public void M()
+    {
+        $$Goo(1, null);
+        void Goo(int x, string y)
+        {
+        }
+    }
+}";
+            var permutation = new[] { 1, 0 };
+            var updatedCode = @"
+using System;
+class MyClass
+{
+    public void M()
+    {
+        Goo(null, 1);
+        void Goo(string y, int x)
+        {
+        }
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ReorderMethodParameters()
         {
@@ -366,7 +431,7 @@ class Program
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
-        
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ReorderParamTagsInDocComments_SingleLineDocComments_OnIndividualLines()
         {
@@ -738,7 +803,7 @@ class C
 class C
 {
     /// <summary>
-    /// See <see cref=""M( string,int)""/> and <see cref=""M""/>
+    /// See <see cref=""M(string, int)""/> and <see cref=""M""/>
     /// </summary>
     void M(string y, int x)
     { }

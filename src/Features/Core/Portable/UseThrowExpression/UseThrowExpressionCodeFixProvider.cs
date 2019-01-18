@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
                 diagnostic);
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                     generator.ThrowExpression(throwStatementExpression)));
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(
-                Func<CancellationToken, Task<Document>> createChangedDocument) 
+                Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Use_throw_expression, createChangedDocument)
             {
             }

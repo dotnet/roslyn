@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                     : metadataSources;
 
                 var workspace = CreateWorkspace(
-                    projectLanguage, metadataSources, includeXmlDocComments, 
+                    projectLanguage, metadataSources, includeXmlDocComments,
                     sourceWithSymbolReference, languageVersion);
                 return new TestContext(workspace);
             }
@@ -212,18 +212,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             }
 
             private static TestWorkspace CreateWorkspace(
-                string projectLanguage, IEnumerable<string> metadataSources, 
+                string projectLanguage, IEnumerable<string> metadataSources,
                 bool includeXmlDocComments, string sourceWithSymbolReference,
                 string languageVersion)
             {
+                string languageVersionAttribute = languageVersion is null ? "" : $@" LanguageVersion=""{languageVersion}""";
+
                 var xmlString = string.Concat(@"
 <Workspace>
-    <Project Language=""", projectLanguage, @""" CommonReferences=""true""");
-
-                if (languageVersion != null)
-                {
-                    xmlString += $@" LanguageVersion=""{languageVersion}""";
-                }
+    <Project Language=""", projectLanguage, @""" CommonReferences=""true""", languageVersionAttribute);
 
                 xmlString += ">";
 
@@ -234,14 +231,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                     var metadataLanguage = DeduceLanguageString(source);
 
                     xmlString = string.Concat(xmlString, string.Format(@"
-        <MetadataReferenceFromSource Language=""{0}"" CommonReferences=""true"" IncludeXmlDocComments=""{2}"">
+        <MetadataReferenceFromSource Language=""{0}"" CommonReferences=""true"" IncludeXmlDocComments=""{2}""{3}>
             <Document FilePath=""MetadataDocument"">
 {1}
             </Document>
         </MetadataReferenceFromSource>",
                         metadataLanguage,
                         SecurityElement.Escape(source),
-                        includeXmlDocComments.ToString()));
+                        includeXmlDocComments.ToString(),
+                        languageVersionAttribute));
                 }
 
                 if (sourceWithSymbolReference != null)

@@ -2,22 +2,19 @@
 
 Imports System.Text
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports System.Windows
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
+Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
-Imports System.Threading.Tasks
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging
     Partial Public Class ProximityExpressionsGetterTests

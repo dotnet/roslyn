@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities.Desktop;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         result.Append(" ");
                         result.Append(member);
 
-                        if (namedType.BaseType() != null)
+                        if ((object)namedType.BaseType() != null)
                         {
                             result.AppendLine();
                             result.Append(memberIndent);
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
         {
             MetadataSignatureHelper.AppendMethodAttributes(result, method.Flags);
             result.Append(" ");
-            AppendSignatureType(result, method.ReturnType, RefKind.None);
+            AppendSignatureType(result, method.ReturnType.TypeSymbol, RefKind.None);
             result.Append(" ");
 
             if (includeTypeName)
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                     result.Append(" ");
                 }
 
-                AppendSignatureType(result, parameter.Type, parameter.RefKind);
+                AppendSignatureType(result, parameter.Type.TypeSymbol, parameter.RefKind);
                 result.Append(" ");
                 result.Append(parameter.Name);
                 i++;
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                 references = references.Concat(additionalRefs);
             }
 
-            var comp = CreateCompilation("", references, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateEmptyCompilation("", references, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var writer = new StringBuilder();
             AppendAssemblyRefs(writer, (PEAssemblySymbol)comp.GetReferencedAssemblySymbol(winmd));

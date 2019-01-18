@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -36,12 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _symbol1 = symbol1;
         }
 
-        public IMessageSerializable First
+        public IFormattable First
         {
             get { return new Description(this, 0); }
         }
 
-        public IMessageSerializable Second
+        public IFormattable Second
         {
             get { return new Description(this, 1); }
         }
@@ -138,13 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (symbol.Kind)
                 {
                     case SymbolKind.Parameter:
-                        symbol = ((ParameterSymbol)symbol).Type;
+                        symbol = ((ParameterSymbol)symbol).Type.TypeSymbol;
                         continue;
                     case SymbolKind.PointerType:
-                        symbol = ((PointerTypeSymbol)symbol).PointedAtType;
+                        symbol = ((PointerTypeSymbol)symbol).PointedAtType.TypeSymbol;
                         continue;
                     case SymbolKind.ArrayType:
-                        symbol = ((ArrayTypeSymbol)symbol).ElementType;
+                        symbol = ((ArrayTypeSymbol)symbol).ElementType.TypeSymbol;
                         continue;
                     default:
                         return symbol;
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyDescriptions[index];
         }
 
-        private sealed class Description : IMessageSerializable
+        private sealed class Description : IFormattable
         {
             private readonly SymbolDistinguisher _distinguisher;
             private readonly int _index;
@@ -235,6 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override string ToString()
             {
                 return _distinguisher.GetDescription(_index);
+            }
+
+            string IFormattable.ToString(string format, IFormatProvider formatProvider)
+            {
+                return ToString();
             }
         }
     }

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -9,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -368,6 +368,180 @@ $$
 
                 CheckStart(session.Session);
                 CheckReturn(session.Session, 4);
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void RecursivePattern()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is $$
+    }
+}";
+
+            var expectedBeforeReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is { }
+    }
+}";
+
+            var expectedAfterReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        {
+
+        }
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckText(session.Session, expectedBeforeReturn);
+                CheckReturn(session.Session, 12, expectedAfterReturn);
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void RecursivePattern_FollowedByInvocation()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is $$
+        M();
+    }
+}";
+
+            var expectedBeforeReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is { }
+        M();
+    }
+}";
+
+            var expectedAfterReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        {
+
+        }
+        M();
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckText(session.Session, expectedBeforeReturn);
+                CheckReturn(session.Session, 12, expectedAfterReturn);
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void RecursivePattern_WithInvocation_FollowedByInvocation()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is (1, 2) $$
+        M();
+    }
+}";
+
+            var expectedBeforeReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is (1, 2) { }
+        M();
+    }
+}";
+
+            var expectedAfterReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is (1, 2)
+        {
+
+        }
+        M();
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckText(session.Session, expectedBeforeReturn);
+                CheckReturn(session.Session, 12, expectedAfterReturn);
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void SwitchExpression()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this switch $$
+    }
+}";
+
+            var expectedBeforeReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this switch { }
+    }
+}";
+
+            var expectedAfterReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this switch
+        {
+
+        }
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckText(session.Session, expectedBeforeReturn);
+                CheckReturn(session.Session, 12, expectedAfterReturn);
             }
         }
 

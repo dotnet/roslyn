@@ -8,6 +8,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
+    /// <summary>
+    /// when users type, we chain all those changes as incremental parsing requests 
+    /// but doesn't actually realize those changes. it is saved as a pending request. 
+    /// so if nobody asks for final parse tree, those chain can keep grow. 
+    /// we do this since Roslyn is lazy at the core (don't do work if nobody asks for it)
+    /// 
+    /// but certain host such as VS, we have this (BackgroundParser) which preemptively 
+    /// trying to realize such trees for open/active files expecting users will use them soonish.
+    /// </summary>
     internal class BackgroundParser
     {
         private readonly Workspace _workspace;
@@ -178,8 +187,16 @@ namespace Microsoft.CodeAnalysis.Host
 
             var cancellationToken = cancellationTokenSource.Token;
 
+            // We end up creating a chain of parsing tasks that each attempt to produce 
+            // the appropriate syntax tree for any given document. Once we start work to create 
+            // the syntax tree for a given document, we don't want to stop. 
+            // Otherwise we can end up in the unfortunate scenario where we keep cancelling work, 
+            // and then having the next task re-do the work we were just in the middle of. 
+            // By not cancelling, we can reuse the useful results of previous tasks when performing later steps in the chain.
+            //
+            // we still cancel whole task if the task didn't start yet. we just don't cancel if task is started but not finished yet.
             var task = _taskScheduler.ScheduleTask(
-                () => document.GetSyntaxTreeAsync(cancellationToken),
+                () => document.GetSyntaxTreeAsync(CancellationToken.None),
                 "BackgroundParser.ParseDocumentAsync",
                 cancellationToken);
 

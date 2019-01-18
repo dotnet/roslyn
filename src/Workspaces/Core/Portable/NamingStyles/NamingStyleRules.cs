@@ -47,14 +47,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return false;
             }
 
-            if (symbol.Kind == SymbolKind.Method)
+            if (symbol is IMethodSymbol method)
             {
-                return ((IMethodSymbol)symbol).MethodKind == MethodKind.Ordinary;
+                return method.MethodKind == MethodKind.Ordinary ||
+                       method.MethodKind == MethodKind.LocalFunction;
             }
 
-            if (symbol.Kind == SymbolKind.Property)
+            if (symbol is IPropertySymbol property)
             {
-                return !((IPropertySymbol)symbol).IsIndexer;
+                return !property.IsIndexer;
             }
 
             return true;
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             foreach (var implementedInterface in implementedInterfaces)
             {
                 var implementedInterfaceMembersWithSameName = implementedInterface.GetMembers(symbol.Name);
-                foreach(var implementedInterfaceMember in implementedInterfaceMembersWithSameName)
+                foreach (var implementedInterfaceMember in implementedInterfaceMembersWithSameName)
                 {
                     if (symbol.Equals(containingType.FindImplementationForInterfaceMember(implementedInterfaceMember)))
                     {

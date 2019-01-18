@@ -5,19 +5,15 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler;
-using ICSharpCode.Decompiler.CSharp;
-using ICSharpCode.Decompiler.TypeSystem;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Mono.Cecil;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
@@ -100,8 +96,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             {
                 InitializeWorkspace(project);
 
-                var infoKey = await GetUniqueDocumentKey(project, topLevelNamedType, cancellationToken).ConfigureAwait(false);
-                fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(GetRootPathWithGuid_NoLock(), project, topLevelNamedType));
+                var infoKey = await GetUniqueDocumentKey(project, topLevelNamedType, allowDecompilation, cancellationToken).ConfigureAwait(false);
+                fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(GetRootPathWithGuid_NoLock(), project, topLevelNamedType, allowDecompilation));
 
                 _generatedFilenameToInformation[fileInfo.TemporaryFilePath] = fileInfo;
 
@@ -116,9 +112,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     var useDecompiler = allowDecompilation;
                     if (useDecompiler)
                     {
+                        useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(SuppressIldasmAttribute)
+                            && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
+                    }
+
+                    if (useDecompiler)
+                    {
                         try
                         {
-                            temporaryDocument = await DecompileSymbolAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                            var decompiledSourceService = temporaryDocument.GetLanguageService<IDecompiledSourceService>();
+                            if (decompiledSourceService != null)
+                            {
+                                temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                useDecompiler = false;
+                            }
                         }
                         catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
                         {
@@ -179,78 +189,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             var documentTooltip = topLevelNamedType.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
             return new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip);
-        }
-
-        private async Task<Document> DecompileSymbolAsync(Document temporaryDocument, ISymbol symbol, CancellationToken cancellationToken)
-        {
-            // Get the name of the type the symbol is in
-            var containingOrThis = symbol.GetContainingTypeOrThis();
-            var fullName = GetFullReflectionName(containingOrThis);
-
-            var compilation = await temporaryDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            // TODO: retrieve path to actual assembly instead of reference assembly
-            var reference = compilation.GetMetadataReference(symbol.ContainingAssembly);
-            // Load the assembly.
-            var ad = AssemblyDefinition.ReadAssembly(reference.Display, new ReaderParameters() { AssemblyResolver = new RoslynAssemblyResolver(compilation) });
-
-            // Initialize a decompiler with default settings.
-            var decompiler = new CSharpDecompiler(ad.MainModule, new DecompilerSettings());
-            var fullTypeName = new FullTypeName(fullName);
-
-            // Try to decompile; if an exception is thrown the caller will handle it
-            var text = decompiler.DecompileTypeAsString(fullTypeName);
-            return temporaryDocument.WithText(SourceText.From(text));
-        }
-
-        private class RoslynAssemblyResolver : IAssemblyResolver
-        {
-            private readonly Compilation parentCompilation;
-
-            public RoslynAssemblyResolver(Compilation parentCompilation)
-            {
-                this.parentCompilation = parentCompilation;
-            }
-
-            public AssemblyDefinition Resolve(AssemblyNameReference name)
-            {
-                return Resolve(name, new ReaderParameters());
-            }
-
-            public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
-            {
-                foreach (var assembly in parentCompilation.GetReferencedAssemblySymbols())
-                {
-                    if (assembly.Identity.Name == name.Name
-                        && assembly.Identity.Version == name.Version
-                        && assembly.Identity.PublicKeyToken.SequenceEqual(name.PublicKeyToken ?? Array.Empty<byte>()))
-                    {
-                        // reference assemblies should be fine here...
-                        var reference = parentCompilation.GetMetadataReference(assembly);
-                        return AssemblyDefinition.ReadAssembly(reference.Display);
-                    }
-                }
-                // not found
-                return null;
-            }
-
-            public void Dispose()
-            {
-            }
-        }
-
-        private string GetFullReflectionName(INamedTypeSymbol containingType)
-        {
-            var stack = new Stack<string>();
-            stack.Push(containingType.MetadataName);
-            var ns = containingType.ContainingNamespace;
-            do
-            {
-                stack.Push(ns.Name);
-                ns = ns.ContainingNamespace;
-            }
-            while (ns != null && !ns.IsGlobalNamespace);
-
-            return string.Join(".", stack);
         }
 
         private async Task<Location> RelocateSymbol_NoLock(MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)
@@ -325,18 +263,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             _openedDocumentIds = _openedDocumentIds.RemoveKey(fileInfo);
         }
 
-        private async Task<UniqueDocumentKey> GetUniqueDocumentKey(Project project, INamedTypeSymbol topLevelNamedType, CancellationToken cancellationToken)
+        private async Task<UniqueDocumentKey> GetUniqueDocumentKey(Project project, INamedTypeSymbol topLevelNamedType, bool allowDecompilation, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var peMetadataReference = compilation.GetMetadataReference(topLevelNamedType.ContainingAssembly) as PortableExecutableReference;
 
             if (peMetadataReference.FilePath != null)
             {
-                return new UniqueDocumentKey(peMetadataReference.FilePath, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken));
+                return new UniqueDocumentKey(peMetadataReference.FilePath, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), allowDecompilation);
             }
             else
             {
-                return new UniqueDocumentKey(topLevelNamedType.ContainingAssembly.Identity, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken));
+                return new UniqueDocumentKey(topLevelNamedType.ContainingAssembly.Identity, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), allowDecompilation);
             }
         }
 
@@ -485,23 +423,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             private readonly AssemblyIdentity _assemblyIdentity;
             private readonly string _language;
             private readonly SymbolKey _symbolId;
+            private readonly bool _allowDecompilation;
 
-            public UniqueDocumentKey(string filePath, string language, SymbolKey symbolId)
+            public UniqueDocumentKey(string filePath, string language, SymbolKey symbolId, bool allowDecompilation)
             {
                 Contract.ThrowIfNull(filePath);
 
                 _filePath = filePath;
                 _language = language;
                 _symbolId = symbolId;
+                _allowDecompilation = allowDecompilation;
             }
 
-            public UniqueDocumentKey(AssemblyIdentity assemblyIdentity, string language, SymbolKey symbolId)
+            public UniqueDocumentKey(AssemblyIdentity assemblyIdentity, string language, SymbolKey symbolId, bool allowDecompilation)
             {
                 Contract.ThrowIfNull(assemblyIdentity);
 
                 _assemblyIdentity = assemblyIdentity;
                 _language = language;
                 _symbolId = symbolId;
+                _allowDecompilation = allowDecompilation;
             }
 
             public bool Equals(UniqueDocumentKey other)
@@ -514,7 +455,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 return StringComparer.OrdinalIgnoreCase.Equals(_filePath, other._filePath) &&
                     object.Equals(_assemblyIdentity, other._assemblyIdentity) &&
                     _language == other._language &&
-                    s_symbolIdComparer.Equals(_symbolId, other._symbolId);
+                    s_symbolIdComparer.Equals(_symbolId, other._symbolId) &&
+                    _allowDecompilation == other._allowDecompilation;
             }
 
             public override bool Equals(object obj)
@@ -528,7 +470,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     Hash.Combine(StringComparer.OrdinalIgnoreCase.GetHashCode(_filePath ?? string.Empty),
                         Hash.Combine(_assemblyIdentity != null ? _assemblyIdentity.GetHashCode() : 0,
                             Hash.Combine(_language.GetHashCode(),
-                                s_symbolIdComparer.GetHashCode(_symbolId))));
+                                Hash.Combine(s_symbolIdComparer.GetHashCode(_symbolId),
+                                    _allowDecompilation.GetHashCode()))));
             }
         }
     }

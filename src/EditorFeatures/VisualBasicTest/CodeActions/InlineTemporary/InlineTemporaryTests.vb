@@ -3574,7 +3574,7 @@ Module M
     Sub Main()
         With ""
             Dim x = .Equals("", "", StringComparison.InvariantCulture) ' Inline x
-            Dim y = New List(Of String) With {.Capacity = CBool({|Conflict:.Equals("", "", StringComparison.InvariantCulture)|}).GetHashCode}
+            Dim y = New List(Of String) With {.Capacity = {|Conflict:CBool(.Equals("", "", StringComparison.InvariantCulture))|}.GetHashCode}
         End With
     End Sub
 End Module

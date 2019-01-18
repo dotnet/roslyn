@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal static partial class UsingsAndExternAliasesOrganizer
     {
-        private static readonly SyntaxTrivia s_newLine = SyntaxFactory.CarriageReturnLineFeed;
+        private static readonly SyntaxTrivia s_newLine = SyntaxFactory.ElasticCarriageReturnLineFeed;
 
         public static void Organize(
             SyntaxList<ExternAliasDirectiveSyntax> externAliasList,
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         private static bool NeedsGrouping(
-            UsingDirectiveSyntax using1, 
+            UsingDirectiveSyntax using1,
             UsingDirectiveSyntax using2)
         {
             var directive1IsUsingStatic = using1.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);

@@ -1,12 +1,14 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Roslyn.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.VisualBasicHelpers
-Imports Microsoft.CodeAnalysis
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
+    <[UseExportProvider]>
     Public Class VisualBasicCompilerOptions
         <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
@@ -61,9 +63,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
-                ' SetCompilerOptions only handles versions 15.3 and up
-                Assert.Equal(LanguageVersion.VisualBasic15, options.LanguageVersion)
-                Assert.Equal(LanguageVersion.VisualBasic15, options.SpecifiedLanguageVersion)
+                ' SetCompilerOptions only handles versions 15.3 and up, so we are ignoring the
+                ' /langversion:14 above in favor of the legacy value. Since the legacy value was
+                ' not set, it'll just be default.
+                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
+                Assert.Equal(LanguageVersion.Default, options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
@@ -83,8 +87,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
-                Assert.Equal(LanguageVersion.VisualBasic15, options.LanguageVersion)
-                Assert.Equal(LanguageVersion.VisualBasic15, options.SpecifiedLanguageVersion)
+                ' SetCompilerOptions only handles versions 15.3 and up, so we are ignoring the
+                ' /langversion:14 above in favor of the legacy value. Since the legacy value was
+                ' not set, it'll just be default.
+                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
+                Assert.Equal(LanguageVersion.Default, options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
@@ -105,7 +112,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
                 Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
-                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.SpecifiedLanguageVersion)
+                Assert.Equal(LanguageVersion.Default, options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
@@ -147,7 +154,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
                 Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
-                Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(), options.SpecifiedLanguageVersion)
+                Assert.Equal(LanguageVersion.Latest, options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
@@ -201,24 +208,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 project.Disconnect()
             End Using
-        End Sub
-
-        <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        <WorkItem(18098, "https://github.com/dotnet/roslyn/issues/18098")>
-        Sub NullBinPath()
-            Using environment = New TestEnvironment()
-                Dim project = CreateVisualBasicProjectWithNullBinPath(environment, "Test")
-
-                Dim compilerOptions = CreateMinimalCompilerOptions(project)
-                project.SetCompilerOptions(compilerOptions)
-
-                ' Mostly, we're just validating that we didn't crash on the way here
-                Assert.NotNull(project)
-                Assert.Null(project.BinOutputPath)
-                project.Disconnect()
-            End Using
-
         End Sub
     End Class
 End Namespace

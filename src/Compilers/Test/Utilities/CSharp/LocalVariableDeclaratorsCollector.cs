@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             var builder = ArrayBuilder<SyntaxNode>.GetInstance();
             var visitor = new LocalVariableDeclaratorsCollector(builder);
-            visitor.Visit(method.BodySyntax);
+            var bodies = method.Bodies;
+            visitor.Visit(bodies.Item1 ?? (SyntaxNode)bodies.Item2);
             return builder.ToImmutableAndFree();
         }
 

@@ -12,6 +12,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
+    <[UseExportProvider]>
     Public Class SmartTokenFormatter_FormatTokenTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
@@ -175,10 +176,10 @@ End Class
             MarkupTestFile.GetPosition(codeWithMarkup, code, position)
 
             Using workspace = TestWorkspace.CreateVisualBasic(code)
+                workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
+
                 Dim hostdoc = workspace.Documents.First()
                 Dim buffer = hostdoc.GetTextBuffer()
-
-                SmartIndenterTests.SetIndentStyle(buffer, indentStyle)
 
                 Dim snapshot = buffer.CurrentSnapshot
                 Dim line = snapshot.GetLineFromPosition(position)

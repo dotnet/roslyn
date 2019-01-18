@@ -64,6 +64,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(DisabledWarnings)]; }
         }
 
+        public bool DisableSdkPath
+        {
+            set { _store[nameof(DisableSdkPath)] = value; }
+            get { return _store.GetOrDefault(nameof(DisableSdkPath), false); }
+        }
+
         public bool ErrorEndLocation
         {
             set { _store[nameof(ErrorEndLocation)] = value; }
@@ -143,11 +149,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(WarningsNotAsErrors)]; }
         }
 
+        public string NullableContextOptions
+        {
+            set { _store[nameof(NullableContextOptions)] = value; }
+            get { return (string)_store[nameof(NullableContextOptions)]; }
+        }
+
         #endregion
 
         #region Tool Members
 
-        private static readonly string[] s_separators = { "\r\n" };
+        private static readonly string[] s_separators = { Environment.NewLine };
 
         internal override void LogMessages(string output, MessageImportance messageImportance)
         {
@@ -198,6 +210,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendWhenTrue("/errorendlocation", _store, nameof(ErrorEndLocation));
             commandLine.AppendSwitchIfNotNull("/preferreduilang:", PreferredUILang);
             commandLine.AppendPlusOrMinusSwitch("/highentropyva", _store, nameof(HighEntropyVA));
+            commandLine.AppendSwitchIfNotNull("/nullable:", NullableContextOptions);
+            commandLine.AppendWhenTrue("/nosdkpath", _store, nameof(DisableSdkPath));
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;

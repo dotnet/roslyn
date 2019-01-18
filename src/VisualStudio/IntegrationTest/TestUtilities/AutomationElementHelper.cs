@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
-using System.Windows.Automation;
+using UIAutomationClient;
+using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
@@ -19,16 +21,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 var tcs = new TaskCompletionSource<object>();
 
-                Automation.AddAutomationEventHandler(InvokePattern.InvokedEvent, element, TreeScope.Element, (src, e) => {
-                    tcs.SetResult(null);
-                });
+                Helper.Automation.AddAutomationEventHandler(
+                    UIA_EventIds.UIA_Invoke_InvokedEventId,
+                    element,
+                    TreeScope.TreeScope_Element,
+                    cacheRequest: null,
+                    new AutomationEventHandler((src, e) => tcs.SetResult(null)));
 
-                if (element.TryGetCurrentPattern(InvokePattern.Pattern, out var invokePatternObj))
-                {
-                    var invokePattern = (InvokePattern)invokePatternObj;
-                    invokePattern.Invoke();
-                }
-
+                element.Invoke();
                 await tcs.Task;
             }
         }
@@ -39,19 +39,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         /// <returns>The task referrign to the element finding.</returns>
 
-        public static async Task<AutomationElement> FindAutomationElementAsync(string elementName, bool recursive = false)
+        public static async Task<IUIAutomationElement> FindAutomationElementAsync(string elementName, bool recursive = false)
         {
-            AutomationElement element = null;
-            var scope = recursive ? TreeScope.Descendants : TreeScope.Children;
-            var condition = new PropertyCondition(AutomationElement.NameProperty, elementName);
+            IUIAutomationElement element = null;
+            var scope = recursive ? TreeScope.TreeScope_Descendants : TreeScope.TreeScope_Children;
+            var condition = Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.NameProperty.Id, elementName);
 
             // TODO(Dustin): This is code is a bit terrifying. If anything goes wrong and the automation
             // element can't be found, it'll continue to spin until the heat death of the universe.
             await IntegrationHelper.WaitForResultAsync(
-                () => (element = AutomationElement.RootElement.FindFirst(scope, condition)) != null, expectedResult: true
+                () => (element = Helper.Automation.GetRootElement().FindFirst(scope, condition)) != null, expectedResult: true
             ).ConfigureAwait(false);
 
             return element;
+        }
+
+        private class AutomationEventHandler : IUIAutomationEventHandler
+        {
+            private readonly Action<IUIAutomationElement, int> _action;
+
+            public AutomationEventHandler(Action<IUIAutomationElement, int> action)
+            {
+                _action = action ?? throw new ArgumentNullException(nameof(action));
+            }
+
+            public void HandleAutomationEvent(IUIAutomationElement sender, int eventId)
+                => _action(sender, eventId);
         }
     }
 }

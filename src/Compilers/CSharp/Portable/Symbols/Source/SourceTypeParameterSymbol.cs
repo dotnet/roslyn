@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -83,27 +84,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
-            var bounds = this.GetBounds(inProgress);
-            return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
+            var bounds = this.GetBounds(inProgress, early);
+            return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
         {
-            var bounds = this.GetBounds(inProgress);
+            var bounds = this.GetBounds(inProgress, early: false);
             return (bounds != null) ? bounds.Interfaces : ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
         {
-            var bounds = this.GetBounds(inProgress);
+            var bounds = this.GetBounds(inProgress, early: false);
             return (bounds != null) ? bounds.EffectiveBaseClass : this.GetDefaultBaseType();
         }
 
         internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
         {
-            var bounds = this.GetBounds(inProgress);
+            var bounds = this.GetBounds(inProgress, early: false);
             return (bounds != null) ? bounds.DeducedBaseType : this.GetDefaultBaseType();
         }
 
@@ -179,7 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     lazyAttributesStored = LoadAndValidateAttributes(
                         OneOrMany.Create(this.MergedAttributeDeclarationSyntaxLists),
-                        ref _lazyCustomAttributesBag);
+                        ref _lazyCustomAttributesBag,
+                        binderOpt: (ContainingSymbol as LocalFunctionSymbol)?.SignatureBinder);
                 }
                 else
                 {
@@ -198,11 +200,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyCustomAttributesBag;
         }
 
-        internal override void EnsureAllConstraintsAreResolved()
+        internal override void EnsureAllConstraintsAreResolved(bool early)
         {
-            if (ReferenceEquals(_lazyBounds, TypeParameterBounds.Unset))
+            if (!_lazyBounds.IsSet(early))
             {
-                EnsureAllConstraintsAreResolved(this.ContainerTypeParameters);
+                EnsureAllConstraintsAreResolved(this.ContainerTypeParameters, early);
             }
         }
 
@@ -211,29 +213,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress)
+        private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
-            Debug.Assert(!inProgress.ContainsReference(this));
-            Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
+            // https://github.com/dotnet/roslyn/issues/30081: Re-enable asserts.
+            //Debug.Assert(!inProgress.ContainsReference(this));
+            //Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
 
-            if (ReferenceEquals(_lazyBounds, TypeParameterBounds.Unset))
+            var currentBounds = _lazyBounds;
+            if (!currentBounds.IsSet(early))
             {
                 var diagnostics = DiagnosticBag.GetInstance();
-                var bounds = this.ResolveBounds(inProgress, diagnostics);
+                var bounds = this.ResolveBounds(inProgress, early, diagnostics);
 
-                if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset), TypeParameterBounds.Unset))
+                if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBounds, bounds, currentBounds), currentBounds))
                 {
-                    this.CheckConstraintTypeConstraints(diagnostics);
-                    this.AddDeclarationDiagnostics(diagnostics);
-                    _state.NotePartComplete(CompletionPart.TypeParameterConstraints);
+                    if (_lazyBounds?.IsEarly != true)
+                    {
+                        this.CheckConstraintTypeConstraints(diagnostics);
+                        this.CheckUnmanagedConstraint(diagnostics);
+                        this.CheckNullableAnnotationsInConstraints(diagnostics);
+                        this.AddDeclarationDiagnostics(diagnostics);
+                        _state.NotePartComplete(CompletionPart.TypeParameterConstraints);
+                    }
                 }
 
                 diagnostics.Free();
             }
+
             return _lazyBounds;
         }
 
-        protected abstract TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics);
+        protected abstract TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, bool early, DiagnosticBag diagnostics);
 
         /// <summary>
         /// Check constraints of generic types referenced in constraint types. For instance,
@@ -256,12 +266,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var constraintType in constraintTypes)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                constraintType.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                constraintType.TypeSymbol.AddUseSiteDiagnostics(ref useSiteDiagnostics);
 
                 if (!diagnostics.Add(location, useSiteDiagnostics))
                 {
                     constraintType.CheckAllConstraints(conversions, location, diagnostics);
                 }
+            }
+        }
+
+        private void CheckUnmanagedConstraint(DiagnosticBag diagnostics)
+        {
+            if (this.HasUnmanagedTypeConstraint)
+            {
+                DeclaringCompilation.EnsureIsUnmanagedAttributeExists(diagnostics, this.GetNonNullSyntaxNode().Location, ModifyCompilationForAttributeEmbedding());
+            }
+        }
+
+        private bool ModifyCompilationForAttributeEmbedding()
+        {
+            bool modifyCompilation;
+
+            switch (this.ContainingSymbol)
+            {
+                case SourceOrdinaryMethodSymbol _:
+                case SourceMemberContainerTypeSymbol _:
+                    modifyCompilation = true;
+                    break;
+                case LocalFunctionSymbol _:
+                    modifyCompilation = false;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(this.ContainingSymbol);
+            }
+
+            return modifyCompilation;
+        }
+
+        private void CheckNullableAnnotationsInConstraints(DiagnosticBag diagnostics)
+        {
+            if ((this.HasReferenceTypeConstraint && this.ReferenceTypeConstraintIsNullable != null) ||
+                this.ConstraintTypesNoUseSiteDiagnostics.Any(c => c.NeedsNullableAttribute()))
+            {
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, this.GetNonNullSyntaxNode().Location, ModifyCompilationForAttributeEmbedding());
             }
         }
 
@@ -303,6 +350,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 _state.SpinWaitComplete(incompletePart, cancellationToken);
             }
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            if (this.HasUnmanagedTypeConstraint)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsUnmanagedAttribute(this));
+            }
+
+            if (this.HasReferenceTypeConstraint && this.ReferenceTypeConstraintIsNullable != null)
+            {
+                NamedTypeSymbol byteType = DeclaringCompilation.GetSpecialType(SpecialType.System_Byte);
+                Debug.Assert((object)byteType != null);
+
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
+                                                              ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive,
+                                                                                                      (byte)(this.ReferenceTypeConstraintIsNullable == true ?
+                                                                                                                 NullableAnnotation.Annotated :
+                                                                                                                 NullableAnnotation.NotAnnotated)))));
+            }
+        }
+
+        internal override sealed void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+
+            var attribute = arguments.Attribute;
+            Debug.Assert(!attribute.HasErrors);
+            Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
+
+            if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+            {
+                // NullableAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+
+            base.DecodeWellKnownAttribute(ref arguments);
+        }
+
+        protected bool? CalculateReferenceTypeConstraintIsNullable(TypeParameterConstraintKind constraints)
+        {
+            if ((constraints & TypeParameterConstraintKind.ReferenceType) == 0)
+            {
+                return false;
+            }
+
+            switch (constraints & (TypeParameterConstraintKind.NullableReferenceType | TypeParameterConstraintKind.NotNullableReferenceType))
+            {
+                case TypeParameterConstraintKind.NullableReferenceType:
+                    return true;
+                case TypeParameterConstraintKind.NotNullableReferenceType:
+                    return false;
+            }
+
+            return null;
         }
     }
 
@@ -350,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var constraints = this.GetDeclaredConstraints();
-                return (constraints & TypeParameterConstraintKind.ValueType) != 0;
+                return (constraints & (TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.Unmanaged)) != 0;
             }
         }
 
@@ -363,20 +469,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool? ReferenceTypeConstraintIsNullable
+        {
+            get
+            {
+                return CalculateReferenceTypeConstraintIsNullable(this.GetDeclaredConstraints());
+            }
+        }
+
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get
+            {
+                var constraints = this.GetDeclaredConstraints();
+                return (constraints & TypeParameterConstraintKind.Unmanaged) != 0;
+            }
+        }
+
         protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters
         {
             get { return _owner.TypeParameters; }
         }
 
-        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
+        private TypeParameterConstraintClause GetTypeParameterConstraintClause(bool early)
         {
-            var constraintTypes = _owner.GetTypeParameterConstraintTypes(this.Ordinal);
-            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, false, this.DeclaringCompilation, diagnostics);
+            return _owner.GetTypeParameterConstraintClause(early, this.Ordinal);
+        }
+
+        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, bool early, DiagnosticBag diagnostics)
+        {
+            var constraintClause = GetTypeParameterConstraintClause(early);
+            if (constraintClause.IsEmpty)
+            {
+                return null;
+            }
+            var constraintTypes = constraintClause.ConstraintTypes;
+            if (early)
+            {
+                return new TypeParameterBounds(constraintTypes);
+            }
+            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, this.DeclaringCompilation, diagnostics);
         }
 
         private TypeParameterConstraintKind GetDeclaredConstraints()
         {
-            return _owner.GetTypeParameterConstraints(this.Ordinal);
+            var constraintClause = GetTypeParameterConstraintClause(early: true);
+            return constraintClause.Constraints;
         }
     }
 
@@ -420,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var constraints = this.GetDeclaredConstraints();
-                return (constraints & TypeParameterConstraintKind.ValueType) != 0;
+                return (constraints & (TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.Unmanaged)) != 0;
             }
         }
 
@@ -433,26 +571,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool? ReferenceTypeConstraintIsNullable
+        {
+            get
+            {
+                return CalculateReferenceTypeConstraintIsNullable(this.GetDeclaredConstraints());
+            }
+        }
+
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get
+            {
+                var constraints = this.GetDeclaredConstraints();
+                return (constraints & TypeParameterConstraintKind.Unmanaged) != 0;
+            }
+        }
+
         protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters
         {
             get { return _owner.TypeParameters; }
         }
 
-        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
+        private TypeParameterConstraintClause GetTypeParameterConstraintClause(bool early)
         {
-            var constraintClauses = _owner.TypeParameterConstraintClauses;
-            var constraintTypes = constraintClauses.IsEmpty
-                ? ImmutableArray<TypeSymbol>.Empty
-                : constraintClauses[Ordinal]?.ConstraintTypes ?? ImmutableArray<TypeSymbol>.Empty;
-            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, false, this.DeclaringCompilation, diagnostics);
+            var constraintClauses = _owner.GetTypeParameterConstraintClauses(early);
+            return constraintClauses.IsEmpty ? TypeParameterConstraintClause.Empty : constraintClauses[Ordinal];
         }
 
-        private TypeParameterConstraintKind GetDeclaredConstraints()
+        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, bool early, DiagnosticBag diagnostics)
         {
-            var constraintClauses = _owner.TypeParameterConstraintClauses;
-            return constraintClauses.IsEmpty
-                ? TypeParameterConstraintKind.None
-                : constraintClauses[Ordinal]?.Constraints ?? TypeParameterConstraintKind.None;
+            var constraintClause = GetTypeParameterConstraintClause(early);
+            if (constraintClause.IsEmpty)
+            {
+                return null;
+            }
+            var constraintTypes = constraintClause.ConstraintTypes;
+            if (early)
+            {
+                return new TypeParameterBounds(constraintTypes);
+            }
+            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: false, this.DeclaringCompilation, diagnostics);
+        }
+
+        internal TypeParameterConstraintKind GetDeclaredConstraints()
+        {
+            var constraintClause = GetTypeParameterConstraintClause(early: true);
+            return constraintClause.Constraints;
         }
     }
 
@@ -627,24 +792,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool? ReferenceTypeConstraintIsNullable
+        {
+            get
+            {
+                TypeParameterSymbol typeParameter = this.OverriddenTypeParameter;
+                return ((object)typeParameter != null) ? typeParameter.ReferenceTypeConstraintIsNullable : false;
+            }
+        }
+
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get
+            {
+                var typeParameter = this.OverriddenTypeParameter;
+                return ((object)typeParameter != null) && typeParameter.HasUnmanagedTypeConstraint;
+            }
+        }
+
         protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters
         {
             get { return this.Owner.TypeParameters; }
         }
 
-        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
+        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, bool early, DiagnosticBag diagnostics)
         {
             var typeParameter = this.OverriddenTypeParameter;
             if ((object)typeParameter == null)
             {
                 return null;
             }
-
             var map = _map.TypeMap;
             Debug.Assert(map != null);
-
-            var constraintTypes = map.SubstituteTypesWithoutModifiers(typeParameter.ConstraintTypesNoUseSiteDiagnostics);
-            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, true, this.DeclaringCompilation, diagnostics);
+            // Use typeParameter.ConstraintTypesNoUseSiteDiagnostics rather than
+            // typeParameter.GetConstraintTypesNoUseSiteDiagnostics(inProgress)
+            // because the overridden type parameter is from a different container.
+            var constraintTypes = map.SubstituteTypes(typeParameter.ConstraintTypesNoUseSiteDiagnostics);
+            if (early)
+            {
+                return new TypeParameterBounds(constraintTypes);
+            }
+            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: true, this.DeclaringCompilation, diagnostics);
         }
 
         /// <summary>

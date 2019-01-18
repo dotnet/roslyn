@@ -169,9 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // some symbols may not have a syntax (e.g. lambdas, synthesized event accessors)
         protected readonly SyntaxReference syntaxReferenceOpt;
 
-        // some symbols may not have a body syntax (e.g. abstract and extern members, primary constructors, synthesized event accessors, etc.)
-        protected readonly SyntaxReference bodySyntaxReferenceOpt;
-
         protected ImmutableArray<Location> locations;
         protected string lazyDocComment;
 
@@ -191,23 +188,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _cachedDiagnostics;
         }
 
-        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, Location location)
-            : this(containingType, syntaxReferenceOpt, bodySyntaxReferenceOpt, ImmutableArray.Create(location))
+        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, Location location)
+            : this(containingType, syntaxReferenceOpt, ImmutableArray.Create(location))
         {
         }
 
-        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, ImmutableArray<Location> locations)
+        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, ImmutableArray<Location> locations)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert(!locations.IsEmpty);
 
             _containingType = containingType;
             this.syntaxReferenceOpt = syntaxReferenceOpt;
-            this.bodySyntaxReferenceOpt = bodySyntaxReferenceOpt;
             this.locations = locations;
         }
 
-        protected void CheckEffectiveAccessibility(TypeSymbol returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
+        protected void CheckEffectiveAccessibility(TypeSymbolWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
         {
             if (this.DeclaredAccessibility <= Accessibility.Private)
             {
@@ -222,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!this.IsNoMoreVisibleThan(returnType, ref useSiteDiagnostics))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'
-                diagnostics.Add(code, Locations[0], this, returnType);
+                diagnostics.Add(code, Locations[0], this, returnType.TypeSymbol);
             }
 
             code = (this.MethodKind == MethodKind.Conversion || this.MethodKind == MethodKind.UserDefinedOperator) ?
@@ -234,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!parameter.Type.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
-                    diagnostics.Add(code, Locations[0], this, parameter.Type);
+                    diagnostics.Add(code, Locations[0], this, parameter.Type.TypeSymbol);
                 }
             }
 
@@ -537,12 +533,89 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Syntax
 
-        internal SyntaxNode BodySyntax
+        internal (BlockSyntax, ArrowExpressionClauseSyntax) Bodies
         {
             get
             {
-                return (this.bodySyntaxReferenceOpt == null) ? null : this.bodySyntaxReferenceOpt.GetSyntax();
+                switch (SyntaxNode)
+                {
+                    case BaseMethodDeclarationSyntax method:
+                        return (method.Body, method.ExpressionBody);
+
+                    case AccessorDeclarationSyntax accessor:
+                        return (accessor.Body, accessor.ExpressionBody);
+
+                    case ArrowExpressionClauseSyntax arrowExpression:
+                        Debug.Assert(arrowExpression.Parent.Kind() == SyntaxKind.PropertyDeclaration ||
+                                     arrowExpression.Parent.Kind() == SyntaxKind.IndexerDeclaration ||
+                                     this is SynthesizedClosureMethod);
+                        return (null, arrowExpression);
+
+                    case BlockSyntax block:
+                        Debug.Assert(this is SynthesizedClosureMethod);
+                        return (block, null);
+
+                    default:
+                        return (null, null);
+                }
             }
+        }
+
+        internal Binder TryGetInMethodBinder(BinderFactory binderFactoryOpt = null)
+        {
+            CSharpSyntaxNode contextNode = null;
+
+            CSharpSyntaxNode syntaxNode = this.SyntaxNode;
+
+            switch (syntaxNode)
+            {
+                case ConstructorDeclarationSyntax constructor:
+                    contextNode = constructor.Initializer ?? (CSharpSyntaxNode)constructor.Body ?? constructor.ExpressionBody;
+                    break;
+
+                case BaseMethodDeclarationSyntax method:
+                    contextNode = (CSharpSyntaxNode)method.Body ?? method.ExpressionBody;
+                    break;
+
+                case AccessorDeclarationSyntax accessor:
+                    contextNode = (CSharpSyntaxNode)accessor.Body ?? accessor.ExpressionBody;
+                    break;
+
+                case ArrowExpressionClauseSyntax arrowExpression:
+                    Debug.Assert(arrowExpression.Parent.Kind() == SyntaxKind.PropertyDeclaration ||
+                                 arrowExpression.Parent.Kind() == SyntaxKind.IndexerDeclaration);
+                    contextNode = arrowExpression;
+                    break;
+            }
+
+            if (contextNode == null)
+            {
+                return null;
+            }
+
+            Binder result = (binderFactoryOpt ?? this.DeclaringCompilation.GetBinderFactory(contextNode.SyntaxTree)).GetBinder(contextNode);
+#if DEBUG
+            Binder current = result;
+            do
+            {
+                if (current is InMethodBinder)
+                {
+                    break;
+                }
+
+                current = current.Next;
+            }
+            while (current != null);
+
+            Debug.Assert(current is InMethodBinder);
+#endif
+            return result;
+        }
+
+        internal ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, BinderFlags additionalFlags = BinderFlags.None)
+        {
+            Binder inMethod = TryGetInMethodBinder(binderFactoryOpt);
+            return inMethod == null ? null : new ExecutableCodeBinder(SyntaxNode, this, inMethod.WithAdditionalFlags(additionalFlags));
         }
 
         internal SyntaxReference SyntaxRef
@@ -596,14 +669,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
-            }
-        }
-
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
@@ -612,11 +677,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override ImmutableArray<TypeSymbol> TypeArguments
+        public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get
             {
-                return TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+                return GetTypeParametersAsTypeArguments();
             }
         }
 
@@ -649,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             set
             {
-                Debug.Assert((object)_iteratorElementType == null || _iteratorElementType == value);
+                Debug.Assert((object)_iteratorElementType == null || TypeSymbol.Equals(_iteratorElementType, value, TypeCompareKind.ConsiderEverything2));
                 Interlocked.CompareExchange(ref _iteratorElementType, value, null);
             }
         }
@@ -748,9 +813,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 state.SpinWaitComplete(incompletePart, cancellationToken);
             }
 
-        done:
-            // Don't return until we've seen all of the CompletionParts. This ensures all
-            // diagnostics have been reported (not necessarily on this thread).
+done:
+// Don't return until we've seen all of the CompletionParts. This ensures all
+// diagnostics have been reported (not necessarily on this thread).
             CompletionPart allParts = CompletionPart.MethodSymbolAll;
             state.SpinWaitComplete(allParts, cancellationToken);
         }
@@ -1110,6 +1175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // IsReadOnlyAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
+            {
+                // IsUnmanagedAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
             {
                 // IsByRefLikeAttribute should not be set explicitly.
@@ -1235,6 +1305,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
+            {
+                // IsUnmanagedAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
             {
                 // IsReadOnlyAttribute should not be set explicitly.
@@ -1248,6 +1323,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+            {
+                // NullableAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
         }
 
@@ -1524,38 +1604,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#endregion
+        #endregion
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (this.IsAsync || this.IsIterator)
+            bool isAsync = this.IsAsync;
+            bool isIterator = this.IsIterator;
+
+            if (!isAsync && !isIterator)
             {
-                var compilation = this.DeclaringCompilation;
+                return;
+            }
 
-                // The async state machine type is not synthesized until the async method body is rewritten. If we are
-                // only emitting metadata the method body will not have been rewritten, and the async state machine
-                // type will not have been created. In this case, omit the attribute.
-                NamedTypeSymbol stateMachineType;
-                if (moduleBuilder.CompilationState.TryGetStateMachineType(this, out stateMachineType))
+            var compilation = this.DeclaringCompilation;
+
+            // The async state machine type is not synthesized until the async method body is rewritten. If we are
+            // only emitting metadata the method body will not have been rewritten, and the async state machine
+            // type will not have been created. In this case, omit the attribute.
+            if (moduleBuilder.CompilationState.TryGetStateMachineType(this, out NamedTypeSymbol stateMachineType))
+            {
+                var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type),
+                    TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
+
+                if (isAsync && isIterator)
                 {
-                    WellKnownMember ctor = this.IsAsync ?
-                        WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor :
-                        WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor;
-
-                    var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
-
-                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(ctor, ImmutableArray.Create(arg)));
+                    AddSynthesizedAttribute(ref attributes,
+                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
+                            ImmutableArray.Create(arg)));
                 }
-
-                if (this.IsAsync)
+                else if (isAsync)
                 {
-                    // Async kick-off method calls MoveNext, which contains user code. 
-                    // This means we need to emit DebuggerStepThroughAttribute in order
-                    // to have correct stepping behavior during debugging.
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
+                    AddSynthesizedAttribute(ref attributes,
+                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
+                            ImmutableArray.Create(arg)));
                 }
+                else if (isIterator)
+                {
+                    AddSynthesizedAttribute(ref attributes,
+                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor,
+                            ImmutableArray.Create(arg)));
+                }
+            }
+
+            if (isAsync && !isIterator)
+            {
+                // Regular async (not async-iterator) kick-off method calls MoveNext, which contains user code.
+                // This means we need to emit DebuggerStepThroughAttribute in order
+                // to have correct stepping behavior during debugging.
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
             }
         }
 
@@ -1594,14 +1692,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            // Method without body doesn't declare locals.
-            Debug.Assert(this.BodySyntax != null);
-            Debug.Assert(this.BodySyntax.SyntaxTree == localTree);
+            Debug.Assert(this.SyntaxNode.SyntaxTree == localTree);
+
+            (BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody) = Bodies;
+            CSharpSyntaxNode bodySyntax = null;
 
             // All locals are declared within the body of the method.
-            Debug.Assert(this.BodySyntax.Span.Contains(localPosition));
+            if (blockBody?.Span.Contains(localPosition) == true)
+            {
+                bodySyntax = blockBody;
+            }
+            else if (expressionBody?.Span.Contains(localPosition) == true)
+            {
+                bodySyntax = expressionBody;
+            }
+            else
+            {
+                // Method without body doesn't declare locals.
+                Debug.Assert(bodySyntax != null);
+                return -1;
+            }
 
-            return localPosition - this.BodySyntax.SpanStart;
+            return localPosition - bodySyntax.SpanStart;
         }
     }
 }
