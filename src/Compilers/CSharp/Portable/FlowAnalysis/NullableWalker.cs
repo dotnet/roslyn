@@ -1880,11 +1880,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var leftState = this.State.Clone();
 
-            if (leftSlot > 0)
-            {
-                leftState[leftSlot] = NullableAnnotation.NotNullable;
-            }
-
             TypeSymbolWithAnnotations rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, UseLegacyWarnings(leftOperand), AssignmentKind.Assignment);
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
