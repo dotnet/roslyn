@@ -32,11 +32,6 @@
         <target state="new">Field preferences</target>
         <note />
       </trans-unit>
-      <trans-unit id="Incorrect_prefix">
-        <source>Incorrect prefix</source>
-        <target state="new">Incorrect prefix</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="new">Indentation and spacing</target>
@@ -70,6 +65,16 @@
       <trans-unit id="Parentheses_preferences">
         <source>Parentheses preferences</source>
         <target state="new">Parentheses preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
+        <source>Prefix '{0}' does not match expected prefix '{1}'</source>
+        <target state="new">Prefix '{0}' does not match expected prefix '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefix_0_is_not_expected">
+        <source>Prefix '{0}' is not expected</source>
+        <target state="new">Prefix '{0}' is not expected</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">

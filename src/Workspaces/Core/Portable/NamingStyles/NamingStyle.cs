@@ -149,11 +149,13 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             // remove specified Prefix, then look for any other common prefixes
             name = StripCommonPrefixes(name.Substring(Prefix.Length), out var prefix);
 
-            if (prefix.Length != 0)
+            if (prefix != string.Empty)
             {
                 // name started with specified prefix, but has at least one additional common prefix 
                 // Example: specified prefix "test_", actual prefix "test_m_"
-                failureReason = string.Format(WorkspacesResources.Incorrect_prefix);
+                failureReason = Prefix == string.Empty ?
+                    string.Format(WorkspacesResources.Prefix_0_is_not_expected, prefix) :
+                    string.Format(WorkspacesResources.Prefix_0_does_not_match_expected_prefix_1, prefix, Prefix);
                 return false;
             }
 
@@ -389,7 +391,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             {
                 words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
 
-                // Edge case: the only character(s) in the name is (are) the WordSeparator
+                // Edge case: the only character(s) in the name is(are) the WordSeparator
                 if (words.Count() == 0)
                 {
                     return name;

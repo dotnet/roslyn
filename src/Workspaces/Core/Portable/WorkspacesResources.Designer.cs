@@ -881,15 +881,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Incorrect prefix.
-        /// </summary>
-        internal static string Incorrect_prefix {
-            get {
-                return ResourceManager.GetString("Incorrect_prefix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Indentation and spacing.
         /// </summary>
         internal static string Indentation_and_spacing {
@@ -1273,6 +1264,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Populate_switch {
             get {
                 return ResourceManager.GetString("Populate_switch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefix &apos;{0}&apos; does not match expected prefix &apos;{1}&apos;.
+        /// </summary>
+        internal static string Prefix_0_does_not_match_expected_prefix_1 {
+            get {
+                return ResourceManager.GetString("Prefix_0_does_not_match_expected_prefix_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefix &apos;{0}&apos; is not expected.
+        /// </summary>
+        internal static string Prefix_0_is_not_expected {
+            get {
+                return ResourceManager.GetString("Prefix_0_is_not_expected", resourceCulture);
             }
         }
         
