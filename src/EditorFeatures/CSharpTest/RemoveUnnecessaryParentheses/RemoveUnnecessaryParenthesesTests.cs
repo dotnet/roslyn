@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryParenthesesCodeFixProvider());
 
-        private async Task TestAsync(string initial, string expected, bool offeredWhenRequireForClarityIsEnabled, bool shouldVerifyEntireSpan = false)
+        private async Task TestAsync(string initial, string expected, bool offeredWhenRequireForClarityIsEnabled, SpanVerificationKind spanVerificationKind = SpanVerificationKind.Intersect)
         {
-            await TestInRegularAndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses, shouldVerifyEntireSpan: shouldVerifyEntireSpan);
+            await TestInRegularAndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses, spanVerificationKind: spanVerificationKind);
 
             if (offeredWhenRequireForClarityIsEnabled)
             {
-                await TestInRegularAndScriptAsync(initial, expected, options: RequireAllParenthesesForClarity, shouldVerifyEntireSpan: shouldVerifyEntireSpan);
+                await TestInRegularAndScriptAsync(initial, expected, options: RequireAllParenthesesForClarity, spanVerificationKind: spanVerificationKind);
             }
             else
             {
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int i = ( 1 + 2 );
     }
-}", offeredWhenRequireForClarityIsEnabled: true, shouldVerifyEntireSpan: true);
+}", offeredWhenRequireForClarityIsEnabled: true, spanVerificationKind: SpanVerificationKind.Match);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -2077,7 +2077,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 #endif
     }
 }",
-offeredWhenRequireForClarityIsEnabled: true, shouldVerifyEntireSpan: true);
+offeredWhenRequireForClarityIsEnabled: true, spanVerificationKind: SpanVerificationKind.Match);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
@@ -2291,7 +2291,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         Func<int, string> lambda =
             number => (number + $""{ [|(|]a ? ""foo"" : ""bar"") }"");
     }
-}", new TestParameters(options: RemoveAllUnnecessaryParentheses, shouldVerifyEntireSpan: true));
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses, spanVerificationKind: SpanVerificationKind.Match));
         }
 
         [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]

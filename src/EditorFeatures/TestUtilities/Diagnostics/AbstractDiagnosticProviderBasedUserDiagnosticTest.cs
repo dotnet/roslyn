@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider);
-            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(provider, document, span, parameters.shouldVerifyEntireSpan)).ToImmutableArray();
+            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(provider, document, span, parameters.spanVerificationKind)).ToImmutableArray();
             AssertNoAnalyzerExceptionDiagnostics(diagnostics);
 
             var fixer = providerAndFixer.Item2;
