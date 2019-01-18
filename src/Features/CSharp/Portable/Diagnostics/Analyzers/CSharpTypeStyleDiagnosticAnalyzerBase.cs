@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
@@ -52,6 +53,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             var semanticModel = context.SemanticModel;
             var declaredType = Helper.FindAnalyzableType(declarationStatement, semanticModel, cancellationToken);
             if (declaredType == null)
+            {
+                return;
+            }
+
+            var typeInfo = semanticModel.GetTypeInfo(declaredType, cancellationToken);
+            if (typeInfo.Type == null ||
+                typeInfo.Type.IsErrorType() ||
+                typeInfo.ConvertedType == null ||
+                typeInfo.ConvertedType.IsErrorType())
             {
                 return;
             }
