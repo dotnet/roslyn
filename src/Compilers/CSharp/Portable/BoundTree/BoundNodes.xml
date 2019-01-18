@@ -104,6 +104,13 @@
   <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
 
+  <!--
+  This node is used to represent an expression of a certain type, when attempting to bind it's pattern dispose method
+  It does not survive past initial binding.
+  -->
+  <Node Name="BoundDisposableValuePlaceholder" Base="BoundValuePlaceholderBase">
+  </Node>
+
   <!-- only used by codegen -->
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->

@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // When async and needs disposal, this stores the information to await the DisposeAsync() invocation
         public AwaitableInfo DisposeAwaitableInfo;
 
+        // When using pattern based Dispose, this stores the method to invoke to Dispose
+        public MethodSymbol DisposeMethod;
+
         // Conversions that will be required when the foreach is lowered.
         public readonly Conversion CollectionConversion; //collection expression to collection type
         public readonly Conversion CurrentConversion; // current to element type
@@ -47,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol moveNextMethod,
             bool needsDisposeMethod,
             AwaitableInfo disposeAwaitableInfo,
+            MethodSymbol disposeMethod,
             Conversion collectionConversion,
             Conversion currentConversion,
             Conversion enumeratorConversion,
@@ -65,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.MoveNextMethod = moveNextMethod;
             this.NeedsDisposeMethod = needsDisposeMethod;
             this.DisposeAwaitableInfo = disposeAwaitableInfo;
+            this.DisposeMethod = disposeMethod;
             this.CollectionConversion = collectionConversion;
             this.CurrentConversion = currentConversion;
             this.EnumeratorConversion = enumeratorConversion;
@@ -83,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool NeedsDisposeMethod;
             public AwaitableInfo DisposeAwaitableInfo;
+            public MethodSymbol DisposeMethod;
 
             public Conversion CollectionConversion;
             public Conversion CurrentConversion;
@@ -105,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MoveNextMethod,
                     NeedsDisposeMethod,
                     DisposeAwaitableInfo,
+                    DisposeMethod,
                     CollectionConversion,
                     CurrentConversion,
                     EnumeratorConversion,

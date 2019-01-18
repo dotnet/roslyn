@@ -182,8 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: false);
 
             BoundStatement result;
+            MethodSymbol disposeMethod = enumeratorInfo.DisposeMethod;
 
-            if (enumeratorInfo.NeedsDisposeMethod && TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out MethodSymbol disposeMethod))
+            if (enumeratorInfo.NeedsDisposeMethod && (!(disposeMethod is null) || TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out disposeMethod)))
             {
                 BoundStatement tryFinally = WrapWithTryFinallyDispose(forEachSyntax, enumeratorInfo, enumeratorType, boundEnumeratorVar, whileLoop, disposeMethod);
 
@@ -251,12 +252,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.ImplicitReference;
 
                 // ((IDisposable)e).Dispose() or e.Dispose() or await ((IAsyncDisposable)e).DisposeAsync() or await e.DisposeAsync()
-                // Note: pattern-based async disposal is not allowed (cannot use ref structs in async methods), so the arguments are known to be empty even for async case
-                BoundExpression disposeCall = BoundCall.Synthesized(
+                BoundExpression disposeCall = MakeCallWithNoExplicitArgument(
                     forEachSyntax,
                     ConvertReceiverForInvocation(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol),
-                    disposeMethod,
-                    ImmutableArray<BoundExpression>.Empty);
+                    disposeMethod);
+
                 BoundStatement disposeCallStatement;
                 if (disposeAwaitableInfoOpt != null)
                 {
