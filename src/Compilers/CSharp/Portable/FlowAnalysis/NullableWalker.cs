@@ -490,6 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            // Returns true if the nullable state from the operand of the conversion
+            // can be used as is, and we can create a slot from the conversion.
             bool isSupportedConversion(Conversion conversion, BoundExpression operandOpt)
             {
                 // https://github.com/dotnet/roslyn/issues/32599: Allow implicit and explicit
@@ -2570,7 +2572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<Conversion> conversions;
             (arguments, conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
-            return VisitArguments(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false, conversions).types;
+            return VisitArguments(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false, conversions).resultTypes;
         }
 
         private ImmutableArray<TypeSymbolWithAnnotations> VisitArguments(
@@ -2583,13 +2585,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<Conversion> conversions;
             (arguments, conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
-            return VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false, conversions).types;
+            return VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false, conversions).resultTypes;
         }
 
         /// <summary>
         /// If you pass in a method symbol, its type arguments will be re-inferred and the re-inferred method will be returned.
         /// </summary>
-        private (MethodSymbol method, ImmutableArray<TypeSymbolWithAnnotations> types) VisitArguments(
+        private (MethodSymbol method, ImmutableArray<TypeSymbolWithAnnotations> resultTypes) VisitArguments(
             BoundExpression node,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
@@ -3431,17 +3433,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
         {
-            VisitTupleExpression(node, node.ArgumentNamesOpt);
+            VisitTupleExpression(node);
             return null;
         }
 
         public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
         {
-            VisitTupleExpression(node, default);
+            VisitTupleExpression(node);
             return null;
         }
 
-        private void VisitTupleExpression(BoundTupleExpression node, ImmutableArray<string> argumentNamesOpt)
+        private void VisitTupleExpression(BoundTupleExpression node)
         {
             var arguments = node.Arguments;
             ImmutableArray<TypeSymbolWithAnnotations> elementTypes = arguments.SelectAsArray((a, w) => w.VisitRvalueWithResult(a), this);
