@@ -238,7 +238,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
                             if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
                             {
-                                result.Add(name, symbolKind);
+                                if (!IsNameConflictingInScope(name, context, cancellationToken))
+                                {
+                                    result.Add(name, symbolKind);
+                                }
                             }
                         }
                     }
@@ -246,6 +249,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return result.Select(kvp => (kvp.Key, kvp.Value)).ToImmutableArray();
+        }
+
+        private bool IsNameConflictingInScope(string possibleName, CSharpSyntaxContext context, CancellationToken cancellationToken) 
+        {
+            var visibleSymbols = context.SemanticModel.LookupSymbols(context.Position);
+            var relevantSymbolNames = visibleSymbols.Where(symbol => IsRelevantSymbolKind(symbol)).Select(symbol => symbol.MetadataName).ToImmutableArray();
+
+            return relevantSymbolNames.Contains(possibleName);
+        }
+
+        /// <summary>
+        /// Check if the symbol is a relevant kind.
+        /// Only relevant if symbol could hide or cause a conflict.
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
+        private bool IsRelevantSymbolKind(ISymbol symbol)
+        {
+            return symbol.Kind == SymbolKind.Local ||
+                symbol.Kind == SymbolKind.Parameter ||
+                symbol.Kind == SymbolKind.RangeVariable ||
+                symbol.Kind == SymbolKind.Field ||
+                symbol.Kind == SymbolKind.Property;
         }
 
         CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)
