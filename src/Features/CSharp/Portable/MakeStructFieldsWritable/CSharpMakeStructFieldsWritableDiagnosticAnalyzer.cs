@@ -45,14 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                 {
                     // We report diagnostic only if these requirements are met:
                     // 1. The type is struct
-                    // 2. Struct contains at least one 'readonly' field 'readonly' property
+                    // 2. Struct contains at least one 'readonly' field
                     // 3. Struct contains assignment to 'this' outside the scope of constructor
                     var namedTypeSymbol = (INamedTypeSymbol)symbolStartContext.Symbol;
 
                     // We are only interested in struct declarations
                     if (namedTypeSymbol.TypeKind != TypeKind.Struct) return;
-                    //We check if struct contains any 'readonly' fields or 'readonly' properties
-                    if (!HasSymbolReadonlyField(symbolStartContext)) return;
+                    //We check if struct contains any 'readonly' fields
+                    if (!HasReadonlyField(symbolStartContext)) return;
 
                     var symbolAnalyzer = new SymbolAnalyzer();
                     symbolAnalyzer.RegisterActions(symbolStartContext);
@@ -60,11 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                 }, SymbolKind.NamedType);
             }
 
-            private static bool HasSymbolReadonlyField(SymbolStartAnalysisContext symbolStartContext)
+            private static bool HasReadonlyField(SymbolStartAnalysisContext symbolStartContext)
             {
                 return ((INamedTypeSymbol)symbolStartContext.Symbol)
                 .GetMembers()
                 .OfType<IFieldSymbol>()
+                .Where(field => field.AssociatedSymbol == null)
                 .Any(field => field.IsReadOnly);
             }
 

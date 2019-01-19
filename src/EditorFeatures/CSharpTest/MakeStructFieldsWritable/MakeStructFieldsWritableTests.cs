@@ -220,9 +220,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
-        public async Task SingleReadonlyProperty_ThisAssigmentInMethod()
+        public async Task SingleGetterProperty_ThisAssigmentInMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"struct MyStruct
 {
     public int Value { get; }
@@ -235,20 +235,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
     public void Test()
     {
         [|this = new MyStruct(5)|];
-    }
-}",
-@"struct MyStruct
-{
-    public int Value { get; set; }
-
-    public MyStruct(int value)
-    {
-        Value = value;
-    }
-
-    public void Test()
-    {
-        this = new MyStruct(5);
     }
 }");
         }
