@@ -258,10 +258,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        private ImmutableArray<string> GetPossibleConflictingSymbolNames(CSharpSyntaxContext context)
+        private ImmutableHashSet<string> GetPossibleConflictingSymbolNames(CSharpSyntaxContext context)
         {
             var visibleSymbols = context.SemanticModel.LookupSymbols(context.Position);
-            return visibleSymbols.Where(symbol => IsRelevantSymbolKind(symbol)).Select(symbol => symbol.MetadataName).ToImmutableArray();
+            return visibleSymbols.Where(symbol => IsRelevantSymbolKind(symbol)).Select(symbol => symbol.MetadataName).ToImmutableHashSet();
         }
 
         /// <summary>
