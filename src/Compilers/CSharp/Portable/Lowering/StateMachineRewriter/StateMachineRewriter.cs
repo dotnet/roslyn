@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -366,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    if (this.initialThreadId == {managedThreadId} && this.state == -2)
             //    {
             //        this.state = {initialState};
+            //        extraReset
             //        result = this;
             //    }
             //    else
@@ -391,18 +393,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)initialThreadIdField != null)
             {
                 managedThreadId = MakeCurrentThreadId();
+
+                var thenBuilder = ArrayBuilder<BoundStatement>.GetInstance(4);
+                thenBuilder.Add(
+                    // this.state = {initialState};
+                    F.Assignment(F.Field(F.This(), stateField), F.Literal(initialState)));
+
+                thenBuilder.Add(
+                    // result = this;
+                    F.Assignment(F.Local(resultVariable), F.This()));
+
+                var extraReset = GetExtraResetForIteratorGetEnumerator();
+                if (extraReset != null)
+                {
+                    thenBuilder.Add(extraReset);
+                }
+
+                if (method.IsStatic || method.ThisParameter.Type.IsReferenceType)
+                {
+                    // if this is a reference type, no need to copy it since it is not assignable
+                    thenBuilder.Add(
+                        // goto thisInitialized;
+                        F.Goto(thisInitialized));
+                }
+
                 makeIterator = F.If(
                     // if (this.state == -2 && this.initialThreadId == Thread.CurrentThread.ManagedThreadId)
                     condition: F.LogicalAnd(
-                            F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                        F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
                         F.IntEqual(F.Field(F.This(), initialThreadIdField), managedThreadId)),
-                    thenClause: F.Block(
-                            F.Assignment(F.Field(F.This(), stateField), F.Literal(initialState)), // this.state = {initialState};
-                            F.Assignment(F.Local(resultVariable), F.This()), // result = this;
-                            method.IsStatic || method.ThisParameter.Type.IsReferenceType ? // if this is a reference type, no need to copy it since it is not assignable
-                                F.Goto(thisInitialized) : // goto thisInitialized
-                                (BoundStatement)F.StatementList()),
-                    // else result = new {StateMachineType}({initialState})
+                    thenClause: F.Block(thenBuilder.ToImmutableAndFree()),
                     elseClauseOpt: makeIterator);
             }
 
@@ -442,6 +462,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CloseMethod(F.Block(ImmutableArray.Create(resultVariable), bodyBuilder.ToImmutableAndFree()));
             return getEnumerator;
         }
+
+        /// <summary>
+        /// Async-iterator methods use a GetAsyncEnumerator method just like the GetEnumerator of iterator methods.
+        /// But they need to do a bit more work (to reset the dispose mode).
+        /// </summary>
+        protected virtual BoundStatement GetExtraResetForIteratorGetEnumerator() => null;
 
         /// <summary>
         /// Returns true if either Thread.ManagedThreadId or Environment.CurrentManagedThreadId are available

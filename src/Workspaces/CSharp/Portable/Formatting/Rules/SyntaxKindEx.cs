@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public const SyntaxKind IndexExpression = (SyntaxKind)8741;
         public const SyntaxKind RecursivePattern = (SyntaxKind)9020;
         public const SyntaxKind PropertyPatternClause = (SyntaxKind)9021;
-        public const SyntaxKind DeconstructionPatternClause = (SyntaxKind)9023;
+        public const SyntaxKind PositionalPatternClause = (SyntaxKind)9023;
         public const SyntaxKind SwitchExpression = (SyntaxKind)9025;
         public const SyntaxKind SwitchExpressionArm = (SyntaxKind)9026;
         public const SyntaxKind SuppressNullableWarningExpression = (SyntaxKind)9054;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private const uint IndexExpressionValueAssertion = -(IndexExpression - SyntaxKind.IndexExpression);
         private const uint RecursivePatternValueAssertion = -(RecursivePattern - SyntaxKind.RecursivePattern);
         private const uint PropertyPatternClauseValueAssertion = -(PropertyPatternClause - SyntaxKind.PropertyPatternClause);
-        private const uint DeconstructionPatternClauseValueAssertion = -(DeconstructionPatternClause - SyntaxKind.DeconstructionPatternClause);
+        private const uint PositionalPatternClauseValueAssertion = -(PositionalPatternClause - SyntaxKind.PositionalPatternClause);
         private const uint SwitchExpressionValueAssertion = -(SwitchExpression - SyntaxKind.SwitchExpression);
         private const uint SwitchExpressionArmValueAssertion = -(SwitchExpressionArm - SyntaxKind.SwitchExpressionArm);
         private const uint SuppressNullableWarningExpressionValueAssertion = -(SuppressNullableWarningExpression - SyntaxKind.SuppressNullableWarningExpression);

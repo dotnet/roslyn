@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -46,6 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
+            // Gather all statements to be removed
+            // We need this to find the statements we can safely attach trivia to
+            var declarationsToRemove = new HashSet<StatementSyntax>();
+            foreach (var diagnostic in diagnostics)
+            {
+                declarationsToRemove.Add((LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken).Parent.Parent);
+            }
+
             // Attempt to use an out-var declaration if that's the style the user prefers.
             // Note: if using 'var' would cause a problem, we will use the actual type
             // of the local.  This is necessary in some cases (for example, when the
@@ -66,7 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     return (t.invocationOrCreation, additionalNodesToTrack.ToImmutableAndFree());
                 },
                 (_1, _2, _3) => true,
-                (semanticModel, currentRoot, t, currentNode) => ReplaceIdentifierWithInlineDeclaration(options, semanticModel, currentRoot, t.declarator, t.identifier, t.invocationOrCreation, currentNode),
+                (semanticModel, currentRoot, t, currentNode) 
+                    => ReplaceIdentifierWithInlineDeclaration(
+                        options, semanticModel, currentRoot, t.declarator, 
+                        t.identifier, t.invocationOrCreation, currentNode, declarationsToRemove),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -92,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             OptionSet options, SemanticModel semanticModel,
             SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
             IdentifierNameSyntax identifier, SyntaxNode invocationOrCreation,
-            SyntaxNode currentNode)
+            SyntaxNode currentNode, HashSet<StatementSyntax> declarationsToRemove)
         {
             declarator = currentRoot.GetCurrentNode(declarator);
             identifier = currentRoot.GetCurrentNode(identifier);
@@ -105,16 +115,34 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             if (singleDeclarator)
             {
-                // This was a local statement with a single variable in it.  Just Remove 
-                // the entire local declaration statement.  Note that comments belonging to
+                // This was a local statement with a single variable in it.  Just Remove
+                // the entire local declaration statement. Note that comments belonging to
                 // this local statement will be moved to be above the statement containing
-                // the out-var. 
+                // the out-var.
                 var localDeclarationStatement = (LocalDeclarationStatementSyntax)declaration.Parent;
                 var block = (BlockSyntax)localDeclarationStatement.Parent;
                 var declarationIndex = block.Statements.IndexOf(localDeclarationStatement);
 
-                if (declarationIndex > 0 &&
-                    sourceText.AreOnSameLine(block.Statements[declarationIndex - 1].GetLastToken(), localDeclarationStatement.GetFirstToken()))
+                // Try to find a predecessor Statement on the same line that isn't going to be removed
+                StatementSyntax priorStatementSyntax = null;
+                var localDeclarationToken = localDeclarationStatement.GetFirstToken();
+                for (int i = declarationIndex - 1; i >= 0; i--)
+                {
+                    var statementSyntax = block.Statements[i];
+                    if (declarationsToRemove.Contains(statementSyntax))
+                    {
+                        continue;
+                    }
+
+                    if (sourceText.AreOnSameLine(statementSyntax.GetLastToken(), localDeclarationToken))
+                    {
+                        priorStatementSyntax = statementSyntax;
+                    }
+
+                    break;
+                }
+
+                if (priorStatementSyntax != null)
                 {
                     // There's another statement on the same line as this declaration statement.
                     // i.e.   int a; int b;
@@ -122,16 +150,31 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     // Just move all trivia from our statement to be trailing trivia of the previous
                     // statement
                     editor.ReplaceNode(
-                        block.Statements[declarationIndex - 1],
+                        priorStatementSyntax,
                         (s, g) => s.WithAppendedTrailingTrivia(localDeclarationStatement.GetTrailingTrivia()));
                 }
                 else
                 {
                     // Trivia on the local declaration will move to the next statement.
-                    // use the callback form as the next statement may be the place where we're 
+                    // use the callback form as the next statement may be the place where we're
                     // inlining the declaration, and thus need to see the effects of that change.
+
+                    // Find the next Statement that isn't going to be removed.
+                    // We initialize this to null here but we must see at least the statement
+                    // into which the declaration is going to be inlined so this will be not null
+                    StatementSyntax nextStatementSyntax = null;
+                    for (int i = declarationIndex + 1; i < block.Statements.Count; i++)
+                    {
+                        var statement = block.Statements[i];
+                        if (!declarationsToRemove.Contains(statement))
+                        {
+                            nextStatementSyntax = statement;
+                            break;
+                        }
+                    }
+
                     editor.ReplaceNode(
-                        block.Statements[declarationIndex + 1],
+                        nextStatementSyntax,
                         (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclarationStatement));
                 }
 
@@ -145,8 +188,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 //
                 //      var /*c1*/ i /*c2*/, /*c3*/ j /*c4*/;
                 //
-                // In this case 'c1' is owned by the 'var' token, not 'i', and 'c3' is owned by 
-                // the comment token not 'j'.  
+                // In this case 'c1' is owned by the 'var' token, not 'i', and 'c3' is owned by
+                // the comment token not 'j'.
 
                 editor.RemoveNode(declarator);
                 if (declarator == declaration.Variables[0])
