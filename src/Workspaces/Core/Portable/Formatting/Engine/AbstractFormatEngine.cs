@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (operation.LineOperation != null)
             {
-                if (!context.IsWrappingSuppressed(spanBetweenTokens))
+                if (!context.IsWrappingSuppressed(spanBetweenTokens, triviaInfo.TreatAsElastic))
                 {
                     // TODO : need to revisit later for the case where line and space operations
                     // are conflicting each other by forcing new lines and removing new lines.
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (operation.SpaceOperation != null)
             {
-                if (!context.IsSpacingSuppressed(spanBetweenTokens))
+                if (!context.IsSpacingSuppressed(spanBetweenTokens, triviaInfo.TreatAsElastic))
                 {
                     applier.Apply(operation.SpaceOperation, operation.PairIndex);
                 }
