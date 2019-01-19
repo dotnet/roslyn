@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         _document.Project.Solution,
                         _state.TypeToGenerateIn,
                         property,
-                        new CodeGenerationOptions(afterThisLocation: _state.IdentifierToken.GetLocation()),
+                        new CodeGenerationOptions(afterThisLocation: _state.IdentifierToken.GetLocation(), generateMethodBodies: !IsInterface(_state.TypeToGenerateIn)),
                         cancellationToken)
                         .ConfigureAwait(false);
 
@@ -86,12 +86,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         _document.Project.Solution,
                         _state.TypeToGenerateIn,
                         method,
-                        new CodeGenerationOptions(afterThisLocation: _state.Location, parseOptions: syntaxTree.Options),
+                        new CodeGenerationOptions(afterThisLocation: _state.Location, generateMethodBodies: !IsInterface(_state.TypeToGenerateIn), parseOptions: syntaxTree.Options),
                         cancellationToken)
                         .ConfigureAwait(false);
 
                     return result;
                 }
+
+                bool IsInterface(INamedTypeSymbol symbol) => symbol.TypeKind == TypeKind.Interface;
             }
 
             public override string Title
