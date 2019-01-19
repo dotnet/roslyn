@@ -3,8 +3,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepositoryEngineeringDir)targets\GenerateCompilerExecutableBindingRedirects.targets" />
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Exe</OutputType>
     <RootNamespace>CSharpInteractive</RootNamespace>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
@@ -16,8 +14,6 @@
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
   </ItemGroup>
