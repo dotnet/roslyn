@@ -2506,5 +2506,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, default(BlockSyntax), expressionBody);
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
                 => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, keyword, default(BlockSyntax), expressionBody, semicolonToken);
+
+        /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
+        public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            return PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword: default, errorCodes, endOfDirectiveToken, isActive);
+        }
+
+        /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
+        public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            return PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword, errorCodes: default, endOfDirectiveToken, isActive);
+        }
     }
 }

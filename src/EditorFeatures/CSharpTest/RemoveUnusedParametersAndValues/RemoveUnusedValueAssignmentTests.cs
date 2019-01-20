@@ -1835,8 +1835,7 @@ $@"class C
         switch (p)
         {
             case int _:
-                int x;
-                x = 1;
+                int x = 1;
                 break;
         };
     }
@@ -1970,6 +1969,129 @@ $@"class C
         }}
     }}
 }}", optionName: optionName);
+        }
+
+        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInRecursivePattern_WithNoReference_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p1, object p2)
+    {
+        var isZero = (p1, p2) switch { (0, 0) => true, (int [|x1|], int x2) => false };
+    }
+}",
+@"class C
+{
+    void M(object p1, object p2)
+    {
+        var isZero = (p1, p2) switch { (0, 0) => true, (int _, int x2) => false };
+    }
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInRecursivePattern_WithNoReference_PreferUnusedLocal()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p1, object p2)
+    {
+        var isZero = (p1, p2) switch { (0, 0) => true, (int [|x1|], int x2) => false };
+    }
+}", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInRecursivePattern_WithOnlyWriteReference_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p1, object p2)
+    {
+        var isZero = (p1, p2) switch { (0, 0) => true, (int [|x1|], int x2) => M2(out x1) };
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return false;
+    }
+}",
+@"class C
+{
+    void M(object p1, object p2)
+    {
+        int x1;
+        var isZero = (p1, p2) switch { (0, 0) => true, (int _, int x2) => M2(out x1) };
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return false;
+    }
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInRecursivePattern_WithOnlyWriteReference_PreferUnusedLocal()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p1, object p2)
+    {
+        var isZero = (p1, p2) switch { (0, 0) => true, (int [|x1|], int x2) => M2(out x1) };
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return false;
+    }
+}", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard), "_")]
+        [InlineData(nameof(PreferUnusedLocal), "unused")]
+        public async Task DeclarationPatternInRecursivePattern_WithReadAndWriteReference(string optionName, string fix)
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p1, object p2)
+    {
+        var isZero = (p1, p2) switch { (0, 0) => true, (int [|x1|], int x2) => M2(x1 = 0) && M2(x1) };
+    }
+
+    bool M2(int x)
+    {
+        return false;
+    }
+}",
+$@"class C
+{{
+    void M(object p1, object p2)
+    {{
+        int x1;
+        var isZero = (p1, p2) switch {{ (0, 0) => true, (int {fix}, int x2) => M2(x1 = 0) && M2(x1) }};
+    }}
+
+    bool M2(int x)
+    {{
+        return false;
+    }}
+}}", optionName: optionName, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
@@ -3888,8 +4010,7 @@ $@"class C
         switch (p)
         {{
             case int {fix}:
-                int x;
-                x = 1;
+                int x = 1;
                 p = x;
                 break;
         }}
@@ -4852,8 +4973,7 @@ $@"class C
         switch(flag)
         {
             case 0:
-                int x;
-                x = 1;
+                int x = 1;
                 return x;
 
             default:
@@ -4896,9 +5016,8 @@ $@"class C
         switch(flag)
         {{
             case 0:
-                int x;
                 {fix} = M2();
-                x = 1;
+                int x = 1;
                 return x;
 
             default:

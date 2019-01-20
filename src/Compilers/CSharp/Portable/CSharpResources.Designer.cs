@@ -6307,6 +6307,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Method &apos;{0}&apos; with an iterator block must be &apos;async&apos; to return &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_IteratorMustBeAsync {
+            get {
+                return ResourceManager.GetString("ERR_IteratorMustBeAsync", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No such label &apos;{0}&apos; within the scope of the goto statement.
         /// </summary>
         internal static string ERR_LabelNotFound {
@@ -11375,6 +11384,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to warning action enable or safeonly.
+        /// </summary>
+        internal static string IDS_FeaturePragmaWarningEnableOrSafeOnly {
+            get {
+                return ResourceManager.GetString("IDS_FeaturePragmaWarningEnableOrSafeOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to private protected.
         /// </summary>
         internal static string IDS_FeaturePrivateProtected {
@@ -14248,7 +14266,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected disable or restore.
+        ///   Looks up a localized string similar to Expected disable, restore, enable or safeonly.
         /// </summary>
         internal static string WRN_IllegalPPWarning {
             get {
@@ -14257,11 +14275,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected disable or restore after #pragma warning.
+        ///   Looks up a localized string similar to Expected disable, restore, enable or safeonly after #pragma warning.
         /// </summary>
         internal static string WRN_IllegalPPWarning_Title {
             get {
                 return ResourceManager.GetString("WRN_IllegalPPWarning_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected nullable.
+        /// </summary>
+        internal static string WRN_IllegalPPWarningSafeOnly {
+            get {
+                return ResourceManager.GetString("WRN_IllegalPPWarningSafeOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected nullable after #pragma warning safeonly.
+        /// </summary>
+        internal static string WRN_IllegalPPWarningSafeOnly_Title {
+            get {
+                return ResourceManager.GetString("WRN_IllegalPPWarningSafeOnly_Title", resourceCulture);
             }
         }
         

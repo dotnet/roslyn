@@ -1571,6 +1571,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode WhileStatement(SyntaxNode condition, IEnumerable<SyntaxNode> statements);
 
+        /// <summary>
+        /// Creates a block of statements. Not supported in VB.
+        /// </summary>
+        internal abstract SyntaxNode ScopeBlock(IEnumerable<SyntaxNode> statements);
+
         #endregion
 
         #region Expressions

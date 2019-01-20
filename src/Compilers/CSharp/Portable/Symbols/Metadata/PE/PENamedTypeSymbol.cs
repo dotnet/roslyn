@@ -629,13 +629,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     MightContainExtensionMethods ? AttributeDescription.CaseSensitiveExtensionAttribute : default,
                     out _,
                     // Filter out [Obsolete], unless it was user defined
-                    (IsByRefLikeType && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
+                    (IsRefLikeType && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
                     out _,
                     // Filter out [IsReadOnly]
                     IsReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
                     out _,
                     // Filter out [IsByRefLike]
-                    IsByRefLikeType ? AttributeDescription.IsByRefLikeAttribute : default);
+                    IsRefLikeType ? AttributeDescription.IsByRefLikeAttribute : default);
 
                 ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
             }
@@ -2041,7 +2041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return (_flags & TypeAttributes.Serializable) != 0; }
         }
 
-        internal override bool IsByRefLikeType
+        public override bool IsRefLikeType
         {
             get
             {
@@ -2162,7 +2162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return null;
                 }
 
-                bool ignoreByRefLikeMarker = this.IsByRefLikeType;
+                bool ignoreByRefLikeMarker = this.IsRefLikeType;
                 ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref uncommon.lazyObsoleteAttributeData, _handle, ContainingPEModule, ignoreByRefLikeMarker);
                 return uncommon.lazyObsoleteAttributeData;
             }

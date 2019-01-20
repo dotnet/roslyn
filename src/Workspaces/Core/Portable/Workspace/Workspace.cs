@@ -52,27 +52,6 @@ namespace Microsoft.CodeAnalysis
         private Action<string> _testMessageLogger;
 
         /// <summary>
-        /// <see cref="OnProjectRemoved"/> takes the <see cref="_serializationLock"/>, but can also
-        /// cause Shared Project IVsHierarchys to notify us that their context hierarchy has
-        /// changed while we are still holding the lock. In response to this, we try to set the new
-        /// active context document for open files, which also tries to take the lock, and we
-        /// deadlock.
-        ///
-        /// For.NET Framework Projects that reference Shared Projects, two things prevent deadlocks
-        /// when projects unload. During solution close, any Shared Projects are disconnected
-        /// before the projects start to unload, so no IVsHierarchy events are fired. During a
-        /// single project unload, we receive notification of the context hierarchy change before
-        /// the project is unloaded, avoiding any IVsHierarchy events if we tell the shared
-        /// hierarchy to set its context hierarchy to what it already is.
-        ///
-        /// Neither of these behaviors are safe to rely on with .NET Standard (CPS) projects, so we
-        /// have to prevent the deadlock ourselves. We do this by remembering if we're already in
-        /// the serialization lock due to project unload, and then not take the lock to update
-        /// document contexts if so (but continuing to lock if it's not during a project unload).
-        /// </summary>
-        private ThreadLocal<bool> _isProjectUnloading = new ThreadLocal<bool>(() => false);
-
-        /// <summary>
         /// Constructs a new workspace instance.
         /// </summary>
         /// <param name="host">The <see cref="HostServices"/> this workspace uses</param>
@@ -432,24 +411,15 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
-                _isProjectUnloading.Value = true;
+                CheckProjectIsInCurrentSolution(projectId);
+                this.CheckProjectCanBeRemoved(projectId);
 
-                try
-                {
-                    CheckProjectIsInCurrentSolution(projectId);
-                    this.CheckProjectCanBeRemoved(projectId);
+                var oldSolution = this.CurrentSolution;
 
-                    var oldSolution = this.CurrentSolution;
+                this.ClearProjectData(projectId);
+                var newSolution = this.SetCurrentSolution(oldSolution.RemoveProject(projectId));
 
-                    this.ClearProjectData(projectId);
-                    var newSolution = this.SetCurrentSolution(oldSolution.RemoveProject(projectId));
-
-                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectRemoved, oldSolution, newSolution, projectId);
-                }
-                finally
-                {
-                    _isProjectUnloading.Value = false;
-                }
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectRemoved, oldSolution, newSolution, projectId);
             }
         }
 
@@ -1122,7 +1092,9 @@ namespace Microsoft.CodeAnalysis
         private void CheckAllowedProjectChanges(ProjectChanges projectChanges)
         {
             if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions
-                && !this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions))
+                && !this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions)
+                && !this.CanApplyCompilationOptionChange(
+                    projectChanges.OldProject.CompilationOptions, projectChanges.NewProject.CompilationOptions, projectChanges.NewProject))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_compilation_options_is_not_supported);
             }
@@ -1211,6 +1183,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+
+        protected virtual bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, Project project)
+            => false;
 
         protected virtual bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
             => false;
