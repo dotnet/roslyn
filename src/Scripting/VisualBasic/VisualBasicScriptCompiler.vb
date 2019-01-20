@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
                     optionExplicit:=True,
                     optionCompareText:=False,
                     embedVbCoreRuntime:=False,
-                    checkOverflow:=False,
+                    checkOverflow:=script.Options.CheckOverflow,
                     xmlReferenceResolver:=Nothing, ' don't support XML file references in interactive (permissions & doc comment includes)
                     sourceReferenceResolver:=SourceFileResolver.Default,
                     metadataReferenceResolver:=script.Options.MetadataResolver,

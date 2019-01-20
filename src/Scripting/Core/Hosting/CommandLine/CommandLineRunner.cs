@@ -155,7 +155,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 metadataResolver: metadataResolver,
                 sourceResolver: sourceResolver,
                 emitDebugInformation: emitDebugInformation,
-                fileEncoding: null);
+                fileEncoding: null,
+                optimizationLevel: OptimizationLevel.Debug,
+                allowUnsafe: true,
+                checkOverflow: false,
+                warningLevel: 4);
         }
 
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)

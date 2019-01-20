@@ -167,6 +167,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         }
 
         [Fact]
+
         public void WithFileEncoding_SetsWithFileEncoding()
         {
             var options = ScriptOptions.Default.WithFileEncoding(Encoding.ASCII);
@@ -178,6 +179,84 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         {
             var options = ScriptOptions.Default.WithFileEncoding(Encoding.ASCII);
             Assert.Same(options, options.WithFileEncoding(Encoding.ASCII));
+        }
+
+        [Fact]
+        public void WithAllowUnsafe_SetsAllowUnsafe()
+        {
+            Assert.True(ScriptOptions.Default.WithAllowUnsafe(true).AllowUnsafe);
+            Assert.False(ScriptOptions.Default.WithAllowUnsafe(false).AllowUnsafe);
+            Assert.True(ScriptOptions.Default.AllowUnsafe);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void WithAllowUnsafe_SameValueTwice_DoesNotCreateNewInstance(bool allowUnsafe)
+        {
+            var options = ScriptOptions.Default.WithAllowUnsafe(allowUnsafe);
+            Assert.Same(options, options.WithAllowUnsafe(allowUnsafe));
+        }
+
+
+        [Fact]
+        public void WithCheckOverflow_SetsCheckOverflow()
+        {
+            Assert.True(ScriptOptions.Default.WithCheckOverflow(true).CheckOverflow);
+            Assert.False(ScriptOptions.Default.WithCheckOverflow(false).CheckOverflow);
+            Assert.False(ScriptOptions.Default.CheckOverflow);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void WithCheckOverflow_SameValueTwice_DoesNotCreateNewInstance(bool checkOverflow)
+        {
+            var options = ScriptOptions.Default.WithCheckOverflow(checkOverflow);
+            Assert.Same(options, options.WithCheckOverflow(checkOverflow));
+        }
+
+        [Theory]
+        [InlineData(OptimizationLevel.Debug)]
+        [InlineData(OptimizationLevel.Release)]
+        public void WithOptimizationLevel_SetsOptimizationLevel(OptimizationLevel optimizationLevel)
+        {
+            Assert.Equal(ScriptOptions.Default.WithOptimizationLevel(optimizationLevel).OptimizationLevel, optimizationLevel);
+            Assert.Equal(ScriptOptions.Default.OptimizationLevel, OptimizationLevel.Debug);
+        }
+
+        [Theory]
+        [InlineData(OptimizationLevel.Debug)]
+        [InlineData(OptimizationLevel.Release)]
+        public void WithOptimizationLevel_SameValueTwice_DoesNotCreateNewInstance(OptimizationLevel optimizationLevel)
+        {
+            var options = ScriptOptions.Default.WithOptimizationLevel(optimizationLevel);
+            Assert.Same(options, options.WithOptimizationLevel(optimizationLevel));
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        [InlineData(4)]
+        public void WithWarningLevel_SetsWarningLevel(int warningLevel)
+        {
+            Assert.Equal(ScriptOptions.Default.WithWarningLevel(warningLevel).WarningLevel, warningLevel);
+            Assert.Equal(ScriptOptions.Default.WarningLevel, 4);
+        }
+
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        [InlineData(4)]
+        public void WithWarningLevel_SameValueTwice_DoesNotCreateNewInstance(int warningLevel)
+        {
+            var options = ScriptOptions.Default.WithWarningLevel(warningLevel);
+            Assert.Same(options, options.WithWarningLevel(warningLevel));
         }
     }
 }
