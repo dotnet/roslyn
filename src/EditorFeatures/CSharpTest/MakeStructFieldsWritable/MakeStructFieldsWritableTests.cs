@@ -337,5 +337,133 @@ struct MyStruct2
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        public async Task NestedStructDeclaration_SingleNestedReadonlyField_ThisAssigmentInMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct MyStruct
+{
+    public readonly int Value;
+
+    public MyStruct(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        this = new MyStruct(5);
+    }
+
+    struct [|NestedStruct|]
+    {
+        public readonly int NestedValue;
+
+        public NestedStruct(int nestedValue)
+        {
+            NestedValue = nestedValue;
+        }
+
+        public void Test()
+        {
+            this = new NestedStruct(5);
+        }
+    }
+}",
+@"struct MyStruct
+{
+    public readonly int Value;
+
+    public MyStruct(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        this = new MyStruct(5);
+    }
+
+    struct NestedStruct
+    {
+        public int NestedValue;
+
+        public NestedStruct(int nestedValue)
+        {
+            NestedValue = nestedValue;
+        }
+
+        public void Test()
+        {
+            this = new NestedStruct(5);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        public async Task NestedStructDeclaration_SingleReadonlyField_ThisAssigmentInMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct [|MyStruct|]
+{
+    public readonly int Value;
+
+    public MyStruct(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        this = new MyStruct(5);
+    }
+
+    struct NestedStruct
+    {
+        public readonly int NestedValue;
+
+        public NestedStruct(int nestedValue)
+        {
+            NestedValue = nestedValue;
+        }
+
+        public void Test()
+        {
+            this = new NestedStruct(5);
+        }
+    }
+}",
+@"struct MyStruct
+{
+    public int Value;
+
+    public MyStruct(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        this = new MyStruct(5);
+    }
+
+    struct NestedStruct
+    {
+        public readonly int NestedValue;
+
+        public NestedStruct(int nestedValue)
+        {
+            NestedValue = nestedValue;
+        }
+
+        public void Test()
+        {
+            this = new NestedStruct(5);
+        }
+    }
+}");
+        }
     }
 }
