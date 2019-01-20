@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 {
@@ -71,7 +73,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override AnalyzedNode VisitIsPatternExpression(IsPatternExpressionSyntax node)
             {
-                return new PatternMatch(node.Expression, new SourcePattern(node.Pattern));
+                return new PatternMatch(node.Expression, Visit(node.Pattern));
+            }
+
+            public override AnalyzedNode VisitConstantPattern(ConstantPatternSyntax node)
+            {
+                return new ConstantPattern(node.Expression);
+            }
+
+            public override AnalyzedNode VisitDeclarationPattern(DeclarationPatternSyntax node)
+            {
+                switch (node.Designation)
+                {
+                    case SingleVariableDesignationSyntax n:
+                        return new Conjuction(new TypePattern(node.Type), new VarPattern(n.Identifier));
+
+                    case DiscardDesignationSyntax n:
+                        return new TypePattern(node.Type);
+
+                    case ParenthesizedVariableDesignationSyntax n:
+                        throw new NotImplementedException();
+
+                    case var value:
+                        throw ExceptionUtilities.UnexpectedValue(value);
+                }
+            }
+
+            public override AnalyzedNode VisitVarPattern(VarPatternSyntax node)
+            {
+                switch (node.Designation)
+                {
+                    case SingleVariableDesignationSyntax n:
+                        return new VarPattern(n.Identifier);
+                }
+
+                return null;
+            }
+
+            public override AnalyzedNode VisitRecursivePattern(RecursivePatternSyntax node)
+            {
+                throw new NotImplementedException();
             }
 
             public override AnalyzedNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
@@ -87,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override AnalyzedNode VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
             {
-                if (node.IsKind(SyntaxKind.LogicalNotExpression) && 
+                if (node.IsKind(SyntaxKind.LogicalNotExpression) &&
                     AnalyzeLeftOfPatternMatch(node.Operand))
                 {
                     return new PatternMatch(node.Operand,

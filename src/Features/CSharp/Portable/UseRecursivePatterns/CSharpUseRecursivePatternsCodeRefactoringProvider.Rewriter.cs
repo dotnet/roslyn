@@ -108,11 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return DeclarationPattern(node.Type, DiscardDesignation());
             }
 
-            public override SyntaxNode VisitSourcePattern(SourcePattern node)
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-
             public override SyntaxNode VisitNotNullPattern(NotNullPattern node)
             {
                 return RecursivePattern(null, null, PropertyPatternClause(SeparatedList<SubpatternSyntax>()), null);

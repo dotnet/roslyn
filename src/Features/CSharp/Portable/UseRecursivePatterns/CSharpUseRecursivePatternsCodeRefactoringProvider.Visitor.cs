@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             public abstract T VisitConjuction(Conjuction node);
             public abstract T VisitConstantPattern(ConstantPattern node);
             public abstract T VisitTypePattern(TypePattern node);
-            public abstract T VisitSourcePattern(SourcePattern node);
             public abstract T VisitNotNullPattern(NotNullPattern node);
             public abstract T VisitVarPattern(VarPattern node);
         }

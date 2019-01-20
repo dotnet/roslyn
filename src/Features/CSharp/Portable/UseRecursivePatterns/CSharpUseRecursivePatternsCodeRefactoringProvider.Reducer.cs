@@ -49,30 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 }
             }
 
-            public override AnalyzedNode VisitSourcePattern(SourcePattern node)
-            {
-                switch (node.Pattern)
-                {
-                    case ConstantPatternSyntax n:
-                        return new ConstantPattern(n.Expression);
-
-                    case DeclarationPatternSyntax n when n.Designation is DiscardDesignationSyntax:
-                        return new TypePattern(n.Type);
-
-                    case DeclarationPatternSyntax n when n.Designation is SingleVariableDesignationSyntax d:
-                        return new Conjuction(new TypePattern(n.Type), new VarPattern(d.Identifier));
-
-                    case VarPatternSyntax n when n.Designation is SingleVariableDesignationSyntax d:
-                        return new VarPattern(d.Identifier);
-
-                    case RecursivePatternSyntax n:
-                        throw new NotImplementedException();
-
-                    case var value:
-                        throw ExceptionUtilities.UnexpectedValue(value);
-                }
-            }
-
             public override AnalyzedNode VisitConstantPattern(ConstantPattern node) => node;
             public override AnalyzedNode VisitNotNullPattern(NotNullPattern node) => node;
             public override AnalyzedNode VisitTypePattern(TypePattern node) => node;
