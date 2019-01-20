@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DiagnosticBag diagnostics)
             {
                 var methodsConvertedToDelegates = PooledHashSet<MethodSymbol>.GetInstance();
-                var (scopeTree, containsGoTos) = ScopeTreeBuilder.Build(
+                var scopeTree = ScopeTreeBuilder.Build(
                     node,
                     method,
                     methodsConvertedToDelegates,
@@ -87,11 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 analysis.MakeAndAssignEnvironments();
                 analysis.ComputeLambdaScopesAndFrameCaptures();
-                // for now we don't analyze jumps to check if they are safe to optimize.
-                if (!containsGoTos)
-                {
-                    analysis.MergeEnvironments();
-                }
+                analysis.MergeEnvironments();
                 analysis.InlineThisOnlyEnvironments();
                 return analysis;
             }
@@ -423,48 +419,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var closuresCapturingScopeVariables = CalculateClosuresCapturingScopeVariables();
 
                 // now we merge environments into their parent environments if it is safe to do so
-                foreach (var (scope, capturingClosures) in closuresCapturingScopeVariables)
+                foreach (var (scope, closuresCapturingScope) in closuresCapturingScopeVariables)
                 {
-                    if (capturingClosures.Count == 0)
+                    if (closuresCapturingScope.Count == 0)
                         continue;
 
                     var scopeEnv = scope.DeclaredEnvironments[0];
+
+                    // structs don't allocate, so no point merging them
                     if (scopeEnv.IsStruct)
                         continue;
 
                     var bestScope = scope;
                     var currentScope = scope;
 
+                    // Walk up the scope tree, checking at each point if it is:
+                    // a) semantically safe to merge the scope's environment into it's parent scope's environment
+                    // b) doing so would not change GC behaviour
+                    // Once either of these conditions fails, we merge into the closure environment furthest up the scope tree we've found so far
                     while (currentScope.Parent != null)
                     {
-                        if (!semanticallySafeToUseParentEvironment(currentScope))
+                        if (!currentScope.SemanticallySafeToMergeIntoParent)
                             break;
 
                         var parentScope = currentScope.Parent;
 
-                        if (!closuresCapturingScopeVariables.TryGetValue(parentScope, out var parentCapturingClosures)
-                            || parentScope.DeclaredEnvironments.Count == 0)
+                        // Right now we only create one environment per scope
+                        Debug.Assert(parentScope.DeclaredEnvironments.Count < 2);
+
+                        // we skip any scopes which do not have any captured variables, and try to merge into the parent scope instead.
+                        // We also skip any struct environments as they don't allocate, so no point merging them
+                        if (parentScope.DeclaredEnvironments.Count == 0 || parentScope.DeclaredEnvironments[0].IsStruct)
                         {
                             currentScope = parentScope;
                             continue;
                         }
 
+                        var closuresCapturingParentScope = closuresCapturingScopeVariables[parentScope];
+
                         // if more closures reference one scope's environments than the other scope's environments,
                         // then merging the two environments would increase the number of objects referencing some variables, 
                         // which may prevent the variables being garbage collected.
-                        if (!parentCapturingClosures.SetEquals(capturingClosures))
+                        if (!closuresCapturingParentScope.SetEquals(closuresCapturingScope))
                             break;
 
-                        // Right now we only create one environment per scope
-                        Debug.Assert(parentScope.DeclaredEnvironments.Count == 1);
-                        if (!parentScope.DeclaredEnvironments[0].IsStruct)
-                            bestScope = parentScope;
+                        bestScope = parentScope;
 
                         currentScope = parentScope;
                     }
 
-                    if (bestScope == scope)
+
+                    if (bestScope == scope) // no better scope was found, so continue
                         continue;
+
+                    // do the actual work of merging the closure environments
 
                     var targetEnv = bestScope.DeclaredEnvironments[0];
 
@@ -475,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     scope.DeclaredEnvironments.Clear();
 
-                    foreach (var closure in capturingClosures)
+                    foreach (var closure in closuresCapturingScope)
                     {
                         closure.CapturedEnvironments.Remove(scopeEnv);
 
@@ -489,8 +497,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             closure.ContainingEnvironmentOpt = targetEnv;
                         }
                     }
-
-                    capturingClosures.Clear();
                 }
 
                 // cleanup
@@ -500,68 +506,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 closuresCapturingScopeVariables.Free();
-
-                // Checks if (aside from GOTOs) it is semantically safe to merge a capture environment into it's parent's scope's capture environments.
-                // So long as the scopes are passed through in a linear fashion it is always safe to do so. Only looping construct (for, foreach, while, do-while) require special rules.
-                bool semanticallySafeToUseParentEvironment(Scope scope)
-                {
-                    switch (scope.BoundNode.Syntax.Kind())
-                    {
-                        case SyntaxKind.ForEachStatement:
-                        case SyntaxKind.WhileStatement:
-                            return false;
-                        case SyntaxKind.ForStatement:
-                            // Check if this is the initializer (which can be moved to the parent scope) or the condition/iterator (which cannot)
-                            // To do so, we check if the variables declared in the scope appear before the first semicolon, or after the first semicolon in the for statement
-                            var forStatement = (ForStatementSyntax)scope.BoundNode.Syntax;
-                            var variables = scope.DeclaredVariables;
-
-                            // A closure cannot capture a scope unless it contains some variables
-                            Debug.Assert(variables.Count > 0);
-                            var declaration = variables[0].DeclaringSyntaxReferences;
-
-                            // A local can only be declared in one location
-                            Debug.Assert(declaration.Length == 1);
-                            if (forStatement.FirstSemicolonToken.Span.Start < declaration[0].Span.End)
-                            {
-                                return false;
-                            }
-                            goto default;
-                        default:
-                            // walk up the syntax tree till you reach the parent scope, and make sure no backwards jumps occur along the way
-                            var currentSyntaxNode = scope.BoundNode.Syntax.Parent;
-                            if(currentSyntaxNode == null)
-                            {
-                                throw ExceptionUtilities.Unreachable;
-                            }
-                            while (currentSyntaxNode.Position >= scope.Parent.BoundNode.Syntax.Position)
-                            {
-                                var kind = currentSyntaxNode.Kind();
-                                if (kind == SyntaxKind.DoStatement || kind == SyntaxKind.ForStatement)
-                                {
-                                    return false;
-                                }
-                                if (kind == SyntaxKind.WhileStatement && currentSyntaxNode.Position > scope.Parent.BoundNode.Syntax.Position)
-                                {
-                                    return false;
-                                }
-
-                                if (currentSyntaxNode.Parent == null)
-                                {
-                                    if (currentSyntaxNode.Position == scope.Parent.BoundNode.Syntax.Position)
-                                    {
-                                        return true;
-                                    }
-
-                                    throw ExceptionUtilities.Unreachable;
-                                }
-
-                                currentSyntaxNode = currentSyntaxNode.Parent;
-                            }
-
-                            return true;
-                    }
-                }
             }
 
             internal DebugId GetTopLevelMethodId()
