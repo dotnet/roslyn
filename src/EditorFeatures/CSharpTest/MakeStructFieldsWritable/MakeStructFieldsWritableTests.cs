@@ -49,6 +49,50 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        public async Task SingleReadonlyField_ThisAssigmentInMultipleMethods()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct [|MyStruct|]
+{
+    public readonly int Value;
+
+    public MyStruct(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        this = new MyStruct(5);
+    }
+
+    public void Test2()
+    {
+        this = new MyStruct(10);
+    }
+}",
+@"struct MyStruct
+{
+    public int Value;
+
+    public MyStruct(int value)
+    {
+        Value = value;
+    }
+
+    public void Test()
+    {
+        this = new MyStruct(5);
+    }
+
+    public void Test2()
+    {
+        this = new MyStruct(10);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task SingleNonReadonlyField_ThisAssigmentInMethod()
         {
             await TestDiagnosticMissingAsync(
