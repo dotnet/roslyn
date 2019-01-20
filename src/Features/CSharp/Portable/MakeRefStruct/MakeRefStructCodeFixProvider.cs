@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal class CSharpMakeRefStructCodeFixProvider : CodeFixProvider
+    internal class MakeRefStructCodeFixProvider : CodeFixProvider
     {
         // Error CS8345: Field or auto-implemented property cannot be of certain type unless it is an instance member of a ref struct.
         private const string CS8345 = nameof(CS8345);
@@ -33,11 +33,19 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var structDeclaration = FindContainingStruct(root, span);
 
+            if (structDeclaration == null)
+            {
+                return;
+            }
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var structDeclarationSymbol = semanticModel.GetDeclaredSymbol(structDeclaration, cancellationToken);
+
             // CS8345 could be triggered when struct is already marked with `ref` but a property is static
-            if (structDeclaration != null && !structDeclaration.Modifiers.Any(SyntaxKind.RefKeyword))
+            if (!structDeclarationSymbol.IsRefLikeType)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(c => FixCodeAsync(document, span, c)),
+                    new MyCodeAction(c => FixCodeAsync(document, structDeclaration, c)),
                     context.Diagnostics);
             }
         }
@@ -48,12 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
             return null;
         }
 
-        private async Task<Document> FixCodeAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        private static async Task<Document> FixCodeAsync(
+            Document document, 
+            StructDeclarationSyntax structDeclaration, 
+            CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var gen = SyntaxGenerator.GetGenerator(document);
-
-            var structDeclaration = FindContainingStruct(root, span);
+            
             var newStruct = gen.WithModifiers(structDeclaration, gen.GetModifiers(structDeclaration).WithIsRef(true));
             var newRoot = root.ReplaceNode(structDeclaration, newStruct);
 

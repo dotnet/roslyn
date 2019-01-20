@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeRefStruct
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3);
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpMakeRefStructCodeFixProvider());
+            => (null, new MakeRefStructCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
         [WorkItem(31831, "https://github.com/dotnet/roslyn/issues/31831")]
@@ -261,6 +261,77 @@ namespace System
 ref struct S
 {
     static Span<int> M { get; }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        [WorkItem(31831, "https://github.com/dotnet/roslyn/issues/31831")]
+        public async Task PartialByRefStruct()
+        {
+            var text = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
+ref partial struct S
+{
+}
+
+struct S
+{
+    Span<int>[||] M { get; }
+}
+";
+            await TestMissingInRegularAndScriptAsync(text, new TestParameters(s_parseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        [WorkItem(31831, "https://github.com/dotnet/roslyn/issues/31831")]
+        public async Task PartialStruct()
+        {
+            var text = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
+partial struct S
+{
+}
+
+partial struct S
+{
+    static Span<int>[||] M { get; }
+}
+";
+            var expected = @"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length) { }
+    }
+}
+
+partial struct S
+{
+}
+
+ref partial struct S
+{
+    static Span<int>[||] M { get; }
 }
 ";
             await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
