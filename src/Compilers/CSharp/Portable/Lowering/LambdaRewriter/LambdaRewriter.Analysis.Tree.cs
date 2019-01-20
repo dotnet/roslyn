@@ -298,17 +298,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly HashSet<MethodSymbol> _methodsConvertedToDelegates;
                 private readonly DiagnosticBag _diagnostics;
 
+                private static readonly ObjectPool<List<Scope>> s_scopeListObjectPool = new ObjectPool<List<Scope>>(() => new List<Scope>());
+
                 /// <summary>
                 /// For every label visited so far, this dictionary maps to a list of all scopes either visited so far, or currently being visited,
                 /// that are both after the label, and are on the same level of the scope tree as the label.
                 /// </summary>
                 private readonly PooledDictionary<LabelSymbol, List<Scope>> _scopesAfterLabel = PooledDictionary<LabelSymbol, List<Scope>>.GetInstance();
 
+                private static readonly ObjectPool<List<LabelSymbol>> s_labelListObjectPool = new ObjectPool<List<LabelSymbol>>(() => new List<LabelSymbol>());
+
+                private static readonly ObjectPool<Stack<List<LabelSymbol>>> s_stackObjectPool = new ObjectPool<Stack<List<LabelSymbol>>>(() => new Stack<List<LabelSymbol>>());
+
                 /// <summary>
                 /// Contains a list of the labels visited so far for each scope. 
                 /// The stack represents the chain of scopes from the root scope to the current scope.
                 /// </summary>
-                private readonly Stack<List<LabelSymbol>> _labelsInScope = new Stack<List<LabelSymbol>>();
+                private readonly Stack<List<LabelSymbol>> _labelsInScope = s_stackObjectPool.Allocate();
 
                 internal Scope CurrentScope
                 {
@@ -341,22 +347,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 _scopesAfterLabel[label].Add(childScope);
                             }
 
-                            _labelsInScope.Push(new List<LabelSymbol>());
+                            _labelsInScope.Push(s_labelListObjectPool.Allocate());
 
                             _currentScope = childScope;
                         }
 
                         void moveToParentScope()
                         {
-                            // Since you cannot jump into a scope we can forget all information we have about labels in the child scope
+                            // Since it is forbidden to jump into a scope, 
+                            // we can forget all information we have about labels in the child scope
 
                             var labels = _labelsInScope.Pop();
 
                             foreach (var label in labels)
                             {
-                                // allows the list of scopes to be garbage collected, and keeps the dictionary small
+                                var scopes = _scopesAfterLabel[label];
+                                scopes.Clear();
+                                s_scopeListObjectPool.Free(scopes);
                                 _scopesAfterLabel.Remove(label);
                             }
+                            labels.Clear();
+                            s_labelListObjectPool.Free(labels);
 
                             _currentScope = _currentScope.Parent;
                         }
@@ -375,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(diagnostics != null);
 
                     _currentScope = rootScope;
-                    _labelsInScope.Push(new List<LabelSymbol>());
+                    _labelsInScope.Push(s_labelListObjectPool.Allocate());
                     _topLevelMethod = topLevelMethod;
                     _methodsConvertedToDelegates = methodsConvertedToDelegates;
                     _diagnostics = diagnostics;
@@ -413,7 +424,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Visit(CurrentScope.BoundNode);
 
+                    // Clean Up Resources
+
+                    foreach (var scopes in _scopesAfterLabel.Values)
+                    {
+                        scopes.Clear();
+                        s_scopeListObjectPool.Free(scopes);
+                    }
                     _scopesAfterLabel.Free();
+
+                    Debug.Assert(_labelsInScope.Count == 1);
+                    var labels = _labelsInScope.Pop();
+                    labels.Clear();
+                    s_labelListObjectPool.Free(labels);
+                    s_stackObjectPool.Free(_labelsInScope);
                 }
 
                 public override BoundNode VisitMethodGroup(BoundMethodGroup node)
@@ -527,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode VisitLabelStatement(BoundLabelStatement node)
                 {
                     _labelsInScope.Peek().Add(node.Label);
-                    _scopesAfterLabel.Add(node.Label, new List<Scope>());
+                    _scopesAfterLabel.Add(node.Label, s_scopeListObjectPool.Allocate());
                     return base.VisitLabelStatement(node);
                 }
 
